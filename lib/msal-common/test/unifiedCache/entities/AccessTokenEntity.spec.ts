@@ -15,6 +15,4 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
             "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3"
         );
     });
-
-
 });

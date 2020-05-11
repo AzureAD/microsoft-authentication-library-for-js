@@ -26,16 +26,30 @@ export class AccountEntity {
     lastModificationApp?: string;
 
     /**
+     * Generate Account Id key component as per the schema: <home_account_id>-<environment>
+     */
+    generateAccountId(): string {
+        const accountId: Array<string> = [this.homeAccountId, this.environment];
+        return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Generate Account Id key component as per the schema: <home_account_id>-<environment>
+     */
+    generateRealm(): string {
+        return (this.realm || "").toLowerCase();
+    }
+
+    /**
      * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
      */
-    public generateAccountEntityKey(): string {
-        const accountCacheKeyArray: Array<string> = [
-            this.homeAccountId,
-            this.environment,
-            this.realm
+    public generateAccountKey(): string {
+        const accountKey = [
+            this.generateAccountId(),
+            this.generateRealm()
         ];
 
-        return accountCacheKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**

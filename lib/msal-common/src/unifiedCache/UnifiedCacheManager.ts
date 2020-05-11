@@ -99,7 +99,7 @@ export class UnifiedCacheManager {
      * @param account
      */
     addAccountEntity(account: AccountEntity): void {
-        const accKey = account.generateAccountEntityKey();
+        const accKey = account.generateAccountKey();
         if (!this.inMemoryCache.accounts[accKey]) {
             this.inMemoryCache.accounts[accKey] = account;
         }
