@@ -1,6 +1,7 @@
 # 1.0.0-beta.2
 - Fixed an issue where types were not being exported from the correct location (#1613)
 - Fixed an issue where system configuration values were being overwritten with `undefined` (#1631)
+- Added support for sub-error codes from the eSTS service (#1533)
 
 # 1.0.0-beta.1
 - Fixed an issue where types are not exported correctly (#1517)
