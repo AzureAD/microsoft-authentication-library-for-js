@@ -1,7 +1,8 @@
 import { expect } from "chai";
-import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../../src/error/InteractionRequiredAuthError";
+import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage, InteractionRequiredAuthSubErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 import { ServerError } from "../../src/error/ServerError";
 import { AuthError } from "../../src/error/AuthError";
+import { IdToken } from "../../src/auth/IdToken";
 
 
 describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
@@ -29,24 +30,31 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
         });
 
         it("Returns expected value for given error code", () => {
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.interactionRequired.code, "")).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.consentRequired.code, "")).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.loginRequired.code, "")).to.be.true;
+            InteractionRequiredAuthErrorMessage.forEach(function (errorCode) {
+                expect(InteractionRequiredAuthError.isInteractionRequiredError(errorCode, "")).to.be.true;
+            });
             expect(InteractionRequiredAuthError.isInteractionRequiredError("bad_token", "")).to.be.false;
         });
 
         it("Returns expected value for given error string", () => {
-            expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${InteractionRequiredAuthErrorMessage.interactionRequired.code} error!`)).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${InteractionRequiredAuthErrorMessage.consentRequired.code} error!`)).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${InteractionRequiredAuthErrorMessage.loginRequired.code} error!`)).to.be.true;
+            InteractionRequiredAuthErrorMessage.forEach(function (errorCode) {
+                expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${errorCode} error!`)).to.be.true;
+            });
             expect(InteractionRequiredAuthError.isInteractionRequiredError("", "This is not an interaction required error")).to.be.false;
         });
 
         it("Returns expected value for given error code and error string", () => {
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.interactionRequired.code, `This is a ${InteractionRequiredAuthErrorMessage.interactionRequired.code} error!`)).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.consentRequired.code, `This is a ${InteractionRequiredAuthErrorMessage.consentRequired.code} error!`)).to.be.true;
-            expect(InteractionRequiredAuthError.isInteractionRequiredError(InteractionRequiredAuthErrorMessage.loginRequired.code, `This is a ${InteractionRequiredAuthErrorMessage.loginRequired.code} error!`)).to.be.true;
+            InteractionRequiredAuthErrorMessage.forEach(function (errorCode) {
+                expect(InteractionRequiredAuthError.isInteractionRequiredError(errorCode, `This is a ${errorCode} error!`)).to.be.true;
+            });
             expect(InteractionRequiredAuthError.isInteractionRequiredError("bad_token", "This is not an interaction required error")).to.be.false;
+        });
+
+        it("Returns expected value for given sub-error", () => {
+            InteractionRequiredAuthSubErrorMessage.forEach(function (subErrorCode) {
+                expect(InteractionRequiredAuthError.isInteractionRequiredError("", "", subErrorCode)).to.be.true;
+            });
+            expect(InteractionRequiredAuthError.isInteractionRequiredError("", "", "bad_token")).to.be.false;
         });
     });
 });
