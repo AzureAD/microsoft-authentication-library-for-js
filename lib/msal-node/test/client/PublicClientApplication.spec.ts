@@ -8,8 +8,8 @@ import {
     RefreshTokenClient,
     DeviceCodeRequest,
     RefreshTokenRequest,
-    ClientConfiguration,
-    ClientConfigurationError,
+    // ClientConfiguration,
+    // ClientConfigurationError,
 }
 from "@azure/msal-common";
 
