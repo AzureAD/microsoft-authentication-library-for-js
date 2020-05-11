@@ -253,7 +253,7 @@ export class BrowserStorage implements ICacheStorage {
     }
 
     /**
-     * Dummy implementation as temporary compiler fix
+     * Dummy implementation until browser cache is migrated
      */
     getCache(): InMemoryCache {
         return {
@@ -262,11 +262,11 @@ export class BrowserStorage implements ICacheStorage {
             accessTokens: {},
             refreshTokens: {},
             appMetadata: {}
-        }
+        };
     }
 
     /**
-     * Dummy implementation as temporary compiler fix
+     * Dummy implementation until browser cache is migrated
      */
     setCache() {
         // sets nothing
