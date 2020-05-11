@@ -12,7 +12,7 @@ import { CacheHelper } from "../utils/CacheHelper";
 import { AccountCacheMaps, IdTokenCacheMaps, AccessTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "../serialize/JsonKeys";
 import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, InMemoryCache, JsonCache } from "../utils/CacheTypes";
 import { StringDict } from "../../utils/MsalTypes";
-import { StringUtils } from '../../utils/StringUtils';
+import { StringUtils } from "../../utils/StringUtils";
 
 // TODO: Can we write this with Generics?
 export class Deserializer {
