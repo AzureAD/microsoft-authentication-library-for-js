@@ -49,6 +49,7 @@ export class CacheContext {
 
     /**
      * read the cache from storage and merge it with the current cache
+     * TODO: Make sure this operation is atomic - file lock that prevents anyone from changing it
      * @param storage
      */
     async syncCache(storage: Storage): Promise<JsonCache> {
