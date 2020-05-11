@@ -85,7 +85,7 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
                 null
             );
             tokenRequest.scopes.push(Constants.OFFLINE_ACCESS_SCOPE);
-            expect(tokenRequestParams.xClientVer).to.be.eq("1.0.0-beta.0");
+            expect(tokenRequestParams.xClientVer).to.be.eq("1.0.0-beta.1");
             expect(tokenRequestParams.xClientSku).to.be.eq(Constants.LIBRARY_NAME);
             expect(tokenRequestParams.correlationId).to.be.eq(corrId);
             expect(tokenRequestParams.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);

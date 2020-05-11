@@ -21,6 +21,7 @@ import { AuthorityType } from "../authority/AuthorityType";
 import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
+import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 
 /**
  * Class that handles response parsing.
@@ -56,11 +57,12 @@ export class ResponseHandler {
         }
 
         // Check for error
-        if (serverResponseHash.error || serverResponseHash.error_description) {
-            throw new ServerError(
-                serverResponseHash.error,
-                serverResponseHash.error_description
-            );
+        if (serverResponseHash.error || serverResponseHash.error_description || serverResponseHash.suberror) {
+            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror)) {
+                throw new InteractionRequiredAuthError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror);
+            }
+
+            throw new ServerError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror);
         }
 
         if (serverResponseHash.client_info) {
@@ -76,7 +78,11 @@ export class ResponseHandler {
         serverResponse: ServerAuthorizationTokenResponse
     ): void {
         // Check for error
-        if (serverResponse.error || serverResponse.error_description) {
+        if (serverResponse.error || serverResponse.error_description || serverResponse.suberror) {
+            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponse.error, serverResponse.error_description, serverResponse.suberror)) {
+                throw new InteractionRequiredAuthError(serverResponse.error, serverResponse.error_description, serverResponse.suberror);
+            }
+
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
             throw new ServerError(serverResponse.error, errString);
         }

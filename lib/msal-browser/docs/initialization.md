@@ -83,13 +83,19 @@ The popup APIs use ES6 Promises that resolve when the authentication flow in the
 - `loginRedirect`
 - `acquireTokenRedirect`
 
-The redirect APIs do not use Promises, but are `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, you **MUST** call the following function **IMMEDIATELY** after the constructor in order to process the returning fragment containing the code and response and obtain an access token:
+The redirect APIs do not use Promises, but are `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, be aware that there is a small delay after loading the MSAL object where the exchanging of the auth code for the token is occurring. You can use the following function to perform an action when this token exchange is completed:
 ```javascript
-msalInstance.handleRedirectCallback((error, response) => {
-    // handle redirect response or error
+msalInstance.handleRedirectPromise()
+.then((tokenResponse) => {
+    // Check if the tokenResponse is null
+    // If the tokenResponse !== null, then you are coming back from a successful authentication redirect. 
+    // If the tokenResponse === null, you are not coming back from an auth redirect.
+})
+.catch((error) => {
+    // handle error, either in the library or coming back from the server
 });
 ```
-This will also allow you to retrieve tokens on page reload.
+This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
 
 It is not recommended to use both interaction types in a single application.
 
