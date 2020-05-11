@@ -48,8 +48,8 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.networkClient).to.be.not.null.and.not.undefined;
         expect(emptyConfig.system.windowHashTimeout).to.be.not.null.and.not.undefined;
         expect(emptyConfig.system.windowHashTimeout).to.be.eq(DEFAULT_POPUP_TIMEOUT_MS);
-        expect(emptyConfig.system.tokenRenewalOffsetSeconds).to.be.undefined;
-        expect(emptyConfig.system.telemetry).to.be.undefined;
+        expect(emptyConfig.system.tokenRenewalOffsetSeconds).to.be.eq(300);
+        expect(emptyConfig.system.telemetry).to.be.null;
     });
 
     it("Tests default logger", () => {
