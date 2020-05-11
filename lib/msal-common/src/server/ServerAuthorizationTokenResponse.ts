@@ -34,6 +34,7 @@ export type ServerAuthorizationTokenResponse = {
     error?: string;
     error_description?: string;
     error_codes?: Array<string>;
+    suberror?: string;
     timestamp?: string;
     trace_id?: string;
     correlation_id?: string;

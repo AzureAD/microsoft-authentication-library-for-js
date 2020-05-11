@@ -17,7 +17,9 @@ MSAL uses a cache to store tokens based on specific parameters including scopes,
 It is best practice to attempt an `acquireTokenSilent` call before using the interactive APIs. This allows you to prevent unnecessary user interactions. 
 `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you.
 
-If the `acquireTokenSilent` call fails, you need to initiate an interactive request. This could happen for many reasons including scopes that have been revoked, expired tokens, or password changes.
+If the `acquireTokenSilent` call attempts a refresh token call and the refresh token is expired, MSAL will attempt to make a silent request in an iframe for a new authorization code. If your session still exists, you will obtain a new authorization code silently, which will be immediately traded for an access token. 
+
+If the silent iframe call for a new authorization code fails, you need to initiate an interactive request. This could happen for many reasons including scopes that have been revoked, expired tokens, or password changes. MSAL will throw a specific InteractionRequiredAuthError error type when this error occurs.
 
 You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md).
 
@@ -30,10 +32,12 @@ var request = {
 };
 
 const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(async (error) => {
-    // fallback to interaction when silent call fails
-    return await myMSALObj.acquireTokenPopup(request).catch(error => {
-        console.log(error);
-    });
+    if (error instanceof InteractionRequiredAuthError) {
+        // fallback to interaction when silent call fails
+        return await myMSALObj.acquireTokenPopup(request).catch(error => {
+            console.log(error);
+        });
+    }
 });
 ```
 
@@ -44,9 +48,10 @@ var request = {
 };
 
 const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(error => {
-    console.log("silent token acquisition fails. acquiring token using redirect");
-    // fallback to interaction when silent call fails
-    return myMSALObj.acquireTokenRedirect(request)
+    if (error instanceof InteractionRequiredAuthError) {
+        // fallback to interaction when silent call fails
+        return myMSALObj.acquireTokenRedirect(request)
+    }
 });
 ```
 
