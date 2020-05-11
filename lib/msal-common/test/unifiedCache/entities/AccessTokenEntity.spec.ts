@@ -11,7 +11,7 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
 
     it("Create an AccessTokenCacheEntity entity", () => {
         let at = mockCache.createMockATOne();
-        expect(at.generateAccessTokenEntityKey()).to.eql(
+        expect(at.generateCredentialKey()).to.eql(
             "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3"
         );
     });

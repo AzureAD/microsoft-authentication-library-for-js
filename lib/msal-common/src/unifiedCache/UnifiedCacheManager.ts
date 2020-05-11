@@ -89,9 +89,9 @@ export class UnifiedCacheManager {
         idToken: IdTokenEntity,
         refreshToken: RefreshTokenEntity
     ): void {
-        this.inMemoryCache.accessTokens[accessToken.generateAccessTokenEntityKey()] = accessToken;
-        this.inMemoryCache.idTokens[idToken.generateIdTokenEntityKey()] = idToken;
-        this.inMemoryCache.refreshTokens[refreshToken.generateRefreshTokenEntityKey()] = refreshToken;
+        this.inMemoryCache.accessTokens[accessToken.generateCredentialKey()] = accessToken;
+        this.inMemoryCache.idTokens[idToken.generateCredentialKey()] = idToken;
+        this.inMemoryCache.refreshTokens[refreshToken.generateCredentialKey()] = refreshToken;
     }
 
     /**

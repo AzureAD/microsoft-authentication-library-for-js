@@ -11,7 +11,7 @@ describe("IdTokenEntity.ts Unit Tests", () => {
     it("Create an IdTokenEntity", () => {
         let idT = new IdTokenEntity();
         Object.assign(idT, mockIdTokenEntity);
-        expect(idT.generateIdTokenEntityKey()).to.eql(
+        expect(idT.generateCredentialKey()).to.eql(
             "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft-"
         );
     });
