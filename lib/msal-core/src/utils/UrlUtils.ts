@@ -157,10 +157,10 @@ export class UrlUtils {
         urlComponents.PathSegments = pathSegments;
 
         if (match[6]){
-            urlComponents.Search = match[6]
+            urlComponents.Search = match[6];
         }
         if (match[8]){
-            urlComponents.Hash = match[8]
+            urlComponents.Hash = match[8];
         }
         
         return urlComponents;
