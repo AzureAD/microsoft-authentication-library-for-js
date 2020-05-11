@@ -2,11 +2,11 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, Account, TokenResponse, CodeResponse } from "@azure/msal-common";
+import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_DATA_CLIENT_INFO, TEST_URIS, RANDOM_TEST_GUID, TEST_HASHES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import sinon from "sinon";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -50,8 +50,9 @@ describe("PopupHandler.ts Unit Tests", () => {
         const authCodeModule = new SPAClient({
             authOptions: configObj.auth,
             systemOptions: {
-                tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
-                telemetry: configObj.system.telemetry
+                tokenRenewalOffsetSeconds:
+                    configObj.system.tokenRenewalOffsetSeconds,
+                telemetry: configObj.system.telemetry,
             },
             cryptoInterface: {
                 createNewGuid: (): string => {
@@ -65,9 +66,21 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
                     return testPkceCodes;
-                }
+                },
             },
             storageInterface: {
+                getCache: (): InMemoryCache => {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache: (): void => {
+                    // dummy impl;
+                },
                 clear: clearFunc,
                 containsKey: (key: string): boolean => {
                     return true;
@@ -79,24 +92,34 @@ describe("PopupHandler.ts Unit Tests", () => {
                     return testKeySet;
                 },
                 removeItem: removeFunc,
-                setItem: setFunc
+                setItem: setFunc,
             },
             networkInterface: {
-                sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendGetRequestAsync: async (
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendPostRequestAsync: async (
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): Promise<any> => {
                     return testNetworkResult;
-                }
+                },
             },
             loggerOptions: {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+                loggerCallback: (
+                    level: LogLevel,
+                    message: string,
+                    containsPii: boolean
+                ): void => {
                     if (containsPii) {
                         console.log(`Log level: ${level} Message: ${message}`);
                     }
                 },
-                piiLoggingEnabled: true
-            }
+                piiLoggingEnabled: true,
+            },
         });
         browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
         popupHandler = new PopupHandler(authCodeModule, browserStorage);
