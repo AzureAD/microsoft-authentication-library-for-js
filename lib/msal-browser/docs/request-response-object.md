@@ -8,7 +8,7 @@ The MSAL library has a set of configuration options that can be used to customiz
 
 There are two different request objects - one for interactive calls, and one for silent calls. Except for scopes, all parameters are optional. For loginAPIs, scopes are also optional, but they must be provided for all acquireToken APIs.
 
-- AuthenticationParameters - used for all interactive token APIs
+- AuthenticationParameters - used for all interactive token APIs and `ssoSilent()`
 
 ```javascript
 const interactiveRequest = {
@@ -19,7 +19,6 @@ const interactiveRequest = {
     correlationId: "",
     extraScopesToConsent: [],
     prompt: "",
-    claimsRequest: "",
     userRequestState: "",
     account: null,
     sid: "",
@@ -42,6 +41,8 @@ const silentRequest = {
     authority: "",
     correlationId: "",
     account: null,
+    sid: "",
+    loginHint: "",
     forceRefresh: false
 };
 
@@ -59,7 +60,6 @@ const resp = msalInstance.acquireTokenSilent(silentRequest);
 | `correlationId` | ID included in log messages and requests to trace executions. Usually a UUID/GUID. | String |
 | `extraScopesToConsent` | Additional scopes to pre-consent to as part of login call, allowing you to make silent calls for additional resources without interaction. | String array |
 | `prompt` | A string value to control the behavior seen by the user. See [below](#prompt-values) for more info | String with one of the following values: `"login"`, `"select_account"`, `"consent"`, `"none"`. |
-| `claimsRequest` | A stringified JSON object containing requested claims for a token. | Stringified JSON object |
 | `userRequestState` | OAuth `state` parameter sent in the authorization code request and returned by the service unchanged in the response. You can use this parameter to restore app state on a response. | String |
 | `account` | User account object used to perform non-interactive sign-in. Must be an object of type `Account` as defined by MSAL. This account object is returned in the [response object](#response) and by the `getAccount()` API. | [Account.ts](../../msal-common/src/auth/Account.ts) |
 | `sid` | Session id of the user to identify an active session and perform non-interactive sign-in. Usually part of id token claims. | String |
