@@ -213,13 +213,7 @@ export class SPAClient extends BaseClient {
             // Get current cached tokens
             const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, request.resource, account && account.homeAccountIdentifier);
             const expirationSec = Number(cachedTokenItem.value.expiresOnSec);
-            console.log(TimeUtils.nowSeconds());
-            console.log(this.config.systemOptions.tokenRenewalOffsetSeconds);
             const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
-            // console.log(cachedTokenItem);
-            // console.log(expirationSec);
-            console.log(offsetCurrentTimeSec);
-            // console.log(expirationSec > offsetCurrentTimeSec);
             // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
             if (!request.forceRefresh && expirationSec && expirationSec > offsetCurrentTimeSec) {
                 const cachedScopes = ScopeSet.fromString(cachedTokenItem.key.scopes, this.config.authOptions.clientId, true);
@@ -358,16 +352,12 @@ export class SPAClient extends BaseClient {
         if (tokenCacheItems.length === 0) {
             throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
         }
-        console.log("All matching tokens");
-        console.log(tokenCacheItems);
 
         // Filter cache items based on available scopes.
         const filteredCacheItems: Array<AccessTokenCacheItem> = tokenCacheItems.filter(cacheItem => {
             const cachedScopes = ScopeSet.fromString(cacheItem.key.scopes, this.config.authOptions.clientId, true);
             return cachedScopes.containsScopeSet(requestScopes);
         });
-        console.log("Filtering");
-        console.log(filteredCacheItems);
 
         // If cache items contains too many matching tokens, throw error.
         if (filteredCacheItems.length > 1) {
