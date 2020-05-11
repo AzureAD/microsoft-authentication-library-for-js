@@ -49,9 +49,9 @@ describe("UnifiedCacheManager test cases", () => {
 
         // create mock AccessToken
         const atOne = mockCache.createMockATOne();
-        const atOneKey = atOne.generateAccessTokenEntityKey();
+        const atOneKey = atOne.generateCredentialKey();
         const atTwo = mockCache.createMockATTwo();
-        const atTwoKey = atTwo.generateAccessTokenEntityKey();
+        const atTwoKey = atTwo.generateCredentialKey();
 
         expect(Object.keys(unifiedCacheManager.getCacheInMemory().accessTokens).length).to.equal(2);
         expect(unifiedCacheManager.getCacheInMemory().accessTokens[atOneKey]).to.eql(atOne);

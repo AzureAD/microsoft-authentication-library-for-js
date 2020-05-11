@@ -4,7 +4,7 @@
  */
 
 import { Credential } from "./Credential";
-import { Separators } from "../../utils/Constants";
+import { CredentialType } from "../../utils/Constants";
 import { AuthenticationResult } from "../../response/AuthenticationResult";
 
 /**
@@ -19,22 +19,6 @@ export class AccessTokenEntity extends Credential {
     refreshOn?: string;
     keyId?: string; // for POP and SSH tokenTypes
     tokenType?: string;
-
-    /**
-     * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
-     */
-    public generateAccessTokenEntityKey(): string {
-        const accessTokenKeyArray: Array<string> = [
-            this.homeAccountId,
-            this.environment,
-            this.credentialType,
-            this.clientId,
-            this.realm,
-            this.target
-        ];
-
-        return accessTokenKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-    }
 
     /**
      * Create AccessTokenEntity
@@ -52,7 +36,7 @@ export class AccessTokenEntity extends Credential {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
         atEntity.homeAccountId = homeAccountId;
-        atEntity.credentialType = "AccessToken";
+        atEntity.credentialType = CredentialType.ACCESS_TOKEN;
         atEntity.secret = authenticationResult.accessToken;
 
         const date = new Date();
