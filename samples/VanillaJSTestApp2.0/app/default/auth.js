@@ -61,14 +61,11 @@ function signOut() {
 async function getTokenPopup(request) {
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
-        if (error instanceof msal.AuthenticationRequiredError) {
-            if (msal.AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
-                // fallback to interaction when silent call fails
-                console.log("acquiring token using popup");
-                return myMSALObj.acquireTokenPopup(request).catch(error => {
-                    console.error(error);
-                });
-            }
+        if (error instanceof msal.InteractionRequiredAuthError) {
+            console.log("acquiring token using popup");
+            return myMSALObj.acquireTokenPopup(request).catch(error => {
+                console.error(error);
+            });
         } else {
             console.error(error);
         }
@@ -79,12 +76,10 @@ async function getTokenPopup(request) {
 async function getTokenRedirect(request) {
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
-        if (error instanceof AuthenticationRequiredError) {
-            if (AuthenticationRequiredError.isInteractionRequiredError(error.errorCode, error.errorDesc)) {
-                // fallback to interaction when silent call fails
-                console.log("acquiring token using redirect");
-                myMSALObj.acquireTokenRedirect(request);
-            }
+        if (error instanceof msal.InteractionRequiredAuthError) {
+            // fallback to interaction when silent call fails
+            console.log("acquiring token using redirect");
+            myMSALObj.acquireTokenRedirect(request);
         } else {
             console.error(error);
         }

@@ -4,7 +4,7 @@
 
 Stable release of MSAL Angular v1. See beta versions below for complete list of changes.
 
-Highlights:
+### Highlights:
 
 * Requires `msal@1.3.0`.
 * Requires `rxjs@6`.
@@ -19,6 +19,10 @@ Highlights:
 * Broadcast events now emit objects, instead of just strings.
 * Applications using `Redirect` methods can optionally implement the `handleRedirectCallback` method (and have it run on every page load), which will capture the result of redirect operations. See the [Angular sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/angular6-sample-app/src/app/app.component.ts) for an example of how to implement.
 * Add `ssoSilent` API. This API requires either a `loginHint` or `sid`, and is intended to be used when you want to SSO to an existing AAD session. Emits `msal:ssoSuccess` and `msal:ssoFailure` events.
+
+### Fixes
+
+* Ensure interceptor uses ID token property if response is of type id_token (#1528)
 
 ## 1.0.0-beta.5
 

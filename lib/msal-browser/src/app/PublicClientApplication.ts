@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, SPAClient, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils, PromptValue, ServerError } from "@azure/msal-common";
+import { Account, SPAClient, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils, PromptValue, ServerError, InteractionRequiredAuthError } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
@@ -114,7 +114,7 @@ export class PublicClientApplication {
      * containing data from the server (returned with a null or non-blocking error).
      */
     async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
-        console.warn("handleRedirectCallback will be deprecated upon release of msal-browser@v2.0.0. Please transition to using onRedirectAppLoad().");
+        console.warn("handleRedirectCallback will be deprecated upon release of msal-browser@v2.0.0. Please transition to using handleRedirectPromise().");
         // Check whether callback object was passed.
         if (!authCallback) {
             throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
@@ -391,8 +391,9 @@ export class PublicClientApplication {
             return await this.authModule.getValidToken(silentRequest);
         } catch (e) {
             const isServerError = e instanceof ServerError;
+            const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
-            if (isServerError && isInvalidGrantError) {
+            if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 const tokenRequest: AuthenticationParameters = {
                     ...silentRequest,
                     prompt: PromptValue.NONE
