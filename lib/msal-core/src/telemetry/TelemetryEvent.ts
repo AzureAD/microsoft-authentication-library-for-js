@@ -12,14 +12,13 @@ export default class TelemetryEvent {
     private startTimestamp: number;
     protected event: any; // TODO TYPE THIS
     public eventId: string;
+    private label: string;
 
-    constructor(eventName: string, correlationId: string) {
-
-        this.startTimestamp = Date.now();
+    constructor(eventName: string, correlationId: string, eventLabel: string) {
         this.eventId = CryptoUtils.createNewGuid();
+        this.label = eventLabel;
         this.event = {
             [prependEventNamePrefix(EVENT_NAME_KEY)]: eventName,
-            [prependEventNamePrefix(START_TIME_KEY)]: this.startTimestamp,
             [prependEventNamePrefix(ELAPSED_TIME_KEY)]: -1,
             [`${TELEMETRY_BLOB_EVENT_NAMES.MsalCorrelationIdConstStrKey}`]: correlationId
         };
@@ -32,6 +31,24 @@ export default class TelemetryEvent {
     public stop(): void {
         // Set duration of event
         this.setElapsedTime(+Date.now() - +this.startTimestamp);
+
+        if ("performance" in window && window.performance.mark && window.performance.measure) {
+            window.performance.mark(`end-${this.key}`);
+            window.performance.measure(this.displayName, `start-${this.key}`, `end-${this.key}`);
+    
+            window.performance.clearMeasures(this.displayName);
+            window.performance.clearMarks(`start-${this.key}`);
+            window.performance.clearMarks(`end-${this.key}`);
+        }
+    }
+
+    public start(): void {
+        this.startTimestamp = Date.now();
+        this.event[prependEventNamePrefix(START_TIME_KEY)] = this.startTimestamp;
+
+        if ("performance" in window && window.performance.mark) {
+            window.performance.mark(`start-${this.key}`);
+        }
     }
 
     public get telemetryCorrelationId(): string {
@@ -51,5 +68,13 @@ export default class TelemetryEvent {
             ...this.event,
             eventId: this.eventId
         };
+    }
+
+    public get key() {
+        return `${this.telemetryCorrelationId}_${this.eventId}-${this.eventName}`;
+    };
+
+    public get displayName() {
+        return `Msal-${this.label}-${this.telemetryCorrelationId}`;
     }
 }
