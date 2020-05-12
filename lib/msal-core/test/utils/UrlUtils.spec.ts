@@ -5,6 +5,8 @@ import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerRequestParameters } from "../../src/ServerRequestParameters";
 import { ServerHashParamKeys, Constants } from "../../src/utils/Constants";
+import { IUri } from "../../src/IUri";
+import { IdToken } from "../../src/IdToken";
 
 describe("UrlUtils.ts class", () => {
 
@@ -108,4 +110,85 @@ describe("UrlUtils.ts class", () => {
             expect(stateParts[1]).to.equal("hello");
         });
     })
+
+    describe("getUrlComponents", () => {
+        let url;
+
+        beforeEach(() => {
+            url = "https://localhost:30662/";
+        });
+
+        it("properly splits up basic url", () => {
+            const urlComponents = UrlUtils.GetUrlComponents(url);
+
+            expect(urlComponents.Protocol).to.equal("https:");
+            expect(urlComponents.HostNameAndPort).to.equal("localhost:30662");
+            expect(urlComponents.AbsolutePath).to.equal("/");
+        });
+
+        it("properly splits up url with path", () => {
+            url += "testPage1/testPage2/"
+            const urlComponents = UrlUtils.GetUrlComponents(url);
+
+            expect(urlComponents.Protocol).to.equal("https:");
+            expect(urlComponents.HostNameAndPort).to.equal("localhost:30662");
+            expect(urlComponents.AbsolutePath).to.equal("/testPage1/testPage2/");
+        });
+
+        it("properly splits up url with query string", () => {
+            url += "?testkey1=testval1&testkey2=testval2"
+            const urlComponents = UrlUtils.GetUrlComponents(url);
+
+            expect(urlComponents.Protocol).to.equal("https:");
+            expect(urlComponents.HostNameAndPort).to.equal("localhost:30662");
+            expect(urlComponents.AbsolutePath).to.equal("/");
+            expect(urlComponents.Search).to.equal("?testkey1=testval1&testkey2=testval2");
+        });
+
+        it("properly splits up url with hash", () => {
+            url += "#testhash"
+            const urlComponents = UrlUtils.GetUrlComponents(url);
+
+            expect(urlComponents.Protocol).to.equal("https:");
+            expect(urlComponents.HostNameAndPort).to.equal("localhost:30662");
+            expect(urlComponents.AbsolutePath).to.equal("/");
+            expect(urlComponents.Hash).to.equal("#testhash");          
+        });
+
+        it("properly splits up url with hash and query string", () => {
+            url += "?testkey1=testval1&testkey2=testval2"
+            url += "#testhash"
+            const urlComponents = UrlUtils.GetUrlComponents(url);
+
+            expect(urlComponents.Protocol).to.equal("https:");
+            expect(urlComponents.HostNameAndPort).to.equal("localhost:30662");
+            expect(urlComponents.AbsolutePath).to.equal("/");
+            expect(urlComponents.Search).to.equal("?testkey1=testval1&testkey2=testval2"); 
+            expect(urlComponents.Hash).to.equal("#testhash");   
+        });
+    });
+
+    describe("removeHashFromUrl", () => {
+        const url = "https://localhost:30662/";
+
+        it("returns same url if hash not present in url", () => {
+            expect(UrlUtils.removeHashFromUrl(url)).to.eq(url);
+        });
+
+        it("returns base url if hash is present in url", () => {
+            const testUrl = url + "#testHash";
+            expect(UrlUtils.removeHashFromUrl(testUrl)).to.eq(url);
+        });
+
+        it("returns url with query string if hash not present on url", () => {
+            const testUrl = url + "?testPage=1";
+            expect(UrlUtils.removeHashFromUrl(testUrl)).to.eq(testUrl);
+        });
+
+        it("returns url with query string if both hash and query string present in url", () => {
+            const urlWithQueryString = url + "?testPage=1";
+            const testUrl = urlWithQueryString + "#testHash";
+            expect(UrlUtils.removeHashFromUrl(testUrl)).to.eq(urlWithQueryString);
+        });
+    });
 });
