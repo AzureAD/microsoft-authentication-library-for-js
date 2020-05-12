@@ -50,11 +50,10 @@ export class DeviceCodeClient extends BaseClient {
         const headers = this.createDefaultLibraryHeaders();
 
         return this.executePostRequestToDeviceCodeEndpoint(this.defaultAuthority.deviceCodeEndpoint, queryString, headers);
-        // return this.executePostRequestToDeviceCodeEndpoint(`${this.defaultAuthority.canonicalAuthority}${Constants.DEVICE_CODE_ENDPOINT_PATH}`, queryString, headers);
     }
 
     /**
-     * Executes GET request to device code endpoint
+     * Executes POST request to device code endpoint
      * @param deviceCodeEndpoint
      * @param queryString
      * @param headers
