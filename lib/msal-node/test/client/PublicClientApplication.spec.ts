@@ -24,6 +24,9 @@ describe('PublicClientApplication', () => {
             return new Promise<void>((resolve) => {
                 resolve();
             });
+        },
+        discoveryComplete: () => {
+            return true;
         }
     } as Authority;
 

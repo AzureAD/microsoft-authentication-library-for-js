@@ -132,6 +132,10 @@ export abstract class ClientApplication {
             ? AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!)
             : this.authority;
 
+        if(authority.discoveryComplete()){
+            return authority;
+        }
+
         try {
             await authority.resolveEndpointsAsync();
             return authority;
