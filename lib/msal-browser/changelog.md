@@ -1,3 +1,6 @@
+# 2.0.0-beta.2
+* Fixed an issue where the system config values were being overwritten with `undefined` (#1631)
+
 # 2.0.0-beta.1
 ## Features
 * Added a silent iframe flow in the @azure/msal-browser package (#1451)
