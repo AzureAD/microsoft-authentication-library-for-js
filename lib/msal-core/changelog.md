@@ -1,3 +1,11 @@
+# 1.3.1
+
+## Bugs
+
+* Prevent adding unnecessary entries into browser history. (#1577)
+* Add aria-hidden to hidden iframes. (#1581)
+* Fix regression for redirect URIs that included query strings. (#1604)
+
 # 1.3.0
 
 ## Features
