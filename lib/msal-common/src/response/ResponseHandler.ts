@@ -111,12 +111,12 @@ export class ResponseHandler {
         }
 
         // Check for error
-        if (serverResponseHash.error || serverResponseHash.error_description) {
-            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description)) {
-                throw new InteractionRequiredAuthError(serverResponseHash.error, serverResponseHash.error_description);
+        if (serverResponseHash.error || serverResponseHash.error_description || serverResponseHash.suberror) {
+            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror)) {
+                throw new InteractionRequiredAuthError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror);
             }
 
-            throw new ServerError(serverResponseHash.error, serverResponseHash.error_description);
+            throw new ServerError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror);
         }
 
         if (serverResponseHash.client_info) {
@@ -130,7 +130,11 @@ export class ResponseHandler {
      */
     public validateServerAuthorizationTokenResponse(serverResponse: ServerAuthorizationTokenResponse): void {
         // Check for error
-        if (serverResponse.error || serverResponse.error_description) {
+        if (serverResponse.error || serverResponse.error_description || serverResponse.suberror) {
+            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponse.error, serverResponse.error_description, serverResponse.suberror)) {
+                throw new InteractionRequiredAuthError(serverResponse.error, serverResponse.error_description, serverResponse.suberror);
+            }
+
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
             throw new ServerError(serverResponse.error, errString);
         }
@@ -167,31 +171,30 @@ export class ResponseHandler {
         // If no items in cache with these parameters, set new item.
         if (accessTokenCacheItems.length < 1) {
             this.logger.info("No tokens found, creating new item.");
-            const newTokenKey = new AccessTokenKey(
-                authority,
-                this.clientId,
-                serverTokenResponse.scope,
-                resource,
-                clientInfo && clientInfo.uid,
-                clientInfo && clientInfo.utid,
-                this.cryptoObj
-            );
-            this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));
         } else {
             // Check if scopes are intersecting. If they are, combine scopes and replace cache item.
             accessTokenCacheItems.forEach(accessTokenCacheItem => {
                 const cachedScopes = ScopeSet.fromString(accessTokenCacheItem.key.scopes, this.clientId, true);
                 if(cachedScopes.intersectingScopeSets(responseScopes)) {
                     this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
-                    cachedScopes.appendScopes(responseScopeArray);
-                    accessTokenCacheItem.key.scopes = cachedScopes.printScopes();
+                    responseScopes.appendScopes(cachedScopes.asArray());
                     if (StringUtils.isEmpty(newAccessTokenValue.idToken)) {
                         newAccessTokenValue.idToken = accessTokenCacheItem.value.idToken;
                     }
-                    this.cacheStorage.setItem(JSON.stringify(accessTokenCacheItem.key), JSON.stringify(newAccessTokenValue));
                 }
             });
         }
+
+        const newTokenKey = new AccessTokenKey(
+            authority, 
+            this.clientId, 
+            responseScopes.printScopes(), 
+            resource, 
+            clientInfo && clientInfo.uid, 
+            clientInfo && clientInfo.utid, 
+            this.cryptoObj
+        );
+        this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));
 
         // Save tokens in response and return
         return {
