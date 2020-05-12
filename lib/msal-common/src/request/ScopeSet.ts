@@ -27,7 +27,7 @@ export class ScopeSet {
         clientId: string,
         scopesRequired: boolean,
     ) {
-        this.clientId = clientId;
+        this.clientId = clientId.toLowerCase();
         this.scopesRequired = scopesRequired;
 
         // Filter empty string and null/undefined array items

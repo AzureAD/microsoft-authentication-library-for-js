@@ -46,18 +46,23 @@ export class DeviceCodeClient extends BaseClient {
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
 
-        const deviceCodeUrl = this.createDeviceCodeUrl(request);
+        const queryString = this.createQueryString(request);
         const headers = this.createDefaultLibraryHeaders();
 
-        return this.executeGetRequestToDeviceCodeEndpoint(deviceCodeUrl, headers);
+        return this.executePostRequestToDeviceCodeEndpoint(this.defaultAuthority.deviceCodeEndpoint, queryString, headers);
+        // return this.executePostRequestToDeviceCodeEndpoint(`${this.defaultAuthority.canonicalAuthority}${Constants.DEVICE_CODE_ENDPOINT_PATH}`, queryString, headers);
     }
 
     /**
      * Executes GET request to device code endpoint
-     * @param deviceCodeUrl
+     * @param deviceCodeEndpoint
+     * @param queryString
      * @param headers
      */
-    private async executeGetRequestToDeviceCodeEndpoint(deviceCodeUrl: string, headers: Map<string, string>): Promise<DeviceCodeResponse> {
+    private async executePostRequestToDeviceCodeEndpoint(
+        deviceCodeEndpoint: string,
+        queryString: string,
+        headers: Map<string, string>): Promise<DeviceCodeResponse> {
 
         const {
             body: {
@@ -68,7 +73,12 @@ export class DeviceCodeClient extends BaseClient {
                 interval,
                 message
             }
-        } = await this.networkClient.sendGetRequestAsync<ServerDeviceCodeResponse>(deviceCodeUrl, {headers});
+        } = await this.networkClient.sendPostRequestAsync<ServerDeviceCodeResponse>(
+            deviceCodeEndpoint,
+            {
+                body: queryString,
+                headers: headers
+            });
 
         return {
             userCode,
@@ -78,17 +88,6 @@ export class DeviceCodeClient extends BaseClient {
             interval,
             message
         };
-    }
-
-    /**
-     * Create device code endpoint url
-     * @param request
-     */
-    private createDeviceCodeUrl(request: DeviceCodeRequest): string {
-        const queryString: string = this.createQueryString(request);
-
-        // TODO add device code endpoint to authority class
-        return `${this.defaultAuthority.canonicalAuthority}${Constants.DEVICE_CODE_ENDPOINT_PATH}?${queryString}`;
     }
 
     /**
