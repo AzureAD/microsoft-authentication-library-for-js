@@ -924,7 +924,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(response.idTokenClaims).to.be.deep.eq(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
                 expect(response.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESSTOKEN);
                 expect(response.account).to.be.eq(account);
-                expect(response.scopes).to.be.deep.eq(ScopeSet.trimAndConvertToLowerCase(tokenRequest.scopes));
+                expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err) {
