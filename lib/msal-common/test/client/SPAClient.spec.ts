@@ -17,7 +17,7 @@ import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Authority } from "../../src/authority/Authority";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { TokenExchangeParameters } from "../../src/request/TokenExchangeParameters";
-import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
 import { CodeResponse } from "../../src/response/CodeResponse";
 import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
@@ -32,7 +32,7 @@ import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerError } from "../../src/error/ServerError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 
-describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
+describe("SPAClient.ts Class Unit Tests", () => {
 
     const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
         if (containsPii) {
@@ -44,10 +44,20 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
     let defaultAuthConfig: ClientConfiguration;
 
     beforeEach(() => {
+
+        const mockHttpClient = {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            },
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            }
+        };
+
         defaultAuthConfig = {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: TEST_CONFIG.validAuthority,
+                authority: AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient),
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
             },
@@ -71,14 +81,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     store = {};
                 }
             },
-            networkInterface: {
-                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
-                    return null;
-                },
-                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
-                    return null;
-                }
-            },
+            networkInterface: mockHttpClient,
             cryptoInterface: {
                 createNewGuid(): string {
                     return RANDOM_TEST_GUID;
@@ -892,7 +895,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
 
             it("throws server error when error is in hash", () => {
                 const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${RANDOM_TEST_GUID}`;
-            
+
                 defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
                 expect(() => authModule.handleFragmentResponse(testErrorHash)).to.throw("msal error description");
                 expect(store).to.be.empty;
