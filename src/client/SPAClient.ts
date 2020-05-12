@@ -26,7 +26,6 @@ import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 import { Account } from "../account/Account";
 import { buildClientInfo } from "../account/ClientInfo";
-import { B2cAuthority } from "../authority/B2cAuthority";
 
 /**
  * SPAClient class
@@ -39,9 +38,6 @@ export class SPAClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
         // Implement base module
         super(configuration);
-
-        // Initialize default authority instance
-        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
     }
 
     /**
@@ -169,7 +165,7 @@ export class SPAClient extends BaseClient {
             // User helper to retrieve token response.
             // Need to await function call before return to catch any thrown errors.
             // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
-            return await this.getTokenResponse(tokenEndpoint, tokenReqParams, tokenRequest, codeResponse);
+            return await this.getTokenResponse(tokenEndpoint+"?slice=001-001&dc=bl2", tokenReqParams, tokenRequest, codeResponse);
         } catch (e) {
             // Reset cache items and set account to null before re-throwing.
             this.cacheManager.resetTempCacheItems(codeResponse && codeResponse.userRequestState);
