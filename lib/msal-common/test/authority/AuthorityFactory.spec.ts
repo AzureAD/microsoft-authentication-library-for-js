@@ -4,10 +4,10 @@ import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetwor
 import { AadAuthority } from "../../src/authority/AadAuthority";
 import { B2cAuthority } from "../../src/authority/B2cAuthority";
 import { TEST_CONFIG } from "../utils/StringConstants";
-import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
 import { Constants } from "../../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { Authority } from "../../src/authority/Authority";
+import { AdfsAuthority } from "../../src/authority/AdfsAuthority";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
 
@@ -22,11 +22,11 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
 
     beforeEach(() => {
         // Reinitializes the B2C Trusted Host List between tests
-        while(B2cAuthority.B2CTrustedHostList.length) {
+        while (B2cAuthority.B2CTrustedHostList.length) {
             B2cAuthority.B2CTrustedHostList.pop();
         }
     });
-    
+
     it("AuthorityFactory returns null if given url is null or empty", () => {
         expect(() => AuthorityFactory.createInstance("", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
         expect(() => AuthorityFactory.createInstance(null, networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
@@ -52,6 +52,12 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(authorityInstance instanceof Authority);
     });
 
+    it("createInstance return ADFS instance if /adfs in path", () => {
+        const authorityInstance = AuthorityFactory.createInstance(TEST_CONFIG.ADFS_VALID_AUTHORITY, networkInterface);
+        expect(authorityInstance instanceof AdfsAuthority);
+        expect(authorityInstance instanceof Authority);
+    });
+
     it("Do not add additional authorities to trusted host list if it has already been populated", () => {
         B2cAuthority.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
         B2cAuthority.setKnownAuthorities(["fake.b2clogin.com"]);
@@ -60,18 +66,4 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(B2cAuthority.B2CTrustedHostList).not.to.include("fake.b2clogin.com");
         expect(B2cAuthority.B2CTrustedHostList.length).to.equal(1);
     });
-
-    it("Throws error if AuthorityType is not AAD or B2C", (done) => {
-        //Right now only way to throw this is to send adfs authority. This will need to change when we implement ADFS
-        const errorAuthority = "https://login.microsoftonline.com/adfs"
-        try{  
-            const authorityInstance = AuthorityFactory.createInstance(errorAuthority, networkInterface);
-        }
-        catch(e) {
-            expect(e).to.be.instanceOf(ClientAuthError)
-            expect(e.errorCode).to.be.equal(ClientAuthErrorMessage.invalidAuthorityType.code)
-            expect(e.errorMessage).to.be.equal(`${ClientAuthErrorMessage.invalidAuthorityType.desc} Given Url: ${errorAuthority}`)
-            done();
-        }
-    })
 });
