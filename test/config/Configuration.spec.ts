@@ -9,7 +9,7 @@ import { version } from "../../package.json";
 import {TEST_CONFIG} from "../utils/StringConstants";
 
 
-describe("Configuration.ts Class Unit Tests", () => {
+describe("ClientConfiguration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default functions", async () => {
         const emptyConfig: ClientConfiguration = buildClientConfiguration({});

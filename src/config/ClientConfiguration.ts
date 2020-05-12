@@ -98,7 +98,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     postLogoutRedirectUri: ""
 };
 
-const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
+export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     telemetry: null
 };
