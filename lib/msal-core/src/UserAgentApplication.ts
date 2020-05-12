@@ -643,13 +643,13 @@ export class UserAgentApplication {
             WindowUtils.blockReloadInHiddenIframes();
 
             const scope = request.scopes.join(" ").toLowerCase();
-            this.logger.verbose(`Serialized scopes: ${scope}`);
+            this.logger.verbosePii(`Serialized scopes: ${scope}`);
 
             // if the developer passes an account, give that account the priority
             const account: Account = request.account || this.getAccount();
             this.logger.verbosePii(`Set account to: ${JSON.stringify(account)}`);
 
-            // extract if there is an adalIdToken stashed in the cache TODO: Ask about why
+            // Extract adalIdToken if stashed in the cache to allow for seamless ADAL to MSAL migration
             const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
             /**
@@ -678,7 +678,7 @@ export class UserAgentApplication {
                 request.correlationId,
             );
 
-            this.logger.verbose(`ServerAuthenticationRequest: ${JSON.stringify(serverAuthenticationRequest)}`);
+            this.logger.verbose("Finished building server authentication request");
 
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
@@ -748,7 +748,7 @@ export class UserAgentApplication {
                          * refresh attempt with iframe
                          * Already renewing for this scope, callback when we get the token.
                          */
-                        this.logger.verbose(`Updated authority: ${JSON.stringify(serverAuthenticationRequest.authorityInstance)}`);
+                        this.logger.verbose("The authority has been updated with endpoint discovery response");
 
                         // TODO: ask about why
                         if (window.activeRenewals[requestSignature]) {
@@ -781,13 +781,11 @@ export class UserAgentApplication {
             .then(res => {
                 this.logger.verbose("Successfully acquired token");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
-                this.logger.info("Stopping telemetryManager and flushing API event");
                 return res;
             })
             .catch((error: AuthError) => {
                 this.cacheStorage.resetTempCacheItems(request.state);
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
-                this.logger.info("Stopping telemetryManager and flushing API event with error:");
                 throw error;
             });
     }
