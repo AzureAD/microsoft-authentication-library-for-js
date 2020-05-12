@@ -8,7 +8,7 @@ import { AuthorityType } from "./AuthorityType";
 import { INetworkModule } from "../network/INetworkModule";
 
 /**
- * The AadAuthority class extends the Authority class and adds functionality specific to the Azure AD OAuth Authority.
+ * The AdfsAuthority class extends the Authority class and adds functionality specific to ADFS 2019
  */
 export class AdfsAuthority extends Authority {
 

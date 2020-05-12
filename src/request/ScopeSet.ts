@@ -27,6 +27,7 @@ export class ScopeSet {
         clientId: string,
         scopesRequired: boolean,
     ) {
+        // lower case need for replaceDefaultScopes() because ADFS clientids don't have to be GUIDS.
         this.clientId = clientId.toLowerCase();
         this.scopesRequired = scopesRequired;
 
