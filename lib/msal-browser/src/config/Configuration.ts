@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel } from "@azure/msal-common";
+import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel, DEFAULT_SYSTEM_OPTIONS } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
@@ -96,7 +96,8 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 };
 
 // Default system options for browser
-const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
+const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
+    ...DEFAULT_SYSTEM_OPTIONS,
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: BrowserUtils.getBrowserNetworkClient(),
     windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
@@ -114,11 +115,11 @@ const DEFAULT_SYSTEM_OPTIONS: BrowserSystemOptions = {
  *
  * @returns TConfiguration object
  */
-export function buildConfiguration({ auth, cache = {}, system = {}}: Configuration): Configuration {
+export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration): Configuration {
     const overlayedConfig: Configuration = {
-        auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
-        cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system }
+        auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
+        cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
+        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem }
     };
     return overlayedConfig;
 }
