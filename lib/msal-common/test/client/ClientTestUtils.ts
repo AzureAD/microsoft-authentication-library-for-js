@@ -1,9 +1,17 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes} from "../../src";
+import {
+    ClientAuthError,
+    ClientConfiguration,
+    Constants,
+    LogLevel,
+    NetworkRequestOptions,
+    PkceCodes
+} from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
+import { AuthorityFactory } from "../../src";
 
 export class ClientTestUtils {
 
-    static createTestClientConfiguration(): ClientConfiguration {
+    static async createTestClientConfiguration(): Promise<ClientConfiguration>{
 
         const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
             if (containsPii) {
@@ -11,11 +19,26 @@ export class ClientTestUtils {
             }
         };
 
+        const mockHttpClient = {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            },
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            }
+        };
+
+        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient);
+
+        await authority.resolveEndpointsAsync().catch(error => {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+        });
+
         let store = {};
         return {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: TEST_CONFIG.validAuthority,
+                authority: authority,
             },
             storageInterface: {
                 setItem(key: string, value: string): void {
@@ -37,14 +60,7 @@ export class ClientTestUtils {
                     store = {};
                 }
             },
-            networkInterface: {
-                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
-                    return null;
-                },
-                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
-                    return null;
-                }
-            },
+            networkInterface: mockHttpClient,
             cryptoInterface: {
                 createNewGuid(): string {
                     return RANDOM_TEST_GUID;
