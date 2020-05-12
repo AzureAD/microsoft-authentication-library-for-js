@@ -2,7 +2,7 @@
 const welcomeDiv = document.getElementById("WelcomeMessage");
 const signInButton = document.getElementById("SignIn");
 const cardDiv = document.getElementById("card-div");
-const mailButton = document.getElementById("readMail");
+const secondTokenButton = document.getElementById("secondToken");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
 
@@ -32,35 +32,13 @@ function updateUI(data, endpoint) {
         profileDiv.appendChild(email);
         profileDiv.appendChild(phone);
         profileDiv.appendChild(address);
-    } else if (endpoint === graphConfig.graphMailEndpoint) {
-        if (data.value.length < 1) {
-            alert("Your mailbox is empty!")
-        } else {
-            const tabList = document.getElementById("list-tab");
-            const tabContent = document.getElementById("nav-tabContent");
-
-            data.value.map((d, i) => {
-                // Keeping it simple
-                if (i < 10) {
-                    const listItem = document.createElement("a");
-                    listItem.setAttribute("class", "list-group-item list-group-item-action")
-                    listItem.setAttribute("id", "list" + i + "list")
-                    listItem.setAttribute("data-toggle", "list")
-                    listItem.setAttribute("href", "#list" + i)
-                    listItem.setAttribute("role", "tab")
-                    listItem.setAttribute("aria-controls", i)
-                    listItem.innerHTML = d.subject;
-                    tabList.appendChild(listItem)
-
-                    const contentItem = document.createElement("div");
-                    contentItem.setAttribute("class", "tab-pane fade")
-                    contentItem.setAttribute("id", "list" + i)
-                    contentItem.setAttribute("role", "tabpanel")
-                    contentItem.setAttribute("aria-labelledby", "list" + i + "list")
-                    contentItem.innerHTML = "<strong> from: " + d.from.emailAddress.address + "</strong><br><br>" + d.bodyPreview + "...";
-                    tabContent.appendChild(contentItem);
-                }
-            });
-        }
+    } else {
+        const secondDiv = document.createElement('div');
+        secondDiv.id = "second-resource-div";
+        const cardBody = document.getElementsByClassName("card-body")[0]
+        cardBody.appendChild(secondDiv);
+        const title = document.createElement('p');
+        title.innerHTML = data;
+        secondDiv.appendChild(title);
     }
 }

@@ -34,6 +34,7 @@ async function acquireSecondToken() {
         const response = await getTokenPopup(tokenRequest).catch(error => {
             console.log(error);
         });
-        mailButton.style.display = 'none';
+        updateUI("Second Token Acquired", "")
+        secondTokenButton.style.display = 'none';
     }
 }
