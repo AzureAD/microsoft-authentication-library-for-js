@@ -6,6 +6,7 @@ import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerRequestParameters } from "../../src/ServerRequestParameters";
 import { ServerHashParamKeys, Constants } from "../../src/utils/Constants";
 import { IUri } from "../../src/IUri";
+import { IdToken } from "../../src/IdToken";
 
 describe("UrlUtils.ts class", () => {
 
@@ -167,49 +168,27 @@ describe("UrlUtils.ts class", () => {
         });
     });
 
-    describe("isSamePage", () => {
-        let url;
+    describe("removeHashFromUrl", () => {
+        const url = "https://localhost:30662/";
 
-        beforeEach(() => {
-            url = "https://localhost:30662/";
+        it("returns same url if hash not present in url", () => {
+            expect(UrlUtils.removeHashFromUrl(url)).to.eq(url);
         });
 
-        it("returns true if urls are equal", () => {
-            const samePage = UrlUtils.isSamePage(url, url);
-
-            expect(samePage).to.be.true; 
+        it("returns base url if hash is present in url", () => {
+            const testUrl = url + "#testHash";
+            expect(UrlUtils.removeHashFromUrl(testUrl)).to.eq(url);
         });
 
-        it("returns true if urls are equal but have different hashes", () => {
-            let url1 = url + "#testhash"
-            let url2 = url + "#differenttesthash"
-            const samePage = UrlUtils.isSamePage(url1, url2);
-
-            expect(samePage).to.be.true; 
+        it("returns url with query string if hash not present on url", () => {
+            const testUrl = url + "?testPage=1";
+            expect(UrlUtils.removeHashFromUrl(testUrl)).to.eq(testUrl);
         });
 
-        it("returns true if urls are equal but have different query strings", () => {
-            let url1 = url + "?testkey=testval"
-            let url2 = url + "?test=test"
-            const samePage = UrlUtils.isSamePage(url1, url2);
-
-            expect(samePage).to.be.true; 
-        });
-
-        it("returns false if urls have different path", () => {
-            let url1 = url + "testPage/"
-            let url2 = url + "differenttestpage/"
-            const samePage = UrlUtils.isSamePage(url1, url2);
-
-            expect(samePage).to.be.false; 
-        });
-
-        it("returns false if urls have different host", () => {
-            let url1 = url
-            let url2 = "https://testhost:30662/"
-            const samePage = UrlUtils.isSamePage(url1, url2);
-
-            expect(samePage).to.be.false; 
+        it("returns url with query string if both hash and query string present in url", () => {
+            const urlWithQueryString = url + "?testPage=1";
+            const testUrl = urlWithQueryString + "#testHash";
+            expect(UrlUtils.removeHashFromUrl(testUrl)).to.eq(urlWithQueryString);
         });
     });
 });

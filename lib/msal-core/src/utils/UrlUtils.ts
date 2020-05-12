@@ -103,10 +103,10 @@ export class UrlUtils {
     }
 
     /**
-     * Returns given URL with hash and query string removed
+     * Returns given URL with query string removed
      */
-    static getBaseUrl(url: string): string {
-        return url.split("?")[0].split("#")[0];
+    static removeHashFromUrl(url: string): string {
+        return url.split("#")[0];
     }
 
     /**
@@ -164,19 +164,6 @@ export class UrlUtils {
         }
         
         return urlComponents;
-    }
-
-    /**
-     * Given 2 urls determine if they are on the same the same path
-     *
-     * @param url1
-     * @param url2
-     */
-    static isSamePage(url1: string, url2: string){
-        const baseUrl1 = UrlUtils.getBaseUrl(url1);
-        const baseUrl2 = UrlUtils.getBaseUrl(url2);
-
-        return baseUrl1 === baseUrl2;
     }
 
     /**

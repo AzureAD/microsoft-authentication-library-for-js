@@ -1106,7 +1106,6 @@ export class UserAgentApplication {
         // if set to navigate to loginRequest page post login
         if (this.config.auth.navigateToLoginRequestUrl && window.parent === window) {
             const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
-            const currentUrl = UrlUtils.getCurrentUrl();
 
             // Redirect to home page if login request url is null (real null or the string null)
             if (!loginRequestUrl || loginRequestUrl === "null") {
@@ -1114,17 +1113,15 @@ export class UserAgentApplication {
                 window.location.assign("/");
                 return;
             } else {
-                if (!UrlUtils.isSamePage(currentUrl, loginRequestUrl)) {
-                    const finalRedirectUrl = UrlUtils.getBaseUrl(loginRequestUrl);
+                const currentUrl = UrlUtils.removeHashFromUrl(window.location.href);
+                const finalRedirectUrl = UrlUtils.removeHashFromUrl(loginRequestUrl);
+                if (currentUrl !== finalRedirectUrl) {
                     window.location.assign(`${finalRedirectUrl}${hash}`);
                     return;
                 } else {
                     const loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
                     if (loginRequestUrlComponents.Hash){
                         window.location.hash = loginRequestUrlComponents.Hash;
-                    }
-                    if (loginRequestUrlComponents.Search){
-                        window.location.search = loginRequestUrlComponents.Search;
                     }
                 }
             }

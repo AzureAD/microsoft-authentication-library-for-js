@@ -1312,7 +1312,7 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.equal(baseStartUrl + successHash);
+                        expect(url).to.equal(loginStartPage + successHash);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -1356,14 +1356,15 @@ describe("UserAgentApplication.ts Class", function () {
             expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
         });
 
-        it("tests user query string is added back to url on final page and token response is cached", function() {
+        it("tests user query string present on final page url and token response is cached", function() {
             config.auth.navigateToLoginRequestUrl = true;
             const loginUrl = "http://localhost:8081/test/"
             const userQueryString = "?testKey=testVal"
             const loginStartPage = loginUrl + userQueryString;
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
-            window.location.href = loginUrl;
+            window.location.href = loginStartPage;
+            window.location.search = userQueryString;
 
             sinon.stub(window, "parent").returns(window);
             sinon.stub(window.location, "href").returns(loginStartPage + successHash)
@@ -1373,17 +1374,17 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
 
-            expect(window.location.href).to.equal(loginUrl);
+            expect(window.location.href).to.equal(loginStartPage);
             expect(window.location.hash).to.equal(successHash);
-            expect(window.location.search).to.equal("");
+            expect(window.location.search).to.equal(userQueryString);
             msal = new UserAgentApplication(config);
-            expect(window.location.href).to.equal(loginUrl);
+            expect(window.location.href).to.equal(loginStartPage);
             expect(window.location.hash).to.equal("");
             expect(window.location.search).to.equal(userQueryString);
             expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
         });
 
-        it("tests user query string and hash are added back to url on final page and token response is cached", function() {
+        it("tests user hash is added back to url and query string exists on final page url and token response is cached", function() {
             config.auth.navigateToLoginRequestUrl = true;
             const loginUrl = "http://localhost:8081/test/"
             const userQueryString = "?testKey=testVal"
@@ -1391,7 +1392,8 @@ describe("UserAgentApplication.ts Class", function () {
             const loginStartPage = loginUrl + userQueryString + userHash;
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
-            window.location.href = loginUrl;
+            window.location.href = loginUrl + userQueryString;
+            window.location.search = userQueryString;
 
             sinon.stub(window, "parent").returns(window);
             sinon.stub(window.location, "href").returns(loginStartPage + successHash)
@@ -1401,11 +1403,11 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
             cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
 
-            expect(window.location.href).to.equal(loginUrl);
+            expect(window.location.href).to.equal(loginUrl + userQueryString);
             expect(window.location.hash).to.equal(successHash);
-            expect(window.location.search).to.equal("");
+            expect(window.location.search).to.equal(userQueryString);
             msal = new UserAgentApplication(config);
-            expect(window.location.href).to.equal(loginUrl);
+            expect(window.location.href).to.equal(loginUrl + userQueryString);
             expect(window.location.hash).to.equal(userHash);
             expect(window.location.search).to.equal(userQueryString);
             expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
