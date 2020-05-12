@@ -4,7 +4,9 @@
   "description": "Command line app that uses Oauth device code flow to get a token from Azure AD",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "build:package": "cd ../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "start:build": "npm run build:package && npm start"
   },
   "author": "",
   "license": "MIT",
