@@ -40,7 +40,8 @@ describe('PublicClientApplication', () => {
     const expectedConfig: ClientConfiguration = {
         authOptions: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
-            authority: authority
+            authority: authority,
+            knownAuthorities: []
         }
     };
 
