@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 import {
-    AuthOptions,
     LoggerOptions,
     INetworkModule,
     LogLevel,
@@ -12,7 +11,10 @@ import { NetworkUtils } from '../utils/NetworkUtils';
 import { CACHE } from '../utils/Constants';
 import debug from "debug";
 
-export type NodeAuthOptions = AuthOptions;
+export type NodeAuthOptions = {
+    clientId: string;
+    authority?: string;
+}
 
 /**
  * Use this to configure the below cache configuration options:
@@ -38,7 +40,7 @@ export type NodeSystemOptions = {
 };
 
 /**
- * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
+ * Use the configuration object to configure MSAL and initialize the client application object
  *
  * This object allows you to configure important elements of MSAL functionality:
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
@@ -46,7 +48,7 @@ export type NodeSystemOptions = {
  * - system: this is where you can configure the network client, logger, token renewal offset, and telemetry
  */
 export type Configuration = {
-    auth?: NodeAuthOptions;
+    auth: NodeAuthOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
 };
