@@ -1,6 +1,6 @@
 import { HttpClient } from '../../src/network/HttpClient';
 import axios, { AxiosResponse } from 'axios';
-import { mocked } from 'ts-jest'; //<-- This allows to mock results
+import { mocked } from "ts-jest/utils";
 
 jest.mock('axios');
 
