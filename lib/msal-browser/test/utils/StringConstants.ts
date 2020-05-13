@@ -78,36 +78,40 @@ export const TEST_HASHES = {
     TEST_CONSENT_REQ_ERROR_HASH2: "#error=consent_required&error_description=msal+error+description+consent_required&state=RANDOM-GUID-HERE|"
 };
 
-export const DEFAULT_OPENID_CONFIG_RESPONSE = { 
-    "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
-    "token_endpoint_auth_methods_supported": [
-        "client_secret_post", 
-        "private_key_jwt", 
-        "client_secret_basic"
-    ],
-    "jwks_uri": "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys", 
-    "response_modes_supported": [
-        "query", 
-        "fragment", 
-        "form_post"
-    ], 
-    "subject_types_supported": ["pairwise"], 
-    "id_token_signing_alg_values_supported": ["RS256"], 
-    "response_types_supported": ["code", "id_token", "code id_token", "id_token token"], 
-    "scopes_supported": ["openid", "profile", "email", "offline_access"], 
-    "issuer": "https://login.microsoftonline.com/{tenant}/v2.0", 
-    "request_uri_parameter_supported": false, 
-    "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo", 
-    "authorization_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize", 
-    "http_logout_supported": true, 
-    "frontchannel_logout_supported": true, 
-    "end_session_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout", 
-    "claims_supported": ["sub", "iss", "cloud_instance_name", "cloud_instance_host_name", "cloud_graph_host_name", "msgraph_host", "aud", "exp", "iat", "auth_time", "acr", "nonce", "preferred_username", "name", "tid", "ver", "at_hash", "c_hash", "email"], 
-    "tenant_region_scope": null, 
-    "cloud_instance_name": "microsoftonline.com", 
-    "cloud_graph_host_name": "graph.windows.net", 
-    "msgraph_host": "graph.microsoft.com", 
-    "rbac_url": "https://pas.windows.net" 
+export const DEFAULT_OPENID_CONFIG_RESPONSE = {
+    headers: null,
+    status: 200,
+    body : {
+        "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+        "token_endpoint_auth_methods_supported": [
+            "client_secret_post",
+            "private_key_jwt",
+            "client_secret_basic"
+        ],
+        "jwks_uri": "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
+        "response_modes_supported": [
+            "query",
+            "fragment",
+            "form_post"
+        ],
+        "subject_types_supported": ["pairwise"],
+        "id_token_signing_alg_values_supported": ["RS256"],
+        "response_types_supported": ["code", "id_token", "code id_token", "id_token token"],
+        "scopes_supported": ["openid", "profile", "email", "offline_access"],
+        "issuer": "https://login.microsoftonline.com/{tenant}/v2.0",
+        "request_uri_parameter_supported": false,
+        "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo",
+        "authorization_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
+        "http_logout_supported": true,
+        "frontchannel_logout_supported": true,
+        "end_session_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout",
+        "claims_supported": ["sub", "iss", "cloud_instance_name", "cloud_instance_host_name", "cloud_graph_host_name", "msgraph_host", "aud", "exp", "iat", "auth_time", "acr", "nonce", "preferred_username", "name", "tid", "ver", "at_hash", "c_hash", "email"],
+        "tenant_region_scope": null,
+        "cloud_instance_name": "microsoftonline.com",
+        "cloud_graph_host_name": "graph.windows.net",
+        "msgraph_host": "graph.microsoft.com",
+        "rbac_url": "https://pas.windows.net"
+    }
 };
 
 export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=code&scope=user.read%20openid%20profile%20offline_access&client_id=${TEST_CONFIG.MSAL_CLIENT_ID}&redirect_uri=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}&state=${RANDOM_TEST_GUID}&nonce=${123534}&client_info=1&x-client-SKU=MSAL.JS&x-client-Ver=2.0.0-beta.0&code_challenge=RDo6MYd6scbtZaFlOPqT77HdseP9kLP36YMkhASP_oA&code_challenge_method=S256&client-request-id=${RANDOM_TEST_GUID}&response_mode=fragment&sso_reload=true`;

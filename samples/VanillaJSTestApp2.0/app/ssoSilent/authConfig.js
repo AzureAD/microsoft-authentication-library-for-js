@@ -28,5 +28,6 @@ const tokenRequest = {
 };
 
 const silentRequest = {
-    scopes: [msalConfig.clientId, "User.Read", "Mail.Read"]
+    scopes: [msalConfig.clientId, "User.Read", "Mail.Read"],
+    loginHint: "IDLAB@msidlab0.ccsctp.net"
 };

@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 import { ClientRequestParameters } from "./ClientRequestParameters";
-import { Account } from "../auth/Account";
+import { Account } from "../account/Account";
 
 /**
  * AuthenticationParameters passed by user to retrieve a token from the server.
  * - scopes: requested token scopes
  * - resource: requested resource uri
- * - extraScopesToConsent: additional scopes to consent 
+ * - extraScopesToConsent: additional scopes to consent
  * - prompt: the value of the OAuth prompt parameter
  * - extraQueryParameters: string to string map of custom query parameters
  * - claimsRequest: stringified claims object to request additional claims in a token

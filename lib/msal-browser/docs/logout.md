@@ -17,6 +17,8 @@ msalInstance.logout();
 
 This API will clear the token cache of any user and session data, then navigate the browser window to the server's logout page. The server will then redirect back to the page that initiated the logout request. You can configure the location that the server redirects after logout using the `postLogoutRedirectUri` option when instantiating the `PublicClientApplication` object.
 
+**IMPORTANT:** If this logout navigation is interrupted in any way, your MSAL cache may be cleared but the session may still persist on the server. Ensure the navigation fully completes before returning to your application.
+
 ```javascript
 const msalConfig = {
     auth: {
