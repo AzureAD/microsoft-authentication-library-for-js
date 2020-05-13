@@ -1009,7 +1009,7 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(ScopeSet.trimAndConvertToLowerCase(tokenRequest.scopes));
+                expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
@@ -1021,7 +1021,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
 
             msal.acquireTokenSilent(tokenRequest2).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(ScopeSet.trimAndConvertToLowerCase(tokenRequest2.scopes));
+                expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
