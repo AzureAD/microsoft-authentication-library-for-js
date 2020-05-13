@@ -13,7 +13,8 @@ import {
     Authority,
     AuthorityFactory,
     ClientAuthError,
-    Constants
+    Constants,
+    B2cAuthority
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -48,6 +49,8 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
+
+        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
     }
 
     /**
