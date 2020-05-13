@@ -16,8 +16,8 @@ export class ScopeSet {
      */
     // TODO: Rename this, intersecting scopes isn't a great name for duplicate checker
     static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        const convertedCachedScopes = this.trimAndConvertToLowerCase([...cachedScopes]);
-        const requestScopes = this.trimAndConvertToLowerCase([...scopes]);
+        const convertedCachedScopes = this.trimAndConvertArrayToLowerCase([...cachedScopes]);
+        const requestScopes = this.trimAndConvertArrayToLowerCase([...scopes]);
         for (let i = 0; i < requestScopes.length; i++) {
             if (convertedCachedScopes.indexOf(requestScopes[i].toLowerCase()) > -1) {
                 return true;
@@ -33,19 +33,27 @@ export class ScopeSet {
      * @param scopes
      */
     static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        const convertedCachedScopes = this.trimAndConvertToLowerCase([...cachedScopes]);
-        const requestScopes = this.trimAndConvertToLowerCase([...scopes]);
+        const convertedCachedScopes = this.trimAndConvertArrayToLowerCase([...cachedScopes]);
+        const requestScopes = this.trimAndConvertArrayToLowerCase([...scopes]);
         return requestScopes.every((value: any): boolean => convertedCachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
     }
 
     /**
-     * toLower
+     *  Trims and converts string to lower case
      *
      * @param scopes
      */
     // TODO: Rename this, too generic name for a function that only deals with scopes
-    static trimAndConvertToLowerCase(scopes: Array<string>): Array<string> {
-        return scopes.map(scope => scope.trim().toLowerCase());
+    static trimAndConvertToLowerCase(scope: string): string {
+        return scope.trim().toLowerCase();
+    }
+
+    /**
+     * Performs trimeAndConvertToLowerCase on string array
+     * @param scopes 
+     */
+    static trimAndConvertArrayToLowerCase(scopes: Array<string>): Array<string> {
+        return scopes.map(scope => this.trimAndConvertToLowerCase(scope));
     }
 
     /**
@@ -56,7 +64,7 @@ export class ScopeSet {
      */
     // TODO: Rename this, too generic name for a function that only deals with scopes
     static removeElement(scopes: Array<string>, scope: string): Array<string> {
-        const scopeVal = scope.trim().toLowerCase();
+        const scopeVal = this.trimAndConvertToLowerCase(scope);
         return scopes.filter(value => value !== scopeVal);
     }
 
@@ -135,8 +143,8 @@ export class ScopeSet {
      */
     static appendScopes(reqScopes: Array<string>, reqExtraScopesToConsent: Array<string>): Array<string> {
         if (reqScopes) {
-            const convertedExtraScopes = reqExtraScopesToConsent ? this.trimAndConvertToLowerCase([...reqExtraScopesToConsent]) : null;
-            const convertedReqScopes = this.trimAndConvertToLowerCase([...reqScopes]);
+            const convertedExtraScopes = reqExtraScopesToConsent ? this.trimAndConvertArrayToLowerCase([...reqExtraScopesToConsent]) : null;
+            const convertedReqScopes = this.trimAndConvertArrayToLowerCase([...reqScopes]);
             return convertedExtraScopes ? [...convertedReqScopes, ...convertedExtraScopes] : convertedReqScopes;
         }
         return null;
