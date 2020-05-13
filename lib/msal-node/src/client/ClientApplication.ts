@@ -107,7 +107,8 @@ export abstract class ClientApplication {
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
-                authority: await this.createAuthority(authority)
+                authority: await this.createAuthority(authority),
+                knownAuthorities: this.config.auth.knownAuthorities
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!.loggerCallback,
