@@ -1106,23 +1106,24 @@ export class UserAgentApplication {
         // if set to navigate to loginRequest page post login
         if (this.config.auth.navigateToLoginRequestUrl && window.parent === window) {
             const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
-            const currentUrl = UrlUtils.getCurrentUrl();
 
             // Redirect to home page if login request url is null (real null or the string null)
             if (!loginRequestUrl || loginRequestUrl === "null") {
                 this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
-                window.location.href = "/";
+                window.location.assign("/");
                 return;
-            } else if (currentUrl !== loginRequestUrl) {
-                // If loginRequestUrl contains a hash (e.g. Angular routing), process the hash now then redirect to prevent both hashes in url
-                if (loginRequestUrl.indexOf("#") > -1) {
-                    this.logger.info("loginRequestUrl contains hash, processing response hash immediately then redirecting");
-                    this.processCallBack(hash, stateInfo, null);
-                    window.location.href = loginRequestUrl;
+            } else {
+                const currentUrl = UrlUtils.removeHashFromUrl(window.location.href);
+                const finalRedirectUrl = UrlUtils.removeHashFromUrl(loginRequestUrl);
+                if (currentUrl !== finalRedirectUrl) {
+                    window.location.assign(`${finalRedirectUrl}${hash}`);
+                    return;
                 } else {
-                    window.location.href = `${loginRequestUrl}${hash}`;
+                    const loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
+                    if (loginRequestUrlComponents.Hash){
+                        window.location.hash = loginRequestUrlComponents.Hash;
+                    }
                 }
-                return;
             }
         }
 
@@ -1343,7 +1344,7 @@ export class UserAgentApplication {
         this.logger.verbose("renewToken is called for scope and authority: " + requestSignature);
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, requestSignature);
-        const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
+        WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
         this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
@@ -1355,7 +1356,6 @@ export class UserAgentApplication {
         window.requestType = Constants.renewToken;
         this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
-        frameHandle.src = "about:blank";
         this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
     }
 
@@ -1368,7 +1368,7 @@ export class UserAgentApplication {
         this.logger.info("renewidToken is called");
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, requestSignature);
-        const frameHandle = WindowUtils.addHiddenIFrame(frameName, this.logger);
+        WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
 
@@ -1388,7 +1388,6 @@ export class UserAgentApplication {
         // note: scope here is clientId
         this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
-        frameHandle.src = "about:blank";
         this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
     }
 

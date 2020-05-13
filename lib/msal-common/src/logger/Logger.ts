@@ -4,7 +4,7 @@
  */
 import pkg from "../../package.json";
 import { StringUtils } from "../utils/StringUtils";
-import { LoggerOptions } from "../app/config/ModuleConfiguration.js";
+import { LoggerOptions } from "../config/ClientConfiguration";
 
 /**
  * Options for logger messages.
@@ -12,7 +12,8 @@ import { LoggerOptions } from "../app/config/ModuleConfiguration.js";
 export type LoggerMessageOptions = {
     logLevel: LogLevel,
     correlationId?: string,
-    containsPii?: boolean
+    containsPii?: boolean,
+    context?: string
 };
 
 /**
@@ -67,6 +68,7 @@ export class Logger {
         const timestamp = new Date().toUTCString();
         const logHeader: string = StringUtils.isEmpty(this.correlationId) ? `[${timestamp}] : ` : `[${timestamp}] : [${this.correlationId}]`;
         const log = `${logHeader} : ${pkg.version} : ${LogLevel[options.logLevel]} - ${logMessage}`;
+        // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
         this.executeCallback(options.logLevel, log, options.containsPii);
     }
 

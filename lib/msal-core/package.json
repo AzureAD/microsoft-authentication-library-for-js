@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -35,6 +35,9 @@
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6 && npm run build:webpack",
     "build:modules:watch": "tsc -m es6 --outDir lib-es6 --watch",
     "build": "npm run clean && npm run build:modules",
+    "sri": "npm run build:webpack && npm run sri:msal && npm run sri:msalmin",
+    "sri:msal": "openssl dgst -sha384 -binary dist/msal.js | openssl base64 -A",
+    "sri:msalmin": "openssl dgst -sha384 -binary dist/msal.min.js | openssl base64 -A",
     "test": "mocha",
     "test:coverage": "nyc --reporter=text mocha",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
@@ -79,7 +82,7 @@
     "jsdom": "14.0.0",
     "jsdom-global": "3.0.2",
     "jshint": "^2.9.7",
-    "mocha": "^6.1.3",
+    "mocha": "^7.1.2",
     "nyc": "^14.1.1",
     "phantomjs-polyfill": "0.0.2",
     "rimraf": "^3.0.0",

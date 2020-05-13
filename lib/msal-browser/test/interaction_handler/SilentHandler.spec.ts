@@ -2,11 +2,11 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, AuthorizationCodeModule, NetworkRequestOptions, LogLevel } from "@azure/msal-common";
+import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
-import { Configuration, buildConfiguration } from "../../src/app/Configuration";
+import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, testNavUrl } from "../utils/StringConstants";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
@@ -39,7 +39,7 @@ describe("SilentHandler.ts Unit Tests", () => {
 
     let browserStorage: BrowserStorage;
     let silentHandler: SilentHandler;
-    let authCodeModule: AuthorizationCodeModule;
+    let authCodeModule: SPAClient;
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -47,8 +47,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        authCodeModule = new AuthorizationCodeModule({
-            auth: configObj.auth,
+        authCodeModule = new SPAClient({
+            authOptions: configObj.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
                 telemetry: configObj.system.telemetry
