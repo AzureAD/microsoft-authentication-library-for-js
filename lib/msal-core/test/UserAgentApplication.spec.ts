@@ -33,7 +33,6 @@ import { IdToken } from "../src/IdToken";
 import { TimeUtils } from "../src/utils/TimeUtils";
 import { RequestUtils } from "../src/utils/RequestUtils";
 import { UrlUtils } from "../src/utils/UrlUtils";
-import { ScopeSet } from "../src/ScopeSet";
 
 type kv = {
     [key: string]: string;
