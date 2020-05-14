@@ -587,7 +587,7 @@ export class UserAgentApplication {
                 }
             }
         }).catch((err) => {
-            this.logger.warning("could not resolve endpoints");
+            this.logger.error(err);
             this.cacheStorage.resetTempCacheItems(request.state);
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
             if (popUpWindow) {
@@ -750,7 +750,7 @@ export class UserAgentApplication {
                             }
                         }
                     }).catch((err) => {
-                        this.logger.warning("could not resolve endpoints");
+                        this.logger.error(err);
                         reject(ClientAuthError.createEndpointResolutionError(err.toString()));
                         return null;
                     });

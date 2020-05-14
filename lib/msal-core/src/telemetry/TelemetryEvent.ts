@@ -4,7 +4,7 @@ import {
     START_TIME_KEY,
     ELAPSED_TIME_KEY
 } from "./TelemetryConstants";
-import { prependEventNamePrefix } from "./TelemetryUtils";
+import { prependEventNamePrefix, startBrowserPerformanceMeasurement, endBrowserPerformanceMeasurement } from "./TelemetryUtils";
 import { CryptoUtils } from "../utils/CryptoUtils";
 
 export default class TelemetryEvent {
@@ -32,23 +32,14 @@ export default class TelemetryEvent {
         // Set duration of event
         this.setElapsedTime(+Date.now() - +this.startTimestamp);
 
-        if ("performance" in window && window.performance.mark && window.performance.measure) {
-            window.performance.mark(`end-${this.key}`);
-            window.performance.measure(this.displayName, `start-${this.key}`, `end-${this.key}`);
-    
-            window.performance.clearMeasures(this.displayName);
-            window.performance.clearMarks(`start-${this.key}`);
-            window.performance.clearMarks(`end-${this.key}`);
-        }
+        endBrowserPerformanceMeasurement(this.displayName, this.perfStartMark, this.perfEndMark);
     }
 
     public start(): void {
         this.startTimestamp = Date.now();
         this.event[prependEventNamePrefix(START_TIME_KEY)] = this.startTimestamp;
 
-        if ("performance" in window && window.performance.mark) {
-            window.performance.mark(`start-${this.key}`);
-        }
+        startBrowserPerformanceMeasurement(this.perfStartMark);
     }
 
     public get telemetryCorrelationId(): string {
@@ -76,5 +67,13 @@ export default class TelemetryEvent {
 
     public get displayName() {
         return `Msal-${this.label}-${this.telemetryCorrelationId}`;
+    }
+
+    private get perfStartMark() {
+        return `start-${this.key}`;
+    }
+
+    private get perfEndMark() {
+        return `end-${this.key}`;
     }
 }
