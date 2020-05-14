@@ -172,9 +172,7 @@ export class ResponseHandler {
      * @param authority
      */
     addAccountToCache(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): void {
-        const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        let accountEntity: AccountEntity;
-        accountEntity = this.generateAccountEntity(
+        let accountEntity: AccountEntity = this.generateAccountEntity(
             serverTokenResponse,
             idToken,
             authority
