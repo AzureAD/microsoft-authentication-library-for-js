@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthOptions, SystemOptions, LoggerOptions, INetworkModule, LogLevel, DEFAULT_SYSTEM_OPTIONS } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, LogLevel, DEFAULT_SYSTEM_OPTIONS } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
@@ -10,7 +10,12 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 
-export type BrowserAuthOptions = AuthOptions & {
+export type BrowserAuthOptions = {
+    clientId: string;
+    authority?: string;
+    knownAuthorities?: Array<string>;
+    redirectUri?: string | (() => string);
+    postLogoutRedirectUri?: string | (() => string);
     navigateToLoginRequestUrl?: boolean;
 };
 
@@ -60,6 +65,7 @@ export type Configuration = {
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
     authority: null,
+    knownAuthorities: [],
     redirectUri: () => BrowserUtils.getCurrentUri(),
     postLogoutRedirectUri: () => BrowserUtils.getCurrentUri(),
     navigateToLoginRequestUrl: true
@@ -108,12 +114,11 @@ const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
  *
- * @param TAuthOptions
- * @param TCacheOptions
- * @param TSystemOptions
- * @param TFrameworkOptions
+ * @param auth
+ * @param cache
+ * @param system
  *
- * @returns TConfiguration object
+ * @returns Configuration object
  */
 export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration): Configuration {
     const overlayedConfig: Configuration = {
