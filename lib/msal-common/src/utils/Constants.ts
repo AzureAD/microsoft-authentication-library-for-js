@@ -259,12 +259,25 @@ export enum CacheEntity {
 /**
  * Combine all cache types
  */
-export enum CacheTypes {
+export enum CacheType {
     ACCESS_TOKEN,
     ID_TOKEN,
     REFRESH_TOKEN,
     ACCOUNT,
     APP_META_DATA
+};
+
+/**
+ * accountId: <home_account_id>-<environment>
+ * credentialId: <credential_type>-<client-id>-<realm>
+ */
+export enum CacheKeyPosition {
+    HOME_ACCOUNT_ID = 0,
+    ENVIRONMENT,
+    CREDENTIAL_TYPE,
+    CLIENT_ID,
+    REALM,
+    TARGET
 };
 
 /**
