@@ -639,22 +639,27 @@ export class UserAgentApplication {
 
         return new Promise<AuthResponse>((resolve, reject) => {
 
-            // block the request if made from the hidden iframe TODO: Ask about why to extend comment
+            // block the request if made from the hidden iframe
             WindowUtils.blockReloadInHiddenIframes();
 
             const scope = request.scopes.join(" ").toLowerCase();
             this.logger.verbosePii(`Serialized scopes: ${scope}`);
 
             // if the developer passes an account, give that account the priority
-            const account: Account = request.account || this.getAccount();
-            this.logger.verbosePii(`Set account to: ${JSON.stringify(account)}`);
+            let account: Account;
+            if (request.account) {
+                account = request.account;
+                this.logger.verbose("Account set from request");
+            } else {
+                account = this.getAccount();
+                this.logger.verbose("Account set from MSAL configuration");
+            }
 
             // Extract adalIdToken if stashed in the cache to allow for seamless ADAL to MSAL migration
             const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
             /**
              * if there is no account logged in and no login_hint/sid is passed in the request
-             * TODO: consider explaining what sid is
              * In the event of no account being passed in the config, no session id, and no pre-existing adalIdToken, user will need to log in
              */
             if (!account && !(request.sid  || request.loginHint) && StringUtils.isEmpty(adalIdToken) ) {
@@ -684,7 +689,7 @@ export class UserAgentApplication {
             if (ServerRequestParameters.isSSOParam(request) || account) {
                 serverAuthenticationRequest.populateQueryParams(account, request, null, true);
             }
-            // if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken TODO: ask about why
+            // if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
             else if (!account && !StringUtils.isEmpty(adalIdToken)) {
                 // if adalIdToken exists, extract the SSO info from the same
                 const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
@@ -692,15 +697,14 @@ export class UserAgentApplication {
                 serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject, true);
             }
 
-            this.logger.verbosePii(`Query Params has been populated: ${serverAuthenticationRequest.queryParameters}`);
+            this.logger.verbose("Query parameters populated");
 
-            // TODO: ask about why/ when they would not be undefined
             const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
             let authErr: AuthError;
             let cacheResultResponse;
 
-            // If request.forceRefresh is set to true, we want to force a request for a new token instead of getting it from the cache TODO:
+            // If request.forceRefresh is set to true, we want to force a request for a new token instead of getting it from the cache
             if (!userContainedClaims && !request.forceRefresh) {
                 try {
                     cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
@@ -741,7 +745,7 @@ export class UserAgentApplication {
                 }
                 // cache miss
 
-                // start http event TODO: add why
+                // start http event
                 return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync(this.telemetryManager, request.correlationId)
                     .then(() => {
                         /*
@@ -750,7 +754,6 @@ export class UserAgentApplication {
                          */
                         this.logger.verbose("The authority has been updated with endpoint discovery response");
 
-                        // TODO: ask about why
                         if (window.activeRenewals[requestSignature]) {
                             this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
                             // Active renewals contains the state for each renewal.
@@ -762,7 +765,7 @@ export class UserAgentApplication {
                                  * App uses idToken to send to api endpoints
                                  * Default scope is tracked as clientId to store this token
                                  */
-                                this.logger.verbose("renewing idToken"); // TODO: should logs start with caps or lower case?? variable or sentence?
+                                this.logger.verbose("renewing idToken");
                                 this.silentLogin = true;
                                 this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                             } else {
