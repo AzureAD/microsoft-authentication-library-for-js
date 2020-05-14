@@ -115,10 +115,10 @@ describe("AccountCredentialCache test cases", () => {
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
         let accCredCache = new AccountCredentialCache(unifiedCacheManager);
 
-        let accounts = accCredCache.getAccounts("uid.utid");
+        let accounts = accCredCache.getAccountsFilteredBy("uid.utid");
         expect(Object.keys(accounts).length).to.eql(1);
 
-        accounts = accCredCache.getAccounts(null, "login.microsoftonline.com");
+        accounts = accCredCache.getAccountsFilteredBy(null, "login.microsoftonline.com");
         expect(Object.keys(accounts).length).to.eql(2);
     });
 
@@ -126,12 +126,12 @@ describe("AccountCredentialCache test cases", () => {
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
         let accCredCache = new AccountCredentialCache(unifiedCacheManager);
 
-        let credentials = accCredCache.getCredentials("uid.utid");
+        let credentials = accCredCache.getCredentialsFilteredBy("uid.utid");
         expect(Object.keys(credentials.idTokens).length).to.eql(1);
         expect(Object.keys(credentials.accessTokens).length).to.eql(2);
         expect(Object.keys(credentials.refreshTokens).length).to.eql(2);
 
-        credentials = accCredCache.getCredentials("someuid.someutid");
+        credentials = accCredCache.getCredentialsFilteredBy("someuid.someutid");
         expect(Object.keys(credentials.idTokens).length).to.eql(0);
         expect(Object.keys(credentials.accessTokens).length).to.eql(1);
         expect(Object.keys(credentials.refreshTokens).length).to.eql(0);

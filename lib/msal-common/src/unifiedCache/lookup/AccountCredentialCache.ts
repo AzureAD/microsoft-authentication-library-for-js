@@ -90,7 +90,7 @@ export class AccountCredentialCache implements IAccountCredentialCache {
      * @param environment
      * @param realm
      */
-    getAccounts(
+    getAccountsFilteredBy(
         homeAccountId?: string,
         environment?: string,
         realm?: string
@@ -131,7 +131,7 @@ export class AccountCredentialCache implements IAccountCredentialCache {
      * @param realm
      * @param target
      */
-    getCredentials(
+    getCredentialsFilteredBy(
         homeAccountId?: string,
         environment?: string,
         credentialType?: string,
@@ -146,7 +146,7 @@ export class AccountCredentialCache implements IAccountCredentialCache {
             refreshTokens: {}
         };
 
-        matchingCredentials.idTokens = this.getCredentialsInternal(
+        matchingCredentials.idTokens = this.getCredentialsFilteredByInternal(
             this.cacheManager.getCacheInMemory().idTokens,
             homeAccountId,
             environment,
@@ -156,7 +156,7 @@ export class AccountCredentialCache implements IAccountCredentialCache {
             target
         ) as IdTokenCache;
 
-        matchingCredentials.accessTokens = this.getCredentialsInternal(
+        matchingCredentials.accessTokens = this.getCredentialsFilteredByInternal(
             this.cacheManager.getCacheInMemory().accessTokens,
             homeAccountId,
             environment,
@@ -166,7 +166,7 @@ export class AccountCredentialCache implements IAccountCredentialCache {
             target
         ) as AccessTokenCache;
 
-        matchingCredentials.refreshTokens = this.getCredentialsInternal(
+        matchingCredentials.refreshTokens = this.getCredentialsFilteredByInternal(
             this.cacheManager.getCacheInMemory().refreshTokens,
             homeAccountId,
             environment,
@@ -189,7 +189,7 @@ export class AccountCredentialCache implements IAccountCredentialCache {
      * @param realm
      * @param target
      */
-    private getCredentialsInternal(
+    private getCredentialsFilteredByInternal(
         cacheCredentials: object,
         homeAccountId?: string,
         environment?: string,

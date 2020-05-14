@@ -38,7 +38,7 @@ export interface IAccountCredentialCache {
      * @param environment
      * @param realm
      */
-    getAccounts(
+    getAccountsFilteredBy(
         homeAccountId?: string,
         environment?: string,
         realm?: string
@@ -53,7 +53,7 @@ export interface IAccountCredentialCache {
      * @param realm
      * @param target
      */
-    getCredentials(
+    getCredentialsFilteredBy(
         homeAccountId?: string,
         environment?: string,
         credentialType?: string,
