@@ -1132,23 +1132,24 @@ export class UserAgentApplication {
         // if set to navigate to loginRequest page post login
         if (this.config.auth.navigateToLoginRequestUrl && window.parent === window) {
             const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
-            const currentUrl = UrlUtils.getCurrentUrl();
 
             // Redirect to home page if login request url is null (real null or the string null)
             if (!loginRequestUrl || loginRequestUrl === "null") {
                 this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
-                window.location.href = "/";
+                window.location.assign("/");
                 return;
-            } else if (currentUrl !== loginRequestUrl) {
-                // If loginRequestUrl contains a hash (e.g. Angular routing), process the hash now then redirect to prevent both hashes in url
-                if (loginRequestUrl.indexOf("#") > -1) {
-                    this.logger.info("loginRequestUrl contains hash, processing response hash immediately then redirecting");
-                    this.processCallBack(hash, stateInfo, null);
-                    window.location.href = loginRequestUrl;
+            } else {
+                const currentUrl = UrlUtils.removeHashFromUrl(window.location.href);
+                const finalRedirectUrl = UrlUtils.removeHashFromUrl(loginRequestUrl);
+                if (currentUrl !== finalRedirectUrl) {
+                    window.location.assign(`${finalRedirectUrl}${hash}`);
+                    return;
                 } else {
-                    window.location.href = `${loginRequestUrl}${hash}`;
+                    const loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
+                    if (loginRequestUrlComponents.Hash){
+                        window.location.hash = loginRequestUrlComponents.Hash;
+                    }
                 }
-                return;
             }
         }
 
