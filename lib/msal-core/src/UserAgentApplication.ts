@@ -352,7 +352,7 @@ export class UserAgentApplication {
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
@@ -378,7 +378,7 @@ export class UserAgentApplication {
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
@@ -587,7 +587,7 @@ export class UserAgentApplication {
                 }
             }
         }).catch((err) => {
-            this.logger.warning("could not resolve endpoints");
+            this.logger.error(err);
             this.cacheStorage.resetTempCacheItems(request.state);
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
             if (popUpWindow) {
@@ -633,7 +633,7 @@ export class UserAgentApplication {
         this.logger.info("AcquireTokenSilent has been called");
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent);
         const requestSignature = RequestUtils.createRequestSignature(request);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -774,7 +774,7 @@ export class UserAgentApplication {
                             }
                         }
                     }).catch((err) => {
-                        this.logger.warning("could not resolve endpoints");
+                        this.logger.error(err);
                         reject(ClientAuthError.createEndpointResolutionError(err.toString()));
                         return null;
                     });
@@ -969,7 +969,7 @@ export class UserAgentApplication {
     logout(correlationId?: string): void {
         // TODO this new correlation id passed in, is not appended to logout request, should add
         const requestCorrelationId = correlationId || CryptoUtils.createNewGuid();
-        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout, this.logger);
+        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout);
 
         this.clearCache();
         this.account = null;
@@ -2182,7 +2182,7 @@ export class UserAgentApplication {
      */
     private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
         if (!config) { // if unset
-            return TelemetryManager.getTelemetrymanagerStub(clientId);
+            return TelemetryManager.getTelemetrymanagerStub(clientId, this.logger);
         }
         // if set then validate
         const { applicationName, applicationVersion, telemetryEmitter } = config;
@@ -2198,7 +2198,7 @@ export class UserAgentApplication {
             platform: telemetryPlatform,
             clientId: clientId
         };
-        return new TelemetryManager(telemetryManagerConfig, telemetryEmitter);
+        return new TelemetryManager(telemetryManagerConfig, telemetryEmitter, this.logger);
     }
 
     // #endregion
