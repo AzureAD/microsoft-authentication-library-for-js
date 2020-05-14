@@ -7,7 +7,7 @@ import { AccountEntity } from "../entities/AccountEntity";
 import { Credential } from "../entities/Credential";
 import { AccountCache, CredentialCache } from "../utils/CacheTypes";
 
-export interface IAccountCredentialCache {
+export interface ICacheManager {
     /**
      * saves account into cache
      * @param account
