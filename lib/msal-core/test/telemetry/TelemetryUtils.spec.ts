@@ -53,6 +53,12 @@ describe("TelemetryUtils", () => {
     });
 
     describe("Browser Performance", () => {
+        const originalWindow = global["window"];
+
+        afterEach(() => {
+            global["window"] = originalWindow;
+        });
+
         describe("supportsBrowserPerformance", () => {
             it("returns false when window is undefined", () => {
                 expect(supportsBrowserPerformance()).to.be.false;
@@ -61,15 +67,14 @@ describe("TelemetryUtils", () => {
             it("returns false when window.performance is undefined", () => {
                 global["window"] = {};
                 expect(supportsBrowserPerformance()).to.be.false;
-                global["window"] = undefined;
             });
             
             it("returns false when window.performance.mark is undefined", () => {
                 global["window"] = {
                     performance: {}
                 };
+
                 expect(supportsBrowserPerformance()).to.be.false;
-                global["window"] = undefined;
             });
             
             it("returns false when window.performance.measure is undefined", () => {
@@ -78,8 +83,8 @@ describe("TelemetryUtils", () => {
                         mark: () => {},
                     }
                 };
+                
                 expect(supportsBrowserPerformance()).to.be.false;
-                global["window"] = undefined;
             });
 
             it("returns true when performance APIs are available", () => {
@@ -106,8 +111,6 @@ describe("TelemetryUtils", () => {
                 startBrowserPerformanceMeasurement("mark");
 
                 expect(markSpy.firstCall.args).to.deep.equal([ "mark" ]);
-
-                global["window"] = undefined;
             });
         });
 
@@ -134,8 +137,6 @@ describe("TelemetryUtils", () => {
                 expect(clearMeasuresSpy.firstCall.args).to.deep.equal([ "measureName" ]);
                 expect(clearMarksSpy.firstCall.args).to.deep.equal([ "startMark"]);
                 expect(clearMarksSpy.secondCall.args).to.deep.equal([ "endMark"]);
-
-                global["window"] = undefined;
             });
         });
     });
