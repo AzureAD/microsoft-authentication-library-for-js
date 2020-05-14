@@ -32,3 +32,9 @@ export type InMemoryCache = {
     refreshTokens: RefreshTokenCache;
     appMetadata: AppMetadataCache;
 };
+
+export type CredentialCache = {
+    idTokens: IdTokenCache;
+    accessTokens: AccessTokenCache;
+    refreshTokens: RefreshTokenCache;
+};
