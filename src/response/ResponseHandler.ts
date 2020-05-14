@@ -174,9 +174,14 @@ export class ResponseHandler {
     addAccountToCache(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): void {
         const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         let accountEntity: AccountEntity;
-        const cachedAccount: AccountEntity = this.uCacheManager.getAccount(this.homeAccountIdentifier, environment, idToken.claims.tid);
+        accountEntity = this.generateAccountEntity(
+            serverTokenResponse,
+            idToken,
+            authority
+        );
+
+        const cachedAccount: AccountEntity = this.uCacheManager.getAccount(accountEntity.generateAccountKey());
         if (!cachedAccount) {
-            accountEntity = this.generateAccountEntity(serverTokenResponse, idToken, authority);
             this.uCacheManager.addAccountEntity(accountEntity);
         }
     }
