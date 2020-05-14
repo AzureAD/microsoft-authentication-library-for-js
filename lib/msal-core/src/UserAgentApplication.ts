@@ -631,7 +631,6 @@ export class UserAgentApplication {
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         this.logger.info("AcquireTokenSilent has been called");
-        this.logger.verbose(`AcquireTokenSilent params:\n${JSON.stringify(userRequest)}`);
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
@@ -704,7 +703,7 @@ export class UserAgentApplication {
             let authErr: AuthError;
             let cacheResultResponse;
 
-            // If request.forceRefresh is set to true, we want to force a request for a new token instead of getting it from the cache
+            // If request.forceRefresh is set to true, force a request for a new token instead of getting it from the cache
             if (!userContainedClaims && !request.forceRefresh) {
                 try {
                     cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
