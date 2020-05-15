@@ -11,6 +11,7 @@ export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
+export { AuthorityType } from "./authority/AuthorityType";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
 // Network Interface
