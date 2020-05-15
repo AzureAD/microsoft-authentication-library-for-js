@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { UnifiedCacheManager } from "../../src/unifiedCache/UnifiedCacheManager";
 import { mockCache } from "./entities/cacheConstants";
-import { InMemoryCache} from "../../src/unifiedCache/utils/CacheTypes";
+import { InMemoryCache, CredentialFilter, AccountFilter} from "../../src/unifiedCache/utils/CacheTypes";
 import { ICacheStorage } from "../../src/cache/ICacheStorage";
 import { Deserializer } from "../../src/unifiedCache/serialize/Deserializer";
 import { AccountEntity } from "../../src/unifiedCache/entities/AccountEntity";
@@ -137,28 +137,36 @@ describe("UnifiedCacheManager test cases", () => {
     it("getAccounts", () => {
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
 
-        let accounts = unifiedCacheManager.getAccountsFilteredBy("uid.utid");
+        const filterOne: AccountFilter = { homeAccountId: "uid.utid" };
+        let accounts = unifiedCacheManager.getAccountsFilteredBy(filterOne);
         expect(Object.keys(accounts).length).to.eql(1);
 
-        accounts = unifiedCacheManager.getAccountsFilteredBy(
-            null,
-            "login.microsoftonline.com"
-        );
+        const filterTwo: AccountFilter = { environment: "login.microsoftonline.com" };
+        accounts = unifiedCacheManager.getAccountsFilteredBy(filterTwo);
         expect(Object.keys(accounts).length).to.eql(2);
     });
 
     it("getCredentials", () => {
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
 
-        let credentials = unifiedCacheManager.getCredentialsFilteredBy("uid.utid");
+        // filter by homeAccountId
+        const filterOne: CredentialFilter = { homeAccountId: "uid.utid" };
+        let credentials = unifiedCacheManager.getCredentialsFilteredBy(filterOne);
         expect(Object.keys(credentials.idTokens).length).to.eql(1);
         expect(Object.keys(credentials.accessTokens).length).to.eql(2);
         expect(Object.keys(credentials.refreshTokens).length).to.eql(2);
 
-        credentials = unifiedCacheManager.getCredentialsFilteredBy("someuid.someutid");
+        // filter by homeAccountId
+        const filterTwo: CredentialFilter = { homeAccountId: "someuid.someutid" };
+        credentials = unifiedCacheManager.getCredentialsFilteredBy(filterTwo);
         expect(Object.keys(credentials.idTokens).length).to.eql(0);
         expect(Object.keys(credentials.accessTokens).length).to.eql(1);
         expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+
+        // filter by target
+        const filterThree = { target: "scope1 scope2 scope3" };
+        credentials = unifiedCacheManager.getCredentialsFilteredBy(filterThree);
+        console.log(credentials.accessTokens);
     });
 
     it("removeAccount", () => {

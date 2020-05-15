@@ -5,7 +5,7 @@
 
 import { AccountEntity } from "../entities/AccountEntity";
 import { Credential } from "../entities/Credential";
-import { AccountCache, CredentialCache } from "../utils/CacheTypes";
+import { AccountCache, CredentialCache, AccountFilter, CredentialFilter } from "../utils/CacheTypes";
 
 export interface ICacheManager {
     /**
@@ -39,9 +39,7 @@ export interface ICacheManager {
      * @param realm
      */
     getAccountsFilteredBy(
-        homeAccountId?: string,
-        environment?: string,
-        realm?: string
+        filter: AccountFilter
     ): AccountCache;
 
     /**
@@ -54,12 +52,7 @@ export interface ICacheManager {
      * @param target
      */
     getCredentialsFilteredBy(
-        homeAccountId?: string,
-        environment?: string,
-        credentialType?: string,
-        clientId?: string,
-        realm?: string,
-        target?: string
+        filter: CredentialFilter
     ): CredentialCache;
 
     /**
