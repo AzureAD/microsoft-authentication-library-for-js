@@ -6,7 +6,7 @@ import { prependEventNamePrefix } from "./TelemetryUtils";
 export default class DefaultEvent extends TelemetryEvent {
     // TODO Platform Type
     constructor(platform: TelemetryPlatform, correlationId: string, clientId: string, eventCount: EventCount) {
-        super(prependEventNamePrefix("default_event"), correlationId);
+        super(prependEventNamePrefix("default_event"), correlationId, "DefaultEvent");
         this.event[prependEventNamePrefix("client_id")] = clientId;
         this.event[prependEventNamePrefix("sdk_plaform")] = platform.sdk;
         this.event[prependEventNamePrefix("sdk_version")] = platform.sdkVersion;

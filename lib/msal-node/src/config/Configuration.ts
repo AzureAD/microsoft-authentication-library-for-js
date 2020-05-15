@@ -14,6 +14,7 @@ import debug from "debug";
 export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
+    knownAuthorities?: Array<string>;
 }
 
 /**
@@ -56,6 +57,7 @@ export type Configuration = {
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
     authority: '',
+    knownAuthorities: []
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {

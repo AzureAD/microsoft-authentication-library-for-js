@@ -352,7 +352,7 @@ export class UserAgentApplication {
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
@@ -378,7 +378,7 @@ export class UserAgentApplication {
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
@@ -587,7 +587,7 @@ export class UserAgentApplication {
                 }
             }
         }).catch((err) => {
-            this.logger.warning("could not resolve endpoints");
+            this.logger.error(err);
             this.cacheStorage.resetTempCacheItems(request.state);
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
             if (popUpWindow) {
@@ -632,7 +632,7 @@ export class UserAgentApplication {
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent);
         const requestSignature = RequestUtils.createRequestSignature(request);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -750,7 +750,7 @@ export class UserAgentApplication {
                             }
                         }
                     }).catch((err) => {
-                        this.logger.warning("could not resolve endpoints");
+                        this.logger.error(err);
                         reject(ClientAuthError.createEndpointResolutionError(err.toString()));
                         return null;
                     });
@@ -944,7 +944,7 @@ export class UserAgentApplication {
     logout(correlationId?: string): void {
         // TODO this new correlation id passed in, is not appended to logout request, should add
         const requestCorrelationId = correlationId || CryptoUtils.createNewGuid();
-        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout, this.logger);
+        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout);
 
         this.clearCache();
         this.account = null;
@@ -1106,23 +1106,24 @@ export class UserAgentApplication {
         // if set to navigate to loginRequest page post login
         if (this.config.auth.navigateToLoginRequestUrl && window.parent === window) {
             const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
-            const currentUrl = UrlUtils.getCurrentUrl();
 
             // Redirect to home page if login request url is null (real null or the string null)
             if (!loginRequestUrl || loginRequestUrl === "null") {
                 this.logger.error("Unable to get valid login request url from cache, redirecting to home page");
-                window.location.href = "/";
+                window.location.assign("/");
                 return;
-            } else if (currentUrl !== loginRequestUrl) {
-                // If loginRequestUrl contains a hash (e.g. Angular routing), process the hash now then redirect to prevent both hashes in url
-                if (loginRequestUrl.indexOf("#") > -1) {
-                    this.logger.info("loginRequestUrl contains hash, processing response hash immediately then redirecting");
-                    this.processCallBack(hash, stateInfo, null);
-                    window.location.href = loginRequestUrl;
+            } else {
+                const currentUrl = UrlUtils.removeHashFromUrl(window.location.href);
+                const finalRedirectUrl = UrlUtils.removeHashFromUrl(loginRequestUrl);
+                if (currentUrl !== finalRedirectUrl) {
+                    window.location.assign(`${finalRedirectUrl}${hash}`);
+                    return;
                 } else {
-                    window.location.href = `${loginRequestUrl}${hash}`;
+                    const loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
+                    if (loginRequestUrlComponents.Hash){
+                        window.location.hash = loginRequestUrlComponents.Hash;
+                    }
                 }
-                return;
             }
         }
 
@@ -2156,7 +2157,7 @@ export class UserAgentApplication {
      */
     private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
         if (!config) { // if unset
-            return TelemetryManager.getTelemetrymanagerStub(clientId);
+            return TelemetryManager.getTelemetrymanagerStub(clientId, this.logger);
         }
         // if set then validate
         const { applicationName, applicationVersion, telemetryEmitter } = config;
@@ -2172,7 +2173,7 @@ export class UserAgentApplication {
             platform: telemetryPlatform,
             clientId: clientId
         };
-        return new TelemetryManager(telemetryManagerConfig, telemetryEmitter);
+        return new TelemetryManager(telemetryManagerConfig, telemetryEmitter, this.logger);
     }
 
     // #endregion
