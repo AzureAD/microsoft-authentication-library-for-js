@@ -16,7 +16,9 @@ import {
     TokenRenewParameters,
     TokenResponse,
     UrlString,
-    AuthorityType
+    AuthorityType,
+    B2cAuthority,
+    InteractionRequiredAuthError
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -91,6 +93,9 @@ export class PublicClientApplication {
         // Initialize the browser storage class.
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
+        // Initialize default authority instance
+        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities);
+
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(
             this.config.auth.authority || "https://login.microsoftonline.com/common",
             this.config.system.networkClient
@@ -149,7 +154,7 @@ export class PublicClientApplication {
      * containing data from the server (returned with a null or non-blocking error).
      */
     async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
-        console.warn("handleRedirectCallback will be deprecated upon release of msal-browser@v2.0.0. Please transition to using onRedirectAppLoad().");
+        console.warn("handleRedirectCallback will be deprecated upon release of msal-browser@v2.0.0. Please transition to using handleRedirectPromise().");
         // Check whether callback object was passed.
         if (!authCallback) {
             throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
@@ -172,7 +177,7 @@ export class PublicClientApplication {
      * auth flows.
      * @returns token response or null. If the return value is null, then no auth redirect was detected.
      */
-    async handleRedirectPromise(): Promise<TokenResponse|null> {
+    async handleRedirectPromise(): Promise<TokenResponse | null> {
         return this.tokenExchangePromise;
     }
 
@@ -183,7 +188,7 @@ export class PublicClientApplication {
      */
     private async handleRedirectResponse(): Promise<TokenResponse> {
         // Get current location hash from window or cache.
-        const { location: { hash } } = window;
+        const {location: {hash}} = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
 
@@ -426,8 +431,9 @@ export class PublicClientApplication {
             return await this.authModule.getValidToken(silentRequest);
         } catch (e) {
             const isServerError = e instanceof ServerError;
+            const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
-            if (isServerError && isInvalidGrantError) {
+            if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 const tokenRequest: AuthenticationParameters = {
                     ...silentRequest,
                     prompt: PromptValue.NONE
@@ -462,7 +468,7 @@ export class PublicClientApplication {
             const hash = await silentHandler.monitorFrameForHash(msalFrame, this.config.system.iframeHashTimeout, navigateUrl);
             // Handle response from hash string.
             return await silentHandler.handleCodeResponse(hash);
-        } catch(e) {
+        } catch (e) {
             throw e;
         }
     }

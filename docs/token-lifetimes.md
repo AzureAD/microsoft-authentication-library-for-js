@@ -28,7 +28,7 @@ The `PublicClientApplication` object exposes an API called `acquireTokenSilent` 
 2. If a token exists for the given parameters, then ensure we get a single match and check the expiration.
 3. If the access token is not expired, MSAL will return a response with the given tokens.
 4. If the access token is expired but the refresh token is still valid, MSAL will use the given refresh token to retrieve a new set of tokens, and then return a response.
-5. If the refresh token is expired, MSAL will pass on an error from the server as a `ServerError`, asking to retrieve an authorization code to retrieve a new set of tokens. You can do this by performing a login or acquireToken API call with the `PublicClientApplication` object. If the session is still active, the server will send a code without any user prompts. Otherwise, the user will be required to enter their credentials.
+5. If the refresh token is expired, MSAL will attempt to retrieve an access tokens silently using a hidden iframe. If this hidden iframe call fails, MSAL will pass on an error from the server as an `InteractionRequiredAuthError`, asking to retrieve an authorization code to retrieve a new set of tokens. You can do this by performing a login or acquireToken API call with the `PublicClientApplication` object. If the session is still active, the server will send a code without any user prompts. Otherwise, the user will be required to enter their credentials.
 
 ### Code Snippets
 
@@ -39,10 +39,12 @@ var request = {
 };
 
 const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(async (error) => {
-    // fallback to interaction when silent call fails
-    return await myMSALObj.acquireTokenPopup(request).catch(error => {
-        console.log(error);
-    });
+    if (error instanceof InteractionRequiredAuthError) {
+        // fallback to interaction when silent call fails
+        return await myMSALObj.acquireTokenPopup(request).catch(error => {
+            console.log(error);
+        });
+    }
 });
 ```
 
@@ -53,9 +55,10 @@ var request = {
 };
 
 const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(error => {
-    console.log("silent token acquisition fails. acquiring token using redirect");
-    // fallback to interaction when silent call fails
-    return myMSALObj.acquireTokenRedirect(request)
+    if (error instanceof InteractionRequiredAuthError) {
+        // fallback to interaction when silent call fails
+        return myMSALObj.acquireTokenRedirect(request)
+    }
 });
 ```
 
