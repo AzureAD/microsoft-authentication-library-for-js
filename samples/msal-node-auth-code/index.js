@@ -34,6 +34,7 @@ function redirectToAzureAd(req, res){
     const authCodeUrlParameters = {
         scopes: ["user.read"],
         redirectUri: ["http://localhost:3000/redirect"],
+        prompt: msal.Prompt.SELECT_ACCOUNT
     };
 
     pca.getAuthCodeUrl(authCodeUrlParameters)
