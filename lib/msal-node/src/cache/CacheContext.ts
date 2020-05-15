@@ -28,9 +28,9 @@ export class CacheContext {
      * Update the library cache
      * @param storage
      */
-    setCurrentCache(storage: Storage, cacheObject: JsonCache) {
+    async setCurrentCache(storage: Storage, cacheObject: JsonCache): Promise<void> {
         const cacheWithOverlayedDefaults = this.overlayDefaults(cacheObject);
-        storage.setCache(Deserializer.deserializeAllCache(cacheWithOverlayedDefaults));
+        return await storage.setCache(Deserializer.deserializeAllCache(cacheWithOverlayedDefaults));
     }
 
 

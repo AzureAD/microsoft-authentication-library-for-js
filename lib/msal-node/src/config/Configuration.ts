@@ -26,6 +26,8 @@ export type CacheOptions = {
     cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
     cacheInMemory?: InMemoryCache;
+    beforeCacheAccess?: Function,
+    afterCacheAccess?: Function
 };
 
 /**
@@ -68,7 +70,7 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
         accessTokens: {},
         refreshTokens: {},
         appMetadata: {},
-    },
+    }
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {

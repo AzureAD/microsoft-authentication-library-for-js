@@ -103,11 +103,11 @@ export class ResponseHandler {
      * @param resource
      * @param state
      */
-    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
+    async generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): Promise<AuthenticationResult> {
         // Retrieve current account if in Cache
         // TODO: add this once the req for cache look up for tokens is confirmed
 
-        const authenticationResult = this.processTokenResponse(serverTokenResponse, authority);
+        const authenticationResult = await this.processTokenResponse(serverTokenResponse, authority);
 
         const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         this.addCredentialsToCache(authenticationResult, environment, serverTokenResponse.refresh_token);
@@ -120,7 +120,7 @@ export class ResponseHandler {
      * @param authenticationResult
      * @param idTokenString(raw idToken in the server response)
      */
-    processTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
+    async processTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): Promise<AuthenticationResult> {
         const authenticationResult: AuthenticationResult = {
             uniqueId: "",
             tenantId: "",
@@ -137,7 +137,7 @@ export class ResponseHandler {
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
         // if account is not in cache, append it to the cache
-        this.addAccountToCache(serverTokenResponse, idTokenObj, authority);
+        await this.addAccountToCache(serverTokenResponse, idTokenObj, authority);
 
         // TODO: Check how this changes for auth code response
         const expiresSeconds = Number(idTokenObj.claims.exp);
@@ -171,13 +171,13 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    addAccountToCache(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): void {
+    async addAccountToCache(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): Promise<void> {
         const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         let accountEntity: AccountEntity;
-        const cachedAccount: AccountEntity = this.uCacheManager.getAccount(this.homeAccountIdentifier, environment, idToken.claims.tid);
+        const cachedAccount: AccountEntity = await this.uCacheManager.getAccount(this.homeAccountIdentifier, environment, idToken.claims.tid);
         if (!cachedAccount) {
             accountEntity = this.generateAccountEntity(serverTokenResponse, idToken, authority);
-            this.uCacheManager.addAccountEntity(accountEntity);
+            await this.uCacheManager.addAccountEntity(accountEntity);
         }
     }
 
@@ -209,11 +209,11 @@ export class ResponseHandler {
      * @param authenticationResult
      * @param authority
      */
-    addCredentialsToCache(
+    async addCredentialsToCache(
         authenticationResult: AuthenticationResult,
         authority: string,
         refreshToken: string
-    ): void {
+    ): Promise<void> {
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
             this.homeAccountIdentifier,
             authenticationResult,
@@ -234,6 +234,6 @@ export class ResponseHandler {
             authority
         );
 
-        this.uCacheManager.addCredentialCache(accessTokenEntity, idTokenEntity, refreshTokenEntity);
+        return this.uCacheManager.addCredentialCache(accessTokenEntity, idTokenEntity, refreshTokenEntity);
     }
 }

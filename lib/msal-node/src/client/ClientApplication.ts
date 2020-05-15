@@ -126,11 +126,11 @@ export abstract class ClientApplication {
         };
     }
 
-    initializeCache(cacheObject: JsonCache) {
-        this.cacheContext.setCurrentCache(this.storage, cacheObject)
+    async initializeCache(cacheObject: JsonCache): Promise<void> {
+        return this.cacheContext.setCurrentCache(this.storage, cacheObject)
     }
 
-    readCache(): JsonCache {
-        return Serializer.serializeAllCache(this.storage.getCache());
+    async readCache(): Promise<JsonCache> {
+        return Serializer.serializeAllCache((await this.storage.getCache()));
     }
 }

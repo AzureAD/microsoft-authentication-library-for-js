@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import {
-    ICacheStorage,
+    ICacheStorageAsync,
     InMemoryCache
 } from '@azure/msal-common';
 import { CacheOptions } from '../config/Configuration';
@@ -11,10 +11,13 @@ import { CacheOptions } from '../config/Configuration';
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
-export class Storage implements ICacheStorage {
+export class Storage implements ICacheStorageAsync {
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;;
+    private cacheConfig: CacheOptions;
     private inMemoryCache: InMemoryCache;
+
+    // private beforeCacheAccess: Function;
+    // private afterCacheAccess: Function;
 
     constructor(cacheConfig: CacheOptions) {
         this.cacheConfig = cacheConfig;
@@ -25,7 +28,7 @@ export class Storage implements ICacheStorage {
     /**
      * gets the current in memory cache for the client
      */
-    getCache(): InMemoryCache {
+    async getCache(): Promise<InMemoryCache> {
         return this.inMemoryCache;
     }
 
@@ -33,8 +36,9 @@ export class Storage implements ICacheStorage {
      * sets the current in memory cache for the client
      * @param inMemoryCache
      */
-    setCache(inMemoryCache: InMemoryCache) {
+    async setCache(inMemoryCache: InMemoryCache): Promise<void> {
         this.inMemoryCache = inMemoryCache;
+        // this.afterCacheAccess(Serializer.serializeAllCache(this.inMemoryCache))
     }
 
     /**
@@ -43,7 +47,7 @@ export class Storage implements ICacheStorage {
      * @param value
      * TODO: implement after the lookup implementation
      */
-    setItem(key: string, value: string): void {
+    async setItem(key: string, value: string): Promise<void> {
         if (key && value) {
             return;
         }
@@ -55,7 +59,7 @@ export class Storage implements ICacheStorage {
      * @param key
      * TODO: implement after the lookup implementation
      */
-    getItem(key: string): string {
+    async getItem(key: string): Promise<string> {
         return key ? 'random' : 'truly random';
     }
 
@@ -65,7 +69,7 @@ export class Storage implements ICacheStorage {
      * @param key
      * TODO: implement after the lookup implementation
      */
-    removeItem(key: string): void {
+    async removeItem(key: string): Promise<void> {
         if (!key) return;
     }
 
@@ -74,7 +78,7 @@ export class Storage implements ICacheStorage {
      * @param key
      * TODO: implement after the lookup implementation
      */
-    containsKey(key: string): boolean {
+    async containsKey(key: string): Promise<boolean> {
         return key ? true : false;
     }
 
@@ -82,14 +86,14 @@ export class Storage implements ICacheStorage {
      * Gets all keys in window.
      * TODO: implement after the lookup implementation
      */
-    getKeys(): string[] {
+    async getKeys(): Promise<Array<string>> {
         return [];
     }
 
     /**
      * Clears all cache entries created by MSAL (except tokens).
      */
-    clear(): void {
+    async clear(): Promise<void> {
         return;
     }
 }

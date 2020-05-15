@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { CacheHelpers } from "../../src/cache/CacheHelpers";
 import { TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_CONFIG, TEST_URIS, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import sinon from "sinon";
-import { ICacheStorage } from "../../src/cache/ICacheStorage";
 import { TemporaryCacheKeys, Constants } from "../../src/utils/Constants";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { AadAuthority } from "../../src/authority/AadAuthority";
@@ -16,6 +15,7 @@ import { AuthenticationParameters } from "../../src/request/AuthenticationParame
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
 import { AccessTokenCacheItem } from "../../src/cache/AccessTokenCacheItem";
+import { ICacheStorageAsync } from "../../src";
 
 describe("CacheHelpers.ts Tests", () => {
 
@@ -27,25 +27,27 @@ describe("CacheHelpers.ts Tests", () => {
         });
 
         it("Creates a CacheHelpers class instance", () => {
-            const cacheStorage: ICacheStorage = {
-                setItem(key: string, value: string): void {
+            const cacheStorage: ICacheStorageAsync = {
+                async setItem(key: string, value: string): Promise<void> {
                     store[key] = value;
                 },
-                getItem(key: string): string {
+                async getItem(key: string): Promise<string> {
                     return store[key];
                 },
-                removeItem(key: string): void {
+                async removeItem(key: string): Promise<void> {
                     delete store[key];
                 },
-                containsKey(key: string): boolean {
+                async containsKey(key: string): Promise<boolean> {
                     return !!store[key];
                 },
-                getKeys(): string[] {
+                async getKeys(): Promise<Array<string>> {
                     return Object.keys(store);
                 },
-                clear(): void {
+                async clear(): Promise<void> {
                     store = {};
-                }
+                },
+                getCache() { return null },
+                setCache() { return null; }
             };
 
             const cacheHelpers = new CacheHelpers(cacheStorage);
@@ -57,25 +59,27 @@ describe("CacheHelpers.ts Tests", () => {
 
         let cacheHelpers: CacheHelpers;
         beforeEach(() => {
-            const cacheStorage: ICacheStorage = {
-                setItem(key: string, value: string): void {
+            const cacheStorage: ICacheStorageAsync = {
+                async setItem(key: string, value: string): Promise<void> {
                     store[key] = value;
                 },
-                getItem(key: string): string {
+                async getItem(key: string): Promise<string> {
                     return store[key];
                 },
-                removeItem(key: string): void {
+                async removeItem(key: string): Promise<void> {
                     delete store[key];
                 },
-                containsKey(key: string): boolean {
+                async containsKey(key: string): Promise<boolean> {
                     return !!store[key];
                 },
-                getKeys(): string[] {
+                async getKeys(): Promise<Array<string>> {
                     return Object.keys(store);
                 },
-                clear(): void {
+                async clear(): Promise<void> {
                     store = {};
-                }
+                },
+                getCache() { return null },
+                setCache() { return null; }
             };
 
             cacheHelpers = new CacheHelpers(cacheStorage);
@@ -108,25 +112,27 @@ describe("CacheHelpers.ts Tests", () => {
         let idToken: IdToken;
         let clientInfo: ClientInfo;
         beforeEach(() => {
-            const cacheStorage: ICacheStorage = {
-                setItem(key: string, value: string): void {
+            const cacheStorage: ICacheStorageAsync = {
+                async setItem(key: string, value: string): Promise<void> {
                     store[key] = value;
                 },
-                getItem(key: string): string {
+                async getItem(key: string): Promise<string> {
                     return store[key];
                 },
-                removeItem(key: string): void {
+                async removeItem(key: string): Promise<void> {
                     delete store[key];
                 },
-                containsKey(key: string): boolean {
+                async containsKey(key: string): Promise<boolean> {
                     return !!store[key];
                 },
-                getKeys(): string[] {
+                async getKeys(): Promise<Array<string>> {
                     return Object.keys(store);
                 },
-                clear(): void {
+                async clear(): Promise<void> {
                     store = {};
-                }
+                },
+                getCache() { return null },
+                setCache() { return null; }
             };
 
             cacheHelpers = new CacheHelpers(cacheStorage);
@@ -192,18 +198,18 @@ describe("CacheHelpers.ts Tests", () => {
             expect(store[accountKey]).to.be.eq(JSON.stringify(testAccount));
         });
 
-        it("setAccountCache() uses Constants.NO_ACCOUNT to set cache in the account", () => {
+        it("setAccountCache() uses Constants.NO_ACCOUNT to set cache in the account", async () => {
             const testAccount = Account.createAccount(idToken, clientInfo, cryptoInterface)
             const accountKeySpy = sinon.spy(CacheHelpers.prototype, "generateAcquireTokenAccountKey");
             testAccount.homeAccountIdentifier = "";
-            cacheHelpers.setAccountCache(testAccount);
+            await cacheHelpers.setAccountCache(testAccount);
 
             expect(accountKeySpy.calledOnce).to.be.true;
             const accountKey = `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${Constants.NO_ACCOUNT}`;
             expect(store[accountKey]).to.be.eq(JSON.stringify(testAccount));
         });
 
-        it("setAuthorityCache() calls generateAuthorityKey and sets cache with authority", () => {
+        it("setAuthorityCache() calls generateAuthorityKey and sets cache with authority", async () => {
             const setAuthorityCacheSpy = sinon.spy(CacheHelpers.prototype, "generateAuthorityKey");
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -215,7 +221,7 @@ describe("CacheHelpers.ts Tests", () => {
             };
 
             const aadAuthority = new AadAuthority(Constants.DEFAULT_AUTHORITY, networkInterface);
-            cacheHelpers.setAuthorityCache(aadAuthority, RANDOM_TEST_GUID);
+            await cacheHelpers.setAuthorityCache(aadAuthority, RANDOM_TEST_GUID);
 
             expect(setAuthorityCacheSpy.calledOnce).to.be.true;
             const authorityKey = `${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`;
@@ -229,27 +235,29 @@ describe("CacheHelpers.ts Tests", () => {
         let cryptoInterface: ICrypto;
         let serverAuthParams: ServerCodeRequestParameters;
         let testAccount: Account;
-        let cacheStorage: ICacheStorage;
+        let cacheStorage: ICacheStorageAsync;
         beforeEach(() => {
             cacheStorage = {
-                setItem(key: string, value: string): void {
+                async setItem(key: string, value: string): Promise<void> {
                     store[key] = value;
                 },
-                getItem(key: string): string {
+                async getItem(key: string): Promise<string> {
                     return store[key];
                 },
-                removeItem(key: string): void {
+                async removeItem(key: string): Promise<void> {
                     delete store[key];
                 },
-                containsKey(key: string): boolean {
+                async containsKey(key: string): Promise<boolean> {
                     return !!store[key];
                 },
-                getKeys(): string[] {
+                async getKeys(): Promise<Array<string>> {
                     return Object.keys(store);
                 },
-                clear(): void {
+                async clear(): Promise<void> {
                     store = {};
-                }
+                },
+                getCache() { return null },
+                setCache() { return null; }
             };
 
             cacheHelpers = new CacheHelpers(cacheStorage);
@@ -326,10 +334,10 @@ describe("CacheHelpers.ts Tests", () => {
             sinon.restore();
         });
 
-        it("updateCacheEntries() correctly updates the account, authority and state in the cache", () => {
+        it("updateCacheEntries() correctly updates the account, authority and state in the cache", async () => {
             const authorityCacheSpy = sinon.spy(CacheHelpers.prototype, "setAuthorityCache");
             const accountCacheSpy = sinon.spy(CacheHelpers.prototype, "setAccountCache");
-            cacheHelpers.updateCacheEntries(serverAuthParams, testAccount);
+            await cacheHelpers.updateCacheEntries(serverAuthParams, testAccount);
 
             expect(accountCacheSpy.calledOnce).to.be.true;
             expect(authorityCacheSpy.calledOnce).to.be.true;
@@ -343,10 +351,10 @@ describe("CacheHelpers.ts Tests", () => {
             expect(store[authorityKey]).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
-        it("updateCacheEntries() does not set account if account is given as null/empty", () => {
+        it("updateCacheEntries() does not set account if account is given as null/empty", async() => {
             const authorityCacheSpy = sinon.spy(CacheHelpers.prototype, "setAuthorityCache");
             const accountCacheSpy = sinon.spy(CacheHelpers.prototype, "setAccountCache");
-            cacheHelpers.updateCacheEntries(serverAuthParams, null);
+            await cacheHelpers.updateCacheEntries(serverAuthParams, null);
 
             expect(accountCacheSpy.calledOnce).to.be.false;
             expect(authorityCacheSpy.calledOnce).to.be.true;
@@ -360,12 +368,12 @@ describe("CacheHelpers.ts Tests", () => {
             expect(store[authorityKey]).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
-        it("resetTempCacheItems() resets all temporary cache items with the given state", () => {
-            cacheHelpers.updateCacheEntries(serverAuthParams, testAccount);
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
-            cacheStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI);
+        it("resetTempCacheItems() resets all temporary cache items with the given state", async() => {
+            await cacheHelpers.updateCacheEntries(serverAuthParams, testAccount);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
+            await cacheStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI);
 
-            cacheHelpers.resetTempCacheItems(RANDOM_TEST_GUID);
+            await cacheHelpers.resetTempCacheItems(RANDOM_TEST_GUID);
             const accountKey = cacheHelpers.generateAcquireTokenAccountKey(testAccount.homeAccountIdentifier);
             const nonceKey = cacheHelpers.generateNonceKey(RANDOM_TEST_GUID);
             const authorityKey = cacheHelpers.generateAuthorityKey(RANDOM_TEST_GUID);
@@ -382,12 +390,12 @@ describe("CacheHelpers.ts Tests", () => {
 
         let cacheHelpers: CacheHelpers;
         let cryptoInterface: ICrypto;
-        let cacheStorage: ICacheStorage;
+        let cacheStorage: ICacheStorageAsync;
         let scopeString: string;
         let testResource: string;
         let testResource2: string;
         let testHomeAccId2: string;
-        beforeEach(() => {
+        beforeEach(async () => {
             cryptoInterface = {
                 createNewGuid(): string {
                     return RANDOM_TEST_GUID;
@@ -416,24 +424,26 @@ describe("CacheHelpers.ts Tests", () => {
             testResource = "https://login.contoso.com/endpt";
             testResource2 = "https://login.contoso.com/endpt2";
             cacheStorage = {
-                setItem(key: string, value: string): void {
+                async setItem(key: string, value: string): Promise<void> {
                     store[key] = value;
                 },
-                getItem(key: string): string {
+                async getItem(key: string): Promise<string> {
                     return store[key];
                 },
-                removeItem(key: string): void {
+                async removeItem(key: string): Promise<void> {
                     delete store[key];
                 },
-                containsKey(key: string): boolean {
+                async containsKey(key: string): Promise<boolean> {
                     return !!store[key];
                 },
-                getKeys(): string[] {
+                async getKeys(): Promise<Array<string>> {
                     return Object.keys(store);
                 },
-                clear(): void {
+                async clear(): Promise<void> {
                     store = {};
-                }
+                },
+                getCache() { return null; },
+                setCache() { return null; }
             };
 
             cacheHelpers = new CacheHelpers(cacheStorage);
@@ -446,7 +456,7 @@ describe("CacheHelpers.ts Tests", () => {
                 expiresOnSec: `${TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP}`,
                 extExpiresOnSec: `${TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
             };
-            cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue1));
+            await cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue1));
 
             const atKey2 = new AccessTokenKey(
                 Constants.DEFAULT_AUTHORITY,
@@ -465,7 +475,7 @@ describe("CacheHelpers.ts Tests", () => {
                 expiresOnSec: `${TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP}`,
                 extExpiresOnSec: `${TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
             };
-            cacheStorage.setItem(JSON.stringify(atKey2), JSON.stringify(atValue2));
+            await cacheStorage.setItem(JSON.stringify(atKey2), JSON.stringify(atValue2));
 
             testHomeAccId2 = "testHomeAccountId";
             const atKey3: AccessTokenKey = {
@@ -483,8 +493,8 @@ describe("CacheHelpers.ts Tests", () => {
                 homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
             };
 
-            cacheStorage.setItem(JSON.stringify(atKey3), JSON.stringify(atValue1));
-            cacheStorage.setItem(JSON.stringify(atKey4), JSON.stringify(atValue2));
+            await cacheStorage.setItem(JSON.stringify(atKey3), JSON.stringify(atValue1));
+            await cacheStorage.setItem(JSON.stringify(atKey4), JSON.stringify(atValue2));
 
             const atKey5: AccessTokenKey = {
                 authority: `${TEST_URIS.ALTERNATE_INSTANCE}/common/`,
@@ -494,7 +504,7 @@ describe("CacheHelpers.ts Tests", () => {
                 homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
             };
 
-            cacheStorage.setItem(JSON.stringify(atKey5), JSON.stringify(atValue1));
+            await cacheStorage.setItem(JSON.stringify(atKey5), JSON.stringify(atValue1));
         });
 
         afterEach(() => {
@@ -502,15 +512,15 @@ describe("CacheHelpers.ts Tests", () => {
             sinon.restore();
         });
 
-        it("getAllAccessTokens() correctly gets all access tokens matching the given variables", () => {
-            const atArr1: Array<AccessTokenCacheItem> = cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`);
-            const atArr2: Array<AccessTokenCacheItem> = cacheHelpers.getAllAccessTokens(RANDOM_TEST_GUID, `${Constants.DEFAULT_AUTHORITY}/`);
-            const atArr3: Array<AccessTokenCacheItem> = cacheHelpers.getAllAccessTokens(RANDOM_TEST_GUID, `${TEST_URIS.ALTERNATE_INSTANCE}/common/`);
-            const atArr4: Array<AccessTokenCacheItem> = cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${TEST_URIS.ALTERNATE_INSTANCE}/common/`);
-            const atArr5: Array<AccessTokenCacheItem> = cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource);
-            const atArr6: Array<AccessTokenCacheItem> = cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource2);
-            const atArr7: Array<AccessTokenCacheItem> = cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
-            const atArr8: Array<AccessTokenCacheItem> = cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource, testHomeAccId2);
+        it("getAllAccessTokens() correctly gets all access tokens matching the given variables", async () => {
+            const atArr1: Array<AccessTokenCacheItem> = await cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`);
+            const atArr2: Array<AccessTokenCacheItem> = await cacheHelpers.getAllAccessTokens(RANDOM_TEST_GUID, `${Constants.DEFAULT_AUTHORITY}/`);
+            const atArr3: Array<AccessTokenCacheItem> = await cacheHelpers.getAllAccessTokens(RANDOM_TEST_GUID, `${TEST_URIS.ALTERNATE_INSTANCE}/common/`);
+            const atArr4: Array<AccessTokenCacheItem> = await cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${TEST_URIS.ALTERNATE_INSTANCE}/common/`);
+            const atArr5: Array<AccessTokenCacheItem> = await cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource);
+            const atArr6: Array<AccessTokenCacheItem> = await cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource2);
+            const atArr7: Array<AccessTokenCacheItem> = await cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
+            const atArr8: Array<AccessTokenCacheItem> = await cacheHelpers.getAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource, testHomeAccId2);
 
             expect(atArr1.length).to.be.eq(3);
             expect(atArr2.length).to.be.eq(0);
@@ -522,22 +532,22 @@ describe("CacheHelpers.ts Tests", () => {
             expect(atArr8.length).to.be.eq(1);
         });
 
-        it("removeAllAccessTokens() correctly removes all access tokens matching client id and authority", () => {
-            expect(cacheStorage.getKeys().length).to.be.eq(5);
-            cacheHelpers.removeAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`);
-            expect(cacheStorage.getKeys().length).to.be.eq(2);
+        it("removeAllAccessTokens() correctly removes all access tokens matching client id and authority", async () => {
+            expect((await cacheStorage.getKeys()).length).to.be.eq(5);
+            await cacheHelpers.removeAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`);
+            expect((await cacheStorage.getKeys()).length).to.be.eq(2);
         });
 
-        it("removeAllAccessTokens() correctly removes all access tokens matching client id, authority and resource", () => {
-            expect(cacheStorage.getKeys().length).to.be.eq(5);
-            cacheHelpers.removeAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource);
-            expect(cacheStorage.getKeys().length).to.be.eq(3);
+        it("removeAllAccessTokens() correctly removes all access tokens matching client id, authority and resource", async () => {
+            expect((await cacheStorage.getKeys()).length).to.be.eq(5);
+            await  cacheHelpers.removeAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource);
+            expect((await cacheStorage.getKeys()).length).to.be.eq(3);
         });
 
-        it("removeAllAccessTokens() correctly removes all access tokens matching client id, authority, resource and home account identifier", () => {
-            expect(cacheStorage.getKeys().length).to.be.eq(5);
-            cacheHelpers.removeAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
-            expect(cacheStorage.getKeys().length).to.be.eq(4);
+        it("removeAllAccessTokens() correctly removes all access tokens matching client id, authority, resource and home account identifier", async () => {
+            expect((await cacheStorage.getKeys()).length).to.be.eq(5);
+            await  cacheHelpers.removeAllAccessTokens(TEST_CONFIG.MSAL_CLIENT_ID, `${Constants.DEFAULT_AUTHORITY}/`, testResource, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
+            expect((await cacheStorage.getKeys()).length).to.be.eq(4);
         });
     });
 });

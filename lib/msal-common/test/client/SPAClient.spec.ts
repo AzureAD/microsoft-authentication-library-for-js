@@ -53,7 +53,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
             },
             storageInterface: {
-                getCache(): InMemoryCache {
+                getCache: async (): Promise<InMemoryCache> => {
                     return {
                         accounts: {},
                         idTokens: {},
@@ -62,25 +62,25 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         appMetadata: {},
                     };
                 },
-                setCache(): void {
+                setCache: async (): Promise<void> => {
                     // do nothing
                 },
-                setItem(key: string, value: string): void {
+                setItem: async (key: string, value: string): Promise<void> => {
                     store[key] = value;
                 },
-                getItem(key: string): string {
+                getItem: async (key: string): Promise<string> => {
                     return store[key];
                 },
-                removeItem(key: string): void {
+                removeItem: async (key: string): Promise<void> => {
                     delete store[key];
                 },
-                containsKey(key: string): boolean {
+                containsKey: async (key: string): Promise<boolean> => {
                     return !!store[key];
                 },
-                getKeys(): string[] {
+                getKeys: async (): Promise<Array<string>> => {
                     return Object.keys(store);
                 },
-                clear(): void {
+                clear: async (): Promise<void> => {
                     store = {};
                 },
             },
@@ -168,15 +168,15 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
         it("Updates cache entries correctly", async () => {
             const emptyRequest: AuthenticationParameters = {};
             await Client.createLoginUrl(emptyRequest);
-            expect(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
-            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
-            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+            expect(( await defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE))).to.be.deep.eq(RANDOM_TEST_GUID);
+            expect((await defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`))).to.be.eq(RANDOM_TEST_GUID);
+            expect((await defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`))).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
         it("Caches token request correctly", async () => {
             const emptyRequest: AuthenticationParameters = {};
             await Client.createLoginUrl(emptyRequest);
-            const cachedRequest: TokenExchangeParameters = JSON.parse(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
+            const cachedRequest: TokenExchangeParameters = JSON.parse(( await defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS)));
             expect(cachedRequest.scopes).to.be.deep.eq([TEST_CONFIG.MSAL_CLIENT_ID]);
             expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
             expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
@@ -323,9 +323,9 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 scopes: [testScope]
             };
             await Client.createAcquireTokenUrl(tokenRequest);
-            expect(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
-            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
-            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+            expect(( await defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE))).to.be.deep.eq(RANDOM_TEST_GUID);
+            expect(( await defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`))).to.be.eq(RANDOM_TEST_GUID);
+            expect(( await defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`))).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
         it("Caches token request correctly", async () => {
@@ -334,7 +334,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 scopes: [testScope]
             };
             await Client.createAcquireTokenUrl(tokenRequest);
-            const cachedRequest: TokenExchangeParameters = JSON.parse(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
+            const cachedRequest: TokenExchangeParameters = JSON.parse((await defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS)));
             expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
             expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
             expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
@@ -600,7 +600,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
                     expect(tokenResponse.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
                     expect(tokenResponse.userRequestState).to.be.deep.eq(testState);
-                    expect(Account.compareAccounts(Client.getAccount(), testAccount)).to.be.true;
+                    expect(Account.compareAccounts(( await Client.getAccount()), testAccount)).to.be.true;
                 });
 
                 it("Uses authority from cache if not present in cached request", async () => {
@@ -882,7 +882,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 store = {};
             });
 
-            it("returns valid server code response", () => {
+            it("returns valid server code response", async () => {
                 defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
                 const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${RANDOM_TEST_GUID}`;
                 defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
@@ -904,21 +904,36 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                     }
                 };
                 authModule = new SPAClient(defaultAuthConfig);
-                const codeResponse = authModule.handleFragmentResponse(testSuccessHash);
+                const codeResponse = await authModule.handleFragmentResponse(testSuccessHash);
                 expect(codeResponse.code).to.be.eq(`thisIsATestCode`);
                 expect(codeResponse.userRequestState).to.be.eq(RANDOM_TEST_GUID);
             });
 
-            it("throws server error when error is in hash", () => {
+            it("throws server error when error is in hash", async () => {
                 const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${RANDOM_TEST_GUID}`;
+                await defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
 
-                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-                expect(() => authModule.handleFragmentResponse(testErrorHash)).to.throw("msal error description");
+
+                let caughtErr1: ServerError;
+                try {
+                    await authModule.handleFragmentResponse(testErrorHash)
+                } catch (e) {
+                    caughtErr1 = e;
+                }
+                expect(caughtErr1 && caughtErr1.errorMessage).to.eq("msal error description");
                 expect(store).to.be.empty;
 
-                defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-                expect(() => authModule.handleFragmentResponse(testErrorHash)).to.throw(ServerError);
+                await defaultAuthConfig.storageInterface.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+
+                let caughtErr2: ServerError;
+                try {
+                    await authModule.handleFragmentResponse(testErrorHash)
+                } catch (e) {
+                    caughtErr2 = e;
+                }
+                expect(caughtErr2 && caughtErr2 instanceof ServerError).to.be.true;
                 expect(store).to.be.empty;
+
             });
         });
     });
@@ -941,7 +956,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 postLogoutRedirectUri: postLogoutRedirectUriFunc,
             },
             storageInterface: {
-                getCache(): InMemoryCache {
+                getCache: async (): Promise<InMemoryCache> => {
                     return {
                         accounts: {},
                         idTokens: {},
@@ -950,25 +965,25 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         appMetadata: {},
                     };
                 },
-                setCache(): void {
+                setCache: async (): Promise<void> => {
                     // do nothing
                 },
-                setItem(key: string, value: string): void {
+                setItem: async (key: string, value: string): Promise<void> => {
                     store[key] = value;
                 },
-                getItem(key: string): string {
+                getItem: async (key: string): Promise<string> => {
                     return store[key];
                 },
-                removeItem(key: string): void {
+                removeItem: async (key: string): Promise<void> => {
                     delete store[key];
                 },
-                containsKey(key: string): boolean {
+                containsKey: async (key: string): Promise<boolean> => {
                     return !!store[key];
                 },
-                getKeys(): string[] {
+                getKeys: async (): Promise<Array<string>> => {
                     return Object.keys(store);
                 },
-                clear(): void {
+                clear: async (): Promise<void> => {
                     store = {};
                 },
             },
@@ -985,7 +1000,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 authority: TEST_CONFIG.validAuthority,
             },
             storageInterface: {
-                getCache(): InMemoryCache {
+                getCache: async (): Promise<InMemoryCache> => {
                     return {
                         accounts: {},
                         idTokens: {},
@@ -994,25 +1009,25 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                         appMetadata: {},
                     };
                 },
-                setCache(): void {
+                setCache: async (): Promise<void> => {
                     // do nothing
                 },
-                setItem(key: string, value: string): void {
+                setItem: async (key: string, value: string): Promise<void> => {
                     store[key] = value;
                 },
-                getItem(key: string): string {
+                getItem: async (key: string): Promise<string> => {
                     return store[key];
                 },
-                removeItem(key: string): void {
+                removeItem: async (key: string): Promise<void> => {
                     delete store[key];
                 },
-                containsKey(key: string): boolean {
+                containsKey: async (key: string): Promise<boolean> => {
                     return !!store[key];
                 },
-                getKeys(): string[] {
+                getKeys: async (): Promise<Array<string>> => {
                     return Object.keys(store);
                 },
-                clear(): void {
+                clear: async (): Promise<void> => {
                     store = {};
                 },
             },
@@ -1090,7 +1105,7 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                 },
                 networkInterface: null,
                 storageInterface: {
-                    getCache(): InMemoryCache {
+                    getCache: async (): Promise<InMemoryCache> => {
                         return {
                             accounts: {},
                             idTokens: {},
@@ -1099,25 +1114,25 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
                             appMetadata: {}
                         }
                     },
-                    setCache(): void {
+                    setCache: async (): Promise<void> => {
                         // do nothing
                     },
-                    setItem(key: string, value: string): void {
+                    setItem: async (key: string, value: string): Promise<void> => {
                         store[key] = value;
                     },
-                    getItem(key: string): string {
+                    getItem: async (key: string): Promise<string> => {
                         return store[key];
                     },
-                    removeItem(key: string): void {
+                    removeItem: async (key: string): Promise<void> => {
                         delete store[key];
                     },
-                    containsKey(key: string): boolean {
+                    containsKey: async (key: string): Promise<boolean> => {
                         return !!store[key];
                     },
-                    getKeys(): string[] {
+                    getKeys: async (): Promise<Array<string>> => {
                         return Object.keys(store);
                     },
-                    clear(): void {
+                    clear: async (): Promise<void> => {
                         store = {};
                     }
                 },
@@ -1148,19 +1163,19 @@ describe("AuthorizationCodeModule.ts Class Unit Tests", () => {
             store = {};
         });
 
-        it("returns null if nothing is in the cache", () => {
-            expect(client.getAccount()).to.be.null;
+        it("returns null if nothing is in the cache", async () => {
+            expect((await client.getAccount())).to.be.null;
         });
 
-        it("returns the current account if it exists", () => {
+        it("returns the current account if it exists", async () => {
 
-            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.false;
+            expect(Account.compareAccounts((await client.getAccount()), testAccount)).to.be.false;
         });
 
-        it("Creates account object from cached id token and client info", () => {
+        it("Creates account object from cached id token and client info", async () => {
             store[PersistentCacheKeys.ID_TOKEN] = idToken;
             store[PersistentCacheKeys.CLIENT_INFO] = clientInfo;
-            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.false;
+            expect(Account.compareAccounts((await client.getAccount()), testAccount)).to.be.false;
         });
     });
 });

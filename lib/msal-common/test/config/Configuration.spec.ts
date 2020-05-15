@@ -26,24 +26,68 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         await expect(emptyConfig.cryptoInterface.generatePkceCodes()).to.be.rejectedWith(AuthError);
         // Storage interface checks
         expect(emptyConfig.storageInterface).to.be.not.null;
+
         expect(emptyConfig.storageInterface.clear).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.clear()).to.throw("Unexpected error in authentication.: Storage interface - clear() has not been implemented");
-        expect(() => emptyConfig.storageInterface.clear()).to.throw(AuthError);
+        let clearErr;
+        try {
+            await emptyConfig.storageInterface.clear()
+        } catch (e) {
+            clearErr = e;
+        }
+        expect(clearErr && clearErr.errorMessage).to.eq("Unexpected error in authentication.: Storage interface - clear() has not been implemented for the cacheStorage interface.");
+        expect(clearErr instanceof AuthError).to.be.true;
+
         expect(emptyConfig.storageInterface.containsKey).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.containsKey("testKey")).to.throw("Unexpected error in authentication.: Storage interface - containsKey() has not been implemented");
-        expect(() => emptyConfig.storageInterface.containsKey("testKey")).to.throw(AuthError);
+        let containsErr;
+        try {
+            await emptyConfig.storageInterface.containsKey("testKey");
+        } catch(e) {
+            containsErr = e;
+        }
+        expect(containsErr && containsErr.errorMessage).to.eq("Unexpected error in authentication.: Storage interface - containsKey() has not been implemented for the cacheStorage interface.");
+        expect(containsErr instanceof AuthError).to.be.true;
+
         expect(emptyConfig.storageInterface.getItem).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.getItem("testKey")).to.throw("Unexpected error in authentication.: Storage interface - getItem() has not been implemented");
-        expect(() => emptyConfig.storageInterface.getItem("testKey")).to.throw(AuthError);
+        let getErr;
+        try {
+            await emptyConfig.storageInterface.getItem("testKey");
+        } catch (e) {
+            getErr = e;
+        }
+
+        expect(getErr && getErr.errorMessage).to.eql("Unexpected error in authentication.: Storage interface - getItem() has not been implemented for the cacheStorage interface.");
+        expect(getErr instanceof AuthError).to.be.true;
+
         expect(emptyConfig.storageInterface.getKeys).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.getKeys()).to.throw("Unexpected error in authentication.: Storage interface - getKeys() has not been implemented");
-        expect(() => emptyConfig.storageInterface.getKeys()).to.throw(AuthError);
+        let getKeysErr;
+        try {
+            await emptyConfig.storageInterface.getKeys();
+        } catch (e) {
+            getKeysErr = e;
+        }
+
+        expect(getKeysErr && getKeysErr.errorMessage).to.eq("Unexpected error in authentication.: Storage interface - getKeys() has not been implemented for the cacheStorage interface.");
+        expect(getKeysErr instanceof AuthError).to.be.true;
+
         expect(emptyConfig.storageInterface.removeItem).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw("Unexpected error in authentication.: Storage interface - removeItem() has not been implemented");
-        expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw(AuthError);
+        let removeErr;
+        try {
+            await emptyConfig.storageInterface.removeItem("testKey");
+        } catch (e) {
+            removeErr = e;
+        }
+        expect(removeErr && removeErr.errorMessage).to.eq("Unexpected error in authentication.: Storage interface - removeItem() has not been implemented for the cacheStorage interface.");
+        expect(removeErr instanceof AuthError).to.be.true;
+
         expect(emptyConfig.storageInterface.setItem).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.setItem("testKey", "testValue")).to.throw("Unexpected error in authentication.: Storage interface - setItem() has not been implemented");
-        expect(() => emptyConfig.storageInterface.setItem("testKey", "testValue")).to.throw(AuthError);
+        let setErr;
+        try {
+            await emptyConfig.storageInterface.setItem("testKey", "testValue");
+        } catch (e) {
+            setErr = e;
+        }
+        expect(setErr && setErr.errorMessage).to.eq("Unexpected error in authentication.: Storage interface - setItem() has not been implemented for the cacheStorage interface.");
+        expect(setErr instanceof AuthError).to.be.true;
         // Network interface checks
         expect(emptyConfig.networkInterface).to.be.not.null;
         expect(emptyConfig.networkInterface.sendGetRequestAsync).to.be.not.null;

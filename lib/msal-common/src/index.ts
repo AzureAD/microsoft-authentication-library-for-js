@@ -12,7 +12,7 @@ export { IdTokenClaims } from "./account/IdTokenClaims";
 export { Authority } from "./authority/Authority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 // Cache
-export { ICacheStorage } from "./cache/ICacheStorage";
+export { ICacheStorageAsync } from "./cache/ICacheStorageAsync";
 export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
 export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
 export { Serializer } from "./unifiedCache/serialize/Serializer";

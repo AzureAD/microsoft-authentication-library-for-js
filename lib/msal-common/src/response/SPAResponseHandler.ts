@@ -10,7 +10,6 @@ import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
 import { Account } from "../account/Account";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { ICrypto } from "../crypto/ICrypto";
-import { ICacheStorage } from "../cache/ICacheStorage";
 import { TokenResponse } from "./TokenResponse";
 import { PersistentCacheKeys, TemporaryCacheKeys } from "../utils/Constants";
 import { ClientAuthError } from "../error/ClientAuthError";
@@ -23,20 +22,21 @@ import { CodeResponse } from "./CodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
+import { ICacheStorageAsync } from "../cache/ICacheStorageAsync";
 
 /**
  * Class that handles response parsing.
  */
 export class SPAResponseHandler {
     private clientId: string;
-    private cacheStorage: ICacheStorage;
+    private cacheStorage: ICacheStorageAsync;
     private spaCacheManager: CacheHelpers;
     private cryptoObj: ICrypto;
     private logger: Logger;
     private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
 
-    constructor(clientId: string, cacheStorage: ICacheStorage, spaCacheManager: CacheHelpers, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheStorage: ICacheStorageAsync, spaCacheManager: CacheHelpers, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.spaCacheManager = spaCacheManager;
@@ -78,14 +78,15 @@ export class SPAResponseHandler {
      * Validates and handles a response from the server, and returns a constructed object with the authorization code and state.
      * @param serverParams
      */
-    public handleServerCodeResponse(serverParams: ServerAuthorizationCodeResponse): CodeResponse {
+    public async handleServerCodeResponse(serverParams: ServerAuthorizationCodeResponse): Promise<CodeResponse> {
         try {
             // Validate hash fragment response parameters
-            this.validateServerAuthorizationCodeResponse(serverParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
+            const requestState = await this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
+            this.validateServerAuthorizationCodeResponse(serverParams, requestState, this.cryptoObj);
 
             // Cache client info
             if (serverParams.client_info) {
-                this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, serverParams.client_info);
+                await this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, serverParams.client_info);
             }
 
             // Create response object
@@ -96,7 +97,7 @@ export class SPAResponseHandler {
 
             return response;
         } catch(e) {
-            this.spaCacheManager.resetTempCacheItems(serverParams && serverParams.state);
+            await this.spaCacheManager.resetTempCacheItems(serverParams && serverParams.state);
             throw e;
         }
     }
@@ -162,7 +163,7 @@ export class SPAResponseHandler {
      * @param serverTokenResponse
      * @param clientInfo
      */
-    private saveToken(originalTokenResponse: TokenResponse, authority: string, resource: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo): TokenResponse {
+    private async saveToken(originalTokenResponse: TokenResponse, authority: string, resource: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo): Promise<TokenResponse> {
         // Set consented scopes in response
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
         const responseScopeArray = responseScopes.asArray();
@@ -174,29 +175,30 @@ export class SPAResponseHandler {
 
         // Get id token
         if (!StringUtils.isEmpty(originalTokenResponse.idToken)) {
-            this.cacheStorage.setItem(PersistentCacheKeys.ID_TOKEN, originalTokenResponse.idToken);
+            await this.cacheStorage.setItem(PersistentCacheKeys.ID_TOKEN, originalTokenResponse.idToken);
         }
 
         // Save access token in cache
         const newAccessTokenValue = new AccessTokenValue(serverTokenResponse.token_type, serverTokenResponse.access_token, originalTokenResponse.idToken, serverTokenResponse.refresh_token, expirationSec.toString(), extendedExpirationSec.toString());
         const homeAccountIdentifier = originalTokenResponse.account && originalTokenResponse.account.homeAccountIdentifier;
-        const accessTokenCacheItems = this.spaCacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
+        const accessTokenCacheItems = await this.spaCacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
 
         // If no items in cache with these parameters, set new item.
         if (accessTokenCacheItems.length < 1) {
             this.logger.info("No tokens found, creating new item.");
         } else {
             // Check if scopes are intersecting. If they are, combine scopes and replace cache item.
-            accessTokenCacheItems.forEach(accessTokenCacheItem => {
+            const checkForIntersectingScopes = accessTokenCacheItems.map(async (accessTokenCacheItem) => {
                 const cachedScopes = ScopeSet.fromString(accessTokenCacheItem.key.scopes, this.clientId, true);
                 if(cachedScopes.intersectingScopeSets(responseScopes)) {
-                    this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
+                    await this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
                     responseScopes.appendScopes(cachedScopes.asArray());
                     if (StringUtils.isEmpty(newAccessTokenValue.idToken)) {
                         newAccessTokenValue.idToken = accessTokenCacheItem.value.idToken;
                     }
                 }
             });
+            await Promise.all(checkForIntersectingScopes);
         }
 
         const newTokenKey = new AccessTokenKey(
@@ -208,7 +210,7 @@ export class SPAResponseHandler {
             clientInfo && clientInfo.utid,
             this.cryptoObj
         );
-        this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));
+        await this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));
 
         // Save tokens in response and return
         return {
@@ -225,9 +227,10 @@ export class SPAResponseHandler {
      * Gets account cached with given key. Returns null if parsing could not be completed.
      * @param accountKey
      */
-    private getCachedAccount(accountKey: string): Account {
+    private async getCachedAccount(accountKey: string): Promise<Account> {
         try {
-            return JSON.parse(this.cacheStorage.getItem(accountKey)) as Account;
+            const account: string = await this.cacheStorage.getItem(accountKey);
+            return JSON.parse(account) as Account;
         } catch (e) {
             this.logger.warning(`Account could not be parsed: ${JSON.stringify(e)}`);
             return null;
@@ -241,7 +244,7 @@ export class SPAResponseHandler {
      * @param resource
      * @param state
      */
-    public createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authorityString: string, resource: string, state?: string): TokenResponse {
+    public async createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authorityString: string, resource: string, state?: string): Promise<TokenResponse> {
         let tokenResponse: TokenResponse = {
             uniqueId: "",
             tenantId: "",
@@ -258,7 +261,7 @@ export class SPAResponseHandler {
 
         // Retrieve current id token object
         let idTokenObj: IdToken;
-        const cachedIdToken: string = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
+        const cachedIdToken: string = await this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
         if (serverTokenResponse.id_token) {
             idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
             tokenResponse = SPAResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
@@ -271,7 +274,7 @@ export class SPAResponseHandler {
                     throw ClientAuthError.createInvalidIdTokenError(idTokenObj);
                 }
 
-                const nonce = this.cacheStorage.getItem(this.spaCacheManager.generateNonceKey(state));
+                const nonce = await this.cacheStorage.getItem(this.spaCacheManager.generateNonceKey(state));
                 if (idTokenObj.claims.nonce !== nonce) {
                     throw ClientAuthError.createNonceMismatchError();
                 }
@@ -287,7 +290,8 @@ export class SPAResponseHandler {
         let cachedAccount: Account = null;
         if (idTokenObj) {
             // Retrieve client info
-            clientInfo = buildClientInfo(this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO), this.cryptoObj);
+            const clientInfoFromCache = await this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
+            clientInfo = buildClientInfo(clientInfoFromCache, this.cryptoObj);
 
             // Create account object for request
             tokenResponse.account = Account.createAccount(idTokenObj, clientInfo, this.cryptoObj);
@@ -296,13 +300,13 @@ export class SPAResponseHandler {
             const accountKey = this.spaCacheManager.generateAcquireTokenAccountKey(tokenResponse.account.homeAccountIdentifier);
 
             // Get cached account
-            cachedAccount = this.getCachedAccount(accountKey);
+            cachedAccount = await this.getCachedAccount(accountKey);
         }
 
         // Return user set state in the response
         tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
 
-        this.spaCacheManager.resetTempCacheItems(state);
+        await this.spaCacheManager.resetTempCacheItems(state);
         if (!cachedAccount || !tokenResponse.account || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
             return this.saveToken(tokenResponse, authorityString, resource, serverTokenResponse, clientInfo);
         } else {

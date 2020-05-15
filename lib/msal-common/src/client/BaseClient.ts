@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
-import { ICacheStorage } from "../cache/ICacheStorage";
 import { CacheHelpers } from "../cache/CacheHelpers";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
@@ -16,6 +15,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
+import { ICacheStorageAsync } from "../cache/ICacheStorageAsync";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -32,7 +32,7 @@ export abstract class BaseClient {
     protected cryptoUtils: ICrypto;
 
     // Storage Interface
-    protected cacheStorage: ICacheStorage;
+    protected cacheStorage: ICacheStorageAsync;
 
     // Network Interface
     protected networkClient: INetworkModule;
@@ -143,8 +143,8 @@ export abstract class BaseClient {
      * TODO: modify this soon
      * Set the cache post acquireToken call
      */
-    protected updateCache(): void {
-        const cache = this.unifiedCacheManager.getCacheInMemory();
-        this.cacheStorage.setCache(cache);
+    protected async updateCache(): Promise<void> {
+        const cache = await this.unifiedCacheManager.getCacheInMemory();
+        return await this.cacheStorage.setCache(cache);
     }
 }

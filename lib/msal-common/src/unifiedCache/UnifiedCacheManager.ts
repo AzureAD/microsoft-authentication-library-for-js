@@ -9,54 +9,65 @@ import { AccessTokenEntity } from "./entities/AccessTokenEntity";
 import { IdTokenEntity } from "./entities/IdTokenEntity";
 import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
 import { AccountEntity } from "./entities/AccountEntity";
-import { ICacheStorage } from "../cache/ICacheStorage";
 import { Deserializer } from "./serialize/Deserializer";
 import { Serializer } from "./serialize/Serializer";
 import { AccountCache } from "./utils/CacheTypes";
+import { ICacheStorageAsync } from "../cache/ICacheStorageAsync";
 
 export class UnifiedCacheManager {
 
     // Storage interface
     private inMemoryCache: InMemoryCache;
-    private cacheStorage: ICacheStorage;
+    private cacheStorage: ICacheStorageAsync;
 
-    constructor(cacheImpl: ICacheStorage) {
+    constructor(cacheImpl: ICacheStorageAsync) {
         this.cacheStorage = cacheImpl;
-        this.inMemoryCache = this.cacheStorage.getCache();
     }
 
     /**
      * setter  for in cache memory
      */
-    setCacheInMemory(cache: InMemoryCache): void {
+    async setCacheInMemory(cache: InMemoryCache): Promise<void> {
         this.inMemoryCache = cache;
+    }
+
+    // if inMemmory cache is not set, set it from caheStorage
+    // this async operation can't be done in constructor
+    async setCacheInMemmoryIfNotSet(): Promise<void> {
+        if (!this.inMemoryCache) {
+            this.inMemoryCache = await this.cacheStorage.getCache();
+        }
     }
 
     /**
      * get the cache in memory
      */
-    getCacheInMemory(): InMemoryCache {
+    async getCacheInMemory(): Promise<InMemoryCache> {
+        await this.setCacheInMemmoryIfNotSet();
         return this.inMemoryCache;
     }
 
     /**
      * Initialize in memory cache from an exisiting cache vault
      */
-    generateInMemoryCache(cache: string): InMemoryCache {
+    async generateInMemoryCache(cache: string): Promise<InMemoryCache> {
+        await this.setCacheInMemmoryIfNotSet();
         return Deserializer.deserializeAllCache(Deserializer.deserializeJSONBlob(cache));
     }
 
     /**
      * retrieves the final JSON
      */
-    generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {
+    async generateJsonCache(inMemoryCache: InMemoryCache): Promise<JsonCache> {
+        await this.setCacheInMemmoryIfNotSet();
         return Serializer.serializeAllCache(inMemoryCache);
     }
 
     /**
      * Returns all accounts in memory
      */
-    getAllAccounts(): AccountCache {
+    async getAllAccounts(): Promise<AccountCache> {
+        await this.setCacheInMemmoryIfNotSet();
         return this.inMemoryCache.accounts;
     }
 
@@ -66,7 +77,8 @@ export class UnifiedCacheManager {
      * @param environment
      * @param realm
      */
-    getAccount(homeAccountId: string, environment: string, realm: string): AccountEntity {
+    async getAccount(homeAccountId: string, environment: string, realm: string): Promise<AccountEntity> {
+        await this.setCacheInMemmoryIfNotSet();
         const accountCacheKey: Array<string> = [
             homeAccountId,
             environment,
@@ -84,11 +96,12 @@ export class UnifiedCacheManager {
      * @param at: AccessTokenEntity
      * @param rt: RefreshTokenEntity
      */
-    addCredentialCache(
+    async addCredentialCache(
         accessToken: AccessTokenEntity,
         idToken: IdTokenEntity,
         refreshToken: RefreshTokenEntity
-    ): void {
+    ): Promise<void> {
+        await this.setCacheInMemmoryIfNotSet();
         this.inMemoryCache.accessTokens[accessToken.generateAccessTokenEntityKey()] = accessToken;
         this.inMemoryCache.idTokens[idToken.generateIdTokenEntityKey()] = idToken;
         this.inMemoryCache.refreshTokens[refreshToken.generateRefreshTokenEntityKey()] = refreshToken;
@@ -98,7 +111,8 @@ export class UnifiedCacheManager {
      * append account to the in memory cache
      * @param account
      */
-    addAccountEntity(account: AccountEntity): void {
+    async addAccountEntity(account: AccountEntity): Promise<void> {
+        await this.setCacheInMemmoryIfNotSet();
         const accKey = account.generateAccountEntityKey();
         if (!this.inMemoryCache.accounts[accKey]) {
             this.inMemoryCache.accounts[accKey] = account;

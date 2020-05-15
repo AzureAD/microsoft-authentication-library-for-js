@@ -20,6 +20,28 @@ const publicClientConfig = {
     cache: {
         cacheLocation: "fileCache", // This configures where your cache will be stored
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
+        beforeCacheAccess: (done) => {
+            // get my version of stuff asyncronously and return to this
+            fs.readFile("./data/cache.json", (err, data) => {
+                let json;
+                if (err) {
+                    return done();
+                }
+                try {
+                    json = JSON.parse(data);
+                    done(json);
+                } catch(e) {
+                    console.error("could not read file");
+                    done();
+                }
+            });
+        },
+        afterCacheAccess: (cache) => {
+            // get the cache state after something happens so that the current state can be ... merged?
+            console.log(cache);
+            // uncomment this to show writing of cache, dont commit real tokens.
+            // fs.writeFileSync("./data/cache.json", JSON.stringify(pca.readCache()), null, 4);
+        }
     },
 };
 const pca = new msal.PublicClientApplication(publicClientConfig);

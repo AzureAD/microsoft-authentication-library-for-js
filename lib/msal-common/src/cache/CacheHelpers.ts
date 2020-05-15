@@ -5,13 +5,13 @@
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
-import { ICacheStorage } from "./ICacheStorage";
 import { Account } from "../account/Account";
 import { Authority } from "../authority/Authority";
 import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { TemporaryCacheKeys, Constants } from "../utils/Constants";
+import { ICacheStorageAsync } from "./ICacheStorageAsync";
 
 /**
  * The CacheHelpers class contains a set of helper functions used by the module to manage cache items.
@@ -19,9 +19,9 @@ import { TemporaryCacheKeys, Constants } from "../utils/Constants";
 export class CacheHelpers {
 
     // Storage interface
-    private cacheStorage: ICacheStorage;
+    private cacheStorage: ICacheStorageAsync;
 
-    constructor(cacheImpl: ICacheStorage) {
+    constructor(cacheImpl: ICacheStorageAsync) {
         this.cacheStorage = cacheImpl;
 
     }
@@ -56,12 +56,12 @@ export class CacheHelpers {
      * @param account
      * @param state
      */
-    setAccountCache(account: Account): void {
+    setAccountCache(account: Account): Promise<void> {
         // Cache acquireTokenAccountKey
         const accountId = account && account.homeAccountIdentifier ? account.homeAccountIdentifier : Constants.NO_ACCOUNT;
 
         const acquireTokenAccountKey = this.generateAcquireTokenAccountKey(accountId);
-        this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
+        return this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
     }
 
     /**
@@ -69,10 +69,10 @@ export class CacheHelpers {
      * @param state
      * @param authority
      */
-    setAuthorityCache(authority: Authority, state: string): void {
+    setAuthorityCache(authority: Authority, state: string): Promise<void> {
         // Cache authorityKey
         const authorityKey = this.generateAuthorityKey(state);
-        this.cacheStorage.setItem(authorityKey, authority.canonicalAuthority);
+        return this.cacheStorage.setItem(authorityKey, authority.canonicalAuthority);
     }
 
     /**
@@ -80,41 +80,44 @@ export class CacheHelpers {
      * @param serverAuthenticationRequest
      * @param account
      */
-    updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account: Account): void {
+    async updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account: Account): Promise<void> {
         // Cache account and state
         if (account) {
-            this.setAccountCache(account);
+            await this.setAccountCache(account);
         }
 
         // Cache the request state
-        this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
+        await this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
 
         // Cache the nonce
-        this.cacheStorage.setItem(this.generateNonceKey(serverAuthenticationRequest.state), serverAuthenticationRequest.nonce);
+        await this.cacheStorage.setItem(this.generateNonceKey(serverAuthenticationRequest.state), serverAuthenticationRequest.nonce);
 
         // Cache authorityKey
-        this.setAuthorityCache(serverAuthenticationRequest.authorityInstance, serverAuthenticationRequest.state);
+        return this.setAuthorityCache(serverAuthenticationRequest.authorityInstance, serverAuthenticationRequest.state);
     }
 
     /**
      * Reset all temporary cache items
      * @param state
      */
-    resetTempCacheItems(state?: string): void {
+    async resetTempCacheItems(state?: string): Promise<void> {
         // check state and remove associated cache items
-        this.cacheStorage.getKeys().forEach(key => {
+        const cacheKeys = await this.cacheStorage.getKeys();
+        const removedTempCacheItems: Array<Promise<void>> = cacheKeys.map(key => {
             if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
                 const splitKey = key.split(Constants.RESOURCE_DELIM);
                 const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
                 if (keyState === state) {
-                    this.cacheStorage.removeItem(key);
+                    return this.cacheStorage.removeItem(key);
                 }
             }
-        });
+            return null;
+        }).filter(removed => removed);
+        await Promise.all(removedTempCacheItems);
         // delete generic interactive request parameters
-        this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
-        this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
-        this.cacheStorage.removeItem(TemporaryCacheKeys.ORIGIN_URI);
+        await this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
+        await this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
+        await this.cacheStorage.removeItem(TemporaryCacheKeys.ORIGIN_URI);
     }
 
     /**
@@ -122,27 +125,28 @@ export class CacheHelpers {
      * @param clientId
      * @param homeAccountIdentifier
      */
-    getAllAccessTokens(clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): Array<AccessTokenCacheItem> {
-        const results = this.cacheStorage.getKeys().reduce<Array<AccessTokenCacheItem>>((tokens, key) => {
-            const keyMatches = key.match(clientId) && key.match(authority) && key.match(resource) && key.match(homeAccountIdentifier);
-            if (keyMatches) {
-                const value = this.cacheStorage.getItem(key);
-                if (value) {
-                    try {
-                        const parseAtKey = JSON.parse(key) as AccessTokenKey;
-                        if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, resource, homeAccountIdentifier)) {
-                            const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value) as AccessTokenValue);
-                            return tokens.concat([ newAccessTokenCacheItem ]);
-                        }
-                    } catch (e) {
-                        throw ClientAuthError.createCacheParseError(key);
+    async getAllAccessTokens(clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): Promise<Array<AccessTokenCacheItem>> {
+        const cacheKeys: Array<string> = await this.cacheStorage.getKeys();
+        const tokenKeys: Array<string> = cacheKeys.filter((key) => {
+            return key.match(clientId) && key.match(authority) && key.match(resource) && key.match(homeAccountIdentifier);
+        });
+        const foundTokens: Array<Promise<AccessTokenCacheItem>> = tokenKeys.map(async (key) => {
+            const valueAtKey = await this.cacheStorage.getItem(key);
+            if (valueAtKey) {
+                try {
+                    const parsedAccessTokenKey: AccessTokenKey = JSON.parse(key) as AccessTokenKey;
+                    if (this.checkForExactKeyMatch(parsedAccessTokenKey, clientId, authority, resource, homeAccountIdentifier)) {
+                        const newAccessTokenCacheItem = new AccessTokenCacheItem(parsedAccessTokenKey, JSON.parse(valueAtKey) as AccessTokenValue);
+                        return newAccessTokenCacheItem;
                     }
+                } catch (e) {
+                    throw ClientAuthError.createCacheParseError(key);
                 }
             }
-            return tokens;
-        }, []);
+            return null;
+        });
 
-        return results;
+        return Promise.all(foundTokens).then(arr => arr.filter(item => item));
     }
 
     /**
@@ -150,20 +154,23 @@ export class CacheHelpers {
      * @param clientId
      * @param homeAccountIdentifier
      */
-    removeAllAccessTokens(clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): void {
-        this.cacheStorage.getKeys().forEach((key) => {
-            const keyMatches = key.match(clientId) && key.match(authority) && key.match(resource) && key.match(homeAccountIdentifier);
-            if (keyMatches) {
-                try {
-                    const parseAtKey = JSON.parse(key) as AccessTokenKey;
-                    if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, resource, homeAccountIdentifier)) {
-                        this.cacheStorage.removeItem(key);
-                    }
-                } catch (e) {
-                    throw ClientAuthError.createCacheParseError(key);
-                }
-            }
+    async removeAllAccessTokens(clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): Promise<void> {
+        const cacheKeys = await this.cacheStorage.getKeys();
+        const tokenKeys: Array<string> = cacheKeys.filter((key) => {
+            return key.match(clientId) && key.match(authority) && key.match(resource) && key.match(homeAccountIdentifier);
         });
+        const removedTokens: Array<Promise<void>> = tokenKeys.map(async (key) => {
+            try {
+                const parsedAccessTokenKey = JSON.parse(key) as AccessTokenKey;
+                if (this.checkForExactKeyMatch(parsedAccessTokenKey, clientId, authority, resource, homeAccountIdentifier)) {
+                    return await this.cacheStorage.removeItem(key);
+                }
+                return null;
+            } catch (e) {
+                throw ClientAuthError.createCacheParseError(key);
+            }
+        }).filter(resolution => resolution);
+        return Promise.all(removedTokens).then(() => null);
     }
 
     /**

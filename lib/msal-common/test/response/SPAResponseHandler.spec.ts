@@ -3,7 +3,6 @@ import sinon from "sinon";
 import { SPAResponseHandler } from "../../src/response/SPAResponseHandler";
 import { TEST_CONFIG, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { CacheHelpers } from "../../src/cache/CacheHelpers";
-import { ICacheStorage } from "../../src/cache/ICacheStorage";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Logger, LogLevel } from "../../src/logger/Logger";
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
@@ -21,11 +20,12 @@ import { TimeUtils } from "../../src/utils/TimeUtils";
 import { InteractionRequiredAuthErrorMessage, InteractionRequiredAuthError, InteractionRequiredAuthSubErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
+import { ICacheStorageAsync, InMemoryCache } from "../../dist/src";
 
 describe("SPAResponseHandler.ts Class Unit Tests", () => {
 
     let store = {};
-    let cacheStorage: ICacheStorage;
+    let cacheStorage: ICacheStorageAsync;
     let cacheHelpers: CacheHelpers;
     let cryptoInterface: ICrypto;
     let logger: Logger;
@@ -33,23 +33,30 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
     let testAccount: Account;
     beforeEach(() => {
         cacheStorage = {
-            setItem(key: string, value: string): void {
+            async setItem(key: string, value: string): Promise<void> {
                 store[key] = value;
             },
-            getItem(key: string): string {
+            async getItem(key: string): Promise<string> {
                 return store[key];
             },
-            removeItem(key: string): void {
+            async removeItem(key: string): Promise<void> {
                 delete store[key];
             },
-            containsKey(key: string): boolean {
+            async containsKey(key: string): Promise<boolean> {
                 return !!store[key];
             },
-            getKeys(): string[] {
+            async getKeys(): Promise<Array<string>> {
                 return Object.keys(store);
             },
-            clear(): void {
+            async clear(): Promise<void> {
                 store = {};
+            },
+
+            async getCache(): Promise<InMemoryCache> {
+                return store as InMemoryCache;
+            },
+            async setCache(cache): Promise<void> {
+                store = cache;
             }
         };
         cacheHelpers = new CacheHelpers(cacheStorage);
@@ -171,23 +178,35 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
         });
 
-        it("throws state mismatch error if cached state does not match hash state", () => {
+        it("throws state mismatch error if cached state does not match hash state", async () => {
             const testServerParams: ServerAuthorizationCodeResponse = {
                 code: "thisIsATestCode",
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 state: TEST_CONFIG.STATE
             };
 
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthErrorMessage.stateMismatchError.desc);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            let someErr;
+            try {
+                await spaResponseHandler.handleServerCodeResponse(testServerParams);
+            } catch (e) {
+                someErr = e;
+            }
+            expect(someErr.errorMessage).to.eq(ClientAuthErrorMessage.stateMismatchError.desc);
             expect(store).to.be.empty;
 
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthError);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            let someErr2;
+            try {
+                await spaResponseHandler.handleServerCodeResponse(testServerParams);
+            } catch (e) {
+                someErr2 = e;
+            }
+            expect(someErr2 instanceof ClientAuthError).to.be.true;
             expect(store).to.be.empty;
         });
 
-        it("throws ServerError if hash contains error parameters", () => {
+        it("throws ServerError if hash contains error parameters", async () => {
             const TEST_ERROR_CODE: string = "test";
             const TEST_ERROR_MSG: string = "This is a test error";
             const testServerParams: ServerAuthorizationCodeResponse = {
@@ -196,16 +215,28 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 state: RANDOM_TEST_GUID
             };
 
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            let someErr;
+            try {
+                await spaResponseHandler.handleServerCodeResponse(testServerParams);
+            } catch (e) {
+                someErr = e;
+            }
+            expect(someErr.errorMessage).to.eq(TEST_ERROR_MSG);
             expect(store).to.be.empty;
 
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ServerError);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            let someErr2;
+            try {
+                await spaResponseHandler.handleServerCodeResponse(testServerParams);
+            } catch (e) {
+                someErr2 = e;
+            }
+            expect(someErr2 instanceof ServerError).to.be.true;
             expect(store).to.be.empty;
         });
 
-        it("throws InteractionRequiredAuthError if hash contains error parameters", () => {
+        it("throws InteractionRequiredAuthError if hash contains error parameters", async () => {
             const TEST_ERROR_CODE: string = InteractionRequiredAuthErrorMessage[0];
             const TEST_ERROR_MSG: string = `This is an ${InteractionRequiredAuthErrorMessage[0]} test error`;
             const testServerParams: ServerAuthorizationCodeResponse = {
@@ -214,16 +245,28 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 state: RANDOM_TEST_GUID
             };
 
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            let someErr;
+            try {
+                await spaResponseHandler.handleServerCodeResponse(testServerParams);
+            } catch (e) {
+                someErr= e;
+            }
+            expect(someErr.errorMessage).to.eq(TEST_ERROR_MSG);
             expect(store).to.be.empty;
 
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(InteractionRequiredAuthError);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            let someErr2;
+            try {
+                await spaResponseHandler.handleServerCodeResponse(testServerParams);
+            } catch (e) {
+                someErr2 = e;
+            }
+            expect(someErr2 instanceof InteractionRequiredAuthError).to.be.true;
             expect(store).to.be.empty;
         });
 
-        it("Throws error if client info cannot be parsed correctly", () => {
+        it("Throws error if client info cannot be parsed correctly", async () => {
             const testServerParams: ServerAuthorizationCodeResponse = {
                 code: "thisIsATestCode",
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
@@ -234,16 +277,28 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 throw "decoding error";
             };
             spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            let someErr;
+            try {
+                await spaResponseHandler.handleServerCodeResponse(testServerParams);
+            } catch (e) {
+                someErr = e;
+            }
+            expect(someErr.errorMessage).to.eq(ClientAuthErrorMessage.clientInfoDecodingError.desc + " Failed with error: decoding error");
             expect(store).to.be.empty;
 
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(ClientAuthError);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            let someErr2;
+            try {
+                await spaResponseHandler.handleServerCodeResponse(testServerParams);
+            } catch (e) {
+                someErr2 = e;
+            }
+            expect(someErr2 instanceof ClientAuthError).to.be.true;
             expect(store).to.be.empty;
         });
 
-        it("Successfully handles a valid response from the server", () => {
+        it("Successfully handles a valid response from the server", async () => {
             const testServerParams: ServerAuthorizationCodeResponse = {
                 code: "thisIsATestCode",
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
@@ -259,8 +314,8 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 }
             };
             spaResponseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
-            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            const codeResponse: CodeResponse = spaResponseHandler.handleServerCodeResponse(testServerParams);
+            await cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
+            const codeResponse: CodeResponse = await spaResponseHandler.handleServerCodeResponse(testServerParams);
             expect(codeResponse).to.be.not.null;
             expect(codeResponse.code).to.be.eq(testServerParams.code);
             expect(codeResponse.userRequestState).to.be.eq(testServerParams.state);
@@ -366,7 +421,7 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             };
         });
 
-        it("throws error if idToken nonce is null or empty", () => {
+        it("throws error if idToken nonce is null or empty", async () => {
             sinon.restore();
             const idTokenClaims: IdTokenClaims = {
                 "ver": "2.0",
@@ -381,18 +436,30 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             };
             sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
             const testResource = "";
-            expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)).to.throw(ClientAuthErrorMessage.invalidIdToken.desc);
-            expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)).to.throw(ClientAuthError);
+            let someErr;
+            try {
+                await responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)
+            } catch (e) {
+                someErr = e;
+            }
+            expect(someErr.errorMessage).to.contain(ClientAuthErrorMessage.invalidIdToken.desc);
+            expect(someErr instanceof ClientAuthError).to.be.true;
         });
 
-        it("throws error if nonce does not match", () => {
+        it("throws error if nonce does not match", async () => {
             const testResource = "";
-            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), "ThisDoesNotMatch");
-            expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)).to.throw(ClientAuthErrorMessage.nonceMismatchError.desc);
-            expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID)).to.throw(ClientAuthError);
+            await cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), "ThisDoesNotMatch");
+            let someErr;
+            try {
+                await responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, testResource, RANDOM_TEST_GUID);
+            } catch (e) {
+                someErr = e;
+            }
+            expect(someErr.errorMessage).to.contain(ClientAuthErrorMessage.nonceMismatchError.desc);
+            expect(someErr instanceof ClientAuthError).to.be.true;
         });
 
-        it("throws error if accounts do not match", () => {
+        it("throws error if accounts do not match", async () => {
             cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
@@ -408,13 +475,19 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 name: "Some 1 Else",
                 userName: "sum1else@test.com"
             };
-            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
-            cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-            cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount2));
-            expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID)).to.throw(ClientAuthErrorMessage.accountMismatchError.desc);
+            await cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            await cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+            await cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount2));
+            let someErr;
+            try {
+                await responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
+            } catch (e) {
+                someErr = e;
+            }
+            expect(someErr.errorMessage).to.contain(ClientAuthErrorMessage.accountMismatchError.desc);
         });
 
-        it("Successfully saves a token in the cache and returns a valid response", () => {
+        it("Successfully saves a token in the cache and returns a valid response", async () => {
             cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
@@ -426,10 +499,10 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
 
             testServerParams.scope = "openid profile offline_access";
 
-            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
-            cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-            cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
-            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
+            await cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            await cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+            await cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
+            const tokenResponse = await responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
 
             expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
             expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
@@ -444,7 +517,7 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
         });
 
-        it("Successfully overwrites a token if the scopes are intersecting", () => {
+        it("Successfully overwrites a token if the scopes are intersecting", async () => {
             cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
@@ -454,17 +527,17 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 }
             };
 
-            cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue));
+            await cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue));
             const expectedScopes = [...TEST_CONFIG.DEFAULT_SCOPES, "user.read"];
             expectedTokenResponse.scopes= expectedScopes;
 
             testServerParams.scope = "openid profile offline_access user.read";
 
-            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
-            cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-            cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
-            expect(cacheStorage.getKeys().length).to.be.eq(4);
-            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
+            await cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            await cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+            await cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
+            expect((await cacheStorage.getKeys()).length).to.be.eq(4);
+            const tokenResponse = await responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
 
             expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
             expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
@@ -477,10 +550,10 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
             expect(tokenResponse.account).to.be.deep.eq(expectedTokenResponse.account);
             expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
-            expect(cacheStorage.getKeys().length).to.be.eq(4);
+            expect((await cacheStorage.getKeys()).length).to.be.eq(4);
         });
 
-        it("Successfully creates a new token if the scopes are not intersecting", () => {
+        it("Successfully creates a new token if the scopes are not intersecting", async () => {
             cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
@@ -490,7 +563,7 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 }
             };
 
-            cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue));
+            await cacheStorage.setItem(JSON.stringify(atKey), JSON.stringify(atValue));
 
             const expectedScopes = ["offline_access", "testscope"];
             expectedTokenResponse.scopes = expectedScopes;
@@ -502,11 +575,11 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             expectedNewAtKey.scopes = testScopes;
             const expectedNewAtValue: AccessTokenValue = atValue;
 
-            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
-            cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-            cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
-            expect(cacheStorage.getKeys().length).to.be.eq(4);
-            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
+            await cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            await cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+            await cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
+            expect((await cacheStorage.getKeys()).length).to.be.eq(4);
+            const tokenResponse = await responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
 
             expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
             expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
@@ -519,11 +592,11 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
             expect(tokenResponse.account).to.be.deep.eq(expectedTokenResponse.account);
             expect(tokenResponse.userRequestState).to.be.eq(expectedTokenResponse.userRequestState);
-            expect(cacheStorage.getKeys().length).to.be.eq(5);
-            expect(cacheStorage.containsKey(JSON.stringify(atKey))).to.be.true;
-            expect(cacheStorage.containsKey(JSON.stringify(expectedNewAtKey))).to.be.true;
-            expect(cacheStorage.getItem(JSON.stringify(atKey))).to.be.eq(JSON.stringify(atValue));
-            expect(cacheStorage.getItem(JSON.stringify(expectedNewAtKey))).to.be.eq(JSON.stringify(expectedNewAtValue));
+            expect((await cacheStorage.getKeys()).length).to.be.eq(5);
+            expect((await cacheStorage.containsKey(JSON.stringify(atKey)))).to.be.true;
+            expect((await cacheStorage.containsKey(JSON.stringify(expectedNewAtKey)))).to.be.true;
+            expect((await cacheStorage.getItem(JSON.stringify(atKey)))).to.be.eq(JSON.stringify(atValue));
+            expect(( await cacheStorage.getItem(JSON.stringify(expectedNewAtKey)))).to.be.eq(JSON.stringify(expectedNewAtValue));
 
         });
     });

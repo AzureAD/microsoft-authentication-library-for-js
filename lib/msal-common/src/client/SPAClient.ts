@@ -78,12 +78,13 @@ export class SPAClient extends BaseClient {
 
         // Create and validate request parameters.
         let requestParameters: ServerCodeRequestParameters;
+        const account: Account = await this.getAccount();
         try {
             requestParameters = new ServerCodeRequestParameters(
                 acquireTokenAuthority,
                 this.config.authOptions.clientId,
                 request,
-                this.getAccount(),
+                account,
                 this.getRedirectUri(),
                 this.cryptoUtils,
                 isLoginCall
@@ -93,7 +94,7 @@ export class SPAClient extends BaseClient {
             let adalIdToken: IdToken = null;
             if (!requestParameters.hasSSOParam()) {
                 // Only check for adal token if no SSO params are being used
-                const adalIdTokenString = this.cacheStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+                const adalIdTokenString = await this.cacheStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (!StringUtils.isEmpty(adalIdTokenString)) {
                     adalIdToken = new IdToken(adalIdTokenString, this.cryptoUtils);
                     this.cacheStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
@@ -142,7 +143,7 @@ export class SPAClient extends BaseClient {
             }
 
             // Get request from cache
-            const tokenRequest: TokenExchangeParameters = this.getCachedRequest(codeResponse.userRequestState);
+            const tokenRequest: TokenExchangeParameters = await this.getCachedRequest(codeResponse.userRequestState);
 
             // Initialize authority or use default, and perform discovery endpoint check.
             const acquireTokenAuthority = (tokenRequest && tokenRequest.authority) ? AuthorityFactory.createInstance(tokenRequest.authority, this.networkClient) : this.defaultAuthorityInstance;
@@ -191,7 +192,7 @@ export class SPAClient extends BaseClient {
             }
 
             // Get account object for this request.
-            const account = request.account || this.getAccount();
+            const account: Account = request.account || await this.getAccount();
             const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId, true);
             // If this is an id token renewal, and no account is present, throw an error.
             if (requestScopes.isLoginScopeSet()) {
@@ -211,7 +212,7 @@ export class SPAClient extends BaseClient {
             }
 
             // Get current cached tokens
-            const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, request.resource, account && account.homeAccountIdentifier);
+            const cachedTokenItem: AccessTokenCacheItem = await this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, request.resource, account && account.homeAccountIdentifier);
             const expirationSec = Number(cachedTokenItem.value.expiresOnSec);
             const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
             // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
@@ -257,7 +258,7 @@ export class SPAClient extends BaseClient {
      * @param authorityUri
      */
     async logout(authorityUri?: string): Promise<string> {
-        const currentAccount = this.getAccount();
+        const currentAccount: Account = await this.getAccount();
         // Check for homeAccountIdentifier. Do not send anything if it doesn't exist.
         const homeAccountIdentifier = currentAccount ? currentAccount.homeAccountIdentifier : "";
         // Remove all pertinent access tokens.
@@ -296,7 +297,7 @@ export class SPAClient extends BaseClient {
      * the client to exchange for a token in acquireToken.
      * @param hashFragment
      */
-    public handleFragmentResponse(hashFragment: string): CodeResponse {
+    public handleFragmentResponse(hashFragment: string): Promise<CodeResponse> {
         // Handle responses.
         const responseHandler = new SPAResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.spaCacheManager, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
@@ -313,24 +314,24 @@ export class SPAClient extends BaseClient {
     /**
      * Clears cache of items related to current request.
      */
-    public cancelRequest(): void {
-        const cachedState = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
+    public async cancelRequest(): Promise<void> {
+        const cachedState = await this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
         this.spaCacheManager.resetTempCacheItems(cachedState || "");
     }
 
     /**
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
-    private getCachedRequest(state: string): TokenExchangeParameters {
+    private async getCachedRequest(state: string): Promise<TokenExchangeParameters> {
         try {
             // Get token request from cache and parse as TokenExchangeParameters.
-            const encodedTokenRequest = this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            const encodedTokenRequest = await this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
             const parsedRequest = JSON.parse(this.cryptoUtils.base64Decode(encodedTokenRequest)) as TokenExchangeParameters;
-            this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            await this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
             // Get cached authority and use if no authority is cached with request.
             if (StringUtils.isEmpty(parsedRequest.authority)) {
                 const authorityKey: string = this.spaCacheManager.generateAuthorityKey(state);
-                const cachedAuthority: string = this.cacheStorage.getItem(authorityKey);
+                const cachedAuthority: string = await this.cacheStorage.getItem(authorityKey);
                 parsedRequest.authority = cachedAuthority;
             }
             return parsedRequest;
@@ -346,9 +347,9 @@ export class SPAClient extends BaseClient {
      * @param resourceId
      * @param homeAccountIdentifier
      */
-    private getCachedTokens(requestScopes: ScopeSet, authorityUri: string, resourceId: string, homeAccountIdentifier: string): AccessTokenCacheItem {
+    private async getCachedTokens(requestScopes: ScopeSet, authorityUri: string, resourceId: string, homeAccountIdentifier: string): Promise<AccessTokenCacheItem> {
         // Get all access tokens with matching authority, resource id and home account ID
-        const tokenCacheItems: Array<AccessTokenCacheItem> = this.spaCacheManager.getAllAccessTokens(this.config.authOptions.clientId, authorityUri || "", resourceId || "", homeAccountIdentifier || "");
+        const tokenCacheItems: Array<AccessTokenCacheItem> = await this.spaCacheManager.getAllAccessTokens(this.config.authOptions.clientId, authorityUri || "", resourceId || "", homeAccountIdentifier || "");
         if (tokenCacheItems.length === 0) {
             throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
         }
@@ -392,7 +393,7 @@ export class SPAClient extends BaseClient {
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
-        const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse.body, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
+        const tokenResponse = await responseHandler.createTokenResponse(acquiredTokenResponse.body, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
         // Set current account to received response account, if any.
         this.account = tokenResponse.account;
         return tokenResponse;
@@ -468,14 +469,14 @@ export class SPAClient extends BaseClient {
      * or null when no state is found
      * @returns {@link Account} - the account object stored in MSAL
      */
-    getAccount(): Account {
+    async getAccount(): Promise<Account> {
         if (this.account) {
             return this.account;
         }
 
         // Get id token and client info from cache
-        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
-        const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
+        const rawIdToken = await this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
+        const rawClientInfo = await this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
 
         if(!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
             const idToken = new IdToken(rawIdToken, this.cryptoUtils);
