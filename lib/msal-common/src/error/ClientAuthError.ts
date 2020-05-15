@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 import { AuthError } from "./AuthError";
-import { IdToken } from "../auth/IdToken";
-import { ScopeSet } from "../auth/ScopeSet";
+import { IdToken } from "../account/IdToken";
+import { ScopeSet } from "../request/ScopeSet";
 
 /**
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
@@ -98,6 +98,14 @@ export const ClientAuthErrorMessage = {
     emptyInputScopeSetError: {
         code: "empty_input_scopeset",
         desc: "Empty input ScopeSet cannot be processed."
+    },
+    DeviceCodePollingCancelled: {
+        code: "device_code_polling_cancelled",
+        desc: "Caller has cancelled token endpoint polling during device code flow by setting DeviceCodeRequest.cancel = true."
+    },
+    DeviceCodeExpired: {
+        code: "device_code_expired",
+        desc: "Device code is expired."
     }
 };
 
@@ -105,7 +113,7 @@ export const ClientAuthErrorMessage = {
  * Error thrown when there is an error in the client code running on the browser.
  */
 export class ClientAuthError extends AuthError {
-        
+
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ClientAuthError";
@@ -115,7 +123,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when client info object doesn't decode correctly.
-     * @param caughtError 
+     * @param caughtError
      */
     static createClientInfoDecodingError(caughtError: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.clientInfoDecodingError.code,
@@ -124,7 +132,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown if the client info is empty.
-     * @param rawClientInfo 
+     * @param rawClientInfo
      */
     static createClientInfoEmptyError(rawClientInfo: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.clientInfoEmptyError.code,
@@ -133,7 +141,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the id token extraction errors out.
-     * @param err 
+     * @param err
      */
     static createIdTokenParsingError(caughtExtractionError: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.idTokenParsingError.code,
@@ -142,7 +150,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the id token string is null or empty.
-     * @param invalidRawTokenString 
+     * @param invalidRawTokenString
      */
     static createIdTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyIdToken.code,
@@ -151,10 +159,10 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the token request could not be retrieved from the cache
-     * @param errDetail 
+     * @param errDetail
      */
     static createTokenRequestCacheError(errDetail: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.tokenRequestCacheError.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.tokenRequestCacheError.code,
             `${ClientAuthErrorMessage.tokenRequestCacheError.desc} Error Detail: ${errDetail}`);
     }
 
@@ -162,25 +170,25 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the endpoint discovery doesn't complete correctly.
      */
     static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code,
             `${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${errDetail}`);
     }
 
     /**
      * Creates an error thrown if authority type is not valid.
-     * @param invalidAuthorityError 
+     * @param invalidAuthorityError
      */
     static createInvalidAuthorityTypeError(givenUrl: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code,
             `${ClientAuthErrorMessage.invalidAuthorityType.desc} Given Url: ${givenUrl}`);
     }
 
     /**
      * Creates an error thrown when the hash cannot be deserialized.
-     * @param invalidAuthorityError 
+     * @param invalidAuthorityError
      */
     static createHashNotDeserializedError(hashParamObj: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.hashNotDeserialized.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.hashNotDeserialized.code,
             `${ClientAuthErrorMessage.hashNotDeserialized.desc} Given Object: ${hashParamObj}`);
     }
 
@@ -188,7 +196,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when two states do not match.
      */
     static createStateMismatchError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.stateMismatchError.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.stateMismatchError.code,
             ClientAuthErrorMessage.stateMismatchError.desc);
     }
 
@@ -196,21 +204,21 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the nonce does not match.
      */
     static createNonceMismatchError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
             ClientAuthErrorMessage.nonceMismatchError.desc);
     }
 
-    /** 
+    /**
      * Creates an error thrown when the cached account and response account do not match.
      */
     static createAccountMismatchError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.accountMismatchError.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.accountMismatchError.code,
             ClientAuthErrorMessage.accountMismatchError.desc);
     }
 
     /**
      * Throws error if idToken is not correctly formed
-     * @param idToken 
+     * @param idToken
      */
     static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidIdToken.code,
@@ -221,7 +229,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the authorization code required for a token request is null or empty.
      */
     static createNoTokensFoundError(scopes: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code,
             `${ClientAuthErrorMessage.noTokensFoundError.desc} Scopes: ${scopes}`);
     }
 
@@ -229,7 +237,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error in cache parsing.
      */
     static createCacheParseError(cacheKey: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.cacheParseError.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.cacheParseError.code,
             `${ClientAuthErrorMessage.cacheParseError.desc} Cache key: ${cacheKey}`);
     }
 
@@ -243,7 +251,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error when multiple tokens are in cache for the given scope.
-     * @param scope 
+     * @param scope
      */
     static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
@@ -259,7 +267,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error when attempting to append a null, undefined or empty scope to a set
-     * @param givenScope 
+     * @param givenScope
      */
     static createAppendEmptyScopeToSetError(givenScope: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.appendEmptyScopeError.code, `${ClientAuthErrorMessage.appendEmptyScopeError.desc} Given Scope: ${givenScope}`);
@@ -267,7 +275,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error when attempting to append a null, undefined or empty scope to a set
-     * @param givenScope 
+     * @param givenScope
      */
     static createRemoveEmptyScopeFromSetError(givenScope: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.removeEmptyScopeError.code, `${ClientAuthErrorMessage.removeEmptyScopeError.desc} Given Scope: ${givenScope}`);
@@ -275,7 +283,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error when attempting to append null or empty ScopeSet.
-     * @param appendError 
+     * @param appendError
      */
     static createAppendScopeSetError(appendError: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.appendScopeSetError.code, `${ClientAuthErrorMessage.appendScopeSetError.desc} Detail Error: ${appendError}`);
@@ -283,9 +291,23 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error if ScopeSet is null or undefined.
-     * @param givenScopeSet 
+     * @param givenScopeSet
      */
     static createEmptyInputScopeSetError(givenScopeSet: ScopeSet): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc} Given ScopeSet: ${givenScopeSet}`);
+    }
+
+    /**
+     * Throws error if user sets CancellationToken.cancel = true during polling of token endpoint during device code flow
+     */
+    static createDeviceCodeCancelledError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodePollingCancelled.code, `${ClientAuthErrorMessage.DeviceCodePollingCancelled.desc}`);
+    }
+
+    /**
+     * Throws error if device code is expired
+     */
+    static createDeviceCodeExpiredError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
     }
 }

@@ -2,14 +2,14 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { DecodedJwt } from "../auth/DecodedJwt";
+import { DecodedJwt } from "../account/DecodedJwt";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * @hidden
  */
 export class StringUtils {
-    
+
     /**
      * decode a JWT
      *
@@ -71,7 +71,7 @@ export class StringUtils {
 
     /**
      * Removes empty strings from array
-     * @param arr 
+     * @param arr
      */
     static removeEmptyStringsFromArray(arr: Array<string>): Array<string> {
         return arr.filter(entry => {
