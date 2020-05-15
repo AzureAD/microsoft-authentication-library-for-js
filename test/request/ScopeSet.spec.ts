@@ -3,6 +3,7 @@ import { ScopeSet } from "../../src/request/ScopeSet";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants, ClientAuthError, ClientAuthErrorMessage } from "../../src";
 import sinon from "sinon";
+import { IdToken } from "../../src/auth/IdToken";
 
 describe("ScopeSet.ts", () => {
 
@@ -313,6 +314,15 @@ describe("ScopeSet.ts", () => {
             const newScopeSet = new ScopeSet([testScope2, testScope3], TEST_CONFIG.MSAL_CLIENT_ID, true);
             newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
 
+            expect(newScopeSet.intersectingScopeSets(requiredScopeSet)).to.be.false;
+        });
+
+        it("intersectingScopeSets() returns false if ScopeSets have no scopes in common other than offline_access", () => {
+            const testScope2 = "testScope2";
+            const newScopeSet = new ScopeSet([testScope2], TEST_CONFIG.MSAL_CLIENT_ID, true);
+
+            expect(newScopeSet.asArray()).to.contain("offline_access");
+            expect(requiredScopeSet.asArray()).to.contain("offline_access");
             expect(newScopeSet.intersectingScopeSets(requiredScopeSet)).to.be.false;
         });
 
