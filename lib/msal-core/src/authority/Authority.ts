@@ -10,7 +10,7 @@ import { XhrClient, XhrResponse } from "../XHRClient";
 import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
 import HttpEvent from "../telemetry/HttpEvent";
-import { DEFAULT_AUTHORITY } from '../utils/Constants';
+import { DEFAULT_AUTHORITY, Constants } from '../utils/Constants';
 
 /**
  * @hidden
@@ -31,6 +31,18 @@ export class Authority {
 
         this.validateAsUri();
     }
+
+    public get AuthorityType(): AuthorityType {
+        const components = UrlUtils.GetUrlComponents(this.canonicalAuthority);
+        const pathSegments = components.PathSegments;
+
+
+        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
+            return AuthorityType.Adfs;
+        }
+        
+        return AuthorityType.Aad
+    };
 
     public IsValidationEnabled: boolean;
 
@@ -90,6 +102,9 @@ export class Authority {
      * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
      */
     protected get DefaultOpenIdConfigurationEndpoint(): string {
+        if (this.AuthorityType === AuthorityType.Adfs){
+            return `${this.CanonicalAuthority}.well-known/openid-configuration`;
+        }
         return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
     }
 
@@ -176,9 +191,6 @@ export class Authority {
      * @param {string} The host to look up
      */
     private IsInTrustedHostList(host: string): boolean {
-        console.log("Looking for host");
-        console.log(host.toLowerCase());
-        console.log(Authority.TrustedHostList);
         return Authority.TrustedHostList.indexOf(host.toLowerCase()) > -1;
     }
 
@@ -192,12 +204,9 @@ export class Authority {
             });
 
             if (!Authority.TrustedHostList.length){
-                console.log("Looking for AAD Hosts in Instance discovery endpoint")
                 await this.setTrustedAuthoritiesFromMetadata(telemetryManager, correlationId);
             }
         }
-
-        console.log(Authority.TrustedHostList);
     }
 
     private static async getAliases(telemetryManager?: TelemetryManager, correlationId?: string): Promise<Array<any>> {
