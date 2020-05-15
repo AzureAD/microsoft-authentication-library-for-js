@@ -71,7 +71,7 @@ export class CacheHelper {
      * // TODO: Confirm equality for enum vs string here
      */
     static matchCredentialType(key: string, credentialType: string): boolean {
-        return credentialType == key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.CREDENTIAL_TYPE];
+        return credentialType.toLowerCase() === key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.CREDENTIAL_TYPE].toString().toLowerCase();
     }
 
     /**
@@ -98,7 +98,7 @@ export class CacheHelper {
      * @param target
      */
     static matchTarget(key: string, target: string): boolean {
-        return this.targetsIntersect(key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.TARGET], target);
+        return CacheHelper.targetsIntersect(key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.TARGET], target);
     }
 
     /**
@@ -116,5 +116,15 @@ export class CacheHelper {
         });
 
         return isSubset;
+    }
+
+    /**
+     * helper function to return `CredentialType`
+     * @param key
+     */
+    static getCredentialType(key: string): string {
+        return key.split(Separators.CACHE_KEY_SEPARATOR)[
+            CacheKeyPosition.CREDENTIAL_TYPE
+        ];
     }
 }
