@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { InMemoryCache, JsonCache  } from "./utils/CacheTypes";
+import { InMemoryCache, JsonCache, AccountFilter, CredentialFilter  } from "./utils/CacheTypes";
 import { AccessTokenEntity } from "./entities/AccessTokenEntity";
 import { IdTokenEntity } from "./entities/IdTokenEntity";
 import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
@@ -183,11 +183,29 @@ export class UnifiedCacheManager implements ICacheManager {
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
+     * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
      * @param homeAccountId
      * @param environment
      * @param realm
      */
     getAccountsFilteredBy(
+       accountFilter: AccountFilter
+    ): AccountCache {
+        return this.getAccountsFilteredByInternal(
+            accountFilter.homeAccountId,
+            accountFilter.environment,
+            accountFilter.realm
+        );
+    }
+
+    /**
+     * retrieve accounts matching all provided filters; if no filter is set, get all accounts
+     * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
+     * @param homeAccountId
+     * @param environment
+     * @param realm
+     */
+    getAccountsFilteredByInternal(
         homeAccountId?: string,
         environment?: string,
         realm?: string
@@ -199,20 +217,15 @@ export class UnifiedCacheManager implements ICacheManager {
 
         Object.keys(accounts).forEach((key) => {
             if (!!homeAccountId) {
-                matches = CacheHelper.matchHomeAccountId(
-                    key,
-                    homeAccountId
-                );
+                matches = CacheHelper.matchHomeAccountId(key, homeAccountId);
             }
 
             if (!!environment) {
-                matches =
-                           matches &&
-                           CacheHelper.matchEnvironment(key, environment);
+                matches = matches && CacheHelper.matchEnvironment(key, environment);
             }
 
             if (!!realm) {
-                matches = matches && CacheHelper.matchTarget(key, realm);
+                matches = matches && CacheHelper.matchRealm(key, realm);
             }
 
             if (matches) {
@@ -233,6 +246,33 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param target
      */
     getCredentialsFilteredBy(
+        filter: CredentialFilter
+    ): CredentialCache {
+        const matchingCredentials: CredentialCache = {
+            idTokens: {},
+            accessTokens: {},
+            refreshTokens: {},
+        };
+
+        return this.getCredentialsFilteredByInternal(
+            filter.homeAccountId,
+            filter.environment,
+            filter.clientId,
+            filter.realm,
+            filter.target
+        );
+    }
+
+    /**
+     * retrieve credentails matching all provided filters; if no filter is set, get all credentials
+     * @param homeAccountId
+     * @param environment
+     * @param credentialType
+     * @param clientId
+     * @param realm
+     * @param target
+     */
+    getCredentialsFilteredByInternal(
         homeAccountId?: string,
         environment?: string,
         credentialType?: string,
@@ -246,7 +286,7 @@ export class UnifiedCacheManager implements ICacheManager {
             refreshTokens: {},
         };
 
-        matchingCredentials.idTokens = this.getCredentialsFilteredByInternal(
+        matchingCredentials.idTokens = this.getCredentialsFilteredByCredentialType(
             this.getCacheInMemory().idTokens,
             homeAccountId,
             environment,
@@ -256,7 +296,7 @@ export class UnifiedCacheManager implements ICacheManager {
             target
         ) as IdTokenCache;
 
-        matchingCredentials.accessTokens = this.getCredentialsFilteredByInternal(
+        matchingCredentials.accessTokens = this.getCredentialsFilteredByCredentialType(
             this.getCacheInMemory().accessTokens,
             homeAccountId,
             environment,
@@ -266,7 +306,7 @@ export class UnifiedCacheManager implements ICacheManager {
             target
         ) as AccessTokenCache;
 
-        matchingCredentials.refreshTokens = this.getCredentialsFilteredByInternal(
+        matchingCredentials.refreshTokens = this.getCredentialsFilteredByCredentialType(
             this.getCacheInMemory().refreshTokens,
             homeAccountId,
             environment,
@@ -289,7 +329,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param realm
      * @param target
      */
-    private getCredentialsFilteredByInternal(
+    private getCredentialsFilteredByCredentialType(
         cacheCredentials: object,
         homeAccountId?: string,
         environment?: string,
@@ -299,7 +339,7 @@ export class UnifiedCacheManager implements ICacheManager {
         target?: string
     ): Object {
         const matchingCredentials = {};
-        let matches: boolean;
+        let matches: boolean = true;
 
         Object.keys(cacheCredentials).forEach((key) => {
             if (!!homeAccountId) {
@@ -310,9 +350,7 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             if (!!environment) {
-                matches =
-                           matches &&
-                           CacheHelper.matchEnvironment(key, environment);
+                matches = matches && CacheHelper.matchEnvironment(key, environment);
             }
 
             if (!!realm) {
@@ -320,19 +358,16 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             if (!!credentialType) {
-                matches =
-                           matches &&
-                           CacheHelper.matchCredentialType(key, credentialType);
+                matches = matches && CacheHelper.matchCredentialType(key, credentialType);
             }
 
             if (!!clientId) {
-                matches =
-                           matches && CacheHelper.matchClientId(key, clientId);
+                matches = matches && CacheHelper.matchClientId(key, clientId);
             }
 
-            if (!!target) {
-                matches =
-                           matches && CacheHelper.matchTarget(key, target);
+            // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
+            if (!!target && CacheHelper.getCredentialType(key) != CredentialType.ID_TOKEN.toString().toLowerCase()) {
+                matches = matches && CacheHelper.matchTarget(key, target);
             }
 
             if (matches) {
@@ -351,8 +386,12 @@ export class UnifiedCacheManager implements ICacheManager {
         const cache = this.getCacheInMemory();
         const accountKey = account.generateAccountKey();
 
-        delete cache.accounts[accountKey];
-        return true;
+        if (!!cache.accounts[accountKey]) {
+            delete cache.accounts[accountKey];
+            return true;
+        }
+
+        return false;
     }
 
     /**
