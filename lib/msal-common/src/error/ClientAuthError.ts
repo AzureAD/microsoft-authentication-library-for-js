@@ -46,6 +46,10 @@ export const ClientAuthErrorMessage = {
         code: "blank_guid_generated",
         desc: "The guid generated was blank. Please review the trace to determine the root cause."
     },
+    invalidStateError: {
+        code: "invalid_state",
+        desc: "State was not valid, please check the network trace."
+    },
     stateMismatchError: {
         code: "state_mismatch",
         desc: "State mismatch error. Please check your network. Continued requests may cause cache overflow."
@@ -190,6 +194,15 @@ export class ClientAuthError extends AuthError {
     static createHashNotDeserializedError(hashParamObj: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.hashNotDeserialized.code,
             `${ClientAuthErrorMessage.hashNotDeserialized.desc} Given Object: ${hashParamObj}`);
+    }
+    
+    /**
+     * Creates an error thrown when the state cannot be parsed.
+     * @param invalidState 
+     */
+    static createInvalidStateError(invalidState: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code, 
+            `${ClientAuthErrorMessage.invalidStateError.desc} Invalid State: ${invalidState}`);
     }
 
     /**

@@ -376,6 +376,8 @@ describe("CacheHelpers.ts Tests", () => {
             expect(store[TemporaryCacheKeys.REQUEST_PARAMS]).to.be.undefined;
             expect(store[TemporaryCacheKeys.ORIGIN_URI]).to.be.undefined;
         });
+
+        it("resetTempCacheItems() removes entries when user state includes resource delimeter");
     });
 
     describe("Token handling functions", () => {

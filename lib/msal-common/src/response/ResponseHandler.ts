@@ -8,7 +8,7 @@ import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationT
 import { ScopeSet } from "../request/ScopeSet";
 import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
 import { Account } from "../account/Account";
-import { ProtocolUtils } from "../utils/ProtocolUtils";
+import { ProtocolUtils, LibraryStateObject } from "../utils/ProtocolUtils";
 import { ICrypto } from "../crypto/ICrypto";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { TokenResponse } from "./TokenResponse";
@@ -148,14 +148,14 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param clientInfo
      */
-    private saveToken(originalTokenResponse: TokenResponse, authority: string, resource: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo): TokenResponse {
+    private saveToken(originalTokenResponse: TokenResponse, authority: string, resource: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo, libraryRequestState: LibraryStateObject): TokenResponse {
         // Set consented scopes in response
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
         const responseScopeArray = responseScopes.asArray();
 
         // Expiration calculation
         const expiresIn = serverTokenResponse.expires_in;
-        const expirationSec = TimeUtils.nowSeconds() + expiresIn;
+        const expirationSec = libraryRequestState.ts + expiresIn;
         const extendedExpirationSec = expirationSec + serverTokenResponse.ext_expires_in;
 
         // Get id token
@@ -285,12 +285,15 @@ export class ResponseHandler {
             cachedAccount = this.getCachedAccount(accountKey);
         }
 
+        // Get the state object
+        const stateObject = ProtocolUtils.parseRequestState(state, this.cryptoObj);
+
         // Return user set state in the response
-        tokenResponse.userRequestState = ProtocolUtils.getUserRequestState(state);
+        tokenResponse.userRequestState = stateObject.userRequestState;
 
         this.cacheManager.resetTempCacheItems(state);
         if (!cachedAccount || !tokenResponse.account || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
-            return this.saveToken(tokenResponse, authorityString, resource, serverTokenResponse, clientInfo);
+            return this.saveToken(tokenResponse, authorityString, resource, serverTokenResponse, clientInfo, stateObject.libraryState);
         } else {
             this.logger.error("Accounts do not match.");
             this.logger.errorPii(`Cached Account: ${JSON.stringify(cachedAccount)}, New Account: ${JSON.stringify(tokenResponse.account)}`);
