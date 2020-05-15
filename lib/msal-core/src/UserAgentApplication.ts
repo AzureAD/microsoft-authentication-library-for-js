@@ -493,27 +493,6 @@ export class UserAgentApplication {
 
         let popUpWindow: Window;
 
-        if (interactionType === Constants.interactionTypePopup) {
-            // Generate a popup window
-            try {
-                popUpWindow = this.openPopup("about:blank", "msal", Constants.popUpWidth, Constants.popUpHeight);
-
-                // Push popup window handle onto stack for tracking
-                WindowUtils.trackPopup(popUpWindow);
-            } catch (e) {
-                this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
-                this.cacheStorage.setItem(ErrorCacheKeys.ERROR, ClientAuthErrorMessage.popUpWindowError.code);
-                this.cacheStorage.setItem(ErrorCacheKeys.ERROR_DESC, ClientAuthErrorMessage.popUpWindowError.desc);
-                if (reject) {
-                    reject(ClientAuthError.createPopupWindowError());
-                }
-            }
-
-            if (!popUpWindow) {
-                return;
-            }
-        }
-
         acquireTokenAuthority.resolveEndpointsAsync(this.telemetryManager, request.correlationId).then(async () => {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
@@ -553,39 +532,58 @@ export class UserAgentApplication {
                 throw ClientAuthError.createInvalidInteractionTypeError();
             }
 
-            // prompt user for interaction
-            this.navigateWindow(urlNavigate, popUpWindow);
-
-            // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
-            if (popUpWindow) {
+            if (interactionType === Constants.interactionTypePopup) {
+                // Generate a popup window
                 try {
-                    const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
-
-                    this.handleAuthenticationResponse(hash);
-
-                    // Request completed successfully, set to completed
-                    this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-                    this.logger.info("Closing popup window");
-
-                    // TODO: Check how this can be extracted for any framework specific code?
-                    if (this.config.framework.isAngular) {
-                        this.broadcast("msal:popUpHashChanged", hash);
-                        WindowUtils.closePopups();
-                    }
-                } catch (error) {
+                    popUpWindow = this.openPopup(urlNavigate, "msal", Constants.popUpWidth, Constants.popUpHeight);
+    
+                    // Push popup window handle onto stack for tracking
+                    WindowUtils.trackPopup(popUpWindow);
+                } catch (e) {
+                    this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
+                    this.cacheStorage.setItem(ErrorCacheKeys.ERROR, ClientAuthErrorMessage.popUpWindowError.code);
+                    this.cacheStorage.setItem(ErrorCacheKeys.ERROR_DESC, ClientAuthErrorMessage.popUpWindowError.desc);
                     if (reject) {
-                        reject(error);
-                    }
-
-                    if (this.config.framework.isAngular) {
-                        this.broadcast("msal:popUpClosed", error.errorCode + Constants.resourceDelimiter + error.errorMessage);
-                    } else {
-                        // Request failed, set to canceled
-                        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-                        popUpWindow.close();
+                        reject(ClientAuthError.createPopupWindowError());
+                        return;
                     }
                 }
+    
+                // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
+                if (popUpWindow) {
+                    try {
+                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
+
+                        this.handleAuthenticationResponse(hash);
+
+                        // Request completed successfully, set to completed
+                        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+                        this.logger.info("Closing popup window");
+
+                        // TODO: Check how this can be extracted for any framework specific code?
+                        if (this.config.framework.isAngular) {
+                            this.broadcast("msal:popUpHashChanged", hash);
+                            WindowUtils.closePopups();
+                        }
+                    } catch (error) {
+                        if (reject) {
+                            reject(error);
+                        }
+
+                        if (this.config.framework.isAngular) {
+                            this.broadcast("msal:popUpClosed", error.errorCode + Constants.resourceDelimiter + error.errorMessage);
+                        } else {
+                            // Request failed, set to canceled
+                            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+                            popUpWindow.close();
+                        }
+                    }
+                }
+            } else {
+                // prompt user for interaction
+                this.navigateWindow(urlNavigate, popUpWindow);
             }
+            
         }).catch((err) => {
             this.logger.error(err);
             this.cacheStorage.resetTempCacheItems(request.state);
