@@ -30,6 +30,12 @@ export class ClientInfo {
         this._utid = utid;
     }
 
+    static createClientInfoFromIdToken(oid:string): string {
+        const clientInfo = {uid: oid, utid: ""};
+
+        return CryptoUtils.base64Encode(JSON.stringify(clientInfo));
+    }
+
     constructor(rawClientInfo: string) {
         if (!rawClientInfo || StringUtils.isEmpty(rawClientInfo)) {
             this.uid = "";
