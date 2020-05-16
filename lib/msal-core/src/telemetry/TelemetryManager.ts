@@ -46,7 +46,9 @@ export default class TelemetryManager {
             ...config.platform
         };
         this.clientId = config.clientId;
-        this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
+        if (typeof config.onlySendFailureTelemetry !== "undefined") {
+            this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
+        }
         /*
          * TODO, when i get to wiring this through, think about what it means if
          * a developer does not implement telem at all, we still instrument, but telemetryEmitter can be

@@ -190,7 +190,7 @@ export class ClientConfigurationError extends ClientAuthError {
         };
 
         const missingKeys = Object.keys(requiredKeys)
-            .reduce((keys, key) => {
+            .reduce((keys : Array<string>, key) => {
                 return config[key] ? keys : keys.concat([ `${key} (${requiredKeys[key]})` ]);
             }, []);
 

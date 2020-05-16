@@ -28,13 +28,13 @@ export class IdToken {
     sid: string;
     cloudInstance: string;
     /* tslint:disable:no-string-literal */
-    constructor(rawIdToken: string) {
+    constructor(rawIdToken: string|null) {
         if (StringUtils.isEmpty(rawIdToken)) {
             throw ClientAuthError.createIdTokenNullOrEmptyError(rawIdToken);
         }
         try {
-            this.rawIdToken = rawIdToken;
-            this.claims = TokenUtils.extractIdToken(rawIdToken);
+            this.rawIdToken = rawIdToken!;
+            this.claims = TokenUtils.extractIdToken(rawIdToken!);
             if (this.claims) {
                 if (this.claims.hasOwnProperty("iss")) {
                     this.issuer = this.claims["iss"];

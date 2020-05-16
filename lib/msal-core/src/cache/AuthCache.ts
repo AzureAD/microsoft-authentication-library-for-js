@@ -44,7 +44,7 @@ export class AuthCache extends BrowserStorage {// Singleton
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
         const keysToMigrate = [PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO, ErrorCacheKeys.ERROR, ErrorCacheKeys.ERROR_DESC];
 
-        keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
+        keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index]!, storeAuthStateInCookie));
     }
 
     /**
@@ -95,7 +95,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param key
      * @param enableCookieStorage
      */
-    getItem(key: string, enableCookieStorage?: boolean): string {
+    getItem(key: string, enableCookieStorage?: boolean): string|null {
         return super.getItem(this.generateCacheKey(key, true), enableCookieStorage);
     }
 
@@ -171,7 +171,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param homeAccountIdentifier
      */
     getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
-        const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
+        const results = Object.keys(window[this.cacheLocation]).reduce((tokens : Array<AccessTokenCacheItem>, key) => {
             const keyMatches = key.match(clientId) && key.match(homeAccountIdentifier) && key.match(Constants.scopes);
             if ( keyMatches ) {
                 const value = this.getItem(key);

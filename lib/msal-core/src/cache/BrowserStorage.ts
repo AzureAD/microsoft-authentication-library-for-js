@@ -44,7 +44,7 @@ export class BrowserStorage {// Singleton
      * @param key
      * @param enableCookieStorage
      */
-    getItem(key: string, enableCookieStorage?: boolean): string {
+    getItem(key: string, enableCookieStorage?: boolean): string|null {
         if (enableCookieStorage && this.getItemCookie(key)) {
             return this.getItemCookie(key);
         }

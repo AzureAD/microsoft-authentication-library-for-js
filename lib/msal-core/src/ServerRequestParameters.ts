@@ -39,7 +39,7 @@ export class ServerRequestParameters {
     queryParameters: string|null;
     extraQueryParameters: string;
 
-    public get authority(): string {
+    public get authority(): string|null {
         return this.authorityInstance ? this.authorityInstance.CanonicalAuthority : null;
     }
 
@@ -245,8 +245,8 @@ export class ServerRequestParameters {
      * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
      * @param extraQueryParameters
      */
-    static generateQueryParametersString(queryParameters?: StringDict|null|undefined, silentCall?: boolean): string|null {
-        let paramsString: string|null = null;
+    static generateQueryParametersString(queryParameters?: StringDict|null|undefined, silentCall?: boolean): string {
+        let paramsString: string = "";
 
         if (queryParameters) {
             Object.keys(queryParameters).forEach((key: string) => {

@@ -155,7 +155,7 @@ export class ClientAuthError extends AuthError {
     }
 
     // TODO: Is this not a security flaw to send the user the Nonce expected??
-    static createNonceMismatchError(invalidNonce: string, actualNonce: string): ClientAuthError {
+    static createNonceMismatchError(invalidNonce: string|null, actualNonce: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
             `${ClientAuthErrorMessage.nonceMismatchError.desc} ${invalidNonce}, nonce expected : ${actualNonce}.`);
     }
@@ -200,7 +200,7 @@ export class ClientAuthError extends AuthError {
             `${ClientAuthErrorMessage.clientInfoNotPopulatedError.desc} Failed with error: ${caughtError}`);
     }
 
-    static createIdTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
+    static createIdTokenNullOrEmptyError(invalidRawTokenString: string|null) : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyIdToken.code,
             `${ClientAuthErrorMessage.nullOrEmptyIdToken.desc} Raw ID Token Value: ${invalidRawTokenString}`);
     }

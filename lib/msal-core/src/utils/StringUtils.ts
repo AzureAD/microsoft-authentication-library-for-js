@@ -12,7 +12,7 @@ export class StringUtils {
      *
      * @param str
      */
-    static isEmpty(str: string|undefined): boolean {
+    static isEmpty(str: string|undefined|null): boolean {
         return (typeof str === "undefined" || !str || 0 === str.length);
     }
 }

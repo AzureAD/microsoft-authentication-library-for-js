@@ -36,7 +36,7 @@ export class InteractionRequiredAuthError extends ServerError {
             InteractionRequiredAuthErrorMessage.loginRequired.code
         ];
 
-        return errorString && interactionRequiredCodes.indexOf(errorString) > -1;
+        return interactionRequiredCodes.indexOf(errorString) > -1;
     }
 
     static createLoginRequiredAuthError(errorDesc: string): InteractionRequiredAuthError {
