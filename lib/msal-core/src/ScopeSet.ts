@@ -80,13 +80,10 @@ export class ScopeSet {
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
      * @ignore
      */
-    static validateInputScope(scopes: Array<string>, scopesRequired: boolean, clientId: string): void {
+    static validateInputScope(scopes: Array<string>, clientId: string): void {
+        // Check if scopes are empty or null
         if (!scopes) {
-            if (scopesRequired) {
-                throw ClientConfigurationError.createScopesRequiredError(scopes);
-            } else {
-                return;
-            }
+            throw ClientConfigurationError.createScopesRequiredError(scopes);
         }
 
         // Check that scopes is an array object (also throws error if scopes == null)
@@ -130,13 +127,46 @@ export class ScopeSet {
      * Appends extraScopesToConsent if passed
      * @param {@link AuthenticationParameters}
      */
-    static appendScopes(reqScopes: Array<string>, reqExtraScopesToConsent: Array<string>): Array<string> {
+    static appendScopes(reqScopes: Array<string>, scopesToAppend: Array<string>): Array<string> {
         if(reqScopes) {
-            return reqExtraScopesToConsent ? [...reqScopes, ...reqExtraScopesToConsent]: reqScopes;
+            return scopesToAppend ? [...reqScopes, ...scopesToAppend]: reqScopes;
         }
         return null;
     }
 
     // #endregion
+
+    /**
+     * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
+     * @param scopes
+     */
+    static generateLoginScopes(scopes: Array<string>, clientId: string): Array<string> {
+        const loginScopes = [...scopes];
+        const clientIdIndex: number = loginScopes.indexOf(clientId);
+        if (this.isLoginScopes(loginScopes, clientId)) {
+            if (clientIdIndex >= 0) {
+                loginScopes.splice(clientIdIndex, 1);
+            }
+            if (loginScopes.indexOf("openid") === -1) {
+                loginScopes.push("openid");
+            }
+            if (loginScopes.indexOf("profile") === -1) {
+                loginScopes.push("profile");
+            }
+        }
+        
+        return loginScopes;
+    }
+
+    /**
+     * 
+     */
+    static isLoginScopes(scopes: Array<string>, clientId: string): boolean {
+        const hasOpenIdScope = scopes.indexOf("openid") > -1;
+        const hasProfileScope = scopes.indexOf("profile") > -1;
+        const hasClientIdScope = scopes.indexOf(clientId) > -1;
+
+        return (hasOpenIdScope ||  hasProfileScope || hasClientIdScope);
+    }
 
 }
