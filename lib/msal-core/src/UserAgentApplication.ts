@@ -631,7 +631,7 @@ export class UserAgentApplication {
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         this.logger.verbose("AcquireTokenSilent has been called");
-        this.logger.verbose(`AcquireTokenSilent params:\n${JSON.stringify(userRequest)}`);
+
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent);
@@ -685,16 +685,18 @@ export class UserAgentApplication {
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
                 serverAuthenticationRequest.populateQueryParams(account, request, null, true);
+                this.logger.verbose("Query parameters populated from existing SSO or account");
             }
             // if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
             else if (!account && !StringUtils.isEmpty(adalIdToken)) {
                 // if adalIdToken exists, extract the SSO info from the same
                 const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
-                this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+                this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken to populate query parameters");
                 serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject, true);
             }
-
-            this.logger.verbose("Query parameters populated");
+            else {
+                this.logger.verbose("No additional query parameters added");
+            }
 
             const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
 
@@ -737,7 +739,7 @@ export class UserAgentApplication {
                 if (!serverAuthenticationRequest.authorityInstance) {
                     serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
                 }
-                this.logger.verbose(`Authority instance: ${serverAuthenticationRequest.authority}`);
+                this.logger.verbosePii(`Authority instance: ${serverAuthenticationRequest.authority}`);
 
                 // cache miss
 
