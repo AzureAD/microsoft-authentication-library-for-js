@@ -630,7 +630,7 @@ export class UserAgentApplication {
      *
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
-        this.logger.info("AcquireTokenSilent has been called");
+        this.logger.verbose("AcquireTokenSilent has been called");
         this.logger.verbose(`AcquireTokenSilent params:\n${JSON.stringify(userRequest)}`);
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
@@ -652,16 +652,13 @@ export class UserAgentApplication {
                 this.logger.verbose("Account set from request");
             } else {
                 account = this.getAccount();
-                this.logger.verbose("Account set from MSAL configuration");
+                this.logger.verbose("Account set from MSAL Cache");
             }
 
             // Extract adalIdToken if stashed in the cache to allow for seamless ADAL to MSAL migration
             const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
-            /**
-             * if there is no account logged in and no login_hint/sid is passed in the request
-             * In the event of no account being passed in the config, no session id, and no pre-existing adalIdToken, user will need to log in
-             */
+            // In the event of no account being passed in the config, no session id, and no pre-existing adalIdToken, user will need to log in
             if (!account && !(request.sid  || request.loginHint) && StringUtils.isEmpty(adalIdToken) ) {
                 this.logger.info("User login is required");
                 // The promise rejects with a UserLoginRequiredError, which should be caught and user should be prompted to log in interactively
@@ -715,7 +712,7 @@ export class UserAgentApplication {
 
             // resolve/reject based on cacheResult
             if (cacheResultResponse) {
-                this.logger.info("Token is already in cache for scope: " + scope);
+                this.logger.verbose("Token is already in cache for scope: " + scope);
                 resolve(cacheResultResponse);
                 return null;
             }
@@ -739,10 +736,9 @@ export class UserAgentApplication {
                 // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the API.
                 if (!serverAuthenticationRequest.authorityInstance) {
                     serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
-                    if (!request.authority){
-                        this.logger.verbose("Using default authority since no authority was passed to API");
-                    }
                 }
+                this.logger.verbose(`Authority instance: ${serverAuthenticationRequest.authority}`);
+
                 // cache miss
 
                 // start http event
@@ -752,7 +748,7 @@ export class UserAgentApplication {
                          * refresh attempt with iframe
                          * Already renewing for this scope, callback when we get the token.
                          */
-                        this.logger.verbose("The authority has been updated with endpoint discovery response");
+                        this.logger.verbose("Authority has been updated with endpoint discovery response");
 
                         if (window.activeRenewals[requestSignature]) {
                             this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
@@ -765,17 +761,17 @@ export class UserAgentApplication {
                                  * App uses idToken to send to api endpoints
                                  * Default scope is tracked as clientId to store this token
                                  */
-                                this.logger.verbose("renewing idToken");
+                                this.logger.verbose("Renewing idToken");
                                 this.silentLogin = true;
                                 this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                             } else {
                                 // renew access token
-                                this.logger.verbose("renewing access token");
+                                this.logger.verbose("Renewing access token");
                                 this.renewToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                             }
                         }
                     }).catch((err) => {
-                        this.logger.warning("could not resolve endpoints");
+                        this.logger.warning("Could not resolve endpoints");
                         reject(ClientAuthError.createEndpointResolutionError(err.toString()));
                         return null;
                     });
