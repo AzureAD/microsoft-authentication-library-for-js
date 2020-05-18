@@ -12,7 +12,8 @@ import { Authority, AuthorityType } from "./Authority";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlUtils } from "../utils/UrlUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ITenantDiscoveryResponse } from './ITenantDiscoveryResponse';
+import { ITenantDiscoveryResponse, OpenIdConfiguration } from './ITenantDiscoveryResponse';
+import TelemetryManager from '../telemetry/TelemetryManager';
 
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
@@ -28,8 +29,8 @@ export class AuthorityFactory {
         }
     }
 
-    public static async resolveAuthorityAsync(authorityInstance: Authority): Promise<ITenantDiscoveryResponse> {
-        const metadata = await authorityInstance.resolveEndpointsAsync(); // todo: errors?
+    public static async resolveAuthorityAsync(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+        const metadata = await authorityInstance.resolveEndpointsAsync(telemetryManager, correlationId);
         this.metadataMap.set(authorityInstance.CanonicalAuthority, metadata);
         return metadata;
     }
@@ -37,7 +38,12 @@ export class AuthorityFactory {
     public static parseAuthorityMetadata(authorityUrl: string, authorityMetadataJson: string) {
         try {
             if (authorityMetadataJson) {
-                const parsedMetadata = JSON.parse(authorityMetadataJson);
+                const parsedMetadata = JSON.parse(authorityMetadataJson) as OpenIdConfiguration;
+
+                if (!parsedMetadata.authorization_endpoint || !parsedMetadata.end_session_endpoint || !parsedMetadata.issuer) {
+                    throw ClientConfigurationError.createInvalidAuthorityMetadataError();
+                }
+
                 this.metadataMap.set(authorityUrl, {
                     AuthorizationEndpoint: parsedMetadata.authorization_endpoint,
                     EndSessionEndpoint: parsedMetadata.end_session_endpoint,
@@ -45,7 +51,7 @@ export class AuthorityFactory {
                 });
             }
         } catch (e) {
-            // todo : throw error
+            throw ClientConfigurationError.createInvalidAuthorityMetadataError();
         }
     }
 

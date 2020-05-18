@@ -58,7 +58,7 @@ export abstract class Authority {
     }
 
     private validateResolved() {
-        if (!this.validateTenantDiscoveryResponse()) {
+        if (!this.hasCachedMetadata()) {
             throw "Please call ResolveEndpointsAsync first";
         }
     }
@@ -158,7 +158,7 @@ export abstract class Authority {
     /**
      * Checks if there is a cached tenant discovery response with required fields.
      */
-    public validateTenantDiscoveryResponse(): boolean {
+    public hasCachedMetadata(): boolean {
         return !!(this.tenantDiscoveryResponse &&
             this.tenantDiscoveryResponse.AuthorizationEndpoint &&
             this.tenantDiscoveryResponse.EndSessionEndpoint &&

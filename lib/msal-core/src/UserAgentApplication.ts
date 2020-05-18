@@ -516,8 +516,11 @@ export class UserAgentApplication {
         }
 
         try {
-            if (!acquireTokenAuthority.validateTenantDiscoveryResponse()) {
-                await AuthorityFactory.resolveAuthorityAsync(serverAuthenticationRequest.authorityInstance);
+            if (!acquireTokenAuthority.hasCachedMetadata()) {
+                this.logger.verbose("No cached metadata for authority");
+                await AuthorityFactory.resolveAuthorityAsync(acquireTokenAuthority, this.telemetryManager, request.correlationId);
+            } else {
+                this.logger.verbose("Cached metadata found for authority");
             }
 
             // On Fulfillment
@@ -727,8 +730,11 @@ export class UserAgentApplication {
                 }
 
                 try {
-                    if (!serverAuthenticationRequest.authorityInstance.validateTenantDiscoveryResponse()) {
-                        await AuthorityFactory.resolveAuthorityAsync(serverAuthenticationRequest.authorityInstance);
+                    if (!serverAuthenticationRequest.authorityInstance.hasCachedMetadata()) {
+                        this.logger.verbose("No cached metadata for authority");
+                        await AuthorityFactory.resolveAuthorityAsync(serverAuthenticationRequest.authorityInstance, this.telemetryManager, request.correlationId);
+                    } else {
+                        this.logger.verbose("Cached metadata found for authority");
                     }
 
                     /*
@@ -963,8 +969,11 @@ export class UserAgentApplication {
         this.account = null;
 
         try {
-            if (!this.authorityInstance.validateTenantDiscoveryResponse()) {
-                await AuthorityFactory.resolveAuthorityAsync(this.authorityInstance);
+            if (!this.authorityInstance.hasCachedMetadata()) {
+                this.logger.verbose("No cached metadata for authority");
+                await AuthorityFactory.resolveAuthorityAsync(this.authorityInstance, this.telemetryManager, correlationId);
+            } else {
+                this.logger.verbose("Cached metadata found for authority");
             }
 
             const correlationIdParam = `client-request-id=${requestCorrelationId}`
