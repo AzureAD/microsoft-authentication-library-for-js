@@ -42,9 +42,9 @@ export type AuthorizationCodeUrlRequest = {
     codeChallenge?: string;
 
     /**
-     * the method used to encode the code verifier for the code challenge parameter. can be one
-     * of plain or s256. if excluded, code challenge is assumed to be plaintext. for more
-     * information, see the pkce rcf: https://tools.ietf.org/html/rfc7636
+     * The method used to encode the code verifier for the code challenge parameter. Can be
+     * "plain" or "S256". If excluded, code challenge is assumed to be plaintext. For more
+     * information, see the PKCE RCF: https://tools.ietf.org/html/rfc7636
      */
     codeChallengeMethod?: string;
 
