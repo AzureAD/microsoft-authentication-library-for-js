@@ -3,10 +3,10 @@ import sinon from "sinon";
 import { TokenExchangeParameters } from "../../src/request/TokenExchangeParameters";
 import { ServerTokenRequestParameters } from "../../src/server/ServerTokenRequestParameters";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS } from "../utils/StringConstants";
-import { AadAuthority } from "../../src/auth/authority/AadAuthority";
+import { AadAuthority } from "../../src/authority/AadAuthority";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { NetworkRequestOptions, INetworkModule } from "../../src/network/INetworkModule";
-import { Constants, HEADER_NAMES, AADServerParamKeys } from "../../src/utils/Constants";
+import { Constants, HeaderNames, AADServerParamKeys } from "../../src/utils/Constants";
 import { CodeResponse } from "../../src/response/CodeResponse";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
@@ -85,7 +85,7 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
                 null
             );
             tokenRequest.scopes.push(Constants.OFFLINE_ACCESS_SCOPE);
-            expect(tokenRequestParams.xClientVer).to.be.eq("1.0.0-alpha.0");
+            expect(tokenRequestParams.xClientVer).to.be.eq("1.0.0-beta.2");
             expect(tokenRequestParams.xClientSku).to.be.eq(Constants.LIBRARY_NAME);
             expect(tokenRequestParams.correlationId).to.be.eq(corrId);
             expect(tokenRequestParams.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
@@ -136,7 +136,7 @@ describe("ServerTokenRequestParameters.ts Class Unit Tests", () => {
             const headers = tokenRequestParams.createRequestHeaders();
             expect(headers instanceof Map).to.be.true;
             expect(headers.size).to.be.eq(1);
-            expect(headers.get(HEADER_NAMES.CONTENT_TYPE)).to.be.eq(Constants.URL_FORM_CONTENT_TYPE);
+            expect(headers.get(HeaderNames.CONTENT_TYPE)).to.be.eq(Constants.URL_FORM_CONTENT_TYPE);
         })
     });
 

@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.0.0
+
+Stable release of MSAL Angular v1. See beta versions below for complete list of changes.
+
+### Highlights:
+
+* Requires `msal@1.3.0`.
+* Requires `rxjs@6`.
+* Adds support for Angular 6, 7, 8, 9.
+* Drops support for Angular 4, 5.
+* `MsalModule.forRoot` now takes two arguement.
+    * The first argument is the configuration object, which is the [same `Configuration` object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/src/Configuration.ts) you would pass to `msal`.
+    * The second argument is a `MsalAngularConfiguration` object, containing the values for `consentScopes`, `popUp`, and `extraQueryParameters`.
+    * See the [updated sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/angular6-sample-app/src/app/app.module.ts) for an example of how to pass these configuration objects.
+* The `acquireToken` and `login` methods now take a single `AuthenticationParameters` object as parameters.
+* `getUser()` is now `getAccount()`.
+* Broadcast events now emit objects, instead of just strings.
+* Applications using `Redirect` methods can optionally implement the `handleRedirectCallback` method (and have it run on every page load), which will capture the result of redirect operations. See the [Angular sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/angular6-sample-app/src/app/app.component.ts) for an example of how to implement.
+* Add `ssoSilent` API. This API requires either a `loginHint` or `sid`, and is intended to be used when you want to SSO to an existing AAD session. Emits `msal:ssoSuccess` and `msal:ssoFailure` events.
+
+### Fixes
+
+* Ensure interceptor uses ID token property if response is of type id_token (#1528)
+
+## 1.0.0-beta.5
+
+* Requires `msal@1.3.0-beta.0`.
+* When MSAL Guard fails to silent SSO, prompt for interaction. (#1455)
+* MSAL Guard should properly support hash routing and non-root base urls. (#1452)
+* Fix isEmpty check for unprotectedResources. (#1454)
+* Update handleRedirectCallback in Angular samples to log entire response. (#1428)
+* Don't broadcast `msal:login` events from MSAL Guard. (#1435)
+* Add guide for [Configuration](./docs/configuration.md).
+
 ## 1.0.0-beta.4
 
 * Requires `msal@1.2.2-beta.2`, which add `redirectStartUrl` to `AuthenticationParameters`, so that when a redirect operation from MSAL Guard is succesfully completed, redirect to the desired destination page. (#1343)

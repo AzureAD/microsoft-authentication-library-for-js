@@ -1,15 +1,16 @@
 import { expect } from "chai";
-import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix } from "../../src/telemetry/TelemetryUtils";
+import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix, supportsBrowserPerformance, startBrowserPerformanceMeasurement, endBrowserPerformanceMeasurement } from "../../src/telemetry/TelemetryUtils";
 import { EVENT_NAME_PREFIX } from "../../src/telemetry/TelemetryConstants";
+import { spy } from "sinon";
 
 describe("TelemetryUtils", () => {
     it("TelemtryUtils.scrubTenantFromUri works on regular uri", () => {
         const uri = scrubTenantFromUri("https://login.microsoftonline.com/abc-123/banana/orange");
         expect(uri).to.eq("https://login.microsoftonline.com/abc-123/<tenant>/orange");
     });
-    it("TelemtryUtils.scrubTenantFromUri returns null on untrusted uri", () => {
+    it("TelemtryUtils.scrubTenantFromUri returns uri on untrusted uri", () => {
         const uri = scrubTenantFromUri("https://pizza.burger.com/abc-123/banana/orange");
-        expect(uri).to.be.null;
+        expect(uri).to.eql(uri);
     });
     it("TelemtryUtils.scrubTenantFromUri doesnt change when it doesnt contain enough path params", () => {
         const uri = scrubTenantFromUri("https://login.microsoftonline.com/abc-123/");
@@ -49,5 +50,94 @@ describe("TelemetryUtils", () => {
         expect(result).to.eql(`${EVENT_NAME_PREFIX}`);
         expect(result2).to.eql(`${EVENT_NAME_PREFIX}`);
         expect(result3).to.eql(`${EVENT_NAME_PREFIX}44`);
+    });
+
+    describe("Browser Performance", () => {
+        const originalWindow = global["window"];
+
+        afterEach(() => {
+            global["window"] = originalWindow;
+        });
+
+        describe("supportsBrowserPerformance", () => {
+            it("returns false when window is undefined", () => {
+                expect(supportsBrowserPerformance()).to.be.false;
+            });
+            
+            it("returns false when window.performance is undefined", () => {
+                global["window"] = {};
+                expect(supportsBrowserPerformance()).to.be.false;
+            });
+            
+            it("returns false when window.performance.mark is undefined", () => {
+                global["window"] = {
+                    performance: {}
+                };
+
+                expect(supportsBrowserPerformance()).to.be.false;
+            });
+            
+            it("returns false when window.performance.measure is undefined", () => {
+                global["window"] = {
+                    performance: {
+                        mark: () => {},
+                    }
+                };
+                
+                expect(supportsBrowserPerformance()).to.be.false;
+            });
+
+            it("returns true when performance APIs are available", () => {
+                global["window"] = {
+                    performance: {
+                        mark: () => {},
+                        measure: () => {}
+                    }
+                }
+                expect(supportsBrowserPerformance()).to.be.true;
+            });
+        });
+
+        describe("startBrowserPerformanceMeasurement", () => {
+            it("starts performance measurement", () => {
+                const markSpy = spy();
+                global["window"] = {
+                    performance: {
+                        measure: () => {},
+                        mark: markSpy
+                    }
+                };
+
+                startBrowserPerformanceMeasurement("mark");
+
+                expect(markSpy.firstCall.args).to.deep.equal([ "mark" ]);
+            });
+        });
+
+        describe("endBrowserPerformanceMeasurement", () => {
+            it("ends performance measurement", () => {
+                const markSpy = spy();
+                const measureSpy = spy();
+                const clearMeasuresSpy = spy();
+                const clearMarksSpy = spy();
+
+                global["window"] = {
+                    performance: {
+                        mark: markSpy,
+                        measure: measureSpy,
+                        clearMeasures: clearMeasuresSpy,
+                        clearMarks: clearMarksSpy
+                    }
+                }
+
+                endBrowserPerformanceMeasurement("measureName", "startMark", "endMark");
+
+                expect(markSpy.firstCall.args).to.deep.equal([ "endMark" ]);
+                expect(measureSpy.firstCall.args).to.deep.equal(["measureName", "startMark", "endMark"]);
+                expect(clearMeasuresSpy.firstCall.args).to.deep.equal([ "measureName" ]);
+                expect(clearMarksSpy.firstCall.args).to.deep.equal([ "startMark"]);
+                expect(clearMarksSpy.secondCall.args).to.deep.equal([ "endMark"]);
+            });
+        });
     });
 });

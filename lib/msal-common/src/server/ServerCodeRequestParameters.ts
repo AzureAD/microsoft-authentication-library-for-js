@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 import pkg from "../../package.json";
-import { Authority } from "../auth/authority/Authority";
-import { Account } from "../auth/Account";
+import { Authority } from "../authority/Authority";
+import { Account } from "../account/Account";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
-import { ScopeSet } from "../auth/ScopeSet";
-import { IdToken } from "../auth/IdToken";
-import { AuthenticationParameters, validateClaimsRequest } from "../request/AuthenticationParameters";
+import { ScopeSet } from "../request/ScopeSet";
+import { IdToken } from "../account/IdToken";
+import { AuthenticationParameters } from "../request/AuthenticationParameters";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { ProtocolUtils } from "../utils/ProtocolUtils";
@@ -21,7 +21,7 @@ import { StringDict } from "../utils/MsalTypes";
 export class ServerCodeRequestParameters {
 
     // Crypto functions
-    private cryptoObj: ICrypto;    
+    private cryptoObj: ICrypto;
 
     // Telemetry Info
     xClientVer: string;
@@ -40,7 +40,7 @@ export class ServerCodeRequestParameters {
 
     // Generated Params
     generatedPkce: PkceCodes;
-    
+
     // Validity checks
     state: string;
     nonce: string;
@@ -64,8 +64,8 @@ export class ServerCodeRequestParameters {
 
         // Set scopes, append extra scopes if there is a login call.
         this.scopes = new ScopeSet(
-            (this.userRequest && this.userRequest.scopes) || [], 
-            this.clientId, 
+            (this.userRequest && this.userRequest.scopes) || [],
+            this.clientId,
             !isLoginCall
         );
         if (isLoginCall) {
@@ -150,7 +150,7 @@ export class ServerCodeRequestParameters {
 
     /**
      * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
-     * @param adalIdTokenObject 
+     * @param adalIdTokenObject
      */
     populateQueryParams(adalIdTokenObject?: IdToken): void {
         let queryParameters: StringDict = {};
@@ -159,11 +159,6 @@ export class ServerCodeRequestParameters {
             // add the prompt parameter to serverRequestParameters if passed
             if (this.userRequest.prompt) {
                 this.validatePromptParameter(this.userRequest.prompt);
-            }
-
-            // Add claims challenge to serverRequestParameters if passed
-            if (this.userRequest.claimsRequest) {
-                validateClaimsRequest(this.userRequest);
             }
         }
 
@@ -235,11 +230,6 @@ export class ServerCodeRequestParameters {
             str.push(`${AADServerParamKeys.PROMPT}=${(encodeURIComponent(this.userRequest.prompt))}`);
         }
 
-        // Append claims request
-        if (this.userRequest && this.userRequest.claimsRequest) {
-            str.push(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(this.userRequest.claimsRequest)}`);
-        }
-
         // Append query params
         if (this.queryParameters) {
             str.push(this.queryParameters);
@@ -273,11 +263,6 @@ export class ServerCodeRequestParameters {
         const eQParams : StringDict = request.extraQueryParameters;
         if (!eQParams) {
             return null;
-        }
-
-        if (request.claimsRequest) {
-            // TODO: this.logger.error("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
-            delete eQParams[Constants.CLAIMS];
         }
 
         // Remove any query parameters that are blacklisted

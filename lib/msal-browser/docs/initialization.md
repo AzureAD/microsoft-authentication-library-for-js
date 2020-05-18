@@ -31,7 +31,7 @@ By default, MSAL is configured with the `common` tenant, which is used for multi
 const msalConfig = {
     auth: {
         clientId: 'your_client_id',
-        authority: 'https://login.microsoftonline.con/common/'
+        authority: 'https://login.microsoftonline.com/common/'
     }
 };
 ```
@@ -41,7 +41,7 @@ If your application audience is a single tenant, you must provide an authority w
 const msalConfig = {
     auth: {
         clientId: 'your_client_id',
-        authority: 'https://login.microsoftonline.con/{your_tenant_id}'
+        authority: 'https://login.microsoftonline.com/{your_tenant_id}'
     }
 };
 ```
@@ -53,13 +53,13 @@ By default, MSAL is configured to set the redirect URI to the current page that 
 const msalConfig = {
     auth: {
         clientId: 'your_client_id',
-        authority: 'https://login.microsoftonline.con/{your_tenant_id}',
+        authority: 'https://login.microsoftonline.com/{your_tenant_id}',
         redirectUri: 'https://contoso.com'
     }
 };
 ```
 
-Any redirect URI used must be configured in the portal registration. You can also set the redirect URI per request using the [login](./loginuser.md) and [request APIs](./acquiretoken.md).
+Any redirect URI used must be configured in the portal registration. You can also set the redirect URI per request using the [login](./login-user.md) and [request APIs](./acquire-token.md).
 
 ## (Optional) Additional Configuration
 
@@ -83,16 +83,22 @@ The popup APIs use ES6 Promises that resolve when the authentication flow in the
 - `loginRedirect`
 - `acquireTokenRedirect`
 
-The redirect APIs do not use Promises, but are `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, you **MUST** call the following function **IMMEDIATELY** after the constructor in order to process the returning fragment containing the code and response and obtain an access token:
+The redirect APIs do not use Promises, but are `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, be aware that there is a small delay after loading the MSAL object where the exchanging of the auth code for the token is occurring. You can use the following function to perform an action when this token exchange is completed:
 ```javascript
-msalInstance.handleRedirectCallback((error, response) => {
-    // handle redirect response or error
+msalInstance.handleRedirectPromise()
+.then((tokenResponse) => {
+    // Check if the tokenResponse is null
+    // If the tokenResponse !== null, then you are coming back from a successful authentication redirect. 
+    // If the tokenResponse === null, you are not coming back from an auth redirect.
+})
+.catch((error) => {
+    // handle error, either in the library or coming back from the server
 });
 ```
-This will also allow you to retrieve tokens on page reload.
+This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
 
 It is not recommended to use both interaction types in a single application.
 
 # Next Steps
 
-You are ready to perform a [login](./loginuser.md)!
+You are ready to perform a [login](./login-user.md)!

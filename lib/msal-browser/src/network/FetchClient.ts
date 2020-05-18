@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule, NetworkRequestOptions } from "@azure/msal-common";
+import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 /**
@@ -16,12 +16,16 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const response = await fetch(url, {
             method: HTTP_REQUEST_TYPE.GET,
             headers: this.getFetchHeaders(options)
         });
-        return await response.json() as T;
+        return {
+            headers: this.getHeaderMap(response.headers),
+            body: await response.json() as T,
+            status: response.status
+        };
     }
 
     /**
@@ -30,14 +34,18 @@ export class FetchClient implements INetworkModule {
      * @param headers 
      * @param body 
      */
-    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<T> {
+    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const reqBody = (options && options.body) || "";
         const response = await fetch(url, {
             method: HTTP_REQUEST_TYPE.POST,
             headers: this.getFetchHeaders(options),
             body: reqBody
         });
-        return await response.json() as T;
+        return {
+            headers: this.getHeaderMap(response.headers),
+            body: await response.json() as T,
+            status: response.status
+        };
     }
 
     /**
@@ -53,5 +61,13 @@ export class FetchClient implements INetworkModule {
             headers.append(key, value);
         });
         return headers;
+    }
+
+    private getHeaderMap(headers: Headers): Map<string, string> {
+        const headerMap = new Map<string, string>();
+        headers.forEach((value: string, key: string) => {
+            headerMap.set(key, value);
+        });
+        return headerMap;
     }
 }

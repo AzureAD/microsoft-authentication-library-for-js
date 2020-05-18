@@ -2,8 +2,8 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { Configuration, buildConfiguration } from "../../src/app/Configuration";
-import { AuthorizationCodeModule, PkceCodes, NetworkRequestOptions, LogLevel, TemporaryCacheKeys, CodeResponse, TokenResponse, Account } from "@azure/msal-common";
+import { Configuration, buildConfiguration } from "../../src/config/Configuration";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, TemporaryCacheKeys, CodeResponse, TokenResponse, Account } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -47,8 +47,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authCodeModule = new AuthorizationCodeModule({
-            auth: configObj.auth,
+        const authCodeModule = new SPAClient({
+            authOptions: configObj.auth,
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
                 telemetry: configObj.system.telemetry
@@ -114,27 +114,27 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
     });
 
-    describe("showUI()", () => {
+    describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", () => {
-            expect(() => redirectHandler.showUI("")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.showUI("")).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest("")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest("")).to.throw(BrowserAuthError);
 
-            expect(() => redirectHandler.showUI(null)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.showUI(null)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(null)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(null)).to.throw(BrowserAuthError);
         });
 
         it("throws error if we are not in top frame", () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            expect(() => redirectHandler.showUI(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
-            expect(() => redirectHandler.showUI(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthError);
         });
 
         it("navigates browser window to given window location", () => {
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl) => {
                 expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             });
-            const windowObj = redirectHandler.showUI(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             expect(window).to.be.eq(windowObj);
             expect(browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -184,9 +184,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
             };
             browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             browserStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-            sinon.stub(AuthorizationCodeModule.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(AuthorizationCodeModule.prototype, "acquireToken").resolves(testTokenResponse);
-            
+            sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
+
             const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.null;

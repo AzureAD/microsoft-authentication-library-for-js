@@ -103,6 +103,13 @@ export class UrlUtils {
     }
 
     /**
+     * Returns given URL with query string removed
+     */
+    static removeHashFromUrl(url: string): string {
+        return url.split("#")[0];
+    }
+
+    /**
      * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
      * @param href The url
      * @param tenantId The tenant id to replace
@@ -111,7 +118,7 @@ export class UrlUtils {
         url = url.toLowerCase();
         const urlObject = this.GetUrlComponents(url);
         const pathArray = urlObject.PathSegments;
-        if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS))) {
+        if (tenantId && (pathArray.length !== 0 && pathArray[0] === Constants.common)) {
             pathArray[0] = tenantId;
         }
         return this.constructAuthorityUriFromObject(urlObject, pathArray);
@@ -148,6 +155,14 @@ export class UrlUtils {
         let pathSegments = urlComponents.AbsolutePath.split("/");
         pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
         urlComponents.PathSegments = pathSegments;
+
+        if (match[6]){
+            urlComponents.Search = match[6];
+        }
+        if (match[8]){
+            urlComponents.Hash = match[8];
+        }
+        
         return urlComponents;
     }
 

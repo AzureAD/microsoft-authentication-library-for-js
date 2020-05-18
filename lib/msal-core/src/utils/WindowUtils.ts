@@ -32,6 +32,16 @@ export class WindowUtils {
 
     /**
      * @hidden
+     * @param prefix
+     * @param scopes
+     * @param authority
+     */
+    static generateFrameName(prefix: string, requestSignature: string): string {
+        return `${prefix}${Constants.resourceDelimiter}${requestSignature}`;
+    }
+
+    /**
+     * @hidden
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
@@ -154,6 +164,7 @@ export class WindowUtils {
         (window.navigator.userAgent.indexOf("MSIE 5.0") === -1)) {
                 const ifr = document.createElement("iframe");
                 ifr.setAttribute("id", iframeId);
+                ifr.setAttribute("aria-hidden", "true");
                 ifr.style.visibility = "hidden";
                 ifr.style.position = "absolute";
                 ifr.style.width = ifr.style.height = "0";

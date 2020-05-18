@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, Constants, TokenResponse, AuthorizationCodeModule } from "@azure/msal-common";
+import { UrlString, StringUtils, Constants, SPAClient } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
@@ -16,7 +16,7 @@ export class PopupHandler extends InteractionHandler {
 
     private currentWindow: Window;
 
-    constructor(authCodeModule: AuthorizationCodeModule, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
         super(authCodeModule, storageImpl);
 
         // Properly sets this reference for the unload event.
@@ -25,9 +25,9 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Opens a popup window with given request Url.
-     * @param requestUrl 
+     * @param requestUrl
      */
-    showUI(requestUrl: string): Window {
+    initiateAuthRequest(requestUrl: string): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
             // Set interaction status in the library.
@@ -43,31 +43,14 @@ export class PopupHandler extends InteractionHandler {
     }
 
     /**
-     * Function to handle response parameters from hash.
-     * @param locationHash 
-     */
-    async handleCodeResponse(locationHash: string): Promise<TokenResponse> {
-        // Check that location hash isn't empty.
-        if (StringUtils.isEmpty(locationHash)) {
-            throw BrowserAuthError.createEmptyHashError(locationHash);
-        }
-
-        // Handle code response.
-        const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-        
-        // Acquire token with retrieved code.
-        return this.authModule.acquireToken(codeResponse);
-    }
-
-    /**
-     * Monitors a window until it loads a url with a hash
+     * Monitors a window until it loads a url with a known hash, or hits a specified timeout.
      * @param contentWindow - window that is being monitored
      * @param timeout - milliseconds until timeout
      * @param urlNavigate - url that was navigated to
      */
     monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string): Promise<string> {
         return new Promise((resolve, reject) => {
-            const maxTicks = timeout / BrowserConstants.POPUP_POLL_INTERVAL_MS;
+            const maxTicks = timeout / BrowserConstants.POLL_INTERVAL_MS;
             let ticks = 0;
 
             const intervalId = setInterval(() => {
@@ -108,10 +91,10 @@ export class PopupHandler extends InteractionHandler {
                     // Timeout error
                     this.cleanPopup(contentWindow);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createPopupWindowTimeoutError(urlNavigate));
+                    reject(BrowserAuthError.createMonitorWindowTimeoutError(urlNavigate));
                     return;
                 }
-            }, BrowserConstants.POPUP_POLL_INTERVAL_MS);
+            }, BrowserConstants.POLL_INTERVAL_MS);
         });
     }
 
@@ -176,7 +159,7 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Closes popup, removes any state vars created during popup calls.
-     * @param popupWindow 
+     * @param popupWindow
      */
     private cleanPopup(popupWindow?: Window): void {
         if (popupWindow) {

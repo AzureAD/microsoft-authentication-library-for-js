@@ -82,7 +82,7 @@ export class ServerRequestParameters {
      * @param request
      * @param serverAuthenticationRequest
      */
-    populateQueryParams(account: Account, request: AuthenticationParameters, adalIdTokenObject?: any): void {
+    populateQueryParams(account: Account, request: AuthenticationParameters|null, adalIdTokenObject?: object, silentCall?: boolean): void {
         let queryParameters: StringDict = {};
 
         if (request) {
@@ -107,17 +107,17 @@ export class ServerRequestParameters {
         }
 
         /*
-         * adds sid/login_hint if not populated; populates domain_req, login_req and domain_hint
+         * adds sid/login_hint if not populated
          * this.logger.verbose("Calling addHint parameters");
          */
         queryParameters = this.addHintParameters(account, queryParameters);
 
         // sanity check for developer passed extraQueryParameters
-        const eQParams: StringDict = request.extraQueryParameters;
+        const eQParams: StringDict|null = request ? request.extraQueryParameters : null;
 
         // Populate the extraQueryParameters to be sent to the server
         this.queryParameters = ServerRequestParameters.generateQueryParametersString(queryParameters);
-        this.extraQueryParameters = ServerRequestParameters.generateQueryParametersString(eQParams);
+        this.extraQueryParameters = ServerRequestParameters.generateQueryParametersString(eQParams, silentCall);
     }
 
     // #region QueryParam helpers
@@ -167,19 +167,9 @@ export class ServerRequestParameters {
                 ssoType = SSOTypes.ID_TOKEN;
                 ssoData = idTokenObject.upn;
             }
-            else {
-                ssoType = SSOTypes.ORGANIZATIONS;
-                ssoData = null;
-            }
         }
 
         serverReqParam = this.addSSOParameter(ssoType, ssoData);
-
-        // add the HomeAccountIdentifier info/ domain_hint
-        if (request && request.account && request.account.homeAccountIdentifier) {
-            serverReqParam = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, request.account.homeAccountIdentifier, serverReqParam);
-        }
-
         return serverReqParam;
     }
 
@@ -187,7 +177,7 @@ export class ServerRequestParameters {
      * @hidden
      *
      * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
-     * domain_hint can be one of users/organizations which when added skips the email based discovery process of the user
+     * domain_hint if added skips the email based discovery process of the user - only supported for interactive calls in implicit_flow
      * domain_req utid received as part of the clientInfo
      * login_req uid received as part of clientInfo
      * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
@@ -215,11 +205,6 @@ export class ServerRequestParameters {
                     qParams = this.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
                 }
             }
-
-            const populateReqParams = !qParams[SSOTypes.DOMAIN_REQ] && !qParams[SSOTypes.LOGIN_REQ];
-            if (populateReqParams) {
-                qParams = this.addSSOParameter(SSOTypes.HOMEACCOUNT_ID, account.homeAccountIdentifier, qParams);
-            }
         }
 
         return qParams;
@@ -245,44 +230,10 @@ export class ServerRequestParameters {
             }
             case SSOTypes.ID_TOKEN: {
                 ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
-                ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
                 break;
             }
             case SSOTypes.LOGIN_HINT: {
                 ssoParam[SSOTypes.LOGIN_HINT] = ssoData;
-                break;
-            }
-            case SSOTypes.ORGANIZATIONS: {
-                ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
-                break;
-            }
-            case SSOTypes.CONSUMERS: {
-                ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
-                break;
-            }
-            case SSOTypes.HOMEACCOUNT_ID: {
-                const homeAccountId = ssoData.split(".");
-                const uid = CryptoUtils.base64Decode(homeAccountId[0]);
-                const utid = CryptoUtils.base64Decode(homeAccountId[1]);
-
-                // TODO: domain_req and login_req are not needed according to eSTS team
-                ssoParam[SSOTypes.LOGIN_REQ] = uid;
-                ssoParam[SSOTypes.DOMAIN_REQ] = utid;
-
-                if (utid === Constants.consumersUtid) {
-                    ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.CONSUMERS;
-                }
-                else {
-                    ssoParam[SSOTypes.DOMAIN_HINT] = SSOTypes.ORGANIZATIONS;
-                }
-                break;
-            }
-            case SSOTypes.LOGIN_REQ: {
-                ssoParam[SSOTypes.LOGIN_REQ] = ssoData;
-                break;
-            }
-            case SSOTypes.DOMAIN_REQ: {
-                ssoParam[SSOTypes.DOMAIN_REQ] = ssoData;
                 break;
             }
         }
@@ -294,11 +245,16 @@ export class ServerRequestParameters {
      * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
      * @param extraQueryParameters
      */
-    static generateQueryParametersString(queryParameters: StringDict): string {
-        let paramsString: string = null;
+    static generateQueryParametersString(queryParameters?: StringDict, silentCall?: boolean): string|null {
+        let paramsString: string|null = null;
 
         if (queryParameters) {
             Object.keys(queryParameters).forEach((key: string) => {
+                // sid cannot be passed along with login_hint or domain_hint
+                if(key === Constants.domain_hint && (silentCall || queryParameters[SSOTypes.SID])) {
+                    return;
+                }
+
                 if (paramsString == null) {
                     paramsString = `${key}=${encodeURIComponent(queryParameters[key])}`;
                 }

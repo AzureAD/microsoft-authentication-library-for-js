@@ -4,7 +4,7 @@
  */
 
 import { AuthenticationParameters } from "../AuthenticationParameters";
-import { Constants, PromptState, BlacklistedEQParams } from "../utils/Constants";
+import { Constants, PromptState, BlacklistedEQParams, InteractionType } from "../utils/Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
@@ -16,6 +16,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 export type LibraryStateObject = {
     id: string,
     ts: number
+    method: string
 };
 
 /**
@@ -33,7 +34,7 @@ export class RequestUtils {
      *
      * validates all request parameters and generates a consumable request object
      */
-    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string): AuthenticationParameters {
+    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
 
         // Throw error if request is empty for acquire * calls
         if(!isLoginCall && !request) {
@@ -60,7 +61,7 @@ export class RequestUtils {
         }
 
         // validate and generate state and correlationId
-        const state = this.validateAndGenerateState(request && request.state);
+        const state = this.validateAndGenerateState(request && request.state, interactionType);
         const correlationId = this.validateAndGenerateCorrelationId(request && request.correlationId);
 
         const validatedRequest: AuthenticationParameters = {
@@ -139,8 +140,8 @@ export class RequestUtils {
      * @param userState User-provided state value
      * @returns State string include library state and user state
      */
-    static validateAndGenerateState(userState: string): string {
-        return !StringUtils.isEmpty(userState) ? `${RequestUtils.generateLibraryState()}${Constants.resourceDelimiter}${userState}` : RequestUtils.generateLibraryState();
+    static validateAndGenerateState(userState: string, interactionType: InteractionType): string {
+        return !StringUtils.isEmpty(userState) ? `${RequestUtils.generateLibraryState(interactionType)}${Constants.resourceDelimiter}${userState}` : RequestUtils.generateLibraryState(interactionType);
     }
 
     /**
@@ -148,10 +149,11 @@ export class RequestUtils {
      *
      * @returns Base64 encoded string representing the state
      */
-    static generateLibraryState(): string {
+    static generateLibraryState(interactionType: InteractionType): string {
         const stateObject: LibraryStateObject = {
             id: CryptoUtils.createNewGuid(),
-            ts: TimeUtils.now()
+            ts: TimeUtils.now(),
+            method: interactionType
         };
 
         const stateString = JSON.stringify(stateObject);
@@ -166,12 +168,14 @@ export class RequestUtils {
      * @returns Parsed values from the encoded state value
      */
     static parseLibraryState(state: string): LibraryStateObject {
-        const libraryState = state.split(Constants.resourceDelimiter)[0];
+        const libraryState = decodeURIComponent(state).split(Constants.resourceDelimiter)[0];
 
         if (CryptoUtils.isGuid(libraryState)) {
+            // If state is guid, assume timestamp is now and is redirect, as redirect should be only method where this can happen.
             return {
                 id: libraryState,
-                ts: TimeUtils.now()
+                ts: TimeUtils.now(),
+                method: Constants.interactionTypeRedirect
             };
         }
 
@@ -198,5 +202,13 @@ export class RequestUtils {
             throw ClientConfigurationError.createInvalidCorrelationIdError();
         }
         return CryptoUtils.isGuid(correlationId)? correlationId : CryptoUtils.createNewGuid();
+    }
+
+    /**
+     * Create a request signature
+     * @param request
+     */
+    static createRequestSignature(request: AuthenticationParameters): string {
+        return `${request.scopes.join(" ").toLowerCase()}${Constants.resourceDelimiter}${request.authority}`;
     }
 }
