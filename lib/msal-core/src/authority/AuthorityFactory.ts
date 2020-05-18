@@ -35,6 +35,10 @@ export class AuthorityFactory {
         return metadata;
     }
 
+    public static getAuthorityMetadata(authorityUrl: string) {
+        return this.metadataMap.get(authorityUrl);
+    }
+
     public static parseAuthorityMetadata(authorityUrl: string, authorityMetadataJson: string) {
         try {
             if (authorityMetadataJson) {
