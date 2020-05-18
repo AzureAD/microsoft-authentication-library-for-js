@@ -58,18 +58,14 @@ describe("Authority.ts Class", function () {
 
     it("tests EndSessionEndpoint", async function () {
         const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
-        const endSessionEndpoint = response.EndSessionEndpoint
 
-        expect(response).to.be.instanceOf(testAuthority);
-        expect(endSessionEndpoint).to.contain(response.Tenant)
+        expect(authority.EndSessionEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/logout")
     });
 
     it("tests SelfSignedJwtAudience", async function () {
         const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
-        const selfSignedJwtAudience = response.SelfSignedJwtAudience
 
-        expect(response).to.be.instanceOf(testAuthority);
-        expect(selfSignedJwtAudience).to.contain(response.Tenant)
+        expect(authority.SelfSignedJwtAudience).to.equal("https://login.microsoftonline.com/common/v2.0")
     });
 
     it("throws invalidAuthorityType on init if authority is not url", function () {
