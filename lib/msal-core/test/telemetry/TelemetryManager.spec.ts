@@ -4,7 +4,7 @@ import { TelemetryConfig, TelemetryPlatform } from "../../src/telemetry/Telemetr
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
 import { TEST_CONFIG } from "../TestConstants";
-import { Constants } from "../../src";
+import { Constants, Logger } from "../../src";
 
 const TEST_CLIENT_ID = CryptoUtils.createNewGuid();
 const TEST_PLATFORM: TelemetryPlatform = {
@@ -23,7 +23,8 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            () => console.log
+            () => console.log,
+            new Logger(() => {})
         );
     });
 
@@ -44,11 +45,13 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            eventHandler
+            eventHandler,
+            new Logger(() => {})
         );
         const event: TelemetryEvent = new TelemetryEvent(
             "fakeEvent",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event);
 
@@ -76,21 +79,25 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            eventHandler
+            eventHandler,
+            new Logger(() => {})
         );
         const event1: TelemetryEvent = new TelemetryEvent(
             "fakeEvent",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event1);
         const event2: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event2);
         const event3: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event3);
 
@@ -120,21 +127,25 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            eventHandler
+            eventHandler,
+            new Logger(() => {})
         );
         const event1: TelemetryEvent = new TelemetryEvent(
             "fakeEvent",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event1);
         const event2: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event2);
         const event3: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event3);
 
@@ -166,21 +177,25 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            eventHandler
+            eventHandler,
+            new Logger(() => {})
         );
         const event1: TelemetryEvent = new TelemetryEvent(
             "fakeEvent",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event1);
         const event2: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event2);
         const event3: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event3);
 
@@ -201,7 +216,7 @@ describe("TelemetryManager", () => {
 
     });
     it("Gets a stubbed Telemetry Manager", () => {
-        const manager: TelemetryManager = TelemetryManager.getTelemetrymanagerStub(TEST_CONFIG.MSAL_CLIENT_ID);
+        const manager: TelemetryManager = TelemetryManager.getTelemetrymanagerStub(TEST_CONFIG.MSAL_CLIENT_ID, new Logger(() => {}));
         // @ts-ignore
         expect(manager.telemetryPlatform.applicationName).to.eq("UnSetStub");
         // @ts-ignore
