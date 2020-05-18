@@ -58,20 +58,16 @@ export class ProtocolUtils {
      * @param cryptoObj 
      */
     static parseRequestState(state: string, cryptoObj: ICrypto): RequestStateObject {
+        if (StringUtils.isEmpty(state)) {
+            throw ClientAuthError.createInvalidStateError(state);
+        }
+
         try {
-            if (StringUtils.isEmpty(state)) {
-                state = "";
-            }
-
-            const [
-                libraryState,
-                userState
-            ] = decodeURIComponent(state).split(Constants.RESOURCE_DELIM);
-
+            const splitState = decodeURIComponent(state).split(Constants.RESOURCE_DELIM);
+            const libraryState = splitState.splice(0, 1)[0];
+            const userState = splitState.join(Constants.RESOURCE_DELIM);
             const libraryStateString = cryptoObj.base64Decode(libraryState);
-
             const libraryStateObject = JSON.parse(libraryStateString) as LibraryStateObject;
-
             return {
                 userRequestState: !StringUtils.isEmpty(userState) ? userState : "",
                 libraryState: libraryStateObject

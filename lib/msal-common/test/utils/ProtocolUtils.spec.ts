@@ -78,4 +78,18 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         const requestState = `${JSON.stringify(libraryState)}${Constants.RESOURCE_DELIM}${testState}`;
         expect(ProtocolUtils.parseRequestState(requestState, cryptoInterface)).to.be.deep.eq(stateObject);
     });
+
+    it("parseRequestState() correctly splits the state when the userRequestState contains a resource delimiter", () => {
+        const testState = "testState|has|resource|delim";
+        const libraryState: LibraryStateObject = {
+            id: "testState",
+            ts: TimeUtils.nowSeconds()
+        };
+        const stateObject: RequestStateObject = {
+            userRequestState: testState,
+            libraryState: libraryState
+        };
+        const requestState = `${JSON.stringify(libraryState)}${Constants.RESOURCE_DELIM}${testState}`;
+        expect(ProtocolUtils.parseRequestState(requestState, cryptoInterface)).to.be.deep.eq(stateObject);
+    });
 });
