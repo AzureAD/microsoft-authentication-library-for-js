@@ -34,10 +34,12 @@ export class RequestUtils {
      *
      * validates all request parameters and generates a consumable request object
      */
-    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
+    static validateRequest(request: AuthenticationParameters, clientId: string, interactionType: InteractionType): AuthenticationParameters {
+        // Check if sent scopes are Login scopes
+        const isLoginScopes = ScopeSet.isLoginScopes(request.scopes, clientId);
 
         // Throw error if request is empty for acquire * calls
-        if(!isLoginCall && !request) {
+        if(!isLoginScopes && !request) {
             throw ClientConfigurationError.createEmptyRequestError();
         }
 
@@ -46,8 +48,9 @@ export class RequestUtils {
 
         if(request) {
             // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
-            scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
-            ScopeSet.validateInputScope(scopes, !isLoginCall, clientId);
+
+            // scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
+            ScopeSet.validateInputScope(scopes, clientId);
 
             // validate prompt parameter
             this.validatePromptParameter(request.prompt);

@@ -325,8 +325,22 @@ export class UserAgentApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(userRequest?: AuthenticationParameters): void {
+        // Check if userRequest is empty
+        if (!userRequest) {
+            userRequest = {};
+        }
+        
+        // Check if request scopes are null
+        if (!userRequest.scopes) {
+            userRequest.scopes = [];
+        }
+
+        // Append clientId to scopes by default for login calls
+        userRequest.scopes = ScopeSet.appendScopes(userRequest.scopes, [this.clientId]);
+        
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypeRedirect);
+        request.scopes = ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
@@ -338,7 +352,7 @@ export class UserAgentApplication {
      */
     acquireTokenRedirect(userRequest: AuthenticationParameters): void {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
     }
 
@@ -351,7 +365,7 @@ export class UserAgentApplication {
      */
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup, this.logger);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -377,7 +391,7 @@ export class UserAgentApplication {
      */
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup, this.logger);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -631,7 +645,7 @@ export class UserAgentApplication {
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate the request
-        const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
+        const request = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypeSilent);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
         const requestSignature = RequestUtils.createRequestSignature(request);
 

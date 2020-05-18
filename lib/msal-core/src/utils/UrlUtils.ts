@@ -47,7 +47,7 @@ export class UrlUtils {
         const str: Array<string> = [];
         str.push("response_type=" + serverRequestParams.responseType);
 
-        this.translateclientIdUsedInScope(scopes, serverRequestParams.clientId);
+        ScopeSet.generateLoginScopes(scopes, serverRequestParams.clientId);
         str.push("scope=" + encodeURIComponent(ScopeSet.parseScope(scopes)));
         str.push("client_id=" + encodeURIComponent(serverRequestParams.clientId));
         str.push("redirect_uri=" + encodeURIComponent(serverRequestParams.redirectUri));
@@ -76,23 +76,6 @@ export class UrlUtils {
 
         str.push("client-request-id=" + encodeURIComponent(serverRequestParams.correlationId));
         return str;
-    }
-
-    /**
-     * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
-     * @param scopes
-     */
-    private static translateclientIdUsedInScope(scopes: Array<string>, clientId: string): void {
-        const clientIdIndex: number = scopes.indexOf(clientId);
-        if (clientIdIndex >= 0) {
-            scopes.splice(clientIdIndex, 1);
-            if (scopes.indexOf("openid") === -1) {
-                scopes.push("openid");
-            }
-            if (scopes.indexOf("profile") === -1) {
-                scopes.push("profile");
-            }
-        }
     }
 
     /**
