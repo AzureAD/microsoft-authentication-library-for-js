@@ -16,6 +16,8 @@ import { AuthenticationParameters } from "../../src/request/AuthenticationParame
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
 import { AccessTokenCacheItem } from "../../src/cache/AccessTokenCacheItem";
+import { LibraryStateObject } from "../../src/utils/ProtocolUtils";
+import { TimeUtils } from "../../src/utils/TimeUtils";
 
 describe("CacheHelpers.ts Tests", () => {
 
@@ -306,7 +308,7 @@ describe("CacheHelpers.ts Tests", () => {
             sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
             const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
             const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
-            testAccount = Account.createAccount(idToken, clientInfo, cryptoInterface)
+            testAccount = Account.createAccount(idToken, clientInfo, cryptoInterface);
 
             const request: AuthenticationParameters = {};
             const aadAuthority = new AadAuthority(Constants.DEFAULT_AUTHORITY, networkInterface);
@@ -333,13 +335,18 @@ describe("CacheHelpers.ts Tests", () => {
 
             expect(accountCacheSpy.calledOnce).to.be.true;
             expect(authorityCacheSpy.calledOnce).to.be.true;
-            const accountKey = cacheHelpers.generateAcquireTokenAccountKey(testAccount.homeAccountIdentifier);
-            const nonceKey = cacheHelpers.generateNonceKey(RANDOM_TEST_GUID);
-            const authorityKey = cacheHelpers.generateAuthorityKey(RANDOM_TEST_GUID);
 
+            const accountKey = cacheHelpers.generateAcquireTokenAccountKey(testAccount.homeAccountIdentifier);
             expect(store[accountKey]).to.be.eq(JSON.stringify(testAccount));
-            expect(store[TemporaryCacheKeys.REQUEST_STATE]).to.be.eq(RANDOM_TEST_GUID);
+
+            const cachedState = JSON.parse(store[TemporaryCacheKeys.REQUEST_STATE]) as LibraryStateObject;
+            expect(cachedState.id).to.be.eq(RANDOM_TEST_GUID);
+            expect(cachedState.ts).to.be.not.greaterThan(TimeUtils.nowSeconds());
+
+            const nonceKey = cacheHelpers.generateNonceKey(store[TemporaryCacheKeys.REQUEST_STATE]);
             expect(store[nonceKey]).to.be.eq(RANDOM_TEST_GUID);
+
+            const authorityKey = cacheHelpers.generateAuthorityKey(store[TemporaryCacheKeys.REQUEST_STATE]);
             expect(store[authorityKey]).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
@@ -351,12 +358,16 @@ describe("CacheHelpers.ts Tests", () => {
             expect(accountCacheSpy.calledOnce).to.be.false;
             expect(authorityCacheSpy.calledOnce).to.be.true;
             const accountKey = cacheHelpers.generateAcquireTokenAccountKey(testAccount.homeAccountIdentifier);
-            const nonceKey = cacheHelpers.generateNonceKey(RANDOM_TEST_GUID);
-            const authorityKey = cacheHelpers.generateAuthorityKey(RANDOM_TEST_GUID);
-
             expect(store[accountKey]).to.be.undefined;
-            expect(store[TemporaryCacheKeys.REQUEST_STATE]).to.be.eq(RANDOM_TEST_GUID);
+
+            const cachedState = JSON.parse(store[TemporaryCacheKeys.REQUEST_STATE]) as LibraryStateObject;
+            expect(cachedState.id).to.be.eq(RANDOM_TEST_GUID);
+            expect(cachedState.ts).to.be.not.greaterThan(TimeUtils.nowSeconds());
+
+            const nonceKey = cacheHelpers.generateNonceKey(store[TemporaryCacheKeys.REQUEST_STATE]);
             expect(store[nonceKey]).to.be.eq(RANDOM_TEST_GUID);
+
+            const authorityKey = cacheHelpers.generateAuthorityKey(store[TemporaryCacheKeys.REQUEST_STATE]);
             expect(store[authorityKey]).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
@@ -377,7 +388,46 @@ describe("CacheHelpers.ts Tests", () => {
             expect(store[TemporaryCacheKeys.ORIGIN_URI]).to.be.undefined;
         });
 
-        it("resetTempCacheItems() removes entries when user state includes resource delimeter");
+        it("resetTempCacheItems() removes entries when user state includes resource delimeter", () => {
+            const networkInterface: INetworkModule = {
+                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    return null;
+                },
+                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    return null;
+                }
+            };
+
+            const request: AuthenticationParameters = {
+                userRequestState: "contains|bar"
+            };
+
+            const aadAuthority = new AadAuthority(Constants.DEFAULT_AUTHORITY, networkInterface);
+            serverAuthParams = new ServerCodeRequestParameters(
+                aadAuthority,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                request,
+                null,
+                TEST_URIS.TEST_REDIR_URI,
+                cryptoInterface,
+                true
+            );
+
+            cacheHelpers.updateCacheEntries(serverAuthParams, testAccount);
+            cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
+            cacheStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI);
+
+            cacheHelpers.resetTempCacheItems(RANDOM_TEST_GUID);
+            const accountKey = cacheHelpers.generateAcquireTokenAccountKey(testAccount.homeAccountIdentifier);
+            const nonceKey = cacheHelpers.generateNonceKey(RANDOM_TEST_GUID);
+            const authorityKey = cacheHelpers.generateAuthorityKey(RANDOM_TEST_GUID);
+            expect(store[accountKey]).to.be.eq(JSON.stringify(testAccount));
+            expect(store[nonceKey]).to.be.undefined;
+            expect(store[authorityKey]).to.be.undefined;
+            expect(store[TemporaryCacheKeys.REQUEST_STATE]).to.be.undefined;
+            expect(store[TemporaryCacheKeys.REQUEST_PARAMS]).to.be.undefined;
+            expect(store[TemporaryCacheKeys.ORIGIN_URI]).to.be.undefined;
+        });
     });
 
     describe("Token handling functions", () => {

@@ -14,7 +14,6 @@ import { ICacheStorage } from "../cache/ICacheStorage";
 import { TokenResponse } from "./TokenResponse";
 import { PersistentCacheKeys, TemporaryCacheKeys } from "../utils/Constants";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { TimeUtils } from "../utils/TimeUtils";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
 import { StringUtils } from "../utils/StringUtils";

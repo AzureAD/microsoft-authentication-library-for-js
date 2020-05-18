@@ -59,6 +59,10 @@ export class ProtocolUtils {
      */
     static parseRequestState(state: string, cryptoObj: ICrypto): RequestStateObject {
         try {
+            if (StringUtils.isEmpty(state)) {
+                state = "";
+            }
+
             const [
                 libraryState,
                 userState
@@ -69,27 +73,11 @@ export class ProtocolUtils {
             const libraryStateObject = JSON.parse(libraryStateString) as LibraryStateObject;
 
             return {
-                userRequestState: userState,
+                userRequestState: !StringUtils.isEmpty(userState) ? userState : "",
                 libraryState: libraryStateObject
             };
         } catch (e) {
             throw ClientAuthError.createInvalidStateError(state);
         }
-    }
-
-    /**
-     *
-     * Extracts user state value from the state sent with the authentication request.
-     * @returns {string} scope.
-     * @ignore
-     */
-    static getUserRequestState(serverResponseState: string): string {
-        if (!StringUtils.isEmpty(serverResponseState)) {
-            const splitIndex = serverResponseState.indexOf(Constants.RESOURCE_DELIM);
-            if (splitIndex > -1 && splitIndex + 1 < serverResponseState.length) {
-                return serverResponseState.substring(splitIndex + 1);
-            }
-        }
-        return "";
     }
 }

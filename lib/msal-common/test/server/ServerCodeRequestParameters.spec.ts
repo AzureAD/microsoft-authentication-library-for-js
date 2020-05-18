@@ -12,6 +12,8 @@ import { IdToken } from "../../src/account/IdToken";
 import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
 import { Account } from "../../src/account/Account";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
+import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
+import { TimeUtils } from "../../src/utils/TimeUtils";
 
 describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
 
@@ -95,7 +97,10 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             expect(codeRequestParams.queryParameters).to.be.undefined;
             expect(codeRequestParams.extraQueryParameters).to.be.undefined;
             expect(codeRequestParams.generatedPkce).to.be.undefined;
-            expect(codeRequestParams.state).to.be.eq(`${RANDOM_TEST_GUID}|${loginRequest.userRequestState}`);
+            const stateObject = ProtocolUtils.parseRequestState(codeRequestParams.state, cryptoInterface);
+            expect(stateObject.libraryState.id).to.be.eq(RANDOM_TEST_GUID);
+            expect(stateObject.libraryState.ts).to.be.not.greaterThan(TimeUtils.nowSeconds());
+            expect(stateObject.userRequestState).to.be.eq(loginRequest.userRequestState);
             expect(codeRequestParams.nonce).to.be.eq(RANDOM_TEST_GUID);
             expect(codeRequestParams.account).to.be.null;
         });
@@ -119,7 +124,9 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
             const expectedScopes = [testScope2, Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, testScope1];
             expect(codeRequestParams.scopes.asArray()).to.be.deep.eq(expectedScopes);
             expect(codeRequestParams.correlationId).to.be.eq(RANDOM_TEST_GUID);
-            expect(codeRequestParams.state).to.be.eq(RANDOM_TEST_GUID);
+            const stateObject = ProtocolUtils.parseRequestState(codeRequestParams.state, cryptoInterface);
+            expect(stateObject.libraryState.id).to.be.eq(RANDOM_TEST_GUID);
+            expect(stateObject.libraryState.ts).to.be.not.greaterThan(TimeUtils.nowSeconds());
         });
 
         it("Uses cached account object", () => {
@@ -598,13 +605,14 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
                 true
             );
             codeRequestParams.populateQueryParams();
+            const stateObject = ProtocolUtils.parseRequestState(codeRequestParams.state, cryptoInterface);
             const navUrl = await codeRequestParams.createNavigateUrl();
             expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(JSON.stringify(stateObject.libraryState))}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
             expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
@@ -635,13 +643,14 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
                 true
             );
             codeRequestParams.populateQueryParams();
+            const stateObject = ProtocolUtils.parseRequestState(codeRequestParams.state, cryptoInterface);
             const navUrl = await codeRequestParams.createNavigateUrl();
             expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(JSON.stringify(stateObject.libraryState))}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
             expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
@@ -672,13 +681,14 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
                 true
             );
             codeRequestParams.populateQueryParams();
+            const stateObject = ProtocolUtils.parseRequestState(codeRequestParams.state, cryptoInterface);
             const navUrl = await codeRequestParams.createNavigateUrl();
             expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(JSON.stringify(stateObject.libraryState))}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
             expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
@@ -706,13 +716,14 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
                 true
             );
             codeRequestParams.populateQueryParams();
+            const stateObject = ProtocolUtils.parseRequestState(codeRequestParams.state, cryptoInterface);
             const navUrl = await codeRequestParams.createNavigateUrl();
             expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(JSON.stringify(stateObject.libraryState))}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
             expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);
@@ -749,13 +760,14 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
                 true
             );
             codeRequestParams.populateQueryParams();
+            const stateObject = ProtocolUtils.parseRequestState(codeRequestParams.state, cryptoInterface);
             const navUrl = await codeRequestParams.createNavigateUrl();
             expect(navUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(navUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(codeRequestParams.scopes.printScopes())}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
+            expect(navUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(JSON.stringify(stateObject.libraryState))}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(RANDOM_TEST_GUID)}`);
             expect(navUrl).to.contain(`${AADServerParamKeys.CLIENT_INFO}=1`);
             expect(navUrl).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${encodeURIComponent(codeRequestParams.xClientSku)}`);

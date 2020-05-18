@@ -17,6 +17,7 @@ import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/Brows
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
+import { Base64Decode } from "../../src/encode/Base64Decode";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
 
@@ -60,7 +61,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true", () => {
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH + RANDOM_TEST_GUID;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
             sinon.stub(BrowserUtils, "getCurrentUri").returns("notAUri");
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
@@ -72,7 +73,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
-            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH + RANDOM_TEST_GUID);
         });
     });
 
@@ -93,11 +94,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("gets hash from cache and processes response", async () => {
                 const b64Encode = new Base64Encode();
+                const libraryState = {
+                    id: RANDOM_TEST_GUID,
+                    ts: Math.round(new Date().getTime() / 1000)
+                };
+                const stateValue = b64Encode.encode(JSON.stringify(libraryState));
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, RANDOM_TEST_GUID);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, stateValue);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH + stateValue);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, "123523");
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${stateValue}`, "123523");
                 const testTokenReq: TokenExchangeParameters = {
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     resource: "",
@@ -140,7 +146,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.body.access_token,
                     refreshToken: testServerTokenResponse.body.refresh_token,
-                    expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
+                    expiresOn: new Date(new Date().getTime() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount,
                     userRequestState: ""
                 };
@@ -196,11 +202,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("processes hash if navigateToLoginRequestUri is false", async () => {
                 const b64Encode = new Base64Encode();
-                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+                const libraryState = {
+                    id: RANDOM_TEST_GUID,
+                    ts: Math.round(new Date().getTime() / 1000)
+                };
+                const stateValue = b64Encode.encode(JSON.stringify(libraryState));
+                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH + stateValue;
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, RANDOM_TEST_GUID);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, stateValue);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, "123523");
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${stateValue}`, "123523");
                 const testTokenReq: TokenExchangeParameters = {
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     resource: "",
@@ -411,12 +422,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                     userRequestState: ""
                 };
+                const b64Encode = new Base64Encode();
+                const libraryState = {
+                    id: RANDOM_TEST_GUID,
+                    ts: Math.round(new Date().getTime() / 1000)
+                };
+                const stateValue = b64Encode.encode(JSON.stringify(libraryState));
                 sinon.stub(SPAClient.prototype, "createLoginUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
                 });
-                sinon.stub(PopupHandler.prototype, "monitorWindowForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                sinon.stub(PopupHandler.prototype, "monitorWindowForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH + stateValue);
                 sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
                 const tokenResp = await pca.loginPopup({});
                 expect(tokenResp).to.be.deep.eq(testTokenResponse);
@@ -480,12 +497,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                     userRequestState: ""
                 };
+                const b64Encode = new Base64Encode();
+                const libraryState = {
+                    id: RANDOM_TEST_GUID,
+                    ts: Math.round(new Date().getTime() / 1000)
+                };
+                const stateValue = b64Encode.encode(JSON.stringify(libraryState));
                 sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
                 });
-                sinon.stub(PopupHandler.prototype, "monitorWindowForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                sinon.stub(PopupHandler.prototype, "monitorWindowForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH + stateValue);
                 sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
                 const tokenResp = await pca.acquireTokenPopup({
                     scopes: TEST_CONFIG.DEFAULT_SCOPES
@@ -563,9 +586,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 userRequestState: ""                    
             };
+            const b64Encode = new Base64Encode();
+            const libraryState = {
+                id: RANDOM_TEST_GUID,
+                ts: Math.round(new Date().getTime() / 1000)
+            };
+            const stateValue = b64Encode.encode(JSON.stringify(libraryState));
             sinon.stub(SPAClient.prototype, "createLoginUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
-            sinon.stub(SilentHandler.prototype, "monitorFrameForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            sinon.stub(SilentHandler.prototype, "monitorFrameForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH + stateValue);
             sinon.stub(SilentHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
             const tokenResp = await pca.ssoSilent({
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,

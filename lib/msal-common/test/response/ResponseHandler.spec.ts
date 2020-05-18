@@ -21,6 +21,7 @@ import { TimeUtils } from "../../src/utils/TimeUtils";
 import { InteractionRequiredAuthErrorMessage, InteractionRequiredAuthError, InteractionRequiredAuthSubErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
+import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
 
 describe("ResponseHandler.ts Class Unit Tests", () => {
 
@@ -409,10 +410,11 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
                 name: "Some 1 Else",
                 userName: "sum1else@test.com"
             };
-            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            const libState = ProtocolUtils.generateLibraryState(RANDOM_TEST_GUID, cryptoInterface);
+            cacheStorage.setItem(cacheHelpers.generateNonceKey(libState), idToken.claims.nonce);
             cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount2));
-            expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID)).to.throw(ClientAuthErrorMessage.accountMismatchError.desc);
+            expect(() => responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", libState)).to.throw(ClientAuthErrorMessage.accountMismatchError.desc);
         });
 
         it("Successfully saves a token in the cache and returns a valid response", () => {
@@ -426,12 +428,13 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             };
 
             testServerParams.scope = "openid profile offline_access";
+            const libState = ProtocolUtils.generateLibraryState(RANDOM_TEST_GUID, cryptoInterface);
 
-            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            cacheStorage.setItem(cacheHelpers.generateNonceKey(libState), idToken.claims.nonce);
             cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
-            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
-
+            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", libState);
+            
             expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
             expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
             expect(tokenResponse.scopes).to.be.deep.eq(expectedTokenResponse.scopes);
@@ -460,12 +463,13 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             expectedTokenResponse.scopes= expectedScopes;
             
             testServerParams.scope = "openid profile offline_access user.read";
+            const libState = ProtocolUtils.generateLibraryState(RANDOM_TEST_GUID, cryptoInterface);
             
-            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            cacheStorage.setItem(cacheHelpers.generateNonceKey(libState), idToken.claims.nonce);
             cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
             expect(cacheStorage.getKeys().length).to.be.eq(4);
-            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
+            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", libState);
 
             expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
             expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);
@@ -498,16 +502,17 @@ describe("ResponseHandler.ts Class Unit Tests", () => {
             
             const testScopes = "offline_access testscope";
             testServerParams.scope = testScopes;
+            const libState = ProtocolUtils.generateLibraryState(RANDOM_TEST_GUID, cryptoInterface);
 
             const expectedNewAtKey: AccessTokenKey = atKey;
             expectedNewAtKey.scopes = testScopes;
             const expectedNewAtValue: AccessTokenValue = atValue;
 
-            cacheStorage.setItem(cacheHelpers.generateNonceKey(RANDOM_TEST_GUID), idToken.claims.nonce);
+            cacheStorage.setItem(cacheHelpers.generateNonceKey(libState), idToken.claims.nonce);
             cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             cacheStorage.setItem(cacheHelpers.generateAcquireTokenAccountKey(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID), JSON.stringify(testAccount));
             expect(cacheStorage.getKeys().length).to.be.eq(4);
-            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", RANDOM_TEST_GUID);
+            const tokenResponse = responseHandler.createTokenResponse(testServerParams, `${Constants.DEFAULT_AUTHORITY}/`, "", libState);
 
             expect(tokenResponse.uniqueId).to.be.eq(expectedTokenResponse.uniqueId);
             expect(tokenResponse.tenantId).to.be.eq(expectedTokenResponse.tenantId);

@@ -31,6 +31,7 @@ import { TokenResponse } from "../../src/response/TokenResponse";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerError } from "../../src/error/ServerError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { LibraryStateObject } from "../../src/utils/ProtocolUtils";
 
 describe("SPAClient.ts Class Unit Tests", () => {
 
@@ -152,9 +153,11 @@ describe("SPAClient.ts Class Unit Tests", () => {
         it("Updates cache entries correctly", async () => {
             const emptyRequest: AuthenticationParameters = {};
             await Client.createLoginUrl(emptyRequest);
-            expect(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
-            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
-            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+            const stringifiedCachedState = defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE);
+            const cachedState = JSON.parse(stringifiedCachedState) as LibraryStateObject;
+            expect(cachedState.ts).to.be.not.greaterThan(TimeUtils.nowSeconds());
+            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${stringifiedCachedState}`)).to.be.eq(RANDOM_TEST_GUID);
+            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${stringifiedCachedState}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
         it("Caches token request correctly", async () => {
@@ -307,9 +310,12 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 scopes: [testScope]
             };
             await Client.createAcquireTokenUrl(tokenRequest);
-            expect(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
-            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
-            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+            const stringifiedCachedState = defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE);
+            const cachedState = JSON.parse(stringifiedCachedState) as LibraryStateObject;
+            expect(cachedState.id).to.be.eq(RANDOM_TEST_GUID);
+            expect(cachedState.ts).to.be.not.greaterThan(TimeUtils.nowSeconds());
+            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${stringifiedCachedState}`)).to.be.eq(RANDOM_TEST_GUID);
+            expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${stringifiedCachedState}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
         it("Caches token request correctly", async () => {
@@ -494,6 +500,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
                 let codeResponse: CodeResponse;
                 let testState: string;
+                let libraryState: string;
                 beforeEach(() => {
                     // Set up required objects and mocked return values
                     defaultAuthConfig.networkInterface.sendPostRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
@@ -530,11 +537,20 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     Client = new SPAClient(defaultAuthConfig);
 
                     testState = "{stateObject}";
+                    libraryState = JSON.stringify({
+                        id: RANDOM_TEST_GUID,
+                        ts: TimeUtils.nowSeconds()
+                    });
                     codeResponse = {
                         code: "This is an auth code",
-                        userRequestState: `${RANDOM_TEST_GUID}|${testState}`
+                        userRequestState: `${libraryState}|${testState}`
                     };
                 });
+
+                afterEach(() => {
+                    sinon.restore();
+                    store = {};
+                })
 
                 it("Retrieves valid token response given valid code and state", async () => {
                     // Set up stubs
@@ -917,10 +933,19 @@ describe("SPAClient.ts Class Unit Tests", () => {
             return TEST_URIS.TEST_LOGOUT_URI;
         };
 
+        const mockHttpClient = {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            },
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            }
+        };
+
         const Client_functionRedirectUris = new SPAClient({
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: TEST_CONFIG.validAuthority,
+                authority: AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient),
                 redirectUri: redirectUriFunc,
                 postLogoutRedirectUri: postLogoutRedirectUriFunc
             },
@@ -935,7 +960,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
         const Client_noRedirectUris = new SPAClient({
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: TEST_CONFIG.validAuthority
+                authority: AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient)
             },
             storageInterface: null,
             networkInterface: null,

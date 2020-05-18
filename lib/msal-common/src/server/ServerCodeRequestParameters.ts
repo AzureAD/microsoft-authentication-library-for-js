@@ -74,7 +74,7 @@ export class ServerCodeRequestParameters {
 
         // Set random vars
         const randomGuid = this.cryptoObj.createNewGuid();
-        this.state = ProtocolUtils.setRequestState(this.userRequest && this.userRequest.userRequestState, randomGuid);
+        this.state = ProtocolUtils.setRequestState(this.userRequest && this.userRequest.userRequestState, randomGuid, this.cryptoObj);
         this.nonce = this.cryptoObj.createNewGuid();
         this.correlationId = this.userRequest.correlationId || this.cryptoObj.createNewGuid();
     }
