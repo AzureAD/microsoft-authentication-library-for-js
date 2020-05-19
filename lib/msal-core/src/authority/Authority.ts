@@ -184,55 +184,6 @@ export class Authority {
      * @param {string} The host to look up
      */
     private IsInTrustedHostList(host: string): boolean {
-        console.log("Looking for host");
-        console.log(host.toLowerCase());
-        console.log(Authority.TrustedHostList);
         return Authority.TrustedHostList.indexOf(host.toLowerCase()) > -1;
     }
-
-    /**
-     * Use when validateAuthority is set to True to provide list of allowed domains.
-     */
-    public static async setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>, telemetryManager?: TelemetryManager, correlationId?: string): Promise<void> {
-        if (validateAuthority && !Authority.TrustedHostList.length){
-            knownAuthorities.forEach(function(authority){
-                Authority.TrustedHostList.push(authority);
-            });
-
-            if (!Authority.TrustedHostList.length){
-                console.log("Looking for AAD Hosts in Instance discovery endpoint")
-                await this.setTrustedAuthoritiesFromMetadata(telemetryManager, correlationId);
-            }
-        }
-
-        console.log(Authority.TrustedHostList);
-    }
-
-    private static async getAliases(telemetryManager?: TelemetryManager, correlationId?: string): Promise<Array<any>> {
-        const client: XhrClient = new XhrClient();
-
-        const httpMethod = "GET";
-        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, this.AadInstanceDiscoveryEndpoint, "getAliases");
-        return client.sendRequestAsync(this.AadInstanceDiscoveryEndpoint, httpMethod, true)
-            .then((response: XhrResponse) => {
-                httpEvent.httpResponseStatus = response.statusCode;
-                telemetryManager.stopEvent(httpEvent);
-                return response.body.metadata;
-            })
-            .catch(err => {
-                httpEvent.serverErrorCode = err;
-                telemetryManager.stopEvent(httpEvent);
-                throw err;
-            });
-   }
-
-   private static async setTrustedAuthoritiesFromMetadata(telemetryManager?: TelemetryManager, correlationId?: string): Promise<void> {
-        const metadata = await this.getAliases(telemetryManager, correlationId);
-        metadata.forEach(function(entry: any){
-            const authorities: Array<string> = entry.aliases;
-            authorities.forEach(function(authority: string) {
-                Authority.TrustedHostList.push(authority);
-            });
-        });
-   } 
 }

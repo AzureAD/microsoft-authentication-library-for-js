@@ -8,24 +8,14 @@
  */
 import { Authority } from "./Authority";
 import { StringUtils } from "../utils/StringUtils";
-import { UrlUtils } from "../utils/UrlUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ITenantDiscoveryResponse, OpenIdConfiguration } from './ITenantDiscoveryResponse';
 import TelemetryManager from '../telemetry/TelemetryManager';
+import { XhrClient, XhrResponse } from '../XHRClient';
+import HttpEvent from '../telemetry/HttpEvent';
 
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
-
-    /**
-     * Use when Authority is B2C and validateAuthority is set to True to provide list of allowed domains.
-     */
-    public static setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>): void {
-        if (validateAuthority && !Object.keys(B2CTrustedHostList).length){
-            knownAuthorities.forEach(function(authority){
-                B2CTrustedHostList[authority] = authority;
-            });
-        }
-    }
 
     public static async resolveAuthorityAsync(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         const metadata = await authorityInstance.resolveEndpointsAsync(telemetryManager, correlationId);
@@ -58,6 +48,52 @@ export class AuthorityFactory {
     }
 
     /**
+     * Use when validateAuthority is set to True to provide list of allowed domains.
+     */
+    public static async setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>, telemetryManager?: TelemetryManager, correlationId?: string): Promise<void> {
+        if (validateAuthority && !Authority.TrustedHostList.length){
+            knownAuthorities.forEach(function(authority){
+                Authority.TrustedHostList.push(authority);
+            });
+
+            if (!Authority.TrustedHostList.length){
+                console.log("Looking for AAD Hosts in Instance discovery endpoint")
+                await this.setTrustedAuthoritiesFromNetwork(telemetryManager, correlationId);
+            }
+        }
+
+        console.log(Authority.TrustedHostList);
+    }
+
+    private static async getAliases(telemetryManager?: TelemetryManager, correlationId?: string): Promise<Array<any>> {
+        const client: XhrClient = new XhrClient();
+
+        const httpMethod = "GET";
+        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, Authority.AadInstanceDiscoveryEndpoint, "getAliases");
+        return client.sendRequestAsync(Authority.AadInstanceDiscoveryEndpoint, httpMethod, true)
+            .then((response: XhrResponse) => {
+                httpEvent.httpResponseStatus = response.statusCode;
+                telemetryManager.stopEvent(httpEvent);
+                return response.body.metadata;
+            })
+            .catch(err => {
+                httpEvent.serverErrorCode = err;
+                telemetryManager.stopEvent(httpEvent);
+                throw err;
+            });
+   }
+
+    private static async setTrustedAuthoritiesFromNetwork(telemetryManager?: TelemetryManager, correlationId?: string): Promise<void> {
+        const metadata = await this.getAliases(telemetryManager, correlationId);
+        metadata.forEach(function(entry: any){
+            const authorities: Array<string> = entry.aliases;
+            authorities.forEach(function(authority: string) {
+                Authority.TrustedHostList.push(authority);
+            });
+        });
+   } 
+
+    /**
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
@@ -65,6 +101,12 @@ export class AuthorityFactory {
         if (StringUtils.isEmpty(authorityUrl)) {
             return null;
         }
-        return new Authority(authorityUrl, validateAuthority, authorityMetadata);
+
+        if (authorityMetadata) {
+            // todo: log statements
+            this.parseAuthorityMetadata(authorityUrl, authorityMetadata);
+        }
+
+        return new Authority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
     }
 }
