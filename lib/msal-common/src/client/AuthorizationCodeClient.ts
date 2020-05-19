@@ -4,7 +4,7 @@
  */
 
 import { BaseClient } from "./BaseClient";
-import { AuthorizationCodeUrlRequest } from "../request/AuthorizationCodeUrlRequest";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
@@ -36,7 +36,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
+    async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
 
         const authority: Authority = await this.createAuthority(request && request.authority);
         const queryString = this.createAuthCodeUrlQueryString(request);
@@ -122,7 +122,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
      * @param request
      */
-    private createAuthCodeUrlQueryString(request: AuthorizationCodeUrlRequest): string {
+    private createAuthCodeUrlQueryString(request: AuthorizationUrlRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -130,6 +130,9 @@ export class AuthorizationCodeClient extends BaseClient {
         const scopeSet = new ScopeSet(request.scopes || [],
             this.config.authOptions.clientId,
             false);
+        if (request.extraScopesToConsent) {
+            scopeSet.appendScopes(request.extraScopesToConsent);
+        }
         parameterBuilder.addScopes(scopeSet);
 
         // validate the redirectUri (to be a non null value)
@@ -174,6 +177,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if(request.claims) {
             parameterBuilder.addClaims(request.claims);
+        }
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
         }
 
         return parameterBuilder.createQueryString();

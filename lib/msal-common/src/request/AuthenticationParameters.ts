@@ -17,7 +17,6 @@ import { Account } from "../account/Account";
  * - userRequestState: state parameter to ensure request/response integrity
  * - correlationId: custom correlationId given by user
  * - account: Account object to perform SSO
- * - sid: session id for SSO
  * - loginHint: login hint for SSO
  */
 export type AuthenticationParameters = ClientRequestParameters & {
