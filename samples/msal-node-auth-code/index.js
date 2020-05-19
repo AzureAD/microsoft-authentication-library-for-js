@@ -4,6 +4,8 @@
  */
 const express = require("express");
 const msal = require('@azure/msal-node');
+const myLocalCache = require("./data/cache");
+const fs = require("fs");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
@@ -21,7 +23,7 @@ const publicClientConfig = {
     },
 };
 const pca = new msal.PublicClientApplication(publicClientConfig);
-pca.readCacheFromDisk("/Users/sameeragajjarapu/Documents/cache.json");
+pca.initializeCache(myLocalCache);
 
 // Create Express App and Routes
 const app = express();
@@ -51,11 +53,12 @@ app.get('/redirect', (req, res) => {
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
-        // console.log(pca.getCache());
         res.send(200);
-        pca.writeCacheToDisk("/Users/sameeragajjarapu/Documents/cache.json");
+        // uncomment this to show writing of cache, dont commit real tokens.
+        // fs.writeFileSync("./data/cache.json", JSON.stringify(pca.readCache()), null, 4);
     }).catch((error) => {
-        res.send(500);
+        console.log(error);
+        res.status(500).send(error);
     });
 });
 

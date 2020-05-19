@@ -11,7 +11,8 @@ import {
     RefreshTokenClient,
     RefreshTokenRequest,
     AuthenticationResult,
-    Serializer,
+    JsonCache,
+    Serializer
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -19,7 +20,6 @@ import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants } from './../utils/Constants';
 import { CacheContext } from '../cache/CacheContext';
-import { CacheManager } from '../cache/CacheManager'
 
 export abstract class ClientApplication {
 
@@ -126,24 +126,11 @@ export abstract class ClientApplication {
         };
     }
 
-    /**
-     * read JSON formatted cache from disk
-     * TODO: File should be locked for this operation
-     */
-    async readCacheFromDisk(cachePath: string): Promise<void> {
-        this.cacheContext.setCachePath(cachePath);
-        this.cacheContext.setCurrentCache(this.storage);
+    initializeCache(cacheObject: JsonCache) {
+        this.cacheContext.setCurrentCache(this.storage, cacheObject)
     }
 
-    /**
-     * write the JSON formatted cache to disk
-     * TODO: File should be locked for this operation
-     * @param jsonCache
-     */
-    async writeCacheToDisk(cachePath: string): Promise<void> {
-        await this.readCacheFromDisk(cachePath);
-        const inMemCache = this.storage.getCache();
-        const cacheBlob = Serializer.serializeJSONBlob(Serializer.serializeAllCache(inMemCache));
-        CacheManager.writeToFile(cachePath, cacheBlob);
+    readCache(): JsonCache {
+        return Serializer.serializeAllCache(this.storage.getCache());
     }
 }
