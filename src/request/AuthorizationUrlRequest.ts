@@ -3,11 +3,12 @@
  * Licensed under the MIT License.
  */
 
-/**
- * @type AuthorizationCodeUrlRequest: Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
- */
-export type AuthorizationCodeUrlRequest = {
+import { StringDict } from "../utils/MsalTypes";
 
+/**
+ * @type AuthorizationUrlRequest: Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
+ */
+export type AuthorizationUrlRequest = {
     /**
      * The redirect URI where authentication responses can be received by your application. It
      * must exactly match one of the redirect URIs registered in the Azure portal.
@@ -18,6 +19,11 @@ export type AuthorizationCodeUrlRequest = {
      * Scopes the application is requesting access to.
      */
     scopes: Array<string>;
+
+    /**
+     * Scopes for a different resource when the user needs consent upfront
+     */
+    extraScopesToConsent?: Array<string>;
 
     /**
      * Url of the authority which the application acquires tokens from
@@ -70,6 +76,11 @@ export type AuthorizationCodeUrlRequest = {
      * TODO: Name this as "extraQueryParameters"
      */
     domainHint?: string;
+
+    /**
+     * string to string map of custom query parameters
+     */
+    extraQueryParameters?: StringDict;
 
     /**
      * In cases where Azure AD tenant admin has enabled conditional access policies, and the

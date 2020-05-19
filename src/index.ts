@@ -26,7 +26,7 @@ export { UrlString } from "./url/UrlString";
 export { ICrypto, PkceCodes } from "./crypto/ICrypto";
 // Request and Response
 export { AuthenticationParameters } from "./request/AuthenticationParameters";
-export { AuthorizationCodeUrlRequest } from "./request/AuthorizationCodeUrlRequest";
+export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";

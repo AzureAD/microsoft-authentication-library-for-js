@@ -6,6 +6,8 @@
 import { AADServerParamKeys, SSOTypes, Constants, ClientInfo} from "../utils/Constants";
 import { ScopeSet } from "../request/ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { StringDict } from "../utils/MsalTypes";
+import { RequestValidator } from '../request/RequestValidator';
 
 export class RequestParameterBuilder {
 
@@ -192,6 +194,17 @@ export class RequestParameterBuilder {
      */
     addClientInfo(): void {
         this.parameters.set(ClientInfo, "1");
+    }
+
+    /**
+     * add extraQueryParams
+     * @param eQparams
+     */
+    addExtraQueryParameters(eQparams: StringDict) {
+        RequestValidator.sanitizeEQParams(eQparams, this.parameters);
+        Object.keys(eQparams).forEach((key) => {
+            this.parameters.set(key, eQparams[key]);
+        });
     }
 
     /**

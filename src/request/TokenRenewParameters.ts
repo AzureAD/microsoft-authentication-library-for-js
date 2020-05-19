@@ -11,7 +11,7 @@ import { Account } from "../account/Account";
  * - resource: requested resource uri
  * - extraQueryParameters: string to string map of custom query parameters
  * - authority: authority to request tokens from
- * - correlationId: custom correlationId given by user
+ * - correlationId: correlationId set by the user to trace the request
  * - account: Account object to perform SSO
  * - sid: session id for SSO
  * - loginHint: login hint for SSO
@@ -19,7 +19,6 @@ import { Account } from "../account/Account";
  */
 export type TokenRenewParameters = ClientRequestParameters & {
     account?: Account;
-    sid?: string;
     loginHint?: string;
     forceRefresh?: boolean;
 };
