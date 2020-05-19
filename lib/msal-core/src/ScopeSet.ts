@@ -95,13 +95,6 @@ export class ScopeSet {
         if (scopes.length < 1) {
             throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
         }
-
-        // Check that clientId is passed as single scope
-        if (scopes.indexOf(clientId) > -1) {
-            if (scopes.length > 1) {
-                throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
-            }
-        }
     }
 
     /**
@@ -127,9 +120,9 @@ export class ScopeSet {
      * Appends extraScopesToConsent if passed
      * @param {@link AuthenticationParameters}
      */
-    static appendScopes(reqScopes: Array<string>, scopesToAppend: Array<string>): Array<string> {
-        if(reqScopes) {
-            return scopesToAppend ? [...reqScopes, ...scopesToAppend]: reqScopes;
+    static appendScopes(scopes: Array<string>, scopesToAppend: Array<string>): Array<string> {
+        if(scopes) {
+            return scopesToAppend ? [...scopes, ...scopesToAppend]: scopes;
         }
         return null;
     }
