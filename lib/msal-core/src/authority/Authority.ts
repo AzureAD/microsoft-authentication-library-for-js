@@ -120,11 +120,11 @@ export class Authority {
     /**
      * Calls the OIDC endpoint and returns the response
      */
-    private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager?: TelemetryManager, correlationId?: string): Promise<ITenantDiscoveryResponse> {
+    private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         const client = new XhrClient();
 
         const httpMethod = "GET";
-        const httpEvent = new HttpEvent(correlationId);
+        const httpEvent = new HttpEvent(correlationId, "openIdConfigurationEndpoint");
         httpEvent.url = openIdConfigurationEndpoint;
         httpEvent.httpMethod = httpMethod;
         telemetryManager.startEvent(httpEvent);
@@ -152,8 +152,8 @@ export class Authority {
      * Discover endpoints via openid-configuration
      * If successful, caches the endpoint for later use in OIDC
      */
-    public async resolveEndpointsAsync(telemetryManager?: TelemetryManager, correlationId?: string): Promise<Authority> {
-        const openIdConfigurationEndpointResponse = await this.GetOpenIdConfigurationEndpoint();
+    public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<Authority> {
+        const openIdConfigurationEndpointResponse = await this.GetOpenIdConfigurationEndpoint(telemetryManager, correlationId);
         this.tenantDiscoveryResponse = await this.DiscoverEndpoints(openIdConfigurationEndpointResponse, telemetryManager, correlationId);
 
         return this;

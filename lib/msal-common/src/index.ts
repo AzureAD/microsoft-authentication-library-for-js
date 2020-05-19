@@ -3,13 +3,16 @@ export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
-export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
+export {
+    AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions, DEFAULT_SYSTEM_OPTIONS
+} from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { Account } from "./account/Account";
 export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
+export { B2cAuthority } from "./authority/B2cAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
@@ -41,5 +44,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, PromptValue, TemporaryCacheKeys, PersistentCacheKeys } from "./utils/Constants";
+export {
+    Constants, PromptValue, TemporaryCacheKeys, PersistentCacheKeys, Prompt, ResponseMode
+} from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";

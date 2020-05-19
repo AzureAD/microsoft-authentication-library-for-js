@@ -16,7 +16,8 @@ import {
     ServerError,
     Authority,
     AuthorityFactory,
-    InteractionRequiredAuthError
+    InteractionRequiredAuthError,
+    B2cAuthority
 } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -90,6 +91,9 @@ export class PublicClientApplication {
 
         // Initialize the browser storage class.
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
+
+        // Initialize default authority instance
+        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities);
 
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(
             this.config.auth.authority || "https://login.microsoftonline.com/common",

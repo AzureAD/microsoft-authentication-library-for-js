@@ -352,7 +352,7 @@ export class UserAgentApplication {
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
@@ -378,7 +378,7 @@ export class UserAgentApplication {
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
@@ -587,7 +587,7 @@ export class UserAgentApplication {
                 }
             }
         }).catch((err) => {
-            this.logger.warning("could not resolve endpoints");
+            this.logger.error(err);
             this.cacheStorage.resetTempCacheItems(request.state);
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
             if (popUpWindow) {
@@ -630,9 +630,11 @@ export class UserAgentApplication {
      *
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
+        this.logger.verbose("AcquireTokenSilent has been called");
+
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent);
         const requestSignature = RequestUtils.createRequestSignature(request);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -641,21 +643,31 @@ export class UserAgentApplication {
             WindowUtils.blockReloadInHiddenIframes();
 
             const scope = request.scopes.join(" ").toLowerCase();
+            this.logger.verbosePii(`Serialized scopes: ${scope}`);
 
             // if the developer passes an account, give that account the priority
-            const account: Account = request.account || this.getAccount();
+            let account: Account;
+            if (request.account) {
+                account = request.account;
+                this.logger.verbose("Account set from request");
+            } else {
+                account = this.getAccount();
+                this.logger.verbose("Account set from MSAL Cache");
+            }
 
-            // extract if there is an adalIdToken stashed in the cache
+            // Extract adalIdToken if stashed in the cache to allow for seamless ADAL to MSAL migration
             const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
-            // if there is no account logged in and no login_hint/sid is passed in the request
+            // In the event of no account being passed in the config, no session id, and no pre-existing adalIdToken, user will need to log in
             if (!account && !(request.sid  || request.loginHint) && StringUtils.isEmpty(adalIdToken) ) {
                 this.logger.info("User login is required");
+                // The promise rejects with a UserLoginRequiredError, which should be caught and user should be prompted to log in interactively
                 return reject(ClientAuthError.createUserLoginRequiredError());
             }
 
             // set the response type based on the current cache status / scopes set
             const responseType = this.getTokenType(account, request.scopes, true);
+            this.logger.verbose(`Response type: ${responseType}`);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
@@ -668,16 +680,22 @@ export class UserAgentApplication {
                 request.correlationId,
             );
 
+            this.logger.verbose("Finished building server authentication request");
+
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
                 serverAuthenticationRequest.populateQueryParams(account, request, null, true);
+                this.logger.verbose("Query parameters populated from existing SSO or account");
             }
             // if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
             else if (!account && !StringUtils.isEmpty(adalIdToken)) {
                 // if adalIdToken exists, extract the SSO info from the same
                 const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
-                this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+                this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken to populate query parameters");
                 serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject, true);
+            }
+            else {
+                this.logger.verbose("No additional query parameters added");
             }
 
             const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
@@ -685,6 +703,7 @@ export class UserAgentApplication {
             let authErr: AuthError;
             let cacheResultResponse;
 
+            // If request.forceRefresh is set to true, force a request for a new token instead of getting it from the cache
             if (!userContainedClaims && !request.forceRefresh) {
                 try {
                     cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
@@ -695,7 +714,7 @@ export class UserAgentApplication {
 
             // resolve/reject based on cacheResult
             if (cacheResultResponse) {
-                this.logger.info("Token is already in cache for scope:" + scope);
+                this.logger.verbose("Token is already in cache for scope: " + scope);
                 resolve(cacheResultResponse);
                 return null;
             }
@@ -708,18 +727,20 @@ export class UserAgentApplication {
             else {
                 let logMessage;
                 if (userContainedClaims) {
-                    logMessage = "Skipped cache lookup since claims were given.";
+                    logMessage = "Skipped cache lookup since claims were given";
                 } else if (request.forceRefresh) {
                     logMessage = "Skipped cache lookup since request.forceRefresh option was set to true";
                 } else {
-                    logMessage = "Token is not in cache for scope:" + scope;
+                    logMessage = "Token is not in cache for scope: " + scope;
                 }
                 this.logger.verbose(logMessage);
 
-                // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
+                // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the API.
                 if (!serverAuthenticationRequest.authorityInstance) {
                     serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
                 }
+                this.logger.verbosePii(`Authority instance: ${serverAuthenticationRequest.authority}`);
+
                 // cache miss
 
                 // start http event
@@ -729,6 +750,8 @@ export class UserAgentApplication {
                          * refresh attempt with iframe
                          * Already renewing for this scope, callback when we get the token.
                          */
+                        this.logger.verbose("Authority has been updated with endpoint discovery response");
+
                         if (window.activeRenewals[requestSignature]) {
                             this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
                             // Active renewals contains the state for each renewal.
@@ -740,23 +763,24 @@ export class UserAgentApplication {
                                  * App uses idToken to send to api endpoints
                                  * Default scope is tracked as clientId to store this token
                                  */
-                                this.logger.verbose("renewing idToken");
+                                this.logger.verbose("Renewing idToken");
                                 this.silentLogin = true;
                                 this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                             } else {
                                 // renew access token
-                                this.logger.verbose("renewing accesstoken");
+                                this.logger.verbose("Renewing access token");
                                 this.renewToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                             }
                         }
                     }).catch((err) => {
-                        this.logger.warning("could not resolve endpoints");
+                        this.logger.warning("Could not resolve endpoints");
                         reject(ClientAuthError.createEndpointResolutionError(err.toString()));
                         return null;
                     });
             }
         })
             .then(res => {
+                this.logger.verbose("Successfully acquired token");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return res;
             })
@@ -944,7 +968,7 @@ export class UserAgentApplication {
     logout(correlationId?: string): void {
         // TODO this new correlation id passed in, is not appended to logout request, should add
         const requestCorrelationId = correlationId || CryptoUtils.createNewGuid();
-        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout, this.logger);
+        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout);
 
         this.clearCache();
         this.account = null;
@@ -2157,7 +2181,7 @@ export class UserAgentApplication {
      */
     private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
         if (!config) { // if unset
-            return TelemetryManager.getTelemetrymanagerStub(clientId);
+            return TelemetryManager.getTelemetrymanagerStub(clientId, this.logger);
         }
         // if set then validate
         const { applicationName, applicationVersion, telemetryEmitter } = config;
@@ -2173,7 +2197,7 @@ export class UserAgentApplication {
             platform: telemetryPlatform,
             clientId: clientId
         };
-        return new TelemetryManager(telemetryManagerConfig, telemetryEmitter);
+        return new TelemetryManager(telemetryManagerConfig, telemetryEmitter, this.logger);
     }
 
     // #endregion

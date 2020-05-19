@@ -11,9 +11,15 @@ import { NetworkUtils } from '../utils/NetworkUtils';
 import { CACHE } from '../utils/Constants';
 import debug from "debug";
 
+/**
+ * - clientId               - Client id of the application.
+ * - authority              - Url of the authority. If no value is set, defaults to https://login.microsoftonline.com/common.
+ * - knownAuthorities       - Needed for Azure B2C. All authorities that will be used in the client application.
+ */
 export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
+    knownAuthorities?: Array<string>;
 }
 
 /**
@@ -32,7 +38,7 @@ export type CacheOptions = {
  * Type for configuring logger and http client options
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
- * - networkClient                -
+ * - networkClient                - Http client used for all http get and post calls. Defaults to using MSAL's default http client.
  */
 export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
@@ -42,10 +48,9 @@ export type NodeSystemOptions = {
 /**
  * Use the configuration object to configure MSAL and initialize the client application object
  *
- * This object allows you to configure important elements of MSAL functionality:
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
- * - cache: this is where you configure cache location and whether to store cache in cookies
- * - system: this is where you can configure the network client, logger, token renewal offset, and telemetry
+ * - cache: this is where you configure cache location
+ * - system: this is where you can configure the network client, logger
  */
 export type Configuration = {
     auth: NodeAuthOptions;
@@ -56,6 +61,7 @@ export type Configuration = {
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
     authority: '',
+    knownAuthorities: []
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
