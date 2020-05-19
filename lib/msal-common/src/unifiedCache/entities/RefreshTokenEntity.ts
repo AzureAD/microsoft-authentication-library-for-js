@@ -5,7 +5,6 @@
 
 import { Credential } from "./Credential";
 import { CredentialType } from "../../utils/Constants";
-import { AuthenticationResult } from "../../response/AuthenticationResult";
 
 /**
  * REFRESH_TOKEN Cache
@@ -22,10 +21,10 @@ export class RefreshTokenEntity extends Credential {
      */
     static createRefreshTokenEntity(
         homeAccountId: string,
-        authenticationResult: AuthenticationResult,
+        environment: string,
         refreshToken: string,
         clientId: string,
-        environment: string
+        familyId?: string
     ): RefreshTokenEntity {
         const rtEntity = new RefreshTokenEntity();
 
@@ -35,8 +34,8 @@ export class RefreshTokenEntity extends Credential {
         rtEntity.homeAccountId = homeAccountId;
         rtEntity.secret = refreshToken;
 
-        if (authenticationResult.familyId)
-            rtEntity.familyId = authenticationResult.familyId;
+        if (familyId)
+            rtEntity.familyId = familyId;
 
         return rtEntity;
     }
