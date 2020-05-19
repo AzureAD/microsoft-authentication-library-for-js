@@ -120,9 +120,9 @@ export class ScopeSet {
      * Appends extraScopesToConsent if passed
      * @param {@link AuthenticationParameters}
      */
-    static appendScopes(reqScopes: Array<string>, scopesToAppend: Array<string>): Array<string> {
-        if(reqScopes) {
-            return scopesToAppend ? [...reqScopes, ...scopesToAppend]: reqScopes;
+    static appendScopes(scopes: Array<string>, scopesToAppend: Array<string>): Array<string> {
+        if(scopes) {
+            return scopesToAppend ? [...scopes, ...scopesToAppend]: scopes;
         }
         return null;
     }
