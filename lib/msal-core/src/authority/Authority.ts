@@ -25,11 +25,12 @@ export enum AuthorityType {
  * @hidden
  */
 export class Authority {
-    constructor(authority: string, validateAuthority: boolean) {
+    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
         this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
 
         this.validateAsUri();
+        this.tenantDiscoveryResponse = authorityMetadata;
     }
 
     public IsValidationEnabled: boolean;
@@ -58,7 +59,7 @@ export class Authority {
     }
 
     private validateResolved() {
-        if (!this.tenantDiscoveryResponse) {
+        if (!this.hasCachedMetadata()) {
             throw "Please call ResolveEndpointsAsync first";
         }
     }
@@ -124,10 +125,7 @@ export class Authority {
         const client = new XhrClient();
 
         const httpMethod = "GET";
-        const httpEvent = new HttpEvent(correlationId, "openIdConfigurationEndpoint");
-        httpEvent.url = openIdConfigurationEndpoint;
-        httpEvent.httpMethod = httpMethod;
-        telemetryManager.startEvent(httpEvent);
+        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, openIdConfigurationEndpoint, "openIdConfigurationEndpoint");
 
         return client.sendRequestAsync(openIdConfigurationEndpoint, httpMethod, /* enableCaching: */ true)
             .then((response: XhrResponse) => {
@@ -152,11 +150,21 @@ export class Authority {
      * Discover endpoints via openid-configuration
      * If successful, caches the endpoint for later use in OIDC
      */
-    public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<Authority> {
-        const openIdConfigurationEndpointResponse = await this.GetOpenIdConfigurationEndpoint(telemetryManager, correlationId);
+    public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+        const openIdConfigurationEndpointResponse = this.GetOpenIdConfigurationEndpoint();
         this.tenantDiscoveryResponse = await this.DiscoverEndpoints(openIdConfigurationEndpointResponse, telemetryManager, correlationId);
 
-        return this;
+        return this.tenantDiscoveryResponse;
+    }
+
+    /**
+     * Checks if there is a cached tenant discovery response with required fields.
+     */
+    public hasCachedMetadata(): boolean {
+        return !!(this.tenantDiscoveryResponse &&
+            this.tenantDiscoveryResponse.AuthorizationEndpoint &&
+            this.tenantDiscoveryResponse.EndSessionEndpoint &&
+            this.tenantDiscoveryResponse.Issuer);
     }
 
     /**
@@ -204,7 +212,7 @@ export class Authority {
         const client: XhrClient = new XhrClient();
 
         const httpMethod = "GET";
-        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, this.AadInstanceDiscoveryEndpoint);
+        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, this.AadInstanceDiscoveryEndpoint, "getAliases");
         return client.sendRequestAsync(this.AadInstanceDiscoveryEndpoint, httpMethod, true)
             .then((response: XhrResponse) => {
                 httpEvent.httpResponseStatus = response.statusCode;
