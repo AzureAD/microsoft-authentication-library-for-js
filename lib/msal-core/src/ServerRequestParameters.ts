@@ -58,7 +58,7 @@ export class ServerRequestParameters {
         this.nonce = CryptoUtils.createNewGuid();
 
         // set scope to clientId if null
-
+        this.scopes = [...scopes];
         // this.scopes = scopes? [ ...scopes] : [clientId];
 
         // set state (already set at top level)

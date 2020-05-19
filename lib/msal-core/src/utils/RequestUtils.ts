@@ -35,18 +35,18 @@ export class RequestUtils {
      * validates all request parameters and generates a consumable request object
      */
     static validateRequest(request: AuthenticationParameters, clientId: string, interactionType: InteractionType): AuthenticationParameters {
-        // Check if sent scopes are Login scopes
-        const isLoginScopes = ScopeSet.isLoginScopes(request.scopes, clientId);
-
         // Throw error if request is empty for acquire * calls
-        if(!isLoginScopes && !request) {
+        if (!request) {
             throw ClientConfigurationError.createEmptyRequestError();
         }
+        
+        // Check if sent scopes are Login scopes
+        // const isLoginScopes = ScopeSet.isLoginScopes(request.scopes, clientId);
 
-        let scopes: Array<string>;
+        let scopes: Array<string> = [...request.scopes];
         let extraQueryParameters: StringDict;
 
-        if(request) {
+        if (request) {
             // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
 
             // scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
@@ -60,7 +60,6 @@ export class RequestUtils {
 
             // validate claimsRequest
             this.validateClaimsRequest(request.claimsRequest);
-
         }
 
         // validate and generate state and correlationId
@@ -79,12 +78,39 @@ export class RequestUtils {
     }
 
     /**
+     * 
+     * @param request 
+     * @param clientId 
+     * @param interactionType 
+     */
+    static validateLoginRequest(request: AuthenticationParameters, clientId: string, interactionType: InteractionType): AuthenticationParameters {
+        // Check if userRequest is empty
+        if (!request) {
+            request = {};
+        }
+
+        // Check if request scopes are null
+        if (!request.scopes) {
+            request.scopes = [];
+        }
+
+        // Append clientId to scopes by default for login calls
+        request.scopes = ScopeSet.appendScopes(request.scopes, [clientId]);
+
+        // validate request
+        const userRequest: AuthenticationParameters = RequestUtils.validateRequest(request, clientId, interactionType);
+        userRequest.scopes = ScopeSet.appendScopes(userRequest.scopes, userRequest.extraScopesToConsent);
+
+        return userRequest;
+    }
+
+    /**
      * @ignore
      *
      * Utility to test if valid prompt value is passed in the request
      * @param request
      */
-    static validatePromptParameter (prompt: string) {
+    static validatePromptParameter(prompt: string) {
         if(prompt) {
             if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
                 throw ClientConfigurationError.createInvalidPromptError(prompt);

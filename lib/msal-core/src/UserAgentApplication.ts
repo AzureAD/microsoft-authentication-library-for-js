@@ -320,27 +320,14 @@ export class UserAgentApplication {
     }
 
     // #endregion
+
     /**
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(userRequest?: AuthenticationParameters): void {
-        // Check if userRequest is empty
-        if (!userRequest) {
-            userRequest = {};
-        }
-        
-        // Check if request scopes are null
-        if (!userRequest.scopes) {
-            userRequest.scopes = [];
-        }
-
-        // Append clientId to scopes by default for login calls
-        userRequest.scopes = ScopeSet.appendScopes(userRequest.scopes, [this.clientId]);
-        
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypeRedirect);
-        request.scopes = ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent);
+        const request: AuthenticationParameters = RequestUtils.validateLoginRequest(userRequest, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
@@ -365,7 +352,7 @@ export class UserAgentApplication {
      */
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateLoginRequest(userRequest, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup, this.logger);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -531,7 +518,6 @@ export class UserAgentApplication {
         acquireTokenAuthority.resolveEndpointsAsync(this.telemetryManager, request.correlationId).then(async () => {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
-
             const loginStartPage = request.redirectStartPage || window.location.href;
 
             serverAuthenticationRequest = new ServerRequestParameters(
