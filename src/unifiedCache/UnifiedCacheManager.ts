@@ -26,6 +26,7 @@ import {
 } from "./utils/CacheTypes";
 import { ICacheManager } from "./interface/ICacheManager";
 import { CacheHelper } from "./utils/CacheHelper";
+import { CacheRecord } from './entities/CacheRecord';
 
 export class UnifiedCacheManager implements ICacheManager {
     // Storage interface
@@ -71,43 +72,21 @@ export class UnifiedCacheManager implements ICacheManager {
     }
 
     /**
-     * append credential cache to in memory cach
-     * @param accessToken
-     * @param idToken
-     * @param refreshToken
-     */
-    addCredentialCache(
-        accessToken: AccessTokenEntity,
-        idToken: IdTokenEntity,
-        refreshToken: RefreshTokenEntity
-    ): void {
-        this.inMemoryCache.accessTokens[
-            accessToken.generateCredentialKey()
-        ] = accessToken;
-        this.inMemoryCache.idTokens[
-            idToken.generateCredentialKey()
-        ] = idToken;
-        this.inMemoryCache.refreshTokens[
-            refreshToken.generateCredentialKey()
-        ] = refreshToken;
-    }
-
-    /**
-     * append account to the in memory cache
-     * @param account
-     */
-    addAccountEntity(account: AccountEntity): void {
-        const accKey = account.generateAccountKey();
-        if (!this.inMemoryCache.accounts[accKey]) {
-            this.inMemoryCache.accounts[accKey] = account;
-        }
-    }
-
-    /**
      * Returns all accounts in memory
      */
     getAllAccounts(): AccountCache {
         return this.inMemoryCache.accounts;
+    }
+
+    /**
+     * saves a cache record
+     * @param cacheRecord
+     */
+    saveCacheRecord(cacheRecord: CacheRecord): void {
+        this.saveAccount(cacheRecord.account);
+        this.saveCredential(cacheRecord.idToken);
+        this.saveCredential(cacheRecord.accessToken);
+        this.saveCredential(cacheRecord.refreshToken);
     }
 
     /**
