@@ -12,8 +12,8 @@ import { Authority, AuthorityType } from "./Authority";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlUtils } from "../utils/UrlUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ITenantDiscoveryResponse, OpenIdConfiguration } from './ITenantDiscoveryResponse';
-import TelemetryManager from '../telemetry/TelemetryManager';
+import { ITenantDiscoveryResponse, OpenIdConfiguration } from "./ITenantDiscoveryResponse";
+import TelemetryManager from "../telemetry/TelemetryManager";
 
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
@@ -29,17 +29,17 @@ export class AuthorityFactory {
         }
     }
 
-    public static async resolveAuthorityAsync(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+    public static async saveMetadataFromNetwork(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         const metadata = await authorityInstance.resolveEndpointsAsync(telemetryManager, correlationId);
         this.metadataMap.set(authorityInstance.CanonicalAuthority, metadata);
         return metadata;
     }
 
-    public static getAuthorityMetadata(authorityUrl: string) {
+    public static getMetadata(authorityUrl: string) {
         return this.metadataMap.get(authorityUrl);
     }
 
-    public static parseAuthorityMetadata(authorityUrl: string, authorityMetadataJson: string) {
+    public static saveMetadataFromConfig(authorityUrl: string, authorityMetadataJson: string) {
         try {
             if (authorityMetadataJson) {
                 const parsedMetadata = JSON.parse(authorityMetadataJson) as OpenIdConfiguration;
@@ -89,16 +89,16 @@ export class AuthorityFactory {
 
         if (authorityMetadata) {
             // todo: log statements
-            this.parseAuthorityMetadata(authorityUrl, authorityMetadata);
+            this.saveMetadataFromConfig(authorityUrl, authorityMetadata);
         }
 
         const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.B2C:
-                return new B2cAuthority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
+                return new B2cAuthority(authorityUrl, validateAuthority, this.getMetadata(authorityUrl));
             case AuthorityType.Aad:
-                return new AadAuthority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
+                return new AadAuthority(authorityUrl, validateAuthority, this.getMetadata(authorityUrl));
             default:
                 throw ClientConfigurationError.createInvalidAuthorityTypeError();
         }

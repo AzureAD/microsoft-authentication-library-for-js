@@ -4,7 +4,6 @@ import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { AadAuthority } from "../../src/authority/AadAuthority";
 import { B2cAuthority, B2CTrustedHostList } from "../../src/authority/B2cAuthority";
 import { B2C_TEST_CONFIG, TEST_CONFIG, OPENID_CONFIGURATION, TENANT_DISCOVERY_RESPONSE } from "../TestConstants";
-import { OpenIdConfiguration, ITenantDiscoveryResponse } from "../../src/authority/ITenantDiscoveryResponse";
 
 describe("AuthorityFactory.ts Class", function () {
     let authority = null
@@ -68,15 +67,15 @@ describe("AuthorityFactory.ts Class", function () {
         expect(Object.keys(B2CTrustedHostList)).to.have.length(1);
     });
 
-    describe("parseAuthorityMetadata", () => {
+    describe("saveMetadataFromConfig", () => {
         it("does nothing if json is falsey", () => {
-            AuthorityFactory.parseAuthorityMetadata(TEST_CONFIG.validAuthority, "");
-            expect(AuthorityFactory.getAuthorityMetadata(TEST_CONFIG.validAuthority)).to.be.undefined;
+            AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, "");
+            expect(AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority)).to.be.undefined;
         });
 
         it("throws if invalid json is provided", done => {
             try {
-                AuthorityFactory.parseAuthorityMetadata(TEST_CONFIG.validAuthority, "invalid-json");
+                AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, "invalid-json");
             } catch (e) {
                 expect(e).instanceOf(ClientConfigurationError);
                 expect((e as ClientConfigurationError).errorCode).to.equal("authority_metadata_error");
@@ -88,7 +87,7 @@ describe("AuthorityFactory.ts Class", function () {
 
         it("throws if json is missing required keys", done => {
             try {
-                AuthorityFactory.parseAuthorityMetadata(TEST_CONFIG.validAuthority, "{}");
+                AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, "{}");
             } catch (e) {
                 expect(e).instanceOf(ClientConfigurationError);
                 expect((e as ClientConfigurationError).errorCode).to.equal("authority_metadata_error");
@@ -99,9 +98,9 @@ describe("AuthorityFactory.ts Class", function () {
         });
 
         it("parses and stores metadata", () => {
-            AuthorityFactory.parseAuthorityMetadata(TEST_CONFIG.validAuthority, JSON.stringify(OPENID_CONFIGURATION));
+            AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, JSON.stringify(OPENID_CONFIGURATION));
 
-            expect(AuthorityFactory.getAuthorityMetadata(TEST_CONFIG.validAuthority)).to.deep.equal(TENANT_DISCOVERY_RESPONSE);
+            expect(AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority)).to.deep.equal(TENANT_DISCOVERY_RESPONSE);
         });
     });
 });

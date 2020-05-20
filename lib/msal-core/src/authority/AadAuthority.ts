@@ -8,7 +8,7 @@ import { XhrClient, XhrResponse } from "../XHRClient";
 import { AADTrustedHostList } from "../utils/Constants";
 import HttpEvent from "../telemetry/HttpEvent";
 import TelemetryManager from "../telemetry/TelemetryManager";
-import { ITenantDiscoveryResponse } from './ITenantDiscoveryResponse';
+import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 
 /**
  * @hidden

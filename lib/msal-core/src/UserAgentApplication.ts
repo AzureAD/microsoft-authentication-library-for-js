@@ -220,7 +220,7 @@ export class UserAgentApplication {
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
 
         AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
-        AuthorityFactory.parseAuthorityMetadata(this.config.auth.authority, this.config.auth.authorityMetadata);
+        AuthorityFactory.saveMetadataFromConfig(this.config.auth.authority, this.config.auth.authorityMetadata);
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
@@ -518,7 +518,7 @@ export class UserAgentApplication {
         try {
             if (!acquireTokenAuthority.hasCachedMetadata()) {
                 this.logger.verbose("No cached metadata for authority");
-                await AuthorityFactory.resolveAuthorityAsync(acquireTokenAuthority, this.telemetryManager, request.correlationId);
+                await AuthorityFactory.saveMetadataFromNetwork(acquireTokenAuthority, this.telemetryManager, request.correlationId);
             } else {
                 this.logger.verbose("Cached metadata found for authority");
             }
@@ -732,15 +732,15 @@ export class UserAgentApplication {
                 try {
                     if (!serverAuthenticationRequest.authorityInstance.hasCachedMetadata()) {
                         this.logger.verbose("No cached metadata for authority");
-                        await AuthorityFactory.resolveAuthorityAsync(serverAuthenticationRequest.authorityInstance, this.telemetryManager, request.correlationId);
+                        await AuthorityFactory.saveMetadataFromNetwork(serverAuthenticationRequest.authorityInstance, this.telemetryManager, request.correlationId);
                     } else {
                         this.logger.verbose("Cached metadata found for authority");
                     }
 
                     /*
-                    * refresh attempt with iframe
-                    * Already renewing for this scope, callback when we get the token.
-                    */
+                     * refresh attempt with iframe
+                     * Already renewing for this scope, callback when we get the token.
+                     */
                     if (window.activeRenewals[requestSignature]) {
                         this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
                         // Active renewals contains the state for each renewal.
@@ -749,9 +749,9 @@ export class UserAgentApplication {
                     else {
                         if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
                             /*
-                            * App uses idToken to send to api endpoints
-                            * Default scope is tracked as clientId to store this token
-                            */
+                             * App uses idToken to send to api endpoints
+                             * Default scope is tracked as clientId to store this token
+                             */
                             this.logger.verbose("renewing idToken");
                             this.silentLogin = true;
                             this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
@@ -971,12 +971,12 @@ export class UserAgentApplication {
         try {
             if (!this.authorityInstance.hasCachedMetadata()) {
                 this.logger.verbose("No cached metadata for authority");
-                await AuthorityFactory.resolveAuthorityAsync(this.authorityInstance, this.telemetryManager, correlationId);
+                await AuthorityFactory.saveMetadataFromNetwork(this.authorityInstance, this.telemetryManager, correlationId);
             } else {
                 this.logger.verbose("Cached metadata found for authority");
             }
 
-            const correlationIdParam = `client-request-id=${requestCorrelationId}`
+            const correlationIdParam = `client-request-id=${requestCorrelationId}`;
 
             const postLogoutQueryParam = this.getPostLogoutRedirectUri()
                 ? `&post_logout_redirect_uri=${encodeURIComponent(this.getPostLogoutRedirectUri())}`

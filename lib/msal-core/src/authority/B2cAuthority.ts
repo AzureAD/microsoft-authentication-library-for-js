@@ -6,7 +6,7 @@
 import { Authority } from "./Authority";
 import { AuthorityType } from "./Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ITenantDiscoveryResponse } from './ITenantDiscoveryResponse';
+import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 import TelemetryManager from "../telemetry/TelemetryManager";
 
 export const B2CTrustedHostList: object = {};
