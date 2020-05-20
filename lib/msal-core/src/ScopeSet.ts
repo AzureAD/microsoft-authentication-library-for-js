@@ -130,21 +130,24 @@ export class ScopeSet {
     // #endregion
 
     /**
-     * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
+     * Replaces clientId with openid and profile scopes in the scopes set
+     * for login calls. OIDC required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
      * @param scopes
      */
     static generateLoginScopes(scopes: Array<string>, clientId: string): Array<string> {
         const loginScopes = [...scopes];
         const clientIdIndex: number = loginScopes.indexOf(clientId);
+        
         if (this.isLoginScopes(loginScopes, clientId)) {
             if (clientIdIndex >= 0) {
+                // Splice removes clientId from scope set, which will be replaced by openid and profile
                 loginScopes.splice(clientIdIndex, 1);
             }
-            if (loginScopes.indexOf("openid") === -1) {
-                loginScopes.push("openid");
+            if (loginScopes.indexOf(Constants.openidScope) === -1) {
+                loginScopes.push(Constants.openidScope);
             }
-            if (loginScopes.indexOf("profile") === -1) {
-                loginScopes.push("profile");
+            if (loginScopes.indexOf(Constants.profileScope) === -1) {
+                loginScopes.push(Constants.profileScope);
             }
         }
         
@@ -155,8 +158,8 @@ export class ScopeSet {
      * 
      */
     static isLoginScopes(scopes: Array<string>, clientId: string): boolean {
-        const hasOpenIdScope = scopes.indexOf("openid") > -1;
-        const hasProfileScope = scopes.indexOf("profile") > -1;
+        const hasOpenIdScope = scopes.indexOf(Constants.openidScope) > -1;
+        const hasProfileScope = scopes.indexOf(Constants.profileScope) > -1;
         const hasClientIdScope = scopes.indexOf(clientId) > -1;
 
         return (hasOpenIdScope ||  hasProfileScope || hasClientIdScope);

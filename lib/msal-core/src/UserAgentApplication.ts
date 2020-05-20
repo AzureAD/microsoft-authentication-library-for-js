@@ -326,20 +326,7 @@ export class UserAgentApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(userRequest?: AuthenticationParameters): void {
-        // Check if userRequest is empty
-        if (!userRequest) {
-            userRequest = {};
-        }
-        
-        // Check if request scopes are null
-        if (!userRequest.scopes) {
-            userRequest.scopes = [];
-        }
-
-        // Append clientId to scopes by default for login calls
-        userRequest.scopes = ScopeSet.appendScopes(userRequest.scopes, [this.clientId]);
-        
-        // validate request
+        // Validate request before calling acquireTokenInteractive
         const request: AuthenticationParameters = RequestUtils.validateLoginRequest(userRequest, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }

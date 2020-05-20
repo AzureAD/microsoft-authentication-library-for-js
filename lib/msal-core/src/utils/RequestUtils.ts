@@ -40,11 +40,7 @@ export class RequestUtils {
             throw ClientConfigurationError.createEmptyRequestError();
         }
         
-        // Check if sent scopes are Login scopes
-
-        // const isLoginScopes = ScopeSet.isLoginScopes(request.scopes, clientId);
-
-        const scopes: Array<string> = [...request.scopes];
+        const scopes = [...request.scopes];
         let extraQueryParameters: StringDict;
 
         if (request) {
@@ -85,21 +81,14 @@ export class RequestUtils {
      * @param interactionType 
      */
     static validateLoginRequest(request: AuthenticationParameters, clientId: string, interactionType: InteractionType): AuthenticationParameters {
-        // Check if userRequest is empty
-        if (!request) {
-            request = {};
-        }
-
-        // Check if request scopes are null
-        if (!request.scopes) {
-            request.scopes = [];
-        }
+        // Check if request is empty or request scopes are null
+        const requestScopes = (request && request.scopes) || [];
 
         // Append clientId to scopes by default for login calls
-        request.scopes = ScopeSet.appendScopes(request.scopes, [clientId]);
+        const scopes = ScopeSet.appendScopes(requestScopes, [clientId]);
 
         // validate request
-        const userRequest: AuthenticationParameters = RequestUtils.validateRequest(request, clientId, interactionType);
+        const userRequest: AuthenticationParameters = RequestUtils.validateRequest({...request, scopes}, clientId, interactionType);
         userRequest.scopes = ScopeSet.appendScopes(userRequest.scopes, userRequest.extraScopesToConsent);
 
         return userRequest;
