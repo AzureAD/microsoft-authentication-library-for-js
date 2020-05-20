@@ -4,6 +4,19 @@ import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { B2C_TEST_CONFIG, TEST_CONFIG, OPENID_CONFIGURATION, TENANT_DISCOVERY_RESPONSE } from "../TestConstants";
 import { Authority } from "../../src/authority/Authority";
 import sinon from "sinon";
+import TelemetryManager from "../../src/telemetry/TelemetryManager";
+import { TelemetryConfig } from "../../src/telemetry/TelemetryTypes";
+import { Logger } from "../../src/Logger";
+
+const stubbedTelemetryConfig: TelemetryConfig = {
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    platform: {
+        applicationName: TEST_CONFIG.applicationName,
+        applicationVersion: TEST_CONFIG.applicationVersion
+    }
+};
+
+const stubbedTelemetryManager = new TelemetryManager(stubbedTelemetryConfig, () => {}, new Logger(() => {}));
 
 let stubbedHostList: Array<string> = [];
 
@@ -33,7 +46,7 @@ describe("AuthorityFactory.ts Class", function () {
     });
 
     it("tests returns B2C Authority instance when knownAuthorities set", function() {
-        AuthorityFactory.setKnownAuthorities(true, TEST_CONFIG.knownAuthorities)
+        AuthorityFactory.setKnownAuthorities(true, TEST_CONFIG.knownAuthorities, stubbedTelemetryManager)
         
         authority = AuthorityFactory.CreateInstance(B2C_TEST_CONFIG.validAuthority, false);
 
@@ -41,7 +54,7 @@ describe("AuthorityFactory.ts Class", function () {
     });
 
     it("Sets TrustedHostList with Known Authorities", () => {
-        AuthorityFactory.setKnownAuthorities(true, TEST_CONFIG.knownAuthorities)
+        AuthorityFactory.setKnownAuthorities(true, TEST_CONFIG.knownAuthorities, stubbedTelemetryManager)
 
         expect(stubbedHostList).to.include("fabrikamb2c.b2clogin.com");
         expect(stubbedHostList).to.include("login.microsoftonline.com");
@@ -50,8 +63,8 @@ describe("AuthorityFactory.ts Class", function () {
     });
 
     it("Do not add additional authorities to trusted host list if it has already been populated", () => {
-        AuthorityFactory.setKnownAuthorities(true, TEST_CONFIG.knownAuthorities)
-        AuthorityFactory.setKnownAuthorities(true, ["contoso.b2clogin.com"])
+        AuthorityFactory.setKnownAuthorities(true, TEST_CONFIG.knownAuthorities, stubbedTelemetryManager)
+        AuthorityFactory.setKnownAuthorities(true, ["contoso.b2clogin.com"], stubbedTelemetryManager)
 
         expect(stubbedHostList).to.include("fabrikamb2c.b2clogin.com");
         expect(stubbedHostList).to.include("login.microsoftonline.com");

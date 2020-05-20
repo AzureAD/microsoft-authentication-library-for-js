@@ -9,10 +9,10 @@
 import { Authority } from "./Authority";
 import { StringUtils } from "../utils/StringUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ITenantDiscoveryResponse, OpenIdConfiguration } from './ITenantDiscoveryResponse';
-import TelemetryManager from '../telemetry/TelemetryManager';
-import { XhrClient, XhrResponse } from '../XHRClient';
-import HttpEvent from '../telemetry/HttpEvent';
+import { ITenantDiscoveryResponse, OpenIdConfiguration } from "./ITenantDiscoveryResponse";
+import TelemetryManager from "../telemetry/TelemetryManager";
+import { XhrClient, XhrResponse } from "../XHRClient";
+import HttpEvent from "../telemetry/HttpEvent";
 
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
@@ -78,7 +78,7 @@ export class AuthorityFactory {
                 telemetryManager.stopEvent(httpEvent);
                 throw err;
             });
-   }
+    }
 
     private static async setTrustedAuthoritiesFromNetwork(telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
         const metadata = await this.getAliases(telemetryManager, correlationId);
@@ -88,7 +88,7 @@ export class AuthorityFactory {
                 Authority.TrustedHostList.push(authority);
             });
         });
-   } 
+    } 
 
     /**
      * Create an authority object of the correct type based on the url

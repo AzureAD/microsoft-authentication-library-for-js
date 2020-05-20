@@ -100,7 +100,7 @@ export enum ErrorCacheKeys {
     ERROR_DESC = "error.description"
 }
 
-export const DEFAULT_AUTHORITY: string = "https://login.microsoftonline.com/common"
+export const DEFAULT_AUTHORITY: string = "https://login.microsoftonline.com/common";
 
 /**
  * @hidden

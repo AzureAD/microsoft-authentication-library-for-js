@@ -10,7 +10,7 @@ import { XhrClient, XhrResponse } from "../XHRClient";
 import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
 import HttpEvent from "../telemetry/HttpEvent";
-import { DEFAULT_AUTHORITY } from '../utils/Constants';
+import { DEFAULT_AUTHORITY } from "../utils/Constants";
 
 /**
  * @hidden
@@ -87,9 +87,7 @@ export class Authority {
         return this.canonicalAuthorityUrlComponents;
     }
 
-    /**
-     * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-     */
+    // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
     protected get DefaultOpenIdConfigurationEndpoint(): string {
         return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
     }
