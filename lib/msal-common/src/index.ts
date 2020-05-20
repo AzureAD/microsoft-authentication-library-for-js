@@ -3,7 +3,7 @@ export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
-export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions } from "./config/ClientConfiguration";
+export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { Account } from "./account/Account";
@@ -16,6 +16,7 @@ export { ICacheStorage } from "./cache/ICacheStorage";
 export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
 export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
 export { Serializer } from "./unifiedCache/serialize/Serializer";
+export { Deserializer } from "./unifiedCache/serialize/Deserializer";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkResponse } from "./network/NetworkManager";

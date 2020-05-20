@@ -35,7 +35,7 @@ export const CharSet = {
  * Cache Constants
  */
 export const CACHE = {
-    FILE_CACHE: '',
+    FILE_CACHE: 'fileCache',
     EXTENSION_LIB: 'extenstion_library',
 };
 

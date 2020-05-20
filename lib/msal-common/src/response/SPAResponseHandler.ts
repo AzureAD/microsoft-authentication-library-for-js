@@ -33,6 +33,8 @@ export class SPAResponseHandler {
     private spaCacheManager: CacheHelpers;
     private cryptoObj: ICrypto;
     private logger: Logger;
+    private clientInfo: ClientInfo;
+    private homeAccountIdentifier: string;
 
     constructor(clientId: string, cacheStorage: ICacheStorage, spaCacheManager: CacheHelpers, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
@@ -105,18 +107,22 @@ export class SPAResponseHandler {
      * @param cachedState
      * @param cryptoObj
      */
-    private validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
+    validateServerAuthorizationCodeResponse(
+        serverResponseHash: ServerAuthorizationCodeResponse,
+        cachedState: string,
+        cryptoObj: ICrypto
+    ): void {
         if (serverResponseHash.state !== cachedState) {
             throw ClientAuthError.createStateMismatchError();
         }
 
         // Check for error
-        if (serverResponseHash.error || serverResponseHash.error_description) {
-            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description)) {
-                throw new InteractionRequiredAuthError(serverResponseHash.error, serverResponseHash.error_description);
+        if (serverResponseHash.error || serverResponseHash.error_description || serverResponseHash.suberror) {
+            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror)) {
+                throw new InteractionRequiredAuthError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror);
             }
 
-            throw new ServerError(serverResponseHash.error, serverResponseHash.error_description);
+            throw new ServerError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror);
         }
 
         if (serverResponseHash.client_info) {
@@ -130,9 +136,21 @@ export class SPAResponseHandler {
      */
     public validateServerAuthorizationTokenResponse(serverResponse: ServerAuthorizationTokenResponse): void {
         // Check for error
-        if (serverResponse.error || serverResponse.error_description) {
+        if (serverResponse.error || serverResponse.error_description || serverResponse.suberror) {
+            if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponse.error, serverResponse.error_description, serverResponse.suberror)) {
+                throw new InteractionRequiredAuthError(serverResponse.error, serverResponse.error_description, serverResponse.suberror);
+            }
+
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
             throw new ServerError(serverResponse.error, errString);
+        }
+
+        // generate homeAccountId
+        if (serverResponse.client_info) {
+            this.clientInfo = buildClientInfo(serverResponse.client_info, this.cryptoObj);
+            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
+                this.homeAccountIdentifier = this.cryptoObj.base64Encode(this.clientInfo.uid) + "." + this.cryptoObj.base64Encode(this.clientInfo.utid);
+            }
         }
     }
 
@@ -182,12 +200,12 @@ export class SPAResponseHandler {
         }
 
         const newTokenKey = new AccessTokenKey(
-            authority, 
-            this.clientId, 
-            responseScopes.printScopes(), 
-            resource, 
-            clientInfo && clientInfo.uid, 
-            clientInfo && clientInfo.utid, 
+            authority,
+            this.clientId,
+            responseScopes.printScopes(),
+            resource,
+            clientInfo && clientInfo.uid,
+            clientInfo && clientInfo.utid,
             this.cryptoObj
         );
         this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));

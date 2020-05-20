@@ -16,7 +16,6 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
-import { Serializer } from "../unifiedCache/serialize/Serializer";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -141,11 +140,11 @@ export abstract class BaseClient {
     }
 
     /**
+     * TODO: modify this soon
      * Set the cache post acquireToken call
      */
-    protected setCache(): void {
-        const inMemCache = this.unifiedCacheManager.getCacheInMemory();
-        const cache = this.unifiedCacheManager.generateJsonCache(inMemCache);
-        this.cacheStorage.setSerializedCache(Serializer.serializeJSONBlob(cache));
+    protected updateCache(): void {
+        const cache = this.unifiedCacheManager.getCacheInMemory();
+        this.cacheStorage.setCache(cache);
     }
 }

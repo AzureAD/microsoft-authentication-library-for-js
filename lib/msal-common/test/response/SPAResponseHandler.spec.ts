@@ -215,11 +215,11 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             };
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(TEST_ERROR_MSG);
             expect(store).to.be.empty;
 
             cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, RANDOM_TEST_GUID);
-            expect(() => responseHandler.handleServerCodeResponse(testServerParams)).to.throw(InteractionRequiredAuthError);
+            expect(() => spaResponseHandler.handleServerCodeResponse(testServerParams)).to.throw(InteractionRequiredAuthError);
             expect(store).to.be.empty;
         });
 
@@ -292,7 +292,7 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 error_description: TEST_ERROR_MSG
             };
 
-            const responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            const responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
             expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(testServerParams.error_description);
             expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(ServerError);
             expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(InteractionRequiredAuthError);
@@ -307,7 +307,7 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
                 suberror: InteractionRequiredAuthSubErrorMessage[0]
             };
 
-            const responseHandler = new ResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
+            const responseHandler = new SPAResponseHandler(TEST_CONFIG.MSAL_CLIENT_ID, cacheStorage, cacheHelpers, cryptoInterface, logger);
             expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(testServerParams.error_description);
             expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(ServerError);
             expect(() => responseHandler.validateServerAuthorizationTokenResponse(testServerParams)).to.throw(InteractionRequiredAuthError);

@@ -1,4 +1,4 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes} from "../../src";
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, InMemoryCache} from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
 
 export class ClientTestUtils {
@@ -16,9 +16,21 @@ export class ClientTestUtils {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
-                knownAuthorities: []
+                knownAuthorities: [],
             },
             storageInterface: {
+                getCache(): InMemoryCache {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache(): void {
+                    // do nothing
+                },
                 setItem(key: string, value: string): void {
                     store[key] = value;
                 },
@@ -36,15 +48,21 @@ export class ClientTestUtils {
                 },
                 clear(): void {
                     store = {};
-                }
+                },
             },
             networkInterface: {
-                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendGetRequestAsync<T>(
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): T {
                     return null;
                 },
-                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendPostRequestAsync<T>(
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): T {
                     return null;
-                }
+                },
             },
             cryptoInterface: {
                 createNewGuid(): string {
@@ -59,19 +77,19 @@ export class ClientTestUtils {
                 async generatePkceCodes(): Promise<PkceCodes> {
                     return {
                         challenge: TEST_CONFIG.TEST_CHALLENGE,
-                        verifier: TEST_CONFIG.TEST_VERIFIER
+                        verifier: TEST_CONFIG.TEST_VERIFIER,
                     };
-                }
+                },
             },
             loggerOptions: {
-                loggerCallback: testLoggerCallback
+                loggerCallback: testLoggerCallback,
             },
             libraryInfo: {
                 sku: Constants.SKU,
                 version: TEST_CONFIG.TEST_VERSION,
                 os: TEST_CONFIG.TEST_OS,
                 cpu: TEST_CONFIG.TEST_CPU,
-            }
+            },
         };
     }
 }

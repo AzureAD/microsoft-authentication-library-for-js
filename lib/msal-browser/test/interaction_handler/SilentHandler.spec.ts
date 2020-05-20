@@ -2,7 +2,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel } from "@azure/msal-common";
+import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
@@ -50,8 +50,9 @@ describe("SilentHandler.ts Unit Tests", () => {
         authCodeModule = new SPAClient({
             authOptions: configObj.auth,
             systemOptions: {
-                tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
-                telemetry: configObj.system.telemetry
+                tokenRenewalOffsetSeconds:
+                    configObj.system.tokenRenewalOffsetSeconds,
+                telemetry: configObj.system.telemetry,
             },
             cryptoInterface: {
                 createNewGuid: (): string => {
@@ -65,9 +66,21 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
                     return testPkceCodes;
-                }
+                },
             },
             storageInterface: {
+                getCache: (): InMemoryCache => {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache: (): void => {
+                    // dummy impl;
+                },
                 clear: clearFunc,
                 containsKey: (key: string): boolean => {
                     return true;
@@ -79,24 +92,34 @@ describe("SilentHandler.ts Unit Tests", () => {
                     return testKeySet;
                 },
                 removeItem: removeFunc,
-                setItem: setFunc
+                setItem: setFunc,
             },
             networkInterface: {
-                sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendGetRequestAsync: async (
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendPostRequestAsync: async (
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): Promise<any> => {
                     return testNetworkResult;
-                }
+                },
             },
             loggerOptions: {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+                loggerCallback: (
+                    level: LogLevel,
+                    message: string,
+                    containsPii: boolean
+                ): void => {
                     if (containsPii) {
                         console.log(`Log level: ${level} Message: ${message}`);
                     }
                 },
-                piiLoggingEnabled: true
-            }
+                piiLoggingEnabled: true,
+            },
         });
         browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
         silentHandler = new SilentHandler(authCodeModule, browserStorage, DEFAULT_IFRAME_TIMEOUT_MS);

@@ -12,6 +12,7 @@ import { CacheHelper } from "../utils/CacheHelper";
 import { AccountCacheMaps, IdTokenCacheMaps, AccessTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "../serialize/JsonKeys";
 import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, InMemoryCache, JsonCache } from "../utils/CacheTypes";
 import { StringDict } from "../../utils/MsalTypes";
+import { StringUtils } from "../../utils/StringUtils";
 
 // TODO: Can we write this with Generics?
 export class Deserializer {
@@ -21,7 +22,10 @@ export class Deserializer {
      * @param cachedJson
      */
     static deserializeJSONBlob(jsonFile: string): JsonCache {
-        return JSON.parse(jsonFile);
+        const deserializedCache = StringUtils.isEmpty(jsonFile)
+            ? {}
+            : JSON.parse(jsonFile);
+        return deserializedCache;
     }
 
     /**
