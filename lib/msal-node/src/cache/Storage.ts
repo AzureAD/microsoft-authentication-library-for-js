@@ -4,7 +4,8 @@
  */
 import {
     ICacheStorage,
-    InMemoryCache
+    InMemoryCache,
+    Deserializer
 } from '@azure/msal-common';
 import { CacheOptions } from '../config/Configuration';
 
@@ -13,13 +14,14 @@ import { CacheOptions } from '../config/Configuration';
  */
 export class Storage implements ICacheStorage {
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;;
     private inMemoryCache: InMemoryCache;
 
     constructor(cacheConfig: CacheOptions) {
-        this.cacheConfig = cacheConfig;
-        if (this.cacheConfig.cacheLocation! === "fileCache")
-            this.inMemoryCache = this.cacheConfig.cacheInMemory!;
+        const instanceConfiguredCache = cacheConfig.cacheInMemory;
+
+        if (instanceConfiguredCache) {
+            this.inMemoryCache = Deserializer.deserializeAllCache(instanceConfiguredCache);
+        }
     }
 
     /**

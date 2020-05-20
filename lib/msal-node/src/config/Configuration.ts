@@ -7,11 +7,11 @@ import {
     LoggerOptions,
     INetworkModule,
     LogLevel,
-    InMemoryCache,
+    JsonCache
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
-import { CACHE } from '../utils/Constants';
 import debug from "debug";
+import { ICachePlugin } from 'cache/ICachePlugin';
 
 export type NodeAuthOptions = AuthOptions;
 
@@ -20,12 +20,13 @@ export type NodeAuthOptions = AuthOptions;
  *
  * - cacheLocation            - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+ * - cachePlugin for persistence provided to library
  */
 // TODO Temporary placeholder - this will be rewritten by cache PR.
 export type CacheOptions = {
-    cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
-    cacheInMemory?: InMemoryCache;
+    cacheInMemory?: JsonCache;
+    cachePlugin?: ICachePlugin;
 };
 
 /**
@@ -60,14 +61,13 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-    cacheLocation: CACHE.FILE_CACHE,
     storeAuthStateInCookie: false,
     cacheInMemory: {
-        accounts: {},
-        idTokens: {},
-        accessTokens: {},
-        refreshTokens: {},
-        appMetadata: {},
+        Account: {},
+        IdToken: {},
+        AccessToken: {},
+        RefreshToken: {},
+        AppMetadata: {},
     },
 };
 

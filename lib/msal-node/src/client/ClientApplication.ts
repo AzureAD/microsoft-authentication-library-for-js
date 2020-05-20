@@ -12,7 +12,8 @@ import {
     RefreshTokenRequest,
     AuthenticationResult,
     JsonCache,
-    Serializer
+    Serializer,
+    ClientConfigurationError
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -132,5 +133,22 @@ export abstract class ClientApplication {
 
     readCache(): JsonCache {
         return Serializer.serializeAllCache(this.storage.getCache());
+    }
+
+    async readFromProvidedCache(): Promise<void> {
+        if (this.config.cache?.cachePlugin?.readFromStorage) {
+            const cache: JsonCache = await this.config.cache.cachePlugin.readFromStorage();
+            this.cacheContext.setCurrentCache(this.storage, cache);
+        } else {
+           throw ClientConfigurationError.createCachePluginNotProvided();
+        }
+    }
+
+    async writeToProvidedCache(): Promise<void> {
+        if (this.config.cache?.cachePlugin?.writeToStorage) {
+            await this.config.cache.cachePlugin.writeToStorage(this.readCache());
+        } else {
+            throw ClientConfigurationError.createCachePluginNotProvided();
+        }
     }
 }

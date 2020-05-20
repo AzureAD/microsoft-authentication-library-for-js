@@ -67,6 +67,10 @@ export const ClientConfigurationErrorMessage = {
     untrustedAuthority: {
         code: "untrusted_authority",
         desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
+    },
+    cachePluginNotProvided: {
+        code: "cache_plugin_not_provided",
+        desc: "Cache Plugin functions not implemented, can not call storage intiating apis without configuring pluing properly."
     }
 };
 
@@ -212,5 +216,9 @@ export class ClientConfigurationError extends ClientAuthError {
     static createUntrustedAuthorityError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
             ClientConfigurationErrorMessage.untrustedAuthority.desc);
+    }
+
+    static createCachePluginNotProvided(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.cachePluginNotProvided.code, ClientConfigurationErrorMessage.cachePluginNotProvided.desc);
     }
 }
