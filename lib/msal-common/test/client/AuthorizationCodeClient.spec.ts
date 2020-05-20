@@ -5,7 +5,6 @@ import {
     AuthorizationCodeClient,
     AuthorizationCodeRequest,
     AuthorizationCodeUrlRequest,
-    ClientConfiguration,
     Constants
 } from "../../src";
 import {
@@ -16,17 +15,12 @@ import {
     TEST_TOKENS,
     TEST_URIS
 } from "../utils/StringConstants";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 
 describe("AuthorizationCodeClient unit tests", () => {
-
-    let config: ClientConfiguration;
-
-    beforeEach(() => {
-        config = ClientTestUtils.createTestClientConfiguration();
-    });
 
     afterEach(() => {
         config = null;
@@ -38,7 +32,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
     describe("Constructor", () => {
 
-        it("creates a AuthorizationCodeClient", () => {
+        it("creates a AuthorizationCodeClient", async () => {
+
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             expect(client).to.be.not.null;
             expect(client instanceof AuthorizationCodeClient).to.be.true;
@@ -51,7 +48,8 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Creates an authorization url with default parameters", async () => {
 
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            let client = new AuthorizationCodeClient(config);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
 
             const authCodeUrlRequest: AuthorizationCodeUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
@@ -64,13 +62,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(Constants.QUERY_RESPONSE_MODE)}`)
+            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.QUERY)}`);
         });
 
         it("Creates an authorization url passing in a default scope", async () => {
 
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            let client = new AuthorizationCodeClient(config);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
 
             const authCodeUrlRequest: AuthorizationCodeUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
@@ -83,14 +82,16 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(Constants.QUERY_RESPONSE_MODE)}`)
+            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.QUERY)}`);
         });
 
         it("Creates an authorization url passing in optional parameters", async () => {
 
             // Override with alternate authority openid_config
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
-            let client = new AuthorizationCodeClient(config);
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
 
             const authCodeUrlRequest: AuthorizationCodeUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
@@ -132,6 +133,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
 
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: AuthorizationCodeRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,

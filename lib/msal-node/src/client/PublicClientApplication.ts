@@ -12,22 +12,25 @@ import { ClientApplication } from './ClientApplication';
  * are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.
  */
 export class PublicClientApplication extends ClientApplication {
+
     /**
      * @constructor
-     * Constructor for the PublicClientApplication
      *
-     * Required attributes in the Configuration object are:
-     * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal
+     * Important attributes in the Configuration object for auth are:
+     * - clientID: the application ID of your application. ou can obtain one by registering your application with our Application registration portal
      * - authority: the authority URL for your application.
      *
-     * In Azure AD, authority is a URL indicating of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}.
+     * AAD authorities are of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}
      * If your application supports Accounts in one organizational directory, replace "Enter_the_Tenant_Info_Here" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com).
      * If your application supports Accounts in any organizational directory, replace "Enter_the_Tenant_Info_Here" value with organizations.
      * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
      * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
      *
-     * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
-     * Full B2C functionality will be available in this library in future versions.
+     * Azure B2C authorities are of the form https://{instance}/{tenant}/{policy}. Each policy is considered
+     * it's own authority. You will have to set the all of the knownAuthorities at the time of the client application
+     * construction
+     *
+     * ADFS authorities are of the form https://{instance}/adfs
      *
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
@@ -45,12 +48,9 @@ export class PublicClientApplication extends ClientApplication {
      * until the end-user completes input of credentials.
      * @param request
      */
-    public async acquireTokenByDeviceCode(
-        request: DeviceCodeRequest
-    ): Promise<string> {
-        let deviceCodeClient: DeviceCodeClient = new DeviceCodeClient(
-            this.buildOauthClientConfiguration()
-        );
+    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<string>{
+        const deviceCodeConfig = await this.buildOauthClientConfiguration(request.authority);
+        const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
         return deviceCodeClient.acquireToken(request);
     }
 }
