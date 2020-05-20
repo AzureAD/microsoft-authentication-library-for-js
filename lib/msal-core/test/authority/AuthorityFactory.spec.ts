@@ -60,15 +60,15 @@ describe("AuthorityFactory.ts Class", function () {
         expect(stubbedHostList).to.have.length(3);
     });
 
-    describe("parseAuthorityMetadata", () => {
+    describe("saveMetadataFromConfig", () => {
         it("does nothing if json is falsey", () => {
-            AuthorityFactory.parseAuthorityMetadata(TEST_CONFIG.validAuthority, "");
-            expect(AuthorityFactory.getAuthorityMetadata(TEST_CONFIG.validAuthority)).to.be.undefined;
+            AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, "");
+            expect(AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority)).to.be.undefined;
         });
 
         it("throws if invalid json is provided", done => {
             try {
-                AuthorityFactory.parseAuthorityMetadata(TEST_CONFIG.validAuthority, "invalid-json");
+                AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, "invalid-json");
             } catch (e) {
                 expect(e).instanceOf(ClientConfigurationError);
                 expect((e as ClientConfigurationError).errorCode).to.equal("authority_metadata_error");
@@ -80,7 +80,7 @@ describe("AuthorityFactory.ts Class", function () {
 
         it("throws if json is missing required keys", done => {
             try {
-                AuthorityFactory.parseAuthorityMetadata(TEST_CONFIG.validAuthority, "{}");
+                AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, "{}");
             } catch (e) {
                 expect(e).instanceOf(ClientConfigurationError);
                 expect((e as ClientConfigurationError).errorCode).to.equal("authority_metadata_error");
@@ -91,9 +91,9 @@ describe("AuthorityFactory.ts Class", function () {
         });
 
         it("parses and stores metadata", () => {
-            AuthorityFactory.parseAuthorityMetadata(TEST_CONFIG.validAuthority, JSON.stringify(OPENID_CONFIGURATION));
+            AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, JSON.stringify(OPENID_CONFIGURATION));
 
-            expect(AuthorityFactory.getAuthorityMetadata(TEST_CONFIG.validAuthority)).to.deep.equal(TENANT_DISCOVERY_RESPONSE);
+            expect(AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority)).to.deep.equal(TENANT_DISCOVERY_RESPONSE);
         });
     });
 });

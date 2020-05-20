@@ -17,17 +17,17 @@ import HttpEvent from '../telemetry/HttpEvent';
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
 
-    public static async resolveAuthorityAsync(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+    public static async saveMetadataFromNetwork(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         const metadata = await authorityInstance.resolveEndpointsAsync(telemetryManager, correlationId);
         this.metadataMap.set(authorityInstance.CanonicalAuthority, metadata);
         return metadata;
     }
 
-    public static getAuthorityMetadata(authorityUrl: string) {
+    public static getMetadata(authorityUrl: string) {
         return this.metadataMap.get(authorityUrl);
     }
 
-    public static parseAuthorityMetadata(authorityUrl: string, authorityMetadataJson: string) {
+    public static saveMetadataFromConfig(authorityUrl: string, authorityMetadataJson: string) {
         try {
             if (authorityMetadataJson) {
                 const parsedMetadata = JSON.parse(authorityMetadataJson) as OpenIdConfiguration;
@@ -101,7 +101,7 @@ export class AuthorityFactory {
 
         if (authorityMetadata) {
             // todo: log statements
-            this.parseAuthorityMetadata(authorityUrl, authorityMetadata);
+            this.saveMetadataFromConfig(authorityUrl, authorityMetadata);
         }
 
         return new Authority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
