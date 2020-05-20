@@ -15,7 +15,7 @@ import {
     AuthorityFactory,
     ClientAuthError,
     Constants,
-    B2cAuthority
+    B2cAuthority,
     JsonCache,
     Serializer
 } from '@azure/msal-common';
@@ -110,7 +110,7 @@ export abstract class ClientApplication {
             },
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,
-            storageInterface: this.storage(this.config.cache!),
+            storageInterface: this.storage,
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
