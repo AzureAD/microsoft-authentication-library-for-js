@@ -213,7 +213,7 @@ export class ResponseHandler {
         authenticationResult: AuthenticationResult,
         authority: string,
         refreshToken: string
-    ) {
+    ): void {
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
             this.homeAccountIdentifier,
             authenticationResult,
