@@ -26,7 +26,7 @@ import {
 } from "./utils/CacheTypes";
 import { ICacheManager } from "./interface/ICacheManager";
 import { CacheHelper } from "./utils/CacheHelper";
-import { CacheRecord } from './entities/CacheRecord';
+import { CacheRecord } from "./entities/CacheRecord";
 
 export class UnifiedCacheManager implements ICacheManager {
     // Storage interface
@@ -168,7 +168,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param realm
      */
     getAccountsFilteredBy(
-       accountFilter: AccountFilter
+        accountFilter: AccountFilter
     ): AccountCache {
         return this.getAccountsFilteredByInternal(
             accountFilter.homeAccountId,
@@ -227,12 +227,6 @@ export class UnifiedCacheManager implements ICacheManager {
     getCredentialsFilteredBy(
         filter: CredentialFilter
     ): CredentialCache {
-        const matchingCredentials: CredentialCache = {
-            idTokens: {},
-            accessTokens: {},
-            refreshTokens: {},
-        };
-
         return this.getCredentialsFilteredByInternal(
             filter.homeAccountId,
             filter.environment,
