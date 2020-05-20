@@ -31,7 +31,7 @@ export class ClientTestUtils {
         return {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: TEST_CONFIG.validAuthority,
+                authority: authority,
                 knownAuthorities: [],
             },
             storageInterface: {
