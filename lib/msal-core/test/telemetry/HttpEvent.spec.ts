@@ -1,8 +1,20 @@
 import { expect } from "chai";
 import HttpEvent, { EVENT_KEYS } from "../../src/telemetry/HttpEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import sinon from "sinon";
+import { Authority } from "../../src/authority/Authority";
+import { TEST_CONFIG } from "../TestConstants";
 
 describe("HttpEvent", () => {
+    before(function() {
+        // Ensure TrustedHostList is set
+        sinon.stub(Authority, "TrustedHostList").get(function() {return TEST_CONFIG.knownAuthorities});
+    });
+
+    after(function() {
+        sinon.restore();
+    });
+
     it("constructs and carries exepcted values", () => {
         const correlationId = CryptoUtils.createNewGuid();
 

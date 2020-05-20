@@ -105,6 +105,7 @@ describe("UserAgentApplication.ts Class", function () {
         sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
+        sinon.stub(Authority, "TrustedHostList").get(function() {return TEST_CONFIG.knownAuthorities});
         sinon.stub(WindowUtils, "isInIframe").returns(false);
         sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
     };
@@ -1086,7 +1087,7 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
-                console.error("Error in assertion: " + JSON.stringify(err));
+                expect(err).to.be.instanceOf(AuthError);
             });
         });
 
@@ -1120,7 +1121,7 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
-                console.error("Error in assertion: " + JSON.stringify(err));
+                expect(err).to.be.instanceOf(AuthError);
             });
         });
 
@@ -1160,7 +1161,7 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
-                console.error("Error in assertion: " + JSON.stringify(err));
+                expect(err).to.be.instanceOf(AuthError);
             });
         });
 

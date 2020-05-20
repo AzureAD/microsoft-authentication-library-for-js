@@ -50,22 +50,19 @@ export class AuthorityFactory {
     /**
      * Use when validateAuthority is set to True to provide list of allowed domains.
      */
-    public static async setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>, telemetryManager?: TelemetryManager, correlationId?: string): Promise<void> {
+    public static async setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>, telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
         if (validateAuthority && !Authority.TrustedHostList.length){
             knownAuthorities.forEach(function(authority){
                 Authority.TrustedHostList.push(authority);
             });
 
             if (!Authority.TrustedHostList.length){
-                console.log("Looking for AAD Hosts in Instance discovery endpoint")
                 await this.setTrustedAuthoritiesFromNetwork(telemetryManager, correlationId);
             }
         }
-
-        console.log(Authority.TrustedHostList);
     }
 
-    private static async getAliases(telemetryManager?: TelemetryManager, correlationId?: string): Promise<Array<any>> {
+    private static async getAliases(telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<any>> {
         const client: XhrClient = new XhrClient();
 
         const httpMethod = "GET";
@@ -83,7 +80,7 @@ export class AuthorityFactory {
             });
    }
 
-    private static async setTrustedAuthoritiesFromNetwork(telemetryManager?: TelemetryManager, correlationId?: string): Promise<void> {
+    private static async setTrustedAuthoritiesFromNetwork(telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
         const metadata = await this.getAliases(telemetryManager, correlationId);
         metadata.forEach(function(entry: any){
             const authorities: Array<string> = entry.aliases;

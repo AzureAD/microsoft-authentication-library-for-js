@@ -3,13 +3,24 @@ import ApiEvent, {
     API_CODE,
     EVENT_KEYS
 } from "../../src/telemetry/ApiEvent";
-import { Logger } from "../../src";
+import { Logger, Authority } from "../../src";
 import { expect } from "chai";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "../../src/telemetry/TelemetryConstants";
 import { hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import sinon from "sinon";
+import { TEST_CONFIG } from "../TestConstants";
 
 describe("ApiEvent", () => {
+    before(function() {
+        // Ensure TrustedHostList is set
+        sinon.stub(Authority, "TrustedHostList").get(function() {return TEST_CONFIG.knownAuthorities});
+    });
+
+    after(function() {
+        sinon.restore();
+    });
+    
     it("constructs and carries exepcted values", () => {
         const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { });
