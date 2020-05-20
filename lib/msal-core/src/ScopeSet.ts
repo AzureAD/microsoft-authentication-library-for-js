@@ -77,10 +77,9 @@ export class ScopeSet {
      *
      * Used to validate the scopes input parameter requested  by the developer.
      * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
-     * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
      * @ignore
      */
-    static validateInputScope(scopes: Array<string>, clientId: string): void {
+    static validateInputScope(scopes: Array<string>): void {
         // Check if scopes are empty or null
         if (!scopes) {
             throw ClientConfigurationError.createScopesRequiredError(scopes);
