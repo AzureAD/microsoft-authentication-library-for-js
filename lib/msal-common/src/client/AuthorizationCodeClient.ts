@@ -67,7 +67,7 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         // set the final cache and return the auth response
-        this.setCache();
+        this.updateCache();
         return tokenResponse;
     }
 

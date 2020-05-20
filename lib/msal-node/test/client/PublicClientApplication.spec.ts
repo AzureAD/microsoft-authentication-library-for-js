@@ -45,6 +45,10 @@ describe('PublicClientApplication', () => {
         }
     };
 
+    // const expectedOauthClientConfig: ClientConfiguration = {
+    //     authOptions: appConfig.auth,
+    // };
+
     beforeEach(() => {
         jest.clearAllMocks();
     });

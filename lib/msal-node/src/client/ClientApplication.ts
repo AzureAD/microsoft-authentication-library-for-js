@@ -16,19 +16,23 @@ import {
     ClientAuthError,
     Constants,
     B2cAuthority
+    JsonCache,
+    Serializer
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants as NodeConstants } from "./../utils/Constants";
+import { CacheContext } from '../cache/CacheContext';
 
 export abstract class ClientApplication {
 
     private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
-    private readonly storage: Storage;
+    private storage: Storage;
+    private cacheContext: CacheContext;
 
     /**
      * @constructor
@@ -40,6 +44,7 @@ export abstract class ClientApplication {
         this.cryptoProvider = new CryptoProvider();
         this.storage = new Storage(this.config.cache!);
         B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
+        this.cacheContext = new CacheContext();
     }
 
     /**
@@ -105,7 +110,7 @@ export abstract class ClientApplication {
             },
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,
-            storageInterface: new Storage(this.config.cache!),
+            storageInterface: this.storage(this.config.cache!),
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
@@ -148,5 +153,20 @@ export abstract class ClientApplication {
         );
 
         return this._authority;
+    }
+
+    /**
+     * Initialize cache from a user provided Json file
+     * @param cacheObject
+     */
+    initializeCache(cacheObject: JsonCache) {
+        this.cacheContext.setCurrentCache(this.storage, cacheObject)
+    }
+
+    /**
+     * read the cache as a Json convertible object from memory
+     */
+    readCache(): JsonCache {
+        return Serializer.serializeAllCache(this.storage.getCache());
     }
 }

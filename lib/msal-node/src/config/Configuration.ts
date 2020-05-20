@@ -6,6 +6,7 @@ import {
     LoggerOptions,
     INetworkModule,
     LogLevel,
+    InMemoryCache,
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
 import { CACHE } from '../utils/Constants';
@@ -32,6 +33,7 @@ export type NodeAuthOptions = {
 export type CacheOptions = {
     cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
+    cacheInMemory?: InMemoryCache;
 };
 
 /**
@@ -67,6 +69,13 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     cacheLocation: CACHE.FILE_CACHE,
     storeAuthStateInCookie: false,
+    cacheInMemory: {
+        accounts: {},
+        idTokens: {},
+        accessTokens: {},
+        refreshTokens: {},
+        appMetadata: {},
+    },
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {

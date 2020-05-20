@@ -2,8 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICacheStorage } from '@azure/msal-common';
-import { CacheManager } from './CacheManager';
+import {
+    ICacheStorage,
+    InMemoryCache
+} from '@azure/msal-common';
 import { CacheOptions } from '../config/Configuration';
 
 /**
@@ -11,37 +13,28 @@ import { CacheOptions } from '../config/Configuration';
  */
 export class Storage implements ICacheStorage {
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;
-    private cachePath: string;
-    private cacheManager: CacheManager;
+    private cacheConfig: CacheOptions;;
+    private inMemoryCache: InMemoryCache;
 
     constructor(cacheConfig: CacheOptions) {
         this.cacheConfig = cacheConfig;
-        this.cachePath = this.cacheConfig.cacheLocation!;
-        this.cacheManager = new CacheManager();
+        if (this.cacheConfig.cacheLocation! === "fileCache")
+            this.inMemoryCache = this.cacheConfig.cacheInMemory!;
     }
 
     /**
-     * retrieve the file Path to read the cache from
+     * gets the current in memory cache for the client
      */
-    getCachePath(): string {
-        return this.cachePath;
+    getCache(): InMemoryCache {
+        return this.inMemoryCache;
     }
 
     /**
-     * read JSON formatted cache from disk
+     * sets the current in memory cache for the client
+     * @param inMemoryCache
      */
-    async getSerializedCache(): Promise<string> {
-        const serializedCache = await this.cacheManager.readFromFile(this.cachePath);
-        return serializedCache;
-    }
-
-    /**
-     * write the JSON formatted cache to disk
-     * @param jsonCache
-     */
-    async setSerializedCache(cache: string): Promise<void> {
-        this.cacheManager.writeToFile(this.cachePath, cache);
+    setCache(inMemoryCache: InMemoryCache) {
+        this.inMemoryCache = inMemoryCache;
     }
 
     /**
