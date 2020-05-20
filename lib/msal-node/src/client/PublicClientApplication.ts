@@ -12,7 +12,6 @@ import { ClientApplication } from './ClientApplication';
  * are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.
  */
 export class PublicClientApplication extends ClientApplication {
-
     /**
      * @constructor
      *
@@ -48,8 +47,12 @@ export class PublicClientApplication extends ClientApplication {
      * until the end-user completes input of credentials.
      * @param request
      */
-    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<string>{
-        const deviceCodeConfig = await this.buildOauthClientConfiguration(request.authority);
+    public async acquireTokenByDeviceCode(
+        request: DeviceCodeRequest
+    ): Promise<string> {
+        const deviceCodeConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
         const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
         return deviceCodeClient.acquireToken(request);
     }

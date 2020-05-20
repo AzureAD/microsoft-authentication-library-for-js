@@ -17,14 +17,14 @@ import {
 } from "../utils/StringConstants";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes } from "../../src/utils/Constants";
+import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes, Prompt } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { B2cAuthority } from "../../src/authority/B2cAuthority";
 
 describe("AuthorizationCodeClient unit tests", () => {
 
     afterEach(() => {
-        config = null;
+        let config = null;
         sinon.restore();
         while (B2cAuthority.B2CTrustedHostList.length) {
             B2cAuthority.B2CTrustedHostList.pop();
@@ -102,7 +102,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: TEST_CONFIG.CODE_CHALLENGE_METHOD,
                 state: TEST_CONFIG.STATE,
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Prompt.SELECT_ACCOUNT,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 domainHint: TEST_CONFIG.DOMAIN_HINT,
                 claims: TEST_CONFIG.CLAIMS,
