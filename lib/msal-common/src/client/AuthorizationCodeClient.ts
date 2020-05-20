@@ -11,9 +11,11 @@ import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
-import {NetworkResponse} from "../network/NetworkManager";
-import {ScopeSet} from "../request/ScopeSet";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { NetworkResponse } from "../network/NetworkManager";
+import { ScopeSet } from "../request/ScopeSet";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -45,11 +47,28 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest): Promise<string> {
+    async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+
+        this.logger.info("in acquireToken call");
 
         const response = await this.executeTokenRequest(this.defaultAuthority, request);
-        return JSON.stringify(response.body);
-        // TODO add response_handler here to send the response
+
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId,
+            this.unifiedCacheManager,
+            this.cryptoUtils,
+            this.logger
+        );
+
+        responseHandler.validateTokenResponse(response.body);
+        const tokenResponse = await responseHandler.generateAuthenticationResult(
+            response.body,
+            this.defaultAuthority
+        );
+
+        // set the final cache and return the auth response
+        this.updateCache();
+        return tokenResponse;
     }
 
     /**
@@ -94,6 +113,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
+        parameterBuilder.addClientInfo();
 
         return parameterBuilder.createQueryString();
     }

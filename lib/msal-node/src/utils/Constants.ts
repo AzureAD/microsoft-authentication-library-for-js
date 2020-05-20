@@ -35,7 +35,7 @@ export const CharSet = {
  * Cache Constants
  */
 export const CACHE = {
-    FILE_CACHE: 'file_cache',
+    FILE_CACHE: 'fileCache',
     EXTENSION_LIB: 'extenstion_library',
 };
 
@@ -43,5 +43,5 @@ export const CACHE = {
  * Constants for headers
  */
 export const Constants = {
-    MSAL_SKU: "msal.js.node",
+    MSAL_SKU: 'msal.js.node',
 };
