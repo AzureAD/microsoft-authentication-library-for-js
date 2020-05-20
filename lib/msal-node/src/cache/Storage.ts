@@ -6,20 +6,30 @@ import {
     ICacheStorage,
     InMemoryCache
 } from '@azure/msal-common';
-import { CacheOptions } from '../config/Configuration';
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
 export class Storage implements ICacheStorage {
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;;
-    private inMemoryCache: InMemoryCache;
+    private inMemoryCache: InMemoryCache = {
+        accounts: {},
+        accessTokens: {},
+        refreshTokens: {},
+        appMetadata: {},
+        idTokens: {}
+    };
+    private changeEmitters: Array<Function> = [];
 
-    constructor(cacheConfig: CacheOptions) {
-        this.cacheConfig = cacheConfig;
-        if (this.cacheConfig.cacheLocation! === "fileCache")
-            this.inMemoryCache = this.cacheConfig.cacheInMemory!;
+    constructor() {
+    }
+
+    registerChangeEmitter(func: () => void): void {
+        this.changeEmitters.push(func);
+    }
+
+    emitChange() {
+        this.changeEmitters.forEach(func => func.call(null));
     }
 
     /**
@@ -35,6 +45,7 @@ export class Storage implements ICacheStorage {
      */
     setCache(inMemoryCache: InMemoryCache) {
         this.inMemoryCache = inMemoryCache;
+        this.emitChange();
     }
 
     /**
@@ -45,8 +56,10 @@ export class Storage implements ICacheStorage {
      */
     setItem(key: string, value: string): void {
         if (key && value) {
+            this.emitChange();
             return;
         }
+        this.emitChange();
     }
 
     /**
@@ -66,7 +79,11 @@ export class Storage implements ICacheStorage {
      * TODO: implement after the lookup implementation
      */
     removeItem(key: string): void {
-        if (!key) return;
+        if (!key) {
+            this.emitChange();
+            return;
+        }
+        this.emitChange();
     }
 
     /**
@@ -90,6 +107,7 @@ export class Storage implements ICacheStorage {
      * Clears all cache entries created by MSAL (except tokens).
      */
     clear(): void {
+        this.emitChange();
         return;
     }
 }

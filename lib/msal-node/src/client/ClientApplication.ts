@@ -11,21 +11,19 @@ import {
     RefreshTokenClient,
     RefreshTokenRequest,
     AuthenticationResult,
-    JsonCache,
-    Serializer
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants } from './../utils/Constants';
-import { CacheContext } from '../cache/CacheContext';
+import { CacheManager } from '../cache/CacheManager';
 
 export abstract class ClientApplication {
 
     protected config: Configuration;
-    protected cacheContext: CacheContext;
     protected storage: Storage;
+    private cacheManager: CacheManager;
 
     /**
      * @constructor
@@ -49,8 +47,8 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
-        this.storage = new Storage(this.config.cache!);
-        this.cacheContext = new CacheContext();
+        this.storage = new Storage();
+        this.cacheManager = new CacheManager(this.storage, this.config.cache?.cachePlugin);
     }
 
     /**
@@ -126,11 +124,8 @@ export abstract class ClientApplication {
         };
     }
 
-    initializeCache(cacheObject: JsonCache) {
-        this.cacheContext.setCurrentCache(this.storage, cacheObject)
+    getCacheManager(): CacheManager {
+        return this.cacheManager;
     }
 
-    readCache(): JsonCache {
-        return Serializer.serializeAllCache(this.storage.getCache());
-    }
 }
