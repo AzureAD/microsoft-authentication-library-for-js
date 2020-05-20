@@ -33,7 +33,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addNonce(TEST_CONFIG.NONCE);
         requestParameterBuilder.addCodeChallengeParams(TEST_CONFIG.TEST_CHALLENGE, TEST_CONFIG.CODE_CHALLENGE_METHOD);
         requestParameterBuilder.addAuthorizationCode(TEST_TOKENS.AUTHORIZATION_CODE);
-        requestParameterBuilder.addDeviceCode(DEVICE_CODE_RESPONSE.body.device_code);
+        requestParameterBuilder.addDeviceCode(DEVICE_CODE_RESPONSE.deviceCode);
         requestParameterBuilder.addCodeVerifier(TEST_CONFIG.TEST_VERIFIER);
         requestParameterBuilder.addGrantType(GrantType.DEVICE_CODE_GRANT)
 
@@ -53,7 +53,7 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(requestQueryString).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`);
         expect(requestQueryString).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`);
         expect(requestQueryString).to.contain(`${AADServerParamKeys.CODE}=${encodeURIComponent(TEST_TOKENS.AUTHORIZATION_CODE)}`);
-        expect(requestQueryString).to.contain(`${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(DEVICE_CODE_RESPONSE.body.device_code)}`);
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(DEVICE_CODE_RESPONSE.deviceCode)}`);
         expect(requestQueryString).to.contain(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(TEST_CONFIG.TEST_VERIFIER)}`);
     });
 
