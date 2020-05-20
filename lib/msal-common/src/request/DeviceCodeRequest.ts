@@ -27,11 +27,12 @@ export type DeviceCodeRequest = {
      * While the user authenticates on a separate device, MSAL polls the the token endpoint of security token service for the interval
      * specified in the device code response (usually 15 minutes). To stop polling and cancel the request, set cancel=true;
      */
-    cancel?: false;
+    cancel?: boolean;
 
     /**
-     * URI of the authority from which MSAL will acquire the tokens from. If this value is not set, MSAL defaults
-     * to the authority used when configuring the PublicClientApplication.
+     * Url of the authority which the application acquires tokens from. Defaults to
+     * https://login.microsoftonline.com/common. If using the same authority for all request, authority should set
+     * on client application object and not request, to avoid resolving authority endpoints multiple times.
      */
     authority?: string;
 };

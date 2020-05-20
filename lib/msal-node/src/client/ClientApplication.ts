@@ -9,40 +9,41 @@ import {
     AuthorizationCodeRequest,
     ClientConfiguration,
     RefreshTokenClient,
-    RefreshTokenRequest
+    RefreshTokenRequest,
+    AuthenticationResult,
+    Authority,
+    AuthorityFactory,
+    ClientAuthError,
+    Constants,
+    B2cAuthority,
+    JsonCache,
+    Serializer,
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
-import { Constants } from "./../utils/Constants";
+import { Constants as NodeConstants } from './../utils/Constants';
+import { CacheContext } from '../cache/CacheContext';
 
 export abstract class ClientApplication {
-
-    protected config: Configuration;
+    private config: Configuration;
+    private _authority: Authority;
+    private readonly cryptoProvider: CryptoProvider;
+    private storage: Storage;
+    private cacheContext: CacheContext;
 
     /**
      * @constructor
-     * Constructor for the ClientApplication to instantiate the PublicClientApplication object
-     *
-     * Important attributes in the Configuration object for auth are:
-     * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal
-     * - authority: the authority URL for your application.
-     * - redirect_uri: the uri of your application registered in the portal.
-     *
-     * In Azure AD, authority is a URL indicating the Azure active directory that MSAL uses to obtain tokens.
-     * It is of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}
-     * If your application supports Accounts in one organizational directory, replace "Enter_the_Tenant_Info_Here" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com).
-     * If your application supports Accounts in any organizational directory, replace "Enter_the_Tenant_Info_Here" value with organizations.
-     * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
-     * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
-     *
-     * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/ls
-     *
-     * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
+     * Constructor for the ClientApplication
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
+
+        this.cryptoProvider = new CryptoProvider();
+        this.storage = new Storage(this.config.cache!);
+        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
+        this.cacheContext = new CacheContext();
     }
 
     /**
@@ -58,8 +59,11 @@ export abstract class ClientApplication {
     async getAuthCodeUrl(
         request: AuthorizationCodeUrlRequest
     ): Promise<string> {
+        const authClientConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
         const authorizationCodeClient = new AuthorizationCodeClient(
-            this.buildOauthClientConfiguration()
+            authClientConfig
         );
         return authorizationCodeClient.getAuthCodeUrl(request);
     }
@@ -76,9 +80,12 @@ export abstract class ClientApplication {
      */
     async acquireTokenByCode(
         request: AuthorizationCodeRequest
-    ): Promise<string> {
+    ): Promise<AuthenticationResult> {
+        const authClientConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
         const authorizationCodeClient = new AuthorizationCodeClient(
-            this.buildOauthClientConfiguration()
+            authClientConfig
         );
         return authorizationCodeClient.acquireToken(request);
     }
@@ -91,30 +98,98 @@ export abstract class ClientApplication {
      * handle the caching and refreshing of tokens automatically.
      * @param request
      */
-    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<string>{
-        const refreshTokenClient = new RefreshTokenClient(this.buildOauthClientConfiguration());
+    async acquireTokenByRefreshToken(
+        request: RefreshTokenRequest
+    ): Promise<string> {
+        const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
+        const refreshTokenClient = new RefreshTokenClient(
+            refreshTokenClientConfig
+        );
         return refreshTokenClient.acquireToken(request);
     }
 
-    protected buildOauthClientConfiguration(): ClientConfiguration {
+    protected async buildOauthClientConfiguration(
+        authority?: string
+    ): Promise<ClientConfiguration> {
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
-            authOptions: this.config.auth,
+            authOptions: {
+                clientId: this.config.auth.clientId,
+                authority: await this.createAuthority(authority),
+                knownAuthorities: this.config.auth.knownAuthorities,
+            },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!
                     .loggerCallback,
                 piiLoggingEnabled: this.config.system!.loggerOptions!
                     .piiLoggingEnabled,
             },
-            cryptoInterface: new CryptoProvider(),
+            cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,
-            storageInterface: new Storage(this.config.auth!.clientId, this.config.cache!),
+            storageInterface: this.storage,
             libraryInfo: {
-                sku: Constants.MSAL_SKU,
+                sku: NodeConstants.MSAL_SKU,
                 version: version,
-                cpu: process.arch || "",
-                os: process.platform || ""
+                cpu: process.arch || '',
+                os: process.platform || '',
             },
         };
+    }
+
+    /**
+     * Create authority instance. If authority not passed in request, default to authority set on the application
+     * object. If no authority set in application object, then default to common authority.
+     * @param authorityString
+     */
+    private async createAuthority(
+        authorityString?: string
+    ): Promise<Authority> {
+        const authority: Authority = authorityString
+            ? AuthorityFactory.createInstance(
+                  authorityString,
+                  this.config.system!.networkClient!
+              )
+            : this.authority;
+
+        if (authority.discoveryComplete()) {
+            return authority;
+        }
+
+        try {
+            await authority.resolveEndpointsAsync();
+            return authority;
+        } catch (error) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+        }
+    }
+
+    private get authority() {
+        if (this._authority) {
+            return this._authority;
+        }
+
+        this._authority = AuthorityFactory.createInstance(
+            this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
+            this.config.system!.networkClient!
+        );
+
+        return this._authority;
+    }
+
+    /**
+     * Initialize cache from a user provided Json file
+     * @param cacheObject
+     */
+    initializeCache(cacheObject: JsonCache) {
+        this.cacheContext.setCurrentCache(this.storage, cacheObject);
+    }
+
+    /**
+     * read the cache as a Json convertible object from memory
+     */
+    readCache(): JsonCache {
+        return Serializer.serializeAllCache(this.storage.getCache());
     }
 }

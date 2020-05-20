@@ -11,9 +11,11 @@ import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
-import {ServerAuthorizationTokenResponse} from "../server/ServerAuthorizationTokenResponse";
-import {NetworkResponse} from "../network/NetworkManager";
-import {ScopeSet} from "../request/ScopeSet";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { NetworkResponse } from "../network/NetworkManager";
+import { ScopeSet } from "../request/ScopeSet";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -36,22 +38,37 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
 
-        const authority: Authority = await this.createAuthority(request && request.authority);
         const queryString = this.createAuthCodeUrlQueryString(request);
-        return `${authority.authorizationEndpoint}?${queryString}`;
+        return `${this.defaultAuthority.authorizationEndpoint}?${queryString}`;
     }
 
     /**
-     * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
+     * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the
+     * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest): Promise<string> {
+    async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
 
         this.logger.info("in acquireToken call");
-        const authority: Authority = await this.createAuthority(request && request.authority);
-        const response = await this.executeTokenRequest(authority, request);
-        return JSON.stringify(response.body);
-        // TODO add response_handler here to send the response
+
+        const response = await this.executeTokenRequest(this.defaultAuthority, request);
+
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId,
+            this.unifiedCacheManager,
+            this.cryptoUtils,
+            this.logger
+        );
+
+        responseHandler.validateTokenResponse(response.body);
+        const tokenResponse = await responseHandler.generateAuthenticationResult(
+            response.body,
+            this.defaultAuthority
+        );
+
+        // set the final cache and return the auth response
+        this.updateCache();
+        return tokenResponse;
     }
 
     /**
@@ -59,7 +76,8 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest)
+        : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = this.createTokenRequestBody(request);
         const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
@@ -71,7 +89,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private createTokenRequestBody(request: AuthorizationCodeRequest) : string {
+    private createTokenRequestBody(request: AuthorizationCodeRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -95,6 +113,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
+        parameterBuilder.addClientInfo();
 
         return parameterBuilder.createQueryString();
     }
@@ -153,7 +172,7 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addNonce(request.nonce);
         }
 
-        if(request.claims) {
+        if (request.claims) {
             parameterBuilder.addClaims(request.claims);
         }
 

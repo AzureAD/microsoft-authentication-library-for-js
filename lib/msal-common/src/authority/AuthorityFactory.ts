@@ -13,7 +13,7 @@ import { StringUtils } from "./../utils/StringUtils";
 import { UrlString } from "./../url/UrlString";
 import { Constants } from "../utils/Constants";
 
-export class AuthorityFactory {  
+export class AuthorityFactory {
 
     /**
      * Parse the url and determine the type of authority
@@ -25,7 +25,7 @@ export class AuthorityFactory {
 
         if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS)
             return AuthorityType.Adfs;
-        else if (Object.keys(B2cAuthority.B2CTrustedHostList).length)
+        else if (B2cAuthority.B2CTrustedHostList.length)
             return AuthorityType.B2C;
 
         // defaults to Aad
@@ -43,6 +43,7 @@ export class AuthorityFactory {
         }
 
         const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
+
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.Aad:

@@ -6,7 +6,6 @@
 import { DeviceCodeResponse, ServerDeviceCodeResponse } from "../response/DeviceCodeResponse";
 import { BaseClient } from "./BaseClient";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
-import { Authority } from "../authority/Authority";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
@@ -20,8 +19,6 @@ import { ScopeSet } from "../request/ScopeSet";
  */
 export class DeviceCodeClient extends BaseClient {
 
-    private authority: Authority;
-
     constructor(configuration: ClientConfiguration) {
         super(configuration);
     }
@@ -32,7 +29,7 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     public async acquireToken(request: DeviceCodeRequest): Promise<string> {
-        this.authority = await this.createAuthority(request.authority);
+
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
         const response: ServerAuthorizationTokenResponse = await this.acquireTokenWithDeviceCode(
@@ -91,7 +88,7 @@ export class DeviceCodeClient extends BaseClient {
         const queryString: string = this.createQueryString(request);
 
         // TODO add device code endpoint to authority class
-        return `${this.authority.canonicalAuthority}${Constants.DEVICE_CODE_ENDPOINT_PATH}?${queryString}`;
+        return `${this.defaultAuthority.canonicalAuthority}${Constants.DEVICE_CODE_ENDPOINT_PATH}?${queryString}`;
     }
 
     /**
@@ -145,7 +142,7 @@ export class DeviceCodeClient extends BaseClient {
 
                     } else {
                         const response = await this.executePostToTokenEndpoint(
-                            this.authority.tokenEndpoint,
+                            this.defaultAuthority.tokenEndpoint,
                             requestBody,
                             headers);
 
@@ -176,7 +173,7 @@ export class DeviceCodeClient extends BaseClient {
 
         const scopeSet = new ScopeSet(request.scopes || [],
             this.config.authOptions.clientId,
-            true);
+            false);
         requestParameters.addScopes(scopeSet);
         requestParameters.addClientId(this.config.authOptions.clientId);
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
