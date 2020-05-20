@@ -7,7 +7,7 @@ import {
     JsonCache,
     Deserializer,
     Serializer,
-    StringUtils
+    StringUtils,
 } from '@azure/msal-common';
 import { CacheManager } from '../cache/CacheManager';
 import { Storage } from '../cache/Storage';
@@ -16,18 +16,17 @@ import { Storage } from '../cache/Storage';
  * class managing sync between the persistent cache blob in the disk and the in memory cache of the node
  */
 export class CacheContext {
-
     private cachePath: string;
     private defaultSerializedCache: JsonCache = {
         Account: {},
         IdToken: {},
         AccessToken: {},
         RefreshToken: {},
-        AppMetadata: {}
+        AppMetadata: {},
     };
 
     constructor() {
-        this.cachePath = "";
+        this.cachePath = '';
     }
 
     /**
@@ -54,8 +53,12 @@ export class CacheContext {
      */
     async syncCache(storage: Storage): Promise<JsonCache> {
         if (!StringUtils.isEmpty(this.cachePath)) {
-            const currentCache = Serializer.serializeAllCache(storage.getCache());
-            const tCache = Deserializer.deserializeJSONBlob(await CacheManager.readFromFile(this.cachePath));
+            const currentCache = Serializer.serializeAllCache(
+                storage.getCache()
+            );
+            const tCache = Deserializer.deserializeJSONBlob(
+                await CacheManager.readFromFile(this.cachePath)
+            );
             return this.mergeCache(tCache, currentCache);
         }
 
@@ -71,10 +74,18 @@ export class CacheContext {
         return {
             Account: { ...persistentCache.Account, ...currentCache.Account },
             IdToken: { ...persistentCache.IdToken, ...currentCache.IdToken },
-            AccessToken: { ...persistentCache.AccessToken, ...currentCache.AccessToken },
-            RefreshToken: { ...persistentCache.RefreshToken, ...currentCache.RefreshToken },
-            AppMetadata: { ...persistentCache.AppMetadata, ...currentCache.AppMetadata}
+            AccessToken: {
+                ...persistentCache.AccessToken,
+                ...currentCache.AccessToken,
+            },
+            RefreshToken: {
+                ...persistentCache.RefreshToken,
+                ...currentCache.RefreshToken,
+            },
+            AppMetadata: {
+                ...persistentCache.AppMetadata,
+                ...currentCache.AppMetadata,
+            },
         };
     }
-
 }

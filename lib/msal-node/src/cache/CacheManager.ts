@@ -6,7 +6,6 @@
 import { promises as fs } from 'fs';
 
 export class CacheManager {
-
     /**
      * Read contents of the cache blob to in memoryCache
      * @param cachePath

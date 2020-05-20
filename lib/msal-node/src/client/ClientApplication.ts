@@ -19,10 +19,9 @@ import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants } from './../utils/Constants';
 import { CacheContext } from '../cache/CacheContext';
-import { CacheManager } from '../cache/CacheManager'
+import { CacheManager } from '../cache/CacheManager';
 
 export abstract class ClientApplication {
-
     protected config: Configuration;
     protected cacheContext: CacheContext;
     protected storage: Storage;
@@ -99,8 +98,12 @@ export abstract class ClientApplication {
      * handle the caching and refreshing of tokens automatically.
      * @param request
      */
-    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<string>{
-        const refreshTokenClient = new RefreshTokenClient(this.buildOauthClientConfiguration());
+    async acquireTokenByRefreshToken(
+        request: RefreshTokenRequest
+    ): Promise<string> {
+        const refreshTokenClient = new RefreshTokenClient(
+            this.buildOauthClientConfiguration()
+        );
         return refreshTokenClient.acquireToken(request);
     }
 
@@ -120,8 +123,8 @@ export abstract class ClientApplication {
             libraryInfo: {
                 sku: Constants.MSAL_SKU,
                 version: version,
-                cpu: process.arch || "",
-                os: process.platform || ""
+                cpu: process.arch || '',
+                os: process.platform || '',
             },
         };
     }
@@ -143,7 +146,9 @@ export abstract class ClientApplication {
     async writeCacheToDisk(cachePath: string): Promise<void> {
         await this.readCacheFromDisk(cachePath);
         const inMemCache = this.storage.getCache();
-        const cacheBlob = Serializer.serializeJSONBlob(Serializer.serializeAllCache(inMemCache));
+        const cacheBlob = Serializer.serializeJSONBlob(
+            Serializer.serializeAllCache(inMemCache)
+        );
         CacheManager.writeToFile(cachePath, cacheBlob);
     }
 }
