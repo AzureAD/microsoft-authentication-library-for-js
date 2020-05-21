@@ -86,7 +86,6 @@ export type AuthorizationUrlRequest = {
     /**
      * Provides a hint about the tenant or domain that the user should use to sign in. The value
      * of the domain hint is a registered domain for the tenant.
-     * TODO: Name this as "extraQueryParameters"
      */
     domainHint?: string;
 

@@ -95,7 +95,6 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
         // validate the redirectUri (to be a non null value)
-        RequestValidator.validateRedirectUri(request.redirectUri);
         parameterBuilder.addRedirectUri(request.redirectUri);
 
         const scopeSet = new ScopeSet(
@@ -136,7 +135,6 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addScopes(scopeSet);
 
         // validate the redirectUri (to be a non null value)
-        RequestValidator.validateRedirectUri(request.redirectUri);
         parameterBuilder.addRedirectUri(request.redirectUri);
 
         // generate the correlationId if not set by the user and add
@@ -159,7 +157,6 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         if (request.prompt) {
-            RequestValidator.validatePrompt(request.prompt);
             parameterBuilder.addPrompt(request.prompt);
         }
 

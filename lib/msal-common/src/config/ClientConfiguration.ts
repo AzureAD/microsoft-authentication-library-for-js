@@ -26,7 +26,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - crypto: implementation of crypto functions
  */
 export type ClientConfiguration = {
-    authOptions?: AuthOptions,
+    authOptions: AuthOptions,
     systemOptions?: SystemOptions,
     loggerOptions?: LoggerOptions,
     storageInterface?: ICacheStorage,

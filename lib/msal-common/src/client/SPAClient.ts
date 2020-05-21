@@ -20,7 +20,7 @@ import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { IdToken } from "../account/IdToken";
 import { ScopeSet } from "../request/ScopeSet";
-import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys } from "../utils/Constants";
+import { TemporaryCacheKeys, PersistentCacheKeys, AADServerParamKeys, Constants, ResponseMode } from "../utils/Constants";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
@@ -28,6 +28,9 @@ import { Account } from "../account/Account";
 import { buildClientInfo } from "../account/ClientInfo";
 import { B2cAuthority } from "../authority/B2cAuthority";
 import { AuthorizationUrlRequest } from '../request/AuthorizationUrlRequest';
+import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
+import { PkceCodes } from "../crypto/ICrypto";
+import { ProtocolUtils } from "../utils/ProtocolUtils";
 
 /**
  * SPAClient class
@@ -78,53 +81,67 @@ export class SPAClient extends BaseClient {
         }
 
         // Create and validate request parameters.
-        let requestParameters: ServerCodeRequestParameters;
+        const requestState = ProtocolUtils.setRequestState(
+            request && request.state,
+            this.config.cryptoInterface.createNewGuid()
+        );
         try {
-            requestParameters = new ServerCodeRequestParameters(
-                acquireTokenAuthority,
+            const parameterBuilder = new RequestParameterBuilder();
+
+            parameterBuilder.addResponseTypeCode(); 
+
+            // Client ID
+            parameterBuilder.addClientId(this.config.authOptions.clientId);
+            const scopeSet = new ScopeSet(
+                request && request.scopes || [],
                 this.config.authOptions.clientId,
-                request,
-                this.getAccount(),
-                this.getRedirectUri(),
-                this.cryptoUtils,
-                isLoginCall
+                !isLoginCall   
             );
 
-            // Check for SSO.
-            // TODO: Port this code to browser
-            let adalIdToken: IdToken = null;
-            if (!requestParameters.hasSSOParam()) {
-                // Only check for adal token if no SSO params are being used
-                const adalIdTokenString = this.cacheStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                if (!StringUtils.isEmpty(adalIdTokenString)) {
-                    adalIdToken = new IdToken(adalIdTokenString, this.cryptoUtils);
-                    this.cacheStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                }
+            if (isLoginCall) {
+                scopeSet.appendScopes(request && request.extraScopesToConsent);
             }
 
-            // Update required cache entries for request.
-            this.spaCacheManager.updateCacheEntries(requestParameters);
+            parameterBuilder.addScopes(scopeSet);
 
-            // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer.
-            requestParameters.populateQueryParams(adalIdToken);
+            parameterBuilder.addRedirectUri(this.getRedirectUri());
 
-            // Create url to navigate to.
-            const urlNavigate = await requestParameters.createNavigateUrl();
+            const correlationId = (request && request.correlationId) || this.config.cryptoInterface.createNewGuid();
+            parameterBuilder.addCorrelationId(correlationId);
 
-            // Cache token request.
-            const tokenRequest: TokenExchangeParameters = {
-                scopes: requestParameters.scopes.getOriginalScopesAsArray(),
-                codeVerifier: requestParameters.generatedPkce.verifier,
-                extraQueryParameters: request.extraQueryParameters,
-                authority: requestParameters.authorityInstance.canonicalAuthority,
-                correlationId: requestParameters.correlationId
-            };
-            this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, this.cryptoUtils.base64Encode(JSON.stringify(tokenRequest)));
+            const generatedPkce: PkceCodes = await this.config.cryptoInterface.generatePkceCodes();
+            parameterBuilder.addCodeChallengeParams(generatedPkce.challenge, `${Constants.S256_CODE_CHALLENGE_METHOD}`);
+            
+            parameterBuilder.addState(requestState);
 
-            return urlNavigate;
+            parameterBuilder.addNonce(this.config.cryptoInterface.createNewGuid());
+
+            parameterBuilder.addClientInfo();
+
+            parameterBuilder.addTelemetryInfo();
+
+            if (request && request.prompt) {
+                parameterBuilder.addPrompt(request.prompt);
+            }
+
+            if (request && request.loginHint) {
+                parameterBuilder.addLoginHint(request.loginHint);
+            }
+
+            if (request && request.domainHint) {
+                parameterBuilder.addDomainHint(request.domainHint);
+            }
+
+            parameterBuilder.addResponseMode(ResponseMode.FRAGMENT);
+
+            if (request && request.extraQueryParameters) {
+                parameterBuilder.addExtraQueryParameters(request && request.extraQueryParameters);
+            }
+
+            return parameterBuilder.createQueryString();
         } catch (e) {
             // Reset cache items before re-throwing.
-            this.spaCacheManager.resetTempCacheItems(requestParameters && requestParameters.state);
+            this.spaCacheManager.resetTempCacheItems(requestState);
             throw e;
         }
     }
