@@ -8,7 +8,6 @@ import { Account } from "../account/Account";
 /**
  * AuthenticationParameters passed by user to retrieve a token from the server.
  * - scopes: requested token scopes
- * - resource: requested resource uri
  * - extraQueryParameters: string to string map of custom query parameters
  * - authority: authority to request tokens from
  * - correlationId: correlationId set by the user to trace the request

@@ -49,7 +49,7 @@ export class SPAClient extends BaseClient {
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
      * @param request
      */
-    async createLoginUrl(request: AuthenticationParameters): Promise<string> {
+    async createLoginUrl(request: AuthorizationUrlRequest): Promise<string> {
         return this.createUrl(request, true);
     }
 
@@ -58,7 +58,7 @@ export class SPAClient extends BaseClient {
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
      * @param request
      */
-    async createAcquireTokenUrl(request: AuthenticationParameters): Promise<string> {
+    async createAcquireTokenUrl(request: AuthorizationUrlRequest): Promise<string> {
         return this.createUrl(request, false);
     }
 
@@ -67,7 +67,7 @@ export class SPAClient extends BaseClient {
      * @param request
      * @param isLoginCall
      */
-    private async createUrl(request: AuthenticationParameters, isLoginCall: boolean): Promise<string> {
+    private async createUrl(request: AuthorizationUrlRequest, isLoginCall: boolean): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check.
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthorityInstance;
         try {
@@ -112,7 +112,6 @@ export class SPAClient extends BaseClient {
             // Cache token request.
             const tokenRequest: TokenExchangeParameters = {
                 scopes: requestParameters.scopes.getOriginalScopesAsArray(),
-                resource: request.resource,
                 codeVerifier: requestParameters.generatedPkce.verifier,
                 extraQueryParameters: request.extraQueryParameters,
                 authority: requestParameters.authorityInstance.canonicalAuthority,
@@ -211,7 +210,7 @@ export class SPAClient extends BaseClient {
             }
 
             // Get current cached tokens
-            const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, request.resource, account && account.homeAccountIdentifier);
+            const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, account && account.homeAccountIdentifier);
             const expirationSec = Number(cachedTokenItem.value.expiresOnSec);
             const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
             // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
@@ -261,7 +260,7 @@ export class SPAClient extends BaseClient {
         // Check for homeAccountIdentifier. Do not send anything if it doesn't exist.
         const homeAccountIdentifier = currentAccount ? currentAccount.homeAccountIdentifier : "";
         // Remove all pertinent access tokens.
-        this.spaCacheManager.removeAllAccessTokens(this.config.authOptions.clientId, authorityUri, "", homeAccountIdentifier);
+        this.spaCacheManager.removeAllAccessTokens(this.config.authOptions.clientId, authorityUri, homeAccountIdentifier);
         // Clear remaining cache items.
         this.cacheStorage.clear();
         // Clear current account.
@@ -343,12 +342,11 @@ export class SPAClient extends BaseClient {
      * Gets all cached tokens based on the given criteria.
      * @param requestScopes
      * @param authorityUri
-     * @param resourceId
      * @param homeAccountIdentifier
      */
-    private getCachedTokens(requestScopes: ScopeSet, authorityUri: string, resourceId: string, homeAccountIdentifier: string): AccessTokenCacheItem {
-        // Get all access tokens with matching authority, resource id and home account ID
-        const tokenCacheItems: Array<AccessTokenCacheItem> = this.spaCacheManager.getAllAccessTokens(this.config.authOptions.clientId, authorityUri || "", resourceId || "", homeAccountIdentifier || "");
+    private getCachedTokens(requestScopes: ScopeSet, authorityUri: string, homeAccountIdentifier: string): AccessTokenCacheItem {
+        // Get all access tokens with matching authority, and home account ID
+        const tokenCacheItems: Array<AccessTokenCacheItem> = this.spaCacheManager.getAllAccessTokens(this.config.authOptions.clientId, authorityUri || "", homeAccountIdentifier || "");
         if (tokenCacheItems.length === 0) {
             throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
         }
@@ -392,7 +390,7 @@ export class SPAClient extends BaseClient {
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
-        const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse.body, tokenRequest.authority, tokenRequest.resource, codeResponse && codeResponse.userRequestState);
+        const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse.body, tokenRequest.authority, codeResponse && codeResponse.userRequestState);
         // Set current account to received response account, if any.
         this.account = tokenResponse.account;
         return tokenResponse;
