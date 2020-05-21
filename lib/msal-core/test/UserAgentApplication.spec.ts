@@ -33,6 +33,7 @@ import { IdToken } from "../src/IdToken";
 import { TimeUtils } from "../src/utils/TimeUtils";
 import { RequestUtils } from "../src/utils/RequestUtils";
 import { UrlUtils } from "../src/utils/UrlUtils";
+import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 
 type kv = {
     [key: string]: string;
@@ -105,7 +106,7 @@ describe("UserAgentApplication.ts Class", function () {
         sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
-        sinon.stub(Authority, "TrustedHostList").get(function() {return TEST_CONFIG.knownAuthorities});
+        sinon.stub(AuthorityFactory, "IsInTrustedHostList").returns(true);
         sinon.stub(WindowUtils, "isInIframe").returns(false);
         sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
     };
@@ -1983,7 +1984,8 @@ describe("UserAgentApplication.ts Class", function () {
         const config: Configuration = {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                redirectUri: TEST_URIS.TEST_REDIR_URI
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                knownAuthorities: ["login.microsoftonline.com"]
             }
         };
 

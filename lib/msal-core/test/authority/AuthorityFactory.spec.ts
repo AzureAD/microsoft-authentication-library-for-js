@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
+import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
-import { B2C_TEST_CONFIG, TEST_CONFIG, OPENID_CONFIGURATION, TENANT_DISCOVERY_RESPONSE } from "../TestConstants";
+import { TEST_CONFIG, OPENID_CONFIGURATION, TENANT_DISCOVERY_RESPONSE } from "../TestConstants";
 import { Authority } from "../../src/authority/Authority";
 import sinon from "sinon";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
@@ -18,59 +18,68 @@ const stubbedTelemetryConfig: TelemetryConfig = {
 
 const stubbedTelemetryManager = new TelemetryManager(stubbedTelemetryConfig, () => {}, new Logger(() => {}));
 
-let stubbedHostList: Array<string> = [];
-
 describe("AuthorityFactory.ts Class", function () {
     let authority = null
 
     beforeEach(function () {
         authority = null
-        sinon.stub(Authority, "TrustedHostList").get(function() {return stubbedHostList});
     });
 
-    afterEach(function () {
-        stubbedHostList = [];
+    afterEach(function() {
         sinon.restore();
+    })
+
+    describe("CreateInstance", () => {
+        it("tests if empty authority url returns null", function () {
+            authority = AuthorityFactory.CreateInstance("", true);
+    
+            expect(authority).to.be.null;
+        });
+    
+        it("tests returns Authority instance with validateAuthority set to false", function() {
+            authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+    
+            expect(authority).to.be.instanceOf(Authority);
+        });
+
+        it("tests returns Authority instance with validateAuthority set to true", function() {
+            sinon.stub(AuthorityFactory, "IsInTrustedHostList").returns(true);
+            authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, true);
+
+            expect(authority).to.be.instanceOf(Authority);
+        });
+
+        it("throws error when authority not in TrustedHostList", function () {
+            sinon.stub(AuthorityFactory, "IsInTrustedHostList").returns(false);
+    
+            let err:ClientConfigurationError;
+            try{
+                authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, true);;
+            }catch(e) {
+                expect(e).to.be.instanceOf(ClientConfigurationError);
+                err = e;
+            }
+            expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
+            expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.untrustedAuthority.desc);
+        });
     });
 
-    it("tests if empty authority url returns null", function () {
-        authority = AuthorityFactory.CreateInstance("", true);
+    describe("setTrustedAuthoritiesFromConfig", () => {
+        it("Sets TrustedHostList with Known Authorities", async () => {
+            sinon.stub(AuthorityFactory, "getTrustedHostList").returns([]);
+            AuthorityFactory.setTrustedAuthoritiesFromConfig(true, TEST_CONFIG.knownAuthorities);
 
-        expect(authority).to.be.null;
-    });
-
-    it("tests returns AAD Authority instance", function() {
-        authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
-
-        expect(authority).to.be.instanceOf(Authority);
-    });
-
-    it("tests returns B2C Authority instance when knownAuthorities set", function() {
-        AuthorityFactory.setKnownAuthorities(true, TEST_CONFIG.knownAuthorities, stubbedTelemetryManager)
-        
-        authority = AuthorityFactory.CreateInstance(B2C_TEST_CONFIG.validAuthority, false);
-
-        expect(authority).to.be.instanceOf(Authority);
-    });
-
-    it("Sets TrustedHostList with Known Authorities", () => {
-        AuthorityFactory.setKnownAuthorities(true, TEST_CONFIG.knownAuthorities, stubbedTelemetryManager)
-
-        expect(stubbedHostList).to.include("fabrikamb2c.b2clogin.com");
-        expect(stubbedHostList).to.include("login.microsoftonline.com");
-        expect(stubbedHostList).to.include("login.windows.net");
-        expect(stubbedHostList).to.have.length(3);
-    });
-
-    it("Do not add additional authorities to trusted host list if it has already been populated", () => {
-        AuthorityFactory.setKnownAuthorities(true, TEST_CONFIG.knownAuthorities, stubbedTelemetryManager)
-        AuthorityFactory.setKnownAuthorities(true, ["contoso.b2clogin.com"], stubbedTelemetryManager)
-
-        expect(stubbedHostList).to.include("fabrikamb2c.b2clogin.com");
-        expect(stubbedHostList).to.include("login.microsoftonline.com");
-        expect(stubbedHostList).to.include("login.windows.net");
-        expect(stubbedHostList).not.to.include("contoso.b2clogin.com")
-        expect(stubbedHostList).to.have.length(3);
+            TEST_CONFIG.knownAuthorities.forEach(function(authority) {
+                expect(AuthorityFactory.IsInTrustedHostList(authority)).to.be.true;
+            });
+        });
+    
+        it("Do not add additional authorities to trusted host list if it has already been populated", async () => {
+            sinon.stub(AuthorityFactory, "getTrustedHostList").returns(["login.microsoftonline.com"]);
+            AuthorityFactory.setTrustedAuthoritiesFromConfig(true, ["contoso.b2clogin.com"]);
+    
+            expect(AuthorityFactory.IsInTrustedHostList("contoso.b2clogin.com")).to.be.false;
+        });
     });
 
     describe("saveMetadataFromConfig", () => {

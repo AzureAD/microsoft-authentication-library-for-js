@@ -3,18 +3,19 @@ import ApiEvent, {
     API_CODE,
     EVENT_KEYS
 } from "../../src/telemetry/ApiEvent";
-import { Logger, Authority } from "../../src";
+import { Logger } from "../../src";
 import { expect } from "chai";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "../../src/telemetry/TelemetryConstants";
 import { hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
 import sinon from "sinon";
+import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { TEST_CONFIG } from "../TestConstants";
 
 describe("ApiEvent", () => {
     before(function() {
         // Ensure TrustedHostList is set
-        sinon.stub(Authority, "TrustedHostList").get(function() {return TEST_CONFIG.knownAuthorities});
+        sinon.stub(AuthorityFactory, "IsInTrustedHostList").returns(true);
     });
 
     after(function() {

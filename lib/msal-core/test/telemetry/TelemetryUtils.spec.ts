@@ -2,14 +2,14 @@ import { expect } from "chai";
 import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix, supportsBrowserPerformance, startBrowserPerformanceMeasurement, endBrowserPerformanceMeasurement } from "../../src/telemetry/TelemetryUtils";
 import { EVENT_NAME_PREFIX } from "../../src/telemetry/TelemetryConstants";
 import { spy } from "sinon";
-import { Authority } from "../../src/authority/Authority";
 import sinon from "sinon";
 import { TEST_CONFIG } from "../TestConstants";
+import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 
 describe("TelemetryUtils", () => {
     before(function() {
         // Ensure TrustedHostList is set
-        sinon.stub(Authority, "TrustedHostList").get(function() {return TEST_CONFIG.knownAuthorities});
+        sinon.stub(AuthorityFactory, "getTrustedHostList").callsFake(function() {return TEST_CONFIG.knownAuthorities});
     });
 
     after(function() {
