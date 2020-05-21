@@ -496,7 +496,7 @@ export class UserAgentApplication {
 
         acquireTokenAuthority.resolveEndpointsAsync(this.telemetryManager, request.correlationId).then(async () => {
             // On Fulfillment
-            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
+            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes);
             const loginStartPage = request.redirectStartPage || window.location.href;
 
             serverAuthenticationRequest = new ServerRequestParameters(
@@ -664,7 +664,7 @@ export class UserAgentApplication {
             }
 
             // set the response type based on the current cache status / scopes set
-            const responseType = this.getTokenType(account, request.scopes, true);
+            const responseType = this.getTokenType(account, request.scopes);
             this.logger.verbose(`Response type: ${responseType}`);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
@@ -1853,7 +1853,7 @@ export class UserAgentApplication {
 
         // Construct AuthenticationRequest based on response type; set "redirectUri" from the "request" which makes this call from Angular - for this.getRedirectUri()
         const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
-        const responseType = this.getTokenType(accountObject, scopes, true);
+        const responseType = this.getTokenType(accountObject, scopes);
 
         const serverAuthenticationRequest = new ServerRequestParameters(
             newAuthority,
@@ -2039,42 +2039,22 @@ export class UserAgentApplication {
      * Utils function to create the Authentication
      * @param {@link account} account object
      * @param scopes
-     * @param silentCall
      *
-     * @returns {string} token type: id_token or access_token
+     * @returns {string} token type: token, id_token or id_token token
      *
      */
-    private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
-        /*
-         * if account is passed and matches the account object/or set to getAccount() from cache
-         * if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
+    private getTokenType(accountObject: Account, scopes: string[]): string {
+        // Returns response type "token" if request has no login scopes and the account passed matches the current account object
+        if (!ScopeSet.isLoginScopes(scopes, this.clientId) && Account.compareAccounts(accountObject, this.getAccount())) {
+            return ResponseTypes.token;
+        }
+
+        /**
+         * Returns response type "id_token token" if both login scopes and access token scopes are present
+         * Returns response type "id_token" if only login scopes are present
          */
-        let tokenType: string;
-
-        // acquireTokenSilent
-        if (silentCall) {
-            if (Account.compareAccounts(accountObject, this.getAccount())) {
-                const idTokenRequested = scopes.indexOf(this.config.auth.clientId) > -1 || scopes.indexOf("openid") > -1; // maybe add profile
-                tokenType = (idTokenRequested) ? ResponseTypes.id_token : ResponseTypes.token;
-            }
-            else {
-                tokenType  = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
-            }
-
-            return tokenType;
-        }
-        // all other cases
-        else {
-            if (!Account.compareAccounts(accountObject, this.getAccount())) {
-                tokenType = ResponseTypes.id_token_token;
-            }
-            else {
-                tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
-            }
-
-            return tokenType;
-        }
-
+        const loginScopes = ScopeSet.generateLoginScopes(scopes, this.clientId);
+        return (loginScopes.length > 2) ? ResponseTypes.id_token_token : ResponseTypes.id_token;
     }
 
     /**
