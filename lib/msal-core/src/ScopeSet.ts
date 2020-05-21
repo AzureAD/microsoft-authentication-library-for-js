@@ -80,7 +80,7 @@ export class ScopeSet {
      * @ignore
      */
     static validateInputScope(scopes: Array<string>): void {
-        // Check if scopes are empty or null
+        // Check if scopes are null or undefined
         if (!scopes) {
             throw ClientConfigurationError.createScopesRequiredError(scopes);
         }
@@ -90,7 +90,7 @@ export class ScopeSet {
             throw ClientConfigurationError.createScopesNonArrayError(scopes);
         }
 
-        // Check that scopes is not an empty array
+        // Check if scopes is an empty array
         if (scopes.length < 1) {
             throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
         }
