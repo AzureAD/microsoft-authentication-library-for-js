@@ -84,7 +84,7 @@ describe("ServerCodeRequestParameters.ts Class Unit Tests", () => {
                 false
             );
             loginRequest.scopes.push(Constants.OFFLINE_ACCESS_SCOPE);
-            expect(codeRequestParams.xClientVer).to.be.eq("1.0.0-beta.1");
+            expect(codeRequestParams.xClientVer).to.be.eq("1.0.0-beta.2");
             expect(codeRequestParams.xClientSku).to.be.eq(Constants.LIBRARY_NAME);
             expect(codeRequestParams.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
             expect(codeRequestParams.scopes.asArray()).to.be.deep.eq(loginRequest.scopes);

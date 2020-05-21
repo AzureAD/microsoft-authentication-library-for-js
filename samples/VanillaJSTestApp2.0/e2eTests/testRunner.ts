@@ -22,18 +22,6 @@ const sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(fu
 
 // console.log(sampleFolders);
 
-//initialize express.
-const app = express();
-
-// Initialize variables.
-let port = DEFAULT_PORT; // 30662;
-
-// Configure morgan module to log all requests.
-app.use(morgan('dev'));
-
-// Set the front-end folder to serve public assets.
-app.use("/lib", express.static(path.join(PARENT_DIR, "../../lib/msal-browser/lib")));
-
 // Clear require cache and create new mocha object to run new set of tests
 function createMochaObject(sampleName: string) {
     // Required to allow mocha to run multiple times
@@ -57,6 +45,18 @@ function createMochaObject(sampleName: string) {
 
 // Recursive test runner for each sample
 function runMochaTests(sampleIndex: number) {
+    //initialize express.
+    const app = express();
+
+    // Initialize variables.
+    let port = DEFAULT_PORT; // 30662;
+
+    // Configure morgan module to log all requests.
+    app.use(morgan('dev'));
+
+    // Set the front-end folder to serve public assets.
+    app.use("/lib", express.static(path.join(PARENT_DIR, "../../lib/msal-browser/lib")));
+    
     let sampleName = sampleFolders[sampleIndex];
     const mocha = createMochaObject(sampleName);
     app.use(express.static(`${APP_DIR}/${sampleName}`));

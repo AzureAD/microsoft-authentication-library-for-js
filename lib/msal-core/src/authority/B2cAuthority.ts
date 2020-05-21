@@ -6,6 +6,7 @@
 import { Authority } from "./Authority";
 import { AuthorityType } from "./Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import TelemetryManager from "../telemetry/TelemetryManager";
 
 export const B2CTrustedHostList: object = {};
 
@@ -25,7 +26,7 @@ export class B2cAuthority extends Authority {
     /**
      * Returns a promise with the TenantDiscoveryEndpoint
      */
-    public async GetOpenIdConfigurationEndpointAsync(): Promise<string> {
+    public async GetOpenIdConfigurationEndpointAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<string> {
         if (!this.IsValidationEnabled || this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
             return this.DefaultOpenIdConfigurationEndpoint;
         }

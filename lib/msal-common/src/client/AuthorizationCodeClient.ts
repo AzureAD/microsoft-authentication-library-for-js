@@ -38,21 +38,20 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
 
-        const authority: Authority = await this.createAuthority(request && request.authority);
         const queryString = this.createAuthCodeUrlQueryString(request);
-        return `${authority.authorizationEndpoint}?${queryString}`;
+        return `${this.defaultAuthority.authorizationEndpoint}?${queryString}`;
     }
 
     /**
-     * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the authorization_code_grant
+     * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the
+     * authorization_code_grant
      * @param request
      */
     async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
 
         this.logger.info("in acquireToken call");
 
-        const authority: Authority = await this.createAuthority(request && request.authority);
-        const response = await this.executeTokenRequest(authority, request);
+        const response = await this.executeTokenRequest(this.defaultAuthority, request);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -64,7 +63,7 @@ export class AuthorizationCodeClient extends BaseClient {
         responseHandler.validateTokenResponse(response.body);
         const tokenResponse = await responseHandler.generateAuthenticationResult(
             response.body,
-            authority
+            this.defaultAuthority
         );
 
         // set the final cache and return the auth response
@@ -77,7 +76,8 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest)
+        : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = this.createTokenRequestBody(request);
         const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
@@ -89,7 +89,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private createTokenRequestBody(request: AuthorizationCodeRequest) : string {
+    private createTokenRequestBody(request: AuthorizationCodeRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -175,7 +175,7 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addNonce(request.nonce);
         }
 
-        if(request.claims) {
+        if (request.claims) {
             parameterBuilder.addClaims(request.claims);
         }
 
