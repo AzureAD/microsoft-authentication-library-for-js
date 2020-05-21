@@ -121,7 +121,7 @@ export class AuthorityFactory {
 
         const host = UrlUtils.GetUrlComponents(authorityUrl).HostNameAndPort;
         if (validateAuthority && !this.IsInTrustedHostList(host)) {
-            throw ClientConfigurationError.createUntrustedAuthorityError();
+            throw ClientConfigurationError.createUntrustedAuthorityError(host);
         }
 
         return new Authority(authorityUrl, this.metadataMap.get(authorityUrl));
