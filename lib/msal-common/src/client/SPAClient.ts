@@ -26,6 +26,8 @@ import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 import { Account } from "../account/Account";
 import { buildClientInfo } from "../account/ClientInfo";
+import { B2cAuthority } from "../authority/B2cAuthority";
+import { AuthorizationUrlRequest } from '../request/AuthorizationUrlRequest';
 
 /**
  * SPAClient class
@@ -38,6 +40,8 @@ export class SPAClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
         // Implement base module
         super(configuration);
+
+        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
     }
 
     /**
@@ -87,6 +91,7 @@ export class SPAClient extends BaseClient {
             );
 
             // Check for SSO.
+            // TODO: Port this code to browser
             let adalIdToken: IdToken = null;
             if (!requestParameters.hasSSOParam()) {
                 // Only check for adal token if no SSO params are being used
@@ -98,7 +103,7 @@ export class SPAClient extends BaseClient {
             }
 
             // Update required cache entries for request.
-            this.spaCacheManager.updateCacheEntries(requestParameters, request.account);
+            this.spaCacheManager.updateCacheEntries(requestParameters);
 
             // Populate query parameters (sid/login_hint/domain_hint) and any other extraQueryParameters set by the developer.
             requestParameters.populateQueryParams(adalIdToken);

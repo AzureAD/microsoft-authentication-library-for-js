@@ -80,7 +80,7 @@ export class CacheHelpers {
      * @param serverAuthenticationRequest
      * @param account
      */
-    updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account: Account): void {
+    updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account?: Account): void {
         // Cache account and state
         if (account) {
             this.setAccountCache(account);
