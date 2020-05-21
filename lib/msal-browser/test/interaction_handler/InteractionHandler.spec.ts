@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, CodeResponse, Account, TokenResponse } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, CodeResponse, Account, TokenResponse, InMemoryCache } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, RANDOM_TEST_GUID, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
@@ -15,11 +15,11 @@ class TestInteractionHandler extends InteractionHandler {
 
     showUI(requestUrl: string): Window {
         throw new Error("Method not implemented.");
-    }    
-    
+    }
+
     initiateAuthRequest(requestUrl: string): Window | Promise<HTMLIFrameElement> {
         throw new Error("Method not implemented.");
-    }  
+    }
 }
 
 const clearFunc = (): void => {
@@ -77,6 +77,18 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 }
             },
             storageInterface: {
+                getCache: (): InMemoryCache => {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache: (): void => {
+                    // dummy impl;
+                },
                 clear: clearFunc,
                 containsKey: (key: string): boolean => {
                     return true;

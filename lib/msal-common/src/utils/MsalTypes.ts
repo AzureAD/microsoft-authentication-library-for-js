@@ -6,4 +6,4 @@
 /**
  * Key-Value type to support queryParams, extraQueryParams and claims
  */
-export type StringDict = {[key: string]: string};
+export type StringDict = { [key: string]: string };

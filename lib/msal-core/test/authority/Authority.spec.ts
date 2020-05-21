@@ -4,6 +4,7 @@ import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigura
 import { TEST_CONFIG } from "../TestConstants";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig } from "../../src/telemetry/TelemetryTypes";
+import { Logger } from "../../src";
 
 const stubbedTelemetryConfig: TelemetryConfig = {
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -13,7 +14,7 @@ const stubbedTelemetryConfig: TelemetryConfig = {
     }
 };
 
-const stubbedTelemetryManager = new TelemetryManager(stubbedTelemetryConfig, () => {});
+const stubbedTelemetryManager = new TelemetryManager(stubbedTelemetryConfig, () => {}, new Logger(() => {}));
 
 class testAuthority extends Authority{
     public constructor(authority: string, validateAuthority: boolean) {

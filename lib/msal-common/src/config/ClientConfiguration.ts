@@ -10,6 +10,7 @@ import { AuthError } from "../error/AuthError";
 import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
+import { InMemoryCache } from "../unifiedCache/utils/CacheTypes";
 import { Authority } from "../authority/Authority";
 
 // Token renewal offset default in seconds
@@ -134,6 +135,14 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
     },
     setItem: () => {
         const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    getCache: (): InMemoryCache => {
+        const notImplErr = "Storage interface - getCache() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    setCache: () => {
+        const notImplErr = "Storage interface - setCache() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };
