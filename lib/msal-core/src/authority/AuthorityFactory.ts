@@ -13,9 +13,11 @@ import { ITenantDiscoveryResponse, OpenIdConfiguration } from "./ITenantDiscover
 import TelemetryManager from "../telemetry/TelemetryManager";
 import { XhrClient, XhrResponse } from "../XHRClient";
 import HttpEvent from "../telemetry/HttpEvent";
+import { UrlUtils } from '../utils/UrlUtils';
 
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
+    private static TrustedHostList: Array<string> = [];
 
     public static async saveMetadataFromNetwork(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         const metadata = await authorityInstance.resolveEndpointsAsync(telemetryManager, correlationId);
@@ -51,12 +53,12 @@ export class AuthorityFactory {
      * Use when validateAuthority is set to True to provide list of allowed domains.
      */
     public static async setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>, telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
-        if (validateAuthority && !Authority.TrustedHostList.length){
+        if (validateAuthority && !this.TrustedHostList.length){
             knownAuthorities.forEach(function(authority){
-                Authority.TrustedHostList.push(authority);
+                this.TrustedHostList.push(authority.toLowerCase());
             });
 
-            if (!Authority.TrustedHostList.length){
+            if (!this.TrustedHostList.length){
                 await this.setTrustedAuthoritiesFromNetwork(telemetryManager, correlationId);
             }
         }
@@ -85,10 +87,18 @@ export class AuthorityFactory {
         metadata.forEach(function(entry: any){
             const authorities: Array<string> = entry.aliases;
             authorities.forEach(function(authority: string) {
-                Authority.TrustedHostList.push(authority);
+                this.TrustedHostList.push(authority.toLowerCase());
             });
         });
     } 
+
+    /**
+     * Checks to see if the host is in a list of trusted hosts
+     * @param {string} The host to look up
+     */
+    public static IsInTrustedHostList(host: string): boolean {
+        return this.TrustedHostList.indexOf(host.toLowerCase()) > -1;
+    }
 
     /**
      * Create an authority object of the correct type based on the url
@@ -104,6 +114,11 @@ export class AuthorityFactory {
             this.saveMetadataFromConfig(authorityUrl, authorityMetadata);
         }
 
-        return new Authority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
+        const host = UrlUtils.GetUrlComponents(authorityUrl).HostNameAndPort;
+        if (validateAuthority && !this.IsInTrustedHostList(host)) {
+            throw ClientConfigurationError.createUntrustedAuthorityError();
+        }
+
+        return new Authority(authorityUrl, this.metadataMap.get(authorityUrl));
     }
 }

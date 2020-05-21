@@ -5,7 +5,7 @@
 
 import { IUri } from "../IUri";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
-import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
 import { XhrClient, XhrResponse } from "../XHRClient";
 import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
@@ -25,17 +25,12 @@ export enum AuthorityType {
  * @hidden
  */
 export class Authority {
-    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
-        this.IsValidationEnabled = validateAuthority;
+    constructor(authority: string, authorityMetadata?: ITenantDiscoveryResponse) {
         this.CanonicalAuthority = authority;
 
         this.validateAsUri();
         this.tenantDiscoveryResponse = authorityMetadata;
     }
-
-    public IsValidationEnabled: boolean;
-
-    public static TrustedHostList: Array<string> = [];
 
     public get Tenant(): string {
         return this.CanonicalAuthorityUrlComponents.PathSegments[0];
@@ -170,18 +165,6 @@ export class Authority {
      * Only responds with the endpoint
      */
     public GetOpenIdConfigurationEndpoint(): string {
-        if (!this.IsValidationEnabled || this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
-            return this.DefaultOpenIdConfigurationEndpoint;
-        }
-
-        throw ClientConfigurationError.createUntrustedAuthorityError();
-    }
-
-    /**
-     * Checks to see if the host is in a list of trusted hosts
-     * @param {string} The host to look up
-     */
-    private IsInTrustedHostList(host: string): boolean {
-        return Authority.TrustedHostList.indexOf(host.toLowerCase()) > -1;
+        return this.DefaultOpenIdConfigurationEndpoint;
     }
 }
