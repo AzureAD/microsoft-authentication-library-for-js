@@ -6,10 +6,11 @@ import {
     LoggerOptions,
     INetworkModule,
     LogLevel,
+    InMemoryCache,
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
 import { CACHE } from '../utils/Constants';
-import debug from "debug";
+import debug from 'debug';
 
 /**
  * - clientId               - Client id of the application.
@@ -20,7 +21,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     knownAuthorities?: Array<string>;
-}
+};
 
 /**
  * Use this to configure the below cache configuration options:
@@ -32,6 +33,7 @@ export type NodeAuthOptions = {
 export type CacheOptions = {
     cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
+    cacheInMemory?: InMemoryCache;
 };
 
 /**
@@ -61,17 +63,28 @@ export type Configuration = {
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
     authority: '',
-    knownAuthorities: []
+    knownAuthorities: [],
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     cacheLocation: CACHE.FILE_CACHE,
     storeAuthStateInCookie: false,
+    cacheInMemory: {
+        accounts: {},
+        idTokens: {},
+        accessTokens: {},
+        refreshTokens: {},
+        appMetadata: {},
+    },
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
-    loggerCallback: (level: LogLevel, message: string, containsPii: boolean) => {
-        debug(`msal:${LogLevel[level]}${containsPii ? "-Pii": ""}`)(message);
+    loggerCallback: (
+        level: LogLevel,
+        message: string,
+        containsPii: boolean
+    ) => {
+        debug(`msal:${LogLevel[level]}${containsPii ? '-Pii' : ''}`)(message);
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,

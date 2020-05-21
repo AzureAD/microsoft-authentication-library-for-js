@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { AADServerParamKeys, Constants, Prompt, ResponseMode, SSOTypes } from "../utils/Constants";
+import { AADServerParamKeys, Constants, Prompt, ResponseMode, SSOTypes, ClientInfo } from "../utils/Constants";
 import { ScopeSet } from "../request/ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
@@ -184,6 +184,14 @@ export class RequestParameterBuilder {
      */
     addGrantType(grantType: string): void {
         this.parameters.set(AADServerParamKeys.GRANT_TYPE, encodeURIComponent(grantType));
+    }
+
+    /**
+     * add client info
+     *
+     */
+    addClientInfo(): void {
+        this.parameters.set(ClientInfo, "1");
     }
 
     /**

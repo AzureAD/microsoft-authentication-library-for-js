@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys } from "@azure/msal-common";
+import { ICacheStorage, Constants, PersistentCacheKeys, TemporaryCacheKeys, InMemoryCache } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -250,5 +250,25 @@ export class BrowserStorage implements ICacheStorage {
         const today = new Date();
         const expr = new Date(today.getTime() + cookieLifeDays * COOKIE_LIFE_MULTIPLIER);
         return expr.toUTCString();
+    }
+
+    /**
+     * Dummy implementation until browser cache is migrated
+     */
+    getCache(): InMemoryCache {
+        return {
+            accounts: {},
+            idTokens: {},
+            accessTokens: {},
+            refreshTokens: {},
+            appMetadata: {}
+        };
+    }
+
+    /**
+     * Dummy implementation until browser cache is migrated
+     */
+    setCache() {
+        // sets nothing
     }
 }
