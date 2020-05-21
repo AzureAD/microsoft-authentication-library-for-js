@@ -1,16 +1,18 @@
-import {buildAppConfiguration, Configuration} from "../../src/config/Configuration";
-import {CACHE} from "../../src/utils/Constants";
-import {HttpClient} from "../../src/network/HttpClient";
-import {TEST_CONSTANTS} from "../utils/TestConstants";
-import {LogLevel, NetworkRequestOptions} from "@azure/msal-common";
+import {
+    buildAppConfiguration,
+    Configuration,
+} from '../../src/config/Configuration';
+import { CACHE } from '../../src/utils/Constants';
+import { HttpClient } from '../../src/network/HttpClient';
+import { TEST_CONSTANTS } from '../utils/TestConstants';
+import { LogLevel, NetworkRequestOptions } from '@azure/msal-common';
 
 describe('ClientConfiguration tests', () => {
     test('builds configuration and assigns default functions', () => {
-
         const config: Configuration = buildAppConfiguration({
             auth: {
-                clientId: TEST_CONSTANTS.CLIENT_ID
-            }
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+            },
         });
 
         // network options
@@ -63,7 +65,7 @@ describe('ClientConfiguration tests', () => {
         // expect(console.warn).toHaveBeenCalledTimes(1);
 
         // auth options
-        expect(config.auth!.authority).toEqual("");
+        expect(config.auth!.authority).toEqual('');
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
 
         // cache options

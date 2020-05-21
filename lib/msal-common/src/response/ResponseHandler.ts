@@ -2,25 +2,29 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { IdToken } from "../account/IdToken";
-import { CacheHelpers } from "../cache/CacheHelpers";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { ScopeSet } from "../request/ScopeSet";
 import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
 import { Account } from "../account/Account";
 import { ProtocolUtils, LibraryStateObject } from "../utils/ProtocolUtils";
 import { ICrypto } from "../crypto/ICrypto";
-import { ICacheStorage } from "../cache/ICacheStorage";
-import { TokenResponse } from "./TokenResponse";
-import { PersistentCacheKeys, TemporaryCacheKeys } from "../utils/Constants";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
-import { CodeResponse } from "./CodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
+import { IdToken } from "../account/IdToken";
+import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
+import { ScopeSet } from "../request/ScopeSet";
+import { TimeUtils } from "../utils/TimeUtils";
+import { AuthenticationResult } from "./AuthenticationResult";
+import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { Authority } from "../authority/Authority";
+import { AuthorityType } from "../authority/AuthorityType";
+import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
+import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 
 /**
@@ -28,74 +32,17 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
  */
 export class ResponseHandler {
     private clientId: string;
-    private cacheStorage: ICacheStorage;
-    private cacheManager: CacheHelpers;
+    private uCacheManager: UnifiedCacheManager;
     private cryptoObj: ICrypto;
     private logger: Logger;
+    private clientInfo: ClientInfo;
+    private homeAccountIdentifier: string;
 
-    constructor(clientId: string, cacheStorage: ICacheStorage, cacheManager: CacheHelpers, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, unifiedCacheManager: UnifiedCacheManager, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
-        this.cacheStorage = cacheStorage;
-        this.cacheManager = cacheManager;
+        this.uCacheManager = unifiedCacheManager;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
-    }
-
-    /**
-     * Returns a new response with the data from original response filled with the relevant IdToken data.
-     * - raw id token
-     * - id token claims
-     * - unique id (oid or sub claim of token)
-     * - tenant id (tid claim of token)
-     * @param originalResponse
-     * @param idTokenObj
-     */
-    static setResponseIdToken(originalResponse: TokenResponse, idTokenObj: IdToken) : TokenResponse {
-        if (!originalResponse) {
-            return null;
-        } else if (!idTokenObj) {
-            return originalResponse;
-        }
-
-        const expiresSeconds = Number(idTokenObj.claims.exp);
-        if (expiresSeconds && !originalResponse.expiresOn) {
-            originalResponse.expiresOn = new Date(expiresSeconds * 1000);
-        }
-
-        return {
-            ...originalResponse,
-            idToken: idTokenObj.rawIdToken,
-            idTokenClaims: idTokenObj.claims,
-            uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
-            tenantId: idTokenObj.claims.tid,
-        };
-    }
-
-    /**
-     * Validates and handles a response from the server, and returns a constructed object with the authorization code and state.
-     * @param serverParams
-     */
-    public handleServerCodeResponse(serverParams: ServerAuthorizationCodeResponse): CodeResponse {
-        try {
-            // Validate hash fragment response parameters
-            this.validateServerAuthorizationCodeResponse(serverParams, this.cacheStorage.getItem(TemporaryCacheKeys.REQUEST_STATE), this.cryptoObj);
-
-            // Cache client info
-            if (serverParams.client_info) {
-                this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, serverParams.client_info);
-            }
-
-            // Create response object
-            const response: CodeResponse = {
-                code: serverParams.code,
-                userRequestState: serverParams.state
-            };
-
-            return response;
-        } catch(e) {
-            this.cacheManager.resetTempCacheItems(serverParams && serverParams.state);
-            throw e;
-        }
     }
 
     /**
@@ -104,7 +51,11 @@ export class ResponseHandler {
      * @param cachedState
      * @param cryptoObj
      */
-    private validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
+    validateServerAuthorizationCodeResponse(
+        serverResponseHash: ServerAuthorizationCodeResponse,
+        cachedState: string,
+        cryptoObj: ICrypto
+    ): void {
         if (serverResponseHash.state !== cachedState) {
             throw ClientAuthError.createStateMismatchError();
         }
@@ -127,7 +78,9 @@ export class ResponseHandler {
      * Function which validates server authorization token response.
      * @param serverResponse
      */
-    public validateServerAuthorizationTokenResponse(serverResponse: ServerAuthorizationTokenResponse): void {
+    validateTokenResponse(
+        serverResponse: ServerAuthorizationTokenResponse
+    ): void {
         // Check for error
         if (serverResponse.error || serverResponse.error_description || serverResponse.suberror) {
             if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponse.error, serverResponse.error_description, serverResponse.suberror)) {
@@ -137,85 +90,13 @@ export class ResponseHandler {
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
             throw new ServerError(serverResponse.error, errString);
         }
-    }
 
-    /**
-     * Helper function which saves or updates the token in the cache and constructs the final token response to send back to the user.
-     * @param originalTokenResponse
-     * @param authority
-     * @param resource
-     * @param serverTokenResponse
-     * @param clientInfo
-     */
-    private saveToken(originalTokenResponse: TokenResponse, authority: string, resource: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo, libraryRequestState: LibraryStateObject): TokenResponse {
-        // Set consented scopes in response
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
-        const responseScopeArray = responseScopes.asArray();
-
-        // Expiration calculation
-        const expiresIn = serverTokenResponse.expires_in;
-        const expirationSec = libraryRequestState.ts + expiresIn;
-        const extendedExpirationSec = expirationSec + serverTokenResponse.ext_expires_in;
-
-        // Get id token
-        if (!StringUtils.isEmpty(originalTokenResponse.idToken)) {
-            this.cacheStorage.setItem(PersistentCacheKeys.ID_TOKEN, originalTokenResponse.idToken);
-        }
-
-        // Save access token in cache
-        const newAccessTokenValue = new AccessTokenValue(serverTokenResponse.token_type, serverTokenResponse.access_token, originalTokenResponse.idToken, serverTokenResponse.refresh_token, expirationSec.toString(), extendedExpirationSec.toString());
-        const homeAccountIdentifier = originalTokenResponse.account && originalTokenResponse.account.homeAccountIdentifier;
-        const accessTokenCacheItems = this.cacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
-
-        // If no items in cache with these parameters, set new item.
-        if (accessTokenCacheItems.length < 1) {
-            this.logger.info("No tokens found, creating new item.");
-        } else {
-            // Check if scopes are intersecting. If they are, combine scopes and replace cache item.
-            accessTokenCacheItems.forEach(accessTokenCacheItem => {
-                const cachedScopes = ScopeSet.fromString(accessTokenCacheItem.key.scopes, this.clientId, true);
-                if(cachedScopes.intersectingScopeSets(responseScopes)) {
-                    this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
-                    responseScopes.appendScopes(cachedScopes.asArray());
-                    if (StringUtils.isEmpty(newAccessTokenValue.idToken)) {
-                        newAccessTokenValue.idToken = accessTokenCacheItem.value.idToken;
-                    }
-                }
-            });
-        }
-
-        const newTokenKey = new AccessTokenKey(
-            authority, 
-            this.clientId, 
-            responseScopes.printScopes(), 
-            resource, 
-            clientInfo && clientInfo.uid, 
-            clientInfo && clientInfo.utid, 
-            this.cryptoObj
-        );
-        this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));
-
-        // Save tokens in response and return
-        return {
-            ...originalTokenResponse,
-            tokenType: serverTokenResponse.token_type,
-            scopes: responseScopeArray,
-            accessToken: serverTokenResponse.access_token,
-            refreshToken: serverTokenResponse.refresh_token,
-            expiresOn: new Date(expirationSec * 1000)
-        };
-    }
-
-    /**
-     * Gets account cached with given key. Returns null if parsing could not be completed.
-     * @param accountKey
-     */
-    private getCachedAccount(accountKey: string): Account {
-        try {
-            return JSON.parse(this.cacheStorage.getItem(accountKey)) as Account;
-        } catch (e) {
-            this.logger.warning(`Account could not be parsed: ${JSON.stringify(e)}`);
-            return null;
+        // generate homeAccountId
+        if (serverResponse.client_info) {
+            this.clientInfo = buildClientInfo(serverResponse.client_info, this.cryptoObj);
+            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
+                this.homeAccountIdentifier = this.cryptoObj.base64Encode(this.clientInfo.uid) + "." + this.cryptoObj.base64Encode(this.clientInfo.utid);
+            }
         }
     }
 
@@ -226,77 +107,137 @@ export class ResponseHandler {
      * @param resource
      * @param state
      */
-    public createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authorityString: string, resource: string, state?: string): TokenResponse {
-        let tokenResponse: TokenResponse = {
+    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
+        // Retrieve current account if in Cache
+        // TODO: add this once the req for cache look up for tokens is confirmed
+
+        const authenticationResult = this.processTokenResponse(serverTokenResponse, authority);
+
+        const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        this.addCredentialsToCache(authenticationResult, environment, serverTokenResponse.refresh_token);
+
+        return authenticationResult;
+    }
+
+    /**
+     * Returns a new AuthenticationResult with the data from original result filled with the relevant data.
+     * @param authenticationResult
+     * @param idTokenString(raw idToken in the server response)
+     */
+    processTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
+        const authenticationResult: AuthenticationResult = {
             uniqueId: "",
             tenantId: "",
             tokenType: "",
             idToken: null,
             idTokenClaims: null,
             accessToken: "",
-            refreshToken: "",
             scopes: [],
             expiresOn: null,
-            account: null,
-            userRequestState: ""
+            familyId: null
         };
 
-        // Retrieve current id token object
-        let idTokenObj: IdToken;
-        const cachedIdToken: string = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
-        if (serverTokenResponse.id_token) {
-            idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
-            tokenResponse = ResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
+        // IdToken
+        const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
-            // If state is empty, refresh token is being used
-            if (!StringUtils.isEmpty(state)) {
-                this.logger.info("State was detected - nonce should be available.");
-                // check nonce integrity if refresh token is not used - throw an error if not matched
-                if (StringUtils.isEmpty(idTokenObj.claims.nonce)) {
-                    throw ClientAuthError.createInvalidIdTokenError(idTokenObj);
-                }
+        // if account is not in cache, append it to the cache
+        this.addAccountToCache(serverTokenResponse, idTokenObj, authority);
 
-                const nonce = this.cacheStorage.getItem(this.cacheManager.generateNonceKey(state));
-                if (idTokenObj.claims.nonce !== nonce) {
-                    throw ClientAuthError.createNonceMismatchError();
-                }
-            }
-        } else if (cachedIdToken) {
-            idTokenObj = new IdToken(cachedIdToken, this.cryptoObj);
-            tokenResponse = ResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
-        } else {
-            idTokenObj = null;
+        // TODO: Check how this changes for auth code response
+        const expiresSeconds = Number(idTokenObj.claims.exp);
+        if (expiresSeconds && !authenticationResult.expiresOn) {
+            authenticationResult.expiresOn = new Date(expiresSeconds * 1000);
         }
 
-        let clientInfo: ClientInfo = null;
-        let cachedAccount: Account = null;
-        if (idTokenObj) {
-            // Retrieve client info
-            clientInfo = buildClientInfo(this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO), this.cryptoObj);
+        // Expiration calculation
+        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
+        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
+        // Set consented scopes in response
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
 
-            // Create account object for request
-            tokenResponse.account = Account.createAccount(idTokenObj, clientInfo, this.cryptoObj);
+        return {
+            ...authenticationResult,
+            uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
+            tenantId: idTokenObj.claims.tid,
+            idToken: idTokenObj.rawIdToken,
+            idTokenClaims: idTokenObj.claims,
+            accessToken: serverTokenResponse.access_token,
+            expiresOn: new Date(expiresInSeconds),
+            extExpiresOn: new Date(extendedExpiresInSeconds),
+            scopes: responseScopes.asArray(),
+            familyId: serverTokenResponse.foci,
+        };
+    }
 
-            // Save the access token if it exists
-            const accountKey = this.cacheManager.generateAcquireTokenAccountKey(tokenResponse.account.homeAccountIdentifier);
-
-            // Get cached account
-            cachedAccount = this.getCachedAccount(accountKey);
+    /**
+     * if Account is not in the cache, generateAccount and append it to the cache
+     * @param serverTokenResponse
+     * @param idToken
+     * @param authority
+     */
+    addAccountToCache(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): void {
+        const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        let accountEntity: AccountEntity;
+        const cachedAccount: AccountEntity = this.uCacheManager.getAccount(this.homeAccountIdentifier, environment, idToken.claims.tid);
+        if (!cachedAccount) {
+            accountEntity = this.generateAccountEntity(serverTokenResponse, idToken, authority);
+            this.uCacheManager.addAccountEntity(accountEntity);
         }
+    }
 
-        // Get the state object
-        const stateObject = ProtocolUtils.parseRequestState(state, this.cryptoObj);
+    /**
+     * Generate Account
+     * @param serverTokenResponse
+     * @param idToken
+     * @param authority
+     */
+    generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
+        const authorityType = authority.authorityType;
 
-        // Return user set state in the response
-        tokenResponse.userRequestState = stateObject.userRequestState;
+        if (!serverTokenResponse.client_info)
+            throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
 
-        this.cacheManager.resetTempCacheItems(state);
-        if (!cachedAccount || !tokenResponse.account || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
-            return this.saveToken(tokenResponse, authorityString, resource, serverTokenResponse, clientInfo, stateObject.libraryState);
-        } else {
-            this.logger.error("Accounts do not match.");
-            this.logger.errorPii(`Cached Account: ${JSON.stringify(cachedAccount)}, New Account: ${JSON.stringify(tokenResponse.account)}`);
-            throw ClientAuthError.createAccountMismatchError();
+        switch (authorityType) {
+            case AuthorityType.B2C:
+                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, "policy", this.cryptoObj);
+            case AuthorityType.Adfs:
+                return AccountEntity.createADFSAccount(authority, idToken);
+            // default to AAD
+            default:
+                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, null, this.cryptoObj);
         }
+    }
+
+    /**
+     * Appends the minted tokens to the in-memory cache
+     * @param authenticationResult
+     * @param authority
+     */
+    addCredentialsToCache(
+        authenticationResult: AuthenticationResult,
+        authority: string,
+        refreshToken: string
+    ): void {
+        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            this.homeAccountIdentifier,
+            authenticationResult,
+            this.clientId,
+            authority
+        );
+        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            this.homeAccountIdentifier,
+            authenticationResult,
+            this.clientId,
+            authority
+        );
+        const refreshTokenEntity = RefreshTokenEntity.createRefreshTokenEntity(
+            this.homeAccountIdentifier,
+            authenticationResult,
+            refreshToken,
+            this.clientId,
+            authority
+        );
+
+        this.uCacheManager.addCredentialCache(accessTokenEntity, idTokenEntity, refreshTokenEntity);
     }
 }

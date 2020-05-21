@@ -32,6 +32,7 @@ import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerError } from "../../src/error/ServerError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { LibraryStateObject } from "../../src/utils/ProtocolUtils";
+import { InMemoryCache } from "../../src/unifiedCache/utils/CacheTypes";
 
 describe("SPAClient.ts Class Unit Tests", () => {
 
@@ -60,9 +61,21 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient),
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
-                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
             },
             storageInterface: {
+                getCache(): InMemoryCache {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache(): void {
+                    // do nothing
+                },
                 setItem(key: string, value: string): void {
                     store[key] = value;
                 },
@@ -80,9 +93,22 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 },
                 clear(): void {
                     store = {};
-                }
+                },
             },
-            networkInterface: mockHttpClient,
+            networkInterface: {
+                sendGetRequestAsync<T>(
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): T {
+                    return null;
+                },
+                sendPostRequestAsync<T>(
+                    url: string,
+                    options?: NetworkRequestOptions
+                ): T {
+                    return null;
+                },
+            },
             cryptoInterface: {
                 createNewGuid(): string {
                     return RANDOM_TEST_GUID;
@@ -96,13 +122,13 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 async generatePkceCodes(): Promise<PkceCodes> {
                     return {
                         challenge: TEST_CONFIG.TEST_CHALLENGE,
-                        verifier: TEST_CONFIG.TEST_VERIFIER
+                        verifier: TEST_CONFIG.TEST_VERIFIER,
                     };
-                }
+                },
             },
             loggerOptions: {
-                loggerCallback: testLoggerCallback
-            }
+                loggerCallback: testLoggerCallback,
+            },
         };
     });
 
@@ -947,14 +973,45 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient),
                 redirectUri: redirectUriFunc,
-                postLogoutRedirectUri: postLogoutRedirectUriFunc
+                postLogoutRedirectUri: postLogoutRedirectUriFunc,
             },
-            storageInterface: null,
+            storageInterface: {
+                getCache(): InMemoryCache {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache(): void {
+                    // do nothing
+                },
+                setItem(key: string, value: string): void {
+                    store[key] = value;
+                },
+                getItem(key: string): string {
+                    return store[key];
+                },
+                removeItem(key: string): void {
+                    delete store[key];
+                },
+                containsKey(key: string): boolean {
+                    return !!store[key];
+                },
+                getKeys(): string[] {
+                    return Object.keys(store);
+                },
+                clear(): void {
+                    store = {};
+                },
+            },
             networkInterface: null,
             cryptoInterface: null,
             loggerOptions: {
-                loggerCallback: testLoggerCallback
-            }
+                loggerCallback: testLoggerCallback,
+            },
         });
 
         const Client_noRedirectUris = new SPAClient({
@@ -962,12 +1019,43 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient)
             },
-            storageInterface: null,
+            storageInterface: {
+                getCache(): InMemoryCache {
+                    return {
+                        accounts: {},
+                        idTokens: {},
+                        accessTokens: {},
+                        refreshTokens: {},
+                        appMetadata: {},
+                    };
+                },
+                setCache(): void {
+                    // do nothing
+                },
+                setItem(key: string, value: string): void {
+                    store[key] = value;
+                },
+                getItem(key: string): string {
+                    return store[key];
+                },
+                removeItem(key: string): void {
+                    delete store[key];
+                },
+                containsKey(key: string): boolean {
+                    return !!store[key];
+                },
+                getKeys(): string[] {
+                    return Object.keys(store);
+                },
+                clear(): void {
+                    store = {};
+                },
+            },
             networkInterface: null,
             cryptoInterface: null,
             loggerOptions: {
-                loggerCallback: testLoggerCallback
-            }
+                loggerCallback: testLoggerCallback,
+            },
         });
 
         it("gets configured redirect uri", () => {
@@ -1037,6 +1125,18 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 },
                 networkInterface: null,
                 storageInterface: {
+                    getCache(): InMemoryCache {
+                        return {
+                            accounts: {},
+                            idTokens: {},
+                            accessTokens: {},
+                            refreshTokens: {},
+                            appMetadata: {}
+                        }
+                    },
+                    setCache(): void {
+                        // do nothing
+                    },
                     setItem(key: string, value: string): void {
                         store[key] = value;
                     },
