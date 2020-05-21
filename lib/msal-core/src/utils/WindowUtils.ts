@@ -114,7 +114,7 @@ export class WindowUtils {
          * This trick overcomes iframe navigation in IE
          * IE does not load the page consistently in iframe
          */
-        logger.info("LoadFrame: " + frameName);
+        logger.infoPii("LoadFrame: " + frameName);
 
         return new Promise((resolve, reject) => {
             setTimeout(() => {
@@ -162,7 +162,7 @@ export class WindowUtils {
             return null;
         }
 
-        logger.info("Add msal frame to document:" + iframeId);
+        logger.infoPii("Add msal frame to document:" + iframeId);
         let adalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
         if (!adalFrame) {
             if (document.createElement &&
