@@ -77,7 +77,7 @@ export const ClientAuthErrorMessage = {
     multipleMatchingTokens: {
         code: "multiple_matching_tokens",
         desc: "The cache contains multiple tokens satisfying the requirements. " +
-            "Call AcquireToken again providing more requirements such as authority, resource, or account."
+            "Call AcquireToken again providing more requirements such as authority or account."
     },
     tokenRequestCannotBeMade: {
         code: "request_cannot_be_made",

@@ -100,7 +100,6 @@ export enum AADAuthorityConstants {
  */
 export enum AADServerParamKeys {
     CLIENT_ID = "client_id",
-    RESOURCE = "resource",
     REDIRECT_URI = "redirect_uri",
     RESPONSE_TYPE = "response_type",
     RESPONSE_MODE = "response_mode",
