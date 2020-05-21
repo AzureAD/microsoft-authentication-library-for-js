@@ -45,13 +45,16 @@ export class WindowUtils {
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
-    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, isSilentCall?: boolean): Promise<string> {
+    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger, isSilentCall?: boolean): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
 
+            logger.verbose("monitorWindowForHash polling started");
+
             const intervalId = setInterval(() => {
                 if (contentWindow.closed) {
+                    logger.error("monitorWindowForHash window closed");
                     clearInterval(intervalId);
                     reject(ClientAuthError.createUserCancelledError());
                     return;
@@ -88,11 +91,14 @@ export class WindowUtils {
                 }
 
                 if (href && UrlUtils.urlContainsHash(href)) {
+                    logger.verbose("monitorWindowForHash found url in hash");
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
+                    logger.error("monitorWindowForHash unable to find hash in url, timing out");
+                    logger.errorPii(`monitorWindowForHash polling timed out for url: ${urlNavigate}`);
                     clearInterval(intervalId);
-                    reject(ClientAuthError.createTokenRenewalTimeoutError(urlNavigate)); // better error?
+                    reject(ClientAuthError.createTokenRenewalTimeoutError());
                 }
             }, WindowUtils.POLLING_INTERVAL_MS);
         });
