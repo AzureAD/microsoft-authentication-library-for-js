@@ -11,3 +11,12 @@ export interface ITenantDiscoveryResponse {
     EndSessionEndpoint: string;
     Issuer: string;
 }
+
+/**
+ * Response type for openid-configuration endpoints
+ */
+export type OpenIdConfiguration = {
+    authorization_endpoint: string,
+    end_session_endpoint: string,
+    issuer: string
+};
