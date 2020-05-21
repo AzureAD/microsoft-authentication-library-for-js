@@ -65,7 +65,7 @@ export class ProtocolUtils {
         try {
             const splitState = decodeURIComponent(state).split(Constants.RESOURCE_DELIM);
             const libraryState = splitState[0];
-            const userState = splitState.slice(1).join(Constants.RESOURCE_DELIM);
+            const userState = splitState.length > 1 ? splitState.slice(1).join(Constants.RESOURCE_DELIM): "";
             const libraryStateString = cryptoObj.base64Decode(libraryState);
             const libraryStateObject = JSON.parse(libraryStateString) as LibraryStateObject;
             return {
