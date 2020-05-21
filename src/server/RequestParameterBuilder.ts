@@ -7,7 +7,8 @@ import { AADServerParamKeys, Constants, Prompt, ResponseMode, SSOTypes, ClientIn
 import { ScopeSet } from "../request/ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
-import { RequestValidator } from '../request/RequestValidator';
+import { RequestValidator } from "../request/RequestValidator";
+import pkg from "../../package.json";
 
 export class RequestParameterBuilder {
 
@@ -42,8 +43,7 @@ export class RequestParameterBuilder {
      * @param scopeSet
      */
     addScopes(scopeSet: ScopeSet): void {
-        this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes())
-        );
+        this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
 
     /**
@@ -51,8 +51,7 @@ export class RequestParameterBuilder {
      * @param clientId
      */
     addClientId(clientId: string): void {
-        this.parameters.set(AADServerParamKeys.CLIENT_ID, encodeURIComponent(clientId)
-        );
+        this.parameters.set(AADServerParamKeys.CLIENT_ID, encodeURIComponent(clientId));
     }
 
     /**
@@ -60,8 +59,8 @@ export class RequestParameterBuilder {
      * @param redirectUri
      */
     addRedirectUri(redirectUri: string): void {
-        this.parameters.set(AADServerParamKeys.REDIRECT_URI, encodeURIComponent(redirectUri)
-        );
+        RequestValidator.validateRedirectUri(redirectUri);
+        this.parameters.set(AADServerParamKeys.REDIRECT_URI, encodeURIComponent(redirectUri));
     }
 
     /**
@@ -93,8 +92,13 @@ export class RequestParameterBuilder {
      * @param correlationId
      */
     addCorrelationId(correlationId: string): void {
-        this.parameters.set(AADServerParamKeys.CLIENT_REQUEST_ID, encodeURIComponent(correlationId)
-        );
+        this.parameters.set(AADServerParamKeys.CLIENT_REQUEST_ID, encodeURIComponent(correlationId));
+    }
+
+    addTelemetryInfo(): void {
+        // Telemetry Info
+        this.parameters.set(AADServerParamKeys.X_CLIENT_SKU, Constants.LIBRARY_NAME);
+        this.parameters.set(AADServerParamKeys.X_CLIENT_VER, pkg.version);
     }
 
     /**
@@ -102,6 +106,7 @@ export class RequestParameterBuilder {
      * @param prompt
      */
     addPrompt(prompt: Prompt): void {
+        RequestValidator.validatePrompt(prompt);
         this.parameters.set(`${AADServerParamKeys.PROMPT}`, encodeURIComponent(prompt));
     }
 
