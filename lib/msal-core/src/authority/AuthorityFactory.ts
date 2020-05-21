@@ -51,14 +51,15 @@ export class AuthorityFactory {
 
     /**
      * Use when validateAuthority is set to True to provide list of allowed domains.
+     * This should be called on MSAL initialization
      */
     public static async setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>, telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
-        if (validateAuthority && !this.TrustedHostList.length){
+        if (validateAuthority && !this.getTrustedHostList().length){
             knownAuthorities.forEach(function(authority){
                 this.TrustedHostList.push(authority.toLowerCase());
             });
 
-            if (!this.TrustedHostList.length){
+            if (!this.getTrustedHostList().length){
                 await this.setTrustedAuthoritiesFromNetwork(telemetryManager, correlationId);
             }
         }
@@ -92,12 +93,16 @@ export class AuthorityFactory {
         });
     } 
 
+    public static getTrustedHostList(): Array<string> {
+        return this.TrustedHostList;
+    }
+
     /**
      * Checks to see if the host is in a list of trusted hosts
      * @param {string} The host to look up
      */
     public static IsInTrustedHostList(host: string): boolean {
-        return this.TrustedHostList.indexOf(host.toLowerCase()) > -1;
+        return this.getTrustedHostList().indexOf(host.toLowerCase()) > -1;
     }
 
     /**
