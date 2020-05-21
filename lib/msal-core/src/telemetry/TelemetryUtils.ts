@@ -8,7 +8,7 @@ export const scrubTenantFromUri = (uri: string): String => {
     const url = UrlUtils.GetUrlComponents(uri);
 
     // validate trusted host
-    if (AuthorityFactory.IsInTrustedHostList(url.HostNameAndPort.toLocaleLowerCase())) {
+    if (!AuthorityFactory.IsInTrustedHostList(url.HostNameAndPort.toLocaleLowerCase())) {
         /**
          * returning what was passed because the library needs to work with uris that are non
          * AAD trusted but passed by users such as B2C or others.
