@@ -52,7 +52,7 @@ export class TrustedAuthority {
         metadata.forEach(function(entry: any){
             const authorities: Array<string> = entry.aliases;
             authorities.forEach(function(authority: string) {
-                this.TrustedHostList.push(authority.toLowerCase());
+                TrustedAuthority.TrustedHostList.push(authority.toLowerCase());
             });
         });
     } 
