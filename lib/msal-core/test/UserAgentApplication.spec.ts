@@ -34,6 +34,7 @@ import { TimeUtils } from "../src/utils/TimeUtils";
 import { RequestUtils } from "../src/utils/RequestUtils";
 import { UrlUtils } from "../src/utils/UrlUtils";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";
+import { TrustedAuthority } from "../src/authority/TrustedAuthority";
 
 type kv = {
     [key: string]: string;
@@ -106,7 +107,7 @@ describe("UserAgentApplication.ts Class", function () {
         sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
-        sinon.stub(AuthorityFactory, "IsInTrustedHostList").returns(true);
+        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
         sinon.stub(WindowUtils, "isInIframe").returns(false);
         sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
     };

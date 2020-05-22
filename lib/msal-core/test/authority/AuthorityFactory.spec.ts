@@ -35,51 +35,6 @@ describe("AuthorityFactory.ts Class", function () {
     
             expect(authority).to.be.null;
         });
-    
-        it("tests returns Authority instance with validateAuthority set to false", function() {
-            authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
-    
-            expect(authority).to.be.instanceOf(Authority);
-        });
-
-        it("tests returns Authority instance with validateAuthority set to true", function() {
-            sinon.stub(AuthorityFactory, "IsInTrustedHostList").returns(true);
-            authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, true);
-
-            expect(authority).to.be.instanceOf(Authority);
-        });
-
-        it("throws error when authority not in TrustedHostList", function () {
-            sinon.stub(AuthorityFactory, "IsInTrustedHostList").returns(false);
-    
-            let err:ClientConfigurationError;
-            try{
-                authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, true);;
-            }catch(e) {
-                expect(e).to.be.instanceOf(ClientConfigurationError);
-                err = e;
-            }
-            expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
-            expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.untrustedAuthority.desc);
-        });
-    });
-
-    describe("setTrustedAuthoritiesFromConfig", () => {
-        it("Sets TrustedHostList with Known Authorities", async () => {
-            sinon.stub(AuthorityFactory, "getTrustedHostList").returns([]);
-            AuthorityFactory.setTrustedAuthoritiesFromConfig(true, TEST_CONFIG.knownAuthorities);
-
-            TEST_CONFIG.knownAuthorities.forEach(function(authority) {
-                expect(AuthorityFactory.IsInTrustedHostList(authority)).to.be.true;
-            });
-        });
-    
-        it("Do not add additional authorities to trusted host list if it has already been populated", async () => {
-            sinon.stub(AuthorityFactory, "getTrustedHostList").returns(["login.microsoftonline.com"]);
-            AuthorityFactory.setTrustedAuthoritiesFromConfig(true, ["contoso.b2clogin.com"]);
-    
-            expect(AuthorityFactory.IsInTrustedHostList("contoso.b2clogin.com")).to.be.false;
-        });
     });
 
     describe("saveMetadataFromConfig", () => {

@@ -20,7 +20,7 @@ let authority: Authority;
 
 describe("Authority.ts Class", function () {
     beforeEach(function() {
-        authority = new Authority(TEST_CONFIG.validAuthority);
+        authority = new Authority(TEST_CONFIG.validAuthority, true);
     });
 
     afterEach(function () {
@@ -54,7 +54,7 @@ describe("Authority.ts Class", function () {
 
     it("throws invalidAuthorityType on init if authority is not url", function () {
         try {
-            authority = new Authority("");
+            authority = new Authority("", true);
         }
         catch(e) {
             expect(e).to.be.equal(ClientConfigurationErrorMessage.invalidAuthorityType)
@@ -63,7 +63,7 @@ describe("Authority.ts Class", function () {
 
     it("throws authorityUriInsecure on init if not https", function () {
         try {
-            authority = new Authority("http://login.microsoftonline.com/common");
+            authority = new Authority("http://login.microsoftonline.com/common", true);
         }
         catch(e) {
             expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInsecure)
@@ -72,7 +72,7 @@ describe("Authority.ts Class", function () {
 
     it("throws authorityUriInvalidPath on init if there is no path", function () {
         try {
-            authority = new Authority("https://login.microsoftonline.com");
+            authority = new Authority("https://login.microsoftonline.com", true);
         }
         catch(e) {
             expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInvalidPath)
@@ -84,7 +84,7 @@ describe("Authority.ts Class", function () {
     });
 
     it("hasCachedMetadata returns true when metadata is provided", () => {
-        const testAuthorityWithMetadata = new Authority(TEST_CONFIG.validAuthority, TENANT_DISCOVERY_RESPONSE);
+        const testAuthorityWithMetadata = new Authority(TEST_CONFIG.validAuthority, true, TENANT_DISCOVERY_RESPONSE);
 
         expect(testAuthorityWithMetadata.hasCachedMetadata()).to.be.true;
     });
@@ -97,7 +97,7 @@ describe("Authority.ts Class", function () {
     });
 
     it("GetOpenIdConfigurationEndpoint returns well-known endpoint", async function () {
-        authority = new Authority(TEST_CONFIG.alternateValidAuthority);
+        authority = new Authority(TEST_CONFIG.alternateValidAuthority, true);
         const endpoint = authority.GetOpenIdConfigurationEndpoint();
 
         expect(endpoint).to.include("/v2.0/.well-known/openid-configuration");

@@ -5,32 +5,34 @@
 
 import { IUri } from "../IUri";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
-import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
+import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../error/ClientConfigurationError";
 import { XhrClient, XhrResponse } from "../XHRClient";
 import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
 import HttpEvent from "../telemetry/HttpEvent";
-import { DEFAULT_AUTHORITY } from "../utils/Constants";
+import { TrustedAuthority } from "./TrustedAuthority";
 
 /**
  * @hidden
  */
 export enum AuthorityType {
-    Aad,
-    Adfs,
-    B2C
+    Default,
+    Adfs
 }
 
 /**
  * @hidden
  */
 export class Authority {
-    constructor(authority: string, authorityMetadata?: ITenantDiscoveryResponse) {
+    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+        this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
 
         this.validateAsUri();
         this.tenantDiscoveryResponse = authorityMetadata;
     }
+
+    public IsValidationEnabled: boolean;
 
     public get Tenant(): string {
         return this.CanonicalAuthorityUrlComponents.PathSegments[0];
@@ -87,10 +89,6 @@ export class Authority {
         return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
     }
 
-    static get AadInstanceDiscoveryEndpoint(): string {
-        return `${DEFAULT_AUTHORITY}/discovery/instance?api-version=1.1&authorization_endpoint=${DEFAULT_AUTHORITY}/oauth2/v2.0/authorize`;
-    }
-
     /**
      * Given a string, validate that it is of the form https://domain/path
      */
@@ -144,6 +142,16 @@ export class Authority {
      * If successful, caches the endpoint for later use in OIDC
      */
     public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+        if (this.IsValidationEnabled) {
+            const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
+            if (TrustedAuthority.getTrustedHostList().length === 0) {
+                await TrustedAuthority.setTrustedAuthoritiesFromNetwork(telemetryManager, correlationId);
+            }
+
+            if (!TrustedAuthority.IsInTrustedHostList(host)) {
+                throw ClientConfigurationError.createUntrustedAuthorityError(host);
+            }
+        }
         const openIdConfigurationEndpointResponse = this.GetOpenIdConfigurationEndpoint();
         this.tenantDiscoveryResponse = await this.DiscoverEndpoints(openIdConfigurationEndpointResponse, telemetryManager, correlationId);
 

@@ -4,12 +4,12 @@ import { EVENT_NAME_PREFIX } from "../../src/telemetry/TelemetryConstants";
 import { spy } from "sinon";
 import sinon from "sinon";
 import { TEST_CONFIG } from "../TestConstants";
-import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
+import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 
 describe("TelemetryUtils", () => {
     before(function() {
         // Ensure TrustedHostList is set
-        sinon.stub(AuthorityFactory, "getTrustedHostList").callsFake(function() {return TEST_CONFIG.knownAuthorities});
+        sinon.stub(TrustedAuthority, "getTrustedHostList").callsFake(function() {return TEST_CONFIG.knownAuthorities});
     });
 
     after(function() {

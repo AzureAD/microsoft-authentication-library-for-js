@@ -9,13 +9,12 @@ import { TELEMETRY_BLOB_EVENT_NAMES } from "../../src/telemetry/TelemetryConstan
 import { hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
 import sinon from "sinon";
-import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
-import { TEST_CONFIG } from "../TestConstants";
+import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 
 describe("ApiEvent", () => {
     before(function() {
         // Ensure TrustedHostList is set
-        sinon.stub(AuthorityFactory, "IsInTrustedHostList").returns(true);
+        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
     });
 
     after(function() {

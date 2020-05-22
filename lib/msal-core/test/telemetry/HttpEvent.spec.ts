@@ -2,12 +2,12 @@ import { expect } from "chai";
 import HttpEvent, { EVENT_KEYS } from "../../src/telemetry/HttpEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
 import sinon from "sinon";
-import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
+import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 
 describe("HttpEvent", () => {
     before(function() {
         // Ensure TrustedHostList is set
-        sinon.stub(AuthorityFactory, "IsInTrustedHostList").returns(true);
+        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
     });
 
     after(function() {

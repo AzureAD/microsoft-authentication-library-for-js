@@ -44,6 +44,7 @@ import { Constants,
     FramePrefix
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
+import { TrustedAuthority } from "./authority/TrustedAuthority";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -219,7 +220,7 @@ export class UserAgentApplication {
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
 
-        AuthorityFactory.setTrustedAuthoritiesFromConfig(this.config.auth.validateAuthority, this.config.auth.knownAuthorities, this.telemetryManager);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
         AuthorityFactory.saveMetadataFromConfig(this.config.auth.authority, this.config.auth.authorityMetadata);
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
