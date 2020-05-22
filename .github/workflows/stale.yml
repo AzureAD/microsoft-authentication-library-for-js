@@ -21,3 +21,4 @@ jobs:
         exempt-pr-labels: 'work-in-progress'
         days-before-stale: 14
         days-before-close: -1
+        debug-only: true
