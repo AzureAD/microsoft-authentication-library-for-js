@@ -2,36 +2,17 @@ import { expect } from "chai";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { TEST_CONFIG, OPENID_CONFIGURATION, TENANT_DISCOVERY_RESPONSE } from "../TestConstants";
-import { Authority } from "../../src/authority/Authority";
 import sinon from "sinon";
-import TelemetryManager from "../../src/telemetry/TelemetryManager";
-import { TelemetryConfig } from "../../src/telemetry/TelemetryTypes";
-import { Logger } from "../../src/Logger";
 
-const stubbedTelemetryConfig: TelemetryConfig = {
-    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-    platform: {
-        applicationName: TEST_CONFIG.applicationName,
-        applicationVersion: TEST_CONFIG.applicationVersion
-    }
-};
-
-const stubbedTelemetryManager = new TelemetryManager(stubbedTelemetryConfig, () => {}, new Logger(() => {}));
 
 describe("AuthorityFactory.ts Class", function () {
-    let authority = null
-
-    beforeEach(function () {
-        authority = null
-    });
-
     afterEach(function() {
         sinon.restore();
     })
 
     describe("CreateInstance", () => {
         it("tests if empty authority url returns null", function () {
-            authority = AuthorityFactory.CreateInstance("", true);
+            let authority = AuthorityFactory.CreateInstance("", true);
     
             expect(authority).to.be.null;
         });
