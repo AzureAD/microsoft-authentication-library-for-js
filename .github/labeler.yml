@@ -2,6 +2,8 @@ node:
   - lib/msal-node/**/*
 angular:
   - lib/msal-angular/**/*
+angularjs:
+  - lib/msal-angularjs/**/*
 msal@1.x:
   - lib/msal-core/**/*
 msal-common:
