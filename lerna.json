@@ -15,7 +15,8 @@
   },
   "packages": [
     "lib/*",
-    "samples/*"
+    "samples/*",
+    "tools/*"
   ],
   "version": "independent",
   "concurrency": 2

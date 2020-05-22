@@ -1,0 +1,32 @@
+{
+  "name": "@azuread/eslint-config-msal",
+  "version": "1.0.1",
+  "description": "Base eslint config for msal projects.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "typescript": "^3.6.4"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin-tslint": "^2.5.0",
+    "@typescript-eslint/eslint-plugin": "^2.5.0",
+    "@typescript-eslint/parser": "^2.5.0",
+    "eslint": "^5.16.0",
+    "tslint": "^5.20.0"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin-tslint": "^2.5.0",
+    "@typescript-eslint/eslint-plugin": "^2.5.0",
+    "@typescript-eslint/parser": "^2.5.0",
+    "eslint": "^5.16.0",
+    "tslint": "^5.20.0"
+  }
+}
