@@ -20,3 +20,4 @@ jobs:
         exempt-issue-labels: 'internal, feature'
         exempt-pr-labels: 'work-in-progress'
         days-before-stale: 14
+        days-before-close: -1
