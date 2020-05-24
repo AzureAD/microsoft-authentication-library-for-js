@@ -8,7 +8,6 @@ import { Account } from "../account/Account";
 /**
  * AuthenticationParameters passed by user to retrieve a token from the server.
  * - scopes: requested token scopes
- * - resource: requested resource uri
  * - extraScopesToConsent: additional scopes to consent
  * - prompt: the value of the OAuth prompt parameter
  * - extraQueryParameters: string to string map of custom query parameters
@@ -17,7 +16,6 @@ import { Account } from "../account/Account";
  * - userRequestState: state parameter to ensure request/response integrity
  * - correlationId: custom correlationId given by user
  * - account: Account object to perform SSO
- * - sid: session id for SSO
  * - loginHint: login hint for SSO
  */
 export type AuthenticationParameters = ClientRequestParameters & {

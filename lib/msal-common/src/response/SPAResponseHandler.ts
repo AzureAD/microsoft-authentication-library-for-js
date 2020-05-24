@@ -158,11 +158,10 @@ export class SPAResponseHandler {
      * Helper function which saves or updates the token in the cache and constructs the final token response to send back to the user.
      * @param originalTokenResponse
      * @param authority
-     * @param resource
      * @param serverTokenResponse
      * @param clientInfo
      */
-    private saveToken(originalTokenResponse: TokenResponse, authority: string, resource: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo): TokenResponse {
+    private saveToken(originalTokenResponse: TokenResponse, authority: string, serverTokenResponse: ServerAuthorizationTokenResponse, clientInfo: ClientInfo): TokenResponse {
         // Set consented scopes in response
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
         const responseScopeArray = responseScopes.asArray();
@@ -180,7 +179,7 @@ export class SPAResponseHandler {
         // Save access token in cache
         const newAccessTokenValue = new AccessTokenValue(serverTokenResponse.token_type, serverTokenResponse.access_token, originalTokenResponse.idToken, serverTokenResponse.refresh_token, expirationSec.toString(), extendedExpirationSec.toString());
         const homeAccountIdentifier = originalTokenResponse.account && originalTokenResponse.account.homeAccountIdentifier;
-        const accessTokenCacheItems = this.spaCacheManager.getAllAccessTokens(this.clientId, authority || "", resource || "", homeAccountIdentifier || "");
+        const accessTokenCacheItems = this.spaCacheManager.getAllAccessTokens(this.clientId, authority || "", homeAccountIdentifier || "");
 
         // If no items in cache with these parameters, set new item.
         if (accessTokenCacheItems.length < 1) {
@@ -203,7 +202,6 @@ export class SPAResponseHandler {
             authority,
             this.clientId,
             responseScopes.printScopes(),
-            resource,
             clientInfo && clientInfo.uid,
             clientInfo && clientInfo.utid,
             this.cryptoObj
@@ -238,10 +236,9 @@ export class SPAResponseHandler {
      * Returns a constructed token response based on given string. Also manages the cache updates and cleanups.
      * @param serverTokenResponse
      * @param authorityString
-     * @param resource
      * @param state
      */
-    public createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authorityString: string, resource: string, state?: string): TokenResponse {
+    public createTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authorityString: string, state?: string): TokenResponse {
         let tokenResponse: TokenResponse = {
             uniqueId: "",
             tenantId: "",
@@ -304,7 +301,7 @@ export class SPAResponseHandler {
 
         this.spaCacheManager.resetTempCacheItems(state);
         if (!cachedAccount || !tokenResponse.account || Account.compareAccounts(cachedAccount, tokenResponse.account)) {
-            return this.saveToken(tokenResponse, authorityString, resource, serverTokenResponse, clientInfo);
+            return this.saveToken(tokenResponse, authorityString, serverTokenResponse, clientInfo);
         } else {
             this.logger.error("Accounts do not match.");
             this.logger.errorPii(`Cached Account: ${JSON.stringify(cachedAccount)}, New Account: ${JSON.stringify(tokenResponse.account)}`);

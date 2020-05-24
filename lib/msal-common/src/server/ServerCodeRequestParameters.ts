@@ -220,11 +220,6 @@ export class ServerCodeRequestParameters {
         str.push(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(this.generatedPkce.challenge)}`);
         str.push(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${Constants.S256_CODE_CHALLENGE_METHOD}`);
 
-        // Append resource
-        if (this.userRequest && this.userRequest.resource) {
-            str.push(`${AADServerParamKeys.RESOURCE}=${encodeURIComponent(this.userRequest.resource)}`);
-        }
-
         // Append prompt
         if (this.userRequest && this.userRequest.prompt) {
             str.push(`${AADServerParamKeys.PROMPT}=${(encodeURIComponent(this.userRequest.prompt))}`);

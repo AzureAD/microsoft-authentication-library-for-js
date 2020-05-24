@@ -5,6 +5,7 @@ import { AADTrustedHostList } from "../../src/utils/Constants";
 import { TEST_CONFIG } from "../TestConstants";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig } from "../../src/telemetry/TelemetryTypes";
+import { Logger } from "../../src";
 
 const stubbedTelemetryConfig: TelemetryConfig = {
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -14,7 +15,7 @@ const stubbedTelemetryConfig: TelemetryConfig = {
     }
 };
 
-const stubbedTelemetryManager = new TelemetryManager(stubbedTelemetryConfig, () => {});
+const stubbedTelemetryManager = new TelemetryManager(stubbedTelemetryConfig, () => {}, new Logger(() => {}));
 
 describe("AadAuthority.ts Class", function () {
 

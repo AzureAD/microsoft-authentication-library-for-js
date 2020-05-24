@@ -3,9 +3,12 @@
 * Licensed under the MIT License.
 */
 
-import { AADServerParamKeys, SSOTypes, Constants, ClientInfo} from "../utils/Constants";
+import { AADServerParamKeys, Constants, Prompt, ResponseMode, SSOTypes, ClientInfo } from "../utils/Constants";
 import { ScopeSet } from "../request/ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { StringDict } from "../utils/MsalTypes";
+import { RequestValidator } from "../request/RequestValidator";
+import pkg from "../../package.json";
 
 export class RequestParameterBuilder {
 
@@ -28,10 +31,10 @@ export class RequestParameterBuilder {
      * add response_mode. defaults to query.
      * @param responseMode
      */
-    addResponseMode(responseMode?: string): void {
+    addResponseMode(responseMode?: ResponseMode): void {
         this.parameters.set(
             AADServerParamKeys.RESPONSE_MODE,
-            encodeURIComponent((responseMode) ? responseMode : Constants.QUERY_RESPONSE_MODE)
+            encodeURIComponent((responseMode) ? responseMode : ResponseMode.QUERY)
         );
     }
 
@@ -40,8 +43,7 @@ export class RequestParameterBuilder {
      * @param scopeSet
      */
     addScopes(scopeSet: ScopeSet): void {
-        this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes())
-        );
+        this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
 
     /**
@@ -49,8 +51,7 @@ export class RequestParameterBuilder {
      * @param clientId
      */
     addClientId(clientId: string): void {
-        this.parameters.set(AADServerParamKeys.CLIENT_ID, encodeURIComponent(clientId)
-        );
+        this.parameters.set(AADServerParamKeys.CLIENT_ID, encodeURIComponent(clientId));
     }
 
     /**
@@ -58,8 +59,8 @@ export class RequestParameterBuilder {
      * @param redirectUri
      */
     addRedirectUri(redirectUri: string): void {
-        this.parameters.set(AADServerParamKeys.REDIRECT_URI, encodeURIComponent(redirectUri)
-        );
+        RequestValidator.validateRedirectUri(redirectUri);
+        this.parameters.set(AADServerParamKeys.REDIRECT_URI, encodeURIComponent(redirectUri));
     }
 
     /**
@@ -91,15 +92,21 @@ export class RequestParameterBuilder {
      * @param correlationId
      */
     addCorrelationId(correlationId: string): void {
-        this.parameters.set(AADServerParamKeys.CLIENT_REQUEST_ID, encodeURIComponent(correlationId)
-        );
+        this.parameters.set(AADServerParamKeys.CLIENT_REQUEST_ID, encodeURIComponent(correlationId));
+    }
+
+    addTelemetryInfo(): void {
+        // Telemetry Info
+        this.parameters.set(AADServerParamKeys.X_CLIENT_SKU, Constants.LIBRARY_NAME);
+        this.parameters.set(AADServerParamKeys.X_CLIENT_VER, pkg.version);
     }
 
     /**
      * add prompt
      * @param prompt
      */
-    addPrompt(prompt: string): void {
+    addPrompt(prompt: Prompt): void {
+        RequestValidator.validatePrompt(prompt);
         this.parameters.set(`${AADServerParamKeys.PROMPT}`, encodeURIComponent(prompt));
     }
 
@@ -192,6 +199,17 @@ export class RequestParameterBuilder {
      */
     addClientInfo(): void {
         this.parameters.set(ClientInfo, "1");
+    }
+
+    /**
+     * add extraQueryParams
+     * @param eQparams
+     */
+    addExtraQueryParameters(eQparams: StringDict) {
+        RequestValidator.sanitizeEQParams(eQparams, this.parameters);
+        Object.keys(eQparams).forEach((key) => {
+            this.parameters.set(key, eQparams[key]);
+        });
     }
 
     /**

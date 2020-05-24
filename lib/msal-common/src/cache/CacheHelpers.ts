@@ -80,7 +80,7 @@ export class CacheHelpers {
      * @param serverAuthenticationRequest
      * @param account
      */
-    updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account: Account): void {
+    updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account?: Account): void {
         // Cache account and state
         if (account) {
             this.setAccountCache(account);
@@ -122,15 +122,15 @@ export class CacheHelpers {
      * @param clientId
      * @param homeAccountIdentifier
      */
-    getAllAccessTokens(clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): Array<AccessTokenCacheItem> {
+    getAllAccessTokens(clientId: string, authority: string, homeAccountIdentifier?: string): Array<AccessTokenCacheItem> {
         const results = this.cacheStorage.getKeys().reduce<Array<AccessTokenCacheItem>>((tokens, key) => {
-            const keyMatches = key.match(clientId) && key.match(authority) && key.match(resource) && key.match(homeAccountIdentifier);
+            const keyMatches = key.match(clientId) && key.match(authority) && key.match(homeAccountIdentifier);
             if (keyMatches) {
                 const value = this.cacheStorage.getItem(key);
                 if (value) {
                     try {
                         const parseAtKey = JSON.parse(key) as AccessTokenKey;
-                        if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, resource, homeAccountIdentifier)) {
+                        if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, homeAccountIdentifier)) {
                             const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value) as AccessTokenValue);
                             return tokens.concat([ newAccessTokenCacheItem ]);
                         }
@@ -150,13 +150,13 @@ export class CacheHelpers {
      * @param clientId
      * @param homeAccountIdentifier
      */
-    removeAllAccessTokens(clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): void {
+    removeAllAccessTokens(clientId: string, authority: string, homeAccountIdentifier?: string): void {
         this.cacheStorage.getKeys().forEach((key) => {
-            const keyMatches = key.match(clientId) && key.match(authority) && key.match(resource) && key.match(homeAccountIdentifier);
+            const keyMatches = key.match(clientId) && key.match(authority) && key.match(homeAccountIdentifier);
             if (keyMatches) {
                 try {
                     const parseAtKey = JSON.parse(key) as AccessTokenKey;
-                    if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, resource, homeAccountIdentifier)) {
+                    if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, homeAccountIdentifier)) {
                         this.cacheStorage.removeItem(key);
                     }
                 } catch (e) {
@@ -171,16 +171,14 @@ export class CacheHelpers {
      * @param atKey
      * @param clientId
      * @param authority
-     * @param resource
      * @param homeAccountIdentifier
      */
-    private checkForExactKeyMatch(atKey: AccessTokenKey, clientId: string, authority: string, resource?: string, homeAccountIdentifier?: string): boolean {
+    private checkForExactKeyMatch(atKey: AccessTokenKey, clientId: string, authority: string, homeAccountIdentifier?: string): boolean {
         const hasClientId = (atKey.clientId === clientId);
         // If any inputs are empty, return true so we don't fail the check.
         const hasAuthorityUri = StringUtils.isEmpty(authority) || (atKey.authority === authority);
-        const hasResourceUri = StringUtils.isEmpty(resource) || (atKey.resource === resource);
         const hasHomeAccountId = StringUtils.isEmpty(homeAccountIdentifier) || (atKey.homeAccountIdentifier === homeAccountIdentifier);
 
-        return hasClientId && hasAuthorityUri && hasResourceUri && hasHomeAccountId;
+        return hasClientId && hasAuthorityUri && hasHomeAccountId;
     }
 }

@@ -31,7 +31,7 @@ export class AadAuthority extends Authority {
      * Returns a promise which resolves to the OIDC endpoint
      * Only responds with the endpoint
      */
-    public async GetOpenIdConfigurationEndpointAsync(telemetryManager?: TelemetryManager, correlationId?: string): Promise<string> {
+    public async GetOpenIdConfigurationEndpointAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<string> {
         if (!this.IsValidationEnabled || this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
             return this.DefaultOpenIdConfigurationEndpoint;
         }
@@ -40,7 +40,7 @@ export class AadAuthority extends Authority {
         const client: XhrClient = new XhrClient();
 
         const httpMethod = "GET";
-        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, this.AadInstanceDiscoveryEndpointUrl);
+        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, this.AadInstanceDiscoveryEndpointUrl, "AadInstanceDiscoveryEndpoint");
         return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, httpMethod, true)
             .then((response: XhrResponse) => {
                 httpEvent.httpResponseStatus = response.statusCode;
