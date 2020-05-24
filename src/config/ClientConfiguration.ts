@@ -11,6 +11,7 @@ import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
 import { InMemoryCache } from "../unifiedCache/utils/CacheTypes";
+import { Authority } from "../authority/Authority";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -25,7 +26,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - crypto: implementation of crypto functions
  */
 export type ClientConfiguration = {
-    authOptions?: AuthOptions,
+    authOptions: AuthOptions,
     systemOptions?: SystemOptions,
     loggerOptions?: LoggerOptions,
     storageInterface?: ICacheStorage,
@@ -42,7 +43,7 @@ export type ClientConfiguration = {
  */
 export type AuthOptions = {
     clientId: string;
-    authority?: string;
+    authority?: Authority;
     knownAuthorities?: Array<string>;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
@@ -92,13 +93,13 @@ export type LibraryInfo = {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
-    authority: "",
+    authority: null,
     knownAuthorities: [],
     redirectUri: "",
     postLogoutRedirectUri: ""
 };
 
-const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
+export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     telemetry: null
 };

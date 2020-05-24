@@ -101,9 +101,7 @@ export class ResponseHandler {
     /**
      * Returns a constructed token response based on given string. Also manages the cache updates and cleanups.
      * @param serverTokenResponse
-     * @param authorityString
-     * @param resource
-     * @param state
+     * @param authority
      */
     generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
 
