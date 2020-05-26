@@ -22,7 +22,7 @@ describe("TrustedAuthority.ts Class", function () {
     });
 
     describe("setTrustedAuthoritiesFromConfig", () => {
-        it("Sets TrustedHostList with Known Authorities", async () => {
+        it("Sets TrustedHostList with Known Authorities", () => {
             sinon.stub(TrustedAuthority, "getTrustedHostList").returns([]);
             TrustedAuthority.setTrustedAuthoritiesFromConfig(true, TEST_CONFIG.knownAuthorities);
 
@@ -31,11 +31,20 @@ describe("TrustedAuthority.ts Class", function () {
             });
         });
 
-        it("Do not add additional authorities to trusted host list if it has already been populated", async () => {
+        it("Do not add additional authorities to trusted host list if it has already been populated", () => {
             sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
             TrustedAuthority.setTrustedAuthoritiesFromConfig(true, ["contoso.b2clogin.com"]);
 
             expect(TrustedAuthority.IsInTrustedHostList("contoso.b2clogin.com")).to.be.false;
+        });
+    });
+
+    describe("setTrustedAuthoritiesFromNetwork", () => {
+        it("Sets TrustedHostList with Authorities known to Microsoft via Instance Discovery Network Call", async () => {
+            const countBefore = TrustedAuthority.getTrustedHostList().length;
+            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(stubbedTelemetryManager);
+            const countAfter = TrustedAuthority.getTrustedHostList().length;
+            expect(countBefore).to.be.lessThan(countAfter);
         });
     });
 });

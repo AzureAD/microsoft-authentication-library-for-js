@@ -1,8 +1,9 @@
 import { expect } from "chai";
-import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
+import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { TEST_CONFIG, OPENID_CONFIGURATION, TENANT_DISCOVERY_RESPONSE } from "../TestConstants";
 import sinon from "sinon";
+import { Authority } from "../../src/authority/Authority";
 
 
 describe("AuthorityFactory.ts Class", function () {
@@ -15,6 +16,24 @@ describe("AuthorityFactory.ts Class", function () {
             let authority = AuthorityFactory.CreateInstance("", true);
     
             expect(authority).to.be.null;
+        });
+
+        it("Creates Authority Instance", function () {
+            let authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+
+            expect(authority).to.be.instanceOf(Authority);
+        });
+
+        it("calls saveMetadataFromConfig if metadata provided", function (done) {
+            // Verification of saved metadata is done in separate tests below
+            const testMetadata = JSON.stringify(OPENID_CONFIGURATION)
+            sinon.stub(AuthorityFactory, "saveMetadataFromConfig").callsFake(function (authorityUrl, metadata) {
+                expect(authorityUrl).to.equal(TEST_CONFIG.validAuthority);
+                expect(metadata).to.equal(testMetadata);
+                done();
+            });
+            
+            AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false, testMetadata);
         });
     });
 
