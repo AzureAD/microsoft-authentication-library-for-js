@@ -38,10 +38,6 @@ export const ClientConfigurationErrorMessage = {
         code: "nonarray_input_scopes_error",
         desc: "Scopes cannot be passed as non-array."
     },
-    clientScope: {
-        code: "clientid_input_scopes_error",
-        desc: "Client ID can only be provided as a single scope."
-    },
     invalidPrompt: {
         code: "invalid_prompt_value",
         desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'",

@@ -697,22 +697,6 @@ describe("UserAgentApplication.ts Class", function () {
             msal.acquireTokenRedirect(tokenRequest);
         });
 
-        it("tests if error is thrown when null scopes are passed", function (done) {
-            msal.handleRedirectCallback(authCallback);
-            let authErr: AuthError;
-            try {
-                msal.acquireTokenRedirect({});
-            } catch (e) {
-                authErr = e;
-            }
-            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-            expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
-            done();
-        });
-
         it("tests if error is thrown when empty array of scopes are passed", function (done) {
             msal.handleRedirectCallback(authCallback);
             let authErr: AuthError;
@@ -726,24 +710,6 @@ describe("UserAgentApplication.ts Class", function () {
             expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
             expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
             expect(authErr.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
-            expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
-            done();
-        });
-
-        it("tests if error is thrown when client id is not passed as single scope", function (done) {
-            msal.handleRedirectCallback(authCallback);
-            let authErr: AuthError;
-            try {
-                msal.acquireTokenRedirect({
-                    scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "S1"]
-                });
-            } catch (e) {
-                authErr = e;
-            }
-            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.clientScope.code);
-            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
-            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
             expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();

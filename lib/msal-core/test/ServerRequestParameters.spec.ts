@@ -33,7 +33,7 @@ describe("ServerRequestParameters.ts Class", function () {
             expect(scopes.length).to.be.eql(1);
         });
 
-        it("Scopes are set to client id if null or empty scopes object passed", function () {
+        it("Scopes are set to empty array if null or empty scopes object passed", function () {
             const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
             sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
             const req = new ServerRequestParameters(
@@ -45,8 +45,7 @@ describe("ServerRequestParameters.ts Class", function () {
                 TEST_CONFIG.STATE,
                 TEST_CONFIG.CorrelationId
             );
-            expect(req.scopes).to.be.eql([TEST_CONFIG.MSAL_CLIENT_ID]);
-            expect(req.scopes.length).to.be.eql(1);
+            expect(req.scopes.length).to.be.eql(0);
         });
 
     });
