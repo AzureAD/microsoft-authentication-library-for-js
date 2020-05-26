@@ -1,10 +1,11 @@
 import { expect } from "chai";
 import { Authority, AuthorityType } from "../../src/authority/Authority";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError"
-import { TEST_CONFIG } from "../TestConstants";
+import { TEST_CONFIG, TENANT_DISCOVERY_RESPONSE } from "../TestConstants";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig } from "../../src/telemetry/TelemetryTypes";
 import { Logger } from "../../src";
+import { ITenantDiscoveryResponse } from "../../src/authority/ITenantDiscoveryResponse";
 
 const stubbedTelemetryConfig: TelemetryConfig = {
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -16,9 +17,9 @@ const stubbedTelemetryConfig: TelemetryConfig = {
 
 const stubbedTelemetryManager = new TelemetryManager(stubbedTelemetryConfig, () => {}, new Logger(() => {}));
 
-class testAuthority extends Authority{
-    public constructor(authority: string, validateAuthority: boolean) {
-        super(authority, validateAuthority);
+class TestAuthority extends Authority{
+    public constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+        super(authority, validateAuthority, authorityMetadata);
     }
 
     public get AuthorityType(): AuthorityType {
@@ -30,11 +31,11 @@ class testAuthority extends Authority{
     }
 }
 
-let authority: testAuthority;
+let authority: TestAuthority;
 
 describe("Authority.ts Class", function () {
     beforeEach(function() {
-        authority = new testAuthority(TEST_CONFIG.validAuthority, false);
+        authority = new TestAuthority(TEST_CONFIG.validAuthority, false);
     });
 
     afterEach(function () {
@@ -43,7 +44,7 @@ describe("Authority.ts Class", function () {
 
     it("tests initialization of Authority", function() {
 
-        expect(authority).to.be.instanceOf(testAuthority);
+        expect(authority).to.be.instanceOf(TestAuthority);
         expect(authority.AuthorityType).to.be.equal(AuthorityType.Aad);
     });
 
@@ -58,23 +59,19 @@ describe("Authority.ts Class", function () {
 
     it("tests EndSessionEndpoint", async function () {
         const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
-        const endSessionEndpoint = response.EndSessionEndpoint
 
-        expect(response).to.be.instanceOf(testAuthority);
-        expect(endSessionEndpoint).to.contain(response.Tenant)
+        expect(authority.EndSessionEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/logout")
     });
 
     it("tests SelfSignedJwtAudience", async function () {
         const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
-        const selfSignedJwtAudience = response.SelfSignedJwtAudience
 
-        expect(response).to.be.instanceOf(testAuthority);
-        expect(selfSignedJwtAudience).to.contain(response.Tenant)
+        expect(authority.SelfSignedJwtAudience).to.equal("https://login.microsoftonline.com/common/v2.0")
     });
 
     it("throws invalidAuthorityType on init if authority is not url", function () {
         try {
-            authority = new testAuthority("", false);
+            authority = new TestAuthority("", false);
         }
         catch(e) {
             expect(e).to.be.equal(ClientConfigurationErrorMessage.invalidAuthorityType)
@@ -83,7 +80,7 @@ describe("Authority.ts Class", function () {
 
     it("throws authorityUriInsecure on init if not https", function () {
         try {
-            authority = new testAuthority("http://login.microsoftonline.com/common", false);
+            authority = new TestAuthority("http://login.microsoftonline.com/common", false);
         }
         catch(e) {
             expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInsecure)
@@ -92,12 +89,21 @@ describe("Authority.ts Class", function () {
 
     it("throws authorityUriInvalidPath on init if there is no path", function () {
         try {
-            authority = new testAuthority("https://login.microsoftonline.com", false);
+            authority = new TestAuthority("https://login.microsoftonline.com", false);
         }
         catch(e) {
             expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInvalidPath)
         }
     });
 
+    it("hasCachedMetadata returns false if metadata no fetched", () => {
+        expect(authority.hasCachedMetadata()).to.be.false;
+    });
+
+    it("hasCachedMetadata returns true when metadata is provided", () => {
+        const testAuthorityWithMetadata = new TestAuthority(TEST_CONFIG.validAuthority, false, TENANT_DISCOVERY_RESPONSE);
+
+        expect(testAuthorityWithMetadata.hasCachedMetadata()).to.be.true;
+    });
 
 });

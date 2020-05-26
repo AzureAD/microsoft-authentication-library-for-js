@@ -19,19 +19,19 @@ assignees: ''
 **Important**: Please fill in your exact version number above, e.g. `msal@1.1.3`.
 
 ## Framework
-If you are using a framework, please provide the framework and version (e.g. Angular v8, React v16, etc).
 
 ## Description
-A clear and concise description of the bug. If you receive specific error codes, please include them.
+
+## Error Message
 
 ## Security
-Is this issue security related?
+- [ ] Is this issue security related?
 
 ## Regression
-Did this behavior work before?
+- [ ] Did this behavior work before? 
+Version:
 
-## Configuration
-Please provide your MSAL configuration options.
+## MSAL Configuration
 
 ```js
 // Provide configuration values here.
@@ -39,12 +39,17 @@ Please provide your MSAL configuration options.
 ```
 
 ## Reproduction steps
-1. 
-2. 
-3. 
+```js
+// Provide relevant code snippets here.
+// For Azure B2C issues, please include your policies.
+```
 
 ## Expected behavior
-A clear and concise description of what you expected to happen.
 
-## Browsers
-Is this issue browser-specific? If so, please detail which browsers are impacted (e.g. IE 11, Safari).
+## Browsers/Environment
+- [ ] Chrome
+- [ ] Firefox
+- [ ] Edge
+- [ ] Safari
+- [ ] IE
+- [ ] Other (Please add browser name here)

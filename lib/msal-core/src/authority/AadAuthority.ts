@@ -8,6 +8,7 @@ import { XhrClient, XhrResponse } from "../XHRClient";
 import { AADTrustedHostList } from "../utils/Constants";
 import HttpEvent from "../telemetry/HttpEvent";
 import TelemetryManager from "../telemetry/TelemetryManager";
+import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 
 /**
  * @hidden
@@ -19,8 +20,8 @@ export class AadAuthority extends Authority {
         return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
     }
 
-    public constructor(authority: string, validateAuthority: boolean) {
-        super(authority, validateAuthority);
+    public constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+        super(authority, validateAuthority, authorityMetadata);
     }
 
     public get AuthorityType(): AuthorityType {
