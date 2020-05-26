@@ -46,7 +46,7 @@ export type AccountFilter = {
     homeAccountId?: string;
     environment?: string;
     realm?: string;
-}
+};
 
 /**
  * Credential:	<home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>

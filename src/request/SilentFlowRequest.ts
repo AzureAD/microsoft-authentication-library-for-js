@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntity } from '../unifiedCache/entities/AccountEntity';
+import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
