@@ -11,7 +11,7 @@ import { Authority } from "../authority/Authority";
 import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
-import { TemporaryCacheKeys, Constants } from "../utils/Constants";
+import { Constants } from "../utils/Constants";
 
 /**
  * The CacheHelpers class contains a set of helper functions used by the module to manage cache items.
@@ -24,97 +24,6 @@ export class CacheHelpers {
     constructor(cacheImpl: ICacheStorage) {
         this.cacheStorage = cacheImpl;
 
-    }
-
-    /**
-     * Create acquireTokenAccountKey to cache account object
-     * @param accountId
-     * @param state
-     */
-    generateAcquireTokenAccountKey(accountId: string): string {
-        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.RESOURCE_DELIM}${accountId}`;
-    }
-
-    /**
-     * Create authorityKey to cache authority
-     * @param state
-     */
-    generateAuthorityKey(state: string): string {
-        return `${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${state}`;
-    }
-
-    /**
-     * Create Nonce key to cache nonce
-     * @param state
-     */
-    generateNonceKey(state: string): string {
-        return `${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${state}`;
-    }
-
-    /**
-     * Sets the cachekeys for and stores the account information in cache
-     * @param account
-     * @param state
-     */
-    setAccountCache(account: Account): void {
-        // Cache acquireTokenAccountKey
-        const accountId = account && account.homeAccountIdentifier ? account.homeAccountIdentifier : Constants.NO_ACCOUNT;
-
-        const acquireTokenAccountKey = this.generateAcquireTokenAccountKey(accountId);
-        this.cacheStorage.setItem(acquireTokenAccountKey, JSON.stringify(account));
-    }
-
-    /**
-     * Sets the cacheKey for and stores the authority information in cache
-     * @param state
-     * @param authority
-     */
-    setAuthorityCache(authority: Authority, state: string): void {
-        // Cache authorityKey
-        const authorityKey = this.generateAuthorityKey(state);
-        this.cacheStorage.setItem(authorityKey, authority.canonicalAuthority);
-    }
-
-    /**
-     * Updates account, authority, and state in cache
-     * @param serverAuthenticationRequest
-     * @param account
-     */
-    updateCacheEntries(serverAuthenticationRequest: ServerCodeRequestParameters, account?: Account): void {
-        // Cache account and state
-        if (account) {
-            this.setAccountCache(account);
-        }
-
-        // Cache the request state
-        this.cacheStorage.setItem(TemporaryCacheKeys.REQUEST_STATE, serverAuthenticationRequest.state);
-
-        // Cache the nonce
-        this.cacheStorage.setItem(this.generateNonceKey(serverAuthenticationRequest.state), serverAuthenticationRequest.nonce);
-
-        // Cache authorityKey
-        this.setAuthorityCache(serverAuthenticationRequest.authorityInstance, serverAuthenticationRequest.state);
-    }
-
-    /**
-     * Reset all temporary cache items
-     * @param state
-     */
-    resetTempCacheItems(state?: string): void {
-        // check state and remove associated cache items
-        this.cacheStorage.getKeys().forEach(key => {
-            if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
-                const splitKey = key.split(Constants.RESOURCE_DELIM);
-                const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
-                if (keyState === state) {
-                    this.cacheStorage.removeItem(key);
-                }
-            }
-        });
-        // delete generic interactive request parameters
-        this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_STATE);
-        this.cacheStorage.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
-        this.cacheStorage.removeItem(TemporaryCacheKeys.ORIGIN_URI);
     }
 
     /**

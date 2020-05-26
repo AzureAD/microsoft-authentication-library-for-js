@@ -26,7 +26,7 @@ import {
 } from "./utils/CacheTypes";
 import { ICacheManager } from "./interface/ICacheManager";
 import { CacheHelper } from "./utils/CacheHelper";
-import { CacheRecord } from './entities/CacheRecord';
+import { CacheRecord } from "./entities/CacheRecord";
 
 export class UnifiedCacheManager implements ICacheManager {
     // Storage interface
@@ -167,9 +167,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredBy(
-       accountFilter: AccountFilter
-    ): AccountCache {
+    getAccountsFilteredBy(accountFilter: AccountFilter): AccountCache {
         return this.getAccountsFilteredByInternal(
             accountFilter.homeAccountId,
             accountFilter.environment,

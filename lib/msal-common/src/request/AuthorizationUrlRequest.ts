@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Prompt, ResponseMode } from "../utils/Constants";
+import { ResponseMode } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 
 /**
@@ -73,7 +73,7 @@ export type AuthorizationUrlRequest = {
      * select_account: will interrupt single sign-=on providing account selection experience listing all the accounts in
      *                 session or any remembered accounts or an option to choose to use a different account
      */
-    prompt?: Prompt;
+    prompt?: string;
 
     /**
      * Can be used to pre-fill the username/email address field of the sign-in page for the user,
