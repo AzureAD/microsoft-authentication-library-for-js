@@ -1,4 +1,5 @@
 import { TimeUtils } from "../src/utils/TimeUtils";
+import { OpenIdConfiguration, ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryResponse";
 
 // Test Tokens
 export const TEST_TOKENS = {
@@ -77,4 +78,16 @@ export const TEST_RESPONSE_TYPE = {
     token: "token",
     id_token_token: "id_token token"
 };
+
+export const OPENID_CONFIGURATION: OpenIdConfiguration = {
+    authorization_endpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    end_session_endpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
+    issuer: "https://login.microsoftonline.com/{tenantid}/v2.0"
+}
+
+export const TENANT_DISCOVERY_RESPONSE: ITenantDiscoveryResponse = {
+    AuthorizationEndpoint: OPENID_CONFIGURATION.authorization_endpoint,
+    EndSessionEndpoint: OPENID_CONFIGURATION.end_session_endpoint,
+    Issuer: OPENID_CONFIGURATION.issuer
+}
 
