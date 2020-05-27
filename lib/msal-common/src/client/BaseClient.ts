@@ -14,6 +14,7 @@ import { Logger } from "../logger/Logger";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -36,7 +37,10 @@ export abstract class BaseClient {
     protected networkClient: INetworkModule;
 
     // Helper API object for running cache functions
-    protected cacheManager: CacheHelpers;
+    protected spaCacheManager: CacheHelpers;
+
+    // Helper API object for serialized cache operations
+    protected unifiedCacheManager: UnifiedCacheManager;
 
     // Account object
     protected account: Account;
@@ -58,7 +62,10 @@ export abstract class BaseClient {
         this.cacheStorage = this.config.storageInterface;
 
         // Initialize storage helper object
-        this.cacheManager = new CacheHelpers(this.cacheStorage);
+        this.spaCacheManager = new CacheHelpers(this.cacheStorage);
+
+        // Initialize serialized cache manager
+        this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage);
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
@@ -109,5 +116,14 @@ export abstract class BaseClient {
                 body: queryString,
                 headers: headers,
             });
+    }
+
+    /**
+     * TODO: modify this soon
+     * Set the cache post acquireToken call
+     */
+    protected updateCache(): void {
+        const cache = this.unifiedCacheManager.getCacheInMemory();
+        this.cacheStorage.setCache(cache);
     }
 }

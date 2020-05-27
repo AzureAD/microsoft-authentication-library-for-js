@@ -44,6 +44,7 @@ import { Constants,
     FramePrefix
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
+import { TrustedAuthority } from "./authority/TrustedAuthority";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -219,7 +220,8 @@ export class UserAgentApplication {
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
 
-        Authority.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities, this.telemetryManager, CryptoUtils.createNewGuid());
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
+        AuthorityFactory.saveMetadataFromConfig(this.config.auth.authority, this.config.auth.authorityMetadata);
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
@@ -352,7 +354,7 @@ export class UserAgentApplication {
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
@@ -378,7 +380,7 @@ export class UserAgentApplication {
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
@@ -483,38 +485,24 @@ export class UserAgentApplication {
      * Helper function to acquireToken
      *
      */
-    private acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
+    private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
 
         let serverAuthenticationRequest: ServerRequestParameters;
-        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
+        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
 
         let popUpWindow: Window;
 
-        if (interactionType === Constants.interactionTypePopup) {
-            // Generate a popup window
-            try {
-                popUpWindow = this.openPopup("about:blank", "msal", Constants.popUpWidth, Constants.popUpHeight);
-
-                // Push popup window handle onto stack for tracking
-                WindowUtils.trackPopup(popUpWindow);
-            } catch (e) {
-                this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
-                this.cacheStorage.setItem(ErrorCacheKeys.ERROR, ClientAuthErrorMessage.popUpWindowError.code);
-                this.cacheStorage.setItem(ErrorCacheKeys.ERROR_DESC, ClientAuthErrorMessage.popUpWindowError.desc);
-                if (reject) {
-                    reject(ClientAuthError.createPopupWindowError());
-                }
+        try {
+            if (!acquireTokenAuthority.hasCachedMetadata()) {
+                this.logger.verbose("No cached metadata for authority");
+                await AuthorityFactory.saveMetadataFromNetwork(acquireTokenAuthority, this.telemetryManager, request.correlationId);
+            } else {
+                this.logger.verbose("Cached metadata found for authority");
             }
 
-            if (!popUpWindow) {
-                return;
-            }
-        }
-
-        acquireTokenAuthority.resolveEndpointsAsync(this.telemetryManager, request.correlationId).then(async () => {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
 
@@ -553,47 +541,65 @@ export class UserAgentApplication {
                 throw ClientAuthError.createInvalidInteractionTypeError();
             }
 
-            // prompt user for interaction
-            this.navigateWindow(urlNavigate, popUpWindow);
-
-            // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
-            if (popUpWindow) {
+            if (interactionType === Constants.interactionTypePopup) {
+                // Generate a popup window
                 try {
-                    const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
-
-                    this.handleAuthenticationResponse(hash);
-
-                    // Request completed successfully, set to completed
-                    this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-                    this.logger.info("Closing popup window");
-
-                    // TODO: Check how this can be extracted for any framework specific code?
-                    if (this.config.framework.isAngular) {
-                        this.broadcast("msal:popUpHashChanged", hash);
-                        WindowUtils.closePopups();
-                    }
-                } catch (error) {
+                    popUpWindow = this.openPopup(urlNavigate, "msal", Constants.popUpWidth, Constants.popUpHeight);
+    
+                    // Push popup window handle onto stack for tracking
+                    WindowUtils.trackPopup(popUpWindow);
+                } catch (e) {
+                    this.logger.info(ClientAuthErrorMessage.popUpWindowError.code + ":" + ClientAuthErrorMessage.popUpWindowError.desc);
+                    this.cacheStorage.setItem(ErrorCacheKeys.ERROR, ClientAuthErrorMessage.popUpWindowError.code);
+                    this.cacheStorage.setItem(ErrorCacheKeys.ERROR_DESC, ClientAuthErrorMessage.popUpWindowError.desc);
                     if (reject) {
-                        reject(error);
-                    }
-
-                    if (this.config.framework.isAngular) {
-                        this.broadcast("msal:popUpClosed", error.errorCode + Constants.resourceDelimiter + error.errorMessage);
-                    } else {
-                        // Request failed, set to canceled
-                        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-                        popUpWindow.close();
+                        reject(ClientAuthError.createPopupWindowError());
+                        return;
                     }
                 }
+    
+                // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
+                if (popUpWindow) {
+                    try {
+                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
+
+                        this.handleAuthenticationResponse(hash);
+
+                        // Request completed successfully, set to completed
+                        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+                        this.logger.info("Closing popup window");
+
+                        // TODO: Check how this can be extracted for any framework specific code?
+                        if (this.config.framework.isAngular) {
+                            this.broadcast("msal:popUpHashChanged", hash);
+                            WindowUtils.closePopups();
+                        }
+                    } catch (error) {
+                        if (reject) {
+                            reject(error);
+                        }
+
+                        if (this.config.framework.isAngular) {
+                            this.broadcast("msal:popUpClosed", error.errorCode + Constants.resourceDelimiter + error.errorMessage);
+                        } else {
+                            // Request failed, set to canceled
+                            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+                            popUpWindow.close();
+                        }
+                    }
+                }
+            } else {
+                // prompt user for interaction
+                this.navigateWindow(urlNavigate, popUpWindow);
             }
-        }).catch((err) => {
-            this.logger.warning("could not resolve endpoints");
+        } catch (err) {
+            this.logger.error(err);
             this.cacheStorage.resetTempCacheItems(request.state);
             this.authErrorHandler(interactionType, ClientAuthError.createEndpointResolutionError(err.toString), buildResponseStateOnly(request.state), reject);
             if (popUpWindow) {
                 popUpWindow.close();
             }
-        });
+        }
     }
 
     /**
@@ -630,36 +636,48 @@ export class UserAgentApplication {
      *
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
+        this.logger.verbose("AcquireTokenSilent has been called");
+
         // validate the request
         const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
-        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent, this.logger);
+        const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent);
         const requestSignature = RequestUtils.createRequestSignature(request);
 
-        return new Promise<AuthResponse>((resolve, reject) => {
+        return new Promise<AuthResponse>(async (resolve, reject) => {
 
             // block the request if made from the hidden iframe
             WindowUtils.blockReloadInHiddenIframes();
 
             const scope = request.scopes.join(" ").toLowerCase();
+            this.logger.verbosePii(`Serialized scopes: ${scope}`);
 
             // if the developer passes an account, give that account the priority
-            const account: Account = request.account || this.getAccount();
+            let account: Account;
+            if (request.account) {
+                account = request.account;
+                this.logger.verbose("Account set from request");
+            } else {
+                account = this.getAccount();
+                this.logger.verbose("Account set from MSAL Cache");
+            }
 
-            // extract if there is an adalIdToken stashed in the cache
+            // Extract adalIdToken if stashed in the cache to allow for seamless ADAL to MSAL migration
             const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
 
-            // if there is no account logged in and no login_hint/sid is passed in the request
+            // In the event of no account being passed in the config, no session id, and no pre-existing adalIdToken, user will need to log in
             if (!account && !(request.sid  || request.loginHint) && StringUtils.isEmpty(adalIdToken) ) {
                 this.logger.info("User login is required");
+                // The promise rejects with a UserLoginRequiredError, which should be caught and user should be prompted to log in interactively
                 return reject(ClientAuthError.createUserLoginRequiredError());
             }
 
             // set the response type based on the current cache status / scopes set
             const responseType = this.getTokenType(account, request.scopes, true);
+            this.logger.verbose(`Response type: ${responseType}`);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
-                AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority),
+                AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata),
                 this.clientId,
                 responseType,
                 this.getRedirectUri(request.redirectUri),
@@ -668,16 +686,22 @@ export class UserAgentApplication {
                 request.correlationId,
             );
 
+            this.logger.verbose("Finished building server authentication request");
+
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
                 serverAuthenticationRequest.populateQueryParams(account, request, null, true);
+                this.logger.verbose("Query parameters populated from existing SSO or account");
             }
             // if user didn't pass login_hint/sid and adal's idtoken is present, extract the login_hint from the adalIdToken
             else if (!account && !StringUtils.isEmpty(adalIdToken)) {
                 // if adalIdToken exists, extract the SSO info from the same
                 const adalIdTokenObject = TokenUtils.extractIdToken(adalIdToken);
-                this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+                this.logger.verbose("ADAL's idToken exists. Extracting login information from ADAL's idToken to populate query parameters");
                 serverAuthenticationRequest.populateQueryParams(account, null, adalIdTokenObject, true);
+            }
+            else {
+                this.logger.verbose("No additional query parameters added");
             }
 
             const userContainedClaims = request.claimsRequest || serverAuthenticationRequest.claimsValue;
@@ -685,6 +709,7 @@ export class UserAgentApplication {
             let authErr: AuthError;
             let cacheResultResponse;
 
+            // If request.forceRefresh is set to true, force a request for a new token instead of getting it from the cache
             if (!userContainedClaims && !request.forceRefresh) {
                 try {
                     cacheResultResponse = this.getCachedToken(serverAuthenticationRequest, account);
@@ -695,7 +720,7 @@ export class UserAgentApplication {
 
             // resolve/reject based on cacheResult
             if (cacheResultResponse) {
-                this.logger.info("Token is already in cache for scope:" + scope);
+                this.logger.verbose("Token is already in cache for scope: " + scope);
                 resolve(cacheResultResponse);
                 return null;
             }
@@ -708,55 +733,63 @@ export class UserAgentApplication {
             else {
                 let logMessage;
                 if (userContainedClaims) {
-                    logMessage = "Skipped cache lookup since claims were given.";
+                    logMessage = "Skipped cache lookup since claims were given";
                 } else if (request.forceRefresh) {
                     logMessage = "Skipped cache lookup since request.forceRefresh option was set to true";
                 } else {
-                    logMessage = "Token is not in cache for scope:" + scope;
+                    logMessage = "Token is not in cache for scope: " + scope;
                 }
                 this.logger.verbose(logMessage);
 
-                // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the api.
+                // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the API.
                 if (!serverAuthenticationRequest.authorityInstance) {
-                    serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority) : this.authorityInstance;
+                    serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
                 }
-                // cache miss
 
-                // start http event
-                return serverAuthenticationRequest.authorityInstance.resolveEndpointsAsync(this.telemetryManager, request.correlationId)
-                    .then(() => {
-                        /*
-                         * refresh attempt with iframe
-                         * Already renewing for this scope, callback when we get the token.
-                         */
-                        if (window.activeRenewals[requestSignature]) {
-                            this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
-                            // Active renewals contains the state for each renewal.
-                            this.registerCallback(window.activeRenewals[requestSignature], requestSignature, resolve, reject);
+                this.logger.verbosePii(`Authority instance: ${serverAuthenticationRequest.authority}`);
+                
+                try {
+                    if (!serverAuthenticationRequest.authorityInstance.hasCachedMetadata()) {
+                        this.logger.verbose("No cached metadata for authority");
+                        await AuthorityFactory.saveMetadataFromNetwork(serverAuthenticationRequest.authorityInstance, this.telemetryManager, request.correlationId);
+                        this.logger.verbose("Authority has been updated with endpoint discovery response");
+                    } else {
+                        this.logger.verbose("Cached metadata found for authority");
+                    }
+
+                    /*
+                     * refresh attempt with iframe
+                     * Already renewing for this scope, callback when we get the token.
+                     */
+                    if (window.activeRenewals[requestSignature]) {
+                        this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
+                        // Active renewals contains the state for each renewal.
+                        this.registerCallback(window.activeRenewals[requestSignature], requestSignature, resolve, reject);
+                    }
+                    else {
+                        if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
+                            /*
+                             * App uses idToken to send to api endpoints
+                             * Default scope is tracked as clientId to store this token
+                             */
+                            this.logger.verbose("Renewing idToken");
+                            this.silentLogin = true;
+                            this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
+                        } else {
+                            // renew access token
+                            this.logger.verbose("Renewing accesstoken");
+                            this.renewToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                         }
-                        else {
-                            if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
-                                /*
-                                 * App uses idToken to send to api endpoints
-                                 * Default scope is tracked as clientId to store this token
-                                 */
-                                this.logger.verbose("renewing idToken");
-                                this.silentLogin = true;
-                                this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
-                            } else {
-                                // renew access token
-                                this.logger.verbose("renewing accesstoken");
-                                this.renewToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
-                            }
-                        }
-                    }).catch((err) => {
-                        this.logger.warning("could not resolve endpoints");
-                        reject(ClientAuthError.createEndpointResolutionError(err.toString()));
-                        return null;
-                    });
+                    }
+                } catch (err) {
+                    this.logger.error(err);
+                    reject(ClientAuthError.createEndpointResolutionError(err.toString()));
+                    return null;
+                }
             }
         })
             .then(res => {
+                this.logger.verbose("Successfully acquired token");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return res;
             })
@@ -942,27 +975,43 @@ export class UserAgentApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      */
     logout(correlationId?: string): void {
-        // TODO this new correlation id passed in, is not appended to logout request, should add
+        this.logoutAsync(correlationId);
+    }
+
+    /**
+     * Async version of logout(). Use to log out the current user.
+     * @param correlationId Request correlationId
+     */
+    private async logoutAsync(correlationId?: string): Promise<void> {
         const requestCorrelationId = correlationId || CryptoUtils.createNewGuid();
-        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout, this.logger);
+        const apiEvent = this.telemetryManager.createAndStartApiEvent(requestCorrelationId, API_EVENT_IDENTIFIER.Logout);
 
         this.clearCache();
         this.account = null;
-        let logout = "";
-        if (this.getPostLogoutRedirectUri()) {
-            logout = "post_logout_redirect_uri=" + encodeURIComponent(this.getPostLogoutRedirectUri());
+
+        try {
+            if (!this.authorityInstance.hasCachedMetadata()) {
+                this.logger.verbose("No cached metadata for authority");
+                await AuthorityFactory.saveMetadataFromNetwork(this.authorityInstance, this.telemetryManager, correlationId);
+            } else {
+                this.logger.verbose("Cached metadata found for authority");
+            }
+
+            const correlationIdParam = `client-request-id=${requestCorrelationId}`;
+
+            const postLogoutQueryParam = this.getPostLogoutRedirectUri()
+                ? `&post_logout_redirect_uri=${encodeURIComponent(this.getPostLogoutRedirectUri())}`
+                : "";
+
+            const urlNavigate = this.authorityInstance.EndSessionEndpoint
+                ? `${this.authorityInstance.EndSessionEndpoint}?${correlationIdParam}${postLogoutQueryParam}`
+                : `${this.authority}oauth2/v2.0/logout?${correlationIdParam}${postLogoutQueryParam}`;
+
+            this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, true);
+            this.navigateWindow(urlNavigate);
+        } catch (error) {
+            this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, false, error.errorCode);
         }
-        this.authorityInstance.resolveEndpointsAsync(this.telemetryManager, requestCorrelationId)
-            .then(authority => {
-                const urlNavigate = authority.EndSessionEndpoint
-                    ? `${authority.EndSessionEndpoint}?${logout}`
-                    : `${this.authority}oauth2/v2.0/logout?${logout}`;
-                this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, true);
-                this.navigateWindow(urlNavigate);
-            })
-            .catch((error: AuthError) => {
-                this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, false, error.errorCode);
-            });
     }
 
     /**
@@ -2160,7 +2209,7 @@ export class UserAgentApplication {
      */
     private getTelemetryManagerFromConfig(config: TelemetryOptions, clientId: string): TelemetryManager {
         if (!config) { // if unset
-            return TelemetryManager.getTelemetrymanagerStub(clientId);
+            return TelemetryManager.getTelemetrymanagerStub(clientId, this.logger);
         }
         // if set then validate
         const { applicationName, applicationVersion, telemetryEmitter } = config;
@@ -2176,7 +2225,7 @@ export class UserAgentApplication {
             platform: telemetryPlatform,
             clientId: clientId
         };
-        return new TelemetryManager(telemetryManagerConfig, telemetryEmitter);
+        return new TelemetryManager(telemetryManagerConfig, telemetryEmitter, this.logger);
     }
 
     // #endregion

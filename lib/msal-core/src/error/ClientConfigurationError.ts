@@ -7,7 +7,12 @@ import { Constants } from "../utils/Constants";
 import { ClientAuthError } from "./ClientAuthError";
 import { TelemetryOptions } from "../Configuration";
 
-export const ClientConfigurationErrorMessage = {
+interface IClientConfigurationErrorMessage {
+    code: string,
+    desc: string
+};
+
+export const ClientConfigurationErrorMessage: Record<string, IClientConfigurationErrorMessage> = {
     configurationNotSet: {
         code: "no_config_set",
         desc: "Configuration has not been set. Please call the UserAgentApplication constructor with a valid Configuration object."
@@ -64,7 +69,7 @@ export const ClientConfigurationErrorMessage = {
     },
     untrustedAuthority: {
         code: "untrusted_authority",
-        desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
+        desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter or set validateAuthority=false."
     },
     b2cAuthorityUriInvalidPath: {
         code: "b2c_authority_uri_invalid_path",
@@ -93,6 +98,10 @@ export const ClientConfigurationErrorMessage = {
     ssoSilentError: {
         code: "sso_silent_error",
         desc: "request must contain either sid or login_hint"
+    },
+    invalidAuthorityMetadataError: {
+        code: "authority_metadata_error",
+        desc: "Invalid authorityMetadata. Must be a JSON object containing authorization_endpoint, end_session_endpoint, and issuer fields."
     }
 };
 
@@ -176,9 +185,9 @@ export class ClientConfigurationError extends ClientAuthError {
             ClientConfigurationErrorMessage.invalidAuthorityType.desc);
     }
 
-    static createUntrustedAuthorityError(): ClientConfigurationError {
+    static createUntrustedAuthorityError(host: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
-            ClientConfigurationErrorMessage.untrustedAuthority.desc);
+            `${ClientConfigurationErrorMessage.untrustedAuthority.desc} Provided Authority: ${host}`);
     }
 
     static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
@@ -200,5 +209,9 @@ export class ClientConfigurationError extends ClientAuthError {
     static createSsoSilentError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.ssoSilentError.code,
             ClientConfigurationErrorMessage.ssoSilentError.desc);
+    }
+
+    static createInvalidAuthorityMetadataError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthorityMetadataError.code, ClientConfigurationErrorMessage.invalidAuthorityMetadataError.desc);
     }
 }

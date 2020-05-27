@@ -1,14 +1,14 @@
-import { Authority } from "../authority/Authority";
 import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { UrlUtils } from "../utils/UrlUtils";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
 
 export const scrubTenantFromUri = (uri: string): String => {
 
     const url = UrlUtils.GetUrlComponents(uri);
 
     // validate trusted host
-    if (!Authority.TrustedHostList[url.HostNameAndPort.toLocaleLowerCase()]) {
+    if (!TrustedAuthority.IsInTrustedHostList(url.HostNameAndPort.toLocaleLowerCase())) {
         /**
          * returning what was passed because the library needs to work with uris that are non
          * AAD trusted but passed by users such as B2C or others.
@@ -39,3 +39,27 @@ export const hashPersonalIdentifier = (valueToHash: string) => {
 };
 
 export const prependEventNamePrefix = (suffix: string): string => `${EVENT_NAME_PREFIX}${suffix || ""}`;
+
+export const supportsBrowserPerformance = (): boolean => !!(
+    typeof window !== "undefined" &&
+        "performance" in window &&
+        window.performance.mark && 
+        window.performance.measure
+);
+
+export const endBrowserPerformanceMeasurement = (measureName: string, startMark: string, endMark: string) => {
+    if (supportsBrowserPerformance()) {
+        window.performance.mark(endMark);
+        window.performance.measure(measureName, startMark, endMark);
+
+        window.performance.clearMeasures(measureName);
+        window.performance.clearMarks(startMark);
+        window.performance.clearMarks(endMark);
+    }
+};
+
+export const startBrowserPerformanceMeasurement = (startMark: string) => {
+    if (supportsBrowserPerformance()) {
+        window.performance.mark(startMark);
+    }
+};

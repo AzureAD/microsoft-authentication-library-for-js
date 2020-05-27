@@ -24,4 +24,3 @@ Please follow the issue template below. Failure to do so will result in a delay 
 - [ ] Documentation does not exist
 
 ## Description
-A clear and concise description of the documentation issue.
