@@ -377,6 +377,8 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
+        this.logger.verbose("AcquireTokenPopup has been called");
+
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
@@ -385,6 +387,7 @@ export class UserAgentApplication {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
         })
             .then((resp) => {
+                this.logger.verbose("Successfully acquired token");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return resp;
             })
@@ -405,6 +408,7 @@ export class UserAgentApplication {
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
+        this.logger.verbose("AcquireTokenInteractive has been called");
 
         // block the request if made from the hidden iframe
         WindowUtils.blockReloadInHiddenIframes();
@@ -427,7 +431,14 @@ export class UserAgentApplication {
         }
 
         // Get the account object if a session exists
-        const account: Account = (request && request.account && !isLoginCall) ? request.account : this.getAccount();
+        let account: Account;
+        if (request && request.account && !isLoginCall) {
+            account = request.account;
+            this.logger.verbose("Account set from request");
+        } else {
+            account = this.getAccount();
+            this.logger.verbose("Account set from MSAL Cache");
+        }
 
         // If no session exists, prompt the user to login.
         if (!account && !ServerRequestParameters.isSSOParam(request)) {
