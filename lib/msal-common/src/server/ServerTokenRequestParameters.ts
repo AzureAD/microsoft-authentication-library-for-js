@@ -57,15 +57,6 @@ export class ServerTokenRequestParameters {
     }
 
     /**
-     * Creates headers required for token request.
-     */
-    createRequestHeaders(): Map<string, string> {
-        const headers = new Map<string, string>();
-        headers.set(HeaderNames.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
-        return headers;
-    }
-
-    /**
      * Creates string of parameters to send to server in request body.
      */
     createRequestBody(): string {

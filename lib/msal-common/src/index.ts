@@ -9,6 +9,7 @@ export {
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { Account } from "./account/Account";
+export { IdToken } from "./account/IdToken";
 export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
@@ -49,7 +50,8 @@ export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
 export {
-    Constants, PromptValue, TemporaryCacheKeys, PersistentCacheKeys, Prompt, ResponseMode
+    Constants, PromptValue, PersistentCacheKeys, ResponseMode
 } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
+export { ProtocolUtils } from "./utils/ProtocolUtils";

@@ -22,8 +22,7 @@ import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
-import { Separators } from '../utils/Constants';
-import { CacheRecord } from '../unifiedCache/entities/CacheRecord';
+import { CacheRecord } from "../unifiedCache/entities/CacheRecord";
 
 /**
  * Class that handles response parsing.
@@ -112,17 +111,16 @@ export class ResponseHandler {
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
         this.uCacheManager.saveCacheRecord(cacheRecord);
 
-
         // Expiration calculation
         const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
         const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
 
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
-        let authenticationResult = {
+
+        const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: responseScopes.asArray(),
-            tokenType: "Bearer",
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
@@ -165,13 +163,13 @@ export class ResponseHandler {
      */
     generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority): CacheRecord {
 
-        let cacheRecord = new CacheRecord();
+        const cacheRecord = new CacheRecord();
 
         // Account
         cacheRecord.account  = this.generateAccountEntity(
-                serverTokenResponse,
-                idTokenObj,
-                authority
+            serverTokenResponse,
+            idTokenObj,
+            authority
         );
 
         // IdToken
