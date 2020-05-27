@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@angular/core";
+import { Injectable } from "@angular/core";
 import {
     ActivatedRoute,
     ActivatedRouteSnapshot, CanActivate, Router,
@@ -7,23 +7,17 @@ import {
 import { MsalService } from "./msal.service";
 import { Location, PlatformLocation } from "@angular/common";
 import { BroadcastService } from "./broadcast.service";
-import { Configuration, AuthError, InteractionRequiredAuthError, UrlUtils, WindowUtils } from "msal";
-import { MsalAngularConfiguration } from "./msal-angular.configuration";
-import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
+import { AuthError, InteractionRequiredAuthError, UrlUtils, WindowUtils } from "msal";
+import { Observable } from "rxjs";
+import { skipWhile, mergeMap, tap, catchError, map } from "rxjs/operators";
 
 @Injectable()
 export class MsalGuard implements CanActivate {
 
     constructor(
-        @Inject(MSAL_CONFIG) private msalConfig: Configuration,
-        @Inject(MSAL_CONFIG_ANGULAR) private msalAngularConfig: MsalAngularConfiguration,
         private authService: MsalService,
-        private router: Router,
-        private activatedRoute: ActivatedRoute,
-        private location: Location,
-        private platformLocation: PlatformLocation,
-        private broadcastService: BroadcastService
-    ) {}
+        private location: Location
+    ) { }
 
     /**
      * Builds the absolute url for the destination page
@@ -53,10 +47,10 @@ export class MsalGuard implements CanActivate {
      * @param url Path of the requested page
      */
     async loginInteractively(url: string) {
-        if (this.msalAngularConfig.popUp) {
+        if (this.authService.getMsalAngularConfig().popUp) {
             return this.authService.loginPopup({
-                scopes: this.msalAngularConfig.consentScopes,
-                extraQueryParameters: this.msalAngularConfig.extraQueryParameters
+                scopes: this.authService.getMsalAngularConfig().consentScopes,
+                extraQueryParameters: this.authService.getMsalAngularConfig().extraQueryParameters
             })
                 .then(() => true)
                 .catch(() => false);
@@ -66,12 +60,12 @@ export class MsalGuard implements CanActivate {
 
         this.authService.loginRedirect({
             redirectStartPage,
-            scopes: this.msalAngularConfig.consentScopes,
-            extraQueryParameters: this.msalAngularConfig.extraQueryParameters
+            scopes: this.authService.getMsalAngularConfig().consentScopes,
+            extraQueryParameters: this.authService.getMsalAngularConfig().extraQueryParameters
         });
     }
 
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
+    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> | Observable<boolean> {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
         // If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
@@ -85,11 +79,16 @@ export class MsalGuard implements CanActivate {
             return this.loginInteractively(state.url);
         }
 
-        return this.authService.acquireTokenSilent({
-            scopes: [this.msalConfig.auth.clientId]
-        })
-            .then(() => true)
-            .catch((error: AuthError) => {
+        return this.authService.isModuleConfigured.pipe(
+            skipWhile(active => !active),
+            map(() => {
+
+                return this.authService.acquireTokenSilent({
+                    scopes: [this.authService.getMsalConfig().auth.clientId]
+                });
+            }),
+            map(() => true),
+            catchError((error: AuthError) => {
                 if (InteractionRequiredAuthError.isInteractionRequiredError(error.errorCode)) {
                     this.authService.getLogger().info(`Interaction required error in MSAL Guard, prompting for interaction.`);
                     return this.loginInteractively(state.url);
@@ -97,7 +96,8 @@ export class MsalGuard implements CanActivate {
 
                 this.authService.getLogger().error(`Non-interaction error in MSAL Guard: ${error.errorMessage}`);
                 throw error;
-            });
+            })
+        );
     }
 
 }

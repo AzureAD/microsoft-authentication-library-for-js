@@ -20,7 +20,7 @@ import {
 } from "@angular/platform-browser-dynamic/testing";
 import {RouterTestingModule} from "@angular/router/testing";
 import {} from "jasmine";
-import { Configuration, UserAgentApplication, AuthResponse, AuthError, Account } from "msal";
+import { Configuration, UserAgentApplication, AuthResponse, AuthError, Account, ClientConfigurationError } from "msal";
 import { RequestUtils } from "../../msal-core/src/utils/RequestUtils";
 import { Constants, TemporaryCacheKeys } from "../../msal-core/src/utils/Constants";
 import { testHashesForState, TEST_TOKENS } from "./TestConstants";
@@ -31,6 +31,33 @@ let broadcastService: BroadcastService;
 
 const clientId = "6226576d-37e9-49eb-b201-ec1eeb0029b6";
 
+export function getMsalConfig(): Configuration {
+    return {
+        auth: {
+            clientId,
+            authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/",
+            validateAuthority: true,
+            redirectUri: "http://localhost:4200/",
+            postLogoutRedirectUri: "http://localhost:4200/",
+            navigateToLoginRequestUrl: true,
+        },
+        cache: {
+            cacheLocation: "localStorage",
+            storeAuthStateInCookie: false
+        }
+    }
+}
+
+export function getMsalConfigAngular(): MsalAngularConfiguration {
+    return {
+        popUp: false,
+        consentScopes: ["user.read", "mail.send"],
+        protectedResourceMap: [
+            ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
+        ]
+    }
+}
+
 function initializeMsal() {
     TestBed.configureTestingModule({
         imports: [RouterTestingModule],
@@ -38,30 +65,11 @@ function initializeMsal() {
             MsalService,
             {
                 provide: MSAL_CONFIG,
-                useValue: {
-                    auth: {
-                        clientId,
-                        authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/",
-                        validateAuthority: true,
-                        redirectUri: "http://localhost:4200/",
-                        postLogoutRedirectUri: "http://localhost:4200/",
-                        navigateToLoginRequestUrl: true,
-                    },
-                    cache: {
-                        cacheLocation: "localStorage",
-                        storeAuthStateInCookie: false
-                    }
-                } as Configuration
+                useValue: getMsalConfig()
             },
             {
                 provide: MSAL_CONFIG_ANGULAR,
-                useValue: {
-                    popUp: false,
-                    consentScopes: ["user.read", "mail.send"],
-                    protectedResourceMap: [
-                        ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
-                    ]
-                } as MsalAngularConfiguration
+                useValue: getMsalConfigAngular()
             },
             BroadcastService,
             {
@@ -81,6 +89,65 @@ function initializeMsal() {
     authService = TestBed.get(MsalService);
     broadcastService = TestBed.get(BroadcastService);
 }
+
+describe("Asynchronous configuration loading", () => {
+    beforeEach(function() {
+        TestBed.configureTestingModule({
+            imports: [RouterTestingModule],
+            providers: [
+                MsalService,
+                BroadcastService,
+                {
+                    provide: Storage,
+                    useClass: {
+                        mockLocalStorage: "localStorage"
+                    }
+                }
+            ]
+        });
+    
+        getTestBed().initTestEnvironment(
+            BrowserDynamicTestingModule,
+            platformBrowserDynamicTesting()
+        );
+    
+        authService = TestBed.get(MsalService);
+        broadcastService = TestBed.get(BroadcastService);
+    });
+
+    afterEach(function () {
+        TestBed.resetTestEnvironment();
+            TestBed.resetTestingModule();
+            authService = null;
+            broadcastService = null;
+    });
+    it("should load config", () => {
+        authService.configureAngular(getMsalConfig(), getMsalConfigAngular());
+        expect(authService.isModuleConfigured.value).toBeTruthy;
+        expect(authService.getMsalConfig().auth.clientId).toEqual(getMsalConfig().auth.clientId);
+    });
+    it("should load config asynchronously", done => {
+        authService.isModuleConfigured.subscribe(loaded => {
+            if(loaded) {
+                expect(loaded).toBe(true);
+                expect(authService.getMsalConfig().auth.clientId).toEqual(getMsalConfig().auth.clientId);
+                done();
+            }
+        });
+        setTimeout(() => {
+            authService.configureAngular(getMsalConfig(), getMsalConfigAngular());
+        }, 1000);
+    });
+    it("should not init when not configured", () => {
+        expect(authService.isModuleConfigured.value).toBeFalsy;
+        expect(() => authService.getCurrentConfiguration()).toThrow(ClientConfigurationError.createNoSetConfigurationError());
+    });
+    it("should not load empty config", () => {
+        authService.configureAngular(null, null);
+        expect(authService.isModuleConfigured.value).toBeFalsy;
+        expect(() => authService.getCurrentConfiguration()).toThrow(ClientConfigurationError.createNoSetConfigurationError());
+    });
+});
 
 describe("Msal Angular Pubic API tests", function () {
     describe("login and acquireToken methods", () => {

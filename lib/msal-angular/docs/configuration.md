@@ -222,6 +222,24 @@ fetch('/assets/configuration.json')
 }
 ```
 
+## Async configuration loading
+`MsalService` provide a convenient method to initiliaze the module with an asynchronously loaded configuration file.  
+To use it you need to NOT inject MSAL_CONFIG nor MSAL_CONFIG_ANGULAR in your app.
+
+```typescript
+this.authService.configureAngular(msalConfig, msalAngularConfig);
+```
+
+You can listen an observable to know when the module is being configured :
+```typescript
+this.msal.isModuleConfigured.subscribe(loaded => {
+      if (loaded) {
+        // module is initialized, do some work
+      }
+});
+```
+
+
 ## APP_INITIALIZER
 
 An example of how to use the `APP_INITIALIZER` [injection token](https://angular.io/api/core/APP_INITIALIZER) to dynamically configure MSAL for Angular can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/1403).
