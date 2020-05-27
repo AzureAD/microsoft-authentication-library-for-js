@@ -34,7 +34,6 @@ export const Constants = {
     CODE_GRANT_TYPE: "authorization_code",
     RT_GRANT_TYPE: "refresh_token",
     FRAGMENT_RESPONSE_MODE: "fragment",
-    QUERY_RESPONSE_MODE: "query",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending"
@@ -45,7 +44,7 @@ export const Constants = {
  */
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type"
-};
+}
 
 /**
  * Temporary cache keys for MSAL, deleted after any request.
@@ -61,7 +60,7 @@ export enum TemporaryCacheKeys {
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
-};
+}
 
 /**
  * Persistent cache keys MSAL which stay while user is logged in.
@@ -72,7 +71,7 @@ export enum PersistentCacheKeys {
     ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",
     ERROR_DESC = "error.description"
-};
+}
 
 /**
  * List of pre-established trusted host URLs.
@@ -93,7 +92,7 @@ export enum AADAuthorityConstants {
     COMMON = "common",
     ORGANIZATIONS = "organizations",
     CONSUMERS = "consumers"
-};
+}
 
 /**
  * Keys in the hashParams sent by AAD Server
@@ -129,7 +128,7 @@ export enum AADServerParamKeys {
     X_CLIENT_CPU = "x-client-CPU",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
     DEVICE_CODE = "device_code"
-};
+}
 
 /**
  * IdToken claim string constants
@@ -168,13 +167,13 @@ export enum SSOTypes {
     ACCOUNT = "account",
     SID = "sid",
     LOGIN_HINT = "login_hint",
-    ID_TOKEN ="id_token",
+    ID_TOKEN = "id_token",
     DOMAIN_HINT = "domain_hint",
     ORGANIZATIONS = "organizations",
     CONSUMERS = "consumers",
     ACCOUNT_ID = "accountIdentifier",
     HOMEACCOUNT_ID = "homeAccountIdentifier"
-};
+}
 
 /**
  * Disallowed extra query parameters.
@@ -193,7 +192,9 @@ export const CodeChallengeMethodValues = {
 };
 
 /**
- *
+ * The method used to encode the code verifier for the code challenge parameter. can be one
+ * of plain or s256. if excluded, code challenge is assumed to be plaintext. for more
+ * information, see the pkce rcf: https://tools.ietf.org/html/rfc7636
  */
 export const CodeChallengeMethodValuesArray: string[] = [
     CodeChallengeMethodValues.PLAIN,
@@ -210,6 +211,16 @@ export enum ResponseMode {
 }
 
 /**
+ * Allowed values for prompt
+ */
+export enum Prompt {
+    LOGIN = "login",
+    NONE = "none",
+    CONSENT = "consent",
+    SELECT_ACCOUNT = "select_account"
+}
+
+/**
  * allowed grant_type
  */
 export enum GrantType {
@@ -219,5 +230,56 @@ export enum GrantType {
     RESOURCE_OWNER_PASSWORD_GRANT = "password",
     REFRESH_TOKEN_GRANT = "refresh_token",
     DEVICE_CODE_GRANT = "device_code"
+}
+
+/**
+ * Account types in Cache
+ */
+export enum CacheAccountType {
+    MSSTS_ACCOUNT_TYPE = "MSSTS",
+    ADFS_ACCOUNT_TYPE = "ADFS",
+    MSAV1_ACCOUNT_TYPE = "MSA",
+    OTHER_ACCOUNT_TYPE = "Other"
+}
+
+/**
+ * Separators used in cache
+ */
+export enum Separators {
+    CACHE_KEY_SEPARATOR = "-",
+    CLIENT_INFO_SEPARATOR = "."
+}
+
+/**
+ * Credentail Type stored in the cache
+ */
+export enum CredentialType {
+    ID_TOKEN = "IdToken",
+    ACCESS_TOKEN = "AccessToken",
+    REFRESH_TOKEN = "RefreshToken"
+}
+
+/**
+ * cache Type
+ */
+export enum CacheEntity {
+    ACCOUNT = "Account",
+    APP_META_DATA = "AppMetaData"
+}
+
+/**
+ * Combine all cache types
+ */
+export enum CacheTypes {
+    ACCESS_TOKEN,
+    ID_TOKEN,
+    REFRESH_TOKEN,
+    ACCOUNT,
+    APP_META_DATA
 };
 
+/**
+ * More Cache related constants
+ */
+export const APP_META_DATA = "appmetadata";
+export const ClientInfo = "client_info";

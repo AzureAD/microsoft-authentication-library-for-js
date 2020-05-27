@@ -17,4 +17,3 @@ Please follow the issue template below. Failure to do so will result in a delay 
 - [ ] `@azure/msal-angularjs@1.x.x`
 
 ## Description
-Please describe the functionality or improvement you would like to see added.

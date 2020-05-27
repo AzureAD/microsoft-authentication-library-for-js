@@ -27,6 +27,7 @@ const NAVIGATE_FRAME_WAIT = 500;
  *  - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
  *  - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
  *  - validateAuthority           - Used to turn authority validation on/off. When set to true (default), MSAL will compare the application's authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
+ *  - authorityMetadata           - OpenID configuration metadata for the configured authority. Must be passed as a JSON string.
  *  - knownAuthorities            - If validateAuthority is set to True, this will be used to set the Trusted Host list. Defaults to empty array
  *  - redirectUri                 - The redirect URI of the application, this should be same as the value in the application registration portal.Defaults to `window.location.href`.
  *  - postLogoutRedirectUri       - Used to redirect the user to this location after logout. Defaults to `window.location.href`.
@@ -35,9 +36,10 @@ const NAVIGATE_FRAME_WAIT = 500;
  */
 export type AuthOptions = {
     clientId: string;
-    authority?: string|null|undefined;
-    validateAuthority?: boolean|undefined;
-    knownAuthorities?: Array<string>|undefined;
+    authority?: string;
+    validateAuthority?: boolean;
+    authorityMetadata?: string;
+    knownAuthorities?: Array<string>;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
     navigateToLoginRequestUrl?: boolean|undefined;
@@ -117,6 +119,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     validateAuthority: true,
+    authorityMetadata: "",
     knownAuthorities: [],
     redirectUri: () => UrlUtils.getCurrentUrl(),
     postLogoutRedirectUri: () => UrlUtils.getCurrentUrl(),
