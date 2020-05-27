@@ -268,7 +268,7 @@ export class BrowserStorage implements ICacheStorage {
     /**
      * Dummy implementation until browser cache is migrated
      */
-    setCache() {
+    setCache(): void {
         // sets nothing
     }
 
