@@ -19,28 +19,13 @@ Please follow the issue template below.
 ## Upcoming Library
 - [ ] `@azure/msal-node@1.x`
 
-## Type
-- [ ] Bug
-- [ ] Feature
-- [ ] Enhancement
-- [ ] Tooling
-- [ ] Documentation
-- [ ] Samples
-- [ ] Other (please describe)
-
 ## Source
 - [ ] Internal (MSAL.js team)
 - [ ] Customer request
 
 ## Description
-A clear and concise description of the work to be completed.
 
 ## Priority
-How important is this work? When should it be completed (e.g. current quarter, next quarter)?
 
 ## Acceptance Criteria
-Describe the conditions that must met for this work to be considered complete.
 
-1. 
-2. 
-3.
