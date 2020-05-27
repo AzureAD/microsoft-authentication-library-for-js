@@ -42,7 +42,7 @@ export class Authority {
             return AuthorityType.Adfs;
         }
         
-        return AuthorityType.Aad
+        return AuthorityType.Default
     };
 
     public IsValidationEnabled: boolean;
