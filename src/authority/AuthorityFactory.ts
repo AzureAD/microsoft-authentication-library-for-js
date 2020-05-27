@@ -25,7 +25,7 @@ export class AuthorityFactory {
 
         if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS)
             return AuthorityType.Adfs;
-        else if (Object.keys(B2cAuthority.B2CTrustedHostList).length)
+        else if (B2cAuthority.B2CTrustedHostList.length)
             return AuthorityType.B2C;
 
         // defaults to Aad
