@@ -167,7 +167,9 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredBy(accountFilter: AccountFilter): AccountCache {
+    getAccountsFilteredBy(
+        accountFilter: AccountFilter
+    ): AccountCache {
         return this.getAccountsFilteredByInternal(
             accountFilter.homeAccountId,
             accountFilter.environment,
@@ -225,12 +227,6 @@ export class UnifiedCacheManager implements ICacheManager {
     getCredentialsFilteredBy(
         filter: CredentialFilter
     ): CredentialCache {
-        const matchingCredentials: CredentialCache = {
-            idTokens: {},
-            accessTokens: {},
-            refreshTokens: {},
-        };
-
         return this.getCredentialsFilteredByInternal(
             filter.homeAccountId,
             filter.environment,
