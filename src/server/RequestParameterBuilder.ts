@@ -8,7 +8,6 @@ import { ScopeSet } from "../request/ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "../request/RequestValidator";
-import pkg from "../../package.json";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 
@@ -146,6 +145,7 @@ export class RequestParameterBuilder {
         codeChallenge: string,
         codeChallengeMethod: string
     ): void {
+        RequestValidator.validateCodeChallengeParams(codeChallenge, codeChallengeMethod);
         if (codeChallenge && codeChallengeMethod) {
             this.parameters.set(AADServerParamKeys.CODE_CHALLENGE, encodeURIComponent(codeChallenge));
             this.parameters.set(AADServerParamKeys.CODE_CHALLENGE_METHOD, encodeURIComponent(codeChallengeMethod));
@@ -215,7 +215,7 @@ export class RequestParameterBuilder {
      * add extraQueryParams
      * @param eQparams
      */
-    addExtraQueryParameters(eQparams: StringDict) {
+    addExtraQueryParameters(eQparams: StringDict): void {
         RequestValidator.sanitizeEQParams(eQparams, this.parameters);
         Object.keys(eQparams).forEach((key) => {
             this.parameters.set(key, eQparams[key]);

@@ -29,16 +29,12 @@ export { UrlString } from "./url/UrlString";
 // Crypto Interface
 export { ICrypto, PkceCodes } from "./crypto/ICrypto";
 // Request and Response
-export { AuthenticationParameters } from "./request/AuthenticationParameters";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
-export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";
-export { AuthResponse, buildResponseStateOnly } from "./response/AuthResponse";
 export { TokenResponse } from "./response/TokenResponse";
-export { CodeResponse } from "./response/CodeResponse";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
@@ -50,7 +46,7 @@ export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
 export {
-    Constants, PromptValue, Prompt, PersistentCacheKeys, ResponseMode
+    Constants, PromptValue, PersistentCacheKeys, ResponseMode
 } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";

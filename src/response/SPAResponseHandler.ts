@@ -8,7 +8,6 @@ import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationT
 import { ScopeSet } from "../request/ScopeSet";
 import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
 import { Account } from "../account/Account";
-import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { ICrypto } from "../crypto/ICrypto";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { TokenResponse } from "./TokenResponse";
@@ -19,7 +18,6 @@ import { AccessTokenKey } from "../cache/AccessTokenKey";
 import { AccessTokenValue } from "../cache/AccessTokenValue";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
-import { CodeResponse } from "./CodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
