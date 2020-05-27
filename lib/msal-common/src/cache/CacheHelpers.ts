@@ -6,12 +6,8 @@ import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { AccessTokenValue } from "./AccessTokenValue";
 import { ICacheStorage } from "./ICacheStorage";
-import { Account } from "../account/Account";
-import { Authority } from "../authority/Authority";
-import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
-import { Constants } from "../utils/Constants";
 
 /**
  * The CacheHelpers class contains a set of helper functions used by the module to manage cache items.
