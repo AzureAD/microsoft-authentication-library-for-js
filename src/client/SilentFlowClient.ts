@@ -36,19 +36,9 @@ export class SilentFlowClient extends BaseClient {
         let idTokenObj: IdToken;
         const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId, true);
 
-        // TODO: Confirm if fetching only access_token is enough or if we need other tokens (?)
+        // We currently do not support silent flow for account===null use cases; This will be revisited for confidential flow usecases
         if (request.account === null) {
-            const atFilter = {
-                environment: this.defaultAuthority
-                    .canonicalAuthorityUrlComponents.HostNameAndPort,
-                clientId: this.config.authOptions.clientId,
-                credentialType: CredentialType.ACCESS_TOKEN,
-                target: requestScopes.printScopes(),
-            };
-
-            const credentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(atFilter);
-            cacheRecord.accessToken = credentialCache.accessTokens[0];
-
+            throw ClientAuthError.createNoAccountInSilentRequestError();
         } else {
             // fetch account
             cacheRecord.account = this.unifiedCacheManager.getAccount(request.account.generateAccountKey());
