@@ -4,8 +4,6 @@
  */
 import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
-import { TokenRenewParameters } from "../request/TokenRenewParameters";
-import { CodeResponse } from "../response/CodeResponse";
 import { TokenResponse } from "../response/TokenResponse";
 import { SPAResponseHandler } from "../response/SPAResponseHandler";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
@@ -25,8 +23,6 @@ import { buildClientInfo } from "../account/ClientInfo";
 import { B2cAuthority } from "../authority/B2cAuthority";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
-import { PkceCodes } from "../crypto/ICrypto";
-import { ProtocolUtils } from "../utils/ProtocolUtils";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 
@@ -92,7 +88,7 @@ export class SPAClient extends BaseClient {
         const scopeSet = new ScopeSet(
             request && request.scopes || [],
             this.config.authOptions.clientId,
-            !isLoginCall   
+            !isLoginCall
         );
 
         if (request.extraScopesToConsent) {

@@ -11,6 +11,8 @@ import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationT
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
 import { GrantType } from "../utils/Constants";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 /**
  * OAuth2.0 refresh token client
@@ -21,10 +23,25 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: RefreshTokenRequest): Promise<string>{
+    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
         const response = await this.executeTokenRequest(request, this.defaultAuthority);
-        // TODO add response_handler here to send the response
-        return JSON.stringify(response.body);
+
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId,
+            this.unifiedCacheManager,
+            this.cryptoUtils,
+            this.logger
+        );
+
+        responseHandler.validateTokenResponse(response.body);
+        const tokenResponse = await responseHandler.generateAuthenticationResult(
+            response.body,
+            this.defaultAuthority
+        );
+
+        // set the final cache and return the auth response
+        this.updateCache();
+        return tokenResponse;
     }
 
     private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)

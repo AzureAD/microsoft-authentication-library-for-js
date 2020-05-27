@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheAccountType } from "../../utils/Constants";
+import { Separators, CacheAccountType, EnvironmentAliases, PreferredCacheEnvironment } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
@@ -71,8 +71,10 @@ export class AccountEntity {
             policy !== null
                 ? homeAccountId + Separators.CACHE_KEY_SEPARATOR + policy
                 : homeAccountId;
-        account.environment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        account.environment = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
+
         account.realm = authority.tenant;
 
         if (idToken) {

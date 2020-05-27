@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheKeyPosition } from "../../utils/Constants";
+import { Separators, CacheKeyPosition, EnvironmentAliases, CredentialType } from "../../utils/Constants";
 
 export class CacheHelper {
     /**
@@ -59,9 +59,15 @@ export class CacheHelper {
      *
      * @param key
      * @param environment
+     * // TODO: Add Cloud specific aliases based on current cloud
      */
     static matchEnvironment(key: string, environment: string): boolean {
-        return environment === key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.ENVIRONMENT];
+        const cachedEnvironment = key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.ENVIRONMENT];
+        if (EnvironmentAliases.includes(environment) && EnvironmentAliases.includes(cachedEnvironment)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -126,5 +132,63 @@ export class CacheHelper {
         return key.split(Separators.CACHE_KEY_SEPARATOR)[
             CacheKeyPosition.CREDENTIAL_TYPE
         ];
+    }
+
+    /**
+     * generates Account Id for keys
+     * @param homeAccountId
+     * @param environment
+     */
+    static generateAccoundIdForCacheKey(homeAccountId: string, environment: string): string {
+        const accountId: Array<string> = [homeAccountId, environment];
+        return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Generates Credential Id for keys
+     * @param credentialType
+     * @param realm
+     * @param clientId
+     * @param familyId
+     */
+    static generateCredentialIdForCacheKey(credentialType: CredentialType, clientId: string, realm?: string, familyId?: string): string {
+        const clientOrFamilyId = (credentialType === CredentialType.REFRESH_TOKEN)
+            ? familyId || clientId
+            : clientId;
+        const credentialId: Array<string> = [
+            credentialType,
+            clientOrFamilyId,
+            realm || "",
+        ];
+
+        return credentialId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Generate target key component as per schema: <target>
+     */
+    static generateTargetForCacheKey(scopes: string): string {
+        return (scopes || "").toLowerCase();
+    }
+
+    /**
+     * generates credential key
+     */
+    static generateCacheKey(
+        homeAccountId: string,
+        environment: string,
+        credentialType: CredentialType,
+        clientId: string,
+        realm?: string,
+        target?: string,
+        familyId?: string
+    ): string {
+        const credentialKey = [
+            CacheHelper.generateAccoundIdForCacheKey(homeAccountId, environment),
+            this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
+            this.generateTargetForCacheKey(target),
+        ];
+
+        return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 }

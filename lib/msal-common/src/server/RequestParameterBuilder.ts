@@ -8,7 +8,6 @@ import { ScopeSet } from "../request/ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "../request/RequestValidator";
-import pkg from "../../package.json";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 
@@ -99,7 +98,7 @@ export class RequestParameterBuilder {
 
     /**
      * add library info query params
-     * @param libraryInfo 
+     * @param libraryInfo
      */
     addLibraryInfo(libraryInfo: LibraryInfo): void {
         // Telemetry Info
@@ -215,7 +214,7 @@ export class RequestParameterBuilder {
      * add extraQueryParams
      * @param eQparams
      */
-    addExtraQueryParameters(eQparams: StringDict) {
+    addExtraQueryParameters(eQparams: StringDict): void {
         RequestValidator.sanitizeEQParams(eQparams, this.parameters);
         Object.keys(eQparams).forEach((key) => {
             this.parameters.set(key, eQparams[key]);
