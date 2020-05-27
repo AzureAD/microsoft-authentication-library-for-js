@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { Authority } from '../authority/Authority';
+
 export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     SKU: "msal.js.common",
@@ -83,6 +85,13 @@ export const AADTrustedHostList: string[] = [
     "login.microsoftonline.com",
     "login.microsoftonline.de",
     "login.microsoftonline.us"
+];
+
+export const environmentAliases: string[] = [
+    "login.microsoftonline.com",
+    "login.windows.net",
+    "login.microsoft.com",
+    "sts.windows.net"
 ];
 
 /**
