@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { AADServerParamKeys, SSOTypes, Constants, ClientInfo} from "../utils/Constants";
+import { AADServerParamKeys, Constants, Prompt, ResponseMode, SSOTypes, ClientInfo } from "../utils/Constants";
 import { ScopeSet } from "../request/ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
@@ -28,10 +28,10 @@ export class RequestParameterBuilder {
      * add response_mode. defaults to query.
      * @param responseMode
      */
-    addResponseMode(responseMode?: string): void {
+    addResponseMode(responseMode?: ResponseMode): void {
         this.parameters.set(
             AADServerParamKeys.RESPONSE_MODE,
-            encodeURIComponent((responseMode) ? responseMode : Constants.QUERY_RESPONSE_MODE)
+            encodeURIComponent((responseMode) ? responseMode : ResponseMode.QUERY)
         );
     }
 
@@ -99,7 +99,7 @@ export class RequestParameterBuilder {
      * add prompt
      * @param prompt
      */
-    addPrompt(prompt: string): void {
+    addPrompt(prompt: Prompt): void {
         this.parameters.set(`${AADServerParamKeys.PROMPT}`, encodeURIComponent(prompt));
     }
 

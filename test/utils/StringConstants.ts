@@ -202,26 +202,21 @@ export const AUTHENTICATION_RESULT = {
 };
 
 export const DEVICE_CODE_RESPONSE = {
-    status: 200,
-    body: {
-        "user_code": "FRWQDE7YL",
-        "device_code": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
-        "verification_uri": "https://microsoft.com/devicelogin",
-        "expires_in": 900,
-        "interval": 5,
-        "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
-    }
+    "userCode": "FRWQDE7YL",
+    "deviceCode": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
+    "verificationUri": "https://microsoft.com/devicelogin",
+    "expiresIn": 900,
+    "interval": 5,
+    "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
 };
 
 export const DEVICE_CODE_EXPIRED_RESPONSE = {
-    body: {
-        "user_code": "FRWQDE7YL",
-        "device_code": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
-        "verification_uri": "https://microsoft.com/devicelogin",
-        "expires_in": 0,
-        "interval": 5,
-        "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
-    }
+    "userCode": "FRWQDE7YL",
+    "deviceCode": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
+    "verificationUri": "https://microsoft.com/devicelogin",
+    "expiresIn": 0,
+    "interval": 5,
+    "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
 };
 
 export const AUTHORIZATION_PENDING_RESPONSE = {
