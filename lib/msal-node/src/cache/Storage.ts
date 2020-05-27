@@ -2,10 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import {
-    ICacheStorage,
-    InMemoryCache
-} from '@azure/msal-common';
+import { ICacheStorage, InMemoryCache } from '@azure/msal-common';
 import { CacheOptions } from '../config/Configuration';
 
 /**
@@ -13,12 +10,12 @@ import { CacheOptions } from '../config/Configuration';
  */
 export class Storage implements ICacheStorage {
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;;
+    private cacheConfig: CacheOptions;
     private inMemoryCache: InMemoryCache;
 
     constructor(cacheConfig: CacheOptions) {
         this.cacheConfig = cacheConfig;
-        if (this.cacheConfig.cacheLocation! === "fileCache")
+        if (this.cacheConfig.cacheLocation! === 'fileCache')
             this.inMemoryCache = this.cacheConfig.cacheInMemory!;
     }
 

@@ -1,9 +1,10 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, InMemoryCache} from "../../src";
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, InMemoryCache, ClientAuthError} from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
+import { AuthorityFactory } from "../../src";
 
 export class ClientTestUtils {
 
-    static createTestClientConfiguration(): ClientConfiguration {
+    static async createTestClientConfiguration(): Promise<ClientConfiguration>{
 
         const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
             if (containsPii) {
@@ -11,11 +12,26 @@ export class ClientTestUtils {
             }
         };
 
+        const mockHttpClient = {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            },
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            }
+        };
+
+        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient);
+
+        await authority.resolveEndpointsAsync().catch(error => {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
+        });
+
         let store = {};
         return {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: TEST_CONFIG.validAuthority,
+                authority: authority,
                 knownAuthorities: [],
             },
             storageInterface: {

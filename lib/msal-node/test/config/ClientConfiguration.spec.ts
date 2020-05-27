@@ -1,13 +1,19 @@
-import {buildAppConfiguration, Configuration} from "../../src/config/Configuration";
-import {CACHE} from "../../src/utils/Constants";
-import {HttpClient} from "../../src/network/HttpClient";
-import {TEST_CONSTANTS} from "../utils/TestConstants";
-import {LogLevel, NetworkRequestOptions} from "@azure/msal-common";
+import {
+    buildAppConfiguration,
+    Configuration,
+} from '../../src/config/Configuration';
+import { CACHE } from '../../src/utils/Constants';
+import { HttpClient } from '../../src/network/HttpClient';
+import { TEST_CONSTANTS } from '../utils/TestConstants';
+import { LogLevel, NetworkRequestOptions } from '@azure/msal-common';
 
 describe('ClientConfiguration tests', () => {
     test('builds configuration and assigns default functions', () => {
-
-        const config: Configuration = buildAppConfiguration({});
+        const config: Configuration = buildAppConfiguration({
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+            },
+        });
 
         // network options
         expect(config.system!.networkClient).toBeDefined();
@@ -60,7 +66,7 @@ describe('ClientConfiguration tests', () => {
 
         // auth options
         expect(config.auth!.authority).toEqual('');
-        expect(config.auth!.clientId).toEqual('');
+        expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
 
         // cache options
         expect(config.cache!.cacheLocation).toEqual(CACHE.FILE_CACHE);

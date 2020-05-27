@@ -9,7 +9,11 @@
  *
  * scopes:                  A space-separated array of scopes for the same resource.
  *
+ *
  * authority:               URL of the authority, the security token service (STS) from which MSAL will acquire tokens.
+ *                          If authority is set on client application object, this will override that value. Overriding
+ *                          the value will cause for authority validation to happen each time. If the same authority
+ *                          will be used for all request, set on the application object instead of the requests.
  *
  * redirectUri:             The redirect URI of your app, where the authority will redirect to after the user inputs credentials
  *                          and consents. It must exactly match one of the redirect URIs you registered in the portal.
