@@ -152,6 +152,17 @@ export const PromptValue = {
 };
 
 /**
+ * // TODO: Have only one Prompr constant
+ * Allowed values for prompt
+ */
+export enum Prompt {
+    LOGIN = "login",
+    NONE = "none",
+    CONSENT = "consent",
+    SELECT_ACCOUNT = "select_account"
+}
+
+/**
  * SSO Types - generated to populate hints
  */
 export enum SSOTypes {

@@ -52,7 +52,7 @@ export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
 export {
-    Constants, PromptValue, PersistentCacheKeys, ResponseMode
+    Constants, PromptValue, Prompt, PersistentCacheKeys, ResponseMode
 } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
