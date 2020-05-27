@@ -33,7 +33,10 @@ export default C =>
                 // due to consent or interaction required ONLY
                 if (requiresInteraction(error.errorCode)) {
                     return redirect
-                        ? msalApp.acquireTokenRedirect(request)
+                        ? msalApp.acquireTokenRedirect({
+                            ...request,
+                            redirectUri: "http://localhost:3000"
+                        })
                         : msalApp.acquireTokenPopup(request);
                 } else {
                     console.error('Non-interactive error:', error.errorCode)
@@ -43,7 +46,10 @@ export default C =>
 
         async onSignIn(redirect) {
             if (redirect) {
-                return msalApp.loginRedirect(GRAPH_REQUESTS.LOGIN);
+                return msalApp.loginRedirect({
+                    ...GRAPH_REQUESTS.LOGIN,
+                    redirectUri: "http://localhost:3000"
+                });
             }
 
             const loginResponse = await msalApp

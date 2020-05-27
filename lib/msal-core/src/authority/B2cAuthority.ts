@@ -6,6 +6,8 @@
 import { Authority } from "./Authority";
 import { AuthorityType } from "./Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
+import TelemetryManager from "../telemetry/TelemetryManager";
 
 export const B2CTrustedHostList: object = {};
 
@@ -14,8 +16,8 @@ export const B2CTrustedHostList: object = {};
  */
 export class B2cAuthority extends Authority {
     public static B2C_PREFIX: String = "tfp";
-    public constructor(authority: string, validateAuthority: boolean) {
-        super(authority, validateAuthority);
+    public constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+        super(authority, validateAuthority, authorityMetadata);
     }
 
     public get AuthorityType(): AuthorityType {
@@ -25,7 +27,7 @@ export class B2cAuthority extends Authority {
     /**
      * Returns a promise with the TenantDiscoveryEndpoint
      */
-    public async GetOpenIdConfigurationEndpointAsync(): Promise<string> {
+    public async GetOpenIdConfigurationEndpointAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<string> {
         if (!this.IsValidationEnabled || this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
             return this.DefaultOpenIdConfigurationEndpoint;
         }
@@ -41,7 +43,7 @@ export class B2cAuthority extends Authority {
         if (this.IsValidationEnabled && !Object.keys(B2CTrustedHostList).length) {
             throw ClientConfigurationError.createKnownAuthoritiesNotSetError();
         }
-        
+
         return B2CTrustedHostList[host.toLowerCase()];
     }
 }
