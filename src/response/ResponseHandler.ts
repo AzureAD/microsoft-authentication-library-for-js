@@ -116,12 +116,11 @@ export class ResponseHandler {
         const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
 
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
-        
-        return {
+
+        const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: responseScopes.asArray(),
-            tokenType: "Bearer",
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
@@ -129,6 +128,8 @@ export class ResponseHandler {
             extExpiresOn: new Date(extendedExpiresInSeconds),
             familyId: serverTokenResponse.foci || null,
         };
+
+        return authenticationResult;
     }
 
     /**
