@@ -147,6 +147,9 @@ export class AuthorizationCodeClient extends BaseClient {
         // add response_type = code
         parameterBuilder.addResponseTypeCode();
 
+        // add library info parameters
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
         if (request.codeChallenge) {
             RequestValidator.validateCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
             parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);

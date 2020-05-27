@@ -3,12 +3,14 @@
 * Licensed under the MIT License.
 */
 
-import { AADServerParamKeys, Constants, Prompt, ResponseMode, SSOTypes, ClientInfo } from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo } from "../utils/Constants";
 import { ScopeSet } from "../request/ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "../request/RequestValidator";
 import pkg from "../../package.json";
+import { LibraryInfo } from "../config/ClientConfiguration";
+import { StringUtils } from "../utils/StringUtils";
 
 export class RequestParameterBuilder {
 
@@ -95,17 +97,23 @@ export class RequestParameterBuilder {
         this.parameters.set(AADServerParamKeys.CLIENT_REQUEST_ID, encodeURIComponent(correlationId));
     }
 
-    addTelemetryInfo(): void {
+    /**
+     * add library info query params
+     * @param libraryInfo 
+     */
+    addLibraryInfo(libraryInfo: LibraryInfo): void {
         // Telemetry Info
-        this.parameters.set(AADServerParamKeys.X_CLIENT_SKU, Constants.LIBRARY_NAME);
-        this.parameters.set(AADServerParamKeys.X_CLIENT_VER, pkg.version);
+        this.parameters.set(AADServerParamKeys.X_CLIENT_SKU, libraryInfo.sku);
+        this.parameters.set(AADServerParamKeys.X_CLIENT_VER, libraryInfo.version);
+        this.parameters.set(AADServerParamKeys.X_CLIENT_OS, libraryInfo.os);
+        this.parameters.set(AADServerParamKeys.X_CLIENT_CPU, libraryInfo.cpu);
     }
 
     /**
      * add prompt
      * @param prompt
      */
-    addPrompt(prompt: Prompt): void {
+    addPrompt(prompt: string): void {
         RequestValidator.validatePrompt(prompt);
         this.parameters.set(`${AADServerParamKeys.PROMPT}`, encodeURIComponent(prompt));
     }
@@ -115,7 +123,9 @@ export class RequestParameterBuilder {
      * @param state
      */
     addState(state: string): void {
-        this.parameters.set(AADServerParamKeys.STATE, encodeURIComponent(state));
+        if (!StringUtils.isEmpty(state)) {
+            this.parameters.set(AADServerParamKeys.STATE, encodeURIComponent(state));
+        }
     }
 
     /**
@@ -173,7 +183,7 @@ export class RequestParameterBuilder {
      * @param codeVerifier
      */
     addCodeVerifier(codeVerifier: string): void {
-        this.parameters.set(AADServerParamKeys.CODE_VERIFIER, codeVerifier);
+        this.parameters.set(AADServerParamKeys.CODE_VERIFIER, encodeURIComponent(codeVerifier));
     }
 
     /**
