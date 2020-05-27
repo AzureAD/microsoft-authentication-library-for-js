@@ -2,9 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-import { Authority } from '../authority/Authority';
-
 export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     SKU: "msal.js.common",
@@ -71,12 +68,14 @@ export const AADTrustedHostList: string[] = [
     "login.microsoftonline.us"
 ];
 
-export const environmentAliases: string[] = [
+export const EnvironmentAliases: string[] = [
     "login.microsoftonline.com",
     "login.windows.net",
     "login.microsoft.com",
     "sts.windows.net"
 ];
+
+export const PreferredCacheEnvironment: string = "login.windows.net";
 
 /**
  * String constants related to AAD Authority

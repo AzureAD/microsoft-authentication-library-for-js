@@ -9,7 +9,7 @@ import { CodeResponse } from "../response/CodeResponse";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICrypto } from "../crypto/ICrypto";
 import { StringUtils } from "../utils/StringUtils";
-import { Constants, HeaderNames, AADServerParamKeys } from "../utils/Constants";
+import { Constants, AADServerParamKeys } from "../utils/Constants";
 
 /**
  * This class extends the ServerRequestParameters class. This class validates token request parameters and generates a form body and headers required for the request.

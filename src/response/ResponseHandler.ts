@@ -111,10 +111,6 @@ export class ResponseHandler {
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
         this.uCacheManager.saveCacheRecord(cacheRecord);
 
-        // Expiration calculation
-        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
-        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
-
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
 
         const authenticationResult: AuthenticationResult = {
@@ -124,8 +120,8 @@ export class ResponseHandler {
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
-            expiresOn: new Date(expiresInSeconds),
-            extExpiresOn: new Date(extendedExpiresInSeconds),
+            expiresOn: new Date(cacheRecord.accessToken.expiresOn),
+            extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
             familyId: serverTokenResponse.foci || null,
         };
 
@@ -183,6 +179,10 @@ export class ResponseHandler {
 
         // AccessToken
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
+        // Expiration calculation
+        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
+        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
+
         cacheRecord.accessToken = AccessTokenEntity.createAccessTokenEntity(
             this.homeAccountIdentifier,
             authority.canonicalAuthorityUrlComponents.HostNameAndPort,
@@ -190,8 +190,8 @@ export class ResponseHandler {
             this.clientId,
             idTokenObj.claims.tid,
             responseScopes.asArray().join(" "),
-            serverTokenResponse.expires_in,
-            serverTokenResponse.ext_expires_in
+            expiresInSeconds * 1000,
+            extendedExpiresInSeconds * 1000
         );
 
         // refreshToken

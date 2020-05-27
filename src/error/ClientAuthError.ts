@@ -102,6 +102,10 @@ export const ClientAuthErrorMessage = {
     DeviceCodeExpired: {
         code: "device_code_expired",
         desc: "Device code is expired."
+    },
+    NoTokenInCache: {
+        code: "no_token_in_cache",
+        desc: "cache miss, there is no matching credential in the cache "
     }
 };
 
@@ -296,5 +300,12 @@ export class ClientAuthError extends AuthError {
      */
     static createDeviceCodeExpiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
+    }
+
+    /**
+     * Throws error for a cache miss
+     */
+    static createNoTokenInCacheError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.NoTokenInCache.code, `${ClientAuthErrorMessage.NoTokenInCache.desc}`);
     }
 }

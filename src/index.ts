@@ -3,6 +3,7 @@ export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
+export { SilentFlowClient } from "./client/SilentFlowClient";
 export {
     AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions, DEFAULT_SYSTEM_OPTIONS
 } from "./config/ClientConfiguration";
@@ -33,6 +34,7 @@ export { AuthenticationParameters } from "./request/AuthenticationParameters";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
+export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { TokenExchangeParameters } from "./request/TokenExchangeParameters";
 export { TokenRenewParameters } from "./request/TokenRenewParameters";
