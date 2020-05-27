@@ -211,6 +211,40 @@ describe("UserAgentApplication.ts Class", function () {
         });
     });
 
+    describe("Asynchronous configuration loading", () => {
+        beforeEach(function() {
+            cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+            
+            msal = new UserAgentApplication();
+        });
+
+        afterEach(function () {
+            cacheStorage.clear();
+            sinon.restore();
+        });
+        it("should load config", () => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
+                }
+            };
+
+            msal.configure(config);
+            expect(msal.isLoaded).to.be.true;
+            expect(msal.getCurrentConfiguration().auth.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID)
+        });
+        it("should not init when not configured", () => {
+            expect(msal.isLoaded).to.be.false;
+            expect(() => msal.getCurrentConfiguration()).to.throws(ClientConfigurationErrorMessage.configurationNotSet.desc)
+        });
+        it("should not load empty config", () => {
+            msal.configure(null);
+            expect(msal.isLoaded).to.be.false;
+            expect(() => msal.getCurrentConfiguration()).to.throws(ClientConfigurationErrorMessage.configurationNotSet.desc)
+        });
+    });
+
     describe("Redirect Flow Unit Tests", function () {
         beforeEach(function() {
             cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@angular/core";
+import { Inject, Injectable, Optional } from "@angular/core";
 import {
     UserAgentApplication,
     Configuration,
@@ -15,6 +15,7 @@ import {BroadcastService} from "./broadcast.service";
 import { MSALError } from "./MSALError";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
 import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
+import { BehaviorSubject } from "rxjs";
 
 const buildMsalConfig = (config: Configuration) : Configuration => {
     return {
@@ -29,14 +30,42 @@ const buildMsalConfig = (config: Configuration) : Configuration => {
 @Injectable()
 export class MsalService extends UserAgentApplication {
 
-    constructor(
-        @Inject(MSAL_CONFIG) private msalConfig: Configuration,
-        @Inject(MSAL_CONFIG_ANGULAR) private msalAngularConfig: MsalAngularConfiguration,
-        private router: Router,
-        private broadcastService: BroadcastService
-    ) {
-        super(buildMsalConfig(msalConfig));
+    isModuleConfigured = new BehaviorSubject<boolean>(false);
 
+    public getMsalConfig(): Configuration {
+        return this.msalConfig;
+    }
+
+    public getMsalAngularConfig(): MsalAngularConfiguration {
+        return this.msalAngularConfig;
+    }
+
+    constructor(
+        private router: Router,
+        private broadcastService: BroadcastService,
+        @Optional() @Inject(MSAL_CONFIG) private msalConfig?: Configuration,
+        @Optional() @Inject(MSAL_CONFIG_ANGULAR) private msalAngularConfig?: MsalAngularConfiguration
+    ) {
+        super(msalConfig ? buildMsalConfig(msalConfig) : null);
+
+        if (msalConfig && msalAngularConfig) {
+            this.setListeners();
+            this.isModuleConfigured.next(true);
+        }
+    }
+
+    public configureAngular(msalConfig: Configuration, msalAngularConfig: MsalAngularConfiguration) {
+        this.msalConfig = msalConfig;
+
+        this.configure(msalConfig);
+        this.msalAngularConfig = msalAngularConfig;
+
+        this.setListeners();
+
+        this.isModuleConfigured.next(true);
+    }
+
+    private setListeners() {
         window.addEventListener("msal:popUpHashChanged", (e: CustomEvent) => {
             this.getLogger().verbose("popUpHashChanged ");
         });
@@ -45,21 +74,20 @@ export class MsalService extends UserAgentApplication {
             var errorParts = e.detail.split("|");
             var msalError = new MSALError(errorParts[0], errorParts[1]);
             if (this.getLoginInProgress()) {
-                broadcastService.broadcast("msal:loginFailure", msalError);
+                this.broadcastService.broadcast("msal:loginFailure", msalError);
                 this.setloginInProgress(false);
             }
             else if (this.getAcquireTokenInProgress()) {
-                broadcastService.broadcast("msal:acquireTokenFailure", msalError);
+                this.broadcastService.broadcast("msal:acquireTokenFailure", msalError);
                 this.setAcquireTokenInProgress(false);
             }
         });
-
         this.router.events.subscribe(event => {
-            for (var i = 0; i < router.config.length; i++) {
-                if (!router.config[i].canActivate) {
+            for (var i = 0; i < this.router.config.length; i++) {
+                if (!this.router.config[i].canActivate) {
                     if (this.msalAngularConfig.unprotectedResources) {
-                        if (!this.isEmpty(router.config[i].path) && !this.isUnprotectedResource(router.config[i].path)) {
-                            this.msalAngularConfig.unprotectedResources.push(router.config[i].path);
+                        if (!this.isEmpty(this.router.config[i].path) && !this.isUnprotectedResource(this.router.config[i].path)) {
+                            this.msalAngularConfig.unprotectedResources.push(this.router.config[i].path);
                         }
                     }
                 }

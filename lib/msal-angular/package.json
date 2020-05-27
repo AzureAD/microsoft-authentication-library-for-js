@@ -43,7 +43,7 @@
     "@angular/platform-browser-dynamic": "^9.0.2",
     "@angular/router": "^9.0.2",
     "@types/handlebars": "4.0.33",
-    "@types/jasmine": "2.5.41",
+    "@types/jasmine": "^3.5.1",
     "@types/jasmine-ajax": "^3.1.35",
     "angular-router-loader": "^0.8.5",
     "angular2-template-loader": "^0.6.2",
