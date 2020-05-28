@@ -24,7 +24,7 @@ export enum AuthorityType {
  * @hidden
  */
 export abstract class Authority {
-    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+    constructor(authority: string, validateAuthority: boolean, authorityMetadata: ITenantDiscoveryResponse|null) {
         this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
 
@@ -40,21 +40,21 @@ export abstract class Authority {
         return this.CanonicalAuthorityUrlComponents.PathSegments[0];
     }
 
-    private tenantDiscoveryResponse: ITenantDiscoveryResponse;
+    private tenantDiscoveryResponse: ITenantDiscoveryResponse|null;
 
     public get AuthorizationEndpoint(): string {
         this.validateResolved();
-        return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant);
+        return this.tenantDiscoveryResponse!.AuthorizationEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant);
     }
 
     public get EndSessionEndpoint(): string {
         this.validateResolved();
-        return this.tenantDiscoveryResponse.EndSessionEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant);
+        return this.tenantDiscoveryResponse!.EndSessionEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant);
     }
 
     public get SelfSignedJwtAudience(): string {
         this.validateResolved();
-        return this.tenantDiscoveryResponse.Issuer.replace(/{tenant}|{tenantid}/g, this.Tenant);
+        return this.tenantDiscoveryResponse!.Issuer.replace(/{tenant}|{tenantid}/g, this.Tenant);
     }
 
     private validateResolved() {

@@ -16,7 +16,7 @@ export const B2CTrustedHostList: object = {};
  */
 export class B2cAuthority extends Authority {
     public static B2C_PREFIX: String = "tfp";
-    public constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+    public constructor(authority: string, validateAuthority: boolean, authorityMetadata: ITenantDiscoveryResponse|null) {
         super(authority, validateAuthority, authorityMetadata);
     }
 

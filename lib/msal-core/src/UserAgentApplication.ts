@@ -41,12 +41,10 @@ import { Constants,
     TemporaryCacheKeys,
     PersistentCacheKeys,
     ErrorCacheKeys,
-    FramePrefix
+    FramePrefix,
+    DEFAULT_AUTHORITY
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
-
-// default authority
-const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
 
 /**
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
@@ -219,10 +217,9 @@ export class UserAgentApplication {
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system!.telemetry, this.clientId);
 
-        AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
-        AuthorityFactory.saveMetadataFromConfig(this.config.auth.authority, this.config.auth.authorityMetadata);
+        AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority!, this.config.auth.knownAuthorities!);
+        AuthorityFactory.saveMetadataFromConfig(this.config.auth.authority!, this.config.auth.authorityMetadata!);
 
-        // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
 
         // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
@@ -484,21 +481,21 @@ export class UserAgentApplication {
      * Helper function to acquireToken
      *
      */
-    private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
+    private async acquireTokenHelper(account: Account|null, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scopes = request.scopes ? request.scopes : [this.clientId.toLowerCase()];
         const scopeString = scopes.join(" ").toLowerCase();
 
         let serverAuthenticationRequest: ServerRequestParameters;
-        const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
+        const acquireTokenAuthority: Authority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority!, request.authorityMetadata)! : this.authorityInstance!;
 
         let popUpWindow: Window|undefined;
 
         try {
             if (!acquireTokenAuthority.hasCachedMetadata()) {
                 this.logger.verbose("No cached metadata for authority");
-                await AuthorityFactory.saveMetadataFromNetwork(acquireTokenAuthority, this.telemetryManager, request.correlationId);
+                await AuthorityFactory.saveMetadataFromNetwork(acquireTokenAuthority, this.telemetryManager, request.correlationId!);
             } else {
                 this.logger.verbose("Cached metadata found for authority");
             }
@@ -561,7 +558,7 @@ export class UserAgentApplication {
                 // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
                 if (popUpWindow) {
                     try {
-                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
+                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system!.loadFrameTimeout!, urlNavigate);
 
                         this.handleAuthenticationResponse(hash);
 
@@ -570,7 +567,7 @@ export class UserAgentApplication {
                         this.logger.info("Closing popup window");
 
                         // TODO: Check how this can be extracted for any framework specific code?
-                        if (this.config.framework.isAngular) {
+                        if (this.config.framework!.isAngular!) {
                             this.broadcast("msal:popUpHashChanged", hash);
                             WindowUtils.closePopups();
                         }
@@ -579,7 +576,7 @@ export class UserAgentApplication {
                             reject(error);
                         }
 
-                        if (this.config.framework.isAngular) {
+                        if (this.config.framework!.isAngular!) {
                             this.broadcast("msal:popUpClosed", error.errorCode + Constants.resourceDelimiter + error.errorMessage);
                         } else {
                             // Request failed, set to canceled
@@ -648,11 +645,11 @@ export class UserAgentApplication {
             // block the request if made from the hidden iframe
             WindowUtils.blockReloadInHiddenIframes();
 
-            const scope = request.scopes.join(" ").toLowerCase();
+            const scope = request.scopes!.join(" ").toLowerCase();
             this.logger.verbosePii(`Serialized scopes: ${scope}`);
 
             // if the developer passes an account, give that account the priority
-            let account: Account;
+            let account: Account|null;
             if (request.account) {
                 account = request.account;
                 this.logger.verbose("Account set from request");
@@ -672,12 +669,12 @@ export class UserAgentApplication {
             }
 
             // set the response type based on the current cache status / scopes set
-            const responseType = this.getTokenType(account, request.scopes, true);
+            const responseType = this.getTokenType(account, request.scopes!, true);
             this.logger.verbose(`Response type: ${responseType}`);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
-                AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata),
+                request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority!, request.authorityMetadata)! : this.authorityInstance!,
                 this.clientId,
                 responseType,
                 this.getRedirectUri(request.redirectUri),
@@ -741,17 +738,12 @@ export class UserAgentApplication {
                 }
                 this.logger.verbose(logMessage);
 
-                // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the API.
-                if (!serverAuthenticationRequest.authorityInstance) {
-                    serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
-                }
-
                 this.logger.verbosePii(`Authority instance: ${serverAuthenticationRequest.authority}`);
                 
                 try {
                     if (!serverAuthenticationRequest.authorityInstance.hasCachedMetadata()) {
                         this.logger.verbose("No cached metadata for authority");
-                        await AuthorityFactory.saveMetadataFromNetwork(serverAuthenticationRequest.authorityInstance, this.telemetryManager, request.correlationId);
+                        await AuthorityFactory.saveMetadataFromNetwork(serverAuthenticationRequest.authorityInstance, this.telemetryManager, request.correlationId!);
                         this.logger.verbose("Authority has been updated with endpoint discovery response");
                     } else {
                         this.logger.verbose("Cached metadata found for authority");
@@ -790,7 +782,7 @@ export class UserAgentApplication {
         })
             .then(res => {
                 this.logger.verbose("Successfully acquired token");
-                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId!, apiEvent, true);
                 return res;
             })
             .catch((error: AuthError) => {
@@ -990,9 +982,9 @@ export class UserAgentApplication {
         this.account = null;
 
         try {
-            if (!this.authorityInstance.hasCachedMetadata()) {
+            if (!this.authorityInstance!.hasCachedMetadata()) {
                 this.logger.verbose("No cached metadata for authority");
-                await AuthorityFactory.saveMetadataFromNetwork(this.authorityInstance, this.telemetryManager, correlationId);
+                await AuthorityFactory.saveMetadataFromNetwork(this.authorityInstance!, this.telemetryManager, requestCorrelationId);
             } else {
                 this.logger.verbose("Cached metadata found for authority");
             }
@@ -1003,8 +995,8 @@ export class UserAgentApplication {
                 ? `&post_logout_redirect_uri=${encodeURIComponent(this.getPostLogoutRedirectUri())}`
                 : "";
 
-            const urlNavigate = this.authorityInstance.EndSessionEndpoint
-                ? `${this.authorityInstance.EndSessionEndpoint}?${correlationIdParam}${postLogoutQueryParam}`
+            const urlNavigate = this.authorityInstance!.EndSessionEndpoint
+                ? `${this.authorityInstance!.EndSessionEndpoint}?${correlationIdParam}${postLogoutQueryParam}`
                 : `${this.authority}oauth2/v2.0/logout?${correlationIdParam}${postLogoutQueryParam}`;
 
             this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, true);
@@ -1733,9 +1725,9 @@ export class UserAgentApplication {
      * @param idTokenObj
      * @param response
      */
-    private populateAuthority(state: string, inCookie: boolean, cacheStorage: AuthCache, idTokenObj: IdToken): string|null {
+    private populateAuthority(state: string, inCookie: boolean, cacheStorage: AuthCache, idTokenObj: IdToken): string {
         const authorityKey: string = AuthCache.generateAuthorityKey(state);
-        const cachedAuthority: string|null = cacheStorage.getItem(authorityKey, inCookie);
+        const cachedAuthority: string = cacheStorage.getItem(authorityKey, inCookie) || "";
 
         // retrieve the authority from cache and replace with tenantID
         return StringUtils.isEmpty(cachedAuthority) ? cachedAuthority : UrlUtils.replaceTenantPath(cachedAuthority!, idTokenObj.tenantId);

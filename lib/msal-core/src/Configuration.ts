@@ -6,6 +6,7 @@
 import { Logger } from "./Logger";
 import { UrlUtils } from "./utils/UrlUtils";
 import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
+import { DEFAULT_AUTHORITY } from './utils/Constants';
 
 /**
  * Cache location options supported by MSAL are:
@@ -117,7 +118,7 @@ export type Configuration = {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
-    authority: null,
+    authority: DEFAULT_AUTHORITY,
     validateAuthority: true,
     authorityMetadata: "",
     knownAuthorities: [],

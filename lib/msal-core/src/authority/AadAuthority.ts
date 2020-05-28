@@ -20,7 +20,7 @@ export class AadAuthority extends Authority {
         return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
     }
 
-    public constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+    public constructor(authority: string, validateAuthority: boolean, authorityMetadata: ITenantDiscoveryResponse|null) {
         super(authority, validateAuthority, authorityMetadata);
     }
 

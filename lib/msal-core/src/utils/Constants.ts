@@ -109,6 +109,9 @@ export const AADTrustedHostList =  {
     "login.microsoftonline.us": "login.microsoftonline.us"
 };
 
+// default authority
+export const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
+
 /**
  * @hidden
  * SSO Types - generated to populate hints

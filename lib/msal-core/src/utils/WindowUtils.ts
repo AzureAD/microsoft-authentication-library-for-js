@@ -45,13 +45,18 @@ export class WindowUtils {
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
-    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, isSilentCall?: boolean): Promise<string> {
+    static monitorWindowForHash(contentWindow: Window|null, timeout: number, urlNavigate: string, isSilentCall?: boolean): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
 
             const intervalId = setInterval(() => {
-                if (contentWindow.closed) {
+                if (!contentWindow) {
+                    clearInterval(intervalId);
+                    reject("No window object"); // TODO: Create better error
+                    return;
+                }
+                else if (contentWindow.closed) {
                     clearInterval(intervalId);
                     reject(ClientAuthError.createUserCancelledError());
                     return;

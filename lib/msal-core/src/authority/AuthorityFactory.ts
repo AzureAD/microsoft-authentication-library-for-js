@@ -35,8 +35,8 @@ export class AuthorityFactory {
         return metadata;
     }
 
-    public static getMetadata(authorityUrl: string) {
-        return this.metadataMap.get(authorityUrl);
+    public static getMetadata(authorityUrl: string): ITenantDiscoveryResponse|null {
+        return this.metadataMap.get(authorityUrl) || null;
     }
 
     public static saveMetadataFromConfig(authorityUrl: string, authorityMetadataJson: string) {
@@ -82,7 +82,7 @@ export class AuthorityFactory {
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
-    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, authorityMetadata?: string): Authority {
+    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, authorityMetadata?: string): Authority|null {
         if (StringUtils.isEmpty(authorityUrl)) {
             return null;
         }
