@@ -43,7 +43,7 @@ export type AuthOptions = {
     knownAuthorities?: Array<string>;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
-    navigateToLoginRequestUrl?: boolean|undefined;
+    navigateToLoginRequestUrl?: boolean;
 };
 
 /**
@@ -53,8 +53,8 @@ export type AuthOptions = {
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  */
 export type CacheOptions = {
-    cacheLocation?: CacheLocation|undefined;
-    storeAuthStateInCookie?: boolean|undefined;
+    cacheLocation?: CacheLocation;
+    storeAuthStateInCookie?: boolean;
 };
 
 /**
@@ -79,11 +79,11 @@ export type TelemetryOptions = {
  * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
  */
 export type SystemOptions = {
-    logger?: Logger|undefined;
-    loadFrameTimeout?: number|undefined;
-    tokenRenewalOffsetSeconds?: number|undefined;
-    navigateFrameWait?: number|undefined;
-    telemetry?: TelemetryOptions|undefined;
+    logger?: Logger;
+    loadFrameTimeout?: number;
+    tokenRenewalOffsetSeconds?: number;
+    navigateFrameWait?: number;
+    telemetry?: TelemetryOptions;
 };
 
 /**
@@ -95,9 +95,9 @@ export type SystemOptions = {
  *
  */
 export type FrameworkOptions = {
-    isAngular?: boolean|undefined;
-    unprotectedResources?: Array<string>|undefined;
-    protectedResourceMap?: Map<string, Array<string>>|undefined;
+    isAngular?: boolean;
+    unprotectedResources?: Array<string>;
+    protectedResourceMap?: Map<string, Array<string>>;
 };
 
 /**
@@ -111,9 +111,9 @@ export type FrameworkOptions = {
  */
 export type Configuration = {
     auth: AuthOptions,
-    cache?: CacheOptions|undefined,
-    system?: SystemOptions|undefined,
-    framework?: FrameworkOptions|undefined
+    cache?: CacheOptions,
+    system?: SystemOptions,
+    framework?: FrameworkOptions
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
