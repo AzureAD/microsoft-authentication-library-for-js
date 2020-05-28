@@ -1,9 +1,11 @@
 import React from 'react';
 import './App.css';
 
-import { Consumer } from "./msal-react";
+import { Consumer, useHandleRedirect } from "./msal-react";
 
 function App() {
+    const [ redirectResult ] = useHandleRedirect();
+    console.log('redirectResult', redirectResult);
   return (
     <div className="App">
         <Consumer>
@@ -15,7 +17,7 @@ function App() {
                         <button
                             onClick={e => {
                                 e.preventDefault();
-                                msal?.loginPopup({});
+                                msal?.loginRedirect({});
                             }}
                         >
                             Login

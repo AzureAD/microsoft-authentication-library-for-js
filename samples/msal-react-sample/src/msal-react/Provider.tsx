@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import { PublicClientApplication, Configuration, AuthenticationParameters, TokenResponse, TokenRenewParameters, Account } from "@azure/msal-browser";
 
-const MsalContext = React.createContext<IPublicClientApplication & IProviderState | null>(null);
+export const MsalContext = React.createContext<IPublicClientApplication & IProviderState | null>(null);
 
 interface IProviderProps {
     configuration: Configuration
@@ -24,6 +24,19 @@ interface IPublicClientApplication {
     ssoSilent(request: AuthenticationParameters): Promise<TokenResponse>;
 }
 
+export function useHandleRedirect(): [ TokenResponse | null ] {
+    const context = useContext(MsalContext);
+    const [ redirectResponse, setRedirectResponse ] = useState<TokenResponse | null>(null);
+
+    useEffect(() => {
+        context?.handleRedirectPromise()
+            .then(response => setRedirectResponse(response));
+            // TODO: error handling
+    }, []);
+
+    return [ redirectResponse ];
+}
+
 export class Provider extends React.Component<IProviderProps, IProviderState> {
     private instance: PublicClientApplication;
     private wrappedInstance: IPublicClientApplication;
@@ -38,8 +51,15 @@ export class Provider extends React.Component<IProviderProps, IProviderState> {
             acquireTokenRedirect: this.instance.acquireTokenRedirect.bind(this.instance),
             acquireTokenSilent: this.instance.acquireTokenSilent.bind(this.instance),
             getAccount: this.instance.getAccount.bind(this.instance),
-            handleRedirectPromise: this.instance.handleRedirectPromise.bind(this.instance),
-            loginPopup: async (request: AuthenticationParameters): Promise<TokenResponse> =>{
+            handleRedirectPromise: async (): Promise<TokenResponse | null> => {
+                const response = await this.instance.handleRedirectPromise.call(this.instance);
+                const account = this.instance.getAccount.call(this.instance);
+                this.setState({
+                    account
+                });
+                return response;
+            },
+            loginPopup: async (request: AuthenticationParameters): Promise<TokenResponse> => {
                 const response = await this.instance.loginPopup.call(this.instance, request);
                 const account = this.instance.getAccount.call(this.instance);
                 this.setState({

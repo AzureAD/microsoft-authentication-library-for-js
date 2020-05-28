@@ -10,16 +10,18 @@ import { Configuration } from "@azure/msal-browser";
 const configuration: Configuration = {
     auth: {
         clientId: "3fba556e-5d4a-48e3-8e1a-fd57c12cb82e",
-        authority: "https://login.windows-ppe.net/common/"
+        authority: "https://login.windows-ppe.net/common/",
+        navigateToLoginRequestUrl: false
     }
 }
 
+// TODO: guidance / mitigations for double renders in React.StrictMode
 ReactDOM.render(
-  <React.StrictMode>
+  <>
       <MsalProvider configuration={configuration}>
         <App />
       </MsalProvider>
-  </React.StrictMode>,
+  </>,
   document.getElementById('root')
 );
 

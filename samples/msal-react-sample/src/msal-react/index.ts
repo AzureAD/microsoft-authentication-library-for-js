@@ -1,1 +1,1 @@
-export { Provider, Consumer } from "./Provider";
+export { Provider, Consumer, MsalContext, useHandleRedirect } from "./Provider";
