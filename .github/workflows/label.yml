@@ -12,7 +12,7 @@ on:
 jobs:
   label:
     runs-on: ubuntu-latest
-    if: github.repository == 'AzureAD/microsoft-authentication-library-for-js'
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository)
     steps:
     - uses: actions/labeler@v2
       with:
