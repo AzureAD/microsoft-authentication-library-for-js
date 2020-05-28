@@ -136,14 +136,10 @@ export class WindowUtils {
      * @param frameName
      * @param logger
      */
-    static loadFrameSync(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement|null {
+    static loadFrameSync(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement {
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
 
-        // returning to handle null in loadFrame, also to avoid null object access errors
-        if (!frameHandle) {
-            return null;
-        }
-        else if (frameHandle.src === "" || frameHandle.src === "about:blank") {
+        if (frameHandle.src === "" || frameHandle.src === "about:blank") {
             frameHandle.src = urlNavigate;
             logger.infoPii("Frame Name : " + frameName + " Navigated to: " + urlNavigate);
         }
@@ -156,11 +152,7 @@ export class WindowUtils {
      * Adds the hidden iframe for silent token renewal.
      * @ignore
      */
-    static addHiddenIFrame(iframeId: string, logger: Logger): HTMLIFrameElement|null {
-        if (typeof iframeId === "undefined") {
-            return null;
-        }
-
+    static addHiddenIFrame(iframeId: string, logger: Logger): HTMLIFrameElement{
         logger.info("Add msal frame to document:" + iframeId);
         let adalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
         if (!adalFrame) {
