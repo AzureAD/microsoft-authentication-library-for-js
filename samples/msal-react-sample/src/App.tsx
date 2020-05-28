@@ -2,10 +2,15 @@ import React from 'react';
 import './App.css';
 
 import { Consumer, useHandleRedirect } from "./msal-react";
+import { IPublicClientApplication, IPublicClientApplicationPropType } from './msal-react/Provider';
+
+type AppPropTypes = {
+    msal: IPublicClientApplication
+}
 
 function App() {
-    const [ redirectResult ] = useHandleRedirect();
-    console.log('redirectResult', redirectResult);
+    // const [ redirectResult ] = useHandleRedirect();
+    // console.log('redirectResult', redirectResult);
   return (
     <div className="App">
         <Consumer>
@@ -17,7 +22,7 @@ function App() {
                         <button
                             onClick={e => {
                                 e.preventDefault();
-                                msal?.loginRedirect({});
+                                msal?.loginPopup({});
                             }}
                         >
                             Login
@@ -35,8 +40,37 @@ function App() {
                 </div>
             )}
         </Consumer>
+
+        {/* <div>
+            <p>Account:</p>
+            <pre>{JSON.stringify(props.msal?.getAccount(), null, 4)}</pre>
+            {!props.msal?.getAccount() ? (
+                <button
+                    onClick={e => {
+                        e.preventDefault();
+                        props.msal?.loginPopup({});
+                    }}
+                >
+                    Login
+                </button>
+            ) : (
+                <button
+                    onClick={e => {
+                        e.preventDefault();
+                        props.msal?.logout();
+                    }}
+                >
+                    Logout
+                </button>
+            )}
+        </div> */}
     </div>
   );
 }
+
+/*
+App.propTypes = {
+    msal: IPublicClientApplicationPropType
+}*/
 
 export default App;

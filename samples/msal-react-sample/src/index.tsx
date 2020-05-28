@@ -6,6 +6,7 @@ import * as serviceWorker from './serviceWorker';
 import { Provider as MsalProvider } from './msal-react';
 
 import { Configuration } from "@azure/msal-browser";
+import { withMsal } from './msal-react/Provider';
 
 const configuration: Configuration = {
     auth: {
@@ -16,6 +17,7 @@ const configuration: Configuration = {
 }
 
 // TODO: guidance / mitigations for double renders in React.StrictMode
+
 ReactDOM.render(
   <>
       <MsalProvider configuration={configuration}>
@@ -24,6 +26,9 @@ ReactDOM.render(
   </>,
   document.getElementById('root')
 );
+
+// const AppProvider = withMsal(configuration)(App);
+// ReactDOM.render(<AppProvider />, document.getElementById("root"));
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

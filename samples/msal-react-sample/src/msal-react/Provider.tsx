@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import PropTypes from 'prop-types';
 
 import { PublicClientApplication, Configuration, AuthenticationParameters, TokenResponse, TokenRenewParameters, Account } from "@azure/msal-browser";
 
@@ -11,8 +12,19 @@ interface IProviderProps {
 interface IProviderState {
     account: Account
 }
+export const IPublicClientApplicationPropType = PropTypes.shape({
+    acquireTokenPopup: PropTypes.func.isRequired,
+    acquireTokenRedirect: PropTypes.func.isRequired,
+    acquireTokenSilent: PropTypes.func.isRequired,
+    getAccount: PropTypes.func.isRequired,
+    handleRedirectPromise: PropTypes.func.isRequired,
+    loginPopup: PropTypes.func.isRequired,
+    loginRedirect: PropTypes.func.isRequired,
+    logout: PropTypes.func.isRequired,
+    ssoSilent: PropTypes.func.isRequired
+});
 
-interface IPublicClientApplication {
+export interface IPublicClientApplication {
     acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse>;
     acquireTokenRedirect(request: AuthenticationParameters): void;
     acquireTokenSilent(silentRequest: TokenRenewParameters): Promise<TokenResponse>;
@@ -35,6 +47,21 @@ export function useHandleRedirect(): [ TokenResponse | null ] {
     }, []);
 
     return [ redirectResponse ];
+}
+
+export const withMsal = (configuration:Configuration) => (C:React.ComponentType) => (props:any) => {
+    return (
+        <Provider configuration={configuration}>
+            <Consumer>
+                {msal => (
+                    <C
+                        {...props}
+                        msal={msal}
+                    />
+                )}
+            </Consumer>
+        </Provider>
+    )
 }
 
 export class Provider extends React.Component<IProviderProps, IProviderState> {
