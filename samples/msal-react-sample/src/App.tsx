@@ -18,6 +18,7 @@ import {
 import { Home } from './Home';
 import { GetAccessToken } from './AccessToken';
 import { Redirect } from './Redirect';
+import { ProtectedRoute } from './ProtectedRoute';
 
 type AppPropTypes = {
     msal: IPublicClientApplication
@@ -74,7 +75,7 @@ function App() {
                 <p>Higher Order Component</p>
             </Route>
             <Route path="/protected-route">
-                <p>Protected Route</p>
+                <ProtectedRoute />
             </Route>
             <Route path="/redirect">
                 <Redirect />

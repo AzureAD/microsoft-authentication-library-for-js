@@ -11,9 +11,8 @@ import { Configuration } from "@azure/msal-browser";
 
 const configuration: Configuration = {
     auth: {
-        clientId: "3fba556e-5d4a-48e3-8e1a-fd57c12cb82e",
-        authority: "https://login.windows-ppe.net/common/",
-        redirectUri: "http://localhost:3000"
+        clientId: "05675e30-ff45-4c75-addb-8461cfcf99d2",
+        authority: "https://login.microsoftonline.com/common/"
     }
 }
 

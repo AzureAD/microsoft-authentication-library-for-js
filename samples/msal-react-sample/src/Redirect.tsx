@@ -24,15 +24,7 @@ export function Redirect() {
                         </button>
                     )}
                 >
-                    <p>{msal?.getAccount() ? "Welcome, " + msal?.getAccount().name: ""}</p>
-                    <button
-                        onClick={e => {
-                            e.preventDefault();
-                            msal?.logout();
-                        }}
-                    >
-                        Logout
-                    </button>
+                    <p>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</p>
                 </AuthenticatedComponent>
             )}
         </MsalConsumer>
