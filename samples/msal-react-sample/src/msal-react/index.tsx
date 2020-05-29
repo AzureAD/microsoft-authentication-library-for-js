@@ -58,19 +58,17 @@ export const withMsal = (configuration:Configuration) => (C:React.ComponentType)
     )
 }
 
-export function useIsAuthenticated(request: AuthenticationParameters = {}): boolean{
+export function useIsAuthenticated(request: AuthenticationParameters = {}, forceLogin: boolean = false): [ boolean, Error | null ] {
     const context = useContext(MsalContext);
-    const [ authenticated, setAuthenticated ] = useState<boolean>(!!context?.getAccount());
+    const authenticated = !!context?.getAccount();
+
+    const [ error, setError ] = useState<Error | null>(null);
 
     async function loginInteractively(): Promise<void> {
         // TODO: support loginRedirect
-        return context?.loginPopup(request)
-            .then(() => {
-                setAuthenticated(true)
-            })
+        context?.loginPopup(request)
             .catch((error) => {
-                console.log(error)
-                setAuthenticated(false)
+                setError(error);
             });
     }
 
@@ -78,26 +76,41 @@ export function useIsAuthenticated(request: AuthenticationParameters = {}): bool
         if (authenticated) {
             const account = context?.getAccount();
             context?.ssoSilent({loginHint: account!.userName})
-                .then(() => setAuthenticated(true))
                 .catch((error) => {
-                    console.log(error);
-                    loginInteractively()
+                    if (forceLogin) {
+                        loginInteractively();
+                    } else {
+                        setError(error);
+                    }
                 });
-        } else {
+        } else if (forceLogin) {
             loginInteractively();
-        }
+        } 
     }, []);
 
-    return authenticated
+    return [ authenticated, error ];
 }
 
-// TODO: Disable auto login
-// TODO: Error component
-export function AuthenticatedComponent(props:any) {
-    const isAuthenticated = useIsAuthenticated({
-        scopes: [ "user.read" ]
-    });
-    return isAuthenticated && props.children;
+type AuthenticatedComponentPropType = {
+    children?: React.ReactNode,
+    onError?: (error: any) => React.ReactNode,
+    unauthenticatedComponent?: React.ReactNode,
+    forceLogin?: boolean,
+    authenticationParameters?: AuthenticationParameters
+}
+
+export function AuthenticatedComponent(props: AuthenticatedComponentPropType) {
+    const [ isAuthenticated, error ] = useIsAuthenticated(props.authenticationParameters, props.forceLogin);
+
+    return (
+        <>
+            {isAuthenticated && props.children}
+            {error && props.onError && props.onError(error)}
+            <UnauthenticatedComponent>
+                {props.unauthenticatedComponent}
+            </UnauthenticatedComponent>
+        </>
+    )
 }
 
 export function UnauthenticatedComponent(props: any) {

@@ -22,7 +22,29 @@ function App() {
         <MsalConsumer>
             {msal => (
                 <div>
-                    <AuthenticatedComponent>
+                    <AuthenticatedComponent
+                        unauthenticatedComponent={(
+                            <button
+                                onClick={e => {
+                                    e.preventDefault();
+                                    msal?.loginPopup({
+                                        scopes: [
+                                            "user.read"
+                                        ]
+                                    });
+                                }}
+                            >
+                                Login
+                            </button>
+                        )}
+                        onError={error => (
+                            <p>{error.errorMessage}</p>
+                        )}
+                        forceLogin={true}
+                        authenticationParameters={{
+                            scopes: [ "user.read" ]
+                        }}
+                    >
                         <div>
                             <p>Account:</p>
                             <pre>{JSON.stringify(msal?.getAccount(), null, 4)}</pre>
@@ -47,20 +69,6 @@ function App() {
                             </button>
                         </div>
                     </AuthenticatedComponent>
-                    <UnauthenticatedComponent>
-                        <button
-                            onClick={e => {
-                                e.preventDefault();
-                                msal?.loginPopup({
-                                    scopes: [
-                                        "user.read"
-                                    ]
-                                });
-                            }}
-                        >
-                            Login
-                        </button>
-                    </UnauthenticatedComponent>
                     {/*
                     {!msal?.getAccount() ? (
                         <button
