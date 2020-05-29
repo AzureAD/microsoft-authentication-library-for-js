@@ -5,13 +5,6 @@ import { PublicClientApplication, Configuration, AuthenticationParameters, Token
 
 export const MsalContext = React.createContext<IPublicClientApplication & IProviderState | null>(null);
 
-interface IProviderProps {
-    configuration: Configuration
-}
-
-interface IProviderState {
-    account: Account
-}
 export const IPublicClientApplicationPropType = PropTypes.shape({
     acquireTokenPopup: PropTypes.func.isRequired,
     acquireTokenRedirect: PropTypes.func.isRequired,
@@ -24,6 +17,7 @@ export const IPublicClientApplicationPropType = PropTypes.shape({
     ssoSilent: PropTypes.func.isRequired
 });
 
+// TODO: Move this to msal-browser
 export interface IPublicClientApplication {
     acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse>;
     acquireTokenRedirect(request: AuthenticationParameters): void;
@@ -52,42 +46,43 @@ export function useHandleRedirect(): [ TokenResponse | null ] {
 export const withMsal = (configuration:Configuration) => (C:React.ComponentType) => (props:any) => {
     return (
         <MsalProvider configuration={configuration}>
-            <Consumer>
+            <MsalConsumer>
                 {msal => (
                     <C
                         {...props}
                         msal={msal}
                     />
                 )}
-            </Consumer>
+            </MsalConsumer>
         </MsalProvider>
     )
 }
 
-export function useAuthenticate(): boolean{
+export function useIsAuthenticated(request: AuthenticationParameters = {}): boolean{
     const context = useContext(MsalContext);
     const [ authenticated, setAuthenticated ] = useState<boolean>(!!context?.getAccount());
 
     async function loginInteractively(): Promise<void> {
-        return context?.loginPopup({})
-        .then(() => {
-            setAuthenticated(true)
-        })
-        .catch((error) => {
-            console.log(error)
-            setAuthenticated(false)
-        })
+        // TODO: support loginRedirect
+        return context?.loginPopup(request)
+            .then(() => {
+                setAuthenticated(true)
+            })
+            .catch((error) => {
+                console.log(error)
+                setAuthenticated(false)
+            });
     }
 
     useEffect(() => {
         if (authenticated) {
             const account = context?.getAccount();
             context?.ssoSilent({loginHint: account!.userName})
-            .then(() => setAuthenticated(true))
-            .catch((error) => {
-                console.log(error);
-                loginInteractively()
-            });
+                .then(() => setAuthenticated(true))
+                .catch((error) => {
+                    console.log(error);
+                    loginInteractively()
+                });
         } else {
             loginInteractively();
         }
@@ -96,21 +91,34 @@ export function useAuthenticate(): boolean{
     return authenticated
 }
 
+// TODO: Disable auto login
+// TODO: Error component
 export function AuthenticatedComponent(props:any) {
-    const isAuthenticated = useAuthenticate();
+    const isAuthenticated = useIsAuthenticated({
+        scopes: [ "user.read" ]
+    });
     return isAuthenticated && props.children;
 }
 
-export class UnauthenticatedComponent extends React.Component {
-    render() {
-        return (
-            <Consumer>
-                {msal => !msal?.getAccount() && this.props.children}
-            </Consumer>
-        );
-    }
+export function UnauthenticatedComponent(props: any) {
+    return (
+        <MsalConsumer>
+            {msal => !msal?.getAccount() && props.children}
+        </MsalConsumer>
+    );
 }
 
+export const MsalConsumer = MsalContext.Consumer;
+
+interface IProviderProps {
+    configuration: Configuration
+};
+
+interface IProviderState {
+    account: Account
+};
+
+// TODO: Mitigation for double render with React.StrictMode
 export class MsalProvider extends React.Component<IProviderProps, IProviderState> {
     private instance: PublicClientApplication;
     private wrappedInstance: IPublicClientApplication;
@@ -171,5 +179,3 @@ export class MsalProvider extends React.Component<IProviderProps, IProviderState
         );
     }
 }
-
-export const Consumer = MsalContext.Consumer;

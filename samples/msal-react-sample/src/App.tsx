@@ -6,7 +6,7 @@ import {
     IPublicClientApplicationPropType, 
     AuthenticatedComponent, 
     UnauthenticatedComponent,
-    Consumer,
+    MsalConsumer,
     useHandleRedirect
 } from './msal-react';
 
@@ -19,7 +19,7 @@ function App() {
     // console.log('redirectResult', redirectResult);
   return (
     <div className="App">
-        <Consumer>
+        <MsalConsumer>
             {msal => (
                 <div>
                     <AuthenticatedComponent>
@@ -34,13 +34,28 @@ function App() {
                             >
                                 Logout
                             </button>
+                            <button
+                                onClick={async (e) => {
+                                    e.preventDefault();
+                                    const tokenResponse = await msal?.acquireTokenSilent({
+                                        scopes: [ "user.read" ]
+                                    });
+                                    console.log(tokenResponse);
+                                }}
+                            >
+                                Fetch Access Token
+                            </button>
                         </div>
                     </AuthenticatedComponent>
                     <UnauthenticatedComponent>
                         <button
                             onClick={e => {
                                 e.preventDefault();
-                                msal?.loginPopup({});
+                                msal?.loginPopup({
+                                    scopes: [
+                                        "user.read"
+                                    ]
+                                });
                             }}
                         >
                             Login
@@ -68,7 +83,7 @@ function App() {
                     )}*/}
                 </div>
             )}
-        </Consumer>
+        </MsalConsumer>
 
         {/* <div>
             <p>Account:</p>
