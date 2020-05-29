@@ -18,7 +18,8 @@ import {
 import { Home } from './Home';
 import { GetAccessToken } from './AccessToken';
 import { Redirect } from './Redirect';
-import { ProtectedRoute } from './ProtectedRoute';
+import { ProtectedRoute } from './Protected-route';
+import { UnauthenticatedComponentPage } from './Unauthenticated-component';
 
 type AppPropTypes = {
     msal: IPublicClientApplication
@@ -84,6 +85,7 @@ function App() {
             </Route>
             <Route path="/unauthenticated-component">
                 <p>This page demonstrates the usage of individual Authenticated and Unauthenticated components</p>
+                <UnauthenticatedComponentPage />
             </Route>
             <Route path="/get-access-token">
                 <p>This page demonstrates acquiring an access token</p>
