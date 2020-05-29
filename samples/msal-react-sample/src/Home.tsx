@@ -16,10 +16,8 @@ export function Home() {
                             scopes: [ "user.read" ]
                         }}
                     >
-                        <div>
-                            <p>Account:</p>
-                            <pre>{JSON.stringify(msal?.getAccount(), null, 4)}</pre>
-                        </div>
+                        <h2>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h2>
+                        <p>Click one of the links above to demo Msal-Browser with Auth Code Flow, using React</p>
                     </AuthenticatedComponent>
                 </div>
             )}

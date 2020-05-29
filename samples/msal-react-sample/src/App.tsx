@@ -72,18 +72,21 @@ function App() {
         </nav>
         <Switch>
             <Route path="/higher-order-component">
-                <p>Higher Order Component</p>
+                <p>This page demonstrates the usage of a Higher Order Component</p>
             </Route>
             <Route path="/protected-route">
+                <p>This page demonstrates a protected route, automatically triggering a login if user has not been authenticated</p>
                 <ProtectedRoute />
             </Route>
             <Route path="/redirect">
+                <p>This page demonstrates a redirect login flow</p>
                 <Redirect />
             </Route>
             <Route path="/unauthenticated-component">
-                <p>Unauthenticated Component</p>
+                <p>This page demonstrates the usage of individual Authenticated and Unauthenticated components</p>
             </Route>
             <Route path="/get-access-token">
+                <p>This page demonstrates acquiring an access token</p>
                 <GetAccessToken />
             </Route>
             <Route path="/">

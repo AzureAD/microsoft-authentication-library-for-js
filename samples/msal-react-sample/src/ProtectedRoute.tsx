@@ -11,7 +11,7 @@ export function ProtectedRoute() {
         >
             <MsalConsumer>
                 {msal => (                                           
-                    <p>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</p>
+                    <h2>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h2>
                 )}
             </MsalConsumer>
         </AuthenticatedComponent>

@@ -24,7 +24,7 @@ export function Redirect() {
                         </button>
                     )}
                 >
-                    <p>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</p>
+                    <h2>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h2>
                 </AuthenticatedComponent>
             )}
         </MsalConsumer>
