@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 
 import { Consumer, useHandleRedirect } from "./msal-react";
-import { IPublicClientApplication, IPublicClientApplicationPropType } from './msal-react/Provider';
+import { IPublicClientApplication, IPublicClientApplicationPropType, AuthenticatedComponent, UnauthenticatedComponent } from './msal-react/Provider';
 
 type AppPropTypes = {
     msal: IPublicClientApplication
@@ -16,8 +16,31 @@ function App() {
         <Consumer>
             {msal => (
                 <div>
-                    <p>Account:</p>
-                    <pre>{JSON.stringify(msal?.getAccount(), null, 4)}</pre>
+                    <AuthenticatedComponent>
+                        <div>
+                            <p>Account:</p>
+                            <pre>{JSON.stringify(msal?.getAccount(), null, 4)}</pre>
+                            <button
+                                onClick={e => {
+                                    e.preventDefault();
+                                    msal?.logout();
+                                }}
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </AuthenticatedComponent>
+                    <UnauthenticatedComponent>
+                        <button
+                            onClick={e => {
+                                e.preventDefault();
+                                msal?.loginPopup({});
+                            }}
+                        >
+                            Login
+                        </button>
+                    </UnauthenticatedComponent>
+                    {/*
                     {!msal?.getAccount() ? (
                         <button
                             onClick={e => {
@@ -36,7 +59,7 @@ function App() {
                         >
                             Logout
                         </button>
-                    )}
+                    )}*/}
                 </div>
             )}
         </Consumer>

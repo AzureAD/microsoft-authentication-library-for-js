@@ -64,6 +64,53 @@ export const withMsal = (configuration:Configuration) => (C:React.ComponentType)
     )
 }
 
+export function useAuthenticate(): boolean{
+    const context = useContext(MsalContext);
+    const [ authenticated, setAuthenticated ] = useState<boolean>(!!context?.getAccount());
+
+    async function loginInteractively(): Promise<void> {
+        return context?.loginPopup({})
+        .then(() => {
+            setAuthenticated(true)
+        })
+        .catch((error) => {
+            console.log(error)
+            setAuthenticated(false)
+        })
+    }
+
+    useEffect(() => {
+        if (authenticated) {
+            const account = context?.getAccount();
+            context?.ssoSilent({loginHint: account!.userName})
+            .then(() => setAuthenticated(true))
+            .catch((error) => {
+                console.log(error);
+                loginInteractively()
+            });
+        } else {
+            loginInteractively();
+        }
+    }, []);
+
+    return authenticated
+}
+
+export function AuthenticatedComponent(props:any) {
+    const isAuthenticated = useAuthenticate();
+    return isAuthenticated && props.children;
+}
+
+export class UnauthenticatedComponent extends React.Component {
+    render() {
+        return (
+            <Consumer>
+                {msal => !msal?.getAccount() && this.props.children}
+            </Consumer>
+        );
+    }
+}
+
 export class Provider extends React.Component<IProviderProps, IProviderState> {
     private instance: PublicClientApplication;
     private wrappedInstance: IPublicClientApplication;
