@@ -30,4 +30,5 @@ export function GetAccessToken() {
                 )}
             </MsalConsumer>
         </AuthenticatedComponent>
-    )}
+    )
+}

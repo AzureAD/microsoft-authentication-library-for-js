@@ -17,6 +17,7 @@ import {
   } from "react-router-dom";
 import { Home } from './Home';
 import { GetAccessToken } from './AccessToken';
+import { Redirect } from './Redirect';
 
 type AppPropTypes = {
     msal: IPublicClientApplication
@@ -76,7 +77,7 @@ function App() {
                 <p>Protected Route</p>
             </Route>
             <Route path="/redirect">
-                <p>Redirect</p>
+                <Redirect />
             </Route>
             <Route path="/unauthenticated-component">
                 <p>Unauthenticated Component</p>

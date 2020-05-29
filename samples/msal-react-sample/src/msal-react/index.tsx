@@ -58,18 +58,22 @@ export const withMsal = (configuration:Configuration) => (C:React.ComponentType)
     )
 }
 
-export function useIsAuthenticated(request: AuthenticationParameters = {}, forceLogin: boolean = false): [ boolean, Error | null ] {
+export function useIsAuthenticated(request: AuthenticationParameters = {}, forceLogin: boolean = false, usePopup: boolean = true): [ boolean, Error | null ] {
     const context = useContext(MsalContext);
     const authenticated = !!context?.getAccount();
 
     const [ error, setError ] = useState<Error | null>(null);
 
     async function loginInteractively(): Promise<void> {
-        // TODO: support loginRedirect
-        context?.loginPopup(request)
+        if (usePopup) {
+            context?.loginPopup(request)
             .catch((error) => {
                 setError(error);
             });
+        } else {
+            context?.loginRedirect(request);
+        }
+        
     }
 
     useEffect(() => {
@@ -96,11 +100,12 @@ type AuthenticatedComponentPropType = {
     onError?: (error: any) => React.ReactNode,
     unauthenticatedComponent?: React.ReactNode,
     forceLogin?: boolean,
-    authenticationParameters?: AuthenticationParameters
+    authenticationParameters?: AuthenticationParameters,
+    usePopup?: boolean
 }
 
 export function AuthenticatedComponent(props: AuthenticatedComponentPropType) {
-    const [ isAuthenticated, error ] = useIsAuthenticated(props.authenticationParameters, props.forceLogin);
+    const [ isAuthenticated, error ] = useIsAuthenticated(props.authenticationParameters, props.forceLogin, props.usePopup);
 
     return (
         <>
