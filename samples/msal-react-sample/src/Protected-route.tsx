@@ -8,6 +8,9 @@ export function ProtectedRoute() {
                 <p>{error.errorMessage}</p>
             )}
             forceLogin={true}
+            unauthenticatedComponent={
+                <p>Please login before viewing this page.</p>
+            }
         >
             <MsalConsumer>
                 {msal => (                                           
