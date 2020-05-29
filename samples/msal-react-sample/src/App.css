@@ -1,3 +1,23 @@
 .App {
     padding: 15px;
+    width: 960px;
+    margin: 0 auto;
+}
+
+nav {
+    display:grid;
+    grid-template-columns: 1fr 75px;
+    margin-bottom: 25px;
+}
+
+.nav-links {
+    display:grid;
+    grid-template-columns:  repeat(6, auto);
+    grid-column-gap: 10px;
+}
+
+ul {
+    padding: 0;
+    list-style-type: none;
+    margin: 0;
 }
