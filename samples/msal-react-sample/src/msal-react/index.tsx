@@ -51,7 +51,7 @@ export function useHandleRedirect(): [ TokenResponse | null ] {
 
 export const withMsal = (configuration:Configuration) => (C:React.ComponentType) => (props:any) => {
     return (
-        <Provider configuration={configuration}>
+        <MsalProvider configuration={configuration}>
             <Consumer>
                 {msal => (
                     <C
@@ -60,7 +60,7 @@ export const withMsal = (configuration:Configuration) => (C:React.ComponentType)
                     />
                 )}
             </Consumer>
-        </Provider>
+        </MsalProvider>
     )
 }
 
@@ -111,7 +111,7 @@ export class UnauthenticatedComponent extends React.Component {
     }
 }
 
-export class Provider extends React.Component<IProviderProps, IProviderState> {
+export class MsalProvider extends React.Component<IProviderProps, IProviderState> {
     private instance: PublicClientApplication;
     private wrappedInstance: IPublicClientApplication;
 

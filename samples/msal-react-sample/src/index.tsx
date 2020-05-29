@@ -3,10 +3,9 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import { Provider as MsalProvider } from './msal-react';
+import { MsalProvider, withMsal } from './msal-react';
 
 import { Configuration } from "@azure/msal-browser";
-import { withMsal } from './msal-react/Provider';
 
 const configuration: Configuration = {
     auth: {

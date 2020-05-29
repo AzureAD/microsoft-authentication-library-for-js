@@ -1,8 +1,14 @@
 import React from 'react';
 import './App.css';
 
-import { Consumer, useHandleRedirect } from "./msal-react";
-import { IPublicClientApplication, IPublicClientApplicationPropType, AuthenticatedComponent, UnauthenticatedComponent } from './msal-react/Provider';
+import { 
+    IPublicClientApplication, 
+    IPublicClientApplicationPropType, 
+    AuthenticatedComponent, 
+    UnauthenticatedComponent,
+    Consumer,
+    useHandleRedirect
+} from './msal-react';
 
 type AppPropTypes = {
     msal: IPublicClientApplication
