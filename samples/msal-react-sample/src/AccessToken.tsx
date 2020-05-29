@@ -9,7 +9,7 @@ export function GetAccessToken() {
             )}
             forceLogin={false}
             unauthenticatedComponent={(
-                <p>You must be logged in to acquire an access token</p>
+                <h2>You must be logged in to acquire an access token</h2>
             )}
         >
             <MsalConsumer>

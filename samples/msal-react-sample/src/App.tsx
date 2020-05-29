@@ -66,20 +66,20 @@ function App() {
                 <p>This page demonstrates the usage of a Higher Order Component</p>
             </Route>
             <Route path="/protected-route">
-                <p>This page demonstrates a protected route, automatically triggering a login if user has not been authenticated</p>
                 <ProtectedRoute />
+                <p>This page demonstrates a protected route, automatically triggering a login if user has not been authenticated</p>
             </Route>
             <Route path="/redirect">
-                <p>This page demonstrates a redirect login flow</p>
                 <Redirect />
+                <p>This page demonstrates a redirect login flow</p>
             </Route>
             <Route path="/unauthenticated-component">
-                <p>This page demonstrates the usage of individual Authenticated and Unauthenticated components</p>
                 <UnauthenticatedComponentPage />
+                <p>This page demonstrates the usage of individual Authenticated and Unauthenticated components</p>
             </Route>
             <Route path="/get-access-token">
-                <p>This page demonstrates acquiring an access token with unauthenticatedComponent integrated into AuthenticatedComponent</p>
                 <GetAccessToken />
+                <p>This page demonstrates acquiring an access token with unauthenticatedComponent integrated into AuthenticatedComponent</p>
             </Route>
             <Route path="/">
                 <Home />
