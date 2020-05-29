@@ -1,13 +1,9 @@
 import React from 'react';
 import './App.css';
 
-import { 
-    IPublicClientApplication, 
-    IPublicClientApplicationPropType, 
-    AuthenticatedComponent, 
-    UnauthenticatedComponent,
-    MsalConsumer,
-    useHandleRedirect
+import {
+    AuthenticatedComponent,
+    MsalConsumer
 } from './msal-react';
 
 import {
@@ -21,13 +17,7 @@ import { Redirect } from './Redirect';
 import { ProtectedRoute } from './Protected-route';
 import { UnauthenticatedComponentPage } from './Unauthenticated-component';
 
-type AppPropTypes = {
-    msal: IPublicClientApplication
-}
-
 function App() {
-    // const [ redirectResult ] = useHandleRedirect();
-    // console.log('redirectResult', redirectResult);
   return (
     <div className="App">
         <nav>
@@ -88,64 +78,15 @@ function App() {
                 <UnauthenticatedComponentPage />
             </Route>
             <Route path="/get-access-token">
-                <p>This page demonstrates acquiring an access token</p>
+                <p>This page demonstrates acquiring an access token with unauthenticatedComponent integrated into AuthenticatedComponent</p>
                 <GetAccessToken />
             </Route>
             <Route path="/">
                 <Home />
             </Route>
         </Switch>
-        {/*
-                    {!msal?.getAccount() ? (
-                        <button
-                            onClick={e => {
-                                e.preventDefault();
-                                msal?.loginPopup({});
-                            }}
-                        >
-                            Login
-                        </button>
-                    ) : (
-                        <button
-                            onClick={e => {
-                                e.preventDefault();
-                                msal?.logout();
-                            }}
-                        >
-                            Logout
-                        </button>
-                    )}*/}
-
-        {/* <div>
-            <p>Account:</p>
-            <pre>{JSON.stringify(props.msal?.getAccount(), null, 4)}</pre>
-            {!props.msal?.getAccount() ? (
-                <button
-                    onClick={e => {
-                        e.preventDefault();
-                        props.msal?.loginPopup({});
-                    }}
-                >
-                    Login
-                </button>
-            ) : (
-                <button
-                    onClick={e => {
-                        e.preventDefault();
-                        props.msal?.logout();
-                    }}
-                >
-                    Logout
-                </button>
-            )}
-        </div> */}
     </div>
   );
 }
-
-/*
-App.propTypes = {
-    msal: IPublicClientApplicationPropType
-}*/
 
 export default App;
