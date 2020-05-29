@@ -79,14 +79,18 @@ export function useIsAuthenticated(request: AuthenticationParameters = {}, force
     useEffect(() => {
         if (authenticated) {
             const account = context?.getAccount();
-            context?.ssoSilent({loginHint: account!.userName})
-                .catch((error) => {
-                    if (forceLogin) {
-                        loginInteractively();
-                    } else {
-                        setError(error);
-                    }
-                });
+            // TODO: Figure out why ssoSilent fails with "iframe_closed_prematurely" error
+
+            // context?.ssoSilent({loginHint: account!.userName})
+            //     .catch((error) => {
+            //         if (forceLogin) {
+            //             console.log(error)
+            //             loginInteractively();
+            //         } else {
+            //             console.log(error)
+            //             setError(error);
+            //         }
+            //     });
         } else if (forceLogin) {
             loginInteractively();
         } 
