@@ -6,7 +6,7 @@ import {
 import { MsalInterceptor } from "../src/msal.interceptor";
 import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { MsalService, MSAL_CONFIG, MSAL_CONFIG_ANGULAR, MsalAngularConfiguration, BroadcastService } from "../public_api";
-import { Configuration, ServerHashParamKeys, UserAgentApplication } from "msal";
+import { Configuration, ServerHashParamKeys, UserAgentApplication, AuthResponse } from "msal";
 import {} from "jasmine";
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from "@angular/platform-browser-dynamic/testing";
 import { RouterTestingModule } from "@angular/router/testing";
@@ -91,7 +91,7 @@ describe(`MSALInterceptor`, () => {
                 resolve({
                     accessToken: "access-token",
                     tokenType: ServerHashParamKeys.ACCESS_TOKEN
-                });
+                } as AuthResponse);
             })
         ));
 
@@ -114,7 +114,7 @@ describe(`MSALInterceptor`, () => {
                         rawIdToken: "id-token",
                     },
                     tokenType: ServerHashParamKeys.ID_TOKEN
-                });
+                } as AuthResponse);
             })
         ));
 

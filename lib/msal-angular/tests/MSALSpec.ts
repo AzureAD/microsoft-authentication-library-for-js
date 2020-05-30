@@ -167,12 +167,12 @@ describe("Msal Angular Pubic API tests", function () {
 
                 spyOn(UserAgentApplication.prototype, "loginPopup").and.returnValue((
                     new Promise((resolve) => {
-                        resolve(sampleIdToken);
+                        resolve(sampleIdToken as any);
                     })
                 ));
 
                 broadcastService.subscribe("msal:loginSuccess", (payload: AuthResponse) => {
-                    expect(payload.idToken).toBe(sampleIdToken.idToken);
+                    expect(payload.idToken).toBe(sampleIdToken.idToken as any);
 
                     done();
                 });
@@ -183,7 +183,7 @@ describe("Msal Angular Pubic API tests", function () {
 
                 authService.loginPopup(request)
                 .then((response: AuthResponse) => {
-                    expect(response.idToken).toBe(sampleIdToken.idToken);
+                    expect(response.idToken).toBe(sampleIdToken.idToken as any);
                 });
 
                 expect(UserAgentApplication.prototype.loginPopup).toHaveBeenCalledWith(request);
@@ -238,7 +238,7 @@ describe("Msal Angular Pubic API tests", function () {
 
                 spyOn(UserAgentApplication.prototype, "ssoSilent").and.returnValue((
                     new Promise((resolve) => {
-                        resolve(sampleIdToken);
+                        resolve(sampleIdToken as any);
                     })
                 ));
 
@@ -295,7 +295,7 @@ describe("Msal Angular Pubic API tests", function () {
 
                 spyOn(UserAgentApplication.prototype, "acquireTokenSilent").and.returnValue((
                     new Promise((resolve) => {
-                        resolve(sampleAccessToken);
+                        resolve(sampleAccessToken as any);
                     })
                 ));
 
@@ -364,7 +364,7 @@ describe("Msal Angular Pubic API tests", function () {
 
                 spyOn(UserAgentApplication.prototype, "acquireTokenPopup").and.returnValue((
                     new Promise((resolve) => {
-                        resolve(sampleAccessToken);
+                        resolve(sampleAccessToken as any);
                     })
                 ));
 
