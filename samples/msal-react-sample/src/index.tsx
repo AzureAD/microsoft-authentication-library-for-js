@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import { MsalProvider, withMsal } from './msal-react';
+import { MsalProvider } from './msal-react';
 
 import { BrowserRouter as Router } from "react-router-dom";
 

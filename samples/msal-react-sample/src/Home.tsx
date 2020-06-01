@@ -7,7 +7,6 @@ export function Home() {
             {msal => (
                 <div>
                     <AuthenticatedComponent
-                        
                         onError={error => (
                             <p>{error.errorMessage}</p>
                         )}

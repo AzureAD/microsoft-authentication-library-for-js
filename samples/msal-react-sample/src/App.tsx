@@ -16,6 +16,7 @@ import { GetAccessToken } from './AccessToken';
 import { Redirect } from './Redirect';
 import { ProtectedRoute } from './Protected-route';
 import { UnauthenticatedComponentPage } from './Unauthenticated-component';
+import { HigherOrderComponent } from "./HigherOrderComponent";
 
 function App() {
   return (
@@ -64,6 +65,7 @@ function App() {
         <Switch>
             <Route path="/higher-order-component">
                 <p>This page demonstrates the usage of a Higher Order Component</p>
+                <HigherOrderComponent />
             </Route>
             <Route path="/protected-route">
                 <ProtectedRoute />

@@ -43,18 +43,16 @@ export function useHandleRedirect(): [ TokenResponse | null ] {
     return [ redirectResponse ];
 }
 
-export const withMsal = (configuration:Configuration) => (C:React.ComponentType) => (props:any) => {
+export const withMsal = () => (C:React.ComponentType) => (props:any) => {
     return (
-        <MsalProvider configuration={configuration}>
-            <MsalConsumer>
-                {msal => (
-                    <C
-                        {...props}
-                        msal={msal}
-                    />
-                )}
-            </MsalConsumer>
-        </MsalProvider>
+        <MsalConsumer>
+            {msal => (
+                <C
+                    {...props}
+                    msal={msal}
+                />
+            )}
+        </MsalConsumer>
     )
 }
 
