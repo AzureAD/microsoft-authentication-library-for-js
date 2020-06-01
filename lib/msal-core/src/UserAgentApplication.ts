@@ -448,7 +448,7 @@ export class UserAgentApplication {
 
                 // silent login if ADAL id_token is retrieved successfully - SSO
                 if (adalIdToken && !request.scopes) {
-                    this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+                    this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken");
                     const tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(request);
 
                     this.silentLogin = true;
@@ -468,11 +468,13 @@ export class UserAgentApplication {
                 }
                 // No ADAL token found, proceed to login
                 else {
+                    this.logger.verbose("Login call but no token found, proceed to login");
                     this.acquireTokenHelper(null, interactionType, isLoginCall, request, resolve, reject);
                 }
             }
             // AcquireToken call, but no account or context given, so throw error
             else {
+                this.logger.verbose("AcquireToken call, no context or account given");
                 this.logger.info("User login is required");
                 const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request.state));
                 this.cacheStorage.resetTempCacheItems(request.state);
@@ -485,6 +487,7 @@ export class UserAgentApplication {
         }
         // User session exists
         else {
+            this.logger.verbose("User session exists, login not required");
             this.acquireTokenHelper(account, interactionType, isLoginCall, request, resolve, reject);
         }
     }
