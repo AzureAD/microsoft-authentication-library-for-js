@@ -7,26 +7,49 @@ export function RedirectPage() {
     return (
         <MsalConsumer>
             {msal => (
-                <AuthenticatedComponent
-                    unauthenticatedComponent={(
+                <div>
+                    <h2>Redirect</h2>
+                    <AuthenticatedComponent
+                        unauthenticatedComponent={(
+                            <button
+                                onClick={e => {
+                                    e.preventDefault();
+                                    msal?.loginRedirect({
+                                        scopes: [
+                                            "user.read"
+                                        ]
+                                    });
+                                }}
+                            >
+                                Call loginRedirect
+                            </button>
+                        )}
+                    >
                         <button
                             onClick={e => {
                                 e.preventDefault();
-                                msal?.loginRedirect({
+                                msal?.acquireTokenRedirect({
                                     scopes: [
                                         "user.read"
                                     ]
                                 });
                             }}
                         >
-                            Call Login Redirect
+                            Call acquireTokenRedirect
                         </button>
-                    )}
-                >
-                    <h2>Redirect</h2>
-                    <p>This page demonstrates a redirect login flow</p>
+                    </AuthenticatedComponent>
+                    
+                    <p>This page demonstrates using redirect flows.</p>
                     <h3>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h3>
-                </AuthenticatedComponent>
+                    {redirectResult ? (
+                        <div>
+                            <p>Redirect response:</p>
+                            <pre>{JSON.stringify(redirectResult, null, 4)}</pre>
+                        </div>
+                    ) : (
+                        <p>This page is not returning from a redirect operation.</p>
+                    )}
+                </div>
             )}
         </MsalConsumer>
     )

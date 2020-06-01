@@ -7,16 +7,8 @@ export function UnauthenticatedComponentPage() {
             <h2>Unauthenticated Component</h2>
             <p>This page demonstrates the usage of individual Authenticated and Unauthenticated components</p>
 
-            <AuthenticatedComponent
-                onError={error => (
-                    <p>{error.errorMessage}</p>
-                )}
-            >
-                <MsalConsumer>
-                    {msal => (                                           
-                        <h3>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h3>
-                    )}
-                </MsalConsumer>
+            <AuthenticatedComponent>
+                <p>You are currently logged in. Logout to see unauthenticated content.</p>
             </AuthenticatedComponent>
 
             <UnauthenticatedComponent>

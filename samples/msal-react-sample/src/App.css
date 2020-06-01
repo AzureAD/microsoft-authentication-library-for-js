@@ -25,3 +25,8 @@ ul {
 h1 {
     margin-top: 0;
 }
+
+pre {
+    word-break: break-all;
+    white-space: break-spaces;
+}

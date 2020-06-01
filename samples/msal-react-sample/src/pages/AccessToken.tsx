@@ -32,11 +32,12 @@ export function GetAccessTokenPage() {
                             >
                                 Fetch Access Token
                             </button>
-                            <h3>Access token:</h3>
-                            <pre style={{
-                                wordBreak: "break-all",
-                                whiteSpace: "normal"
-                            }}>{accessToken && JSON.stringify(accessToken, null, 4)}</pre>
+                            {accessToken && (
+                                <div>
+                                    <h3>Access token:</h3>
+                                    <pre>{JSON.stringify(accessToken, null, 4)}</pre>
+                                </div>
+                            )}
                         </div>
                     )}
                 </MsalConsumer>
