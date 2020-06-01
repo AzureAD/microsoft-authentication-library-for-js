@@ -17,7 +17,7 @@ npm install @azure/msal-react @azure/msal-browser
 
 #### MsalProvider
 
-MSAL React will be configured with the same configuration for MSAL itself, along with any configuration options that are specific to MSAL React (TBD). This will be passed to the `MsalProvider` component, which will put an instance of `PublicClientApplication` in the React context. Using `MsalProvider` will be a requirement for the other APIs. It will be recommended to use `MsalProvider` at the top-level of your application.
+MSAL React will be configured with the same configuration for MSAL.js itself, along with any configuration options that are specific to MSAL React (TBD). This will be passed to the `MsalProvider` component, which will put an instance of `PublicClientApplication` in the React context. Using `MsalProvider` will be a requirement for the other APIs. It will be recommended to use `MsalProvider` at the top-level of your application.
 
 `MsalProvider` and `MsalConsumer` are built on the [React context API](https://reactjs.org/docs/context.html).
 
@@ -54,14 +54,14 @@ When using `MsalProvider`, MSAL React will put an instance of `PublicClientAppli
 
 ```js
 import React from 'react';
-import { MsalConsumer, AuthenticatedComponent } from "../msal-react";
+import { MsalConsumer } from "../msal-react";
 
 export function HomePage() {
     return (
         <MsalConsumer>
             {msal => (
                 <div>
-                    <h2>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h2>
+                    <h2>{msal?.getAccount() && `Welcome, ${msal?.getAccount().name}`}</h2>
                 </div>
             )}
         </MsalConsumer>
@@ -190,7 +190,7 @@ Must be used as a child of `MsalProvider`.
 
 #### UnauthenticatedComponent
 
-React component class whose contents are only viewable when the user is not logged.
+React component class whose contents are only viewable when the user is not logged in.
 
 ```js
 <UnauthenticatedComponent>
