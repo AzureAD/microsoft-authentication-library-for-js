@@ -4,6 +4,9 @@ import { MsalConsumer, AuthenticatedComponent, UnauthenticatedComponent } from "
 export function UnauthenticatedComponentPage() {
     return (
         <div>
+            <h2>Unauthenticated Component</h2>
+            <p>This page demonstrates the usage of individual Authenticated and Unauthenticated components</p>
+
             <AuthenticatedComponent
                 onError={error => (
                     <p>{error.errorMessage}</p>
@@ -11,13 +14,13 @@ export function UnauthenticatedComponentPage() {
             >
                 <MsalConsumer>
                     {msal => (                                           
-                        <h2>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h2>
+                        <h3>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h3>
                     )}
                 </MsalConsumer>
             </AuthenticatedComponent>
 
             <UnauthenticatedComponent>
-                <h2>Please use the login button above.</h2>        
+                <h3>Please use the login button above.</h3>        
             </UnauthenticatedComponent>
         </div>
     )

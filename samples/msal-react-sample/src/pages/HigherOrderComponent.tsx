@@ -10,7 +10,9 @@ type HigherOrderComponentPropType = {
 function HigherOrderComponent(props: HigherOrderComponentPropType) {
     return (
         <div>
-             <h2>{props.msal?.getAccount() && ("Welcome, " + props.msal?.getAccount().name)}</h2>
+            <h2>Higher-Order Component</h2>
+            <p>This page demonstrates the usage of a Higher Order Component</p>
+            <h3>{props.msal?.getAccount() && ("Welcome, " + props.msal?.getAccount().name)}</h3>
         </div>
     );
 }

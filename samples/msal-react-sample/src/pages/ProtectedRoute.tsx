@@ -13,8 +13,12 @@ export function ProtectedRoutePage() {
             }
         >
             <MsalConsumer>
-                {msal => (                                           
-                    <h2>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h2>
+                {msal => (
+                    <div>
+                        <h2>Protected Route</h2>
+                        <p>This page demonstrates a protected route, automatically triggering a login if user has not been authenticated</p>
+                        <h3>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h3>
+                    </div>                                           
                 )}
             </MsalConsumer>
         </AuthenticatedComponent>

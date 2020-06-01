@@ -5,7 +5,6 @@ export function RedirectPage() {
     const [ redirectResult ] = useHandleRedirect();
 
     return (
-
         <MsalConsumer>
             {msal => (
                 <AuthenticatedComponent
@@ -24,7 +23,9 @@ export function RedirectPage() {
                         </button>
                     )}
                 >
-                    <h2>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h2>
+                    <h2>Redirect</h2>
+                    <p>This page demonstrates a redirect login flow</p>
+                    <h3>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h3>
                 </AuthenticatedComponent>
             )}
         </MsalConsumer>

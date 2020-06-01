@@ -67,28 +67,18 @@ function App() {
         </header>
         <Switch>
             <Route path="/higher-order-component">
-                <h2>Higher-Order Component</h2>
-                <p>This page demonstrates the usage of a Higher Order Component</p>
                 <HigherOrderComponentPage />
             </Route>
             <Route path="/protected-route">
-                <h2>Protected Route</h2>
-                <p>This page demonstrates a protected route, automatically triggering a login if user has not been authenticated</p>
                 <ProtectedRoutePage />
             </Route>
             <Route path="/redirect">
-                <h2>Redirect</h2>
-                <p>This page demonstrates a redirect login flow</p>
                 <RedirectPage />
             </Route>
             <Route path="/unauthenticated-component">
-                <h2>Unauthenticated Component</h2>
-                <p>This page demonstrates the usage of individual Authenticated and Unauthenticated components</p>
                 <UnauthenticatedComponentPage />
             </Route>
             <Route path="/get-access-token">
-                <h2>Access Token</h2>
-                <p>This page demonstrates acquiring an access token with unauthenticatedComponent integrated into AuthenticatedComponent</p>
                 <GetAccessTokenPage />
             </Route>
             <Route path="/">
