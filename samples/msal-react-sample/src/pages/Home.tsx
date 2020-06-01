@@ -1,7 +1,7 @@
 import React from 'react';
-import { MsalConsumer, AuthenticatedComponent } from "./msal-react";
+import { MsalConsumer, AuthenticatedComponent } from "../msal-react";
 
-export function Home() {
+export function HomePage() {
     return (
         <MsalConsumer>
             {msal => (

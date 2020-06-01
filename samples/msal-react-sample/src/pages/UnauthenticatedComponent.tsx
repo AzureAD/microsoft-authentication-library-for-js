@@ -1,5 +1,5 @@
 import React from 'react';
-import { MsalConsumer, AuthenticatedComponent, UnauthenticatedComponent } from "./msal-react";
+import { MsalConsumer, AuthenticatedComponent, UnauthenticatedComponent } from "../msal-react";
 
 export function UnauthenticatedComponentPage() {
     return (

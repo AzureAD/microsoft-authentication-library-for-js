@@ -1,7 +1,7 @@
 import React from 'react';
-import { MsalConsumer, AuthenticatedComponent } from "./msal-react";
+import { MsalConsumer, AuthenticatedComponent } from "../msal-react";
 
-export function ProtectedRoute() {
+export function ProtectedRoutePage() {
     return (
         <AuthenticatedComponent
             onError={error => (

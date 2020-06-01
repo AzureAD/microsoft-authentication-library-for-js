@@ -1,13 +1,13 @@
 import React from "react";
 
-import { withMsal, IPublicClientApplication } from "./msal-react";
+import { withMsal, IPublicClientApplication } from "../msal-react";
 
 type HigherOrderComponentPropType = {
     children?: React.ReactNode,
     msal?: IPublicClientApplication
 }
 
-function HigherOrderComponentPage(props: HigherOrderComponentPropType) {
+function HigherOrderComponent(props: HigherOrderComponentPropType) {
     return (
         <div>
              <h2>{props.msal?.getAccount() && ("Welcome, " + props.msal?.getAccount().name)}</h2>
@@ -15,4 +15,4 @@ function HigherOrderComponentPage(props: HigherOrderComponentPropType) {
     );
 }
 
-export const HigherOrderComponent = withMsal()(HigherOrderComponentPage);
+export const HigherOrderComponentPage = withMsal()(HigherOrderComponent);

@@ -1,7 +1,7 @@
 import React from 'react'
-import { useHandleRedirect, MsalConsumer, AuthenticatedComponent } from './msal-react';
+import { useHandleRedirect, MsalConsumer, AuthenticatedComponent } from '../msal-react';
 
-export function Redirect() {
+export function RedirectPage() {
     const [ redirectResult ] = useHandleRedirect();
 
     return (

@@ -21,3 +21,7 @@ ul {
     list-style-type: none;
     margin: 0;
 }
+
+h1 {
+    margin-top: 0;
+}

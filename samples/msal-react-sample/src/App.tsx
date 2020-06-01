@@ -11,80 +11,88 @@ import {
     Route,
     Link
   } from "react-router-dom";
-import { Home } from './Home';
-import { GetAccessToken } from './AccessToken';
-import { Redirect } from './Redirect';
-import { ProtectedRoute } from './Protected-route';
-import { UnauthenticatedComponentPage } from './Unauthenticated-component';
-import { HigherOrderComponent } from "./HigherOrderComponent";
+import { HomePage } from './pages/Home';
+import { GetAccessTokenPage } from './pages/AccessToken';
+import { RedirectPage } from './pages/Redirect';
+import { ProtectedRoutePage } from './pages/ProtectedRoute';
+import { UnauthenticatedComponentPage } from './pages/UnauthenticatedComponent';
+import { HigherOrderComponentPage } from "./pages/HigherOrderComponent";
 
 function App() {
   return (
     <div className="App">
-        <nav>
-            <ul className="nav-links">
-                <li><Link to="/">Home</Link></li>
-                <li><Link to="/higher-order-component">Higher Order Component</Link></li>
-                <li><Link to="/protected-route">Protected Route</Link></li>
-                <li><Link to="/redirect">Redirect</Link></li>
-                <li><Link to="/unauthenticated-component">Unauthenticated Component</Link></li>
-                <li><Link to="/get-access-token">Get Access Token</Link></li>
-            </ul>
-            <div className="nav-buttons">
-                <MsalConsumer>
-                    {msal => (
-                        <AuthenticatedComponent
-                            unauthenticatedComponent={(
+        <header>
+            <h1>MSAL React Sample App</h1>
+            <nav>
+                <ul className="nav-links">
+                    <li><Link to="/">Home</Link></li>
+                    <li><Link to="/higher-order-component">Higher Order Component</Link></li>
+                    <li><Link to="/protected-route">Protected Route</Link></li>
+                    <li><Link to="/redirect">Redirect</Link></li>
+                    <li><Link to="/unauthenticated-component">Unauthenticated Component</Link></li>
+                    <li><Link to="/get-access-token">Get Access Token</Link></li>
+                </ul>
+                <div className="nav-buttons">
+                    <MsalConsumer>
+                        {msal => (
+                            <AuthenticatedComponent
+                                unauthenticatedComponent={(
+                                    <button
+                                        onClick={e => {
+                                            e.preventDefault();
+                                            msal?.loginPopup({
+                                                scopes: [
+                                                    "user.read"
+                                                ]
+                                            });
+                                        }}
+                                    >
+                                        Login
+                                    </button>
+                                )}
+                            >
                                 <button
                                     onClick={e => {
                                         e.preventDefault();
-                                        msal?.loginPopup({
-                                            scopes: [
-                                                "user.read"
-                                            ]
-                                        });
+                                        msal?.logout();
                                     }}
                                 >
-                                    Login
+                                    Logout
                                 </button>
-                            )}
-                        >
-                            <button
-                                onClick={e => {
-                                    e.preventDefault();
-                                    msal?.logout();
-                                }}
-                            >
-                                Logout
-                            </button>
-                        </AuthenticatedComponent>
-                    )}
-                </MsalConsumer>
-            </div>
-        </nav>
+                            </AuthenticatedComponent>
+                        )}
+                    </MsalConsumer>
+                </div>
+            </nav>
+        </header>
         <Switch>
             <Route path="/higher-order-component">
+                <h2>Higher-Order Component</h2>
                 <p>This page demonstrates the usage of a Higher Order Component</p>
-                <HigherOrderComponent />
+                <HigherOrderComponentPage />
             </Route>
             <Route path="/protected-route">
-                <ProtectedRoute />
+                <h2>Protected Route</h2>
                 <p>This page demonstrates a protected route, automatically triggering a login if user has not been authenticated</p>
+                <ProtectedRoutePage />
             </Route>
             <Route path="/redirect">
-                <Redirect />
+                <h2>Redirect</h2>
                 <p>This page demonstrates a redirect login flow</p>
+                <RedirectPage />
             </Route>
             <Route path="/unauthenticated-component">
-                <UnauthenticatedComponentPage />
+                <h2>Unauthenticated Component</h2>
                 <p>This page demonstrates the usage of individual Authenticated and Unauthenticated components</p>
+                <UnauthenticatedComponentPage />
             </Route>
             <Route path="/get-access-token">
-                <GetAccessToken />
+                <h2>Access Token</h2>
                 <p>This page demonstrates acquiring an access token with unauthenticatedComponent integrated into AuthenticatedComponent</p>
+                <GetAccessTokenPage />
             </Route>
             <Route path="/">
-                <Home />
+                <HomePage />
             </Route>
         </Switch>
     </div>
