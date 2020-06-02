@@ -144,9 +144,6 @@ export class Authority {
     public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         if (this.IsValidationEnabled) {
             const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
-            if (TrustedAuthority.getTrustedHostList().length === 0) {
-                await TrustedAuthority.setTrustedAuthoritiesFromNetwork(telemetryManager, correlationId);
-            }
 
             if (!TrustedAuthority.IsInTrustedHostList(host)) {
                 throw ClientConfigurationError.createUntrustedAuthorityError(host);
