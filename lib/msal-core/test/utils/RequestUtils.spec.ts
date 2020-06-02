@@ -29,23 +29,6 @@ describe("RequestUtils.ts class", () => {
         expect(emptyScopesError.stack).to.include("RequestUtils.spec.ts");
     });
 
-    it("ClientId can be sent only as a single scope", () => {
-
-        let improperScopes : ClientConfigurationError;
-
-        try {
-            const userRequest: AuthenticationParameters = {scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "newScope`"]};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
-        } catch (e) {
-            improperScopes = e;
-        };
-
-        expect(improperScopes instanceof ClientConfigurationError).to.be.true;
-        expect(improperScopes.errorCode).to.equal(ClientConfigurationErrorMessage.clientScope.code);
-        expect(improperScopes.name).to.equal("ClientConfigurationError");
-        expect(improperScopes.stack).to.include("RequestUtils.spec.ts");
-    });
-
     it("validate prompt", () => {
 
         let promptError: ClientConfigurationError;
@@ -137,14 +120,19 @@ describe("RequestUtils.ts class", () => {
     });
 
     it("validate empty request", () => {
-        const userRequest: AuthenticationParameters = null;
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
+        let emptyRequestError: ClientConfigurationError;
 
-        expect(request.scopes).to.be.equal(undefined);
-        expect(request.prompt).to.be.equal(undefined);
-        expect(request.extraQueryParameters).to.be.equal(undefined);
-        expect(typeof request.state).to.be.equal("string");
-        expect(CryptoUtils.isGuid(request.correlationId)).to.be.equal(true);
+        try {
+            const userRequest: AuthenticationParameters = null;
+            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
+        } catch (e) {
+            emptyRequestError = e;
+        }
+
+    expect(emptyRequestError instanceof ClientConfigurationError).to.be.true;
+        expect(emptyRequestError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyRequestError.code);
+        expect(emptyRequestError.name).to.equal("ClientConfigurationError");
+        expect(emptyRequestError.stack).to.include("RequestUtils.spec.ts");
     });
 
     it("generate request signature", () => {
