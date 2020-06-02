@@ -4,40 +4,25 @@
  */
 const express = require("express");
 const msal = require('@azure/msal-node');
-const fs = require("fs");
+const { promises: fs } = require("fs");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
 
 const readFromStorage = () => {
-    return new Promise((resolve, reject) => {
-        fs.readFile("./data/cache.json", (err, data) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(data);
-            }
-        });
-    });
+    return fs.readFile("./data/cache.json");
 };
 const writeToStorage = (getMergedState) => {
-    return new Promise((resolve, reject) => {
-        readFromStorage().then(oldFile => {
-            const mergedState = getMergedState(oldFile);
-            fs.writeFile("./data/cache.json", mergedState, (err, data) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+    return readFromStorage()
+    .then(oldFile => {
+        const mergedState = getMergedState(oldFile);
+        return fs.writeFile("./data/cache.json", mergedState)
     });
 };
 
 const cachePlugin = {
-    readFromStorage: readFromStorage,
-    writeToStorage: writeToStorage
+    readFromStorage,
+    writeToStorage
 };
 
 const publicClientConfig = {

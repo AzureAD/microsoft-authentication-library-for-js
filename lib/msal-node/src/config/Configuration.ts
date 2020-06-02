@@ -6,10 +6,10 @@ import {
     AuthOptions,
     LoggerOptions,
     INetworkModule,
-    LogLevel
+    LogLevel,
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
-import debug from "debug";
+import debug from 'debug';
 import { ICachePlugin } from 'cache/ICachePlugin';
 
 export type NodeAuthOptions = AuthOptions;
@@ -23,7 +23,6 @@ export type NodeAuthOptions = AuthOptions;
  */
 // TODO Temporary placeholder - this will be rewritten by cache PR.
 export type CacheOptions = {
-    storeAuthStateInCookie?: boolean;
     cachePlugin?: ICachePlugin;
 };
 
@@ -58,13 +57,15 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     knownAuthorities: [],
 };
 
-const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-    storeAuthStateInCookie: false
-};
+const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
-    loggerCallback: (level: LogLevel, message: string, containsPii: boolean) => {
-        debug(`msal:${LogLevel[level]}${containsPii ? "-Pii": ""}`)(message);
+    loggerCallback: (
+        level: LogLevel,
+        message: string,
+        containsPii: boolean
+    ) => {
+        debug(`msal:${LogLevel[level]}${containsPii ? '-Pii' : ''}`)(message);
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,

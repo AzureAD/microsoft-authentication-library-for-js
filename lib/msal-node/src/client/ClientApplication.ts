@@ -20,7 +20,6 @@ import { Constants } from './../utils/Constants';
 import { CacheManager } from '../cache/CacheManager';
 
 export abstract class ClientApplication {
-
     protected config: Configuration;
     protected storage: Storage;
     private cacheManager: CacheManager;
@@ -48,7 +47,10 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
         this.storage = new Storage();
-        this.cacheManager = new CacheManager(this.storage, this.config.cache?.cachePlugin);
+        this.cacheManager = new CacheManager(
+            this.storage,
+            this.config.cache?.cachePlugin
+        );
     }
 
     /**
@@ -97,8 +99,12 @@ export abstract class ClientApplication {
      * handle the caching and refreshing of tokens automatically.
      * @param request
      */
-    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<string>{
-        const refreshTokenClient = new RefreshTokenClient(this.buildOauthClientConfiguration());
+    async acquireTokenByRefreshToken(
+        request: RefreshTokenRequest
+    ): Promise<string> {
+        const refreshTokenClient = new RefreshTokenClient(
+            this.buildOauthClientConfiguration()
+        );
         return refreshTokenClient.acquireToken(request);
     }
 
@@ -118,8 +124,8 @@ export abstract class ClientApplication {
             libraryInfo: {
                 sku: Constants.MSAL_SKU,
                 version: version,
-                cpu: process.arch || "",
-                os: process.platform || ""
+                cpu: process.arch || '',
+                os: process.platform || '',
             },
         };
     }
@@ -127,5 +133,4 @@ export abstract class ClientApplication {
     getCacheManager(): CacheManager {
         return this.cacheManager;
     }
-
 }

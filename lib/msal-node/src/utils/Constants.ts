@@ -43,5 +43,5 @@ export const CACHE = {
  * Constants for headers
  */
 export const Constants = {
-    MSAL_SKU: "msal.js.node",
+    MSAL_SKU: 'msal.js.node',
 };

@@ -2,10 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import {
-    ICacheStorage,
-    InMemoryCache
-} from '@azure/msal-common';
+import { ICacheStorage, InMemoryCache } from '@azure/msal-common';
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -17,12 +14,9 @@ export class Storage implements ICacheStorage {
         accessTokens: {},
         refreshTokens: {},
         appMetadata: {},
-        idTokens: {}
+        idTokens: {},
     };
     private changeEmitters: Array<Function> = [];
-
-    constructor() {
-    }
 
     registerChangeEmitter(func: () => void): void {
         this.changeEmitters.push(func);
