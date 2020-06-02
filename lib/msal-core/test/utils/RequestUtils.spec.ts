@@ -12,23 +12,6 @@ import { Constants } from "../../src/utils/Constants";
 
 describe("RequestUtils.ts class", () => {
 
-    it("Scopes cannot be null", () => {
-
-        let undefinedScopesError : ClientConfigurationError;
-
-        try {
-            const userRequest: AuthenticationParameters = {scopes: null};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
-        } catch (e) {
-            undefinedScopesError = e;
-        };
-
-        expect(undefinedScopesError instanceof ClientConfigurationError).to.be.true;
-        expect(undefinedScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-        expect(undefinedScopesError.name).to.equal("ClientConfigurationError");
-        expect(undefinedScopesError.stack).to.include("RequestUtils.spec.ts");
-    });
-
     it("Scopes cannot be empty", () => {
 
         let emptyScopesError : ClientConfigurationError;
