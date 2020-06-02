@@ -53,7 +53,7 @@ export class TrustedAuthority {
                     telemetryManager.stopEvent(httpEvent);
                     reject(err);
                 });
-        })
+        });
     } 
 
     public static getTrustedHostList(): Array<string> {

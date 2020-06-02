@@ -11,8 +11,8 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ITenantDiscoveryResponse, OpenIdConfiguration } from "./ITenantDiscoveryResponse";
 import TelemetryManager from "../telemetry/TelemetryManager";
-import { AuthOptions } from '../Configuration';
-import { TrustedAuthority } from './TrustedAuthority';
+import { AuthOptions } from "../Configuration";
+import { TrustedAuthority } from "./TrustedAuthority";
 
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
