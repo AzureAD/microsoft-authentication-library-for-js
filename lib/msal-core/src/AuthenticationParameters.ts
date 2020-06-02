@@ -25,6 +25,7 @@ export type AuthenticationParameters = {
     forceRefresh?: boolean;
     redirectUri?: string;
     redirectStartPage?: string;
+    authorityMetadata?: string
 };
 
 export function validateClaimsRequest(request: AuthenticationParameters) {

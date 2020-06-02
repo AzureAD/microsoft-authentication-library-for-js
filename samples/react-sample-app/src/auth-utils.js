@@ -80,7 +80,7 @@ export const msalApp = new UserAgentApplication({
             applicationName: "react-sample-app",
             applicationVersion: "1.0.0",
             telemetryEmitter: (events) => {
-                console.log('events', events);
+                console.log('Telemetry Events:', events);
             }
         }
     }

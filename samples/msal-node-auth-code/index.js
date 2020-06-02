@@ -4,6 +4,8 @@
  */
 const express = require("express");
 const msal = require('@azure/msal-node');
+const myLocalCache = require("./data/cache");
+const fs = require("fs");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
@@ -17,10 +19,11 @@ const publicClientConfig = {
     },
     cache: {
         cacheLocation: "fileCache", // This configures where your cache will be stored
-        storeAuthStateInCookie: false // Set this to "true" if you are having issues on IE11 or Edge
-    }
+        storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
+    },
 };
 const pca = new msal.PublicClientApplication(publicClientConfig);
+pca.initializeCache(myLocalCache);
 
 // Create Express App and Routes
 const app = express();
@@ -50,12 +53,14 @@ app.get('/redirect', (req, res) => {
     };
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
-        console.log(JSON.stringify(response));
-        res.status(200).json(response);
+        console.log("\nResponse: \n:", response);
+        res.send(200);
+        // uncomment this to show writing of cache, dont commit real tokens.
+        // fs.writeFileSync("./data/cache.json", JSON.stringify(pca.readCache()), null, 4);
     }).catch((error) => {
-        console.log(JSON.stringify(error.response));
-        res.status(500).send(JSON.stringify(error.response));
-    })
+        console.log(error);
+        res.status(500).send(error);
+    });
 });
 
 app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`))

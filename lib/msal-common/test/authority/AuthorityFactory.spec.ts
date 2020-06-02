@@ -10,12 +10,17 @@ import { Authority } from "../../src/authority/Authority";
 import { AdfsAuthority } from "../../src/authority/AdfsAuthority";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
-
     const networkInterface: INetworkModule = {
-        sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+        sendGetRequestAsync<T>(
+            url: string,
+            options?: NetworkRequestOptions
+        ): T {
             return null;
         },
-        sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+        sendPostRequestAsync<T>(
+            url: string,
+            options?: NetworkRequestOptions
+        ): T {
             return null;
         }
     };
@@ -33,10 +38,27 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
     });
 
     it("Throws error for malformed url strings", () => {
-        expect(() => AuthorityFactory.createInstance(`http://login.microsoftonline.com/common`, networkInterface)).to.throw(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
-        expect(() => AuthorityFactory.createInstance(`https://login.microsoftonline.com/`, networkInterface)).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
-        expect(() => AuthorityFactory.createInstance("This is not a URI", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
-        expect(() => AuthorityFactory.createInstance("", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        expect(() =>
+            AuthorityFactory.createInstance(
+                `http://login.microsoftonline.com/common`,
+                networkInterface
+            )
+        ).to.throw(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
+        expect(() =>
+            AuthorityFactory.createInstance(
+                `https://login.microsoftonline.com/`,
+                networkInterface
+            )
+        ).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
+        expect(() =>
+            AuthorityFactory.createInstance(
+                "This is not a URI",
+                networkInterface
+            )
+        ).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
+        expect(() =>
+            AuthorityFactory.createInstance("", networkInterface)
+        ).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
     });
 
     it("createInstance returns an AAD instance if knownAuthorities not provided", () => {
