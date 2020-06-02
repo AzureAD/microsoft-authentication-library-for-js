@@ -7,7 +7,12 @@ import { Constants } from "../utils/Constants";
 import { ClientAuthError } from "./ClientAuthError";
 import { TelemetryOptions } from "../Configuration";
 
-export const ClientConfigurationErrorMessage = {
+interface IClientConfigurationErrorMessage {
+    code: string,
+    desc: string
+};
+
+export const ClientConfigurationErrorMessage: Record<string, IClientConfigurationErrorMessage> = {
     configurationNotSet: {
         code: "no_config_set",
         desc: "Configuration has not been set. Please call the UserAgentApplication constructor with a valid Configuration object."
@@ -89,6 +94,10 @@ export const ClientConfigurationErrorMessage = {
     ssoSilentError: {
         code: "sso_silent_error",
         desc: "request must contain either sid or login_hint"
+    },
+    invalidAuthorityMetadataError: {
+        code: "authority_metadata_error",
+        desc: "Invalid authorityMetadata. Must be a JSON object containing authorization_endpoint, end_session_endpoint, and issuer fields."
     }
 };
 
@@ -196,5 +205,9 @@ export class ClientConfigurationError extends ClientAuthError {
     static createSsoSilentError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.ssoSilentError.code,
             ClientConfigurationErrorMessage.ssoSilentError.desc);
+    }
+
+    static createInvalidAuthorityMetadataError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthorityMetadataError.code, ClientConfigurationErrorMessage.invalidAuthorityMetadataError.desc);
     }
 }

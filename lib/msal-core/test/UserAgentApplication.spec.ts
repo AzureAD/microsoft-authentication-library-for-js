@@ -1896,15 +1896,13 @@ describe("UserAgentApplication.ts Class", function () {
                     ...oldWindowLocation,
                     href: TEST_URIS.TEST_REDIR_URI + "/" + testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
                     hash: testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
-                    assign: function (url) {
-                        const state = UrlUtils.deserializeHash(url).state;
-                        const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state)
-
-                        expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
-                        done();
-                    }   
                 },
                 open: function (url?, target?, features?, replace?): Window {
+                    const state = UrlUtils.deserializeHash(url).state;
+                    const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state)
+    
+                    expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
+                    done();
                     return window
                 },
                 close: function(): void {},

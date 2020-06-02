@@ -18,7 +18,7 @@ describe("RequestUtils.ts class", () => {
 
         try {
             const userRequest: AuthenticationParameters = {scopes: null};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
+            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
         } catch (e) {
             undefinedScopesError = e;
         };
@@ -35,7 +35,7 @@ describe("RequestUtils.ts class", () => {
 
         try {
             const userRequest: AuthenticationParameters = {scopes: []};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
+            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
         } catch (e) {
             emptyScopesError = e;
         };
@@ -52,7 +52,7 @@ describe("RequestUtils.ts class", () => {
 
         try {
             const userRequest: AuthenticationParameters = {scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "newScope`"]};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
+            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
         } catch (e) {
             improperScopes = e;
         };
@@ -155,7 +155,7 @@ describe("RequestUtils.ts class", () => {
 
     it("validate empty request", () => {
         const userRequest: AuthenticationParameters = null;
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
 
         expect(request.scopes).to.be.equal(undefined);
         expect(request.prompt).to.be.equal(undefined);
