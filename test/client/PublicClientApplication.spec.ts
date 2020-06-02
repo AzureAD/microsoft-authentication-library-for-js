@@ -320,7 +320,122 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(window.sessionStorage).to.be.empty;
                     expect(`${e}`).to.contain(testError);
                 }
-            });
+			});
+			
+			it("Updates cache entries correctly", async () => {
+				const emptyRequest: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: []
+				};
+				await Client.createLoginUrl(emptyRequest);
+				expect(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
+				expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
+				expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+			});
+	
+			it("Caches token request correctly", async () => {
+				const emptyRequest: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: []
+				};
+				await Client.createLoginUrl(emptyRequest);
+				const cachedRequest: AuthorizationCodeRequest = JSON.parse(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
+				expect(cachedRequest.scopes).to.be.deep.eq([TEST_CONFIG.MSAL_CLIENT_ID]);
+				expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
+				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+				expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
+			});
+
+			it("Cleans cache before error is thrown", async () => {
+				const guidCreationErr = "GUID can't be created.";
+				const emptyRequest: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: []
+				};
+				defaultAuthConfig.cryptoInterface.createNewGuid = (): string => {
+					throw AuthError.createUnexpectedError(guidCreationErr);
+				};
+				Client = new SPAClient(defaultAuthConfig);
+				await expect(Client.createLoginUrl(emptyRequest)).to.be.rejectedWith(guidCreationErr);
+				expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
+			});
+
+			it("Uses adal token from cache if it is present.", async () => {
+				const idTokenClaims: IdTokenClaims = {
+					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
+					"exp": "1536279024",
+					"name": "abeli",
+					"nonce": "123523",
+					"oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
+					"sub": "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
+					"tid": "fa15d692-e9c7-4460-a743-29f2956fd429",
+					"ver": "1.0"
+				};
+				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+				defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+				const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
+				const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
+				Client = new SPAClient(defaultAuthConfig);
+				const emptyRequest: AuthenticationParameters = {};
+				await Client.createLoginUrl(emptyRequest);
+				expect(queryParamSpy.calledWith(testToken)).to.be.true;
+			});
+	
+			it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
+				const idTokenClaims: IdTokenClaims = {
+					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
+					"exp": "1536279024",
+					"name": "abeli",
+					"nonce": "123523",
+					"oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
+					"sub": "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
+					"tid": "fa15d692-e9c7-4460-a743-29f2956fd429",
+					"ver": "1.0"
+				};
+				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+				defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+				const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
+				const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
+				Client = new SPAClient(defaultAuthConfig);
+				const loginRequest: AuthenticationParameters = {
+					loginHint: "AbeLi@microsoft.com"
+				};
+				await Client.createLoginUrl(loginRequest);
+				expect(queryParamSpy.calledWith(testToken)).to.be.false;
+				expect(queryParamSpy.calledWith(null)).to.be.true;
+			});
+
+			it("Uses authority from cache if not present in cached request", async () => {
+				// Set up stubs
+				const idTokenClaims = {
+					"ver": "2.0",
+					"iss": `${TEST_URIS.ALTERNATE_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+					"sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+					"exp": "1536361411",
+					"name": "Abe Lincoln",
+					"preferred_username": "AbeLi@microsoft.com",
+					"oid": "00000000-0000-0000-66f3-3332eca7ea81",
+					"tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+					"nonce": "123523",
+				};
+				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+				sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
+				const authoritySpy = sinon.spy(AuthorityFactory, "createInstance");
+
+				// Set up cache
+				defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+
+				const cachedRequest: TokenExchangeParameters = {
+					codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+					correlationId: RANDOM_TEST_GUID,
+					scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+				};
+				const stringifiedRequest = JSON.stringify(cachedRequest);
+
+				// Perform test
+				await Client.acquireToken(codeResponse);
+				expect(authoritySpy.calledOnceWith(`${TEST_URIS.ALTERNATE_INSTANCE}/common/`, defaultAuthConfig.networkInterface)).to.be.true;
+			});
         });
 
         describe("acquireTokenRedirect", () => {
@@ -363,7 +478,83 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(window.sessionStorage).to.be.empty;
                     expect(`${e}`).to.contain(testError);
                 }
-            });
+			});
+			
+			it("Updates cache entries correctly", async () => {
+				const testScope = "testscope";
+				const tokenRequest: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: [testScope]
+				};
+				await Client.createAcquireTokenUrl(tokenRequest);
+				expect(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
+				expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
+				expect(defaultAuthConfig.storageInterface.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+			});
+	
+			it("Caches token request correctly", async () => {
+				const testScope = "testscope";
+				const tokenRequest: AuthenticationParameters = {
+					scopes: [testScope]
+				};
+				await Client.createAcquireTokenUrl(tokenRequest);
+				const cachedRequest: TokenExchangeParameters = JSON.parse(defaultAuthConfig.storageInterface.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
+				expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
+				expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
+				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+				expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
+				expect(cachedRequest.extraQueryParameters).to.be.undefined;
+				expect(cachedRequest.resource).to.be.undefined;
+			});
+
+			it("Uses adal token from cache if it is present.", async () => {
+				const idTokenClaims: IdTokenClaims = {
+					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
+					"exp": "1536279024",
+					"name": "abeli",
+					"nonce": "123523",
+					"oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
+					"sub": "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
+					"tid": "fa15d692-e9c7-4460-a743-29f2956fd429",
+					"ver": "1.0"
+				};
+				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+				defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+				const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
+				const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
+				Client = new SPAClient(defaultAuthConfig);
+				const tokenRequest: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
+				};
+				await Client.createAcquireTokenUrl(tokenRequest);
+				expect(queryParamSpy.calledWith(testToken)).to.be.true;
+			});
+	
+			it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
+				const idTokenClaims: IdTokenClaims = {
+					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
+					"exp": "1536279024",
+					"name": "abeli",
+					"nonce": "123523",
+					"oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
+					"sub": "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
+					"tid": "fa15d692-e9c7-4460-a743-29f2956fd429",
+					"ver": "1.0"
+				};
+				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+				defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+				const testToken = new IdToken(TEST_TOKENS.IDTOKEN_V1, defaultAuthConfig.cryptoInterface);
+				const queryParamSpy = sinon.spy(ServerCodeRequestParameters.prototype, "populateQueryParams");
+				Client = new SPAClient(defaultAuthConfig);
+				const tokenRequest: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
+				};
+				await Client.createAcquireTokenUrl(tokenRequest);
+				expect(queryParamSpy.calledWith(testToken)).to.be.false;
+				expect(queryParamSpy.calledWith(null)).to.be.true;
+			});
         });
     });
 
