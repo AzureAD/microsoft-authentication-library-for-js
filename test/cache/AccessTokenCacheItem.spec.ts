@@ -15,7 +15,6 @@ describe("AccessTokenCacheItem.ts tests", () => {
                 authority: Constants.DEFAULT_AUTHORITY,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                resource: "testResourceUri",
                 homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID 
             };
             const atValue1: AccessTokenValue = {
