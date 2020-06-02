@@ -293,7 +293,7 @@ export class ServerCodeRequestParameters {
      * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
      * @param extraQueryParameters
      */
-    private generateQueryParametersString(queryParameters: StringDict): string {
+    public static generateQueryParametersString(queryParameters: StringDict): string {
         let paramsString: string = "";
 
         if (queryParameters) {
