@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, CodeResponse, Account, TokenResponse, InMemoryCache } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, Account, TokenResponse, InMemoryCache, AuthorityFactory } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, RANDOM_TEST_GUID, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
@@ -45,6 +45,21 @@ const testNetworkResult = {
 
 const testKeySet = ["testKey1", "testKey2"];
 
+const networkInterface = {
+	sendGetRequestAsync<T>(
+		url: string,
+		options?: NetworkRequestOptions
+	): T {
+		return null;
+	},
+	sendPostRequestAsync<T>(
+		url: string,
+		options?: NetworkRequestOptions
+	): T {
+		return null;
+	},
+};
+
 describe("InteractionHandler.ts Unit Tests", () => {
 
     let authCodeModule: SPAClient;
@@ -55,9 +70,13 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-        const configObj = buildConfiguration(appConfig);
+		const configObj = buildConfiguration(appConfig);
+		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
         authCodeModule = new SPAClient({
-            authOptions: configObj.auth,
+            authOptions: {
+				...configObj.auth,
+				authority: authorityInstance,
+			},
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
                 telemetry: configObj.system.telemetry
@@ -145,10 +164,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
         });
 
         it("successfully handles response", async () => {
-            const testCodeResponse: CodeResponse = {
-                code: "testAuthCode",
-                userRequestState: `${RANDOM_TEST_GUID}|testState`
-            };
+            const testCodeResponse = "authcode";
             const idTokenClaims = {
                 "ver": "2.0",
                 "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
