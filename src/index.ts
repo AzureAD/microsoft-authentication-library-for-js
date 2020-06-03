@@ -20,6 +20,7 @@ export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
 export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
 export { Serializer } from "./unifiedCache/serialize/Serializer";
 export { Deserializer } from "./unifiedCache/serialize/Deserializer";
+export { CacheHelper } from "./unifiedCache/utils/CacheHelper";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkResponse } from "./network/NetworkManager";
