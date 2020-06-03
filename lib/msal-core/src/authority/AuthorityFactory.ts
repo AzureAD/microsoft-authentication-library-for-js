@@ -11,15 +11,11 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ITenantDiscoveryResponse, OpenIdConfiguration } from "./ITenantDiscoveryResponse";
 import TelemetryManager from "../telemetry/TelemetryManager";
-import { AuthOptions } from '../Configuration';
-import { TrustedAuthority } from './TrustedAuthority';
 
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
-    private static cloudInstanceDiscoveryPromise: Promise<void>;
 
     public static async saveMetadataFromNetwork(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
-        await this.cloudInstanceDiscoveryPromise;
         const metadata = await authorityInstance.resolveEndpointsAsync(telemetryManager, correlationId);
         this.metadataMap.set(authorityInstance.CanonicalAuthority, metadata);
         return metadata;
@@ -47,17 +43,6 @@ export class AuthorityFactory {
         } catch (e) {
             throw ClientConfigurationError.createInvalidAuthorityMetadataError();
         }
-    }
-
-    /**
-     * 
-     * @param authConfig 
-     * @param telemetryManager 
-     */
-    public static initializeAuthorityData(authConfig: AuthOptions, telemetryManager: TelemetryManager) {
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(authConfig.validateAuthority, authConfig.knownAuthorities);
-        this.saveMetadataFromConfig(authConfig.authority, authConfig.authorityMetadata);
-        this.cloudInstanceDiscoveryPromise = TrustedAuthority.setTrustedAuthoritiesFromNetwork(authConfig.validateAuthority, telemetryManager);
     }
 
     /**
