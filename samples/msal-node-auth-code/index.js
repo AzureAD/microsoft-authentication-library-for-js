@@ -32,6 +32,7 @@ app.get('/',  (req, res) => {
     const authCodeUrlParameters = {
         scopes: ["user.read"],
         redirectUri: ["http://localhost:3000/redirect"],
+        prompt: msal.Prompt.SELECT_ACCOUNT
     };
 
     // get url to sign user in and consent to scopes needed for application

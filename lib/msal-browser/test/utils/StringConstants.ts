@@ -22,6 +22,7 @@ export const TEST_CONFIG = {
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
+    ADFS_AUTHORITY: "https://authority.com/adfs",
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
     STATE: "1234",
