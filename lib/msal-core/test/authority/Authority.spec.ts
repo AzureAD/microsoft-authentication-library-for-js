@@ -123,19 +123,6 @@ describe("Authority.ts Class", function () {
             expect(endpoints.Issuer).to.not.be.undefined;
         });
 
-        it("Calls Instance Discovery Endpoint if TrustedHostList not set", async function () {
-            // Testing of setTrustedAuthoritiesFromNetwork done in another test
-            let setFromNetworkCalled = false;
-            sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
-            sinon.stub(TrustedAuthority, "getTrustedHostList").returns([]);
-            sinon.stub(TrustedAuthority, "setTrustedAuthoritiesFromNetwork").callsFake(async function() {
-                setFromNetworkCalled = true;
-            });
-
-            await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
-            expect(setFromNetworkCalled).to.be.true;
-        });
-
         it("Throws error if authority is not in TrustedHostList", async function () {
             sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(false);
             let err = null;
