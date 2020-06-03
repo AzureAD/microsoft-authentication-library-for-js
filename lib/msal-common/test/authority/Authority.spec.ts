@@ -4,7 +4,13 @@ import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Constants } from "../../src/utils/Constants";
 import { AuthorityType } from "../../src/authority/AuthorityType";
-import { DEFAULT_TENANT_DISCOVERY_RESPONSE, TEST_URIS, RANDOM_TEST_GUID, TEST_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
+import {
+    DEFAULT_TENANT_DISCOVERY_RESPONSE,
+    TEST_URIS,
+    RANDOM_TEST_GUID,
+    TEST_TENANT_DISCOVERY_RESPONSE,
+    DEFAULT_OPENID_CONFIG_RESPONSE
+} from "../utils/StringConstants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { ClientAuthErrorMessage } from "../../src";
 
@@ -106,19 +112,19 @@ describe("Authority.ts Class Unit Tests", () => {
                 sinon.restore();
             });
 
-            it ("Returns authorization_endpoint of tenantDiscoveryResponse", () => {
+            it("Returns authorization_endpoint of tenantDiscoveryResponse", () => {
                 expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             });
 
-            it ("Returns token_endpoint of tenantDiscoveryResponse", () => {
+            it("Returns token_endpoint of tenantDiscoveryResponse", () => {
                 expect(authority.tokenEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common"));
             });
 
-            it ("Returns end_session_endpoint of tenantDiscoveryResponse", () => {
+            it("Returns end_session_endpoint of tenantDiscoveryResponse", () => {
                 expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
             });
 
-            it ("Returns issuer of tenantDiscoveryResponse for selfSignedJwtAudience", () => {
+            it("Returns issuer of tenantDiscoveryResponse for selfSignedJwtAudience", () => {
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
             });
 
@@ -168,8 +174,9 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(authority.discoveryComplete()).to.be.true;
             expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(authority.tokenEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common"));
+            expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
             expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
             expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
-       });
+        });
     });
 });

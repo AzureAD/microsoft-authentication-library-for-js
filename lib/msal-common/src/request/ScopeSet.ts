@@ -27,7 +27,8 @@ export class ScopeSet {
         clientId: string,
         scopesRequired: boolean,
     ) {
-        this.clientId = clientId;
+        // lower case need for replaceDefaultScopes() because ADFS clientids don't have to be GUIDS.
+        this.clientId = clientId.toLowerCase();
         this.scopesRequired = scopesRequired;
 
         // Filter empty string and null/undefined array items
