@@ -22,6 +22,7 @@ import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
+import { CacheRecord } from "../unifiedCache/entities/CacheRecord";
 
 /**
  * Class that handles response parsing.
@@ -104,84 +105,32 @@ export class ResponseHandler {
      * @param state
      */
     generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
-        // Retrieve current account if in Cache
-        // TODO: add this once the req for cache look up for tokens is confirmed
 
-        const authenticationResult = this.processTokenResponse(serverTokenResponse, authority);
-
-        const environment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        this.addCredentialsToCache(authenticationResult, environment, serverTokenResponse.refresh_token);
-
-        return authenticationResult;
-    }
-
-    /**
-     * Returns a new AuthenticationResult with the data from original result filled with the relevant data.
-     * @param authenticationResult
-     * @param idTokenString(raw idToken in the server response)
-     */
-    processTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
-        const authenticationResult: AuthenticationResult = {
-            uniqueId: "",
-            tenantId: "",
-            tokenType: "",
-            idToken: null,
-            idTokenClaims: null,
-            accessToken: "",
-            scopes: [],
-            expiresOn: null,
-            familyId: null
-        };
-
-        // IdToken
+        // create an idToken object (not entity)
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
-        // if account is not in cache, append it to the cache
-        this.addAccountToCache(serverTokenResponse, idTokenObj, authority);
-
-        // TODO: Check how this changes for auth code response
-        const expiresSeconds = Number(idTokenObj.claims.exp);
-        if (expiresSeconds && !authenticationResult.expiresOn) {
-            authenticationResult.expiresOn = new Date(expiresSeconds * 1000);
-        }
+        // save the response tokens
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
+        this.uCacheManager.saveCacheRecord(cacheRecord);
 
         // Expiration calculation
         const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
         const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
-        // Set consented scopes in response
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
 
-        return {
-            ...authenticationResult,
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
+        const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
+            scopes: responseScopes.asArray(),
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
             expiresOn: new Date(expiresInSeconds),
             extExpiresOn: new Date(extendedExpiresInSeconds),
-            scopes: responseScopes.asArray(),
-            familyId: serverTokenResponse.foci,
+            familyId: serverTokenResponse.foci || null,
         };
-    }
 
-    /**
-     * if Account is not in the cache, generateAccount and append it to the cache
-     * @param serverTokenResponse
-     * @param idToken
-     * @param authority
-     */
-    addAccountToCache(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): void {
-        const accountEntity: AccountEntity = this.generateAccountEntity(
-            serverTokenResponse,
-            idToken,
-            authority
-        );
-
-        const cachedAccount: AccountEntity = this.uCacheManager.getAccount(accountEntity.generateAccountKey());
-        if (!cachedAccount) {
-            this.uCacheManager.addAccountEntity(accountEntity);
-        }
+        return authenticationResult;
     }
 
     /**
@@ -208,35 +157,53 @@ export class ResponseHandler {
     }
 
     /**
-     * Appends the minted tokens to the in-memory cache
-     * @param authenticationResult
+     * Generates CacheRecord
+     * @param serverTokenResponse
+     * @param idTokenObj
      * @param authority
      */
-    addCredentialsToCache(
-        authenticationResult: AuthenticationResult,
-        authority: string,
-        refreshToken: string
-    ): void {
-        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
-            this.homeAccountIdentifier,
-            authenticationResult,
-            this.clientId,
-            authority
-        );
-        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            this.homeAccountIdentifier,
-            authenticationResult,
-            this.clientId,
-            authority
-        );
-        const refreshTokenEntity = RefreshTokenEntity.createRefreshTokenEntity(
-            this.homeAccountIdentifier,
-            authenticationResult,
-            refreshToken,
-            this.clientId,
+    generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority): CacheRecord {
+
+        const cacheRecord = new CacheRecord();
+
+        // Account
+        cacheRecord.account  = this.generateAccountEntity(
+            serverTokenResponse,
+            idTokenObj,
             authority
         );
 
-        this.uCacheManager.addCredentialCache(accessTokenEntity, idTokenEntity, refreshTokenEntity);
+        // IdToken
+        cacheRecord.idToken = IdTokenEntity.createIdTokenEntity(
+            this.homeAccountIdentifier,
+            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            serverTokenResponse.id_token,
+            this.clientId,
+            idTokenObj.claims.tid
+        );
+
+        // AccessToken
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
+        cacheRecord.accessToken = AccessTokenEntity.createAccessTokenEntity(
+            this.homeAccountIdentifier,
+            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            serverTokenResponse.access_token,
+            this.clientId,
+            idTokenObj.claims.tid,
+            responseScopes.asArray().join(" "),
+            serverTokenResponse.expires_in,
+            serverTokenResponse.ext_expires_in
+        );
+
+        // refreshToken
+        cacheRecord.refreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+            this.homeAccountIdentifier,
+            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            serverTokenResponse.refresh_token,
+            this.clientId,
+            serverTokenResponse.foci
+        );
+
+        return cacheRecord;
     }
 }
