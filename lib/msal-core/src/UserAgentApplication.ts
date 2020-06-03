@@ -574,7 +574,7 @@ export class UserAgentApplication {
                 // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
                 if (popUpWindow) {
                     try {
-                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
+                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate, this.logger);
 
                         this.handleAuthenticationResponse(hash);
 
@@ -876,7 +876,7 @@ export class UserAgentApplication {
     private async loadIframeTimeout(urlNavigate: string, frameName: string, requestSignature: string): Promise<void> {
         // set iframe session to pending
         const expectedState = window.activeRenewals[requestSignature];
-        this.logger.verbose("Set loading state to pending for: " + requestSignature + ":" + expectedState);
+        this.logger.verbosePii("Set loading state to pending for: " + requestSignature + ":" + expectedState);
         this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.inProgress);
 
         // render the iframe synchronously if app chooses no timeout, else wait for the set timer to expire
@@ -885,7 +885,7 @@ export class UserAgentApplication {
             WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger);
 
         try {
-            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, true);
+            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, this.logger, true);
 
             if (hash) {
                 this.handleAuthenticationResponse(hash);
@@ -1409,7 +1409,7 @@ export class UserAgentApplication {
         WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
-        this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
+        this.logger.verbosePii("Renew token Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
         const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
