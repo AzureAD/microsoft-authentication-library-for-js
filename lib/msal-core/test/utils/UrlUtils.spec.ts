@@ -48,24 +48,29 @@ describe("UrlUtils.ts class", () => {
         expect(hash).to.be.equal(TEST_URL_NO_HASH);
     });
 
-    it("Scopes are from serverRequestParameters are mutated, but not user-given scopes", function () {
-        const scopes = ["S1"];
+    it("checks that serverRequestParameter scopes have clientId appended after creating navigate url, but user provided scopes do not", function () {
+        const originalUserScopes = ["S1"];
+        const userScopes = [...originalUserScopes];
         const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
         sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
-        const req = new ServerRequestParameters(
+        const originalReq = new ServerRequestParameters(
             authority,
             TEST_CONFIG.MSAL_CLIENT_ID,
             TEST_RESPONSE_TYPE.token,
             TEST_URIS.TEST_REDIR_URI,
-            scopes,
+            userScopes,
             TEST_CONFIG.STATE,
             TEST_CONFIG.CorrelationId
         );
-        const uriString = UrlUtils.createNavigateUrl(req);
+        
+        const req = { ...originalReq };
 
-        expect(req.scopes).to.not.be.equal(scopes);
-        expect(req.scopes.length).to.be.eql(3);
-        expect(scopes.length).to.be.eql(1);
+        const uriString = UrlUtils.createNavigateUrl(originalReq);
+
+        expect(req.scopes).to.not.be.eql(userScopes);
+        expect(userScopes).to.be.eql(originalUserScopes);
+        expect(req.scopes).to.include(TEST_CONFIG.MSAL_CLIENT_ID);
+        expect(req.scopes.length).to.be.eql(2);
     });
 
     describe("urlContainsHash", () => {

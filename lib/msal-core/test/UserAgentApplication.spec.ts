@@ -145,7 +145,7 @@ describe("UserAgentApplication.ts Class", function () {
         };
     };
 
-    describe("Telemetry in UserAgenApplication", () => {
+    describe("Telemetry in UserAgentApplication", () => {
         it("configure telemtry in UAA happy case smoke test", () => {
             msal = new UserAgentApplication({
                 auth: {
@@ -1034,7 +1034,6 @@ describe("UserAgentApplication.ts Class", function () {
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
-
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                 expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -1098,7 +1097,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["S1"],
+                scopes: ["S1", "openid", "profile"],
                 account: account,
                 claimsRequest: JSON.stringify(claimsRequestObj)
             };

@@ -40,10 +40,11 @@ export class UrlUtils {
      */
     static createNavigationUrlString(serverRequestParams: ServerRequestParameters): Array<string> {
         const scopes = serverRequestParams.scopes;
-
+        
         if (scopes.indexOf(serverRequestParams.clientId) === -1) {
             scopes.push(serverRequestParams.clientId);
         }
+
         const str: Array<string> = [];
         str.push("response_type=" + serverRequestParams.responseType);
 

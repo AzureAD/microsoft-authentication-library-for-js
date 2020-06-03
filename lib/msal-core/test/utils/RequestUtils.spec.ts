@@ -129,7 +129,7 @@ describe("RequestUtils.ts class", () => {
             emptyRequestError = e;
         }
 
-    expect(emptyRequestError instanceof ClientConfigurationError).to.be.true;
+        expect(emptyRequestError instanceof ClientConfigurationError).to.be.true;
         expect(emptyRequestError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyRequestError.code);
         expect(emptyRequestError.name).to.equal("ClientConfigurationError");
         expect(emptyRequestError.stack).to.include("RequestUtils.spec.ts");

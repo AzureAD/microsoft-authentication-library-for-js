@@ -2080,13 +2080,11 @@ export class UserAgentApplication {
         // acquireTokenSilent
         if (silentCall) {
             if (Account.compareAccounts(accountObject, this.getAccount())) {
-                const idTokenRequested = scopes.indexOf(this.config.auth.clientId) > -1 || scopes.indexOf("openid") > -1; // maybe add profile
-                tokenType = (idTokenRequested) ? ResponseTypes.id_token : ResponseTypes.token;
+                tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
             }
             else {
                 tokenType  = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
             }
-
             return tokenType;
         }
         // all other cases
@@ -2097,7 +2095,6 @@ export class UserAgentApplication {
             else {
                 tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
             }
-
             return tokenType;
         }
 
