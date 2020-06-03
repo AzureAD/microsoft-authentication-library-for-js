@@ -15,7 +15,7 @@ import { Credential } from "./entities/Credential";
 import {
     CredentialType,
     Separators,
-    CacheKeyPosition,
+    CredentialKeyPosition,
 } from "../utils/Constants";
 import {
     AccountCache,
@@ -71,7 +71,7 @@ export class UnifiedCacheManager implements ICacheManager {
     }
 
     /**
-     * append credential cache to in memory cach
+     * append credential cache to in memory cache
      * @param accessToken
      * @param idToken
      * @param refreshToken
@@ -127,27 +127,65 @@ export class UnifiedCacheManager implements ICacheManager {
      */
     saveCredential(credential: Credential): void {
         const cache = this.getCacheInMemory();
-        const key = credential.generateCredentialKey();
 
         switch (credential.credentialType) {
             case CredentialType.ID_TOKEN:
-                cache.idTokens[key] = credential as IdTokenEntity;
+                this.saveIdToken(credential);
                 break;
             case CredentialType.ACCESS_TOKEN:
-                cache.accessTokens[
-                    key
-                ] = credential as AccessTokenEntity;
+                this.saveAccessToken(credential);
                 break;
             case CredentialType.REFRESH_TOKEN:
-                cache.refreshTokens[
-                    key
-                ] = credential as RefreshTokenEntity;
+                this.saveRefreshToken(credential);
                 break;
             default:
                 console.log("Cache entity type mismatch");
         }
 
         this.setCacheInMemory(cache);
+    }
+
+    /**
+     * save IdTokenEntity to Cache
+     * @param idToken
+     */
+    saveIdToken(idToken: Credential) {
+        const cache = this.getCacheInMemory();
+        const key = idToken.generateCredentialKey();
+        if (cache.idTokens[key]) {
+            this.removeIdToken(key);
+        }
+
+        cache.idTokens[key] = idToken as IdTokenEntity;
+    }
+
+    /**
+     * save AccessTokenEntity to Cache
+     * @param accessToken
+     */
+    saveAccessToken(accessToken: Credential) {
+        const cache = this.getCacheInMemory();
+        const key = accessToken.generateCredentialKey();
+        if (cache.accessTokens[key]) {
+            this.removeAccessToken(key);
+        }
+
+        cache.accessTokens[key] = accessToken as AccessTokenEntity;
+
+    }
+
+    /**
+     * save RefreshTokenEntity to Cache
+     * @param refreshToken
+     */
+    saveRefreshToken(refreshToken: Credential) {
+        const cache = this.getCacheInMemory();
+        const key = refreshToken.generateCredentialKey();
+        if (cache.refreshTokens[key]) {
+            this.removeRefreshToken(key);
+        }
+
+        cache.refreshTokens[key] = refreshToken as RefreshTokenEntity;
     }
 
     /**
@@ -166,7 +204,7 @@ export class UnifiedCacheManager implements ICacheManager {
         const cache = this.getCacheInMemory();
         switch (
             key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CacheKeyPosition.CREDENTIAL_TYPE
+                CredentialKeyPosition.CREDENTIAL_TYPE
             ]
         ) {
             case "idtoken":
@@ -395,25 +433,21 @@ export class UnifiedCacheManager implements ICacheManager {
      */
     removeAccountContext(account: AccountEntity): boolean {
         const cache = this.getCacheInMemory();
-
         const accountId = account.generateAccountId();
 
-        // TODO: Check how this should be done, do we just remove the account or also the associated credentials always?
+        Object.keys(cache.idTokens).forEach((key) => {
+            if (cache.idTokens[key].generateAccountId() === accountId)
+                this.removeIdToken(key);
+        });
+
         Object.keys(cache.accessTokens).forEach((key) => {
-            if (
-                cache.accessTokens[key].generateAccountId() === accountId
-            )
-                this.removeCredential(cache.accessTokens[key]);
+            if (cache.accessTokens[key].generateAccountId() === accountId)
+                this.removeAccessToken(key);
         });
 
-        Object.keys(cache.idTokens).forEach((key) => {
-            if (cache.idTokens[key].generateAccountId() === accountId)
-                this.removeCredential(cache.idTokens[key]);
-        });
-
-        Object.keys(cache.idTokens).forEach((key) => {
-            if (cache.idTokens[key].generateAccountId() === accountId)
-                this.removeCredential(cache.idTokens[key]);
+        Object.keys(cache.refreshTokens).forEach((key) => {
+            if (cache.refreshTokens[key].generateAccountId() === accountId)
+                this.removeRefreshToken(key);
         });
 
         this.removeAccount(account);
@@ -425,27 +459,51 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param credential
      */
     removeCredential(credential: Credential): boolean {
-        const cache = this.getCacheInMemory();
+        const key = credential.generateCredentialKey();
 
         switch (credential.credentialType) {
             case CredentialType.ID_TOKEN:
-                delete cache.idTokens[
-                    credential.generateCredentialKey()
-                ];
-                return true;
+                return this.removeIdToken(key);
             case CredentialType.ACCESS_TOKEN:
-                delete cache.accessTokens[
-                    credential.generateCredentialKey()
-                ];
-                return true;
+                return this.removeAccessToken(key);
             case CredentialType.REFRESH_TOKEN:
-                delete cache.refreshTokens[
-                    credential.generateCredentialKey()
-                ];
-                return true;
+                return this.removeRefreshToken(key);
             default:
                 console.log("Cache entity type mismatch");
                 return false;
         }
+    }
+
+    /**
+     * Remove an IdToken from the memory
+     * @param key
+     */
+    removeIdToken(key: string): boolean {
+        const cache = this.getCacheInMemory();
+        delete cache.idTokens[key];
+        this.setCacheInMemory(cache);
+        return true;
+    }
+
+    /**
+     * Remove an AccessToken from the memory
+     * @param key
+     */
+    removeAccessToken(key: string): boolean {
+        const cache = this.getCacheInMemory();
+        delete cache.accessTokens[key];
+        this.setCacheInMemory(cache);
+        return true;
+    }
+
+    /**
+     * Remove a RefreshToken from the memory
+     * @param key
+     */
+    removeRefreshToken(key: string): boolean {
+        const cache = this.getCacheInMemory();
+        delete cache.refreshTokens[key];
+        this.setCacheInMemory(cache);
+        return true;
     }
 }

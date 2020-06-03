@@ -39,7 +39,7 @@ export interface ICacheStorage {
      * Function which removes item from cache.
      * @param key
      */
-    removeItem(key: string): void;
+    removeItem(key: string): boolean;
 
     /**
      * Function which returns boolean whether cache contains a specific key.
