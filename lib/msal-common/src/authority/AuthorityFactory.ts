@@ -12,8 +12,9 @@ import { INetworkModule } from "./../network/INetworkModule";
 import { StringUtils } from "./../utils/StringUtils";
 import { UrlString } from "./../url/UrlString";
 import { Constants } from "../utils/Constants";
+import { AdfsAuthority } from "./AdfsAuthority";
 
-export class AuthorityFactory {  
+export class AuthorityFactory {
 
     /**
      * Parse the url and determine the type of authority
@@ -43,13 +44,15 @@ export class AuthorityFactory {
         }
 
         const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
+
         // Depending on above detection, create the right type.
         switch (type) {
             case AuthorityType.Aad:
                 return new AadAuthority(authorityUrl, networkInterface);
             case AuthorityType.B2C:
                 return new B2cAuthority(authorityUrl, networkInterface);
-            // TODO: Support ADFS here in a later PR
+            case AuthorityType.Adfs:
+                return new AdfsAuthority(authorityUrl, networkInterface);
             default:
                 throw ClientAuthError.createInvalidAuthorityTypeError(`${authorityUrl}`);
         }

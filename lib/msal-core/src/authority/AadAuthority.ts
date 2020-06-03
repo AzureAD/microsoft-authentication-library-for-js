@@ -8,6 +8,7 @@ import { XhrClient, XhrResponse } from "../XHRClient";
 import { AADTrustedHostList } from "../utils/Constants";
 import HttpEvent from "../telemetry/HttpEvent";
 import TelemetryManager from "../telemetry/TelemetryManager";
+import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
 
 /**
  * @hidden
@@ -19,8 +20,8 @@ export class AadAuthority extends Authority {
         return `${AadAuthority.AadInstanceDiscoveryEndpoint}?api-version=1.0&authorization_endpoint=${this.CanonicalAuthority}oauth2/v2.0/authorize`;
     }
 
-    public constructor(authority: string, validateAuthority: boolean) {
-        super(authority, validateAuthority);
+    public constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+        super(authority, validateAuthority, authorityMetadata);
     }
 
     public get AuthorityType(): AuthorityType {
@@ -31,7 +32,7 @@ export class AadAuthority extends Authority {
      * Returns a promise which resolves to the OIDC endpoint
      * Only responds with the endpoint
      */
-    public async GetOpenIdConfigurationEndpointAsync(telemetryManager?: TelemetryManager, correlationId?: string): Promise<string> {
+    public async GetOpenIdConfigurationEndpointAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<string> {
         if (!this.IsValidationEnabled || this.IsInTrustedHostList(this.CanonicalAuthorityUrlComponents.HostNameAndPort)) {
             return this.DefaultOpenIdConfigurationEndpoint;
         }
@@ -40,7 +41,7 @@ export class AadAuthority extends Authority {
         const client: XhrClient = new XhrClient();
 
         const httpMethod = "GET";
-        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, this.AadInstanceDiscoveryEndpointUrl);
+        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, this.AadInstanceDiscoveryEndpointUrl, "AadInstanceDiscoveryEndpoint");
         return client.sendRequestAsync(this.AadInstanceDiscoveryEndpointUrl, httpMethod, true)
             .then((response: XhrResponse) => {
                 httpEvent.httpResponseStatus = response.statusCode;

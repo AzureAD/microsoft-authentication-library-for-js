@@ -4,7 +4,7 @@ import {
     START_TIME_KEY,
     ELAPSED_TIME_KEY
 } from "./TelemetryConstants";
-import { prependEventNamePrefix } from "./TelemetryUtils";
+import { prependEventNamePrefix, startBrowserPerformanceMeasurement, endBrowserPerformanceMeasurement } from "./TelemetryUtils";
 import { CryptoUtils } from "../utils/CryptoUtils";
 
 export default class TelemetryEvent {
@@ -12,14 +12,13 @@ export default class TelemetryEvent {
     private startTimestamp: number;
     protected event: any; // TODO TYPE THIS
     public eventId: string;
+    private label: string;
 
-    constructor(eventName: string, correlationId: string) {
-
-        this.startTimestamp = Date.now();
+    constructor(eventName: string, correlationId: string, eventLabel: string) {
         this.eventId = CryptoUtils.createNewGuid();
+        this.label = eventLabel;
         this.event = {
             [prependEventNamePrefix(EVENT_NAME_KEY)]: eventName,
-            [prependEventNamePrefix(START_TIME_KEY)]: this.startTimestamp,
             [prependEventNamePrefix(ELAPSED_TIME_KEY)]: -1,
             [`${TELEMETRY_BLOB_EVENT_NAMES.MsalCorrelationIdConstStrKey}`]: correlationId
         };
@@ -32,6 +31,15 @@ export default class TelemetryEvent {
     public stop(): void {
         // Set duration of event
         this.setElapsedTime(+Date.now() - +this.startTimestamp);
+
+        endBrowserPerformanceMeasurement(this.displayName, this.perfStartMark, this.perfEndMark);
+    }
+
+    public start(): void {
+        this.startTimestamp = Date.now();
+        this.event[prependEventNamePrefix(START_TIME_KEY)] = this.startTimestamp;
+
+        startBrowserPerformanceMeasurement(this.perfStartMark);
     }
 
     public get telemetryCorrelationId(): string {
@@ -51,5 +59,21 @@ export default class TelemetryEvent {
             ...this.event,
             eventId: this.eventId
         };
+    }
+
+    public get key() {
+        return `${this.telemetryCorrelationId}_${this.eventId}-${this.eventName}`;
+    };
+
+    public get displayName() {
+        return `Msal-${this.label}-${this.telemetryCorrelationId}`;
+    }
+
+    private get perfStartMark() {
+        return `start-${this.key}`;
+    }
+
+    private get perfEndMark() {
+        return `end-${this.key}`;
     }
 }

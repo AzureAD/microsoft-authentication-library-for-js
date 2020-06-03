@@ -1,7 +1,6 @@
 import TelemetryEvent from "./TelemetryEvent";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
 import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix } from "./TelemetryUtils";
-import { Logger } from "../Logger";
 
 export const EVENT_KEYS = {
     AUTHORITY: prependEventNamePrefix("authority"),
@@ -43,15 +42,15 @@ const mapEventIdentiferToCode = {
 
 export default class ApiEvent extends TelemetryEvent {
 
-    private logger: Logger;
+    private piiEnabled: boolean;
 
-    constructor(correlationId: string, logger: Logger, apiEventIdentifier?: API_EVENT_IDENTIFIER) {
-        super(prependEventNamePrefix("api_event"), correlationId);
+    constructor(correlationId: string, piiEnabled: boolean, apiEventIdentifier?: API_EVENT_IDENTIFIER) {
+        super(prependEventNamePrefix("api_event"), correlationId, apiEventIdentifier);
         if (apiEventIdentifier) {
             this.apiCode = mapEventIdentiferToCode[apiEventIdentifier];
             this.apiEventIdentifier = apiEventIdentifier;
         }
-        this.logger = logger;
+        this.piiEnabled = piiEnabled;
     }
 
     public set apiEventIdentifier(apiEventIdentifier: string) {
@@ -71,13 +70,13 @@ export default class ApiEvent extends TelemetryEvent {
     }
 
     public set tenantId(tenantId: string) {
-        this.event[EVENT_KEYS.TENANT_ID] = this.logger.isPiiLoggingEnabled() && tenantId ?
+        this.event[EVENT_KEYS.TENANT_ID] = this.piiEnabled && tenantId ?
             hashPersonalIdentifier(tenantId)
             : null;
     }
 
     public set accountId(accountId: string) {
-        this.event[EVENT_KEYS.USER_ID] = this.logger.isPiiLoggingEnabled() && accountId ?
+        this.event[EVENT_KEYS.USER_ID] = this.piiEnabled && accountId ?
             hashPersonalIdentifier(accountId)
             : null;
     }
@@ -91,7 +90,7 @@ export default class ApiEvent extends TelemetryEvent {
     }
 
     public set loginHint(loginHint: string) {
-        this.event[EVENT_KEYS.LOGIN_HINT] = this.logger.isPiiLoggingEnabled() && loginHint ?
+        this.event[EVENT_KEYS.LOGIN_HINT] = this.piiEnabled && loginHint ?
             hashPersonalIdentifier(loginHint)
             : null;
     }
