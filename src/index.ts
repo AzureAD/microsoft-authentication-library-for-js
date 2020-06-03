@@ -14,6 +14,7 @@ export { IdTokenClaims } from "./account/IdTokenClaims";
 export { Authority } from "./authority/Authority";
 export { B2cAuthority } from "./authority/B2cAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
+export { AuthorityType } from "./authority/AuthorityType";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
 export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
