@@ -26,6 +26,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 import { Account } from "../account/Account";
 import { buildClientInfo } from "../account/ClientInfo";
+import { AuthorityType } from "../authority/AuthorityType";
 
 /**
  * SPAClient class
@@ -67,6 +68,12 @@ export class SPAClient extends BaseClient {
     private async createUrl(request: AuthenticationParameters, isLoginCall: boolean): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check.
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthority;
+
+        // This is temporary. Remove when ADFS is supported for browser
+        if(acquireTokenAuthority.authorityType == AuthorityType.Adfs){
+            throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
+        }
+
         try {
             await acquireTokenAuthority.resolveEndpointsAsync();
         } catch (e) {
@@ -143,6 +150,12 @@ export class SPAClient extends BaseClient {
 
             // Initialize authority or use default, and perform discovery endpoint check.
             const acquireTokenAuthority = (tokenRequest && tokenRequest.authority) ? AuthorityFactory.createInstance(tokenRequest.authority, this.networkClient) : this.defaultAuthority;
+
+            // This is temporary. Remove when ADFS is supported for browser
+            if(acquireTokenAuthority.authorityType == AuthorityType.Adfs){
+                throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
+            }
+
             if (!acquireTokenAuthority.discoveryComplete()) {
                 try {
                     await acquireTokenAuthority.resolveEndpointsAsync();
@@ -199,6 +212,12 @@ export class SPAClient extends BaseClient {
 
             // Initialize authority or use default, and perform discovery endpoint check.
             const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthority;
+
+            // This is temporary. Remove when ADFS is supported for browser
+            if(acquireTokenAuthority.authorityType == AuthorityType.Adfs){
+                throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
+            }
+
             if (!acquireTokenAuthority.discoveryComplete()) {
                 try {
                     await acquireTokenAuthority.resolveEndpointsAsync();
@@ -271,6 +290,12 @@ export class SPAClient extends BaseClient {
 
         // Acquire token authorities.
         const acquireTokenAuthority = (authorityUri) ? AuthorityFactory.createInstance(authorityUri, this.networkClient) : this.defaultAuthority;
+
+        // This is temporary. Remove when ADFS is supported for browser
+        if(acquireTokenAuthority.authorityType == AuthorityType.Adfs){
+            throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
+        }
+
         if (!acquireTokenAuthority.discoveryComplete()) {
             try {
                 await acquireTokenAuthority.resolveEndpointsAsync();

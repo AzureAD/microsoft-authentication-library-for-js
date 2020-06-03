@@ -377,6 +377,8 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
+        this.logger.verbose("AcquireTokenPopup has been called");
+
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
@@ -385,6 +387,7 @@ export class UserAgentApplication {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
         })
             .then((resp) => {
+                this.logger.verbose("Successfully acquired token");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return resp;
             })
@@ -405,6 +408,7 @@ export class UserAgentApplication {
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
+        this.logger.verbose("AcquireTokenInteractive has been called");
 
         // block the request if made from the hidden iframe
         WindowUtils.blockReloadInHiddenIframes();
@@ -427,7 +431,14 @@ export class UserAgentApplication {
         }
 
         // Get the account object if a session exists
-        const account: Account = (request && request.account && !isLoginCall) ? request.account : this.getAccount();
+        let account: Account;
+        if (request && request.account && !isLoginCall) {
+            account = request.account;
+            this.logger.verbose("Account set from request");
+        } else {
+            account = this.getAccount();
+            this.logger.verbose("Account set from MSAL Cache");
+        }
 
         // If no session exists, prompt the user to login.
         if (!account && !ServerRequestParameters.isSSOParam(request)) {
@@ -437,7 +448,7 @@ export class UserAgentApplication {
 
                 // silent login if ADAL id_token is retrieved successfully - SSO
                 if (adalIdToken && !request.scopes) {
-                    this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+                    this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken");
                     const tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(request);
 
                     this.silentLogin = true;
@@ -457,11 +468,13 @@ export class UserAgentApplication {
                 }
                 // No ADAL token found, proceed to login
                 else {
+                    this.logger.verbose("Login call but no token found, proceed to login");
                     this.acquireTokenHelper(null, interactionType, isLoginCall, request, resolve, reject);
                 }
             }
             // AcquireToken call, but no account or context given, so throw error
             else {
+                this.logger.verbose("AcquireToken call, no context or account given");
                 this.logger.info("User login is required");
                 const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request.state));
                 this.cacheStorage.resetTempCacheItems(request.state);
@@ -474,6 +487,7 @@ export class UserAgentApplication {
         }
         // User session exists
         else {
+            this.logger.verbose("User session exists, login not required");
             this.acquireTokenHelper(account, interactionType, isLoginCall, request, resolve, reject);
         }
     }
