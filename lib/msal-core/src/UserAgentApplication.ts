@@ -602,8 +602,24 @@ export class UserAgentApplication {
                     }
                 }
             } else {
-                // prompt user for interaction
-                this.navigateWindow(urlNavigate, popUpWindow);
+                // If onRedirectNavigate is implemented, invoke it and provide urlNavigate
+                if (request.onRedirectNavigate) {
+                    this.logger.verbose("Invoking onRedirectNavigate callback");
+
+                    const navigate = request.onRedirectNavigate(urlNavigate);
+
+                    // Returning false from onRedirectNavigate will stop navigation
+                    if (navigate !== false) {
+                        this.logger.verbose("onRedirectNavigate did not return false, navigating");
+                        this.navigateWindow(urlNavigate);
+                    } else {
+                        this.logger.verbose("onRedirectNavigate returned false, stopping navigation");
+                    }
+                } else {
+                    // Otherwise, perform navigation
+                    this.logger.verbose("Navigating window to urlNavigate");
+                    this.navigateWindow(urlNavigate);
+                }
             }
         } catch (err) {
             this.logger.error(err);
