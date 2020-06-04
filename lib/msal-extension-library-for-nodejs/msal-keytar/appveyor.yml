@@ -1,0 +1,32 @@
+version: "{build}"
+
+image: Visual Studio 2017
+platform:
+  - x64
+
+environment:
+  nodejs_version: "12"
+
+cache:
+  - node_modules
+
+branches:
+  only:
+    - /master|^v\d+\.\d+\.\d+?(-\S*)?$/
+
+clone_depth: 10
+
+install:
+  - ps: Install-Product node $env:nodejs_version x64
+  - npm install
+
+build_script:
+  - npm test
+  - npm run prebuild-node
+  - npm run prebuild-node-ia32
+  - npm run prebuild-electron
+  - npm run prebuild-electron-ia32
+  - if defined APPVEYOR_REPO_TAG_NAME (npm run upload)
+
+test: off
+deploy: off

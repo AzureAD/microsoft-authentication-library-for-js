@@ -1,0 +1,11 @@
+/node_modules
+/prebuilds
+/build
+*.log
+*~
+.node-version
+.tags
+iojs-*/
+8.*/
+6.*/
+.idea/

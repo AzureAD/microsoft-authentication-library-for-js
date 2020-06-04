@@ -1,0 +1,4 @@
+{
+  "sourceMaps": "inline",
+  "plugins": ["transform-async-to-generator"]
+}

@@ -1,0 +1,9 @@
+/build
+/spec
+*.log
+*~
+.node-version
+.npmignore
+.tags
+.travis.yml
+appveyor.yml

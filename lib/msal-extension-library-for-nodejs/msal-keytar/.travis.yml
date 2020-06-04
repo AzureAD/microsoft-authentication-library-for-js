@@ -1,0 +1,53 @@
+language: node_js
+sudo: required
+dist: trusty
+os:
+  - linux
+  - osx
+node_js: 12
+
+env:
+  - CC=clang CXX=clang++ npm_config_clang=1
+
+notifications:
+  email: false
+
+git:
+  depth: 10
+
+branches:
+  only:
+    - master
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+
+services:
+  - docker
+
+cache:
+  directories:
+  - node_modules
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - xvfb
+      - gnome-keyring
+      - libsecret-1-dev
+      - python-gnomekeyring
+
+before_script:
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      dbus-launch /usr/bin/python -c \
+        "import gnomekeyring;gnomekeyring.create_sync('login', '');"
+    fi
+
+script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xvfb-run ./script/cibuild; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then npm test; fi
+  - npm run prebuild-node
+  - npm run prebuild-electron
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker build -t node-keytar/i386 docker/i386 && docker run --rm -v ${PWD}:/project node-keytar/i386 /bin/bash -c "cd /project && npm run prebuild-node-ia32 && npm run prebuild-electron-ia32"; fi
+  - if [[ -n "$TRAVIS_TAG" ]]; then npm run upload; fi
