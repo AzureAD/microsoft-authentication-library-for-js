@@ -697,6 +697,22 @@ describe("UserAgentApplication.ts Class", function () {
             msal.acquireTokenRedirect(tokenRequest);
         });
 
+        it("tests if error is thrown when null scopes are passed", function (done) {	
+            msal.handleRedirectCallback(authCallback);	
+            let authErr: AuthError;	
+            try {	
+                msal.acquireTokenRedirect({});	
+            } catch (e) {	
+                authErr = e;	
+            }	
+            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);	
+            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);	
+            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);	
+            expect(authErr.name).to.equal("ClientConfigurationError");	
+            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");	
+            done();	
+        });
+
         it("tests if error is thrown when empty array of scopes are passed", function (done) {
             msal.handleRedirectCallback(authCallback);
             let authErr: AuthError;

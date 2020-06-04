@@ -40,7 +40,8 @@ export class RequestUtils {
             throw ClientConfigurationError.createEmptyRequestError();
         }
         
-        const scopes = [...request.scopes];
+        const scopes = request.scopes;
+
         let extraQueryParameters: StringDict;
 
         if (request) {
