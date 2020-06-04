@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheAccountType } from "../../utils/Constants";
+import { Separators, CacheAccountType, CacheType } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
@@ -26,16 +26,50 @@ export class AccountEntity {
     lastModificationApp?: string;
 
     /**
+     * Generate Account Id key component as per the schema: <home_account_id>-<environment>
+     */
+    generateAccountId(): string {
+        const accountId: Array<string> = [this.homeAccountId, this.environment];
+        return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Generate Account Id key component as per the schema: <home_account_id>-<environment>
+     */
+    generateRealm(): string {
+        return (this.realm || "").toLowerCase();
+    }
+
+    /**
      * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
      */
-    public generateAccountEntityKey(): string {
-        const accountCacheKeyArray: Array<string> = [
-            this.homeAccountId,
-            this.environment,
-            this.realm
+    public generateAccountKey(): string {
+        const accountKey = [
+            this.generateAccountId(),
+            this.generateRealm()
         ];
 
-        return accountCacheKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * returns the type of the cache (in this case account)
+     */
+    generateType(): number {
+        switch (this.authorityType) {
+            case CacheAccountType.ADFS_ACCOUNT_TYPE:
+                return CacheType.ADFS;
+            case CacheAccountType.MSAV1_ACCOUNT_TYPE:
+                return CacheType.MSA;
+            case CacheAccountType.MSSTS_ACCOUNT_TYPE:
+                return CacheType.MSSTS;
+            case CacheAccountType.GENERIC_ACCOUNT_TYPE:
+                return CacheType.GENERIC;
+            default: {
+                console.log("Unexpected account type");
+                return null;
+            }
+        }
     }
 
     /**

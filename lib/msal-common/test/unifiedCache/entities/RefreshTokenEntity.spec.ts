@@ -11,7 +11,7 @@ describe("RefreshTokenEntity.ts Unit Tests", () => {
     it("Create a RefreshTokenEntity", () => {
         let rt = new RefreshTokenEntity();
         Object.assign(rt, mockRefreshTokenEntity);
-        expect(rt.generateRefreshTokenEntityKey()).to.eql(
+        expect(rt.generateCredentialKey()).to.eql(
             "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id--"
         );
     });
@@ -19,7 +19,7 @@ describe("RefreshTokenEntity.ts Unit Tests", () => {
     it("Create a RefreshTokenEntity with familyId", () => {
         let rt = new RefreshTokenEntity();
         Object.assign(rt, mockRefreshTokenEntityWithFamilyId);
-        expect(rt.generateRefreshTokenEntityKey()).to.eql(
+        expect(rt.generateCredentialKey()).to.eql(
             "uid.utid-login.microsoftonline.com-refreshtoken-1--"
         );
     });

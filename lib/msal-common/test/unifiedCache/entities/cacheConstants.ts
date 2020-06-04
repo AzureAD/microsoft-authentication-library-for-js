@@ -129,17 +129,17 @@ export class mockCache {
 
 export const MockCache = {
     atOne: mockCache.createMockATOne(),
-    atOneKey: mockCache.createMockATOne().generateAccessTokenEntityKey(),
+    atOneKey: mockCache.createMockATOne().generateCredentialKey(),
     atTwo: mockCache.createMockATTwo(),
-    atTwoKey: mockCache.createMockATTwo().generateAccessTokenEntityKey(),
+    atTwoKey: mockCache.createMockATTwo().generateCredentialKey(),
     idT: mockCache.createMockIdT(),
-    idTKey: mockCache.createMockIdT().generateIdTokenEntityKey(),
+    idTKey: mockCache.createMockIdT().generateCredentialKey(),
     rt: mockCache.createMockRT(),
-    rtKey: mockCache.createMockRT().generateRefreshTokenEntityKey(),
+    rtKey: mockCache.createMockRT().generateCredentialKey(),
     rtF: mockCache.createMockRTWithFamilyId(),
-    rtFKey: mockCache.createMockRTWithFamilyId().generateRefreshTokenEntityKey(),
+    rtFKey: mockCache.createMockRTWithFamilyId().generateCredentialKey(),
     acc: mockCache.createMockAcc(),
-    accKey: mockCache.createMockAcc().generateAccountEntityKey(),
+    accKey: mockCache.createMockAcc().generateAccountKey(),
     amdt: mockCache.createMockAmdt(),
     amdtKey: mockCache.createMockAmdt().generateAppMetaDataEntityKey()
 }
