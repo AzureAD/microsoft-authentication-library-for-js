@@ -55,9 +55,16 @@ export class ClientInfo {
     }
 
     static stripPolicyFromUid(uid: string, authority: string): string {
+        console.log("Strip Policy")
         const uidSegments = uid.split("-");
-        const urlSegments = authority.split("/");
-        const policy = urlSegments[urlSegments.length - 1];
+        const urlSegments = authority.split("/").reverse();
+        let policy = ""
+
+        if (!StringUtils.isEmpty(urlSegments[0])) {
+            policy = urlSegments[0];
+        } else if (urlSegments.length > 1) {
+            policy = urlSegments[1];
+        }
 
         if (uidSegments[uidSegments.length - 1] ===  policy) {
             return uidSegments.slice(0, uidSegments.length - 1).join("-");
