@@ -100,7 +100,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenByRefreshToken(
         request: RefreshTokenRequest
-    ): Promise<string> {
+    ): Promise<AuthenticationResult> {
         const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
