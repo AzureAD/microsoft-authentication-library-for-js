@@ -217,12 +217,12 @@ export class SPAClient extends BaseClient {
         }
 
         // Initialize authority or use default, and perform discovery endpoint check.
-		const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthority;
+        const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthority;
 
-		// This is temporary. Remove when ADFS is supported for browser
-		if(acquireTokenAuthority.authorityType == AuthorityType.Adfs){
-			throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
-		}
+        // This is temporary. Remove when ADFS is supported for browser
+        if(acquireTokenAuthority.authorityType == AuthorityType.Adfs){
+            throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
+        }
 
         if (!acquireTokenAuthority.discoveryComplete()) {
             try {
