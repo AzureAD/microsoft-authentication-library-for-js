@@ -14,9 +14,6 @@ export const Constants = {
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
-
-    // Device code endpoint path
-    DEVICE_CODE_ENDPOINT_PATH: "oauth2/v2.0/devicecode",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -223,7 +220,7 @@ export enum CacheAccountType {
     MSSTS_ACCOUNT_TYPE = "MSSTS",
     ADFS_ACCOUNT_TYPE = "ADFS",
     MSAV1_ACCOUNT_TYPE = "MSA",
-    OTHER_ACCOUNT_TYPE = "Other"
+    GENERIC_ACCOUNT_TYPE = "Generic" // NTLM, Kerberos, FBA, Basic etc
 }
 
 /**
@@ -238,41 +235,45 @@ export enum Separators {
  * Credentail Type stored in the cache
  */
 export enum CredentialType {
-    ID_TOKEN = "IdToken",
-    ACCESS_TOKEN = "AccessToken",
-    REFRESH_TOKEN = "RefreshToken"
+    ID_TOKEN = "idtoken",
+    ACCESS_TOKEN = "accesstoken",
+    REFRESH_TOKEN = "refreshtoken",
 }
 
 /**
- * cache Type
+ * Credentail Type stored in the cache
  */
-export enum CacheEntity {
+export enum CacheSchemaType {
     ACCOUNT = "Account",
-    APP_META_DATA = "AppMetaData"
+    CREDENTIAL = "Credential",
+    APP_META_DATA = "AppMetadata"
 }
 
 /**
  * Combine all cache types
  */
 export enum CacheType {
-    ACCESS_TOKEN,
-    ID_TOKEN,
-    REFRESH_TOKEN,
-    ACCOUNT,
-    APP_META_DATA
+    ADFS = 1001,
+    MSA = 1002,
+    MSSTS = 1003,
+    GENERIC = 1004,
+    ACCESS_TOKEN = 2001,
+    REFRESH_TOKEN = 2002,
+    ID_TOKEN = 2003,
+    APP_META_DATA = 3001
 };
 
 /**
  * accountId: <home_account_id>-<environment>
  * credentialId: <credential_type>-<client-id>-<realm>
  */
-export enum CacheKeyPosition {
+export enum CredentialKeyPosition {
     HOME_ACCOUNT_ID = 0,
-    ENVIRONMENT,
-    CREDENTIAL_TYPE,
-    CLIENT_ID,
-    REALM,
-    TARGET
+    ENVIRONMENT = 1,
+    CREDENTIAL_TYPE = 2,
+    CLIENT_ID = 3,
+    REALM = 4,
+    TARGET = 5
 };
 
 /**

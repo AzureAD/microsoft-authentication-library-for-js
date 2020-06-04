@@ -43,7 +43,7 @@ export interface ICacheManager {
     ): AccountCache;
 
     /**
-     * retrieve credentails matching all provided filters; if no filter is set, get all credentials
+     * retrieve credentials matching all provided filters; if no filter is set, get all credentials
      * @param homeAccountId
      * @param environment
      * @param credentialType

@@ -15,12 +15,14 @@ export { IdTokenClaims } from "./account/IdTokenClaims";
 export { Authority } from "./authority/Authority";
 export { B2cAuthority } from "./authority/B2cAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
+export { AuthorityType } from "./authority/AuthorityType";
 // Cache
 export { ICacheStorage } from "./cache/ICacheStorage";
 export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
 export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
 export { Serializer } from "./unifiedCache/serialize/Serializer";
 export { Deserializer } from "./unifiedCache/serialize/Deserializer";
+export { CacheHelper } from "./unifiedCache/utils/CacheHelper";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkResponse } from "./network/NetworkManager";
@@ -46,7 +48,7 @@ export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
 export {
-    Constants, PromptValue, PersistentCacheKeys, ResponseMode
+    Constants, PromptValue, PersistentCacheKeys, Prompt, ResponseMode, CacheSchemaType, CredentialType
 } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
