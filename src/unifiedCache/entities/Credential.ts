@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CredentialType } from "../../utils/Constants";
+import { Separators, CredentialType, CacheType } from "../../utils/Constants";
 
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
@@ -60,5 +60,23 @@ export class Credential {
         ];
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * returns the type of the cache (in this case credential)
+     */
+    generateType(): number {
+        switch (this.credentialType) {
+            case CredentialType.ID_TOKEN:
+                return CacheType.ID_TOKEN;
+            case CredentialType.ACCESS_TOKEN:
+                return CacheType.ACCESS_TOKEN;
+            case CredentialType.REFRESH_TOKEN:
+                return CacheType.REFRESH_TOKEN;
+            default: {
+                console.log("Unexpected credential type");
+                return null;
+            }
+        }
     }
 }

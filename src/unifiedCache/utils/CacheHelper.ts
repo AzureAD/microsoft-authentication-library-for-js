@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheKeyPosition } from "../../utils/Constants";
+import {
+    Separators,
+    CredentialKeyPosition,
+    CacheType,
+    CacheSchemaType,
+} from "../../utils/Constants";
 
 export class CacheHelper {
     /**
@@ -52,7 +57,12 @@ export class CacheHelper {
      * @param homeAccountId
      */
     static matchHomeAccountId(key: string, homeAccountId: string): boolean {
-        return homeAccountId === key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.HOME_ACCOUNT_ID];
+        return (
+            homeAccountId ===
+            key.split(Separators.CACHE_KEY_SEPARATOR)[
+                CredentialKeyPosition.HOME_ACCOUNT_ID
+            ]
+        );
     }
 
     /**
@@ -61,7 +71,12 @@ export class CacheHelper {
      * @param environment
      */
     static matchEnvironment(key: string, environment: string): boolean {
-        return environment === key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.ENVIRONMENT];
+        return (
+            environment ===
+            key.split(Separators.CACHE_KEY_SEPARATOR)[
+                CredentialKeyPosition.ENVIRONMENT
+            ]
+        );
     }
 
     /**
@@ -71,7 +86,13 @@ export class CacheHelper {
      * // TODO: Confirm equality for enum vs string here
      */
     static matchCredentialType(key: string, credentialType: string): boolean {
-        return credentialType.toLowerCase() === key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.CREDENTIAL_TYPE].toString().toLowerCase();
+        return (
+            credentialType.toLowerCase() ===
+            key
+                .split(Separators.CACHE_KEY_SEPARATOR)
+                [CredentialKeyPosition.CREDENTIAL_TYPE].toString()
+                .toLowerCase()
+        );
     }
 
     /**
@@ -80,7 +101,12 @@ export class CacheHelper {
      * @param clientId
      */
     static matchClientId(key: string, clientId: string): boolean {
-        return clientId === key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.CLIENT_ID];
+        return (
+            clientId ===
+            key.split(Separators.CACHE_KEY_SEPARATOR)[
+                CredentialKeyPosition.CLIENT_ID
+            ]
+        );
     }
 
     /**
@@ -89,7 +115,12 @@ export class CacheHelper {
      * @param realm
      */
     static matchRealm(key: string, realm: string): boolean {
-        return realm === key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.REALM];
+        return (
+            realm ===
+            key.split(Separators.CACHE_KEY_SEPARATOR)[
+                CredentialKeyPosition.REALM
+            ]
+        );
     }
 
     /**
@@ -98,7 +129,12 @@ export class CacheHelper {
      * @param target
      */
     static matchTarget(key: string, target: string): boolean {
-        return CacheHelper.targetsIntersect(key.split(Separators.CACHE_KEY_SEPARATOR)[CacheKeyPosition.TARGET], target);
+        return CacheHelper.targetsIntersect(
+            key.split(Separators.CACHE_KEY_SEPARATOR)[
+                CredentialKeyPosition.TARGET
+            ],
+            target
+        );
     }
 
     /**
@@ -124,7 +160,34 @@ export class CacheHelper {
      */
     static getCredentialType(key: string): string {
         return key.split(Separators.CACHE_KEY_SEPARATOR)[
-            CacheKeyPosition.CREDENTIAL_TYPE
+            CredentialKeyPosition.CREDENTIAL_TYPE
         ];
+    }
+
+    /**
+     * helper function to return `CacheSchemaType`
+     * @param key
+     */
+    static getCacheType(type: number): string {
+        switch (type) {
+            case CacheType.ADFS:
+            case CacheType.MSA:
+            case CacheType.MSSTS:
+            case CacheType.GENERIC:
+                return CacheSchemaType.ACCOUNT;
+
+            case CacheType.ACCESS_TOKEN:
+            case CacheType.REFRESH_TOKEN:
+            case CacheType.ID_TOKEN:
+                return CacheSchemaType.CREDENTIAL;
+
+            case CacheType.APP_META_DATA:
+                return CacheSchemaType.APP_META_DATA;
+
+            default: {
+                console.log("Invalid cache type");
+                return null;
+            }
+        }
     }
 }
