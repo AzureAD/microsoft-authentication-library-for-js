@@ -4,9 +4,6 @@
  */
 
 import { InMemoryCache, JsonCache, AccountFilter, CredentialFilter  } from "./utils/CacheTypes";
-import { AccessTokenEntity } from "./entities/AccessTokenEntity";
-import { IdTokenEntity } from "./entities/IdTokenEntity";
-import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
 import { AccountEntity } from "./entities/AccountEntity";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { Deserializer } from "./serialize/Deserializer";
@@ -14,8 +11,7 @@ import { Serializer } from "./serialize/Serializer";
 import { Credential } from "./entities/Credential";
 import {
     CredentialType,
-    Separators,
-    CredentialKeyPosition,
+    CacheSchemaType
 } from "../utils/Constants";
 import {
     AccountCache,
@@ -30,12 +26,10 @@ import { CacheRecord } from "./entities/CacheRecord";
 
 export class UnifiedCacheManager implements ICacheManager {
     // Storage interface
-    private inMemoryCache: InMemoryCache;
     private cacheStorage: ICacheStorage;
 
     constructor(cacheImpl: ICacheStorage) {
         this.cacheStorage = cacheImpl;
-        this.inMemoryCache = this.cacheStorage.getCache();
     }
 
     /**
@@ -43,14 +37,14 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param cache
      */
     setCacheInMemory(cache: InMemoryCache): void {
-        this.inMemoryCache = cache;
+        this.cacheStorage.setCache(cache);
     }
 
     /**
      * get the inMemory Cache
      */
     getCacheInMemory(): InMemoryCache {
-        return this.inMemoryCache;
+        return this.cacheStorage.getCache();
     }
 
     /**
@@ -75,7 +69,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * Returns all accounts in memory
      */
     getAllAccounts(): AccountCache {
-        return this.inMemoryCache.accounts;
+        return this.getCacheInMemory().accounts;
     }
 
     /**
@@ -94,10 +88,8 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param account
      */
     saveAccount(account: AccountEntity): void {
-        const cache = this.getCacheInMemory();
         const key = account.generateAccountKey();
-        cache.accounts[key] = account;
-        this.setCacheInMemory(cache);
+        this.cacheStorage.setItemInMemory(key, account, CacheSchemaType.ACCOUNT);
     }
 
     /**
@@ -105,66 +97,9 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param credential
      */
     saveCredential(credential: Credential): void {
-        const cache = this.getCacheInMemory();
-
-        switch (credential.credentialType) {
-            case CredentialType.ID_TOKEN:
-                this.saveIdToken(credential);
-                break;
-            case CredentialType.ACCESS_TOKEN:
-                this.saveAccessToken(credential);
-                break;
-            case CredentialType.REFRESH_TOKEN:
-                this.saveRefreshToken(credential);
-                break;
-            default:
-                console.log("Cache entity type mismatch");
-        }
-
-        this.setCacheInMemory(cache);
-    }
-
-    /**
-     * save IdTokenEntity to Cache
-     * @param idToken
-     */
-    saveIdToken(idToken: Credential) {
-        const cache = this.getCacheInMemory();
-        const key = idToken.generateCredentialKey();
-        if (cache.idTokens[key]) {
-            this.removeIdToken(key);
-        }
-
-        cache.idTokens[key] = idToken as IdTokenEntity;
-    }
-
-    /**
-     * save AccessTokenEntity to Cache
-     * @param accessToken
-     */
-    saveAccessToken(accessToken: Credential) {
-        const cache = this.getCacheInMemory();
-        const key = accessToken.generateCredentialKey();
-        if (cache.accessTokens[key]) {
-            this.removeAccessToken(key);
-        }
-
-        cache.accessTokens[key] = accessToken as AccessTokenEntity;
-
-    }
-
-    /**
-     * save RefreshTokenEntity to Cache
-     * @param refreshToken
-     */
-    saveRefreshToken(refreshToken: Credential) {
-        const cache = this.getCacheInMemory();
-        const key = refreshToken.generateCredentialKey();
-        if (cache.refreshTokens[key]) {
-            this.removeRefreshToken(key);
-        }
-
-        cache.refreshTokens[key] = refreshToken as RefreshTokenEntity;
+        console.log("in UCacheManager saving credential");
+        const key = credential.generateCredentialKey();
+        this.cacheStorage.setItemInMemory(key, credential, CacheSchemaType.CREDENTIAL);
     }
 
     /**
@@ -172,7 +107,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param key
      */
     getAccount(key: string): AccountEntity {
-        return this.getCacheInMemory().accounts[key] || null;
+        return this.cacheStorage.getItemFromMemory(key, CacheSchemaType.ACCOUNT) as AccountEntity;
     }
 
     /**
@@ -180,22 +115,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param key
      */
     getCredential(key: string): Credential {
-        const cache = this.getCacheInMemory();
-        switch (
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.CREDENTIAL_TYPE
-            ]
-        ) {
-            case "idtoken":
-                return cache.idTokens[key] || null;
-            case "accesstoken":
-                return cache.accessTokens[key] || null;
-            case "refreshtoken":
-                return cache.refreshTokens[key] || null;
-            default:
-                console.log("Cache entity type mismatch");
-                return null;
-        }
+        return this.cacheStorage.getItemFromMemory(key, CacheSchemaType.CREDENTIAL) as Credential;
     }
 
     /**
@@ -377,7 +297,7 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            if (!!target && CacheHelper.getCredentialType(key) != CredentialType.ID_TOKEN.toString().toLowerCase()) {
+            if (!!target && CacheHelper.getCredentialType(key) != CredentialType.ID_TOKEN) {
                 matches = matches && CacheHelper.matchTarget(key, target);
             }
 
@@ -394,15 +314,8 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param account
      */
     removeAccount(account: AccountEntity): boolean {
-        const cache = this.getCacheInMemory();
-        const accountKey = account.generateAccountKey();
-
-        if (!!cache.accounts[accountKey]) {
-            delete cache.accounts[accountKey];
-            return true;
-        }
-
-        return false;
+        const key = account.generateAccountKey();
+        return this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.ACCOUNT);
     }
 
     /**
@@ -414,22 +327,24 @@ export class UnifiedCacheManager implements ICacheManager {
         const accountId = account.generateAccountId();
 
         Object.keys(cache.idTokens).forEach((key) => {
-            if (cache.idTokens[key].generateAccountId() === accountId)
-                this.removeIdToken(key);
+            if (cache.idTokens[key].generateAccountId() === accountId) {
+                this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
+            }
         });
 
         Object.keys(cache.accessTokens).forEach((key) => {
-            if (cache.accessTokens[key].generateAccountId() === accountId)
-                this.removeAccessToken(key);
+            if (cache.accessTokens[key].generateAccountId() === accountId) {
+                this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
+            }
         });
 
         Object.keys(cache.refreshTokens).forEach((key) => {
-            if (cache.refreshTokens[key].generateAccountId() === accountId)
-                this.removeRefreshToken(key);
+            if (cache.refreshTokens[key].generateAccountId() === accountId) {
+                this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
+            }
         });
 
-        this.removeAccount(account);
-        return true;
+        return this.removeAccount(account);
     }
 
     /**
@@ -438,50 +353,6 @@ export class UnifiedCacheManager implements ICacheManager {
      */
     removeCredential(credential: Credential): boolean {
         const key = credential.generateCredentialKey();
-
-        switch (credential.credentialType) {
-            case CredentialType.ID_TOKEN:
-                return this.removeIdToken(key);
-            case CredentialType.ACCESS_TOKEN:
-                return this.removeAccessToken(key);
-            case CredentialType.REFRESH_TOKEN:
-                return this.removeRefreshToken(key);
-            default:
-                console.log("Cache entity type mismatch");
-                return false;
-        }
-    }
-
-    /**
-     * Remove an IdToken from the memory
-     * @param key
-     */
-    removeIdToken(key: string): boolean {
-        const cache = this.getCacheInMemory();
-        delete cache.idTokens[key];
-        this.setCacheInMemory(cache);
-        return true;
-    }
-
-    /**
-     * Remove an AccessToken from the memory
-     * @param key
-     */
-    removeAccessToken(key: string): boolean {
-        const cache = this.getCacheInMemory();
-        delete cache.accessTokens[key];
-        this.setCacheInMemory(cache);
-        return true;
-    }
-
-    /**
-     * Remove a RefreshToken from the memory
-     * @param key
-     */
-    removeRefreshToken(key: string): boolean {
-        const cache = this.getCacheInMemory();
-        delete cache.refreshTokens[key];
-        this.setCacheInMemory(cache);
-        return true;
+        return this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
     }
 }

@@ -6,6 +6,10 @@ import { ICacheStorage } from "../../src/cache/ICacheStorage";
 import { Deserializer } from "../../src/unifiedCache/serialize/Deserializer";
 import { AccountEntity } from "../../src/unifiedCache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/unifiedCache/entities/AccessTokenEntity";
+import { CacheSchemaType, CacheHelper, CredentialType } from "../../src";
+import { IdTokenEntity } from "../../src/unifiedCache/entities/IdTokenEntity";
+import { RefreshTokenEntity } from "../../src/unifiedCache/entities/RefreshTokenEntity";
+import { AppMetadataEntity } from "../../src/unifiedCache/entities/AppMetadataEntity";
 
 const cacheJson = require("./serialize/cache.json");
 
@@ -28,11 +32,152 @@ describe("UnifiedCacheManager test cases", () => {
             setItem(key: string, value: string): void {
                 store[key] = value;
             },
+            setItemInMemory(key: string, value: object, type?: string): void {
+                // read inMemoryCache
+                const cache = this.getCache();
+
+                // save the cacheItem
+                switch (type) {
+                    case CacheSchemaType.ACCOUNT: {
+                        cache.accounts[key] = value as AccountEntity;
+                        break;
+                    }
+                    case CacheSchemaType.CREDENTIAL: {
+                        const credentialType = CacheHelper.getCredentialType(key);
+                        console.log(credentialType);
+                        switch (credentialType) {
+                            case CredentialType.ID_TOKEN: {
+                                cache.idTokens[key] = value as IdTokenEntity;
+                                break;
+                            }
+                            case CredentialType.ACCESS_TOKEN: {
+                                cache.accessTokens[key] = value as AccessTokenEntity;
+                                console.log(value);
+                                break;
+                            }
+                            case CredentialType.REFRESH_TOKEN: {
+                                cache.refreshTokens[key] = value as RefreshTokenEntity;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    case CacheSchemaType.APP_META_DATA: {
+                        cache.appMetadata[key] = value as AppMetadataEntity;
+                        break;
+                    }
+                    default: {
+                        console.log("Invalid Cache Type");
+                        return;
+                    }
+                }
+
+                // update inMemoryCache
+                this.setCache(cache);
+            },
             getItem(key: string): string {
                 return store[key];
             },
-            removeItem(key: string): void {
+            getItemFromMemory(key: string, type?: string): object {
+                // read inMemoryCache
+                const cache = this.getCache();
+
+                // save the cacheItem
+                switch (type) {
+                    case CacheSchemaType.ACCOUNT: {
+                        return cache.accounts[key] as AccountEntity || null;
+                    }
+                    case CacheSchemaType.CREDENTIAL: {
+                        const credentialType = CacheHelper.getCredentialType(key);
+                        let credential = null;
+                        switch (credentialType) {
+                            case CredentialType.ID_TOKEN: {
+                                credential = cache.idTokens[key] as IdTokenEntity || null;
+                                break;
+                            }
+                            case CredentialType.ACCESS_TOKEN: {
+                                credential = cache.accessTokens[key] as AccessTokenEntity || null;
+                                break;
+                            }
+                            case CredentialType.REFRESH_TOKEN: {
+                                credential = cache.refreshTokens[key] as RefreshTokenEntity || null;
+                                break;
+                            }
+                        }
+                        return credential!;
+                    }
+                    case CacheSchemaType.APP_META_DATA: {
+                        return cache.appMetadata[key] as AppMetadataEntity || null;
+                    }
+                    default: {
+                        console.log("Invalid Cache Type");
+                        return {};
+                    }
+                }
+            },
+            removeItem(key: string): boolean {
                 delete store[key];
+                return true;
+            },
+            removeItemFromMemory(key: string, type?: string): boolean {
+                // read inMemoryCache
+                const cache = this.getCache();
+                let result: boolean = false;
+
+                // save the cacheItem
+                switch (type) {
+                    case CacheSchemaType.ACCOUNT: {
+                        if (!!cache.accounts[key]) {
+                            delete cache.accounts[key];
+                            result = true;
+                        }
+                        break;
+                    }
+                    case CacheSchemaType.CREDENTIAL: {
+                        const credentialType = CacheHelper.getCredentialType(key);
+                        switch (credentialType) {
+                            case CredentialType.ID_TOKEN: {
+                                if (!!cache.idTokens[key]) {
+                                    delete cache.idTokens[key];
+                                    result = true;
+                                }
+                                break;
+                            }
+                            case CredentialType.ACCESS_TOKEN: {
+                                if (!!cache.accessTokens[key]) {
+                                    delete cache.accessTokens[key];
+                                    result = true;
+                                }
+                                break;
+                            }
+                            case CredentialType.REFRESH_TOKEN: {
+                                if (!!cache.refreshTokens[key]) {
+                                    delete cache.refreshTokens[key];
+                                    result = true;
+                                }
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    case CacheSchemaType.APP_META_DATA: {
+                        if (!!cache.appMetadata[key]) {
+                            delete cache.appMetadata[key];
+                            result = true;
+                        }
+                        break;
+                    }
+                    default: {
+                        console.log("Invalid Cache Type");
+                        break;
+                    }
+                }
+
+                // write to the cache after removal
+                if (result) {
+                    this.setCache(cache);
+                }
+                return result;
             },
             containsKey(key: string): boolean {
                 return !!store[key];
@@ -105,7 +250,6 @@ describe("UnifiedCacheManager test cases", () => {
         });
 
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
-
         const atKey = at.generateCredentialKey();
         unifiedCacheManager.saveCredential(at);
         expect(
