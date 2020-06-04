@@ -22,8 +22,8 @@ import {
     ProtocolUtils,
     AuthorizationCodeRequest,
     Constants,
-	ClientAuthError,
-	AuthorityType
+    ClientAuthError,
+    AuthorityType
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -259,23 +259,17 @@ export class PublicClientApplication {
     /**
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
      * any code that follows this function will not execute.
+	 * 
+	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+	 * 
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request: AuthorizationUrlRequest): void {
-		
-        this.loginRedirectAsync(request).catch((err) => {
-            throw err;
-        });
-    }
-
-    /**
-     * Helper function that uses async/await syntax for loginRedirect
-     * @param {@link (AuthenticationParameters:type)}
-     */
-    private async loginRedirectAsync(request: AuthorizationUrlRequest): Promise<void> {
+    async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
         // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
         try {
+            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
+
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
 
@@ -295,33 +289,24 @@ export class PublicClientApplication {
 	
     /**
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
-     * the page, so any code that follows this function will not execute.
+     * the page, so any code that follows this function will not execute. 
+	 * 
+	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      * @param {@link (AuthenticationParameters:type)}
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: AuthorizationUrlRequest): void {
-        this.acquireTokenRedirectAsync(request);
-    }
-
-    /**
-     * Helper function that uses async/await syntax for acquireTokenRedirect
-     * @param {@link (AuthenticationParameters:type)}
-     *
-     * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
-     */
-    async acquireTokenRedirectAsync(request: AuthorizationUrlRequest): Promise<void> {
-        // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
-
+    async acquireTokenRedirect(request: AuthorizationUrlRequest): Promise<void> {
         try {
+            // Preflight request
+            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
+
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
 
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
-			
-            console.log(validRequest);
 
             // Create acquire token url.
             const navigateUrl = await this.authModule.createAcquireTokenUrl(validRequest);
@@ -476,9 +461,7 @@ export class PublicClientApplication {
         const tokenRequest: AuthorizationUrlRequest = {
             ...silentRequest,
             redirectUri: "",
-            scopes: silentRequest.scopes || [],
-            codeChallenge: "",
-            codeChallengeMethod: ""
+            scopes: silentRequest.scopes || []
         };
 
         try {
