@@ -368,9 +368,9 @@ export class BrowserStorage implements ICacheStorage {
         } catch (err) {
             throw BrowserAuthError.createTokenRequestCacheError(err);
         }
-	}
+    }
 
-	/*
+    /*
      *  Dummy implementation for interface compat - will change after BrowserCacheMigration
      * @param key
      * @param value
