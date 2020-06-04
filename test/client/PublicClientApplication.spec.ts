@@ -1,6 +1,7 @@
 import * as Mocha from "mocha";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
+
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
@@ -82,6 +83,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
         });
+
+        it("ADFS authority throws error", () => {
+
+            expect(() =>{
+                new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        authority: TEST_CONFIG.ADFS_AUTHORITY
+                    }
+                });
+
+            }).to.throw(ClientAuthErrorMessage.invalidAuthorityType.desc);
+
+        });
     });
 
     describe("Redirect Flow Unit tests", () => {
@@ -118,7 +133,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const testServerTokenResponse = {
                     headers: null,
                     status: 200,
-                    body : {
+                    body: {
                         token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                         scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
                         expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
@@ -230,7 +245,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const testServerTokenResponse = {
                     headers: null,
                     status: 200,
-                    body : {
+                    body: {
                         token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                         scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
                         expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
@@ -877,7 +892,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 refreshToken: testServerTokenResponse.refresh_token,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
-                userRequestState: ""                    
+                userRequestState: ""
             };
             sinon.stub(SPAClient.prototype, "createLoginUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
@@ -988,7 +1003,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 refreshToken: testServerTokenResponse.refresh_token,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
-                userRequestState: ""                    
+                userRequestState: ""
             };
             const createAcqTokenStub = sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
 			const silentTokenHelperStub = sinon.stub(pca, <any>"silentTokenHelper").resolves(testTokenResponse);

@@ -23,7 +23,7 @@ import {
     AuthorizationCodeRequest,
     Constants
 } from "@azure/msal-common";
-import { Configuration, buildConfiguration } from "../config/Configuration";
+import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -103,6 +103,11 @@ export class PublicClientApplication {
             this.config.auth.authority,
             this.config.system.networkClient
         );
+
+        // This is temporary. Remove when ADFS is supported for browser
+        if(this.defaultAuthorityInstance.authorityType === AuthorityType.Adfs){
+            throw ClientAuthError.createInvalidAuthorityTypeError(this.defaultAuthorityInstance.canonicalAuthority);
+        }
 
         // Create auth module.
         this.authModule = new SPAClient({
