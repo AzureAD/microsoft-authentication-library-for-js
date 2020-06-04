@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CacheHelper } from "../utils/CacheHelper";
-import { AccountCacheMaps, AccessTokenCacheMaps, IdTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
+import { EntitySerializer } from "./EntitySerializer";
 import { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, JsonCache, InMemoryCache } from "../utils/CacheTypes";
 import { StringDict } from "../../utils/MsalTypes";
 
@@ -25,11 +24,7 @@ export class Serializer {
     static serializeAccounts(accCache: AccountCache): StringDict {
         const accounts = {};
         Object.keys(accCache).map(function (key) {
-            const mappedAcc = CacheHelper.renameKeys(
-                accCache[key],
-                AccountCacheMaps.toCacheMap
-            );
-            accounts[key] = mappedAcc;
+            accounts[key] = EntitySerializer.mapAccountKeys(accCache, key);
         });
 
         return accounts;
@@ -42,11 +37,7 @@ export class Serializer {
     static serializeIdTokens(idTCache: IdTokenCache): StringDict{
         const idTokens = {};
         Object.keys(idTCache).map(function (key) {
-            const mappedIdT = CacheHelper.renameKeys(
-                idTCache[key],
-                IdTokenCacheMaps.toCacheMap
-            );
-            idTokens[key] = mappedIdT;
+            idTokens[key] = EntitySerializer.mapIdTokenKeys(idTCache, key);
         });
 
         return idTokens;
@@ -57,14 +48,9 @@ export class Serializer {
      * @param atCache
      */
     static serializeAccessTokens(atCache: AccessTokenCache): StringDict {
-        // access tokens
         const accessTokens = {};
         Object.keys(atCache).map(function (key) {
-            const mappedAT = CacheHelper.renameKeys(
-                atCache[key],
-                AccessTokenCacheMaps.toCacheMap
-            );
-            accessTokens[key] = mappedAT;
+            accessTokens[key] = EntitySerializer.mapAccessTokenKeys(atCache, key);
         });
 
         return accessTokens;
@@ -77,11 +63,7 @@ export class Serializer {
     static serializeRefreshTokens(rtCache: RefreshTokenCache): StringDict{
         const refreshTokens = {};
         Object.keys(rtCache).map(function (key) {
-            const mappedRT = CacheHelper.renameKeys(
-                rtCache[key],
-                RefreshTokenCacheMaps.toCacheMap
-            );
-            refreshTokens[key] = mappedRT;
+            refreshTokens[key] = EntitySerializer.mapRefreshTokenKeys(rtCache, key);
         });
 
         return refreshTokens;
@@ -94,11 +76,7 @@ export class Serializer {
     static serializeAppMetadata(amdtCache: AppMetadataCache): StringDict {
         const appMetadata = {};
         Object.keys(amdtCache).map(function (key) {
-            const mappedAmdt = CacheHelper.renameKeys(
-                amdtCache[key],
-                AppMetadataCacheMaps.toCacheMap
-            );
-            appMetadata[key] = mappedAmdt;
+            appMetadata[key] = EntitySerializer.mapAppMetadataKeys(amdtCache, key);
         });
 
         return appMetadata;

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheAccountType, EnvironmentAliases, PreferredCacheEnvironment } from "../../utils/Constants";
+import { Separators, CacheAccountType, EnvironmentAliases, PreferredCacheEnvironment, CacheType } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
@@ -50,6 +50,26 @@ export class AccountEntity {
         ];
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * returns the type of the cache (in this case account)
+     */
+    generateType(): number {
+        switch (this.authorityType) {
+            case CacheAccountType.ADFS_ACCOUNT_TYPE:
+                return CacheType.ADFS;
+            case CacheAccountType.MSAV1_ACCOUNT_TYPE:
+                return CacheType.MSA;
+            case CacheAccountType.MSSTS_ACCOUNT_TYPE:
+                return CacheType.MSSTS;
+            case CacheAccountType.GENERIC_ACCOUNT_TYPE:
+                return CacheType.GENERIC;
+            default: {
+                console.log("Unexpected account type");
+                return null;
+            }
+        }
     }
 
     /**
