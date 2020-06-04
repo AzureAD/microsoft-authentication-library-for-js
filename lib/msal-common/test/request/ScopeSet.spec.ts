@@ -3,7 +3,6 @@ import { ScopeSet } from "../../src/request/ScopeSet";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants, ClientAuthError, ClientAuthErrorMessage } from "../../src";
 import sinon from "sinon";
-import { IdToken } from "../../src/auth/IdToken";
 
 describe("ScopeSet.ts", () => {
 

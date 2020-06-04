@@ -4,7 +4,7 @@ import {
     Authority,
     AuthorizationCodeClient,
     AuthorizationCodeRequest,
-    AuthorizationCodeUrlRequest,
+    AuthorizationUrlRequest,
     Constants
 } from "../../src";
 import {
@@ -52,9 +52,11 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationCodeUrlRequest = {
+            const authCodeUrlRequest: AuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE
+				scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
@@ -72,9 +74,11 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationCodeUrlRequest = {
+            const authCodeUrlRequest: AuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                scopes: [Constants.OPENID_SCOPE]
+				scopes: [Constants.OPENID_SCOPE],
+				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
@@ -94,7 +98,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationCodeUrlRequest = {
+            const authCodeUrlRequest: AuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 authority: TEST_CONFIG.alternateValidAuthority,

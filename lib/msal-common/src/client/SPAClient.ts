@@ -180,14 +180,6 @@ export class SPAClient extends BaseClient {
 
         // Get token endpoint.
         const { tokenEndpoint } = acquireTokenAuthority;
-        // Initialize request parameters.
-        // const tokenReqParams = new ServerTokenRequestParameters(
-        //     this.config.authOptions.clientId,
-        //     tokenRequest,
-        //     codeResponse,
-        //     this.getRedirectUri(),
-        //     this.cryptoUtils
-        // );
 
         // User helper to retrieve token response.
         // Need to await function call before return to catch any thrown errors.
@@ -391,15 +383,6 @@ export class SPAClient extends BaseClient {
      */
     private async renewToken(refreshTokenRequest: RefreshTokenRequest, tokenEndpoint: string): Promise<TokenResponse> {
         // Initialize request parameters.
-        // const tokenReqParams = new ServerTokenRequestParameters(
-        //     this.config.authOptions.clientId,
-        //     refreshTokenRequest,
-        //     null,
-        //     this.getRedirectUri(),
-        //     this.cryptoUtils,
-        //     refreshToken
-        // );
-
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -416,6 +399,7 @@ export class SPAClient extends BaseClient {
         parameterBuilder.addRefreshToken(refreshTokenRequest.refreshToken);
 
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
+
         // User helper to retrieve token response.
         // Need to await function call before return to catch any thrown errors.
         // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.

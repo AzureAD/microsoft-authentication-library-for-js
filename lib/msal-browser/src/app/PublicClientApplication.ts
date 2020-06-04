@@ -5,7 +5,6 @@
 import {
     Account,
     SPAClient,
-    AuthenticationParameters,
     INetworkModule,
     TokenResponse,
     UrlString,
@@ -17,7 +16,6 @@ import {
     AuthorityFactory,
     InteractionRequiredAuthError,
     B2cAuthority,
-    TokenExchangeParameters,
     AuthorizationUrlRequest,
     PersistentCacheKeys,
     IdToken,

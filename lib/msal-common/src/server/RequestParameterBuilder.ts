@@ -145,6 +145,7 @@ export class RequestParameterBuilder {
         codeChallenge: string,
         codeChallengeMethod: string
     ): void {
+        RequestValidator.validateCodeChallengeParams(codeChallenge, codeChallengeMethod);
         if (codeChallenge && codeChallengeMethod) {
             this.parameters.set(AADServerParamKeys.CODE_CHALLENGE, encodeURIComponent(codeChallenge));
             this.parameters.set(AADServerParamKeys.CODE_CHALLENGE_METHOD, encodeURIComponent(codeChallengeMethod));
