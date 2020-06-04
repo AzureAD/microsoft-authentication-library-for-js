@@ -44,14 +44,14 @@ export type AuthorizationUrlRequest = {
      * Used to secure authorization code grant via Proof of Key for Code Exchange (PKCE).
      * For more information, see the PKCE RCF:https://tools.ietf.org/html/rfc7636
      */
-    codeChallenge?: string;
+    codeChallenge: string;
 
     /**
      * The method used to encode the code verifier for the code challenge parameter. Can be
      * "plain" or "S256". If excluded, code challenge is assumed to be plaintext. For more
      * information, see the PKCE RCF: https://tools.ietf.org/html/rfc7636
      */
-    codeChallengeMethod?: string;
+    codeChallengeMethod: string;
 
     /**
      * A value included in the request that is also returned in the token response. A randomly

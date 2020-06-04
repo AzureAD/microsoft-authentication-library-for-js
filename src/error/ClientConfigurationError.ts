@@ -57,7 +57,7 @@ export const ClientConfigurationErrorMessage = {
         desc: "code_challenge_method passed is invalid. Valid values are \"plain\" and \"S256\"."
     },
     invalidCodeChallengeParams: {
-        code: "one_of_code_challenge_code_challenge_method_params_missing",
+        code: "pkce_params_missing",
         desc: "Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request"
     },
     b2cKnownAuthoritiesNotSet: {

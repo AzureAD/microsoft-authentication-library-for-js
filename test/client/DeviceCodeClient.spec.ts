@@ -46,7 +46,7 @@ describe("DeviceCodeClient unit tests", async () => {
 
             sinon.stub(DeviceCodeClient.prototype, <any>"executeGetRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            sinon.stub(BaseClient.prototype, "executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 
             const createDeviceCodeUrlSpy = sinon.spy(DeviceCodeClient.prototype, <any>"createDeviceCodeUrl");
             const createTokenRequestBodySpy = sinon.spy(DeviceCodeClient.prototype, <any>"createTokenRequestBody");

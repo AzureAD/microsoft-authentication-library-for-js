@@ -8,7 +8,6 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
-import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
@@ -151,7 +150,6 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
 
         if (request.codeChallenge) {
-            RequestValidator.validateCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
             parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
         }
 
