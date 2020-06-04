@@ -30,7 +30,7 @@ export class ClientInfo {
         this._utid = utid;
     }
 
-    constructor(rawClientInfo: string) {
+    constructor(rawClientInfo: string, authority: string) {
         if (!rawClientInfo || StringUtils.isEmpty(rawClientInfo)) {
             this.uid = "";
             this.utid = "";
@@ -42,7 +42,7 @@ export class ClientInfo {
             const clientInfo: ClientInfo = <ClientInfo>JSON.parse(decodedClientInfo);
             if (clientInfo) {
                 if (clientInfo.hasOwnProperty("uid")) {
-                    this.uid = clientInfo.uid;
+                    this.uid = ClientInfo.stripPolicyFromUid(clientInfo.uid, authority);
                 }
 
                 if (clientInfo.hasOwnProperty("utid")) {
@@ -52,5 +52,23 @@ export class ClientInfo {
         } catch (e) {
             throw ClientAuthError.createClientInfoDecodingError(e);
         }
+    }
+
+    static stripPolicyFromUid(uid: string, authority: string): string {
+        const uidSegments = uid.split("-");
+        const urlSegments = authority.split("/");
+        const policy = urlSegments[urlSegments.length - 1];
+
+        if (uidSegments[uidSegments.length - 1] ===  policy) {
+            return uidSegments.slice(0, uidSegments.length - 1).join("-");
+        }
+
+        return uid;
+    }
+
+    public encodeClientInfo() {
+        const clientInfo = JSON.stringify({uid: this.uid, utid: this.utid});
+
+        return CryptoUtils.base64Encode(clientInfo);
     }
 }

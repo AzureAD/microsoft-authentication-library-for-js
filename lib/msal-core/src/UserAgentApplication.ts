@@ -1452,10 +1452,9 @@ export class UserAgentApplication {
      * @private
      */
     /* tslint:disable:no-string-literal */
-    private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): AuthResponse {
+    private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: ClientInfo, idTokenObj: IdToken): AuthResponse {
         let scope: string;
         const accessTokenResponse = { ...response };
-        const clientObj: ClientInfo = new ClientInfo(clientInfo);
         let expiration: number;
 
         // if the response contains "scope"
@@ -1482,8 +1481,8 @@ export class UserAgentApplication {
             const expiresIn = TimeUtils.parseExpiresIn(parameters[ServerHashParamKeys.EXPIRES_IN]);
             const parsedState = RequestUtils.parseLibraryState(parameters[ServerHashParamKeys.STATE]);
             expiration = parsedState.ts + expiresIn;
-            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
-            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ACCESS_TOKEN], idTokenObj.rawIdToken, expiration.toString(), clientInfo);
+            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientInfo.uid, clientInfo.utid);
+            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ACCESS_TOKEN], idTokenObj.rawIdToken, expiration.toString(), clientInfo.encodeClientInfo());
 
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -1495,9 +1494,9 @@ export class UserAgentApplication {
             scope = this.clientId;
 
             // Generate and cache accessTokenKey and accessTokenValue
-            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
+            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientInfo.uid, clientInfo.utid);
             expiration = Number(idTokenObj.expiration);
-            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ID_TOKEN], parameters[ServerHashParamKeys.ID_TOKEN], expiration.toString(), clientInfo);
+            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ID_TOKEN], parameters[ServerHashParamKeys.ID_TOKEN], expiration.toString(), clientInfo.encodeClientInfo());
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenResponse.scopes = [scope];
             accessTokenResponse.accessToken = parameters[ServerHashParamKeys.ID_TOKEN];
@@ -1590,7 +1589,7 @@ export class UserAgentApplication {
                 }
                 response.accountState = this.getAccountState(stateInfo.state);
 
-                let clientInfo: string = "";
+                let clientInfo: ClientInfo;
 
                 // Process access_token
                 if (hashParams.hasOwnProperty(ServerHashParamKeys.ACCESS_TOKEN)) {
@@ -1616,13 +1615,13 @@ export class UserAgentApplication {
 
                     // retrieve client_info - if it is not found, generate the uid and utid from idToken
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
-                        clientInfo = hashParams[ServerHashParamKeys.CLIENT_INFO];
+                        clientInfo = new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO], authority);
                     } else {
                         this.logger.warning("ClientInfo not received in the response from AAD");
                         throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
                     }
 
-                    response.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
+                    response.account = Account.createAccount(idTokenObj, clientInfo);
 
                     let accountKey: string;
                     if (response.account && !StringUtils.isEmpty(response.account.homeAccountIdentifier)) {
@@ -1662,17 +1661,17 @@ export class UserAgentApplication {
                     // set the idToken
                     idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
 
+                    // set authority
+                    const authority: string = this.populateAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
+
                     response = ResponseUtils.setResponseIdToken(response, idTokenObj);
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
-                        clientInfo = hashParams[ServerHashParamKeys.CLIENT_INFO];
+                        clientInfo = new ClientInfo(hashParams[ServerHashParamKeys.CLIENT_INFO], authority);
                     } else {
                         this.logger.warning("ClientInfo not received in the response from AAD");
                     }
 
-                    // set authority
-                    const authority: string = this.populateAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
-
-                    this.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
+                    this.account = Account.createAccount(idTokenObj, clientInfo);
                     response.account = this.account;
 
                     if (idTokenObj && idTokenObj.nonce) {
@@ -1686,7 +1685,7 @@ export class UserAgentApplication {
                         // Save the token
                         else {
                             this.cacheStorage.setItem(PersistentCacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.ID_TOKEN]);
-                            this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, clientInfo);
+                            this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, clientInfo.encodeClientInfo());
 
                             // Save idToken as access token for app itself
                             this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
@@ -1776,7 +1775,7 @@ export class UserAgentApplication {
 
         if (!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
             const idToken = new IdToken(rawIdToken);
-            const clientInfo = new ClientInfo(rawClientInfo);
+            const clientInfo = new ClientInfo(rawClientInfo, "");
             this.account = Account.createAccount(idToken, clientInfo);
             return this.account;
         }
@@ -1812,7 +1811,7 @@ export class UserAgentApplication {
 
         for (let i = 0; i < accessTokenCacheItems.length; i++) {
             const idToken = new IdToken(accessTokenCacheItems[i].value.idToken);
-            const clientInfo = new ClientInfo(accessTokenCacheItems[i].value.homeAccountIdentifier);
+            const clientInfo = new ClientInfo(accessTokenCacheItems[i].value.homeAccountIdentifier, "");
             const account: Account = Account.createAccount(idToken, clientInfo);
             accounts.push(account);
         }
