@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, Account, TokenResponse, InMemoryCache, AuthorityFactory } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, Account, TokenResponse, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
@@ -18,9 +18,16 @@ class TestInteractionHandler extends InteractionHandler {
     }
 
     initiateAuthRequest(requestUrl: string): Window | Promise<HTMLIFrameElement> {
-        throw new Error("Method not implemented.");
+		this.authCodeRequest = testAuthCodeRequest;
+		return null;
     }
 }
+
+const testAuthCodeRequest: AuthorizationCodeRequest = {
+	redirectUri: TEST_URIS.TEST_REDIR_URI,
+	scopes: ["scope1", "scope2"],
+	code: ""
+};
 
 const clearFunc = (): void => {
     return;
@@ -190,12 +197,14 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tokenType: "Bearer",
                 uniqueId: idTokenClaims.oid,
                 userRequestState: "testState"
-            };
-            sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
+			};
+			sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+			const acquireTokenSpy = sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
+			interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-            expect(tokenResponse).to.deep.eq(testTokenResponse);
+			expect(tokenResponse).to.deep.eq(testTokenResponse);
+			expect(acquireTokenSpy.calledWith(testAuthCodeRequest, "", null)).to.be.true;
         });
     });
 });

@@ -6,7 +6,7 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl } from "../utils/StringConstants";
-import { AuthError, ServerError, LogLevel, Constants, TokenResponse, Account, IdTokenClaims, SPAClient, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys } from "@azure/msal-common";
+import { AuthError, ServerError, LogLevel, Constants, TokenResponse, Account, IdTokenClaims, SPAClient, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, TokenRenewParameters } from "@azure/msal-common";
 import { AuthCallback } from "../../src/types/AuthCallback";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
@@ -18,6 +18,8 @@ import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
 
@@ -184,19 +186,28 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.sessionStorage.length).to.be.eq(3);
             });
 
-            it("gets hash from cache and processes error", () => {
+            it("gets hash from cache and processes error", (done) => {
+				const testAuthCodeRequest: AuthorizationCodeRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: ["scope1", "scope2"],
+					code: ""
+				};
+				const browserCrypto = new CryptoOps();
+				window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, RANDOM_TEST_GUID);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_ERROR_HASH);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-                pca = new PublicClientApplication({
-                    auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                    }
-                });
-                pca.handleRedirectCallback((authErr: AuthError, response: AuthenticationResult) => {
-                    expect(response).to.be.undefined;
-                    expect(authErr instanceof ServerError).to.be.true;
+
+				pca = new PublicClientApplication({
+					auth: {
+						clientId: TEST_CONFIG.MSAL_CLIENT_ID
+					}
+				});
+				pca.handleRedirectCallback((authErr: AuthError, response: AuthenticationResult) => {
+					expect(response).to.be.undefined;
+					expect(authErr instanceof ServerError).to.be.true;
+					done();
                 });
             });
 
@@ -291,10 +302,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         describe("loginRedirect", () => {
 
-            it("loginRedirect throws an error if interaction is currently in progress", async () => {
+            it.only("loginRedirect throws an error if interaction is currently in progress", (done) => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-                expect(() => pca.loginRedirect(null)).to.throw(BrowserAuthErrorMessage.interactionInProgress.desc);
-                expect(() => pca.loginRedirect(null)).to.throw(BrowserAuthError);
+				try {
+					pca.loginRedirect(null);
+				} catch (e) {
+					expect(e).to.contain(BrowserAuthErrorMessage.interactionInProgress.desc);
+					expect(e instanceof BrowserAuthError).to.be.true;
+					done();
+				}
             });
 
             it("loginRedirect navigates to created login url", async () => {
@@ -309,14 +325,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 pca.loginRedirect(null);
             });
-			
+
 			it("Updates cache entries correctly", async () => {
 				const emptyRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
 					scopes: []
 				};
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
 				sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
-					expect(noHistory).to.be.true;
+					expect(noHistory).to.be.undefined;
 					expect(urlNavigate).to.be.not.empty;
 				});
 				const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
@@ -325,15 +346,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				expect(browserStorage.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
 				expect(browserStorage.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
 			});
-	
+
 			it("Caches token request correctly", async () => {
-				const emptyRequest: AuthorizationUrlRequest = {
+				const tokenRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
-					scopes: []
+					scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+					correlationId: RANDOM_TEST_GUID
 				};
-				await pca.loginRedirect(emptyRequest);
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+				sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+					expect(noHistory).to.be.undefined;
+					expect(urlNavigate).to.be.not.empty;
+				});
 				const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
+				const browserCrypto = new CryptoOps();
+				await pca.loginRedirect(tokenRequest);
+				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS)));
 				expect(cachedRequest.scopes).to.be.deep.eq([TEST_CONFIG.MSAL_CLIENT_ID]);
 				expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
 				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
@@ -346,8 +378,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					scopes: []
 				};
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-				sinon.stub(SPAClient.prototype, "createLoginUrl").throws("loginUrlError");
-				await expect(pca.loginRedirect(emptyRequest)).to.be.rejectedWith("loginUrlError");
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				const loginUrlErr = "loginUrlErr";
+				sinon.stub(SPAClient.prototype, "createLoginUrl").throws(new BrowserAuthError(loginUrlErr));
+				await expect(pca.loginRedirect(emptyRequest)).to.be.rejectedWith(loginUrlErr);
+				await expect(pca.loginRedirect(emptyRequest)).to.be.rejectedWith(BrowserAuthError);
 				expect(browserStorage.getKeys()).to.be.empty;
 			});
 
@@ -367,13 +405,31 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
 				const loginUrlSpy = sinon.spy(SPAClient.prototype, "createLoginUrl");
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+				sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+					expect(noHistory).to.be.undefined;
+					expect(urlNavigate).to.be.not.empty;
+				});
 				const emptyRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
 					scopes: []
 				};
 				await pca.loginRedirect(emptyRequest);
-				emptyRequest.loginHint = idTokenClaims.upn;
-				expect(loginUrlSpy.calledWith(emptyRequest)).to.be.true;
+				const validatedRequest: AuthorizationUrlRequest = {
+					...emptyRequest,
+					loginHint: idTokenClaims.upn,
+					state: RANDOM_TEST_GUID,
+					correlationId: RANDOM_TEST_GUID,
+					authority: `${Constants.DEFAULT_AUTHORITY}/`,
+					nonce: RANDOM_TEST_GUID,
+					codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+					codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+				};
+				expect(loginUrlSpy.calledWith(validatedRequest)).to.be.true;
 			});
 	
 			it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
@@ -392,13 +448,31 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
 				const loginUrlSpy = sinon.spy(SPAClient.prototype, "createLoginUrl");
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+				sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+					expect(noHistory).to.be.undefined;
+					expect(urlNavigate).to.be.not.empty;
+				});
 				const loginRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
 					scopes: [],
 					loginHint: "AbeLi@microsoft.com"
 				};
 				await pca.loginRedirect(loginRequest);
-				expect(loginUrlSpy.calledWith(loginRequest)).to.be.true;
+				const validatedRequest: AuthorizationUrlRequest = {
+					...loginRequest,
+					state: RANDOM_TEST_GUID,
+					correlationId: RANDOM_TEST_GUID,
+					authority: `${Constants.DEFAULT_AUTHORITY}/`,
+					nonce: RANDOM_TEST_GUID,
+					codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+					codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+				};
+				expect(loginUrlSpy.calledWith(validatedRequest)).to.be.true;
 			});
         });
 
@@ -429,8 +503,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
 					scopes: [testScope]
 				};
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
 				sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
-					expect(noHistory).to.be.true;
+					expect(noHistory).to.be.undefined;
 					expect(urlNavigate).to.be.not.empty;
 				});
 				const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
@@ -444,29 +523,48 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const testScope = "testscope";
 				const tokenRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
-					scopes: [testScope]
+					scopes: [testScope],
+					correlationId: RANDOM_TEST_GUID
 				};
-				await pca.acquireTokenRedirect(tokenRequest);
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+				sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+					expect(noHistory).to.be.undefined;
+					expect(urlNavigate).to.be.not.empty;
+				});
 				const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS));
-				expect(cachedRequest.scopes).to.be.deep.eq([TEST_CONFIG.MSAL_CLIENT_ID]);
+				const browserCrypto = new CryptoOps();
+				await pca.acquireTokenRedirect(tokenRequest);
+				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS)));
+				expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
 				expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
 				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
 				expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
 			});
 
 			it("Cleans cache before error is thrown", async () => {
+				const testScope = "testscope";
 				const emptyRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
-					scopes: []
+					scopes: [testScope]
 				};
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-				sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").throws("loginUrlError");
-				await expect(pca.acquireTokenRedirect(emptyRequest)).to.be.rejectedWith("loginUrlError");
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				const loginUrlErr = "loginUrlErr";
+				sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").throws(new BrowserAuthError(loginUrlErr));
+				await expect(pca.acquireTokenRedirect(emptyRequest)).to.be.rejectedWith(loginUrlErr);
+				await expect(pca.acquireTokenRedirect(emptyRequest)).to.be.rejectedWith(BrowserAuthError);
 				expect(browserStorage.getKeys()).to.be.empty;
 			});
 
 			it("Uses adal token from cache if it is present.", async () => {
+				const testScope = "testscope";
 				const idTokenClaims: IdTokenClaims = {
 					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
 					"exp": "1536279024",
@@ -481,14 +579,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
-				const loginUrlSpy = sinon.spy(SPAClient.prototype, "createLoginUrl");
+				const acquireTokenUrlSpy = sinon.spy(SPAClient.prototype, "createAcquireTokenUrl");
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+				sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+					expect(noHistory).to.be.undefined;
+					expect(urlNavigate).to.be.not.empty;
+				});
 				const emptyRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
-					scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
+					scopes: [testScope]
 				};
 				await pca.acquireTokenRedirect(emptyRequest);
-				emptyRequest.loginHint = idTokenClaims.upn;
-				expect(loginUrlSpy.calledWith(emptyRequest)).to.be.true;
+				const validatedRequest: AuthorizationUrlRequest = {
+					...emptyRequest,
+					loginHint: idTokenClaims.upn,
+					state: RANDOM_TEST_GUID,
+					correlationId: RANDOM_TEST_GUID,
+					authority: `${Constants.DEFAULT_AUTHORITY}/`,
+					nonce: RANDOM_TEST_GUID,
+					codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+					codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+				};
+				expect(acquireTokenUrlSpy.calledWith(validatedRequest)).to.be.true;
 			});
 	
 			it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
@@ -507,13 +623,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
 				const acquireTokenUrlSpy = sinon.spy(SPAClient.prototype, "createAcquireTokenUrl");
-				const tokenRequest: AuthorizationUrlRequest = {
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+				sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+					expect(noHistory).to.be.undefined;
+					expect(urlNavigate).to.be.not.empty;
+				});
+				const testScope = "testscope";
+				const loginRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
-					scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+					scopes: [testScope],
 					loginHint: "AbeLi@microsoft.com"
 				};
-				await pca.acquireTokenRedirect(tokenRequest);
-				expect(acquireTokenUrlSpy.calledWith(tokenRequest)).to.be.true;
+				await pca.acquireTokenRedirect(loginRequest);
+				const validatedRequest: AuthorizationUrlRequest = {
+					...loginRequest,
+					state: RANDOM_TEST_GUID,
+					correlationId: RANDOM_TEST_GUID,
+					authority: `${Constants.DEFAULT_AUTHORITY}/`,
+					nonce: RANDOM_TEST_GUID,
+					codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+					codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+				};
+				expect(acquireTokenUrlSpy.calledWith(validatedRequest)).to.be.true;
 			});
         });
     });
@@ -568,18 +703,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return window;
                 });
                 sinon.stub(PopupHandler.prototype, "monitorWindowForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-                sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
+				sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 const tokenResp = await pca.loginPopup(null);
                 expect(tokenResp).to.be.deep.eq(testTokenResponse);
             });
 
             it("catches error and cleans cache before rethrowing", async () => {
                 const testError = "Error in creating a login url";
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, RANDOM_TEST_GUID);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, "123523");
                 sinon.stub(SPAClient.prototype, "createLoginUrl").resolves(testNavUrl);
-                sinon.stub(PopupHandler.prototype, "initiateAuthRequest").throws(testError);
+				sinon.stub(PopupHandler.prototype, "initiateAuthRequest").throws(testError);
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 try {
                     const tokenResp = await pca.loginPopup(null);
                 } catch (e) {
@@ -643,7 +785,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return window;
                 });
                 sinon.stub(PopupHandler.prototype, "monitorWindowForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-                sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
+				sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 const tokenResp = await pca.acquireTokenPopup({
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES
@@ -653,11 +800,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("catches error and cleans cache before rethrowing", async () => {
                 const testError = "Error in creating a login url";
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, RANDOM_TEST_GUID);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`, "123523");
                 sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
-                sinon.stub(PopupHandler.prototype, "initiateAuthRequest").throws(testError);
+				sinon.stub(PopupHandler.prototype, "initiateAuthRequest").throws(testError);
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 try {
                     const tokenResp = await pca.acquireTokenPopup({
 						redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -733,7 +882,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(SPAClient.prototype, "createLoginUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
             sinon.stub(SilentHandler.prototype, "monitorFrameForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-            sinon.stub(SilentHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
+			sinon.stub(SilentHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
+			sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+				challenge: TEST_CONFIG.TEST_CHALLENGE,
+				verifier: TEST_CONFIG.TEST_VERIFIER
+			});
+			sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const tokenResp = await pca.ssoSilent({
 				redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -837,13 +991,34 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 userRequestState: ""                    
             };
             const createAcqTokenStub = sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
-            const silentTokenHelperStub = sinon.stub(pca, <any>"silentTokenHelper").resolves(testTokenResponse);
-            const tokenResp = await pca.acquireTokenSilent({
-                scopes: TEST_CONFIG.DEFAULT_SCOPES
-            });
+			const silentTokenHelperStub = sinon.stub(pca, <any>"silentTokenHelper").resolves(testTokenResponse);
+			sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+				challenge: TEST_CONFIG.TEST_CHALLENGE,
+				verifier: TEST_CONFIG.TEST_VERIFIER
+			});
+			sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+			const tokenRequest: TokenRenewParameters = {
+				scopes: TEST_CONFIG.DEFAULT_SCOPES
+			};
+			const urlRequest: AuthorizationUrlRequest = {
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				redirectUri: "",
+				prompt: "none",
+				state: RANDOM_TEST_GUID,
+				correlationId: RANDOM_TEST_GUID,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				nonce: RANDOM_TEST_GUID
+			};
+			const codeRequest: AuthorizationCodeRequest = {
+				...urlRequest,
+				code: "",
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER
+			};
+            const tokenResp = await pca.acquireTokenSilent(tokenRequest);
+			
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
             expect(createAcqTokenStub.calledOnce).to.be.true;
-            expect(silentTokenHelperStub.calledWith(testNavUrl, TEST_CONFIG.DEFAULT_SCOPES.join(" "))).to.be.true;
+            expect(silentTokenHelperStub.calledWith(testNavUrl, codeRequest, TEST_CONFIG.DEFAULT_SCOPES.join(" "))).to.be.true;
         });
     });
 
