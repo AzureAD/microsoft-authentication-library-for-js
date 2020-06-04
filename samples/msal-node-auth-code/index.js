@@ -45,7 +45,6 @@ const msalCacheManager = pca.getCacheManager();
 const app = express();
 
 app.get('/',  (req, res) => {
-
     msalCacheManager.deserialize().then(() => {
         const authCodeUrlParameters = {
             scopes: ["user.read"],

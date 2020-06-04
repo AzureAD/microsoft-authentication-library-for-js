@@ -13,7 +13,9 @@ export {
     // Request
     AuthorizationCodeRequest,
     DeviceCodeRequest,
-    TokenExchangeParameters,
+    RefreshTokenRequest,
+    Prompt,
+    ResponseMode,
     // Response
     AuthResponse,
     // Error

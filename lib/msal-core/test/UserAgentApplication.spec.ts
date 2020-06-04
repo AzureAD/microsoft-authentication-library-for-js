@@ -605,6 +605,114 @@ describe("UserAgentApplication.ts Class", function () {
             msal.loginRedirect({});
         });
 
+        it("loginRedirect does not navigate if onRedirectNavigate is implemented and returns false", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    throw new Error("window.location.assign should not be called when onRedirectNavigate returns false");
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.loginRedirect({
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+
+                    done();
+                    return false;
+                }
+            })
+        });
+
+        it("acquireTokenRedirect does not navigate if onRedirectNavigate is implemented and returns false", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    throw new Error("window.location.assign should not be called when onRedirectNavigate returns false");
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.acquireTokenRedirect({
+                scopes: [ "user.read" ],
+                account,
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+
+                    done();
+                    return false;
+                }
+            })
+        });
+
+        it("navigates if onRedirectNavigate returns null", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    expect(url).to.not.be.null;
+                    done();
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.loginRedirect({
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+                }
+            })
+        });
+
+        it("navigates if onRedirectNavigate returns true", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    expect(url).to.not.be.null;
+                    done();
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.loginRedirect({
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+
+                    return true
+                }
+            })
+        });
+
         it("exits login function with error if interaction is true", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
             window.location = oldWindowLocation;
@@ -1212,10 +1320,14 @@ describe("UserAgentApplication.ts Class", function () {
 
             setAuthInstanceStubs();
             setTestCacheItems();
+            
+            delete window.location;
+            window.location = {
+                ...oldWindowLocation
+            };
         });
 
         afterEach(function() {
-            window.location.hash = "";
             config = {auth: {clientId: ""}};
             cacheStorage.clear();
             sinon.restore();
@@ -1239,6 +1351,196 @@ describe("UserAgentApplication.ts Class", function () {
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
+        });
+
+        it("tests navigation to loginRequestUrl after first redirect", function(done) {
+            config.auth.navigateToLoginRequestUrl = true;
+            const loginStartPage = "http://localhost:8081/test/"
+            const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.equal(loginStartPage + successHash);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+                href: "http://localhost:8081/"
+            };
+
+            sinon.stub(window, "parent").returns(window);
+
+            window.location.hash = successHash;
+            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+
+            msal = new UserAgentApplication(config);
+        });
+
+        it("tests navigation to loginRequestUrl after first redirect", function(done) {
+            config.auth.navigateToLoginRequestUrl = true;
+            const baseStartUrl = "http://localhost:8081/test/"
+            const loginStartPage = baseStartUrl + "#testHash"
+            const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.equal(baseStartUrl + successHash);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+                href: "http://localhost:8081/"
+            };
+
+            sinon.stub(window, "parent").returns(window);
+
+            window.location.hash = successHash;
+            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+
+            msal = new UserAgentApplication(config);
+        });
+
+        it("tests navigation to loginRequestUrl inc. user querystring after first redirect", function(done) {
+            config.auth.navigateToLoginRequestUrl = true;
+            const baseStartUrl = "http://localhost:8081/test/"
+            const loginStartPage = baseStartUrl + "?testKey=testVal"
+            const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        expect(url).to.equal(loginStartPage + successHash);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+                href: "http://localhost:8081/"
+            };
+
+            sinon.stub(window, "parent").returns(window);
+
+            window.location.hash = successHash;
+            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+
+            msal = new UserAgentApplication(config);
+        });
+
+        it("tests user hash is added back to url on final page and token response is cached", function() {
+            config.auth.navigateToLoginRequestUrl = true;
+            const loginUrl = "http://localhost:8081/test/"
+            const userHash = "#testHash"
+            const loginStartPage = loginUrl + userHash
+            const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+
+            window.location.href = loginUrl;
+
+            sinon.stub(window, "parent").returns(window);
+            sinon.stub(window.location, "href").returns(loginStartPage + successHash)
+
+            window.location.hash = successHash;
+            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+
+            expect(window.location.href).to.equal(loginUrl);
+            expect(window.location.hash).to.equal(successHash);
+            msal = new UserAgentApplication(config);
+            expect(window.location.href).to.equal(loginUrl);
+            expect(window.location.hash).to.equal(userHash);
+            expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
+        });
+
+        it("tests user query string present on final page url and token response is cached", function() {
+            config.auth.navigateToLoginRequestUrl = true;
+            const loginUrl = "http://localhost:8081/test/"
+            const userQueryString = "?testKey=testVal"
+            const loginStartPage = loginUrl + userQueryString;
+            const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+
+            window.location.href = loginStartPage;
+            window.location.search = userQueryString;
+
+            sinon.stub(window, "parent").returns(window);
+            sinon.stub(window.location, "href").returns(loginStartPage + successHash)
+
+            window.location.hash = successHash;
+            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+
+            expect(window.location.href).to.equal(loginStartPage);
+            expect(window.location.hash).to.equal(successHash);
+            expect(window.location.search).to.equal(userQueryString);
+            msal = new UserAgentApplication(config);
+            expect(window.location.href).to.equal(loginStartPage);
+            expect(window.location.hash).to.equal("");
+            expect(window.location.search).to.equal(userQueryString);
+            expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
+        });
+
+        it("tests user hash is added back to url and query string exists on final page url and token response is cached", function() {
+            config.auth.navigateToLoginRequestUrl = true;
+            const loginUrl = "http://localhost:8081/test/"
+            const userQueryString = "?testKey=testVal"
+            const userHash = "#testHash"
+            const loginStartPage = loginUrl + userQueryString + userHash;
+            const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+
+            window.location.href = loginUrl + userQueryString;
+            window.location.search = userQueryString;
+
+            sinon.stub(window, "parent").returns(window);
+            sinon.stub(window.location, "href").returns(loginStartPage + successHash)
+
+            window.location.hash = successHash;
+            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+
+            expect(window.location.href).to.equal(loginUrl + userQueryString);
+            expect(window.location.hash).to.equal(successHash);
+            expect(window.location.search).to.equal(userQueryString);
+            msal = new UserAgentApplication(config);
+            expect(window.location.href).to.equal(loginUrl + userQueryString);
+            expect(window.location.hash).to.equal(userHash);
+            expect(window.location.search).to.equal(userQueryString);
+            expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
+        });
+
+        it("tests navigation to homepage after first redirect if loginStartPage not set", function(done) {
+            config.auth.navigateToLoginRequestUrl = true;
+            const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
+
+            window.location.assign = function (url) {
+                try {
+                    expect(url).to.equal("/");
+                    done();
+                } catch (e) {
+                    console.error(e);
+                }
+            };
+
+            sinon.stub(window, "parent").returns(window);
+
+            window.location.hash = successHash;
+            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+
+            msal = new UserAgentApplication(config);
         });
 
         it("tests saveTokenForHash in case of error", function(done) {
@@ -1736,15 +2038,13 @@ describe("UserAgentApplication.ts Class", function () {
                     ...oldWindowLocation,
                     href: TEST_URIS.TEST_REDIR_URI + "/" + testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
                     hash: testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
-                    assign: function (url) {
-                        const state = UrlUtils.deserializeHash(url).state;
-                        const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state)
-
-                        expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
-                        done();
-                    }   
                 },
                 open: function (url?, target?, features?, replace?): Window {
+                    const state = UrlUtils.deserializeHash(url).state;
+                    const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state)
+    
+                    expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
+                    done();
                     return window
                 },
                 close: function(): void {},

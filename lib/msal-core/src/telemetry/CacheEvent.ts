@@ -21,7 +21,7 @@ export const TOKEN_TYPE_KEY = prependEventNamePrefix("token_type");
 
 export default class CacheEvent extends TelemetryEvent {
     constructor(eventName: string, correlationId: string) {
-        super(eventName, correlationId);
+        super(eventName, correlationId, "CacheEvent");
     }
 
     public set tokenType(tokenType: string) {

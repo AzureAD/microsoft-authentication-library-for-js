@@ -76,6 +76,7 @@ export const TEST_CONFIG = {
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
+    ADFS_VALID_AUTHORITY: "https://on.prem/adfs",
     b2cValidAuthority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
@@ -202,26 +203,21 @@ export const AUTHENTICATION_RESULT = {
 };
 
 export const DEVICE_CODE_RESPONSE = {
-    status: 200,
-    body: {
-        "user_code": "FRWQDE7YL",
-        "device_code": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
-        "verification_uri": "https://microsoft.com/devicelogin",
-        "expires_in": 900,
-        "interval": 5,
-        "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
-    }
+    "userCode": "FRWQDE7YL",
+    "deviceCode": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
+    "verificationUri": "https://microsoft.com/devicelogin",
+    "expiresIn": 900,
+    "interval": 5,
+    "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
 };
 
 export const DEVICE_CODE_EXPIRED_RESPONSE = {
-    body: {
-        "user_code": "FRWQDE7YL",
-        "device_code": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
-        "verification_uri": "https://microsoft.com/devicelogin",
-        "expires_in": 0,
-        "interval": 5,
-        "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
-    }
+    "userCode": "FRWQDE7YL",
+    "deviceCode": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
+    "verificationUri": "https://microsoft.com/devicelogin",
+    "expiresIn": 0,
+    "interval": 5,
+    "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
 };
 
 export const AUTHORIZATION_PENDING_RESPONSE = {

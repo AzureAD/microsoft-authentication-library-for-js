@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { CacheHelpers } from "../cache/CacheHelpers";
@@ -10,11 +11,10 @@ import { ICrypto } from "../crypto/ICrypto";
 import { Account } from "../account/Account";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
-import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
-import { ClientAuthError } from "../error/ClientAuthError";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { B2cAuthority } from "../authority/B2cAuthority";
 import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
 
 /**
@@ -47,7 +47,7 @@ export abstract class BaseClient {
     protected account: Account;
 
     // Default authority object
-    protected defaultAuthorityInstance: Authority;
+    protected defaultAuthority: Authority;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
@@ -71,28 +71,9 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
-        this.defaultAuthorityInstance = AuthorityFactory.createInstance(
-            this.config.authOptions.authority || Constants.DEFAULT_AUTHORITY,
-            this.networkClient
-        );
-    }
+        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
 
-    /**
-     * Create authority instance if not set already, resolve well-known-endpoint
-     * @param authorityString
-     */
-    protected async createAuthority(authorityString: string): Promise<Authority> {
-
-        // TODO expensive to resolve authority endpoints every time.
-        const authority: Authority = authorityString
-            ? AuthorityFactory.createInstance(authorityString, this.networkClient)
-            : this.defaultAuthorityInstance;
-
-        await authority.resolveEndpointsAsync().catch(error => {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
-        });
-
-        return authority;
+        this.defaultAuthority = this.config.authOptions.authority;
     }
 
     /**

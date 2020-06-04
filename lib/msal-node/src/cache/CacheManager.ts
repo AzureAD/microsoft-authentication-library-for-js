@@ -2,7 +2,6 @@ import { Storage } from './Storage';
 import {
     Serializer,
     Deserializer,
-    InMemoryCache,
     JsonCache,
 } from '@azure/msal-common';
 import { ICachePlugin } from './ICachePlugin';

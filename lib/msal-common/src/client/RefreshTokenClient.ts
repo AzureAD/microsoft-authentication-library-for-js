@@ -22,8 +22,7 @@ export class RefreshTokenClient extends BaseClient {
     }
 
     public async acquireToken(request: RefreshTokenRequest): Promise<string>{
-        const authority = await this.createAuthority(request.authority);
-        const response = await this.executeTokenRequest(request, authority);
+        const response = await this.executeTokenRequest(request, this.defaultAuthority);
         // TODO add response_handler here to send the response
         return JSON.stringify(response.body);
     }
@@ -42,7 +41,7 @@ export class RefreshTokenClient extends BaseClient {
 
         const scopeSet = new ScopeSet(request.scopes || [],
             this.config.authOptions.clientId,
-            true);
+            false);
         parameterBuilder.addScopes(scopeSet);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);

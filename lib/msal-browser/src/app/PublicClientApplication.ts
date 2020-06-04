@@ -2,8 +2,25 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Account, SPAClient, AuthenticationParameters, INetworkModule, TokenResponse, UrlString, TemporaryCacheKeys, TokenRenewParameters, StringUtils, PromptValue, ServerError, InteractionRequiredAuthError } from "@azure/msal-common";
-import { Configuration, buildConfiguration } from "../config/Configuration";
+import {
+    Account,
+    AuthenticationParameters,
+    Authority,
+    AuthorityFactory, ClientAuthError,
+    INetworkModule,
+    PromptValue,
+    ServerError,
+    SPAClient,
+    StringUtils,
+    TemporaryCacheKeys,
+    TokenRenewParameters,
+    TokenResponse,
+    UrlString,
+    AuthorityType,
+    B2cAuthority,
+    InteractionRequiredAuthError
+} from "@azure/msal-common";
+import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -22,23 +39,25 @@ import { version } from "../../package.json";
  */
 export class PublicClientApplication {
 
+    // auth functions imported from @azure/msal-common module
+    private readonly authModule: SPAClient;
+
+    // Crypto interface implementation
+    private readonly browserCrypto: CryptoOps;
+
+    // Storage interface implementation
+    private readonly browserStorage: BrowserStorage;
+
+    // Network interface implementation
+    private readonly networkClient: INetworkModule;
+
+    // Response promise
+    private readonly tokenExchangePromise: Promise<TokenResponse>;
+
     // Input configuration by developer/user
     private config: Configuration;
 
-    // auth functions imported from @azure/msal-common module
-    private authModule: SPAClient;
-
-    // Crypto interface implementation
-    private browserCrypto: CryptoOps;
-
-    // Storage interface implementation
-    private browserStorage: BrowserStorage;
-
-    // Network interface implementation
-    private networkClient: INetworkModule;
-
-    // Response promise
-    private tokenExchangePromise: Promise<TokenResponse>;
+    protected defaultAuthorityInstance: Authority;
 
     /**
      * @constructor
@@ -74,9 +93,30 @@ export class PublicClientApplication {
         // Initialize the browser storage class.
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
+        // Initialize default authority instance
+        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities);
+
+        this.defaultAuthorityInstance = AuthorityFactory.createInstance(
+            this.config.auth.authority || "https://login.microsoftonline.com/common",
+            this.config.system.networkClient
+        );
+
+        // This is temporary. Remove when ADFS is supported for browser
+        if(this.defaultAuthorityInstance.authorityType === AuthorityType.Adfs){
+            throw ClientAuthError.createInvalidAuthorityTypeError(this.defaultAuthorityInstance.canonicalAuthority);
+        }
+
         // Create auth module.
         this.authModule = new SPAClient({
-            authOptions: this.config.auth,
+            authOptions: {
+                clientId: this.config.auth.clientId,
+                authority: this.config.auth.authority ?
+                    AuthorityFactory.createInstance(this.config.auth.authority, this.config.system.networkClient) :
+                    this.defaultAuthorityInstance,
+                knownAuthorities: this.config.auth.knownAuthorities,
+                redirectUri: this.config.auth.redirectUri,
+                postLogoutRedirectUri: this.config.auth.postLogoutRedirectUri
+            },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
                 telemetry: this.config.system.telemetry
@@ -132,12 +172,12 @@ export class PublicClientApplication {
     }
 
     /**
-     * Event handler function which allows users to fire events after the PublicClientApplication object 
-     * has loaded during redirect flows. This should be invoked on all page loads involved in redirect 
+     * Event handler function which allows users to fire events after the PublicClientApplication object
+     * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @returns token response or null. If the return value is null, then no auth redirect was detected.
      */
-    async handleRedirectPromise(): Promise<TokenResponse|null> {
+    async handleRedirectPromise(): Promise<TokenResponse | null> {
         return this.tokenExchangePromise;
     }
 
@@ -148,7 +188,7 @@ export class PublicClientApplication {
      */
     private async handleRedirectResponse(): Promise<TokenResponse> {
         // Get current location hash from window or cache.
-        const { location: { hash } } = window;
+        const {location: {hash}} = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
 
@@ -168,7 +208,7 @@ export class PublicClientApplication {
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
             this.browserStorage.setItem(TemporaryCacheKeys.URL_HASH, hash);
-            
+
             if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
                 this.authModule.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
@@ -324,20 +364,20 @@ export class PublicClientApplication {
     // #endregion
 
     // #region Silent Flow
-    
+
     /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
      * - Any browser using a form of Intelligent Tracking Prevention
      * - If there is not an established session with the service
-     * 
-     * In these cases, the request must be done inside a popup or full frame redirect. 
-     * 
+     *
+     * In these cases, the request must be done inside a popup or full frame redirect.
+     *
      * For the cases where interaction is required, you cannot send a request with prompt=none.
-     * 
-     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as 
+     *
+     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
-     * @param {@link AuthenticationParameters} 
-     * 
+     * @param {@link AuthenticationParameters}
+     *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters.
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
@@ -413,9 +453,9 @@ export class PublicClientApplication {
     }
 
     /**
-     * Helper which acquires an authorization code silently using a hidden iframe from given url 
+     * Helper which acquires an authorization code silently using a hidden iframe from given url
      * using the scopes requested as part of the id, and exchanges the code for a set of OAuth tokens.
-     * @param navigateUrl 
+     * @param navigateUrl
      * @param userRequestScopes
      */
     private async silentTokenHelper(navigateUrl: string, userRequestScopes: string): Promise<TokenResponse> {
@@ -428,7 +468,7 @@ export class PublicClientApplication {
             const hash = await silentHandler.monitorFrameForHash(msalFrame, this.config.system.iframeHashTimeout, navigateUrl);
             // Handle response from hash string.
             return await silentHandler.handleCodeResponse(hash);
-        } catch(e) {
+        } catch (e) {
             throw e;
         }
     }

@@ -14,9 +14,6 @@ export const Constants = {
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
-
-    // Device code endpoint path
-    DEVICE_CODE_ENDPOINT_PATH: "oauth2/v2.0/devicecode",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -34,7 +31,6 @@ export const Constants = {
     CODE_GRANT_TYPE: "authorization_code",
     RT_GRANT_TYPE: "refresh_token",
     FRAGMENT_RESPONSE_MODE: "fragment",
-    QUERY_RESPONSE_MODE: "query",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending"
@@ -45,7 +41,7 @@ export const Constants = {
  */
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type"
-};
+}
 
 /**
  * Temporary cache keys for MSAL, deleted after any request.
@@ -61,7 +57,7 @@ export enum TemporaryCacheKeys {
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
-};
+}
 
 /**
  * Persistent cache keys MSAL which stay while user is logged in.
@@ -72,7 +68,7 @@ export enum PersistentCacheKeys {
     ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",
     ERROR_DESC = "error.description"
-};
+}
 
 /**
  * List of pre-established trusted host URLs.
@@ -93,7 +89,7 @@ export enum AADAuthorityConstants {
     COMMON = "common",
     ORGANIZATIONS = "organizations",
     CONSUMERS = "consumers"
-};
+}
 
 /**
  * Keys in the hashParams sent by AAD Server
@@ -129,7 +125,7 @@ export enum AADServerParamKeys {
     X_CLIENT_CPU = "x-client-CPU",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
     DEVICE_CODE = "device_code"
-};
+}
 
 /**
  * IdToken claim string constants
@@ -168,13 +164,13 @@ export enum SSOTypes {
     ACCOUNT = "account",
     SID = "sid",
     LOGIN_HINT = "login_hint",
-    ID_TOKEN ="id_token",
+    ID_TOKEN = "id_token",
     DOMAIN_HINT = "domain_hint",
     ORGANIZATIONS = "organizations",
     CONSUMERS = "consumers",
     ACCOUNT_ID = "accountIdentifier",
     HOMEACCOUNT_ID = "homeAccountIdentifier"
-};
+}
 
 /**
  * Disallowed extra query parameters.
@@ -193,7 +189,9 @@ export const CodeChallengeMethodValues = {
 };
 
 /**
- *
+ * The method used to encode the code verifier for the code challenge parameter. can be one
+ * of plain or s256. if excluded, code challenge is assumed to be plaintext. for more
+ * information, see the pkce rcf: https://tools.ietf.org/html/rfc7636
  */
 export const CodeChallengeMethodValuesArray: string[] = [
     CodeChallengeMethodValues.PLAIN,
@@ -210,6 +208,16 @@ export enum ResponseMode {
 }
 
 /**
+ * Allowed values for prompt
+ */
+export enum Prompt {
+    LOGIN = "login",
+    NONE = "none",
+    CONSENT = "consent",
+    SELECT_ACCOUNT = "select_account"
+}
+
+/**
  * allowed grant_type
  */
 export enum GrantType {
@@ -219,7 +227,7 @@ export enum GrantType {
     RESOURCE_OWNER_PASSWORD_GRANT = "password",
     REFRESH_TOKEN_GRANT = "refresh_token",
     DEVICE_CODE_GRANT = "device_code"
-};
+}
 
 /**
  * Account types in Cache
@@ -228,7 +236,7 @@ export enum CacheAccountType {
     MSSTS_ACCOUNT_TYPE = "MSSTS",
     ADFS_ACCOUNT_TYPE = "ADFS",
     MSAV1_ACCOUNT_TYPE = "MSA",
-    OTHER_ACCOUNT_TYPE = "Other"
+    GENERIC_ACCOUNT_TYPE = "Generic" // NTLM, Kerberos, FBA, Basic etc
 }
 
 /**
@@ -243,28 +251,45 @@ export enum Separators {
  * Credentail Type stored in the cache
  */
 export enum CredentialType {
-    ID_TOKEN = "IdToken",
-    ACCESS_TOKEN = "AccessToken",
-    REFRESH_TOKEN = "RefreshToken"
+    ID_TOKEN = "idtoken",
+    ACCESS_TOKEN = "accesstoken",
+    REFRESH_TOKEN = "refreshtoken",
 }
 
 /**
- * cache Type
+ * Credentail Type stored in the cache
  */
-export enum CacheEntity {
+export enum CacheSchemaType {
     ACCOUNT = "Account",
-    APP_META_DATA = "AppMetaData"
+    CREDENTIAL = "Credential",
+    APP_META_DATA = "AppMetadata"
 }
 
 /**
  * Combine all cache types
  */
-export enum CacheTypes {
-    ACCESS_TOKEN,
-    ID_TOKEN,
-    REFRESH_TOKEN,
-    ACCOUNT,
-    APP_META_DATA
+export enum CacheType {
+    ADFS = 1001,
+    MSA = 1002,
+    MSSTS = 1003,
+    GENERIC = 1004,
+    ACCESS_TOKEN = 2001,
+    REFRESH_TOKEN = 2002,
+    ID_TOKEN = 2003,
+    APP_META_DATA = 3001
+};
+
+/**
+ * accountId: <home_account_id>-<environment>
+ * credentialId: <credential_type>-<client-id>-<realm>
+ */
+export enum CredentialKeyPosition {
+    HOME_ACCOUNT_ID = 0,
+    ENVIRONMENT = 1,
+    CREDENTIAL_TYPE = 2,
+    CLIENT_ID = 3,
+    REALM = 4,
+    TARGET = 5
 };
 
 /**

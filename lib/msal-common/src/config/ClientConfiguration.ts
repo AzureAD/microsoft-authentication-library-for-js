@@ -11,6 +11,7 @@ import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
 import { InMemoryCache } from "../unifiedCache/utils/CacheTypes";
+import { Authority } from "../authority/Authority";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -42,7 +43,7 @@ export type ClientConfiguration = {
  */
 export type AuthOptions = {
     clientId: string;
-    authority?: string;
+    authority?: Authority;
     knownAuthorities?: Array<string>;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
@@ -92,7 +93,7 @@ export type LibraryInfo = {
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
-    authority: "",
+    authority: null,
     knownAuthorities: [],
     redirectUri: "",
     postLogoutRedirectUri: ""
@@ -124,6 +125,10 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
         const notImplErr = "Storage interface - getItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
+    getItemFromMemory: (): object => {
+        const notImplErr = "Storage interface - getItemFromMemory() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
     getKeys: (): string[] => {
         const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
@@ -132,8 +137,16 @@ const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
         const notImplErr = "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
+    removeItemFromMemory: () => {
+        const notImplErr = "Storage interface - removeItemFromMemory() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
     setItem: () => {
         const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    setItemInMemory: () => {
+        const notImplErr = "Storage interface - setItemInMemory() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     },
     getCache: (): InMemoryCache => {
