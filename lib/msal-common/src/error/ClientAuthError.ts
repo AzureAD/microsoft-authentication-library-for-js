@@ -26,10 +26,6 @@ export const ClientAuthErrorMessage = {
         code: "null_or_empty_id_token",
         desc: "The idToken is null or empty. Please review the trace to determine the root cause."
     },
-    tokenRequestCacheError: {
-        code: "token_request_cache_error",
-        desc: "The token request could not be fetched from the cache correctly."
-    },
     endpointResolutionError: {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
@@ -77,7 +73,7 @@ export const ClientAuthErrorMessage = {
     multipleMatchingTokens: {
         code: "multiple_matching_tokens",
         desc: "The cache contains multiple tokens satisfying the requirements. " +
-            "Call AcquireToken again providing more requirements such as authority, resource, or account."
+            "Call AcquireToken again providing more requirements such as authority or account."
     },
     tokenRequestCannotBeMade: {
         code: "request_cannot_be_made",
@@ -155,15 +151,6 @@ export class ClientAuthError extends AuthError {
     static createIdTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyIdToken.code,
             `${ClientAuthErrorMessage.nullOrEmptyIdToken.desc} Raw ID Token Value: ${invalidRawTokenString}`);
-    }
-
-    /**
-     * Creates an error thrown when the token request could not be retrieved from the cache
-     * @param errDetail
-     */
-    static createTokenRequestCacheError(errDetail: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.tokenRequestCacheError.code,
-            `${ClientAuthErrorMessage.tokenRequestCacheError.desc} Error Detail: ${errDetail}`);
     }
 
     /**

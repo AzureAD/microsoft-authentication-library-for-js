@@ -2,16 +2,17 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
+import sinon from "sinon";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, TemporaryCacheKeys, CodeResponse, TokenResponse, Account, InMemoryCache } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, TokenResponse, Account, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
-import sinon from "sinon";
-import { BrowserConstants } from "../../src/utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 const clearFunc = (): void => {
     return;
@@ -36,6 +37,21 @@ const testNetworkResult = {
 
 const testKeySet = ["testKey1", "testKey2"];
 
+const networkInterface = {
+	sendGetRequestAsync<T>(
+		url: string,
+		options?: NetworkRequestOptions
+	): T {
+		return null;
+	},
+	sendPostRequestAsync<T>(
+		url: string,
+		options?: NetworkRequestOptions
+	): T {
+		return null;
+	},
+};
+
 describe("RedirectHandler.ts Unit Tests", () => {
 
     let browserStorage: BrowserStorage;
@@ -46,9 +62,13 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-        const configObj = buildConfiguration(appConfig);
+		const configObj = buildConfiguration(appConfig);
+		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
         const authCodeModule = new SPAClient({
-            authOptions: configObj.auth,
+            authOptions: {
+				...configObj.auth,
+				authority: authorityInstance,
+			},
             systemOptions: {
                 tokenRenewalOffsetSeconds:
                     configObj.system.tokenRenewalOffsetSeconds,
@@ -140,24 +160,49 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", () => {
-            expect(() => redirectHandler.initiateAuthRequest("")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest("")).to.throw(BrowserAuthError);
+			const testTokenReq: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+			};
+            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthError);
 
-            expect(() => redirectHandler.initiateAuthRequest(null)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(null)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq)).to.throw(BrowserAuthError);
         });
 
         it("throws error if we are not in top frame", () => {
+			const testTokenReq: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+			};
+			const browserCrypto = new CryptoOps();
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, browserCrypto)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, browserCrypto)).to.throw(BrowserAuthError);
         });
 
         it("navigates browser window to given window location", () => {
+			const testTokenReq: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+			};
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl) => {
                 expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             });
-            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, new CryptoOps());
             expect(window).to.be.eq(windowObj);
             expect(browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -175,10 +220,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
 
         it("successfully handles response", async () => {
-            const testCodeResponse: CodeResponse = {
-                code: "testAuthCode",
-                userRequestState: `${RANDOM_TEST_GUID}|testState`
-            };
+            const testCodeResponse = "testAuthCode";
             const idTokenClaims = {
                 "ver": "2.0",
                 "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -204,13 +246,20 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 tokenType: "Bearer",
                 uniqueId: idTokenClaims.oid,
                 userRequestState: "testState"
-            };
+			};
+			const browserCrypto = new CryptoOps();
+			const testAuthCodeRequest: AuthorizationCodeRequest = {
+				redirectUri: TEST_URIS.TEST_REDIR_URI,
+				scopes: ["scope1", "scope2"],
+				code: ""
+			};
+			browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
             browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             browserStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
 
-            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, browserCrypto);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.null;
             expect(browserStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
