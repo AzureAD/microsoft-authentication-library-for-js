@@ -12,6 +12,7 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 const clearFunc = (): void => {
     return;
@@ -183,9 +184,10 @@ describe("RedirectHandler.ts Unit Tests", () => {
 				authority: `${Constants.DEFAULT_AUTHORITY}/`,
 				correlationId: RANDOM_TEST_GUID
 			};
+			const browserCrypto = new CryptoOps();
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, browserCrypto)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, browserCrypto)).to.throw(BrowserAuthError);
         });
 
         it("navigates browser window to given window location", () => {
@@ -200,7 +202,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl) => {
                 expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             });
-            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq);
+            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, new CryptoOps());
             expect(window).to.be.eq(windowObj);
             expect(browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -244,13 +246,20 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 tokenType: "Bearer",
                 uniqueId: idTokenClaims.oid,
                 userRequestState: "testState"
-            };
+			};
+			const browserCrypto = new CryptoOps();
+			const testAuthCodeRequest: AuthorizationCodeRequest = {
+				redirectUri: TEST_URIS.TEST_REDIR_URI,
+				scopes: ["scope1", "scope2"],
+				code: ""
+			};
+			browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
             browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             browserStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
 
-            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, browserCrypto);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
             expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.null;
             expect(browserStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;

@@ -6,7 +6,7 @@ import {
     Authority,
     AuthorityFactory,
     AuthorizationCodeClient,
-    AuthorizationCodeUrlRequest,
+    AuthorizationUrlRequest,
     Constants,
     DeviceCodeClient,
     DeviceCodeRequest,
@@ -109,7 +109,7 @@ describe('PublicClientApplication', () => {
     });
 
     test('create AuthorizationCode URL', async () => {
-        const request: AuthorizationCodeUrlRequest = {
+        const request: AuthorizationUrlRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
         };

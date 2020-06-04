@@ -343,7 +343,6 @@ export class BrowserStorage implements ICacheStorage {
         this.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
         const cachedState = this.getItem(TemporaryCacheKeys.REQUEST_STATE);
         this.resetRequestCache(cachedState || "");
-        this.removeItem(TemporaryCacheKeys.REQUEST_STATE);
     }
 
     cacheCodeRequest(authCodeRequest: AuthorizationCodeRequest, browserCrypto: ICrypto): void {
@@ -371,8 +370,8 @@ export class BrowserStorage implements ICacheStorage {
         }
     }
 
-    /**
-     * Dummy implementation for interface compat - will change after BrowserCacheMigration
+    /*
+     *  Dummy implementation for interface compat - will change after BrowserCacheMigration
      * @param key
      * @param value
      * @param type

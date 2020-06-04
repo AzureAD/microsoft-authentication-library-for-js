@@ -84,6 +84,14 @@ export abstract class Authority {
         }
     }
 
+    public get deviceCodeEndpoint(): string {
+        if(this.discoveryComplete()) {
+            return this.tenantDiscoveryResponse.token_endpoint.replace("/token", "/devicecode");
+        } else {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
+        }
+    }
+
     /**
      * OAuth logout endpoint for requests
      */

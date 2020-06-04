@@ -12,7 +12,7 @@ export {
     AuthorizationCodeRequest,
     DeviceCodeRequest,
     RefreshTokenRequest,
-    Prompt,
+    PromptValue,
     ResponseMode,
     // Response
     AuthenticationResult,
