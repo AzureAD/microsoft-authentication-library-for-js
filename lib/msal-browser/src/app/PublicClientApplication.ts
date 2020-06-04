@@ -21,7 +21,9 @@ import {
     IdToken,
     ProtocolUtils,
     AuthorizationCodeRequest,
-    Constants
+    Constants,
+	ClientAuthError,
+	AuthorityType
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -260,6 +262,7 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(request: AuthorizationUrlRequest): void {
+		
         this.loginRedirectAsync(request).catch((err) => {
             throw err;
         });
