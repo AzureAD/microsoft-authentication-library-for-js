@@ -96,9 +96,17 @@ describe("CryptoUtils.ts class", () => {
 
     describe("test the deserializing utility function", () => {
         it('validate the deserializing utility function', () => {
-            const query: string = CryptoUtils.deserialize("id_token=MSAL_TEST_IDTOKEN&access_token=MSAL_TEST_ACCESS_TOKEN");
+            const query = CryptoUtils.deserialize("id_token=MSAL_TEST_IDTOKEN&access_token=MSAL_TEST_ACCESS_TOKEN");
             expect(query.hasOwnProperty("id_token"));
             expect(query.hasOwnProperty("access_token"));
         });
+
+        it('properly decodes query string', () => {
+            const queryString = "access_token=EwBAA8mJBAAUXpgJ5Mc4zm0CiDQiuz7KgzheYxoAAW0EcsQ7kjwYXwNjblrfuVIADaWZyqYqZSwkJtLGqNYx6OYGtZr3Aw8xXTzuJRB%2bt%2bTvcJUzYJ5egaCnhKMLhLc3qUEiP8NlEgzKeta4D71yHuW9Z5LUp7X9NN/hdrnVVbiRfnCXoI70H88kxT4L7G9085D7aBIGDG3cOpaXJLbYwzGnoScxPwaG92nFzIMGrIlQAOt4p0cbu6rrcoWyINHNS14DrniVqD23P7u0yBEbgF9jZQamM/NPZeb2XhdKUjUvKOvEsg55QKsNgzsE2k1l9ot8U5Ox7S79Bpdf0RhH/odRKDBeFfPjmPzsM/fQEqMfd%2bdpSW0obR9GGm6qSdEDZgAACD%2brWZm4XNIHEAJ9WZZ9dfDSHpUZOQ914Z8eMh7ax2OucDCsajQgDUqWbf1lha71%2b/UsXmNDFqct8AdzY%2bzVV0VxdUgKhljwqAbd8sEsQIPU6rJjPBlfoiYXUrcYUhSq0VDzoq%2bmc1Br%2bh/svT7q/kvYNM6XVM4UQIA2pPfRBF4mXGJoQXGdBeGNZgznkJ5Pb9pBa3i3VzHneYF67AeS7gn1zuLx5C3ILXwXNXiFdGRJ4bW3GdvrwQbcowY5P4evoxvthsw7Zew0UqxMYxtAGroqNRX7QgTQeEGSo6Dr3vyeuUWl17AU9UaKuwnnMKTXZzgLY7f16mQEcJVasT/bZ922%2bF4upLoX79X%2bh3zUXMQYAfXQPSbUSBI5gvWJz52SuJky3wbQFpV/MQ3GcMQPyrMk3XRXsINTYxt8UMRm6MTovZsQU0wHPEnTuwaguUrCFbKH5akkh56LPYWGx1I6nGUU5mbZarau7KEqetBhiSbmnsnpjYZej/beIOr4En%2bw4L2okXfmo2O5leWX81UfZx1CcAMexcWwjJ6I2siPn1NauPlOAgG5OJTMeXgZf2FIL6dcRggiLFvf5PjWWDRr6wWkH1Kikusq9nxkQQXWUYEsXQ30OJoHTzvCp8lN2V7PVQEr3fjAVk/2/4QooN%2bSNHyOUfOHsb/suA14o8nVmSLuPLZhEWmFNR%2bLypXJdGpkgg%2bqqW5t2FwvL4c7Ag%3d%3d";
+
+            const parsedQueryString = CryptoUtils.deserialize(queryString);
+
+            expect(parsedQueryString["access_token"]).to.equal("EwBAA8mJBAAUXpgJ5Mc4zm0CiDQiuz7KgzheYxoAAW0EcsQ7kjwYXwNjblrfuVIADaWZyqYqZSwkJtLGqNYx6OYGtZr3Aw8xXTzuJRB+t+TvcJUzYJ5egaCnhKMLhLc3qUEiP8NlEgzKeta4D71yHuW9Z5LUp7X9NN/hdrnVVbiRfnCXoI70H88kxT4L7G9085D7aBIGDG3cOpaXJLbYwzGnoScxPwaG92nFzIMGrIlQAOt4p0cbu6rrcoWyINHNS14DrniVqD23P7u0yBEbgF9jZQamM/NPZeb2XhdKUjUvKOvEsg55QKsNgzsE2k1l9ot8U5Ox7S79Bpdf0RhH/odRKDBeFfPjmPzsM/fQEqMfd+dpSW0obR9GGm6qSdEDZgAACD+rWZm4XNIHEAJ9WZZ9dfDSHpUZOQ914Z8eMh7ax2OucDCsajQgDUqWbf1lha71+/UsXmNDFqct8AdzY+zVV0VxdUgKhljwqAbd8sEsQIPU6rJjPBlfoiYXUrcYUhSq0VDzoq+mc1Br+h/svT7q/kvYNM6XVM4UQIA2pPfRBF4mXGJoQXGdBeGNZgznkJ5Pb9pBa3i3VzHneYF67AeS7gn1zuLx5C3ILXwXNXiFdGRJ4bW3GdvrwQbcowY5P4evoxvthsw7Zew0UqxMYxtAGroqNRX7QgTQeEGSo6Dr3vyeuUWl17AU9UaKuwnnMKTXZzgLY7f16mQEcJVasT/bZ922+F4upLoX79X+h3zUXMQYAfXQPSbUSBI5gvWJz52SuJky3wbQFpV/MQ3GcMQPyrMk3XRXsINTYxt8UMRm6MTovZsQU0wHPEnTuwaguUrCFbKH5akkh56LPYWGx1I6nGUU5mbZarau7KEqetBhiSbmnsnpjYZej/beIOr4En+w4L2okXfmo2O5leWX81UfZx1CcAMexcWwjJ6I2siPn1NauPlOAgG5OJTMeXgZf2FIL6dcRggiLFvf5PjWWDRr6wWkH1Kikusq9nxkQQXWUYEsXQ30OJoHTzvCp8lN2V7PVQEr3fjAVk/2/4QooN+SNHyOUfOHsb/suA14o8nVmSLuPLZhEWmFNR+LypXJdGpkgg+qqW5t2FwvL4c7Ag==");
+        })
     });
 });
