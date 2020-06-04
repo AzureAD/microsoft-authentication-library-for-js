@@ -152,12 +152,13 @@ export class BrowserStorage implements ICacheStorage {
      * Will also clear the cookie item if storeAuthStateInCookie is set to true.
      * @param key
      */
-    removeItem(key: string): void {
+    removeItem(key: string): boolean {
         const msalKey = this.generateCacheKey(key);
         this.windowStorage.removeItem(msalKey);
         if (this.cacheConfig.storeAuthStateInCookie) {
             this.clearItemCookie(msalKey);
         }
+        return true;
     }
 
     /**
@@ -271,4 +272,33 @@ export class BrowserStorage implements ICacheStorage {
     setCache(): void {
         // sets nothing
     }
+
+    /**
+     *  Dummy implementation for interface compat - will change after BrowserCacheMigration
+     * @param key
+     * @param value
+     * @param type
+     */
+    setItemInMemory(key: string, value: object, type?: string): void {
+        if (key && value && type)
+            return;
+    }
+
+    /**
+     *  Dummy implementation for interface compat - will change after BrowserCacheMigration
+     * @param key
+     * @param type
+     */
+    getItemFromMemory(key: string, type?: string): object {
+        return key && type ? {} : {};
+    };
+
+    /**
+     * Dummy implementation for interface compat - will change after BrowserCacheMigration
+     * @param key
+     * @param type
+     */
+    removeItemFromMemory(key: string, type?: string): boolean {
+        return key && type ? true : false;
+    };
 }
