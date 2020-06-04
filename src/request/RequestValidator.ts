@@ -46,7 +46,7 @@ export class RequestValidator {
      * @param codeChallengeMethod
      */
     static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string) : void  {
-        if (!(codeChallenge && codeChallengeMethod)) {
+        if (StringUtils.isEmpty(codeChallenge) || StringUtils.isEmpty(codeChallengeMethod)) {
             throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
         } else {
             this.validateCodeChallengeMethod(codeChallengeMethod);
