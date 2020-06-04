@@ -5,7 +5,6 @@
 
 import { Credential } from "./Credential";
 import { CredentialType } from "../../utils/Constants";
-import { AuthenticationResult } from "../../response/AuthenticationResult";
 
 /**
  * ID_TOKEN Cache
@@ -22,9 +21,10 @@ export class IdTokenEntity extends Credential {
      */
     static createIdTokenEntity(
         homeAccountId: string,
-        authenticationResult: AuthenticationResult,
+        environment: string,
+        idToken: string,
         clientId: string,
-        environment: string
+        tenantId: string
     ): IdTokenEntity {
         const idTokenEntity = new IdTokenEntity();
 
@@ -32,8 +32,8 @@ export class IdTokenEntity extends Credential {
         idTokenEntity.homeAccountId = homeAccountId;
         idTokenEntity.environment = environment;
         idTokenEntity.clientId = clientId;
-        idTokenEntity.secret = authenticationResult.idToken;
-        idTokenEntity.realm = authenticationResult.tenantId;
+        idTokenEntity.secret = idToken;
+        idTokenEntity.realm = tenantId;
 
         return idTokenEntity;
     }
