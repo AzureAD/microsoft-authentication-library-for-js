@@ -301,7 +301,7 @@ export class SPAClient extends BaseClient {
         });
 
         // Clear current account.
-        this.unifiedCacheManager.removeAccount(account);
+        this.unifiedCacheManager.removeAccountContext(account);
         // Get postLogoutRedirectUri.
         let postLogoutRedirectUri = "";
         try {
