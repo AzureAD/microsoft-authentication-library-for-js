@@ -5,7 +5,7 @@
 
 import {
     AuthorizationCodeClient,
-    AuthorizationCodeUrlRequest,
+    AuthorizationUrlRequest,
     AuthorizationCodeRequest,
     ClientConfiguration,
     RefreshTokenClient,
@@ -57,7 +57,7 @@ export abstract class ClientApplication {
      * @param request
      */
     async getAuthCodeUrl(
-        request: AuthorizationCodeUrlRequest
+        request: AuthorizationUrlRequest
     ): Promise<string> {
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority

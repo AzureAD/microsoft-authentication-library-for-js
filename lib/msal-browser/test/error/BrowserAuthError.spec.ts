@@ -244,5 +244,18 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.message).to.include(BrowserAuthErrorMessage.silentPromptValueError.desc);
         expect(err.name).to.equal("BrowserAuthError");
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
+	});
+	
+	it("createTokenRequestCacheError creates a ClientAuthError object", () => {
+        const err: BrowserAuthError = BrowserAuthError.createTokenRequestCacheError("Couldn't parse request from cache");
+
+        expect(err instanceof BrowserAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.tokenRequestCacheError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+        expect(err.name).to.equal("BrowserAuthError");
+        expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
 });

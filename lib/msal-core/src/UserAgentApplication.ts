@@ -377,6 +377,8 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
+        this.logger.verbose("AcquireTokenPopup has been called");
+
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
@@ -385,6 +387,7 @@ export class UserAgentApplication {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
         })
             .then((resp) => {
+                this.logger.verbose("Successfully acquired token");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return resp;
             })
@@ -405,6 +408,7 @@ export class UserAgentApplication {
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
+        this.logger.verbose("AcquireTokenInteractive has been called");
 
         // block the request if made from the hidden iframe
         WindowUtils.blockReloadInHiddenIframes();
@@ -427,7 +431,14 @@ export class UserAgentApplication {
         }
 
         // Get the account object if a session exists
-        const account: Account = (request && request.account && !isLoginCall) ? request.account : this.getAccount();
+        let account: Account;
+        if (request && request.account && !isLoginCall) {
+            account = request.account;
+            this.logger.verbose("Account set from request");
+        } else {
+            account = this.getAccount();
+            this.logger.verbose("Account set from MSAL Cache");
+        }
 
         // If no session exists, prompt the user to login.
         if (!account && !ServerRequestParameters.isSSOParam(request)) {
@@ -437,7 +448,7 @@ export class UserAgentApplication {
 
                 // silent login if ADAL id_token is retrieved successfully - SSO
                 if (adalIdToken && !request.scopes) {
-                    this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken ");
+                    this.logger.info("ADAL's idToken exists. Extracting login information from ADAL's idToken");
                     const tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(request);
 
                     this.silentLogin = true;
@@ -457,11 +468,13 @@ export class UserAgentApplication {
                 }
                 // No ADAL token found, proceed to login
                 else {
+                    this.logger.verbose("Login call but no token found, proceed to login");
                     this.acquireTokenHelper(null, interactionType, isLoginCall, request, resolve, reject);
                 }
             }
             // AcquireToken call, but no account or context given, so throw error
             else {
+                this.logger.verbose("AcquireToken call, no context or account given");
                 this.logger.info("User login is required");
                 const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request.state));
                 this.cacheStorage.resetTempCacheItems(request.state);
@@ -474,6 +487,7 @@ export class UserAgentApplication {
         }
         // User session exists
         else {
+            this.logger.verbose("User session exists, login not required");
             this.acquireTokenHelper(account, interactionType, isLoginCall, request, resolve, reject);
         }
     }
@@ -560,7 +574,7 @@ export class UserAgentApplication {
                 // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
                 if (popUpWindow) {
                     try {
-                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate);
+                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate, this.logger);
 
                         this.handleAuthenticationResponse(hash);
 
@@ -588,8 +602,24 @@ export class UserAgentApplication {
                     }
                 }
             } else {
-                // prompt user for interaction
-                this.navigateWindow(urlNavigate, popUpWindow);
+                // If onRedirectNavigate is implemented, invoke it and provide urlNavigate
+                if (request.onRedirectNavigate) {
+                    this.logger.verbose("Invoking onRedirectNavigate callback");
+
+                    const navigate = request.onRedirectNavigate(urlNavigate);
+
+                    // Returning false from onRedirectNavigate will stop navigation
+                    if (navigate !== false) {
+                        this.logger.verbose("onRedirectNavigate did not return false, navigating");
+                        this.navigateWindow(urlNavigate);
+                    } else {
+                        this.logger.verbose("onRedirectNavigate returned false, stopping navigation");
+                    }
+                } else {
+                    // Otherwise, perform navigation
+                    this.logger.verbose("Navigating window to urlNavigate");
+                    this.navigateWindow(urlNavigate);
+                }
             }
         } catch (err) {
             this.logger.error(err);
@@ -862,7 +892,7 @@ export class UserAgentApplication {
     private async loadIframeTimeout(urlNavigate: string, frameName: string, requestSignature: string): Promise<void> {
         // set iframe session to pending
         const expectedState = window.activeRenewals[requestSignature];
-        this.logger.verbose("Set loading state to pending for: " + requestSignature + ":" + expectedState);
+        this.logger.verbosePii("Set loading state to pending for: " + requestSignature + ":" + expectedState);
         this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.inProgress);
 
         // render the iframe synchronously if app chooses no timeout, else wait for the set timer to expire
@@ -871,7 +901,7 @@ export class UserAgentApplication {
             WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger);
 
         try {
-            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, true);
+            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, this.logger, true);
 
             if (hash) {
                 this.handleAuthenticationResponse(hash);
@@ -1395,7 +1425,7 @@ export class UserAgentApplication {
         WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
-        this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
+        this.logger.verbosePii("Renew token Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
         const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;

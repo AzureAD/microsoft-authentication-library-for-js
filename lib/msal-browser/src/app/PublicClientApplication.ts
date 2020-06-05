@@ -5,11 +5,9 @@
 import {
     Account,
     SPAClient,
-    AuthenticationParameters,
     INetworkModule,
     TokenResponse,
     UrlString,
-    TemporaryCacheKeys,
     TokenRenewParameters,
     StringUtils,
     PromptValue,
@@ -17,9 +15,17 @@ import {
     Authority,
     AuthorityFactory,
     InteractionRequiredAuthError,
-    B2cAuthority
+    B2cAuthority,
+    AuthorizationUrlRequest,
+    PersistentCacheKeys,
+    IdToken,
+    ProtocolUtils,
+    AuthorizationCodeRequest,
+    Constants,
+    ClientAuthError,
+    AuthorityType
 } from "@azure/msal-common";
-import { Configuration, buildConfiguration } from "../config/Configuration";
+import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -27,7 +33,7 @@ import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { AuthCallback } from "../types/AuthCallback";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
@@ -96,9 +102,14 @@ export class PublicClientApplication {
         B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities);
 
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(
-            this.config.auth.authority || "https://login.microsoftonline.com/common",
+            this.config.auth.authority,
             this.config.system.networkClient
         );
+
+        // This is temporary. Remove when ADFS is supported for browser
+        if(this.defaultAuthorityInstance.authorityType === AuthorityType.Adfs){
+            throw ClientAuthError.createInvalidAuthorityTypeError(this.defaultAuthorityInstance.canonicalAuthority);
+        }
 
         // Create auth module.
         this.authModule = new SPAClient({
@@ -229,68 +240,81 @@ export class PublicClientApplication {
     }
 
     /**
-     * Checks if hash exists and handles in window. Otherwise, cancel any current requests and continue.
-     * @param responseHash
-     * @param interactionHandler
-     */
+	 * Checks if hash exists and handles in window. Otherwise, cancel any current requests and continue.
+	 * @param responseHash
+	 * @param interactionHandler
+	 */
     private async handleHash(responseHash: string): Promise<TokenResponse> {
         const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
         if (!StringUtils.isEmpty(responseHash)) {
             // Hash contains known properties - handle and return in callback
-            return interactionHandler.handleCodeResponse(responseHash);
+            return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
         }
 
         // There is no hash - assume we are in clean state and clear any current request data.
-        this.cleanRequest();
+        this.browserStorage.cleanRequest();
         return null;
     }
 
     /**
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
      * any code that follows this function will not execute.
+	 * 
+	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+	 * 
      * @param {@link (AuthenticationParameters:type)}
      */
-    loginRedirect(request: AuthenticationParameters): void {
+    async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
         // Preflight request
-        this.preflightRequest();
-
         try {
+            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
+
+            // Create auth code request and generate PKCE params
+            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
+
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
 
-            // Create login url, which will by default append the client id scope to the call.
-            this.authModule.createLoginUrl(request).then((navigateUrl: string) => {
-                // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-                interactionHandler.initiateAuthRequest(navigateUrl);
-            });
+            // Create login url.
+            const navigateUrl = await this.authModule.createLoginUrl(validRequest);
+
+            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
+            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.browserCrypto);
         } catch (e) {
-            this.cleanRequest();
+            this.browserStorage.cleanRequest();
             throw e;
         }
     }
-
+	
     /**
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
-     * the page, so any code that follows this function will not execute.
+     * the page, so any code that follows this function will not execute. 
+	 * 
+	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      * @param {@link (AuthenticationParameters:type)}
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    acquireTokenRedirect(request: AuthenticationParameters): void {
-        // Preflight request
-        this.preflightRequest();
-
+    async acquireTokenRedirect(request: AuthorizationUrlRequest): Promise<void> {
         try {
+            // Preflight request
+            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
+
+            // Create auth code request and generate PKCE params
+            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
+
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
 
             // Create acquire token url.
-            this.authModule.createAcquireTokenUrl(request).then((navigateUrl: string) => {
-                // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-                interactionHandler.initiateAuthRequest(navigateUrl);
-            });
+            const navigateUrl = await this.authModule.createAcquireTokenUrl(validRequest);
+
+            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
+            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.browserCrypto);
         } catch (e) {
-            this.cleanRequest();
+            this.browserStorage.cleanRequest();
             throw e;
         }
     }
@@ -306,15 +330,23 @@ export class PublicClientApplication {
      *
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async loginPopup(request: AuthenticationParameters): Promise<TokenResponse> {
-        // Preflight request
-        this.preflightRequest();
+    async loginPopup(request: AuthorizationUrlRequest): Promise<TokenResponse> {
+        try {
+            // Preflight request
+            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
 
-        // Create login url, which will by default append the client id scope to the call.
-        const navigateUrl = await this.authModule.createLoginUrl(request);
+            // Create auth code request and generate PKCE params
+            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
 
-        // Acquire token with popup
-        return this.popupTokenHelper(navigateUrl);
+            // Create login url, which will by default append the client id scope to the call.
+            const navigateUrl = await this.authModule.createLoginUrl(validRequest);
+
+            // Acquire token with popup
+            return await this.popupTokenHelper(navigateUrl, authCodeRequest);
+        } catch (e) {
+            this.browserStorage.cleanRequest();
+            throw e;
+        }
     }
 
     /**
@@ -324,35 +356,38 @@ export class PublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse> {
-        // Preflight request
-        this.preflightRequest();
+    async acquireTokenPopup(request: AuthorizationUrlRequest): Promise<TokenResponse> {
+        try {
+            // Preflight request
+            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
 
-        // Create acquire token url.
-        const navigateUrl = await this.authModule.createAcquireTokenUrl(request);
+            // Create auth code request and generate PKCE params
+            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
 
-        // Acquire token with popup
-        return this.popupTokenHelper(navigateUrl);
+            // Create acquire token url.
+            const navigateUrl = await this.authModule.createAcquireTokenUrl(validRequest);
+
+            // Acquire token with popup
+            return await this.popupTokenHelper(navigateUrl, authCodeRequest);
+        } catch (e) {
+            this.browserStorage.cleanRequest();
+            throw e;
+        }
     }
 
     /**
      * Helper which acquires an authorization code with a popup from given url, and exchanges the code for a set of OAuth tokens.
      * @param navigateUrl
      */
-    private async popupTokenHelper(navigateUrl: string): Promise<TokenResponse> {
-        try {
-            // Create popup interaction handler.
-            const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
-            // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl);
-            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
-            // Handle response from hash string.
-            return await interactionHandler.handleCodeResponse(hash);
-        } catch (e) {
-            this.cleanRequest();
-            throw e;
-        }
+    private async popupTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest): Promise<TokenResponse> {
+        // Create popup interaction handler.
+        const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
+        // Show the UI once the url has been created. Get the window handle for the popup.
+        const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
+        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
+        // Handle response from hash string.
+        return await interactionHandler.handleCodeResponse(hash);
     }
 
     // #endregion
@@ -375,12 +410,12 @@ export class PublicClientApplication {
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters.
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async ssoSilent(request: AuthenticationParameters): Promise<TokenResponse> {
+    async ssoSilent(request: AuthorizationUrlRequest): Promise<TokenResponse> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Check that we have some SSO data
-        if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && !request.account) {
+        if (StringUtils.isEmpty(request.loginHint)) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
         }
 
@@ -390,10 +425,13 @@ export class PublicClientApplication {
         }
 
         // Create silent request
-        const silentRequest: AuthenticationParameters = {
+        const silentRequest: AuthorizationUrlRequest = this.initializeRequest({
             ...request,
             prompt: PromptValue.NONE
-        };
+        });
+
+        // Create auth code request and generate PKCE params
+        const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentRequest);
 
         // Get scopeString for iframe ID
         const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
@@ -401,7 +439,7 @@ export class PublicClientApplication {
         // Create authorize request url
         const navigateUrl = await this.authModule.createLoginUrl(silentRequest);
 
-        return this.silentTokenHelper(navigateUrl, scopeString);
+        return this.silentTokenHelper(navigateUrl, authCodeRequest, scopeString);
     }
 
     /**
@@ -420,26 +458,35 @@ export class PublicClientApplication {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
+        const tokenRequest: AuthorizationUrlRequest = {
+            ...silentRequest,
+            redirectUri: "",
+            scopes: silentRequest.scopes || []
+        };
+
         try {
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await this.authModule.getValidToken(silentRequest);
+            return await this.authModule.getValidToken(tokenRequest, silentRequest.account, silentRequest.forceRefresh);
         } catch (e) {
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                const tokenRequest: AuthenticationParameters = {
-                    ...silentRequest,
+                const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeRequest({
+                    ...tokenRequest,
                     prompt: PromptValue.NONE
-                };
+                });
+
+                // Create auth code request and generate PKCE params
+                const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentAuthUrlRequest);
 
                 // Create authorize request url
-                const navigateUrl = await this.authModule.createAcquireTokenUrl(tokenRequest);
+                const navigateUrl = await this.authModule.createAcquireTokenUrl(silentAuthUrlRequest);
 
                 // Get scopeString for iframe ID
                 const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
 
-                return this.silentTokenHelper(navigateUrl, scopeString);
+                return this.silentTokenHelper(navigateUrl, authCodeRequest, scopeString);
             }
 
             throw e;
@@ -452,12 +499,12 @@ export class PublicClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, userRequestScopes: string): Promise<TokenResponse> {
+    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, userRequestScopes: string): Promise<TokenResponse> {
         try {
             // Create silent handler
             const silentHandler = new SilentHandler(this.authModule, this.browserStorage, this.config.system.loadFrameTimeout);
             // Get the frame handle for the silent request
-            const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, userRequestScopes);
+            const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest, userRequestScopes);
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await silentHandler.monitorFrameForHash(msalFrame, this.config.system.iframeHashTimeout, navigateUrl);
             // Handle response from hash string.
@@ -532,7 +579,7 @@ export class PublicClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    private preflightRequest(): void {
+    private preflightRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {       
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -540,15 +587,63 @@ export class PublicClientApplication {
         if (this.interactionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
+
+        return this.initializeRequest(request);
     }
 
     /**
-     * Helper to remove interaction status and remove tempoarary request data.
+     * Helper to initialize required request parameters.
+     * @param request 
      */
-    private cleanRequest(): void {
-        // Interaction is completed - remove interaction status.
-        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
-        this.authModule.cancelRequest();
+    private initializeRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+        const validatedRequest: AuthorizationUrlRequest = {
+            ...request
+        };
+        
+        const cachedAccount = this.getAccount();
+        // Check for ADAL SSO
+        if (StringUtils.isEmpty(validatedRequest.loginHint) && !cachedAccount) {
+            // Only check for adal token if no SSO params are being used
+            const adalIdTokenString = this.browserStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+            if (!StringUtils.isEmpty(adalIdTokenString)) {
+                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
+                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+                if (adalIdToken.claims && adalIdToken.claims.upn) {
+                    validatedRequest.loginHint = adalIdToken.claims.upn;
+                }
+            }
+        }
+
+        validatedRequest.state = ProtocolUtils.setRequestState(
+            (request && request.state) || "",
+            this.browserCrypto.createNewGuid()
+        );
+
+        validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+        validatedRequest.authority = (request && request.authority) || this.defaultAuthorityInstance.canonicalAuthority;
+
+        if (StringUtils.isEmpty(validatedRequest.nonce)) {
+            validatedRequest.nonce = this.browserCrypto.createNewGuid();
+        }
+
+        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
+
+        return validatedRequest;
+    }
+
+    private async generateAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
+        const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
+
+        const authCodeRequest: AuthorizationCodeRequest = {
+            ...request,
+            code: "",
+            codeVerifier: generatedPkceParams.verifier
+        };
+
+        request.codeChallenge = generatedPkceParams.challenge;
+        request.codeChallengeMethod = Constants.S256_CODE_CHALLENGE_METHOD;
+
+        return authCodeRequest;
     }
 
     // #endregion
