@@ -608,9 +608,24 @@ export class UserAgentApplication {
                     }
                 }
             } else {
-                // prompt user for interaction
-                this.logger.verbose("Interaction type is redirect. Redirecting");
-                this.navigateWindow(urlNavigate, popUpWindow);
+                // If onRedirectNavigate is implemented, invoke it and provide urlNavigate	                // prompt user for interaction
+                if (request.onRedirectNavigate) {	                this.logger.verbose("Interaction type is redirect. Redirecting");
+                    this.logger.verbose("Invoking onRedirectNavigate callback");	                this.navigateWindow(urlNavigate, popUpWindow);
+
+                    const navigate = request.onRedirectNavigate(urlNavigate);	
+
+                    // Returning false from onRedirectNavigate will stop navigation	
+                    if (navigate !== false) {	
+                        this.logger.verbose("onRedirectNavigate did not return false, navigating");	
+                        this.navigateWindow(urlNavigate);	
+                    } else {	
+                        this.logger.verbose("onRedirectNavigate returned false, stopping navigation");	
+                    }	
+                } else {	
+                    // Otherwise, perform navigation	
+                    this.logger.verbose("Navigating window to urlNavigate");	
+                    this.navigateWindow(urlNavigate);	
+                }
             }
         } catch (err) {
             this.logger.error(err);
@@ -883,7 +898,7 @@ export class UserAgentApplication {
     private async loadIframeTimeout(urlNavigate: string, frameName: string, requestSignature: string): Promise<void> {
         // set iframe session to pending
         const expectedState = window.activeRenewals[requestSignature];
-        this.logger.verbose("Set loading state to pending for: " + requestSignature + ":" + expectedState);
+        this.logger.verbosePii("Set loading state to pending for: " + requestSignature + ":" + expectedState);
         this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.inProgress);
 
         // render the iframe synchronously if app chooses no timeout, else wait for the set timer to expire
@@ -892,7 +907,7 @@ export class UserAgentApplication {
             WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger);
 
         try {
-            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, true);
+            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, this.logger, true);
 
             if (hash) {
                 this.handleAuthenticationResponse(hash);
@@ -900,7 +915,7 @@ export class UserAgentApplication {
         } catch (error) {
             if (this.cacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`) === Constants.inProgress) {
                 // fail the iframe session if it's in pending state
-                this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope/authority " + requestSignature + ":" + expectedState);
+                this.logger.verbosePii("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope/authority " + requestSignature + ":" + expectedState);
                 // Error after timeout
                 if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
                     window.callbackMappedToRenewStates[expectedState](null, error);
