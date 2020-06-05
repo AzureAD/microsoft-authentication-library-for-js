@@ -153,12 +153,11 @@ export class CryptoUtils {
         let match: Array<string>; // Regex for replacing addition symbol with a space
         const pl = /\+/g;
         const search = /([^&=]+)=([^&]*)/g;
-        const decode = (s: string) => decodeURIComponent(s.replace(pl, " "));
+        const decode = (s: string) => decodeURIComponent(decodeURIComponent(s.replace(pl, " "))); // Some values (e.g. state) may need to be decoded twice
         const obj: {} = {};
         match = search.exec(query);
         while (match) {
-            // Some values (e.g. state) may need to be decoded twice
-            obj[decode(match[1])] = decode(decode(match[2]));
+            obj[decode(match[1])] = decode(match[2]);
             match = search.exec(query);
         }
         return obj;

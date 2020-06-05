@@ -100,9 +100,7 @@ export class ResponseHandler {
     /**
      * Returns a constructed token response based on given string. Also manages the cache updates and cleanups.
      * @param serverTokenResponse
-     * @param authorityString
-     * @param resource
-     * @param state
+     * @param authority
      */
     generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
 
@@ -118,6 +116,7 @@ export class ResponseHandler {
         const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
 
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
+
         const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,

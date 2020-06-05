@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AuthResponse } from "./AuthResponse";
 import { Account } from "../account/Account";
 import { StringDict } from "../utils/MsalTypes";
 
@@ -18,7 +17,7 @@ import { StringDict } from "../utils/MsalTypes";
  * - expiresOn: expiration of access token or id token (depends on token type)
  * - account: logged in account object
  */
-export type TokenResponse = AuthResponse & {
+export type TokenResponse = {
     uniqueId: string;
     tenantId: string;
     scopes: Array<string>;
@@ -29,4 +28,5 @@ export type TokenResponse = AuthResponse & {
     refreshToken: string;
     expiresOn: Date;
     account: Account;
+    userRequestState: string;
 };

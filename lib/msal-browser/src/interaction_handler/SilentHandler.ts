@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, SPAClient, StringUtils } from "@azure/msal-common";
+import { UrlString, SPAClient, StringUtils, AuthorizationCodeRequest } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -21,12 +21,14 @@ export class SilentHandler extends InteractionHandler {
      * @param urlNavigate 
      * @param userRequestScopes
      */
-    async initiateAuthRequest(requestUrl: string, userRequestScopes?: string): Promise<HTMLIFrameElement> {
+    async initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, userRequestScopes?: string): Promise<HTMLIFrameElement> {
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
+        // Save auth code request
+        this.authCodeRequest = authCodeRequest;
         const frameName = userRequestScopes ? `msalTokenFrame${userRequestScopes}` : "msalTokenFrame";
         return this.loadFrameTimeout ? await this.loadFrame(requestUrl, frameName) : this.loadFrameSync(requestUrl, frameName);
     }

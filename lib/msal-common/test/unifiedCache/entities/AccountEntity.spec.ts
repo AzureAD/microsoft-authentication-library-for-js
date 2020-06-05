@@ -71,7 +71,9 @@ describe("AccountEntity.ts Unit Tests", () => {
         const authority =  AuthorityFactory.createInstance(
             Constants.DEFAULT_AUTHORITY,
             networkInterface
-        );
+		);
+		
+		const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const acc = AccountEntity.createAccount(
             "uid.utid",
