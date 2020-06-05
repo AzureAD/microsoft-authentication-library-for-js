@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <thread>
 
 #include <windows.h>
 #include <wincred.h>
@@ -13,7 +14,7 @@
 #include <Wincrypt.h>
 #include <Knownfolders.h>
 #include <shlobj_core.h>
-
+#include <process.h>
 #include "credentials.h"
 
 namespace keytar {
@@ -122,26 +123,13 @@ std::string getErrorMessage(DWORD errorCode) {
   return errMsg;
 }
 
-std::string GetMSALCacheFilePath() {
-  // Get the correct file path to the MSAL cache
-  PWSTR dir;
-  SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &dir);
-
-  auto msal_cache_filename = wideCharToAnsi(dir);
-  LocalFree(dir);
-
-  msal_cache_filename.append("\\");
-  msal_cache_filename.append("msal_cache.dat");
-
-  return msal_cache_filename;
-}
-
-
 KEYTAR_OP_RESULT SetPassword(const std::string& service,
-                 const std::string& account,
+                 const std::string& msal_cache_filename,
                  const std::string& password,
                  std::string* errStr) {
-
+  // std::cout << "Keytar SetPassword Process Id: " << _getpid()  << std::endl;
+  // std::cout << "Keytar GetPassword thread Id: " << std::this_thread::get_id() << std::endl;
+   // Code here to create and/or access the file
   DWORD size = password.size();
   BYTE *contents = (BYTE *) password.data();
   DATA_BLOB in_data_blob = { size, contents};
@@ -158,8 +146,6 @@ KEYTAR_OP_RESULT SetPassword(const std::string& service,
     &out_data_blob
   );
 
-  auto msal_cache_filename = GetMSALCacheFilePath();
-
   std::ofstream file;
   file.open(msal_cache_filename, std::ios::out|std::ios::binary);
   file.write((char *)out_data_blob.pbData, out_data_blob.cbData);
@@ -169,11 +155,14 @@ KEYTAR_OP_RESULT SetPassword(const std::string& service,
 }
 
 KEYTAR_OP_RESULT GetPassword(const std::string& service,
-                 const std::string& account,
+                 const std::string& msal_cache_filename,
                  std::string* password,
                  std::string* errStr) {
-  auto msal_cache_filename = GetMSALCacheFilePath();
   std::ifstream file (msal_cache_filename, std::ios::in|std::ios::binary|std::ios::ate);
+
+  // std::cout << "Keytar GetPassword Process Id: " <<  _getpid() << std::endl;
+  // std::cout << "Keytar GetPassword thread Id: " << std::this_thread::get_id() << std::endl;
+
   if (file.is_open()) {
     std::streampos size = file.tellg();
     file.seekg(0, std::ios::beg);
@@ -196,8 +185,10 @@ KEYTAR_OP_RESULT GetPassword(const std::string& service,
       &out_data_blob
     );
 
+    // std::cout << "Made it here" << std::endl;
     *password = std::string(reinterpret_cast<char*>(out_data_blob.pbData),
                              out_data_blob.cbData);
+    // std::cout << "Made it here" << std::endl;
   }
 
   return SUCCESS;

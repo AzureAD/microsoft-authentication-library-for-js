@@ -3,7 +3,7 @@
   "typings": "keytar.d.ts",
   "name": "msal-keytar",
   "description": "Bindings to native Mac/Linux/Windows password APIs",
-  "version": "5.4.0",
+  "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
