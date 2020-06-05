@@ -15,6 +15,9 @@ const defaultSerializedCache: JsonCache = {
     AppMetadata: {},
 };
 
+/**
+ *
+ */
 export class CacheManager {
 
     private storage: Storage;
@@ -65,7 +68,6 @@ export class CacheManager {
      * Serializes cache into JSON and calls ICachePlugin.writeToStorage. ICachePlugin must be set on ClientApplication
      */
     async writeToPersistence(): Promise<void> {
-        console.log("writing to persistence");
         if (this.persistence) {
 
             this.cacheSnapshot = await this.persistence.readFromStorage();
@@ -86,7 +88,6 @@ export class CacheManager {
      * ICachePlugin must be set on ClientApplication.
      */
     async readFromPersistence(): Promise<void> {
-        console.log("reading from persistence");
         if (this.persistence) {
             this.cacheSnapshot = await this.persistence.readFromStorage();
             const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(this.cacheSnapshot)));
@@ -128,7 +129,7 @@ export class CacheManager {
                     oldState[newKey] = newValue;
                 }
             } else {
-                // merge oldState and newState
+                // both oldState and newState contain the key, do deep update
                 let newValueNotNull = newValue !== null;
                 let newValueIsObject = typeof newValue === 'object';
                 let newValueIsNotArray = !Array.isArray(newValue);
