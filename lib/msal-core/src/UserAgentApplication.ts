@@ -32,12 +32,11 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
-import ApiEvent, { API_CODE, API_EVENT_IDENTIFIER } from "./telemetry/ApiEvent";
+import ApiEvent, { API_EVENT_IDENTIFIER } from "./telemetry/ApiEvent";
 
 import { Constants,
     ServerHashParamKeys,
     InteractionType,
-    libraryVersion,
     TemporaryCacheKeys,
     PersistentCacheKeys,
     ErrorCacheKeys,
@@ -286,11 +285,11 @@ export class UserAgentApplication {
      * Public API to verify if the URL contains the hash with known properties
      * @param hash
      */
-    public urlContainsHash(hash: string) {
+    public urlContainsHash(hash: string): boolean {
         return UrlUtils.urlContainsHash(hash);
     }
 
-    private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
+    private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: Function) : void {
         if (interactionType === Constants.interactionTypeRedirect) {
             if (this.errorReceivedCallback) {
                 this.tokenReceivedCallback(response);
@@ -304,7 +303,7 @@ export class UserAgentApplication {
         }
     }
 
-    private authErrorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: any) : void {
+    private authErrorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: Function) : void {
         // set interaction_status to complete
         this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         if (interactionType === Constants.interactionTypeRedirect) {
@@ -350,19 +349,19 @@ export class UserAgentApplication {
      *
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
+    loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse|void> { // TODO: Determine if changing return type to include void is okay 
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup);
 
-        return new Promise<AuthResponse>((resolve, reject) => {
+        return new Promise<AuthResponse>((resolve, reject): void => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
         })
-            .then((resp) => {
+            .then((resp: AuthResponse): AuthResponse => {
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return resp;
             })
-            .catch((error: AuthError) => {
+            .catch((error: AuthError): void => {
                 this.cacheStorage.resetTempCacheItems(request.state);
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
                 throw error;
@@ -376,22 +375,22 @@ export class UserAgentApplication {
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
+    acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse|void> { // TODO: Determine if changing return type to include void is okay 
         this.logger.verbose("AcquireTokenPopup has been called");
 
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
 
-        return new Promise<AuthResponse>((resolve, reject) => {
+        return new Promise<AuthResponse>((resolve, reject): void => {
             this.acquireTokenInteractive(Constants.interactionTypePopup, false, request, resolve, reject);
         })
-            .then((resp) => {
+            .then((resp: AuthResponse): AuthResponse => {
                 this.logger.verbose("Successfully acquired token");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return resp;
             })
-            .catch((error: AuthError) => {
+            .catch((error: AuthError): void => {
                 this.cacheStorage.resetTempCacheItems(request.state);
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
                 throw error;
@@ -407,7 +406,7 @@ export class UserAgentApplication {
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
+    private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: Function, reject?: Function): void {
         this.logger.verbose("AcquireTokenInteractive has been called");
 
         // block the request if made from the hidden iframe
@@ -452,13 +451,13 @@ export class UserAgentApplication {
                     const tokenRequest: AuthenticationParameters = this.buildIDTokenRequest(request);
 
                     this.silentLogin = true;
-                    this.acquireTokenSilent(tokenRequest).then(response => {
+                    this.acquireTokenSilent(tokenRequest).then((response: AuthResponse): void => {
                         this.silentLogin = false;
                         this.logger.info("Unified cache call is successful");
 
                         this.authResponseHandler(interactionType, response, resolve);
                         return;
-                    }, (error) => {
+                    }, (error: AuthError): void => {
                         this.silentLogin = false;
                         this.logger.error("Error occurred during unified cache ATS: " + error);
 
@@ -498,7 +497,7 @@ export class UserAgentApplication {
      * Helper function to acquireToken
      *
      */
-    private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
+    private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: Function, reject?: Function): Promise<void> {
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
@@ -635,7 +634,7 @@ export class UserAgentApplication {
      * API interfacing idToken request when applications already have a session/hint acquired by authorization client applications
      * @param request
      */
-    ssoSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+    ssoSilent(request: AuthenticationParameters): Promise<AuthResponse|void> { // TODO:  Determine if changing return type to include void is okay 
         // throw an error on an empty request
         if (!request) {
             throw ClientConfigurationError.createEmptyRequestError();
@@ -664,7 +663,7 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
+    acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse|void> { // TODO: Determine if changing return type to include void is okay 
         this.logger.verbose("AcquireTokenSilent has been called");
 
         // validate the request
@@ -672,7 +671,7 @@ export class UserAgentApplication {
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent);
         const requestSignature = RequestUtils.createRequestSignature(request);
 
-        return new Promise<AuthResponse>(async (resolve, reject) => {
+        return new Promise<AuthResponse|void>(async (resolve, reject): Promise<void> => {
 
             // block the request if made from the hidden iframe
             WindowUtils.blockReloadInHiddenIframes();
@@ -817,12 +816,12 @@ export class UserAgentApplication {
                 }
             }
         })
-            .then(res => {
+            .then((res: AuthResponse): AuthResponse => {
                 this.logger.verbose("Successfully acquired token");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return res;
             })
-            .catch((error: AuthError) => {
+            .catch((error: AuthError): void => {
                 this.cacheStorage.resetTempCacheItems(request.state);
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, false, error.errorCode);
                 throw error;
@@ -845,7 +844,7 @@ export class UserAgentApplication {
      * @ignore
      * @hidden
      */
-    private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number) {
+    private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number): Window {
         try {
             /**
              * adding winLeft and winTop to account for dual monitor
@@ -932,7 +931,7 @@ export class UserAgentApplication {
      * Used to redirect the browser to the STS authorization endpoint
      * @param {string} urlNavigate - URL of the authorization endpoint
      */
-    private navigateWindow(urlNavigate: string, popupWindow?: Window) {
+    private navigateWindow(urlNavigate: string, popupWindow?: Window): void {
         // Navigate if valid URL
         if (urlNavigate && !StringUtils.isEmpty(urlNavigate)) {
             const navigateWindow: Window = popupWindow ? popupWindow : window;
@@ -968,7 +967,7 @@ export class UserAgentApplication {
 
         // Store the server response in the current window??
         if (!window.callbackMappedToRenewStates[expectedState]) {
-            window.callbackMappedToRenewStates[expectedState] = (response: AuthResponse, error: AuthError) => {
+            window.callbackMappedToRenewStates[expectedState] = (response: AuthResponse, error: AuthError): void => {
                 // reset active renewals
                 window.activeRenewals[requestSignature] = null;
 
@@ -1065,7 +1064,7 @@ export class UserAgentApplication {
      *
      * @param accessToken
      */
-    protected clearCacheForScope(accessToken: string) {
+    protected clearCacheForScope(accessToken: string): void {
         const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
         for (let i = 0; i < accessTokenItems.length; i++) {
             const token = accessTokenItems[i];
@@ -1222,11 +1221,13 @@ export class UserAgentApplication {
             throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
         }
         if (parameters.hasOwnProperty(ServerHashParamKeys.STATE)) {
-            const parsedState = RequestUtils.parseLibraryState(parameters.state);
+
+            const parameterState = parameters["state"] || ""; // TODO: Functional change to check if parameter object has state. Should be tested before pushing
+            const parsedState = RequestUtils.parseLibraryState(parameterState);
 
             stateResponse = {
                 requestType: Constants.unknown,
-                state: parameters.state,
+                state: parameterState,
                 timestamp: parsedState.ts,
                 method: parsedState.method,
                 stateMatch: false
@@ -1391,7 +1392,7 @@ export class UserAgentApplication {
     private getUniqueAuthority(accessTokenCacheItems: Array<AccessTokenCacheItem>, property: string): Array<string> {
         const authorityList: Array<string> = [];
         const flags: Array<string> = [];
-        accessTokenCacheItems.forEach(element => {
+        accessTokenCacheItems.forEach((element): void => {
             if (element.key.hasOwnProperty(property) && (flags.indexOf(element.key[property]) === -1)) {
                 flags.push(element.key[property]);
                 authorityList.push(element.key[property]);
@@ -1405,7 +1406,7 @@ export class UserAgentApplication {
      * Check if ADAL id_token exists and return if exists.
      *
      */
-    private extractADALIdToken(): any {
+    private extractADALIdToken(): object|null {
         const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
         if (!StringUtils.isEmpty(adalIdToken)) {
             return TokenUtils.extractIdToken(adalIdToken);
@@ -1434,7 +1435,7 @@ export class UserAgentApplication {
         window.requestType = Constants.renewToken;
         this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
-        this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
+        this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch((error): void => reject(error));
     }
 
     /**
@@ -1466,7 +1467,7 @@ export class UserAgentApplication {
         // note: scope here is clientId
         this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
         this.logger.infoPii("Navigate to:" + urlNavigate);
-        this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
+        this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch((error): void => reject(error));
     }
 
     /**
@@ -1482,7 +1483,7 @@ export class UserAgentApplication {
      * @private
      */
     /* tslint:disable:no-string-literal */
-    private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): AuthResponse {
+    private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): AuthResponse { // TODO: Make a type for hashParams
         let scope: string;
         const accessTokenResponse = { ...response };
         const clientObj: ClientInfo = new ClientInfo(clientInfo);
@@ -1599,10 +1600,9 @@ export class UserAgentApplication {
                 acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(accountId, stateInfo.state);
             }
 
-            const {
-                [ServerHashParamKeys.ERROR]: hashErr,
-                [ServerHashParamKeys.ERROR_DESCRIPTION]: hashErrDesc
-            } = hashParams;
+            const hashErr = hashParams[ServerHashParamKeys.ERROR] || ""; // TODO: Test refactor change
+            const hashErrDesc = hashParams[ServerHashParamKeys.ERROR_DESCRIPTION] || "";
+            
             if (InteractionRequiredAuthError.isInteractionRequiredError(hashErr) ||
         InteractionRequiredAuthError.isInteractionRequiredError(hashErrDesc)) {
                 error = new InteractionRequiredAuthError(hashParams[ServerHashParamKeys.ERROR], hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
@@ -1821,7 +1821,7 @@ export class UserAgentApplication {
      * @returns {string} scope.
      * @ignore
      */
-    getAccountState (state: string) {
+    getAccountState (state: string): string {
         if (state) {
             const splitIndex = state.indexOf(Constants.resourceDelimiter);
             if (splitIndex > -1 && splitIndex + 1 < state.length) {
@@ -1885,7 +1885,7 @@ export class UserAgentApplication {
      * @param eventName
      * @param data
      */
-    private broadcast(eventName: string, data: string) {
+    private broadcast(eventName: string, data: string): void {
         const evt = new CustomEvent(eventName, { detail: data });
         window.dispatchEvent(evt);
     }
@@ -1988,7 +1988,7 @@ export class UserAgentApplication {
      *
      * @param loginInProgress
      */
-    protected setInteractionInProgress(inProgress: boolean) {
+    protected setInteractionInProgress(inProgress: boolean): void {
         if (inProgress) {
             this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         } else {
@@ -2002,7 +2002,7 @@ export class UserAgentApplication {
      *
      * @param loginInProgress
      */
-    protected setloginInProgress(loginInProgress : boolean) {
+    protected setloginInProgress(loginInProgress : boolean): void {
         this.setInteractionInProgress(loginInProgress);
     }
 
@@ -2022,7 +2022,7 @@ export class UserAgentApplication {
      *
      * @param acquireTokenInProgress
      */
-    protected setAcquireTokenInProgress(acquireTokenInProgress : boolean) {
+    protected setAcquireTokenInProgress(acquireTokenInProgress : boolean): void {
         this.setInteractionInProgress(acquireTokenInProgress);
     }
 
@@ -2032,7 +2032,7 @@ export class UserAgentApplication {
      *
      * returns the logger handle
      */
-    getLogger() {
+    getLogger(): Logger {
         return this.logger;
     }
 
@@ -2040,7 +2040,7 @@ export class UserAgentApplication {
      * Sets the logger callback.
      * @param logger Logger callback
      */
-    setLogger(logger: Logger) {
+    setLogger(logger: Logger): void {
         this.logger = logger;
     }
 
@@ -2141,7 +2141,7 @@ export class UserAgentApplication {
      * @param state
      * @hidden
      */
-    private setAccountCache(account: Account, state: string) {
+    private setAccountCache(account: Account, state: string): void {
 
         // Cache acquireTokenAccountKey
         const accountId = account ? this.getAccountId(account) : Constants.no_account;
@@ -2159,7 +2159,7 @@ export class UserAgentApplication {
      * @param authority
      * @hidden
      */
-    private setAuthorityCache(state: string, authority: string) {
+    private setAuthorityCache(state: string, authority: string): void {
         // Cache authorityKey
         const authorityKey = AuthCache.generateAuthorityKey(state);
         this.cacheStorage.setItem(authorityKey, UrlUtils.CanonicalizeUri(authority), this.inCookie);
@@ -2172,7 +2172,7 @@ export class UserAgentApplication {
      * @hidden
      * @ignore
      */
-    private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, isLoginCall: boolean, loginStartPage?: string) {
+    private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, isLoginCall: boolean, loginStartPage?: string): void {
         // Cache account and authority
         if (isLoginCall) {
             // Cache the state, nonce, and login request data
@@ -2194,7 +2194,7 @@ export class UserAgentApplication {
      * @hidden
      * @ignore
      */
-    private getAccountId(account: Account): any {
+    private getAccountId(account: Account): string {
         // return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
         let accountId: string;
         if (!StringUtils.isEmpty(account.homeAccountIdentifier)) {

@@ -14,10 +14,6 @@ import ApiEvent, { API_EVENT_IDENTIFIER } from "./ApiEvent";
 import { Logger } from "../Logger";
 import HttpEvent from "./HttpEvent";
 
-// for use in cache events
-const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
-const MSAL_CACHE_EVENT_NAME = "msal.cache_event";
-
 export default class TelemetryManager {
 
     // correlation Id to list of events
@@ -59,7 +55,7 @@ export default class TelemetryManager {
     static getTelemetrymanagerStub(clientId: string, logger: Logger) : TelemetryManager {
         const applicationName = "UnSetStub";
         const applicationVersion = "0.0";
-        const telemetryEmitter = () => {};
+        const telemetryEmitter = (): void => {}; // TODO: Check return type to see if this is overridden
         const telemetryPlatform: TelemetryPlatform = {
             applicationName,
             applicationVersion
@@ -72,7 +68,7 @@ export default class TelemetryManager {
         return new this(telemetryManagerConfig, telemetryEmitter, logger);
     }
 
-    startEvent(event: TelemetryEvent) {
+    startEvent(event: TelemetryEvent): void {
         this.logger.verbose(`Telemetry Event started: ${event.key}`);
 
         if (!this.telemetryEmitter) {
@@ -83,7 +79,7 @@ export default class TelemetryManager {
         this.inProgressEvents[event.key] = event;
     }
 
-    stopEvent(event: TelemetryEvent) {
+    stopEvent(event: TelemetryEvent): void {
         this.logger.verbose(`Telemetry Event stopped: ${event.key}`);
 
         if (!this.telemetryEmitter || !this.inProgressEvents[event.key]) {
@@ -108,7 +104,7 @@ export default class TelemetryManager {
         }
 
         const orphanedEvents = this.getOrphanedEvents(correlationId);
-        orphanedEvents.forEach(event => this.incrementEventCount(event));
+        orphanedEvents.forEach((event): void => this.incrementEventCount(event));
         const eventsToFlush: Array<TelemetryEvent> = [
             ...this.completedEvents[correlationId],
             ...orphanedEvents
@@ -133,7 +129,7 @@ export default class TelemetryManager {
 
         const eventsWithDefaultEvent = [ ...eventsToFlush, defaultEvent ];
 
-        this.telemetryEmitter(eventsWithDefaultEvent.map(e => e.get()));
+        this.telemetryEmitter(eventsWithDefaultEvent.map((e): object => e.get()));
     }
 
     createAndStartApiEvent(correlationId: string, apiEventIdentifier: API_EVENT_IDENTIFIER): ApiEvent {
@@ -177,7 +173,7 @@ export default class TelemetryManager {
 
     private getOrphanedEvents(correlationId: string): Array<TelemetryEvent> {
         return Object.keys(this.inProgressEvents)
-            .reduce((memo, eventKey) => {
+            .reduce((memo, eventKey): Array<TelemetryEvent> => {
                 if (eventKey.indexOf(correlationId) !== -1) {
                     const event = this.inProgressEvents[eventKey];
                     delete this.inProgressEvents[eventKey];

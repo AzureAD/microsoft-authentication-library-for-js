@@ -29,13 +29,12 @@ export type AuthenticationParameters = {
     onRedirectNavigate?: ((url: string) => void | boolean)
 };
 
-export function validateClaimsRequest(request: AuthenticationParameters) {
+export function validateClaimsRequest(request: AuthenticationParameters): void {
     if (!request.claimsRequest) {
         return;
     }
-    let claims;
     try {
-        claims = JSON.parse(request.claimsRequest);
+        JSON.parse(request.claimsRequest);
     } catch (e) {
         throw ClientConfigurationError.createClaimsRequestParsingError(e);
     }

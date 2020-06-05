@@ -87,7 +87,7 @@ export class CryptoUtils {
      * verifies if a string is  GUID
      * @param guid
      */
-    static isGuid(guid: string) {
+    static isGuid(guid: string): boolean {
         const regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return regexGuid.test(guid);
     }
@@ -114,7 +114,7 @@ export class CryptoUtils {
      */
     static base64Encode(input: string): string {
         return btoa(encodeURIComponent(input).replace(/%([0-9A-F]{2})/g,
-            function toSolidBytes(match, p1) {
+            function toSolidBytes(match, p1): string {
                 return String.fromCharCode(Number("0x" + p1));
             }));
     }
@@ -139,7 +139,7 @@ export class CryptoUtils {
                 throw new Error("Invalid base64 string");
         }
 
-        return decodeURIComponent(atob(encodedString).split("").map(function (c) {
+        return decodeURIComponent(atob(encodedString).split("").map(function (c): string {
             return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(""));
     }
@@ -149,11 +149,11 @@ export class CryptoUtils {
      *
      * @param query
      */
-    static deserialize(query: string): any {
+    static deserialize(query: string): object {
         let match: Array<string>; // Regex for replacing addition symbol with a space
         const pl = /\+/g;
         const search = /([^&=]+)=([^&]*)/g;
-        const decode = (s: string) => decodeURIComponent(decodeURIComponent(s.replace(pl, " "))); // Some values (e.g. state) may need to be decoded twice
+        const decode = (s: string): string => decodeURIComponent(decodeURIComponent(s.replace(pl, " "))); // Some values (e.g. state) may need to be decoded twice
         const obj: {} = {};
         match = search.exec(query);
         while (match) {

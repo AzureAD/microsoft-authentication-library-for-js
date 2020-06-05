@@ -61,19 +61,19 @@ export default class TelemetryEvent {
         };
     }
 
-    public get key() {
+    public get key(): string {
         return `${this.telemetryCorrelationId}_${this.eventId}-${this.eventName}`;
     };
 
-    public get displayName() {
+    public get displayName(): string {
         return `Msal-${this.label}-${this.telemetryCorrelationId}`;
     }
 
-    private get perfStartMark() {
+    private get perfStartMark(): string {
         return `start-${this.key}`;
     }
 
-    private get perfEndMark() {
+    private get perfEndMark(): string {
         return `end-${this.key}`;
     }
 }

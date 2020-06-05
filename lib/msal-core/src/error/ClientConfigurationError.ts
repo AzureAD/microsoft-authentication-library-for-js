@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants";
 import { ClientAuthError } from "./ClientAuthError";
 import { TelemetryOptions } from "../Configuration";
 
@@ -199,7 +198,7 @@ export class ClientConfigurationError extends ClientAuthError {
         };
 
         const missingKeys = Object.keys(requiredKeys)
-            .reduce((keys, key) => {
+            .reduce((keys, key): Array<string> => {
                 return config[key] ? keys : keys.concat([ `${key} (${requiredKeys[key]})` ]);
             }, []);
 

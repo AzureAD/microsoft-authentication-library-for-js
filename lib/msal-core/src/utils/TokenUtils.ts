@@ -6,6 +6,12 @@
 import { CryptoUtils } from "./CryptoUtils";
 import { StringUtils } from "./StringUtils";
 
+export type JwtToken = {
+    header: string,
+    JWSPayload: string,
+    JWSSig: string
+};
+
 /**
  * @hidden
  */
@@ -16,7 +22,7 @@ export class TokenUtils {
      *
      * @param jwtToken
      */
-    static decodeJwt(jwtToken: string): any {
+    static decodeJwt(jwtToken: string): JwtToken|null {
         if (StringUtils.isEmpty(jwtToken)) {
             return null;
         }
@@ -26,7 +32,7 @@ export class TokenUtils {
             // this._requestContext.logger.warn("The returned id_token is not parseable.");
             return null;
         }
-        const crackedToken = {
+        const crackedToken: JwtToken = {
             header: matches[1],
             JWSPayload: matches[2],
             JWSSig: matches[3]
@@ -39,7 +45,7 @@ export class TokenUtils {
      *
      * @param encodedIdToken
      */
-    static extractIdToken(encodedIdToken: string): any {
+    static extractIdToken(encodedIdToken: string): object|null {
     // id token will be decoded to get the username
         const decodedToken = this.decodeJwt(encodedIdToken);
         if (!decodedToken) {

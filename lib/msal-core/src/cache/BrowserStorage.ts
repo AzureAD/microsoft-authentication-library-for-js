@@ -105,7 +105,7 @@ export class BrowserStorage {// Singleton
      * Clear an item in the cookies by key
      * @param cName
      */
-    clearItemCookie(cName: string) {
+    clearItemCookie(cName: string): void {
         this.setItemCookie(cName, "", -1);
     }
 

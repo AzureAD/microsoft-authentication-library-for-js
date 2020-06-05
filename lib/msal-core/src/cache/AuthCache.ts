@@ -29,7 +29,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * Support roll back to old cache schema until the next major release: true by default now
      * @param storeAuthStateInCookie
      */
-    private migrateCacheEntries(storeAuthStateInCookie: boolean) {
+    private migrateCacheEntries(storeAuthStateInCookie: boolean): void {
 
         const idTokenKey = `${Constants.cachePrefix}.${PersistentCacheKeys.IDTOKEN}`;
         const clientInfoKey = `${Constants.cachePrefix}.${PersistentCacheKeys.CLIENT_INFO}`;
@@ -44,7 +44,7 @@ export class AuthCache extends BrowserStorage {// Singleton
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
         const keysToMigrate = [PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO, ErrorCacheKeys.ERROR, ErrorCacheKeys.ERROR_DESC];
 
-        keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
+        keysToMigrate.forEach((cacheKey, index): void => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
     }
 
     /**
@@ -53,7 +53,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param value
      * @param storeAuthStateInCookie
      */
-    private duplicateCacheEntry(newKey: string, value: string, storeAuthStateInCookie?: boolean) {
+    private duplicateCacheEntry(newKey: string, value: string, storeAuthStateInCookie?: boolean): void {
         if (value) {
             this.setItem(newKey, value, storeAuthStateInCookie);
         }
@@ -83,7 +83,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param value
      * @param enableCookieStorage
      */
-    setItem(key: string, value: string, enableCookieStorage?: boolean, state?: string): void {
+    setItem(key: string, value: string, enableCookieStorage?: boolean): void {
         super.setItem(this.generateCacheKey(key, true), value, enableCookieStorage);
         if (this.rollbackEnabled) {
             super.setItem(this.generateCacheKey(key, false), value, enableCookieStorage);
@@ -171,7 +171,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param homeAccountIdentifier
      */
     getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
-        const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
+        const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key): Array<AccessTokenCacheItem> => {
             const keyMatches = key.match(clientId) && key.match(homeAccountIdentifier) && key.match(Constants.scopes);
             if ( keyMatches ) {
                 const value = this.getItem(key);

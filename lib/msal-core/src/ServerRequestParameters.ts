@@ -249,7 +249,7 @@ export class ServerRequestParameters {
         let paramsString: string|null = null;
 
         if (queryParameters) {
-            Object.keys(queryParameters).forEach((key: string) => {
+            Object.keys(queryParameters).forEach((key: string): void => {
                 // sid cannot be passed along with login_hint or domain_hint
                 if(key === Constants.domain_hint && (silentCall || queryParameters[SSOTypes.SID])) {
                     return;
@@ -272,7 +272,7 @@ export class ServerRequestParameters {
      * Check to see if there are SSO params set in the Request
      * @param request
      */
-    static isSSOParam(request: AuthenticationParameters) {
+    static isSSOParam(request: AuthenticationParameters): Account|string {
         return request && (request.account || request.sid || request.loginHint);
     }
 }

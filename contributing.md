@@ -47,6 +47,19 @@ and start hacking:
 $ git checkout -b my-feature-branch
 ```
 
+### GITHUB PACKAGES
+
+We use the Github Package registry to host some of our internal packages for tooling (e.g. linting, testing, etc.). In order to download packages from the Github registry, you need to generate an access token for Github and use it to login to the npm CLI. If you bootstrap the repository via Lerna (as described in the proceeding section), you should not receive any errors related to this, however, we still recommend that you generate an access token and use it with `npm login`:
+
+1. Go to https://github.com/settings/tokens
+2. Generate a new access token with the `repo` and `read:packages` scopes. 
+3. Copy the token as you will need it for future steps.
+4. Enable SSO for the token for the AzureAD organization.
+5. Run `npm login --registry=https://npm.pkg.github.com`
+6. Provide your Github username as the username.
+7. Provide the access token as the password.
+8. You should now be able to install packages from the Github registry.
+
 ### BOOTSTRAP
 
 After you have cloned the repository, run `npm install` in the root folder. This will install the depedencies for all of the libraries and samples in the repo, create linkages between packages that have depedencies on each other, and run the build process for each of the libraries.

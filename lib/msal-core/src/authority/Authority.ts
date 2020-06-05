@@ -57,7 +57,7 @@ export abstract class Authority {
         return this.tenantDiscoveryResponse.Issuer.replace(/{tenant}|{tenantid}/g, this.Tenant);
     }
 
-    private validateResolved() {
+    private validateResolved(): void {
         if (!this.hasCachedMetadata()) {
             throw "Please call ResolveEndpointsAsync first";
         }
@@ -96,7 +96,7 @@ export abstract class Authority {
     /**
      * Given a string, validate that it is of the form https://domain/path
      */
-    private validateAsUri() {
+    private validateAsUri(): void {
         let components;
         try {
             components = this.CanonicalAuthorityUrlComponents;
@@ -116,7 +116,7 @@ export abstract class Authority {
     /**
      * Calls the OIDC endpoint and returns the response
      */
-    private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+    private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse|void> {
         const client = new XhrClient();
 
         const httpMethod = "GET";
@@ -126,7 +126,7 @@ export abstract class Authority {
         telemetryManager.startEvent(httpEvent);
 
         return client.sendRequestAsync(openIdConfigurationEndpoint, httpMethod, /* enableCaching: */ true)
-            .then((response: XhrResponse) => {
+            .then((response: XhrResponse): ITenantDiscoveryResponse => {
                 httpEvent.httpResponseStatus = response.statusCode;
                 telemetryManager.stopEvent(httpEvent);
                 return <ITenantDiscoveryResponse>{
@@ -135,7 +135,7 @@ export abstract class Authority {
                     Issuer: response.body.issuer
                 };
             })
-            .catch(err => {
+            .catch((err): void => {
                 httpEvent.serverErrorCode = err;
                 telemetryManager.stopEvent(httpEvent);
                 throw err;
@@ -148,7 +148,7 @@ export abstract class Authority {
      * Discover endpoints via openid-configuration
      * If successful, caches the endpoint for later use in OIDC
      */
-    public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+    public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse|void> { // TODO: Test if adding void breaks
         const openIdConfigurationEndpointResponse = await this.GetOpenIdConfigurationEndpointAsync(telemetryManager, correlationId);
         this.tenantDiscoveryResponse = await this.DiscoverEndpoints(openIdConfigurationEndpointResponse, telemetryManager, correlationId);
 

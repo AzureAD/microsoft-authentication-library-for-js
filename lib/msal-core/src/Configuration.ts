@@ -121,8 +121,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     validateAuthority: true,
     authorityMetadata: "",
     knownAuthorities: [],
-    redirectUri: () => UrlUtils.getCurrentUrl(),
-    postLogoutRedirectUri: () => UrlUtils.getCurrentUrl(),
+    redirectUri: (): string => UrlUtils.getCurrentUrl(),
+    postLogoutRedirectUri: (): string => UrlUtils.getCurrentUrl(),
     navigateToLoginRequestUrl: true
 };
 

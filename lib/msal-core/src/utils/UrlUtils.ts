@@ -4,12 +4,11 @@
  */
 
 import { IUri } from "../IUri";
-import { Constants, SSOTypes, ServerHashParamKeys } from "./Constants";
+import { Constants, ServerHashParamKeys } from "./Constants";
 import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
 import { CryptoUtils } from "./CryptoUtils";
-import { ClientConfigurationError } from "./../error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -124,7 +123,7 @@ export class UrlUtils {
         return this.constructAuthorityUriFromObject(urlObject, pathArray);
     }
 
-    static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
+    static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]): string {
         return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
     }
 
@@ -153,7 +152,7 @@ export class UrlUtils {
         };
 
         let pathSegments = urlComponents.AbsolutePath.split("/");
-        pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
+        pathSegments = pathSegments.filter((val): boolean => val && val.length > 0); // remove empty elements
         urlComponents.PathSegments = pathSegments;
 
         if (match[6]){
@@ -256,7 +255,7 @@ export class UrlUtils {
      * Returns deserialized portion of URL hash
      * @ignore
      */
-    static deserializeHash(urlFragment: string) {
+    static deserializeHash(urlFragment: string): object {
         const hash = UrlUtils.getHashFromUrl(urlFragment);
         return CryptoUtils.deserialize(hash);
     }

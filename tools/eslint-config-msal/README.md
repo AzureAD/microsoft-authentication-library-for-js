@@ -8,6 +8,10 @@ In order to use packages published to the Github Registry, you must [configure n
 
 ## Usage
 
+Complete the following steps to set up eslint in VSCode.
+1. Run the command `npm install -g eslint@5`
+2. Install the eslint VSCode extension
+
 ### Install eslint
 
 ```sh

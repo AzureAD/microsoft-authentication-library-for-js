@@ -1,4 +1,3 @@
-import { B2cAuthority } from "../authority/B2cAuthority";
 import { AADTrustedHostList } from "../utils/Constants";
 import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
 import { CryptoUtils } from "../utils/CryptoUtils";
@@ -30,7 +29,7 @@ export const scrubTenantFromUri = (uri: string): String => {
     return  `${url.Protocol}//${url.HostNameAndPort}/${pathParams.join("/")}`;
 };
 
-export const hashPersonalIdentifier = (valueToHash: string) => {
+export const hashPersonalIdentifier = (valueToHash: string): string => {
     /*
      * TODO sha256 this
      * Current test runner is being funny with node libs that are webpacked anyway
@@ -48,7 +47,7 @@ export const supportsBrowserPerformance = (): boolean => !!(
         window.performance.measure
 );
 
-export const endBrowserPerformanceMeasurement = (measureName: string, startMark: string, endMark: string) => {
+export const endBrowserPerformanceMeasurement = (measureName: string, startMark: string, endMark: string): void => {
     if (supportsBrowserPerformance()) {
         window.performance.mark(endMark);
         window.performance.measure(measureName, startMark, endMark);
@@ -59,7 +58,7 @@ export const endBrowserPerformanceMeasurement = (measureName: string, startMark:
     }
 };
 
-export const startBrowserPerformanceMeasurement = (startMark: string) => {
+export const startBrowserPerformanceMeasurement = (startMark: string): void => {
     if (supportsBrowserPerformance()) {
         window.performance.mark(startMark);
     }

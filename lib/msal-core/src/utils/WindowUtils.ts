@@ -46,13 +46,13 @@ export class WindowUtils {
      * @ignore
      */
     static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger, isSilentCall?: boolean): Promise<string> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject): void => {
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
 
             logger.verbose("monitorWindowForHash polling started");
 
-            const intervalId = setInterval(() => {
+            const intervalId = setInterval((): void => {
                 if (contentWindow.closed) {
                     logger.error("monitorWindowForHash window closed");
                     clearInterval(intervalId);
@@ -116,8 +116,8 @@ export class WindowUtils {
          */
         logger.infoPii("LoadFrame: " + frameName);
 
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
+        return new Promise((resolve, reject): void => {
+            setTimeout((): void => {
                 const frameHandle = this.loadFrameSync(urlNavigate, frameName, logger);
 
                 if (!frameHandle) {
@@ -194,7 +194,7 @@ export class WindowUtils {
      * Removes a hidden iframe from the page.
      * @ignore
      */
-    static removeHiddenIframe(iframe: HTMLIFrameElement) {
+    static removeHiddenIframe(iframe: HTMLIFrameElement): void {
         if (document.body === iframe.parentNode) {
             document.body.removeChild(iframe);
         }
@@ -207,9 +207,9 @@ export class WindowUtils {
      */
     static getIframeWithHash(hash: string): HTMLIFrameElement {
         const iframes = document.getElementsByTagName("iframe");
-        const iframeArray: Array<HTMLIFrameElement> = Array.apply(null, Array(iframes.length)).map((iframe: HTMLIFrameElement, index: number) => iframes.item(index)); // eslint-disable-line prefer-spread
+        const iframeArray: Array<HTMLIFrameElement> = Array.apply(null, Array(iframes.length)).map((iframe: HTMLIFrameElement, index: number): HTMLIFrameElement => iframes.item(index)); // eslint-disable-line prefer-spread
 
-        return iframeArray.filter((iframe: HTMLIFrameElement) => {
+        return iframeArray.filter((iframe: HTMLIFrameElement): boolean => {
             try {
                 return iframe.contentWindow.location.hash === hash;
             } catch (e) {
@@ -237,7 +237,7 @@ export class WindowUtils {
      * @ignore
      */
     static getPopUpWithHash(hash: string): Window {
-        return WindowUtils.getPopups().filter(popup => {
+        return WindowUtils.getPopups().filter((popup): boolean => {
             try {
                 return popup.location.hash === hash;
             } catch (e) {
@@ -261,7 +261,7 @@ export class WindowUtils {
      * @ignore
      */
     static closePopups(): void {
-        WindowUtils.getPopups().forEach(popup => popup.close());
+        WindowUtils.getPopups().forEach((popup): void => popup.close());
     }
 
     /**
@@ -269,7 +269,7 @@ export class WindowUtils {
      *
      * blocks any login/acquireToken calls to reload from within a hidden iframe (generated for silent calls)
      */
-    static blockReloadInHiddenIframes() {
+    static blockReloadInHiddenIframes(): void {
         // return an error if called from the hidden iframe created by the msal js silent calls
         if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
             throw ClientAuthError.createBlockTokenRequestsInHiddenIframeError();
@@ -280,7 +280,7 @@ export class WindowUtils {
      *
      * @param cacheStorage
      */
-    static checkIfBackButtonIsPressed(cacheStorage: AuthCache) {
+    static checkIfBackButtonIsPressed(cacheStorage: AuthCache): void {
         const redirectCache = cacheStorage.getItem(TemporaryCacheKeys.REDIRECT_REQUEST);
 
         // if redirect request is set and there is no hash

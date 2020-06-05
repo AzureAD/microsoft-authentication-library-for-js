@@ -23,7 +23,7 @@ export class AuthorityFactory {
      */
     public static setKnownAuthorities(validateAuthority: boolean, knownAuthorities: Array<string>): void {
         if (validateAuthority && !Object.keys(B2CTrustedHostList).length){
-            knownAuthorities.forEach(function(authority){
+            knownAuthorities.forEach(function(authority): void{
                 B2CTrustedHostList[authority] = authority;
             });
         }
@@ -35,11 +35,11 @@ export class AuthorityFactory {
         return metadata;
     }
 
-    public static getMetadata(authorityUrl: string) {
+    public static getMetadata(authorityUrl: string): ITenantDiscoveryResponse {
         return this.metadataMap.get(authorityUrl);
     }
 
-    public static saveMetadataFromConfig(authorityUrl: string, authorityMetadataJson: string) {
+    public static saveMetadataFromConfig(authorityUrl: string, authorityMetadataJson: string): void {
         try {
             if (authorityMetadataJson) {
                 const parsedMetadata = JSON.parse(authorityMetadataJson) as OpenIdConfiguration;

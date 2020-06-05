@@ -12,7 +12,7 @@
 export class XhrClient {
 
     public sendRequestAsync(url: string, method: string, enableCaching?: boolean): Promise<XhrResponse> {
-        return new Promise<XhrResponse>((resolve, reject) => {
+        return new Promise<XhrResponse>((resolve, reject): void => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
             if (enableCaching) {
@@ -22,7 +22,7 @@ export class XhrClient {
                  */
             }
 
-            xhr.onload = (ev) => {
+            xhr.onload = (): void => {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     reject(this.handleError(xhr.responseText));
                 }
@@ -39,7 +39,7 @@ export class XhrClient {
                 resolve(response);
             };
 
-            xhr.onerror = (ev) => {
+            xhr.onerror = (): void => {
                 reject(xhr.status);
             };
 

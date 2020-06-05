@@ -43,7 +43,7 @@ export class ScopeSet {
      */
     // TODO: Rename this, too generic name for a function that only deals with scopes
     static convertToLowerCase(scopes: Array<string>): Array<string> {
-        return scopes.map(scope => scope.toLowerCase());
+        return scopes.map((scope): string => scope.toLowerCase());
     }
 
     /**
@@ -54,7 +54,7 @@ export class ScopeSet {
      */
     // TODO: Rename this, too generic name for a function that only deals with scopes
     static removeElement(scopes: Array<string>, scope: string): Array<string> {
-        return scopes.filter(value => value !== scope);
+        return scopes.filter((value): boolean => value !== scope);
     }
 
     /**
