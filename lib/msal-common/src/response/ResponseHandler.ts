@@ -122,6 +122,7 @@ export class ResponseHandler {
             accessToken: serverTokenResponse.access_token,
             expiresOn: new Date(cacheRecord.accessToken.expiresOn),
             extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
+            account: cacheRecord.account,
             familyId: serverTokenResponse.foci || null,
         };
 
@@ -158,7 +159,6 @@ export class ResponseHandler {
      * @param authority
      */
     generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority): CacheRecord {
-
         const cacheRecord = new CacheRecord();
 
         // Account

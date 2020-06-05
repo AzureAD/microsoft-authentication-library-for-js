@@ -4,28 +4,33 @@
  */
 import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
-import { TokenResponse } from "../response/TokenResponse";
-import { SPAResponseHandler } from "../response/SPAResponseHandler";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
 import { AuthorityFactory } from "../authority/AuthorityFactory";
 import { IdToken } from "../account/IdToken";
 import { ScopeSet } from "../request/ScopeSet";
-import { PersistentCacheKeys, AADServerParamKeys, Constants, ResponseMode, GrantType } from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, GrantType, CredentialType } from "../utils/Constants";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
-import { Account } from "../account/Account";
-import { buildClientInfo } from "../account/ClientInfo";
 import { B2cAuthority } from "../authority/B2cAuthority";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { AuthorityType } from "../authority/AuthorityType";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { Authority } from "../authority/Authority";
+import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { SilentFlowRequest } from "../request/SilentFlowRequest";
+import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
+import { CacheHelper } from "../unifiedCache/utils/CacheHelper";
+import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
+import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
+import { CacheRecord } from "../unifiedCache/entities/CacheRecord";
 
 /**
  * SPAClient class
@@ -150,7 +155,7 @@ export class SPAClient extends BaseClient {
      * also use the handleFragmentResponse() API to pass the codeResponse to this function afterwards.
      * @param codeResponse
      */
-    async acquireToken(codeRequest: AuthorizationCodeRequest, userState: string, cachedNonce: string): Promise<TokenResponse> {
+    async acquireToken(codeRequest: AuthorizationCodeRequest, userState: string, cachedNonce: string): Promise<AuthenticationResult> {
         // If no code response is given, we cannot acquire a token.
         if (!codeRequest || StringUtils.isEmpty(codeRequest.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
@@ -184,6 +189,7 @@ export class SPAClient extends BaseClient {
         parameterBuilder.addCodeVerifier(codeRequest.codeVerifier);
 
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
+        parameterBuilder.addClientInfo();
 
         // Get token endpoint.
         const { tokenEndpoint } = acquireTokenAuthority;
@@ -191,7 +197,7 @@ export class SPAClient extends BaseClient {
         // User helper to retrieve token response.
         // Need to await function call before return to catch any thrown errors.
         // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
-        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, acquireTokenAuthority.canonicalAuthority, userState, cachedNonce);
+        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, acquireTokenAuthority, userState, cachedNonce);
     }
 
     /**
@@ -200,72 +206,83 @@ export class SPAClient extends BaseClient {
      * id tokens are not being renewed).
      * @param request
      */
-    async getValidToken(request: AuthorizationUrlRequest, requestAccount: Account, forceRefresh: boolean): Promise<TokenResponse> {
+    async getValidToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
         }
+		
+        if (!request.account) {
+            throw ClientAuthError.createNoAccountInSilentRequestError();
+        }
 
         // Get account object for this request.
-        const account = requestAccount || this.getAccount();
         const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId, true);
-        // If this is an id token renewal, and no account is present, throw an error.
-        if (requestScopes.isLoginScopeSet()) {
-            if (!account) {
-                throw ClientAuthError.createUserLoginRequiredError();
-            }
-        }
-
-        // Initialize authority or use default, and perform discovery endpoint check.
-        const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthority;
-
-        // This is temporary. Remove when ADFS is supported for browser
-        if(acquireTokenAuthority.authorityType == AuthorityType.Adfs){
-            throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
-        }
-
-        if (!acquireTokenAuthority.discoveryComplete()) {
-            try {
-                await acquireTokenAuthority.resolveEndpointsAsync();
-            } catch (e) {
-                throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
-            }
-        }
 
         // Get current cached tokens
-        const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, account && account.homeAccountIdentifier);
-        const expirationSec = Number(cachedTokenItem.value.expiresOnSec);
-        const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
-        // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (!forceRefresh && expirationSec && expirationSec > offsetCurrentTimeSec) {
-            const cachedScopes = ScopeSet.fromString(cachedTokenItem.key.scopes, this.config.authOptions.clientId, true);
-            const defaultTokenResponse: TokenResponse = {
-                uniqueId: "",
-                tenantId: "",
-                scopes: cachedScopes.asArray(),
-                tokenType: cachedTokenItem.value.tokenType,
-                idToken: "",
-                idTokenClaims: null,
-                accessToken: cachedTokenItem.value.accessToken,
-                refreshToken: cachedTokenItem.value.refreshToken,
-                expiresOn: new Date(expirationSec * 1000),
-                account: account,
-                userRequestState: ""
-            };
+        const cacheRecord = new CacheRecord();
+        cacheRecord.account = this.unifiedCacheManager.getAccount(request.account.generateAccountKey());
 
-            // Only populate id token if it exists in cache item.
-            return StringUtils.isEmpty(cachedTokenItem.value.idToken) ? defaultTokenResponse :
-                SPAResponseHandler.setResponseIdToken(defaultTokenResponse, new IdToken(cachedTokenItem.value.idToken, this.cryptoUtils));
+        const homeAccountId = cacheRecord.account.homeAccountId;
+        const env = cacheRecord.account.environment;
+
+        cacheRecord.accessToken = this.fetchAccessToken(homeAccountId, env, requestScopes);
+        cacheRecord.refreshToken = this.fetchRefreshToken(homeAccountId, env);
+        if (!cacheRecord.accessToken) {
+            throw ClientAuthError.createNoTokenInCacheError();
+        }
+
+        // const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, account && account.homeAccountId);
+        // const expirationSec = Number(cachedTokenItem.value.expiresOnSec);
+        // const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
+        // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
+        if (!request.forceRefresh && this.isTokenExpired(cacheRecord.accessToken.expiresOn)) {
+            cacheRecord.idToken = this.fetchIdToken(homeAccountId, env);
+            const idTokenObj = new IdToken(cacheRecord.idToken.secret, this.cryptoUtils);
+
+            const cachedScopes = ScopeSet.fromString(cacheRecord.accessToken.target, this.config.authOptions.clientId, true);
+            return {
+                uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
+                tenantId: idTokenObj.claims.tid,
+                scopes: cachedScopes.asArray(),
+                idToken: idTokenObj.rawIdToken,
+                idTokenClaims: idTokenObj.claims,
+                accessToken: cacheRecord.accessToken.secret,
+                account: cacheRecord.account,
+                expiresOn: new Date(cacheRecord.accessToken.expiresOn),
+                extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
+                familyId: null,
+                state: ""
+            };
         } else {
+            if (!cacheRecord.refreshToken) {
+                throw ClientAuthError.createNoTokenInCacheError();
+            }
+
+            // Initialize authority or use default, and perform discovery endpoint check.
+            const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthority;
+
+            // This is temporary. Remove when ADFS is supported for browser
+            if (acquireTokenAuthority.authorityType == AuthorityType.Adfs){
+                throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
+            }
+	
+            if (!acquireTokenAuthority.discoveryComplete()) {
+                try {
+                    await acquireTokenAuthority.resolveEndpointsAsync();
+                } catch (e) {
+                    throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+                }
+            }
+
             // Renew the tokens.
-            request.authority = cachedTokenItem.key.authority;
             const { tokenEndpoint } = acquireTokenAuthority;
             const refreshTokenRequest: RefreshTokenRequest = {
-                refreshToken: cachedTokenItem.value.refreshToken,
+                refreshToken: cacheRecord.refreshToken.secret,
                 scopes: request.scopes,
-                authority: request.authority
+                authority: acquireTokenAuthority.canonicalAuthority
             };
-            return this.renewToken(refreshTokenRequest, tokenEndpoint);
+            return this.renewToken(refreshTokenRequest, acquireTokenAuthority, tokenEndpoint);
         }
     }
 
@@ -276,16 +293,15 @@ export class SPAClient extends BaseClient {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param authorityUri
      */
-    async logout(authorityUri?: string): Promise<string> {
-        const currentAccount = this.getAccount();
-        // Check for homeAccountIdentifier. Do not send anything if it doesn't exist.
-        const homeAccountIdentifier = currentAccount ? currentAccount.homeAccountIdentifier : "";
-        // Remove all pertinent access tokens.
-        this.spaCacheManager.removeAllAccessTokens(this.config.authOptions.clientId, authorityUri, homeAccountIdentifier);
-        // Clear remaining cache items.
-        this.cacheStorage.clear();
+    async logout(account: AccountEntity, acquireTokenAuthority: Authority): Promise<string> {
+        // Remove all pertinent tokens.
+        this.unifiedCacheManager.removeCredentialsByFilter({
+            ...account,
+            clientId: this.config.authOptions.clientId
+        });
+
         // Clear current account.
-        this.account = null;
+        this.unifiedCacheManager.removeAccount(account);
         // Get postLogoutRedirectUri.
         let postLogoutRedirectUri = "";
         try {
@@ -293,7 +309,9 @@ export class SPAClient extends BaseClient {
         } catch (e) {}
 
         // Acquire token authorities.
-        const acquireTokenAuthority = (authorityUri) ? AuthorityFactory.createInstance(authorityUri, this.networkClient) : this.defaultAuthority;
+        if (!acquireTokenAuthority) {
+            acquireTokenAuthority = this.defaultAuthority;
+        }
 
         // This is temporary. Remove when ADFS is supported for browser
         if(acquireTokenAuthority.authorityType == AuthorityType.Adfs){
@@ -324,12 +342,13 @@ export class SPAClient extends BaseClient {
      */
     public handleFragmentResponse(hashFragment: string, cachedState: string): string {
         // Handle responses.
-        const responseHandler = new SPAResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.spaCacheManager, this.cryptoUtils, this.logger);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.unifiedCacheManager, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
         // Get code response
-        return responseHandler.handleServerCodeResponse(serverParams, cachedState);
+        responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);
+        return serverParams.code;
     }
 
     // #endregion
@@ -337,33 +356,63 @@ export class SPAClient extends BaseClient {
     // #region Helpers
 
     /**
-     * Gets all cached tokens based on the given criteria.
-     * @param requestScopes
-     * @param authorityUri
-     * @param homeAccountIdentifier
+     * fetches idToken from cache if present
+     * @param request
      */
-    private getCachedTokens(requestScopes: ScopeSet, authorityUri: string, homeAccountIdentifier: string): AccessTokenCacheItem {
-        // Get all access tokens with matching authority, and home account ID
-        const tokenCacheItems: Array<AccessTokenCacheItem> = this.spaCacheManager.getAllAccessTokens(this.config.authOptions.clientId, authorityUri || "", homeAccountIdentifier || "");
-        if (tokenCacheItems.length === 0) {
-            throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
-        }
+    private fetchIdToken(homeAccountId: string, environment: string): IdTokenEntity {
+        const idTokenKey: string = CacheHelper.generateCacheKey(
+            homeAccountId,
+            environment,
+            CredentialType.ID_TOKEN,
+            this.config.authOptions.clientId,
+            this.defaultAuthority.tenant
+        );
+        return this.unifiedCacheManager.getCredential(idTokenKey) as IdTokenEntity;
+    }
 
-        // Filter cache items based on available scopes.
-        const filteredCacheItems: Array<AccessTokenCacheItem> = tokenCacheItems.filter(cacheItem => {
-            const cachedScopes = ScopeSet.fromString(cacheItem.key.scopes, this.config.authOptions.clientId, true);
-            return cachedScopes.containsScopeSet(requestScopes);
-        });
+    /**
+     * fetches accessToken from cache if present
+     * @param request
+     * @param scopes
+     */
+    private fetchAccessToken(homeAccountId: string, environment: string, scopes: ScopeSet): AccessTokenEntity {
+        const accessTokenKey: string = CacheHelper.generateCacheKey(
+            homeAccountId,
+            environment,
+            CredentialType.ACCESS_TOKEN,
+            this.config.authOptions.clientId,
+            this.defaultAuthority.tenant,
+            scopes.printScopes()
+        );
 
-        // If cache items contains too many matching tokens, throw error.
-        if (filteredCacheItems.length > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError(requestScopes.printScopes());
-        } else if (filteredCacheItems.length === 1) {
-            // Return single cache item.
-            return filteredCacheItems[0];
-        }
-        // If cache items are empty, throw error.
-        throw ClientAuthError.createNoTokensFoundError(requestScopes.printScopes());
+        return this.unifiedCacheManager.getCredential(accessTokenKey) as AccessTokenEntity;
+    }
+
+    /**
+     * fetches refreshToken from cache if present
+     * @param request
+     */
+    private fetchRefreshToken(homeAccountId: string, environment: string): RefreshTokenEntity {
+        const refreshTokenKey: string = CacheHelper.generateCacheKey(
+            homeAccountId,
+            environment,
+            CredentialType.REFRESH_TOKEN,
+            this.config.authOptions.clientId
+        );
+        return this.unifiedCacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
+    }
+	
+    /**
+     * check if an access token is expired
+     * @param expiresOn
+     */
+    private isTokenExpired(expiresOn: string): boolean {
+        // check for access token expiry
+        const expirationSec = Number(expiresOn);
+        const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
+
+        // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
+        return (expirationSec && expirationSec > offsetCurrentTimeSec);
     }
 
     /**
@@ -373,7 +422,7 @@ export class SPAClient extends BaseClient {
      * @param tokenRequest
      * @param codeResponse
      */
-    private async getTokenResponse(tokenEndpoint: string, parameterBuilder: RequestParameterBuilder, authorityString: string, userState: string, cachedNonce?: string): Promise<TokenResponse> {
+    private async getTokenResponse(tokenEndpoint: string, parameterBuilder: RequestParameterBuilder, authority: Authority, userState: string, cachedNonce?: string): Promise<AuthenticationResult> {
         // Perform token request.
         const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(
             tokenEndpoint,
@@ -384,13 +433,12 @@ export class SPAClient extends BaseClient {
         );
 
         // Create response handler
-        const responseHandler = new SPAResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.spaCacheManager, this.cryptoUtils, this.logger);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.unifiedCacheManager, this.cryptoUtils, this.logger);
         // Validate response. This function throws a server error if an error is returned by the server.
-        responseHandler.validateServerAuthorizationTokenResponse(acquiredTokenResponse.body);
+        responseHandler.validateTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
-        const tokenResponse = responseHandler.createTokenResponse(acquiredTokenResponse.body, userState, authorityString, this.getAccount(), cachedNonce);
-        // Set current account to received response account, if any.
-        this.account = tokenResponse.account;
+        const tokenResponse = responseHandler.generateAuthenticationResult(acquiredTokenResponse.body, authority);
+
         return tokenResponse;
     }
 
@@ -400,7 +448,7 @@ export class SPAClient extends BaseClient {
      * @param tokenEndpoint
      * @param refreshToken
      */
-    private async renewToken(refreshTokenRequest: RefreshTokenRequest, tokenEndpoint: string): Promise<TokenResponse> {
+    private async renewToken(refreshTokenRequest: RefreshTokenRequest, authority: Authority, tokenEndpoint: string): Promise<AuthenticationResult> {
         // Initialize request parameters.
         const parameterBuilder = new RequestParameterBuilder();
 
@@ -422,7 +470,7 @@ export class SPAClient extends BaseClient {
         // User helper to retrieve token response.
         // Need to await function call before return to catch any thrown errors.
         // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
-        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, refreshTokenRequest.authority, "");
+        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, authority, "");
     }
 
     // #endregion
@@ -472,25 +520,21 @@ export class SPAClient extends BaseClient {
      * or null when no state is found
      * @returns {@link Account} - the account object stored in MSAL
      */
-    getAccount(): Account {
-        if (this.account) {
-            return this.account;
+    getAccount(homeAccountIdentifier: string, env?: string, rlm?: string): AccountEntity {
+        const accountCache = this.unifiedCacheManager.getAccountsFilteredBy({
+            homeAccountId: homeAccountIdentifier,
+            environment: env,
+            realm: rlm
+        });
+
+        const numAccounts = Object.keys(accountCache).length;
+        if (numAccounts < 1) {
+            return null;
+        } else if (numAccounts > 1) {
+            throw ClientAuthError.createMultipleMatchingAccountsInCacheError();
+        } else {
+            return accountCache[0];
         }
-
-        // Get id token and client info from cache
-        const rawIdToken = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
-        const rawClientInfo = this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO);
-
-        if(!StringUtils.isEmpty(rawIdToken) && !StringUtils.isEmpty(rawClientInfo)) {
-            const idToken = new IdToken(rawIdToken, this.cryptoUtils);
-            const clientInfo = buildClientInfo(rawClientInfo, this.cryptoUtils);
-
-            this.account = Account.createAccount(idToken, clientInfo, this.cryptoUtils);
-            return this.account;
-        }
-
-        // if login is not yet done, return null
-        return null;
     }
 
     // #endregion

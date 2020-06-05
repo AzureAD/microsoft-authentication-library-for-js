@@ -31,12 +31,12 @@ export class CacheHelpers {
         const results = this.cacheStorage.getKeys().reduce<Array<AccessTokenCacheItem>>((tokens, key) => {
             const keyMatches = key.match(clientId) && key.match(authority) && key.match(homeAccountIdentifier);
             if (keyMatches) {
-                const value = this.cacheStorage.getItem(key);
+                const value = this.cacheStorage.getItem(key, null);
                 if (value) {
                     try {
                         const parseAtKey = JSON.parse(key) as AccessTokenKey;
                         if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, homeAccountIdentifier)) {
-                            const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value) as AccessTokenValue);
+                            const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, value as AccessTokenValue);
                             return tokens.concat([ newAccessTokenCacheItem ]);
                         }
                     } catch (e) {
@@ -62,7 +62,7 @@ export class CacheHelpers {
                 try {
                     const parseAtKey = JSON.parse(key) as AccessTokenKey;
                     if (this.checkForExactKeyMatch(parseAtKey, clientId, authority, homeAccountIdentifier)) {
-                        this.cacheStorage.removeItem(key);
+                        this.cacheStorage.removeItem(key, null);
                     }
                 } catch (e) {
                     throw ClientAuthError.createCacheParseError(key);

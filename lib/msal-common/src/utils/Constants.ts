@@ -254,7 +254,8 @@ export enum CredentialType {
 export enum CacheSchemaType {
     ACCOUNT = "Account",
     CREDENTIAL = "Credential",
-    APP_META_DATA = "AppMetadata"
+    APP_META_DATA = "AppMetadata",
+    TEMPORARY = "TempCache"
 }
 
 /**
