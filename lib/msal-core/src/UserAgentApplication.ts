@@ -499,9 +499,12 @@ export class UserAgentApplication {
      *
      */
     private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
+        this.logger.verbose("AcquireTokenHelper has been called");
+
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
+        this.logger.verbosePii(`Serialized scopes: ${scope}`);
 
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
@@ -530,11 +533,13 @@ export class UserAgentApplication {
                 request.state,
                 request.correlationId
             );
+            this.logger.verbose("Finished building server authentication request");
 
             this.updateCacheEntries(serverAuthenticationRequest, account, isLoginCall, loginStartPage);
 
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             serverAuthenticationRequest.populateQueryParams(account, request);
+            this.logger.verbose("Query parameters populated from account");
 
             // Construct urlNavigate
             const urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
@@ -555,6 +560,7 @@ export class UserAgentApplication {
             }
 
             if (interactionType === Constants.interactionTypePopup) {
+                this.logger.verbose("Interaction type is popup. Generating popup window");
                 // Generate a popup window
                 try {
                     popUpWindow = this.openPopup(urlNavigate, "msal", Constants.popUpWidth, Constants.popUpHeight);
@@ -602,24 +608,9 @@ export class UserAgentApplication {
                     }
                 }
             } else {
-                // If onRedirectNavigate is implemented, invoke it and provide urlNavigate
-                if (request.onRedirectNavigate) {
-                    this.logger.verbose("Invoking onRedirectNavigate callback");
-
-                    const navigate = request.onRedirectNavigate(urlNavigate);
-
-                    // Returning false from onRedirectNavigate will stop navigation
-                    if (navigate !== false) {
-                        this.logger.verbose("onRedirectNavigate did not return false, navigating");
-                        this.navigateWindow(urlNavigate);
-                    } else {
-                        this.logger.verbose("onRedirectNavigate returned false, stopping navigation");
-                    }
-                } else {
-                    // Otherwise, perform navigation
-                    this.logger.verbose("Navigating window to urlNavigate");
-                    this.navigateWindow(urlNavigate);
-                }
+                // prompt user for interaction
+                this.logger.verbose("Interaction type is redirect. Redirecting");
+                this.navigateWindow(urlNavigate, popUpWindow);
             }
         } catch (err) {
             this.logger.error(err);
@@ -892,7 +883,7 @@ export class UserAgentApplication {
     private async loadIframeTimeout(urlNavigate: string, frameName: string, requestSignature: string): Promise<void> {
         // set iframe session to pending
         const expectedState = window.activeRenewals[requestSignature];
-        this.logger.verbosePii("Set loading state to pending for: " + requestSignature + ":" + expectedState);
+        this.logger.verbose("Set loading state to pending for: " + requestSignature + ":" + expectedState);
         this.cacheStorage.setItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`, Constants.inProgress);
 
         // render the iframe synchronously if app chooses no timeout, else wait for the set timer to expire
@@ -901,7 +892,7 @@ export class UserAgentApplication {
             WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger);
 
         try {
-            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, this.logger, true);
+            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, true);
 
             if (hash) {
                 this.handleAuthenticationResponse(hash);
@@ -1425,7 +1416,7 @@ export class UserAgentApplication {
         WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
-        this.logger.verbosePii("Renew token Expected state: " + serverAuthenticationRequest.state);
+        this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
         const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
