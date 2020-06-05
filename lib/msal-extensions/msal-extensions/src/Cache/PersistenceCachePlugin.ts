@@ -43,16 +43,11 @@ export class PersistenceCachePlugin {
     public async writeToStorage(diskState: string): Promise<void> {
         try {
             console.log("Node process id: " + pid );
-            console.log("Writing to storage");
             // const lockReleaseCallback = await lock(await this.persistence.getLocation());
             // console.log("Created lock");
 
-            // if (this.persistence.reloadNecessary(this.lastSync)) {
-            //     this.currentCache = await this.persistence.load();
-            //     this.lastSync = new Date().getTime();
-            // }
-            //
-            // this.currentCache = callback(this.currentCache);
+            this.currentCache = diskState;
+            this.lastSync = new Date().getTime();
             await this.persistence.save(this.currentCache);
             // lockReleaseCallback();
             // console.log("Released lock")
