@@ -13,7 +13,7 @@ export { IdToken } from "./account/IdToken";
 export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
-export { B2cAuthority } from "./authority/B2cAuthority";
+export { TrustedAuthority } from "./authority/TrustedAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 // Cache

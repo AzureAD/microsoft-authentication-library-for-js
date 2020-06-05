@@ -3,12 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { IOpenIdConfigMetadata } from "./IOpenIdConfigMetadata";
-
 /**
  * The OpenID Configuration Endpoint Response interface. Used by the authority class to get relevant OAuth endpoints.
  */
-export interface OpenIdConfigResponse {
-    tenant_discovery_endpoint: string;
-    metadata: Array<IOpenIdConfigMetadata>;
+export interface IOpenIdConfigMetadata {
+    preferred_network: string;
+    preferred_cache: string;
+    aliases: Array<string>;
 }

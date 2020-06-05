@@ -145,8 +145,6 @@ export class ResponseHandler {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
 
         switch (authorityType) {
-            case AuthorityType.B2C:
-                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, "policy", this.cryptoObj);
             case AuthorityType.Adfs:
                 return AccountEntity.createADFSAccount(authority, idToken);
             // default to AAD
