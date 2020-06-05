@@ -42,7 +42,7 @@
     "semi": true,
     "singleQuote": true,
     "trailingComma": "es5",
-    "endOfLine": "lf"
+    "endOfLine": "auto"
   },
   "jest": {
     "verbose": true,
