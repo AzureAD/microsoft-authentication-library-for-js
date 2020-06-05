@@ -102,6 +102,10 @@ export const ClientAuthErrorMessage = {
     DeviceCodeExpired: {
         code: "device_code_expired",
         desc: "Device code is expired."
+    },
+    CachePluginError: {
+        code: "no cache plugin set on CacheManager",
+        desc: "ICachePlugin needs to be set before using readFromStorage or writeFromStorage"
     }
 };
 
@@ -296,5 +300,12 @@ export class ClientAuthError extends AuthError {
      */
     static createDeviceCodeExpiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
+    }
+
+    /**
+     * Throws error if ICachePlugin not set on CacheManager
+     */
+    static createCachePluginError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.CachePluginError.code, `${ClientAuthErrorMessage.CachePluginError.desc}`);
     }
 }

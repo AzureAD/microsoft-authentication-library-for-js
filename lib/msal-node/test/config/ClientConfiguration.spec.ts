@@ -2,7 +2,6 @@ import {
     buildAppConfiguration,
     Configuration,
 } from '../../src/config/Configuration';
-import { CACHE } from '../../src/utils/Constants';
 import { HttpClient } from '../../src/network/HttpClient';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import { LogLevel, NetworkRequestOptions } from '@azure/msal-common';
@@ -68,9 +67,6 @@ describe('ClientConfiguration tests', () => {
         expect(config.auth!.authority).toEqual('');
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
 
-        // cache options
-        expect(config.cache!.cacheLocation).toEqual(CACHE.FILE_CACHE);
-        expect(config.cache!.storeAuthStateInCookie).toEqual(false);
     });
 
     test('builds configuration and assigns default functions', () => {
@@ -117,10 +113,6 @@ describe('ClientConfiguration tests', () => {
                     piiLoggingEnabled: true,
                 },
             },
-            cache: {
-                cacheLocation: TEST_CONSTANTS.CACHE_LOCATION,
-                storeAuthStateInCookie: true,
-            },
         };
 
         const testNetworkOptions = {
@@ -150,10 +142,5 @@ describe('ClientConfiguration tests', () => {
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.AUTHORITY);
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
 
-        // cache options
-        expect(config.cache!.cacheLocation).toEqual(
-            TEST_CONSTANTS.CACHE_LOCATION
-        );
-        expect(config.cache!.storeAuthStateInCookie).toEqual(true);
     });
 });

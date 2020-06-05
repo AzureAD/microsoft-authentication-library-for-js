@@ -5,6 +5,8 @@ export { Storage } from './cache/Storage';
 
 // crypto
 export { CryptoProvider } from './crypto/CryptoProvider';
+export { CacheManager } from './cache/CacheManager';
+export { ICachePlugin } from './cache/ICachePlugin';
 
 // Common Object Formats
 export {

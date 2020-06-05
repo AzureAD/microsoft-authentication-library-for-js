@@ -16,22 +16,20 @@ import {
     ClientAuthError,
     Constants,
     B2cAuthority,
-    JsonCache,
-    Serializer,
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants as NodeConstants } from './../utils/Constants';
-import { CacheContext } from '../cache/CacheContext';
+import { CacheManager } from '../cache/CacheManager';
 
 export abstract class ClientApplication {
     private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
-    private cacheContext: CacheContext;
+    private cacheManager: CacheManager;
 
     /**
      * @constructor
@@ -39,11 +37,14 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
+        this.storage = new Storage();
+        this.cacheManager = new CacheManager(
+            this.storage,
+            this.config.cache?.cachePlugin
+        );
 
         this.cryptoProvider = new CryptoProvider();
-        this.storage = new Storage(this.config.cache!);
         B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
-        this.cacheContext = new CacheContext();
     }
 
     /**
@@ -138,6 +139,10 @@ export abstract class ClientApplication {
         };
     }
 
+    getCacheManager(): CacheManager {
+        return this.cacheManager;
+    }
+
     /**
      * Create authority instance. If authority not passed in request, default to authority set on the application
      * object. If no authority set in application object, then default to common authority.
@@ -176,20 +181,5 @@ export abstract class ClientApplication {
         );
 
         return this._authority;
-    }
-
-    /**
-     * Initialize cache from a user provided Json file
-     * @param cacheObject
-     */
-    initializeCache(cacheObject: JsonCache) {
-        this.cacheContext.setCurrentCache(this.storage, cacheObject);
-    }
-
-    /**
-     * read the cache as a Json convertible object from memory
-     */
-    readCache(): JsonCache {
-        return Serializer.serializeAllCache(this.storage.getCache());
     }
 }
