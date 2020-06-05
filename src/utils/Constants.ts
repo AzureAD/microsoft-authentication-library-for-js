@@ -13,7 +13,7 @@ export const Constants = {
     // ADFS String
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
-    AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
+    AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -53,18 +53,6 @@ export enum PersistentCacheKeys {
     ERROR = "error",
     ERROR_DESC = "error.description"
 }
-
-/**
- * List of pre-established trusted host URLs.
- */
-export const AADTrustedHostList: string[] = [
-    "login.windows.net",
-    "login.chinacloudapi.cn",
-    "login.cloudgovapi.us",
-    "login.microsoftonline.com",
-    "login.microsoftonline.de",
-    "login.microsoftonline.us"
-];
 
 /**
  * String constants related to AAD Authority

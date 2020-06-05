@@ -8,13 +8,16 @@ import { UrlString } from "./../url/UrlString";
 import { IUri } from "./../url/IUri";
 import { ClientAuthError } from "./../error/ClientAuthError";
 import { INetworkModule } from "./../network/INetworkModule";
-import {NetworkResponse} from "..";
+import { NetworkResponse } from "./../network/NetworkManager";
+import { Constants } from "./../utils/Constants";
+import { TrustedAuthority } from "./TrustedAuthority";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
  * endpoint. It will store the pertinent config data in this object for use during token calls.
  */
-export abstract class Authority {
+export class Authority {
 
     // Canonical authority url string
     private _canonicalAuthority: UrlString;
@@ -26,7 +29,15 @@ export abstract class Authority {
     protected networkInterface: INetworkModule;
 
     // See above for AuthorityType
-    public abstract get authorityType(): AuthorityType;
+    public get authorityType(): AuthorityType {
+        const pathSegments = this.canonicalAuthorityUrlComponents.PathSegments;
+
+        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
+            return AuthorityType.Adfs;
+        }
+
+        return AuthorityType.Default;
+    };
 
     /**
      * A URL that is the authority set by the developer
@@ -126,6 +137,9 @@ export abstract class Authority {
      * The default open id configuration endpoint for any canonical authority.
      */
     protected get defaultOpenIdConfigurationEndpoint(): string {
+        if (this.authorityType === AuthorityType.Adfs) {
+            return `${this.canonicalAuthority}.well-known/openid-configuration`;
+        }
         return `${this.canonicalAuthority}v2.0/.well-known/openid-configuration`;
     }
 
@@ -152,15 +166,19 @@ export abstract class Authority {
     }
 
     /**
-     * Abstract function which will get the OpenID configuration endpoint.
-     */
-    public abstract async getOpenIdConfigurationEndpointAsync(): Promise<string>;
-
-    /**
      * Perform endpoint discovery to discover the /authorize, /token and logout endpoints.
      */
     public async resolveEndpointsAsync(): Promise<void> {
-        const openIdConfigEndpoint = await this.getOpenIdConfigurationEndpointAsync();
+        const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
+        if (TrustedAuthority.getTrustedHostList().length === 0) {
+            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(this.networkInterface);
+        }
+
+        if (!TrustedAuthority.IsInTrustedHostList(host)) {
+            throw ClientConfigurationError.createUntrustedAuthorityError();
+        }
+
+        const openIdConfigEndpoint = this.defaultOpenIdConfigurationEndpoint;
         const response = await this.discoverEndpoints(openIdConfigEndpoint);
         this.tenantDiscoveryResponse = response.body;
     }

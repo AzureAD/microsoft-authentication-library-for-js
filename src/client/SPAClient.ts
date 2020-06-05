@@ -20,7 +20,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { UrlString } from "../url/UrlString";
 import { Account } from "../account/Account";
 import { buildClientInfo } from "../account/ClientInfo";
-import { B2cAuthority } from "../authority/B2cAuthority";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
@@ -39,7 +39,7 @@ export class SPAClient extends BaseClient {
         // Implement base module
         super(configuration);
 
-        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities);
     }
 
     /**

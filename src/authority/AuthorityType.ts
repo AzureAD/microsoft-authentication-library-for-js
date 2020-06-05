@@ -7,7 +7,6 @@
  * Authority types supported by MSAL.
  */
 export enum AuthorityType {
-    Aad,
-    Adfs,
-    B2C
+    Default,
+    Adfs
 }
