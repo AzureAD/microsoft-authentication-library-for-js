@@ -612,19 +612,19 @@ export class UserAgentApplication {
                 if (request.onRedirectNavigate) {
                     this.logger.verbose("Invoking onRedirectNavigate callback");
 
-                    const navigate = request.onRedirectNavigate(urlNavigate);	
+                    const navigate = request.onRedirectNavigate(urlNavigate);
 
-                    // Returning false from onRedirectNavigate will stop navigation	
-                    if (navigate !== false) {	
-                        this.logger.verbose("onRedirectNavigate did not return false, navigating");	
-                        this.navigateWindow(urlNavigate);	
-                    } else {	
-                        this.logger.verbose("onRedirectNavigate returned false, stopping navigation");	
-                    }	
-                } else {	
-                    // Otherwise, perform navigation	
-                    this.logger.verbose("Navigating window to urlNavigate");	
-                    this.navigateWindow(urlNavigate);	
+                    // Returning false from onRedirectNavigate will stop navigation
+                    if (navigate !== false) {
+                        this.logger.verbose("onRedirectNavigate did not return false, navigating");
+                        this.navigateWindow(urlNavigate);
+                    } else {
+                        this.logger.verbose("onRedirectNavigate returned false, stopping navigation");
+                    }
+                } else {
+                    // Otherwise, perform navigation
+                    this.logger.verbose("Navigating window to urlNavigate");
+                    this.navigateWindow(urlNavigate);
                 }
             }
         } catch (err) {
@@ -1425,13 +1425,13 @@ export class UserAgentApplication {
      * @ignore
      */
     private renewToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-        this.logger.verbosePii("renewToken is called for scope and authority: " + requestSignature);
+        this.logger.verbose("renewToken is called for scope and authority: " + requestSignature);
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, requestSignature);
         WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
-        this.logger.verbose("Renew token Expected state: " + serverAuthenticationRequest.state);
+        this.logger.verbosePii("Renew token Expected state: " + serverAuthenticationRequest.state);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
         const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
