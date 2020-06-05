@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICacheStorage, Constants, PersistentCacheKeys, InMemoryCache, StringUtils, AuthorizationCodeRequest, ICrypto } from "@azure/msal-common";
+import { ICacheStorage, Constants, PersistentCacheKeys, InMemoryCache, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CacheHelper, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -69,10 +69,10 @@ export class BrowserStorage implements ICacheStorage {
         const errorKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR}`;
         const errorDescKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR_DESC}`;
 
-        const idTokenValue = this.getItem(idTokenKey);
-        const clientInfoValue = this.getItem(clientInfoKey);
-        const errorValue = this.getItem(errorKey);
-        const errorDescValue = this.getItem(errorDescKey);
+        const idTokenValue = this.windowStorage.getItem(idTokenKey);
+        const clientInfoValue = this.windowStorage.getItem(clientInfoKey);
+        const errorValue = this.windowStorage.getItem(errorKey);
+        const errorDescValue = this.windowStorage.getItem(errorDescKey);
 
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
         const keysToMigrate = [PersistentCacheKeys.ID_TOKEN, PersistentCacheKeys.CLIENT_INFO, PersistentCacheKeys.ERROR, PersistentCacheKeys.ERROR_DESC];
@@ -88,25 +88,7 @@ export class BrowserStorage implements ICacheStorage {
      */
     private migrateCacheEntry(newKey: string, value: string): void {
         if (value) {
-            this.setItem(newKey, value);
-        }
-    }
-
-    /**
-     * Prepend msal.<client-id> to each key; Skip for any JSON object as Key (defined schemas do not need the key appended: AccessToken Keys or the upcoming schema)
-     * @param key
-     * @param addInstanceId
-     */
-    private generateCacheKey(key: string): string {
-        try {
-            // Defined schemas do not need the key migrated
-            this.validateObjectKey(key);
-            return key;
-        } catch (e) {
-            if (key.startsWith(`${Constants.CACHE_PREFIX}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
-                return key;
-            }
-            return `${Constants.CACHE_PREFIX}.${this.clientId}.${key}`;
+            this.setItem(this.generateCacheKey(newKey), value, CacheSchemaType.TEMPORARY);
         }
     }
 
@@ -125,11 +107,27 @@ export class BrowserStorage implements ICacheStorage {
      * @param key
      * @param value
      */
-    setItem(key: string, value: string): void {
-        const msalKey = this.generateCacheKey(key);
-        this.windowStorage.setItem(msalKey, value);
-        if (this.cacheConfig.storeAuthStateInCookie) {
-            this.setItemCookie(msalKey, value);
+    setItem(key: string, value: string | object, type: string): void {
+        console.log(type);
+        // save the cacheItem
+        switch (type) {
+            case CacheSchemaType.ACCOUNT:
+            case CacheSchemaType.CREDENTIAL:
+            case CacheSchemaType.APP_META_DATA:
+                this.windowStorage.setItem(key, JSON.stringify(value));
+                break;
+            case CacheSchemaType.TEMPORARY: {
+                const stringVal = value as string;
+                this.windowStorage.setItem(key, stringVal);
+                if (this.cacheConfig.storeAuthStateInCookie) {
+                    this.setItemCookie(key, stringVal);
+                }
+                break;
+            }
+            default: {
+                console.log("Invalid Cache Type");
+                return;
+            }
         }
     }
 
@@ -138,13 +136,50 @@ export class BrowserStorage implements ICacheStorage {
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
      */
-    getItem(key: string): string {
-        const msalKey = this.generateCacheKey(key);
-        const itemCookie = this.getItemCookie(msalKey);
-        if (this.cacheConfig.storeAuthStateInCookie && itemCookie) {
-            return itemCookie;
+    getItem(key: string, type: string): string | object {
+        switch (type) {
+            case CacheSchemaType.ACCOUNT: {
+                return (JSON.parse(this.windowStorage.getItem(key)) as AccountEntity) || null;
+            }
+            case CacheSchemaType.CREDENTIAL: {
+                const credentialType = CacheHelper.getCredentialType(key);
+                let credential = null;
+                switch (credentialType) {
+                    case CredentialType.ID_TOKEN: {
+                        credential =
+                            (JSON.parse(this.windowStorage.getItem(key)) as IdTokenEntity) || null;
+                        break;
+                    }
+                    case CredentialType.ACCESS_TOKEN: {
+                        credential =
+                            (JSON.parse(this.windowStorage.getItem(key)) as AccessTokenEntity) ||
+                            null;
+                        break;
+                    }
+                    case CredentialType.REFRESH_TOKEN: {
+                        credential =
+                            (JSON.parse(this.windowStorage.getItem(key)) as RefreshTokenEntity) ||
+                            null;
+                        break;
+                    }
+                }
+                return credential!;
+            }
+            case CacheSchemaType.APP_META_DATA: {
+                return (JSON.parse(this.windowStorage.getItem(key)) as AppMetadataEntity) || null;
+            }
+            case CacheSchemaType.TEMPORARY: {
+                const itemCookie = this.getItemCookie(key);
+                if (this.cacheConfig.storeAuthStateInCookie) {
+                    return itemCookie;
+                }
+                return this.windowStorage.getItem(key) || null;
+            }
+            default: {
+                console.log("Invalid Cache Type");
+                return {};
+            }
         }
-        return this.windowStorage.getItem(msalKey);
     }
 
     /**
@@ -153,10 +188,9 @@ export class BrowserStorage implements ICacheStorage {
      * @param key
      */
     removeItem(key: string): boolean {
-        const msalKey = this.generateCacheKey(key);
-        this.windowStorage.removeItem(msalKey);
+        this.windowStorage.removeItem(key);
         if (this.cacheConfig.storeAuthStateInCookie) {
-            this.clearItemCookie(msalKey);
+            this.clearItemCookie(key);
         }
         return true;
     }
@@ -166,8 +200,7 @@ export class BrowserStorage implements ICacheStorage {
      * @param key
      */
     containsKey(key: string): boolean {
-        const msalKey = this.generateCacheKey(key);
-        return this.windowStorage.hasOwnProperty(msalKey) || this.windowStorage.hasOwnProperty(key);
+        return this.windowStorage.hasOwnProperty(key);
     }
 
     /**
@@ -272,6 +305,24 @@ export class BrowserStorage implements ICacheStorage {
     setCache(): void {
         // sets nothing
     }
+	
+    /**
+     * Prepend msal.<client-id> to each key; Skip for any JSON object as Key (defined schemas do not need the key appended: AccessToken Keys or the upcoming schema)
+     * @param key
+     * @param addInstanceId
+     */
+    generateCacheKey(key: string): string {
+        try {
+            // Defined schemas do not need the key migrated
+            this.validateObjectKey(key);
+            return key;
+        } catch (e) {
+            if (key.startsWith(`${Constants.CACHE_PREFIX}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
+                return key;
+            }
+            return `${Constants.CACHE_PREFIX}.${this.clientId}.${key}`;
+        }
+    }
 
     /**
      * Create authorityKey to cache authority
@@ -297,7 +348,7 @@ export class BrowserStorage implements ICacheStorage {
     setAuthorityCache(authority: string, state: string): void {
         // Cache authorityKey
         const authorityKey = this.generateAuthorityKey(state);
-        this.setItem(authorityKey, authority);
+        this.setItem(this.generateCacheKey(authorityKey), authority, CacheSchemaType.TEMPORARY);
     }
 
     /**
@@ -307,10 +358,10 @@ export class BrowserStorage implements ICacheStorage {
      */
     updateCacheEntries(state: string, nonce: string, authorityInstance: string): void {
         // Cache the request state
-        this.setItem(TemporaryCacheKeys.REQUEST_STATE, state);
+        this.setItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), state, CacheSchemaType.TEMPORARY);
 
         // Cache the nonce
-        this.setItem(this.generateNonceKey(state), nonce);
+        this.setItem(this.generateCacheKey(this.generateNonceKey(state)), nonce, CacheSchemaType.TEMPORARY);
 
         // Cache authorityKey
         this.setAuthorityCache(authorityInstance, state);
@@ -333,20 +384,20 @@ export class BrowserStorage implements ICacheStorage {
         });
 
         // delete generic interactive request parameters
-        this.removeItem(TemporaryCacheKeys.REQUEST_STATE);
-        this.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
-        this.removeItem(TemporaryCacheKeys.ORIGIN_URI);
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
     }
 
     cleanRequest(): void {
         // Interaction is completed - remove interaction status.
-        this.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
-        const cachedState = this.getItem(TemporaryCacheKeys.REQUEST_STATE);
+        this.removeItem(this.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
+        const cachedState = this.getItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
         this.resetRequestCache(cachedState || "");
     }
 
     cacheCodeRequest(authCodeRequest: AuthorizationCodeRequest, browserCrypto: ICrypto): void {
-        this.setItem(TemporaryCacheKeys.REQUEST_PARAMS, browserCrypto.base64Encode(JSON.stringify(authCodeRequest)));
+        this.setItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(authCodeRequest)), CacheSchemaType.TEMPORARY);
     }
 
     /**
@@ -355,13 +406,13 @@ export class BrowserStorage implements ICacheStorage {
     getCachedRequest(state: string, browserCrypto: ICrypto): AuthorizationCodeRequest {
         try {
             // Get token request from cache and parse as TokenExchangeParameters.
-            const encodedTokenRequest = this.getItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            const encodedTokenRequest = this.getItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string;
             const parsedRequest = JSON.parse(browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
-            this.removeItem(TemporaryCacheKeys.REQUEST_PARAMS);
+            this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
             // Get cached authority and use if no authority is cached with request.
             if (StringUtils.isEmpty(parsedRequest.authority)) {
                 const authorityKey: string = this.generateAuthorityKey(state);
-                const cachedAuthority: string = this.getItem(authorityKey);
+                const cachedAuthority: string = this.getItem(this.generateCacheKey(authorityKey), CacheSchemaType.TEMPORARY) as string;
                 parsedRequest.authority = cachedAuthority;
             }
             return parsedRequest;

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, Constants, SPAClient, AuthorizationCodeRequest } from "@azure/msal-common";
+import { UrlString, StringUtils, Constants, SPAClient, AuthorizationCodeRequest, CacheSchemaType } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
@@ -33,7 +33,7 @@ export class PopupHandler extends InteractionHandler {
             // Save auth code request
             this.authCodeRequest = authCodeRequest;
             // Set interaction status in the library.
-            this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             // Open the popup window to requestUrl.
             return this.openPopup(requestUrl, Constants.LIBRARY_NAME, BrowserConstants.POPUP_WIDTH, BrowserConstants.POPUP_HEIGHT);
@@ -143,7 +143,7 @@ export class PopupHandler extends InteractionHandler {
             return popupWindow;
         } catch (e) {
             this.authModule.logger.error("error opening popup " + e.message);
-            this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
             throw BrowserAuthError.createPopupWindowError(e.toString());
         }
     }
@@ -171,6 +171,6 @@ export class PopupHandler extends InteractionHandler {
         window.removeEventListener("beforeunload", this.unloadWindow);
 
         // Interaction is completed - remove interaction status.
-        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
     }
 }
