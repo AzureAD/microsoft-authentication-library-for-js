@@ -12,7 +12,7 @@ steps:
     GITHUB_REGISTRY_TOKEN: $(GITHUB_REGISTRY_TOKEN)
   inputs:
     command: 'custom'
-    customCommand: 'config set //npm.pkg.github.com/:_authToken $(GITHUB_REGISTRY_TOKEN)'
+    customCommand: 'config set //npm.pkg.github.com/:_authToken %GITHUB_REGISTRY_TOKEN%'
     
 - task: Npm@1
   displayName: 'npm ci & lerna bootstrap'
