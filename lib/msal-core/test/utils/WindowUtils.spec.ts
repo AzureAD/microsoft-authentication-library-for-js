@@ -6,6 +6,8 @@ import { TEST_CONFIG } from "../TestConstants";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { Logger } from "../../src";
 
+const logger = new Logger(() => {});
+
 describe("WindowUtils", () => {
     describe("monitorWindowForHash", () => {
         it("times out (popup)", done => {
@@ -19,7 +21,7 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 500)
+            WindowUtils.monitorWindowForHash(iframe.contentWindow, 500, "url", logger)
                 .catch((err: ClientAuthError) => {
                     done();
                 });
@@ -34,7 +36,7 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 500, "http://login.microsoftonline.com", true)
+            WindowUtils.monitorWindowForHash(iframe.contentWindow, 500, "http://login.microsoftonline.com", logger, true)
                 .catch((err: ClientAuthError) => {
                     done();
                 });
@@ -51,7 +53,7 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 1000)
+            WindowUtils.monitorWindowForHash(iframe.contentWindow, 1000, "url", logger)
                 .then((hash: string) => {
                     expect(hash).to.equal("#access_token=hello");
                     done();
@@ -77,7 +79,7 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 1000)
+            WindowUtils.monitorWindowForHash(iframe.contentWindow, 1000, "url", logger)
                 .catch((error: ClientAuthError) => {
                     expect(error.errorCode).to.equal('user_cancelled');
                     done();
