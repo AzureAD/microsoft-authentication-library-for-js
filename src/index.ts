@@ -24,6 +24,11 @@ export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
 export { Serializer } from "./unifiedCache/serialize/Serializer";
 export { Deserializer } from "./unifiedCache/serialize/Deserializer";
 export { CacheHelper } from "./unifiedCache/utils/CacheHelper";
+export { AppMetadataEntity } from "./unifiedCache/entities/AppMetadataEntity";
+export { AccountEntity } from "./unifiedCache/entities/AccountEntity";
+export { IdTokenEntity } from "./unifiedCache/entities/IdTokenEntity";
+export { AccessTokenEntity } from "./unifiedCache/entities/AccessTokenEntity";
+export { RefreshTokenEntity } from "./unifiedCache/entities/RefreshTokenEntity";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkResponse } from "./network/NetworkManager";

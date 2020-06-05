@@ -4,6 +4,7 @@
  */
 
 import { StringDict } from "../utils/MsalTypes";
+import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
 
 /**
  * Result returned from the authority's token endpoint.
@@ -16,6 +17,7 @@ export class AuthenticationResult {
     idTokenClaims: StringDict;
     accessToken: string;
     expiresOn: Date;
+    account: AccountEntity;
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;

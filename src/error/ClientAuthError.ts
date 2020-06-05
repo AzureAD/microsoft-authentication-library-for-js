@@ -75,6 +75,10 @@ export const ClientAuthErrorMessage = {
         desc: "The cache contains multiple tokens satisfying the requirements. " +
             "Call AcquireToken again providing more requirements such as authority or account."
     },
+    multipleMatchingAccounts: {
+        code: "multiple_matching_accounts",
+        desc: "The cache contains multiple accounts satisfying the given parameters. Please pass more info to obtain the correct account"
+    },
     tokenRequestCannotBeMade: {
         code: "request_cannot_be_made",
         desc: "Token request cannot be made without authorization code or refresh token."
@@ -251,6 +255,15 @@ export class ClientAuthError extends AuthError {
     static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
             `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
+    }
+	
+    /**
+     * Throws error when multiple tokens are in cache for the given scope.
+     * @param scope
+     */
+    static createMultipleMatchingAccountsInCacheError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAccounts.code,
+            ClientAuthErrorMessage.multipleMatchingAccounts.desc);
     }
 
     /**

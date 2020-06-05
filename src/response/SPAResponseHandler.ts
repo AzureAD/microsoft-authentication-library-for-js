@@ -82,7 +82,7 @@ export class SPAResponseHandler {
 
         // Cache client info
         if (serverParams.client_info) {
-            this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, serverParams.client_info);
+            this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, serverParams.client_info, null);
         }
 
         return serverParams.code;
@@ -160,7 +160,7 @@ export class SPAResponseHandler {
 
         // Get id token
         if (!StringUtils.isEmpty(originalTokenResponse.idToken)) {
-            this.cacheStorage.setItem(PersistentCacheKeys.ID_TOKEN, originalTokenResponse.idToken);
+            this.cacheStorage.setItem(PersistentCacheKeys.ID_TOKEN, originalTokenResponse.idToken, null);
         }
 
         // Save access token in cache
@@ -176,7 +176,7 @@ export class SPAResponseHandler {
             accessTokenCacheItems.forEach(accessTokenCacheItem => {
                 const cachedScopes = ScopeSet.fromString(accessTokenCacheItem.key.scopes, this.clientId, true);
                 if(cachedScopes.intersectingScopeSets(responseScopes)) {
-                    this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
+                    this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key), null);
                     responseScopes.appendScopes(cachedScopes.asArray());
                     if (StringUtils.isEmpty(newAccessTokenValue.idToken)) {
                         newAccessTokenValue.idToken = accessTokenCacheItem.value.idToken;
@@ -193,7 +193,7 @@ export class SPAResponseHandler {
             clientInfo && clientInfo.utid,
             this.cryptoObj
         );
-        this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue));
+        this.cacheStorage.setItem(JSON.stringify(newTokenKey), JSON.stringify(newAccessTokenValue), null);
 
         // Save tokens in response and return
         return {
@@ -229,7 +229,7 @@ export class SPAResponseHandler {
 
         // Retrieve current id token object
         let idTokenObj: IdToken;
-        const cachedIdToken: string = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
+        const cachedIdToken: string = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN, null);
         if (serverTokenResponse.id_token) {
             idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
             tokenResponse = SPAResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
@@ -255,7 +255,7 @@ export class SPAResponseHandler {
         let clientInfo: ClientInfo = null;
         if (idTokenObj) {
             // Retrieve client info
-            clientInfo = buildClientInfo(this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO), this.cryptoObj);
+            clientInfo = buildClientInfo(this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO, null), this.cryptoObj);
 
             // Create account object for request
             tokenResponse.account = Account.createAccount(idTokenObj, clientInfo, this.cryptoObj);

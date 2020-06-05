@@ -5,10 +5,8 @@
 
 import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
 import { ICacheStorage } from "../cache/ICacheStorage";
-import { CacheHelpers } from "../cache/CacheHelpers";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
-import { Account } from "../account/Account";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
@@ -16,6 +14,7 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { B2cAuthority } from "../authority/B2cAuthority";
 import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
+import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -37,14 +36,11 @@ export abstract class BaseClient {
     // Network Interface
     protected networkClient: INetworkModule;
 
-    // Helper API object for running cache functions
-    protected spaCacheManager: CacheHelpers;
-
     // Helper API object for serialized cache operations
     protected unifiedCacheManager: UnifiedCacheManager;
 
     // Account object
-    protected account: Account;
+    protected account: AccountEntity;
 
     // Default authority object
     protected defaultAuthority: Authority;
@@ -62,11 +58,8 @@ export abstract class BaseClient {
         // Initialize storage interface
         this.cacheStorage = this.config.storageInterface;
 
-        // Initialize storage helper object
-        this.spaCacheManager = new CacheHelpers(this.cacheStorage);
-
         // Initialize serialized cache manager
-        this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage);
+        this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage, this.config.systemOptions.storeInMemory);
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
