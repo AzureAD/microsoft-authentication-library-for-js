@@ -23,6 +23,7 @@ export type JsonCache = {
     AccessToken?: StringDict;
     RefreshToken?: StringDict;
     AppMetadata?: StringDict;
+    [key: string]: StringDict;
 };
 
 export type InMemoryCache = {

@@ -3,6 +3,7 @@ import {
     Serializer,
     Deserializer,
     JsonCache,
+    ClientAuthError,
 } from '@azure/msal-common';
 import { ICachePlugin } from './ICachePlugin';
 
@@ -15,88 +16,158 @@ const defaultSerializedCache: JsonCache = {
 };
 
 export class CacheManager {
-    hasChanged: boolean;
-    storage: Storage;
-    private persistence: ICachePlugin;
+
+    private storage: Storage;
+    private hasChanged: boolean;
+    private cacheSnapshot: string;
+    private readonly persistence: ICachePlugin;
 
     constructor(storage: Storage, cachePlugin?: ICachePlugin) {
         this.hasChanged = false;
         this.storage = storage;
         this.storage.registerChangeEmitter(this.handleChangeEvent.bind(this));
         if (cachePlugin) {
-            this.setPersistence(cachePlugin);
+            this.persistence = cachePlugin;
         }
     }
 
-    setPersistence(persistence: ICachePlugin): void {
-        this.persistence = persistence;
+    /**
+     * Set to true if cache state has changed since last time serialized() or writeToPersistence was called
+     */
+    cacheHasChanged(): boolean {
+        return this.hasChanged;
     }
 
-    handleChangeEvent() {
+    /**
+     * Serializes in memory cache to JSON
+     */
+    serialize(): string {
+        const mergedCache = this.mergeState(
+            JSON.parse(this.cacheSnapshot),
+            Serializer.serializeAllCache(this.storage.getCache()));
+
+        this.hasChanged = false;
+
+        return JSON.stringify(mergedCache);
+    }
+
+    /**
+     * Deserializes JSON to in-memory cache. JSON should be in MSAL cache schema format
+     * @param cache
+     */
+    deserialize(cache: string): void {
+        this.cacheSnapshot = cache;
+        const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(cache)));
+        this.storage.setCache(deserializedCache);
+    }
+
+    /**
+     * Serializes cache into JSON and calls ICachePlugin.writeToStorage. ICachePlugin must be set on ClientApplication
+     */
+    async writeToPersistence(): Promise<void> {
+        console.log("writing to persistence");
+        if (this.persistence) {
+
+            this.cacheSnapshot = await this.persistence.readFromStorage();
+
+            const mergedCache = this.mergeState(
+                JSON.parse(this.cacheSnapshot),
+                Serializer.serializeAllCache(this.storage.getCache()));
+
+            this.hasChanged = false;
+            await this.persistence.writeToStorage(JSON.stringify(mergedCache));
+        } else {
+            throw ClientAuthError.createCachePluginError();
+        }
+    }
+
+    /**
+     * Calls ICachePlugin.readFromStorage and deserializes JSON to in-memory cache.
+     * ICachePlugin must be set on ClientApplication.
+     */
+    async readFromPersistence(): Promise<void> {
+        console.log("reading from persistence");
+        if (this.persistence) {
+            this.cacheSnapshot = await this.persistence.readFromStorage();
+            const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(this.cacheSnapshot)));
+            this.storage.setCache(deserializedCache);
+        } else {
+            throw ClientAuthError.createCachePluginError();
+        }
+    }
+
+    /**
+     * Called when the cache has changed state.
+     */
+    private handleChangeEvent() {
         this.hasChanged = true;
     }
 
-    mergeState(oldState: JsonCache, currentState: JsonCache) {
-        // TODO
-        // mergeUpdates(old, new)
-        // mergeRemovals(old, new)
-        return {
-            ...oldState,
-            ...currentState,
-        };
+    /**
+     * Merge in memory cache with the cache snapshot.
+     * @param oldState
+     * @param currentState
+     */
+    private mergeState(oldState: JsonCache, currentState: JsonCache): JsonCache {
+        let stateAfterRemoval = this.mergeRemovals(oldState, currentState);
+        return this.mergeUpdates(stateAfterRemoval, currentState);
     }
 
-    // TODO think about separating serialize / deserialize from writeToPersistance and readFromPersistance
+    /**
+     * Deep update of oldState based on newState values
+     * @param oldState
+     * @param newState
+     */
+    private mergeUpdates(oldState: any, newState: any): JsonCache {
+        Object.keys(newState).forEach((newKey) => {
+            let newValue = newState[newKey];
 
-    async serialize(): Promise<string> {
-        const cache: string = JSON.stringify(
-            Serializer.serializeAllCache(this.storage.getCache())
-        );
-        if (this.persistence) {
-            const getMergedState = (stateFromDisk: any) => {
-                let jsonFromDisk = {};
-                try {
-                    jsonFromDisk = JSON.parse(stateFromDisk);
-                } catch (e) {
-                    // TODO make first class error
-                    throw Error('Invalid cachce from disk');
+            // if oldState does not contain value but newValue does, add it
+            if (!oldState.hasOwnProperty(newKey)) {
+                if (newValue != null) {
+                    oldState[newKey] = newValue;
                 }
+            } else {
+                // merge oldState and newState
+                let newValueNotNull = newValue !== null;
+                let newValueIsObject = typeof newValue === 'object';
+                let newValueIsNotArray = !Array.isArray(newValue);
 
-                return JSON.stringify(
-                    this.mergeState(
-                        jsonFromDisk,
-                        Serializer.serializeAllCache(this.storage.getCache())
-                    ),
-                    null,
-                    4
-                );
-            };
-            await this.persistence.writeToStorage(getMergedState);
-        }
-        this.hasChanged = false;
-        return cache;
+                if (newValueNotNull && newValueIsObject && newValueIsNotArray) {
+                    this.mergeUpdates(oldState[newKey], newValue);
+                } else {
+                    oldState[newKey] = newValue;
+                }
+            }
+        });
+
+        return oldState;
     }
 
-    async deserialize(cache?: string): Promise<void> {
-        if (this.persistence) {
-            const stringCacheFromStorage = await this.persistence.readFromStorage();
-            const deserializedCache = Deserializer.deserializeAllCache(
-                this.overlayDefaults(JSON.parse(stringCacheFromStorage))
-            );
-            this.storage.setCache(deserializedCache);
-        } else if (cache) {
-            const deserializedCache = Deserializer.deserializeAllCache(
-                this.overlayDefaults(JSON.parse(cache))
-            );
-            this.storage.setCache(deserializedCache);
-        } else {
-            // TODO make first class error
-            throw Error('cache mus be configured');
-        }
-    }
+    /**
+     * Removes entities in oldState that the were removed from newState. If there are any unknown values in root of
+     * oldState that are not recognized, they are left untouched.
+     * @param oldState
+     * @param newState
+     */
+    private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
+        // set of entities created because we only want to remove these. If the oldState contains any other things,
+        // we leave them untouched
+        const entities = new Set(["Account", "AccessToken", "RefreshToken", "IdToken", "AppMetadata"]);
 
-    cacheHasChanged(): boolean {
-        return this.hasChanged;
+        entities.forEach((entity: string) => {
+            let oldEntries = oldState[entity];
+            let newEntries = newState[entity];
+            // if entity is in oldState but not in newState remove it
+            if (oldEntries != null) {
+                Object.keys(oldEntries).forEach((oldKey) => {
+                    if (!newEntries || !(newEntries.hasOwnProperty(oldKey))) {
+                        delete oldEntries[oldKey];
+                    }
+                })
+            }
+        });
+        return oldState;
     }
 
     private overlayDefaults(passedInCache: JsonCache): JsonCache {
