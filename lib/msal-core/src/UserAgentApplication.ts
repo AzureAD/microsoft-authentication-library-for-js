@@ -608,9 +608,9 @@ export class UserAgentApplication {
                     }
                 }
             } else {
-                // If onRedirectNavigate is implemented, invoke it and provide urlNavigate	                // prompt user for interaction
-                if (request.onRedirectNavigate) {	                this.logger.verbose("Interaction type is redirect. Redirecting");
-                    this.logger.verbose("Invoking onRedirectNavigate callback");	                this.navigateWindow(urlNavigate, popUpWindow);
+                // If onRedirectNavigate is implemented, invoke it and provide urlNavigate
+                if (request.onRedirectNavigate) {
+                    this.logger.verbose("Invoking onRedirectNavigate callback");
 
                     const navigate = request.onRedirectNavigate(urlNavigate);	
 
@@ -915,7 +915,7 @@ export class UserAgentApplication {
         } catch (error) {
             if (this.cacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}${Constants.resourceDelimiter}${expectedState}`) === Constants.inProgress) {
                 // fail the iframe session if it's in pending state
-                this.logger.verbosePii("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope/authority " + requestSignature + ":" + expectedState);
+                this.logger.verbose("Loading frame has timed out after: " + (this.config.system.loadFrameTimeout / 1000) + " seconds for scope/authority " + requestSignature + ":" + expectedState);
                 // Error after timeout
                 if (expectedState && window.callbackMappedToRenewStates[expectedState]) {
                     window.callbackMappedToRenewStates[expectedState](null, error);
@@ -1425,7 +1425,7 @@ export class UserAgentApplication {
      * @ignore
      */
     private renewToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-        this.logger.verbose("renewToken is called for scope and authority: " + requestSignature);
+        this.logger.verbosePii("renewToken is called for scope and authority: " + requestSignature);
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, requestSignature);
         WindowUtils.addHiddenIFrame(frameName, this.logger);
