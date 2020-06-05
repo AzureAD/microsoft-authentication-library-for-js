@@ -7,6 +7,14 @@ steps:
   displayName: 'Install Node.js'
 
 - task: Npm@1
+  displayName: 'Github Registry Authentication'
+  env:
+    GITHUB_REGISTRY_TOKEN: $(GITHUB_REGISTRY_TOKEN)
+  inputs:
+    command: 'custom'
+    customCommand: 'config set //npm.pkg.github.com/:_authToken $(GITHUB_REGISTRY_TOKEN)'
+    
+- task: Npm@1
   displayName: 'npm ci & lerna bootstrap'
   inputs:
     command: 'custom'
@@ -24,6 +32,12 @@ steps:
   inputs:
     command: 'custom'
     customCommand: 'run test:coverage'
+
+- task: Npm@1
+  displayName: 'Lint'
+  inputs:
+    command: 'custom'
+    customCommand: 'run lint'
 
 - task: Npm@1
   displayName: 'Code Coverage Reporting'
