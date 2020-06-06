@@ -139,7 +139,7 @@ describe("Browser tests", function () {
         await takeScreenshot(page, testName, `samplePageGotToken`);
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
         expect(Object.keys(localStorage).length).to.be.eq(6);
-        expect(page.url).to.be.eq(customHashPage);
+        expect(page.url()).to.be.eq(customHashPage);
     });
 
     it("Performs loginPopup then acquireTokenRedirect from page with custom query params", async () => {
@@ -171,7 +171,7 @@ describe("Browser tests", function () {
         await takeScreenshot(page, testName, `samplePageGotToken`);
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
         expect(Object.keys(localStorage).length).to.be.eq(6);
-        expect(page.url).to.be.eq(customQueryPage);
+        expect(page.url()).to.be.eq(customQueryPage);
     });
 
     it("Performs loginPopup then acquireTokenPopup", async () => {
