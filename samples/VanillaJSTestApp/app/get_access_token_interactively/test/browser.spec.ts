@@ -105,6 +105,7 @@ describe("Browser tests", function () {
         // Acquire Access Token using acquireTokenRedirect
         await page.click("#seeProfileRedirect");
         await page.waitForNavigation({ waitUntil: "networkidle0"});
+        await page.waitForSelector('#profile-info');
         await takeScreenshot(page, testName, `samplePageGotToken`);
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
         expect(Object.keys(localStorage).length).to.be.eq(6);
@@ -136,6 +137,7 @@ describe("Browser tests", function () {
         // Acquire Access Token using acquireTokenRedirect
         await page.click("#seeProfileRedirect");
         await page.waitForNavigation({ waitUntil: "networkidle0"});
+        await page.waitForSelector('#profile-info');
         await takeScreenshot(page, testName, `samplePageGotToken`);
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
         expect(Object.keys(localStorage).length).to.be.eq(6);
@@ -145,7 +147,7 @@ describe("Browser tests", function () {
     it("Performs loginPopup then acquireTokenRedirect from page with custom query params", async () => {
         const customQueryPage = 'http://localhost:30662/?testQueryParam=test'
         await page.goto(customQueryPage);
-        const testName = "acquireTokenRedirectCustomHashCase";
+        const testName = "acquireTokenRedirectCustomQueryCase";
         // Home Page
         await takeScreenshot(page, testName, `samplePageInit`);
         // Click Sign In
@@ -168,6 +170,7 @@ describe("Browser tests", function () {
         // Acquire Access Token using acquireTokenRedirect
         await page.click("#seeProfileRedirect");
         await page.waitForNavigation({ waitUntil: "networkidle0"});
+        await page.waitForSelector('#profile-info');
         await takeScreenshot(page, testName, `samplePageGotToken`);
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
         expect(Object.keys(localStorage).length).to.be.eq(6);
@@ -196,15 +199,11 @@ describe("Browser tests", function () {
         expect(popupPage.isClosed()).to.be.true;
 
         // Acquire Access Token using acquireTokenPopup
-        const newPopupConsentWindowPromise = new Promise<puppeteer.Page>(resolve => page.once('popup', resolve));
         await page.click("#seeProfilePopup");
-        const popupConsentPage = await newPopupConsentWindowPromise;
-        const popupConsentWindowClosed = new Promise<void>(resolve => popupConsentPage.once("close", resolve));
+        await page.waitForSelector('#profile-info');
 
-        await popupConsentWindowClosed;
         await takeScreenshot(page, testName, `samplePageGotToken`);
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
         expect(Object.keys(localStorage).length).to.be.eq(6);
-        expect(popupConsentPage.isClosed()).to.be.true;
     });
 });
