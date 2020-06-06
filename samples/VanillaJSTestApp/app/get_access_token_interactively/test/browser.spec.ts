@@ -171,7 +171,7 @@ describe("Browser tests", function () {
         await takeScreenshot(page, testName, `samplePageGotToken`);
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
         expect(Object.keys(localStorage).length).to.be.eq(6);
-        expect(page.url()).to.be.eq(customQueryPage);
+        expect(page.url()).to.be.eq(customQueryPage + "#"); // Redirect will leave empty hash on the url
     });
 
     it("Performs loginPopup then acquireTokenPopup", async () => {
@@ -199,9 +199,10 @@ describe("Browser tests", function () {
         const newPopupConsentWindowPromise = new Promise<puppeteer.Page>(resolve => page.once('popup', resolve));
         await page.click("#seeProfilePopup");
         const popupConsentPage = await newPopupConsentWindowPromise;
-        const popupConsentWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+        const popupConsentWindowClosed = new Promise<void>(resolve => popupConsentPage.once("close", resolve));
 
         await popupConsentWindowClosed;
+        await takeScreenshot(page, testName, `samplePageGotToken`);
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
         expect(Object.keys(localStorage).length).to.be.eq(6);
         expect(popupConsentPage.isClosed()).to.be.true;
