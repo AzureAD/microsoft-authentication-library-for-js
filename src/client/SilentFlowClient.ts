@@ -36,13 +36,14 @@ export class SilentFlowClient extends BaseClient {
         let idTokenObj: IdToken;
         const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId, true);
 
-        // We currently do not support silent flow for account===null use cases; This will be revisited for confidential flow usecases
+        // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (request.account === null) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         } else {
             cacheRecord = new CacheRecord();
             // fetch account
-            cacheRecord.account = this.unifiedCacheManager.getAccount(CacheHelper.generateAccountCacheKey(request.account));
+            const accountKey: string = CacheHelper.generateAccountCacheKey(request.account);
+            cacheRecord.account = this.unifiedCacheManager.getAccount(accountKey);
 
             const homeAccountId = cacheRecord.account.homeAccountId;
             const environment = cacheRecord.account.environment;

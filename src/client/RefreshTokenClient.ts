@@ -39,8 +39,6 @@ export class RefreshTokenClient extends BaseClient {
             this.defaultAuthority
         );
 
-        // set the final cache and return the auth response
-        this.updateCache();
         return tokenResponse;
     }
 

@@ -4,9 +4,9 @@
  */
 
 export interface IAccount {
-    homeAccountId: string,
-    tenantId: string,
-    localAccountId: string,
-    environment: string,
-    userName: string
+    homeAccountId: string;
+    tenantId: string;
+    localAccountId: string;
+    environment: string;
+    userName: string;
 }

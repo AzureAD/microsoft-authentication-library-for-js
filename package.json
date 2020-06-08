@@ -47,7 +47,7 @@
         "test:coverage": "nyc --reporter=text mocha --exit",
         "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
         "build:modules": "rollup -c",
-        "build:modules:watch": "rollup -cw",
+        "build:modules:watch": "npm run lint && rollup -cw",
         "build": "npm run clean && npm run lint && npm run build:modules",
         "prepack": "npm run build"
     },
