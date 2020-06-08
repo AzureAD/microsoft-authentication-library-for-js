@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { AccountCacheMaps, AccessTokenCacheMaps, IdTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "../serialize/JsonKeys";
+import { AccountCacheMaps, AccessTokenCacheMaps, IdTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
 import { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "../utils/CacheTypes";
 import { CacheHelper } from "../utils/CacheHelper";
 

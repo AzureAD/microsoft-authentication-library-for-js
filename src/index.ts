@@ -18,17 +18,17 @@ export { B2cAuthority } from "./authority/B2cAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 // Cache
-export { ICacheStorage } from "./unifiedCache/interface/ICacheStorage";
-export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
-export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
-export { Serializer } from "./unifiedCache/serialize/Serializer";
-export { Deserializer } from "./unifiedCache/serialize/Deserializer";
-export { CacheHelper } from "./unifiedCache/utils/CacheHelper";
-export { AppMetadataEntity } from "./unifiedCache/entities/AppMetadataEntity";
-export { AccountEntity } from "./unifiedCache/entities/AccountEntity";
-export { IdTokenEntity } from "./unifiedCache/entities/IdTokenEntity";
-export { AccessTokenEntity } from "./unifiedCache/entities/AccessTokenEntity";
-export { RefreshTokenEntity } from "./unifiedCache/entities/RefreshTokenEntity";
+export { ICacheStorage } from "./cache/interface/ICacheStorage";
+export { UnifiedCacheManager } from "./cache/UnifiedCacheManager";
+export { JsonCache, InMemoryCache } from "./cache/utils/CacheTypes";
+export { Serializer } from "./cache/serialize/Serializer";
+export { Deserializer } from "./cache/serialize/Deserializer";
+export { CacheHelper } from "./cache/utils/CacheHelper";
+export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
+export { AccountEntity } from "./cache/entities/AccountEntity";
+export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
+export { AccessTokenEntity } from "./cache/entities/AccessTokenEntity";
+export { RefreshTokenEntity } from "./cache/entities/RefreshTokenEntity";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkResponse } from "./network/NetworkManager";

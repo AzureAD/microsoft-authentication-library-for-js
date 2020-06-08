@@ -161,6 +161,10 @@ export class CacheHelper {
         ];
     }
 
+    /**
+     * Generates account key from interface
+     * @param accountInterface 
+     */
     static generateAccountCacheKey(accountInterface: IAccount): string {
         const accountKey = [
             accountInterface.homeAccountId,

@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { ICacheStorage } from "../unifiedCache/interface/ICacheStorage";
+import { ICacheStorage } from "../cache/interface/ICacheStorage";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { AuthError } from "../error/AuthError";
 import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
-import { InMemoryCache } from "../unifiedCache/utils/CacheTypes";
+import { InMemoryCache } from "../cache/utils/CacheTypes";
 import { Authority } from "../authority/Authority";
 
 // Token renewal offset default in seconds
