@@ -14,7 +14,7 @@ export {
     // Request
     TokenRenewParameters,
     // Response
-    TokenResponse,
+    AuthenticationResult,
     // Error
     InteractionRequiredAuthError,
     AuthError,

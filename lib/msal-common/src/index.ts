@@ -9,7 +9,7 @@ export {
 } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
-export { Account } from "./account/Account";
+export { IAccount } from "./account/IAccount";
 export { IdToken } from "./account/IdToken";
 export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
@@ -18,7 +18,7 @@ export { B2cAuthority } from "./authority/B2cAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 // Cache
-export { ICacheStorage } from "./cache/ICacheStorage";
+export { ICacheStorage } from "./unifiedCache/interface/ICacheStorage";
 export { UnifiedCacheManager } from "./unifiedCache/UnifiedCacheManager";
 export { JsonCache, InMemoryCache } from "./unifiedCache/utils/CacheTypes";
 export { Serializer } from "./unifiedCache/serialize/Serializer";
@@ -42,8 +42,6 @@ export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
-export { TokenRenewParameters } from "./request/TokenRenewParameters";
-export { TokenResponse } from "./response/TokenResponse";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";

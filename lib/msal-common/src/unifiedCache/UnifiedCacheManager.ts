@@ -5,7 +5,7 @@
 
 import { InMemoryCache, JsonCache, AccountFilter, CredentialFilter  } from "./utils/CacheTypes";
 import { AccountEntity } from "./entities/AccountEntity";
-import { ICacheStorage } from "../cache/ICacheStorage";
+import { ICacheStorage } from "./interface/ICacheStorage";
 import { Deserializer } from "./serialize/Deserializer";
 import { Serializer } from "./serialize/Serializer";
 import { Credential } from "./entities/Credential";
