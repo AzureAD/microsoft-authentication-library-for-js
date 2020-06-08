@@ -16,6 +16,9 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { B2cAuthority } from "../authority/B2cAuthority";
 import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
+import { IAccount } from "../account/IAccount";
+import { AccountCache } from "../unifiedCache/utils/CacheTypes";
+import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -66,7 +69,7 @@ export abstract class BaseClient {
         this.spaCacheManager = new CacheHelpers(this.cacheStorage);
 
         // Initialize serialized cache manager
-        this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage);
+        this.unifiedCacheManager = new UnifiedCacheManager(this.cacheStorage, this.config.systemOptions.storeInMemory);
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
@@ -121,11 +124,26 @@ export abstract class BaseClient {
     }
 
     /**
-     * TODO: modify this soon
-     * Set the cache post acquireToken call
+     * Get all currently signed in accounts.
      */
-    protected updateCache(): void {
-        const cache = this.unifiedCacheManager.getCacheInMemory();
-        this.cacheStorage.setCache(cache);
+    public getAllAccounts(): IAccount[] {
+        const currentAccounts: AccountCache = this.unifiedCacheManager.getAllAccounts();
+        console.log("Current Accounts Obj: " , currentAccounts);
+        const accountValues: AccountEntity[] = Object.values(currentAccounts);
+        console.log("Accounts: " , accountValues);
+        const numAccounts = accountValues.length;
+        if (numAccounts < 1) {
+            return null;
+        } else {
+            return accountValues.map<IAccount>((value) => {
+                return {
+                    homeAccountId: value.homeAccountId,
+                    localAccountId: value.localAccountId,
+                    environment: value.environment,
+                    tenantId: value.realm,
+                    userName: value.username
+                };
+            });
+        }
     }
 }

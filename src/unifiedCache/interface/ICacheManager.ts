@@ -5,7 +5,12 @@
 
 import { AccountEntity } from "../entities/AccountEntity";
 import { Credential } from "../entities/Credential";
-import { AccountCache, CredentialCache, AccountFilter, CredentialFilter } from "../utils/CacheTypes";
+import {
+    AccountCache,
+    CredentialCache,
+    AccountFilter,
+    CredentialFilter,
+} from "../utils/CacheTypes";
 
 export interface ICacheManager {
     /**
@@ -38,9 +43,7 @@ export interface ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredBy(
-        filter: AccountFilter
-    ): AccountCache;
+    getAccountsFilteredBy(filter: AccountFilter): AccountCache;
 
     /**
      * retrieve credentials matching all provided filters; if no filter is set, get all credentials
@@ -51,15 +54,13 @@ export interface ICacheManager {
      * @param realm
      * @param target
      */
-    getCredentialsFilteredBy(
-        filter: CredentialFilter
-    ): CredentialCache;
+    getCredentialsFilteredBy(filter: CredentialFilter): CredentialCache;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccount(account: AccountEntity): boolean;
+    removeAccount(accountKey: string): boolean;
 
     /**
      * returns a boolean if the given credential is removed

@@ -3,7 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import {Separators, CredentialKeyPosition, CacheType, CacheSchemaType, CredentialType, EnvironmentAliases} from "../../utils/Constants";
+import {
+    Separators,
+    CredentialKeyPosition,
+    CacheType,
+    CacheSchemaType,
+    CredentialType,
+    EnvironmentAliases,
+} from "../../utils/Constants";
+import { IAccount } from "../../account/IAccount";
 
 export class CacheHelper {
     /**
@@ -67,8 +75,13 @@ export class CacheHelper {
      * // TODO: Add Cloud specific aliases based on current cloud
      */
     static matchEnvironment(key: string, environment: string): boolean {
-        const cachedEnvironment = key.split(Separators.CACHE_KEY_SEPARATOR)[CredentialKeyPosition.ENVIRONMENT];
-        if (EnvironmentAliases.includes(environment) && EnvironmentAliases.includes(cachedEnvironment)) {
+        const cachedEnvironment = key.split(Separators.CACHE_KEY_SEPARATOR)[
+            CredentialKeyPosition.ENVIRONMENT
+        ];
+        if (
+            EnvironmentAliases.includes(environment) &&
+            EnvironmentAliases.includes(cachedEnvironment)
+        ) {
             return true;
         }
 
@@ -161,11 +174,28 @@ export class CacheHelper {
     }
 
     /**
+     * Generates account key from interface
+     * @param accountInterface
+     */
+    static generateAccountCacheKey(accountInterface: IAccount): string {
+        const accountKey = [
+            accountInterface.homeAccountId,
+            accountInterface.environment || "",
+            accountInterface.tenantId || "",
+        ];
+
+        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
      * generates Account Id for keys
      * @param homeAccountId
      * @param environment
      */
-    static generateAccoundIdForCacheKey(homeAccountId: string, environment: string): string {
+    static generateAccountIdForCacheKey(
+        homeAccountId: string,
+        environment: string
+    ): string {
         const accountId: Array<string> = [homeAccountId, environment];
         return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
@@ -177,10 +207,16 @@ export class CacheHelper {
      * @param clientId
      * @param familyId
      */
-    static generateCredentialIdForCacheKey(credentialType: CredentialType, clientId: string, realm?: string, familyId?: string): string {
-        const clientOrFamilyId = (credentialType === CredentialType.REFRESH_TOKEN)
-            ? familyId || clientId
-            : clientId;
+    static generateCredentialIdForCacheKey(
+        credentialType: CredentialType,
+        clientId: string,
+        realm?: string,
+        familyId?: string
+    ): string {
+        const clientOrFamilyId =
+            credentialType === CredentialType.REFRESH_TOKEN
+                ? familyId || clientId
+                : clientId;
         const credentialId: Array<string> = [
             credentialType,
             clientOrFamilyId,
@@ -210,8 +246,13 @@ export class CacheHelper {
         familyId?: string
     ): string {
         const credentialKey = [
-            this.generateAccoundIdForCacheKey(homeAccountId, environment),
-            this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
+            this.generateAccountIdForCacheKey(homeAccountId, environment),
+            this.generateCredentialIdForCacheKey(
+                credentialType,
+                clientId,
+                realm,
+                familyId
+            ),
             this.generateTargetForCacheKey(target),
         ];
 

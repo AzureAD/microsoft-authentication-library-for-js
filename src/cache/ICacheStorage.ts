@@ -14,7 +14,7 @@ export interface ICacheStorage {
      * @param key
      * @param value
      */
-    getCache(): InMemoryCache;
+    getCache(): object;
 
     /**
      * Function to write serialized Cache to disk
@@ -57,3 +57,4 @@ export interface ICacheStorage {
      */
     clear(): void;
 }
+

@@ -68,8 +68,9 @@ export type TelemetryOptions = {
  * - telemetry                    - Telemetry options for library network requests
  */
 export type SystemOptions = {
+    storeInMemory?: boolean;
     tokenRenewalOffsetSeconds?: number;
-    telemetry?: TelemetryOptions
+    telemetry?: TelemetryOptions;
 };
 
 /**
@@ -100,6 +101,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
+    storeInMemory: true,
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     telemetry: null
 };
