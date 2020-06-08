@@ -263,10 +263,10 @@ export class PublicClientApplication {
     /**
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
      * any code that follows this function will not execute.
-	 * 
+	 *
 	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
 	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
-	 * 
+	 *
      * @param {@link (AuthenticationParameters:type)}
      */
     async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
@@ -293,8 +293,8 @@ export class PublicClientApplication {
 
     /**
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
-     * the page, so any code that follows this function will not execute. 
-	 * 
+     * the page, so any code that follows this function will not execute.
+	 *
 	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
 	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      * @param {@link (AuthenticationParameters:type)}
@@ -521,7 +521,7 @@ export class PublicClientApplication {
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      */
-    logout(account: AccountEntity, authorityString?: string): void {
+    logout(account: IAccount, authorityString?: string): void {
         const authorityObj = StringUtils.isEmpty(authorityString) ? this.defaultAuthorityInstance : AuthorityFactory.createInstance(
             this.config.auth.authority,
             this.config.system.networkClient
@@ -593,7 +593,7 @@ export class PublicClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    private preflightRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {       
+    private preflightRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -607,7 +607,7 @@ export class PublicClientApplication {
 
     /**
      * Helper to initialize required request parameters.
-     * @param request 
+     * @param request
      */
     private initializeRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
         const validatedRequest: AuthorizationUrlRequest = {
