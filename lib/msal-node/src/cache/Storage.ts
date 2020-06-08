@@ -46,24 +46,20 @@ export class Storage implements ICacheStorage {
     }
 
     /**
-     * Sets the cache item with the key and value given.
-     * @param key
-     * @param value
-     * TODO: Implement after granular persistence of cache is supported
-     */
-    setItem(key: string, value: string): void {
-        if (key && value) {
-            return;
-        }
-    }
-
-    /**
-     * Set item in Memory
+     * Set Item in memory
      * @param key
      * @param value
      * @param type
+     * @param inMemory
      */
-    setItemInMemory(key: string, value: object, type?: string): void {
+    setItem(key: string, value: string | object, type?: string, inMemory?: boolean): void {
+
+        // check memory type
+        if (!inMemory) {
+            console.log("Node doesn't support granular cache persistence yet");
+            return;
+        }
+
         // read inMemoryCache
         const cache = this.getCache();
 
@@ -109,18 +105,22 @@ export class Storage implements ICacheStorage {
      * Gets cache item with given key.
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
-     * TODO: Implement after granular persistence of cache is supported
+     * @param type
+     * @param inMemory
      */
-    getItem(key: string): string {
-        return key ? 'random' : 'truly random';
-    }
+    getItem(key: string, type?: string, inMemory?: boolean): string | object {
 
-    getItemFromMemory(key: string, type?: string): object {
+        // check memory type
+        if (!inMemory) {
+            console.log("Node doesn't support granular cache persistence yet");
+            return {};
+        }
+
         // read inMemoryCache
         const cache = this.getCache();
 
         // save the cacheItem
-        switch (type) {
+        switch (type!) {
             case CacheSchemaType.ACCOUNT: {
                 return (cache.accounts[key] as AccountEntity) || null;
             }
@@ -159,19 +159,19 @@ export class Storage implements ICacheStorage {
     }
 
     /**
-     * Removes the cache item with the given key.
-     * @param key
-     */
-    removeItem(key: string): boolean {
-        return key ? true : false;
-    }
-
-    /**
      * Removes the cache item from memory with the given key.
      * @param key
      * @param type
+     * @param inMemory
      */
-    removeItemFromMemory(key: string, type?: string): boolean {
+    removeItem(key: string, type?: string, inMemory?: boolean): boolean {
+
+        // check memory type
+        if (!inMemory) {
+            console.log("Node doesn't support granular cache persistence yet");
+            return false;
+        }
+
         // read inMemoryCache
         const cache = this.getCache();
         let result: boolean = false;
@@ -245,14 +245,47 @@ export class Storage implements ICacheStorage {
      * Gets all keys in window.
      * TODO: implement after the lookup implementation
      */
-    getKeys(): string[] {
-        return [];
+    getKeys(inMemory?: boolean): string[] {
+
+        // check memory type
+        if (!inMemory) {
+            console.log("Node doesn't support granular cache persistence yet");
+            return [];
+        }
+
+        // read inMemoryCache
+        const cache = this.getCache();
+        let cacheKeys: string[] = [];
+
+        // read all keys
+        Object.keys(cache).forEach(key => {
+            Object.keys(key).forEach(internalKey => {
+                cacheKeys.push(internalKey);
+            })
+        });
+
+        return cacheKeys;
+
     }
 
     /**
      * Clears all cache entries created by MSAL (except tokens).
      */
-    clear(): void {
-        return;
+    clear(inMemory?: boolean): void {
+        // check memory type
+        if (!inMemory) {
+            console.log("Node doesn't support granular cache persistence yet");
+            return;
+        }
+
+        // read inMemoryCache
+        const cache = this.getCache();
+
+        // read all keys
+        Object.keys(cache).forEach(key => {
+            Object.keys(key).forEach(internalKey => {
+                this.removeItem(internalKey);
+            })
+        });
     }
 }

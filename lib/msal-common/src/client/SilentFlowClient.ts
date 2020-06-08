@@ -19,6 +19,9 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { IAccount } from '../account/IAccount';
+import { AccountFilter } from '../unifiedCache/utils/CacheTypes';
+import { AccountEntity } from '../unifiedCache/entities/AccountEntity';
 
 export class SilentFlowClient extends BaseClient {
 
@@ -40,6 +43,14 @@ export class SilentFlowClient extends BaseClient {
         if (request.account === null) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         } else {
+
+            const userAccount: IAccount = request.account;
+            const accountFilter: AccountFilter = {
+                homeAccountId: request.account.homeAccountId,
+                environment: request.account.environment
+            };
+            const accountEntity: AccountEntity = this.unifiedCacheManager.getAccountsFilteredBy(accountFilter);
+
             // fetch account
             cacheRecord.account = this.unifiedCacheManager.getAccount(request.account.generateAccountKey());
 
