@@ -536,6 +536,7 @@ export class UserAgentApplication {
             this.logger.verbose("Finished building server authentication request");
 
             this.updateCacheEntries(serverAuthenticationRequest, account, isLoginCall, loginStartPage);
+            this.logger.verbose("Updating cache entries");
 
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             serverAuthenticationRequest.populateQueryParams(account, request);
@@ -548,10 +549,12 @@ export class UserAgentApplication {
             if (interactionType === Constants.interactionTypeRedirect) {
                 if (!isLoginCall) {
                     this.cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${request.state}`, serverAuthenticationRequest.state, this.inCookie);
+                    this.logger.verbose("State cached for redirect");
                 }
             } else if (interactionType === Constants.interactionTypePopup) {
                 window.renewStates.push(serverAuthenticationRequest.state);
                 window.requestType = isLoginCall ? Constants.login : Constants.renewToken;
+                this.logger.verbose("State saved to window");
 
                 // Register callback to capture results from server
                 this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
