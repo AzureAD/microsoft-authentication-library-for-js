@@ -639,6 +639,114 @@ describe("UserAgentApplication.ts Class", function () {
             msal.loginRedirect({});
         });
 
+        it("loginRedirect does not navigate if onRedirectNavigate is implemented and returns false", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    throw new Error("window.location.assign should not be called when onRedirectNavigate returns false");
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.loginRedirect({
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+
+                    done();
+                    return false;
+                }
+            })
+        });
+
+        it("acquireTokenRedirect does not navigate if onRedirectNavigate is implemented and returns false", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    throw new Error("window.location.assign should not be called when onRedirectNavigate returns false");
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.acquireTokenRedirect({
+                scopes: [ "user.read" ],
+                account,
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+
+                    done();
+                    return false;
+                }
+            })
+        });
+
+        it("navigates if onRedirectNavigate returns null", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    expect(url).to.not.be.null;
+                    done();
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.loginRedirect({
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+                }
+            })
+        });
+
+        it("navigates if onRedirectNavigate returns true", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    expect(url).to.not.be.null;
+                    done();
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.loginRedirect({
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+
+                    return true
+                }
+            })
+        });
+
         it("exits login function with error if interaction is true", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
             window.location = oldWindowLocation;

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, Constants, SPAClient } from "@azure/msal-common";
+import { UrlString, StringUtils, Constants, SPAClient, AuthorizationCodeRequest } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
@@ -27,9 +27,11 @@ export class PopupHandler extends InteractionHandler {
      * Opens a popup window with given request Url.
      * @param requestUrl
      */
-    initiateAuthRequest(requestUrl: string): Window {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
+            // Save auth code request
+            this.authCodeRequest = authCodeRequest;
             // Set interaction status in the library.
             this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
@@ -150,8 +152,7 @@ export class PopupHandler extends InteractionHandler {
      * Event callback to unload main window.
      */
     unloadWindow(e: Event): void {
-        this.authModule.cancelRequest();
-        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+        this.browserStorage.cleanRequest();
         this.currentWindow.close();
         // Guarantees browser unload will happen, so no other errors will be thrown.
         delete e["returnValue"];

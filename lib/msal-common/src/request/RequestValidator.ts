@@ -5,7 +5,8 @@
 
 import { StringUtils } from "./../utils/StringUtils";
 import { ClientConfigurationError } from "./../error/ClientConfigurationError";
-import { PromptValue, CodeChallengeMethodValues } from "./../utils/Constants";
+import { PromptValue, CodeChallengeMethodValues} from "./../utils/Constants";
+import { StringDict } from "../utils/MsalTypes";
 
 /**
  * Validates server consumable params from the "request" objects
@@ -45,7 +46,7 @@ export class RequestValidator {
      * @param codeChallengeMethod
      */
     static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string) : void  {
-        if (!(codeChallenge && codeChallengeMethod)) {
+        if (StringUtils.isEmpty(codeChallenge) || StringUtils.isEmpty(codeChallengeMethod)) {
             throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
         } else {
             this.validateCodeChallengeMethod(codeChallengeMethod);
@@ -65,5 +66,25 @@ export class RequestValidator {
         ) {
             throw ClientConfigurationError.createInvalidCodeChallengeMethodError();
         }
+    }
+
+    /**
+     * Removes unnecessary or duplicate query parameters from extraQueryParameters
+     * @param request
+     */
+    static sanitizeEQParams(eQParams: StringDict, queryParams: Map<string, string>) : StringDict {
+        if (!eQParams) {
+            return null;
+        }
+
+        // Remove any query parameters already included in SSO params
+        queryParams.forEach((value, key) => {
+            if (eQParams[key]) {
+                console.log("Removed param " + key + " from extraQueryParameters since it was already present in library query parameters.");
+                delete eQParams[key];
+            }
+        });
+
+        return eQParams;
     }
 }

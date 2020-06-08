@@ -4,8 +4,6 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import crypto from "crypto";
-import { PkceGenerator } from "../../src/crypto/PkceGenerator";
-import { NUM_TESTS } from "../utils/StringConstants";
 import { PkceCodes } from "@azure/msal-common";
 
 describe("CryptoOps.ts Unit Tests", () => {
