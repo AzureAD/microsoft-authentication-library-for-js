@@ -31,7 +31,7 @@ export class CacheHelpers {
         const results = this.cacheStorage.getKeys().reduce<Array<AccessTokenCacheItem>>((tokens, key) => {
             const keyMatches = key.match(clientId) && key.match(authority) && key.match(homeAccountIdentifier);
             if (keyMatches) {
-                const value = this.cacheStorage.getItem(key, null);
+                const value = this.cacheStorage.getItem(key);
                 if (value) {
                     try {
                         const parseAtKey = JSON.parse(key) as AccessTokenKey;

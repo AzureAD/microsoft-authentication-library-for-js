@@ -463,22 +463,17 @@ export class PublicClientApplication {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
-        const tokenRequest: AuthorizationUrlRequest = {
-            ...silentRequest,
-            redirectUri: "",
-            scopes: silentRequest.scopes || []
-        };
-
         try {
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await this.authModule.getValidToken(tokenRequest);
+            return await this.authModule.getValidToken(silentRequest);
         } catch (e) {
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeRequest({
-                    ...tokenRequest,
+                    ...silentRequest,
+                    redirectUri: "",
                     prompt: PromptValue.NONE
                 });
 
