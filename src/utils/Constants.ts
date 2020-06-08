@@ -272,19 +272,6 @@ export enum CacheType {
 };
 
 /**
- * accountId: <home_account_id>-<environment>
- * credentialId: <credential_type>-<client-id>-<realm>
- */
-export enum CredentialKeyPosition {
-    HOME_ACCOUNT_ID = 0,
-    ENVIRONMENT = 1,
-    CREDENTIAL_TYPE = 2,
-    CLIENT_ID = 3,
-    REALM = 4,
-    TARGET = 5
-};
-
-/**
  * More Cache related constants
  */
 export const APP_META_DATA = "appmetadata";

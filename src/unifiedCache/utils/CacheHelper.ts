@@ -5,13 +5,14 @@
 
 import {
     Separators,
-    CredentialKeyPosition,
     CacheType,
     CacheSchemaType,
     CredentialType,
     EnvironmentAliases,
 } from "../../utils/Constants";
 import { IAccount } from "../../account/IAccount";
+import { AccountEntity } from "../entities/AccountEntity";
+import { Credential } from "../entities/Credential";
 
 export class CacheHelper {
     /**
@@ -56,31 +57,23 @@ export class CacheHelper {
 
     /**
      *
-     * @param key
+     * @param value
      * @param homeAccountId
      */
-    static matchHomeAccountId(key: string, homeAccountId: string): boolean {
-        return (
-            homeAccountId ===
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.HOME_ACCOUNT_ID
-            ]
-        );
+    static matchHomeAccountId(entity: AccountEntity | Credential, homeAccountId: string): boolean {
+        return homeAccountId === entity.homeAccountId;
     }
 
     /**
      *
-     * @param key
+     * @param value
      * @param environment
      * // TODO: Add Cloud specific aliases based on current cloud
      */
-    static matchEnvironment(key: string, environment: string): boolean {
-        const cachedEnvironment = key.split(Separators.CACHE_KEY_SEPARATOR)[
-            CredentialKeyPosition.ENVIRONMENT
-        ];
+    static matchEnvironment(entity: AccountEntity | Credential, environment: string): boolean {
         if (
             EnvironmentAliases.includes(environment) &&
-            EnvironmentAliases.includes(cachedEnvironment)
+            EnvironmentAliases.includes(entity.environment)
         ) {
             return true;
         }
@@ -92,15 +85,10 @@ export class CacheHelper {
      *
      * @param key
      * @param credentialType
-     * // TODO: Confirm equality for enum vs string here
      */
-    static matchCredentialType(key: string, credentialType: string): boolean {
+    static matchCredentialType(entity: Credential, credentialType: string): boolean {
         return (
-            credentialType.toLowerCase() ===
-            key
-                .split(Separators.CACHE_KEY_SEPARATOR)
-                [CredentialKeyPosition.CREDENTIAL_TYPE].toString()
-                .toLowerCase()
+            credentialType.toLowerCase() === entity.credentialType
         );
     }
 
@@ -109,12 +97,9 @@ export class CacheHelper {
      * @param key
      * @param clientId
      */
-    static matchClientId(key: string, clientId: string): boolean {
+    static matchClientId(entity: Credential, clientId: string): boolean {
         return (
-            clientId ===
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.CLIENT_ID
-            ]
+            clientId === entity.clientId
         );
     }
 
@@ -123,12 +108,9 @@ export class CacheHelper {
      * @param key
      * @param realm
      */
-    static matchRealm(key: string, realm: string): boolean {
+    static matchRealm(entity: AccountEntity | Credential, realm: string): boolean {
         return (
-            realm ===
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.REALM
-            ]
+            realm === entity.realm
         );
     }
 
@@ -137,11 +119,9 @@ export class CacheHelper {
      * @param key
      * @param target
      */
-    static matchTarget(key: string, target: string): boolean {
-        return CacheHelper.targetsIntersect(
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.TARGET
-            ],
+    static matchTarget(entity: Credential, target: string): boolean {
+        return CacheHelper.targetsSubset(
+            entity.target,
             target
         );
     }
@@ -151,7 +131,7 @@ export class CacheHelper {
      * @param target
      * @param credentialTarget
      */
-    static targetsIntersect(credentialTarget: string, target: string): boolean {
+    static targetsSubset(credentialTarget: string, target: string): boolean {
         const targetSet = new Set(target.split(" "));
         const credentialTargetSet = new Set(credentialTarget.split(" "));
 
@@ -167,10 +147,8 @@ export class CacheHelper {
      * helper function to return `CredentialType`
      * @param key
      */
-    static getCredentialType(key: string): string {
-        return key.split(Separators.CACHE_KEY_SEPARATOR)[
-            CredentialKeyPosition.CREDENTIAL_TYPE
-        ];
+    static getCredentialType(entity: Credential): string {
+        return entity.credentialType;
     }
 
     /**
