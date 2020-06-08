@@ -3,12 +3,9 @@
  * Licensed under the MIT License.
  */
 import {
-    Account,
     SPAClient,
     INetworkModule,
-    TokenResponse,
     UrlString,
-    TokenRenewParameters,
     StringUtils,
     PromptValue,
     ServerError,
@@ -41,6 +38,7 @@ import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants"
 import { AuthCallback } from "../types/AuthCallback";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
+import { IAccount } from "@azure/msal-common/dist/src/account/IAccount";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -559,13 +557,24 @@ export class PublicClientApplication {
     }
 
     /**
+     * Returns all accounts that MSAL currently has data for.
+     * (the account object is created at the time of successful login)
+     * or null when no state is found
+     * @returns {@link IAccount[]} - Array of account objects in cache
+     */
+    public getAllAccounts(): IAccount[] {
+        return null;
+    }
+
+    /**
      * Returns the signed in account
      * (the account object is created at the time of successful login)
      * or null when no state is found
-     * @returns {@link Account} - the account object stored in MSAL
+     * @returns {@link IAccount} - the account object stored in MSAL
      */
-    public getAccount(homeAccountId: string, env: string, realm: string): AccountEntity {
-        return this.authModule.getAccount(homeAccountId, env, realm);
+    public getAccount(homeAccountId: string, env: string, realm: string): IAccount {
+        // return this.authModule.getAccount(homeAccountId, env, realm);
+        return null;
     }
 
     // #endregion

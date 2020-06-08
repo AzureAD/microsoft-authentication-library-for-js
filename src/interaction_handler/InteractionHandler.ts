@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SPAClient, TokenResponse, StringUtils, AuthorizationCodeRequest, ProtocolUtils, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
+import { SPAClient, StringUtils, AuthorizationCodeRequest, ProtocolUtils, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
