@@ -15,6 +15,8 @@ import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationT
 import { B2cAuthority } from "../authority/B2cAuthority";
 import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 import { AccountEntity } from "../cache/entities/AccountEntity";
+import { IAccount } from "../account/IAccount";
+import { AccountCache } from "../cache/utils/CacheTypes";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -120,5 +122,29 @@ export abstract class BaseClient {
     protected updateCache(): void {
         const cache = this.unifiedCacheManager.getCacheInMemory();
         this.cacheStorage.setCache(cache);
+    }
+
+    /**
+     * Get all currently signed in accounts.
+     */
+    public getAllAccounts(): IAccount[] {
+        const currentAccounts: AccountCache = this.unifiedCacheManager.getAllAccounts();
+        console.log("Current Accounts Obj: " , currentAccounts);
+        const accountValues: AccountEntity[] = Object.values(currentAccounts);
+        console.log("Accounts: " , accountValues);
+        const numAccounts = accountValues.length;
+        if (numAccounts < 1) {
+            return null;
+        } else {
+            return accountValues.map<IAccount>((value) => {
+                return {
+                    homeAccountId: value.homeAccountId,
+                    localAccountId: value.localAccountId,
+                    environment: value.environment,
+                    tenantId: value.realm,
+                    userName: value.username
+                };
+            });
+        }
     }
 }

@@ -31,6 +31,7 @@ import { CacheHelper } from "../cache/utils/CacheHelper";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../cache/entities/CacheRecord";
+import { IAccount } from "../account/IAccount";
 
 /**
  * SPAClient class
@@ -293,15 +294,9 @@ export class SPAClient extends BaseClient {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param authorityUri
      */
-    async logout(account: AccountEntity, acquireTokenAuthority: Authority): Promise<string> {
-        // Remove all pertinent tokens.
-        this.unifiedCacheManager.removeCredentialsByFilter({
-            ...account,
-            clientId: this.config.authOptions.clientId
-        });
-
+    async logout(account: IAccount, acquireTokenAuthority: Authority): Promise<string> {
         // Clear current account.
-        this.unifiedCacheManager.removeAccountContext(account);
+        this.unifiedCacheManager.removeAccount(CacheHelper.generateAccountCacheKey(account));
         // Get postLogoutRedirectUri.
         let postLogoutRedirectUri = "";
         try {

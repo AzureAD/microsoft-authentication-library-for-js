@@ -145,7 +145,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredByInternal(
+    private getAccountsFilteredByInternal(
         homeAccountId?: string,
         environment?: string,
         realm?: string
@@ -172,6 +172,8 @@ export class UnifiedCacheManager implements ICacheManager {
                 matchingAccounts[key] = accounts[key];
             }
         });
+
+        console.log("Matching accounts: ", matchingAccounts);
 
         return matchingAccounts;
     }
@@ -206,7 +208,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param realm
      * @param target
      */
-    getCredentialsFilteredByInternal(
+    private getCredentialsFilteredByInternal(
         homeAccountId?: string,
         environment?: string,
         credentialType?: string,
@@ -316,16 +318,16 @@ export class UnifiedCacheManager implements ICacheManager {
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccount(account: AccountEntity): boolean {
-        const key = account.generateAccountKey();
-        return this.cacheStorage.removeItem(key, CacheSchemaType.ACCOUNT, this.inMemory);
+    removeAccount(accountKey: string): boolean {
+        const account = this.getAccount(accountKey);
+        return this.removeAccountContext(account) && this.cacheStorage.removeItem(accountKey, CacheSchemaType.ACCOUNT, this.inMemory);
     }
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccountContext(account: AccountEntity): boolean {
+    private removeAccountContext(account: AccountEntity): boolean {
         const cache = this.getCacheInMemory();
         const accountId = account.generateAccountId();
 
@@ -347,7 +349,7 @@ export class UnifiedCacheManager implements ICacheManager {
             }
         });
 
-        return this.removeAccount(account);
+        return true;
     }
 
     /**
@@ -382,7 +384,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param realm
      * @param target
      */
-    removeCredentialsFilteredByInternal(
+    private removeCredentialsFilteredByInternal(
         homeAccountId?: string,
         environment?: string,
         credentialType?: string,

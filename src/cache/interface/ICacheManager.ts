@@ -59,7 +59,7 @@ export interface ICacheManager {
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccount(account: AccountEntity): boolean;
+    removeAccount(accountKey: string): boolean;
 
     /**
      * returns a boolean if the given credential is removed
