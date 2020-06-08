@@ -500,6 +500,7 @@ export class UserAgentApplication {
      */
     private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
         this.logger.verbose("AcquireTokenHelper has been called");
+        this.logger.verbose(`Interaction type: ${interactionType}. isLoginCall: ${isLoginCall}`);
 
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
@@ -550,6 +551,8 @@ export class UserAgentApplication {
                 if (!isLoginCall) {
                     this.cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${request.state}`, serverAuthenticationRequest.state, this.inCookie);
                     this.logger.verbose("State cached for redirect");
+                } else {
+                    this.logger.verbose("Interaction type redirect but login call is true. State not cached");
                 }
             } else if (interactionType === Constants.interactionTypePopup) {
                 window.renewStates.push(serverAuthenticationRequest.state);
@@ -559,6 +562,7 @@ export class UserAgentApplication {
                 // Register callback to capture results from server
                 this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
             } else {
+                this.logger.verbose("Invalid interaction error. State not cached");
                 throw ClientAuthError.createInvalidInteractionTypeError();
             }
 
