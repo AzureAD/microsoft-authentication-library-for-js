@@ -6,7 +6,7 @@ describe("HttpEvent", () => {
     it("constructs and carries exepcted values", () => {
         const correlationId = CryptoUtils.createNewGuid();
 
-        const event = new HttpEvent(correlationId).get();
+        const event = new HttpEvent(correlationId, "test-event").get();
 
         expect(event["msal.event_name"]).to.eq("msal.http_event");
         expect(event["msal.elapsed_time"]).to.eq(-1);
@@ -15,7 +15,7 @@ describe("HttpEvent", () => {
     it("sets simply set values", () => {
         const correlationId = CryptoUtils.createNewGuid();
 
-        const httpEvent = new HttpEvent(correlationId);
+        const httpEvent = new HttpEvent(correlationId, "test-event");
 
         const fakeUserAgent = "chrome-mobile";
         const fakeApiVersion = "1.3.5";
@@ -53,7 +53,7 @@ describe("HttpEvent", () => {
     it("sets values that are changed", () => {
         const correlationId = CryptoUtils.createNewGuid();
 
-        const httpEvent = new HttpEvent(correlationId);
+        const httpEvent = new HttpEvent(correlationId, "test-event");
 
         const fakePath = "https://login.microsoftonline.com/Abc-123/I-am-a-tenant/orange";
         const expectedFakePath = "https://login.microsoftonline.com/abc-123/<tenant>/orange";

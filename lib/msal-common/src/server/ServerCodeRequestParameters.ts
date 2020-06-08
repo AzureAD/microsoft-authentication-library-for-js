@@ -177,8 +177,8 @@ export class ServerCodeRequestParameters {
         }
 
         // Populate the extraQueryParameters to be sent to the server
-        this.queryParameters = this.generateQueryParametersString(queryParameters);
-        this.extraQueryParameters = this.generateQueryParametersString(eQParams);
+        this.queryParameters = ServerCodeRequestParameters.generateQueryParametersString(queryParameters);
+        this.extraQueryParameters = ServerCodeRequestParameters.generateQueryParametersString(eQParams);
     }
 
     /**

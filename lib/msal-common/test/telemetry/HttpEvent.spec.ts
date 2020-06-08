@@ -1,21 +1,16 @@
 import { expect } from "chai";
 import HttpEvent, { EVENT_KEYS } from "../../src/telemetry/HttpEvent";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
 
 describe("HttpEvent", () => {
     it("constructs and carries exepcted values", () => {
-        const correlationId = CryptoUtils.createNewGuid();
-
-        const event = new HttpEvent(CryptoUtils.createNewGuid(), correlationId, "httpEvent").get();
+        const event = new HttpEvent("event-id", "correlation-id", "httpEvent").get();
 
         expect(event["msal.event_name"]).to.eq("msal.http_event");
         expect(event["msal.elapsed_time"]).to.eq(-1);
     });
 
     it("sets simply set values", () => {
-        const correlationId = CryptoUtils.createNewGuid();
-
-        const httpEvent = new HttpEvent(CryptoUtils.createNewGuid(), correlationId, "httpEvent");
+        const httpEvent = new HttpEvent("event-id", "correlation-id", "httpEvent");
 
         const fakeUserAgent = "chrome-mobile";
         const fakeApiVersion = "1.3.5";
@@ -51,24 +46,21 @@ describe("HttpEvent", () => {
     });
 
     it("sets values that are changed", () => {
-        const correlationId = CryptoUtils.createNewGuid();
+        const httpEvent = new HttpEvent("event-id", "correlation-id", "httpEvent");
 
-        const httpEvent = new HttpEvent(CryptoUtils.createNewGuid(), correlationId, "httpEvent");
-
-        const fakePath = "https://login.microsoftonline.com/Abc-123/I-am-a-tenant/orange";
-        const expectedFakePath = "https://login.microsoftonline.com/abc-123/<tenant>/orange";
+        const fakeUrl = "https://login.microsoftonline.com/Abc-123/I-am-a-tenant/orange";
         const fakeQueryParams =  {
             someParam1: "pizza",
             someParam2: "burger"
         };
         const expectedFakeQueryParams = "someParam1=pizza&someParam2=burger";
 
-        httpEvent.httpPath = fakePath;
+        httpEvent.url = fakeUrl;
         httpEvent.queryParams = fakeQueryParams;
 
         const event = httpEvent.get();
 
-        expect(event[EVENT_KEYS.HTTP_PATH]).to.eq(expectedFakePath);
+        expect(event[EVENT_KEYS.URL]).to.eq(fakeUrl);
         expect(event[EVENT_KEYS.QUERY_PARAMETERS]).to.eq(expectedFakeQueryParams);
 
     });

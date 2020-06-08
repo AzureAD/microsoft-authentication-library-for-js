@@ -1,13 +1,12 @@
 import { expect } from "chai";
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
 
 describe("TelemetryEvent", () =>{
     it("constructed with correct params", () => {
-        const correlationId = CryptoUtils.createNewGuid();
+        const correlationId = "correlation-id";
         const eventName = "fakeEvent";
         const telemetryEvent: TelemetryEvent = new TelemetryEvent(
-            CryptoUtils.createNewGuid(),
+            "event-id",
             eventName,
             correlationId,
             "FakeEvent"
@@ -20,10 +19,10 @@ describe("TelemetryEvent", () =>{
 
     it("stop event and get elapsed time", done => {
         const time = 500;
-        const correlationId = CryptoUtils.createNewGuid();
+        const correlationId = "correlation-id";
         const eventName = "coolEvent";
         const telemetryEvent: TelemetryEvent = new TelemetryEvent(
-            CryptoUtils.createNewGuid(),
+            "event-id",
             eventName,
             correlationId,
             "CoolEvent"

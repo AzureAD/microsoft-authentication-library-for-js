@@ -12,7 +12,10 @@ import DefaultEvent from "./DefaultEvent";
 import ApiEvent, { API_EVENT_IDENTIFIER } from "./ApiEvent";
 import { Logger } from "../logger/Logger";
 import HttpEvent from "./HttpEvent";
-import { ICrypto } from '../crypto/ICrypto';
+import { ICrypto } from "../crypto/ICrypto";
+import { UrlString } from "../url/UrlString";
+import { AADTrustedHostList } from '../utils/Constants';
+import { TENANT_PLACEHOLDER } from './TelemetryConstants';
 
 export default class TelemetryManager {
 
@@ -49,7 +52,7 @@ export default class TelemetryManager {
     static getTelemetrymanagerStub(clientId: string, logger: Logger, crypto: ICrypto) : TelemetryManager {
         const applicationName = "UnSetStub";
         const applicationVersion = "0.0";
-        const telemetryEmitter = () => {};
+        const telemetryEmitter = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
         const telemetryPlatform: TelemetryPlatform = {
             applicationName,
             applicationVersion
@@ -144,7 +147,7 @@ export default class TelemetryManager {
 
     createAndStartHttpEvent(correlation: string, httpMethod: string, url: string, eventLabel: string): HttpEvent {
         const httpEvent = new HttpEvent(this.crypto.createNewGuid(), correlation, eventLabel);
-        httpEvent.url = url;
+        httpEvent.url = this.logger.isPiiLoggingEnabled() ? url : this.scrubTenantFromUri(url);
         httpEvent.httpMethod = httpMethod;
         this.startEvent(httpEvent);
         return httpEvent;
@@ -177,4 +180,30 @@ export default class TelemetryManager {
                 return memo;
             }, []);
     }
+
+    private scrubTenantFromUri(uri: string): string {
+
+        const url = new UrlString(uri).getUrlComponents();
+
+        // validate trusted host
+        if (AADTrustedHostList.indexOf(url.HostNameAndPort.toLocaleLowerCase()) < 0) {
+            /**
+             * returning what was passed because the library needs to work with uris that are non
+             * AAD trusted but passed by users such as B2C or others.
+             * HTTP Events for instance can take a url to the open id config endpoint
+             */
+            return uri;
+        }
+    
+        const pathParams = url.PathSegments;
+    
+        if (pathParams && pathParams.length >= 2) {
+            const tenantPosition = pathParams[1] ===  "tfp" ? 2 : 1;
+            if (tenantPosition < pathParams.length) {
+                pathParams[tenantPosition] = TENANT_PLACEHOLDER;
+            }
+        }
+    
+        return  `${url.Protocol}//${url.HostNameAndPort}/${pathParams.join("/")}`;
+    };
 }

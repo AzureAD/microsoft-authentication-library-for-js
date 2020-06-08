@@ -1,5 +1,5 @@
 import TelemetryEvent from "./TelemetryEvent";
-import { scrubTenantFromUri, prependEventNamePrefix } from "./TelemetryUtils";
+import { prependEventNamePrefix } from "./TelemetryUtils";
 import { ServerCodeRequestParameters } from "../server/ServerCodeRequestParameters";
 
 export const EVENT_KEYS = {
@@ -24,13 +24,9 @@ export default class HttpEvent extends TelemetryEvent {
     }
 
     public set url(url: string) {
-        const scrubbedUri = scrubTenantFromUri(url);
-        this.event[EVENT_KEYS.URL] = scrubbedUri && scrubbedUri.toLowerCase();
+        this.event[EVENT_KEYS.URL] = url.toLowerCase();
     }
 
-    public set httpPath(httpPath: string) {
-        this.event[EVENT_KEYS.HTTP_PATH] = scrubTenantFromUri(httpPath).toLowerCase();
-    }
 
     public set userAgent(userAgent: string) {
         this.event[EVENT_KEYS.USER_AGENT] = userAgent;

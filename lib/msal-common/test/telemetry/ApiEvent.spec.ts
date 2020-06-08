@@ -6,8 +6,6 @@ import ApiEvent, {
 import { Logger, LoggerOptions } from "../../src";
 import { expect } from "chai";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "../../src/telemetry/TelemetryConstants";
-import { hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
 
 const loggerOptions: LoggerOptions = {
     loggerCallback: () => {}
@@ -15,20 +13,18 @@ const loggerOptions: LoggerOptions = {
 
 describe("ApiEvent", () => {
     it("constructs and carries exepcted values", () => {
-        const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(loggerOptions);
 
-        const event = new ApiEvent(CryptoUtils.createNewGuid(), correlationId, logger.isPiiLoggingEnabled()).get();
+        const event = new ApiEvent("event-id", "correlation-id", logger.isPiiLoggingEnabled()).get();
 
         expect(event["msal.event_name"]).to.eq("msal.api_event");
         expect(event["msal.elapsed_time"]).to.eq(-1);
     });
 
     it("sets simple values on event", () => {
-        const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(loggerOptions);
 
-        const apiEvent = new ApiEvent(CryptoUtils.createNewGuid(), correlationId, logger.isPiiLoggingEnabled());
+        const apiEvent = new ApiEvent("event-id", "correlation-id", logger.isPiiLoggingEnabled());
 
         const fakeErrorCode = "PIZZA";
         const fakeWasSuccessful = true;
@@ -51,66 +47,4 @@ describe("ApiEvent", () => {
         expect(event[EVENT_KEYS.AUTHORITY_TYPE]).to.eq(fakeAuthorityType.toLowerCase());
         expect(event[EVENT_KEYS.PROMPT]).to.eq(fakePromptType.toLowerCase());
     });
-
-    it("sets values on event that are scrubbed or altered", () => {
-        const correlationId = CryptoUtils.createNewGuid();
-        const logger = new Logger(loggerOptions);
-
-        const apiEvent = new ApiEvent(CryptoUtils.createNewGuid(), correlationId, logger.isPiiLoggingEnabled());
-
-        const fakeAuthority = "https://login.microsoftonline.com/Abc-123/I-am-a-tenant/orange";
-        const expectedFakeAuthority = "https://login.microsoftonline.com/abc-123/<tenant>/orange";
-
-        apiEvent.authority = fakeAuthority;
-
-        const event = apiEvent.get();
-
-        expect(event[EVENT_KEYS.AUTHORITY]).to.eq(expectedFakeAuthority);
-    });
-
-    it("doesn't set private alues on event if pii is not enabled", () => {
-        const correlationId = CryptoUtils.createNewGuid();
-        const logger = new Logger(loggerOptions);
-
-        const apiEvent = new ApiEvent(CryptoUtils.createNewGuid(), correlationId, logger.isPiiLoggingEnabled());
-
-        const fakeTenantId = CryptoUtils.createNewGuid();
-        const fakeAccountId = CryptoUtils.createNewGuid();
-        const fakeLoginHint = "fakeHint";
-
-        apiEvent.tenantId = fakeTenantId;
-        apiEvent.accountId = fakeAccountId;
-        apiEvent.loginHint = fakeLoginHint;
-
-        const event = apiEvent.get();
-
-        expect(event[EVENT_KEYS.TENANT_ID]).to.eq(null);
-        expect(event[EVENT_KEYS.USER_ID]).to.eq(null);
-        expect(event[EVENT_KEYS.LOGIN_HINT]).to.eq(null);
-    });
-
-    it("sets and hashes private values on event if pii is enabled", () => {
-        const correlationId = CryptoUtils.createNewGuid();
-        const logger = new Logger(loggerOptions);
-
-        const apiEvent = new ApiEvent(CryptoUtils.createNewGuid(), correlationId, logger.isPiiLoggingEnabled());
-
-        const fakeTenantId = CryptoUtils.createNewGuid();
-        const fakeExpectedTenantId = hashPersonalIdentifier(fakeTenantId);
-        const fakeAccountId = CryptoUtils.createNewGuid();
-        const fakeExpectedAccountId = hashPersonalIdentifier(fakeAccountId);
-        const fakeLoginHint = "fakeHint";
-        const fakeExpectedHint = hashPersonalIdentifier(fakeLoginHint);
-
-        apiEvent.tenantId = fakeTenantId;
-        apiEvent.accountId = fakeAccountId;
-        apiEvent.loginHint = fakeLoginHint;
-
-        const event = apiEvent.get();
-
-        expect(event[EVENT_KEYS.TENANT_ID]).to.eq(fakeExpectedTenantId);
-        expect(event[EVENT_KEYS.USER_ID]).to.eq(fakeExpectedAccountId);
-        expect(event[EVENT_KEYS.LOGIN_HINT]).to.eq(fakeExpectedHint);
-    });
-
 });

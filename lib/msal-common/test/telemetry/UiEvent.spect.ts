@@ -1,18 +1,15 @@
 import UiEvent, { EVENT_KEYS } from "../../src/telemetry/UiEvent";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
 import { expect } from "chai";
 
 describe("UiEvent", () => {
     it("constructs and carries exepcted values", () => {
-        const correlationId = CryptoUtils.createNewGuid();
-        const event = new UiEvent(CryptoUtils.createNewGuid(), correlationId).get();
+        const event = new UiEvent("event-id", "correlation-id").get();
         expect(event["msal.event_name"]).to.eq("msal.ui_event");
         expect(event["msal.elapsed_time"]).to.eq(-1);
     });
 
     it("sets values", () =>{
-        const correlationId = CryptoUtils.createNewGuid();
-        const uiEvent = new UiEvent(CryptoUtils.createNewGuid(), correlationId);
+        const uiEvent = new UiEvent("event-id", "correlation-id");
 
         const fakeUserCancelled = true;
         const fakeAccessDenied = true;
@@ -20,7 +17,7 @@ describe("UiEvent", () => {
         uiEvent.accessDenied = fakeAccessDenied;
         uiEvent.userCancelled = true;
 
-        expect(uiEvent.telemetryCorrelationId).to.eq(correlationId);
+        expect(uiEvent.telemetryCorrelationId).to.eq("correlation-id");
         const event = uiEvent.get();
 
         expect(event[EVENT_KEYS.ACCESS_DENIED]).to.eq(fakeAccessDenied);

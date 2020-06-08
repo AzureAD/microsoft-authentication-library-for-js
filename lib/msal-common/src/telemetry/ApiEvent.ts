@@ -1,6 +1,6 @@
 import TelemetryEvent from "./TelemetryEvent";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
-import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix } from "./TelemetryUtils";
+import { prependEventNamePrefix } from "./TelemetryUtils";
 
 export const EVENT_KEYS = {
     AUTHORITY: prependEventNamePrefix("authority"),
@@ -61,24 +61,8 @@ export default class ApiEvent extends TelemetryEvent {
         this.event[TELEMETRY_BLOB_EVENT_NAMES.ApiIdConstStrKey] = apiCode;
     }
 
-    public set authority(uri: string) {
-        this.event[EVENT_KEYS.AUTHORITY] = scrubTenantFromUri(uri).toLowerCase();
-    }
-
     public set apiErrorCode(errorCode: string) {
         this.event[EVENT_KEYS.API_ERROR_CODE] = errorCode;
-    }
-
-    public set tenantId(tenantId: string) {
-        this.event[EVENT_KEYS.TENANT_ID] = this.piiEnabled && tenantId ?
-            hashPersonalIdentifier(tenantId)
-            : null;
-    }
-
-    public set accountId(accountId: string) {
-        this.event[EVENT_KEYS.USER_ID] = this.piiEnabled && accountId ?
-            hashPersonalIdentifier(accountId)
-            : null;
     }
 
     public set wasSuccessful(wasSuccessful: boolean) {
@@ -87,12 +71,6 @@ export default class ApiEvent extends TelemetryEvent {
 
     public get wasSuccessful() {
         return this.event[EVENT_KEYS.WAS_SUCESSFUL] === true;
-    }
-
-    public set loginHint(loginHint: string) {
-        this.event[EVENT_KEYS.LOGIN_HINT] = this.piiEnabled && loginHint ?
-            hashPersonalIdentifier(loginHint)
-            : null;
     }
 
     public set authorityType(authorityType: string) {
