@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICacheStorage, Constants, PersistentCacheKeys, InMemoryCache, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CacheHelper, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
+import { ICacheStorage, Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CacheHelper, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -286,25 +286,19 @@ export class BrowserStorage implements ICacheStorage {
     }
 
     /**
-     * Dummy implementation until browser cache is migrated
+     * Gets the cache object referenced by the browser
      */
-    getCache(): InMemoryCache {
-        return {
-            accounts: {},
-            idTokens: {},
-            accessTokens: {},
-            refreshTokens: {},
-            appMetadata: {}
-        };
+    getCache(): object {
+        return this.windowStorage;
     }
 
     /**
-     * Dummy implementation until browser cache is migrated
+     * interface compat, we cannot overwrite browser cache; Functionality is supported by individual entities in browser
      */
     setCache(): void {
         // sets nothing
     }
-	
+
     /**
      * Prepend msal.<client-id> to each key; Skip for any JSON object as Key (defined schemas do not need the key appended: AccessToken Keys or the upcoming schema)
      * @param key
@@ -419,33 +413,4 @@ export class BrowserStorage implements ICacheStorage {
             throw BrowserAuthError.createTokenRequestCacheError(err);
         }
     }
-
-    /*
-     *  Dummy implementation for interface compat - will change after BrowserCacheMigration
-     * @param key
-     * @param value
-     * @param type
-     */
-    setItemInMemory(key: string, value: object, type?: string): void {
-        if (key && value && type)
-            return;
-    }
-
-    /**
-     *  Dummy implementation for interface compat - will change after BrowserCacheMigration
-     * @param key
-     * @param type
-     */
-    getItemFromMemory(key: string, type?: string): object {
-        return key && type ? {} : {};
-    };
-
-    /**
-     * Dummy implementation for interface compat - will change after BrowserCacheMigration
-     * @param key
-     * @param type
-     */
-    removeItemFromMemory(key: string, type?: string): boolean {
-        return key && type ? true : false;
-    };
 }
