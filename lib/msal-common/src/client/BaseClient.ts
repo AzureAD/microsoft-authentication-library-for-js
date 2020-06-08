@@ -4,7 +4,7 @@
  */
 
 import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
-import { ICacheStorage } from "../unifiedCache/interface/ICacheStorage";
+import { ICacheStorage } from "../cache/interface/ICacheStorage";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
@@ -13,8 +13,8 @@ import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { B2cAuthority } from "../authority/B2cAuthority";
-import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
-import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
+import { AccountEntity } from "../cache/entities/AccountEntity";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.

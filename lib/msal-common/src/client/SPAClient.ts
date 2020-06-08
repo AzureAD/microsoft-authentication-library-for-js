@@ -24,13 +24,13 @@ import { AuthorityType } from "../authority/AuthorityType";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { Authority } from "../authority/Authority";
-import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { AccountEntity } from "../cache/entities/AccountEntity";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
-import { CacheHelper } from "../unifiedCache/utils/CacheHelper";
-import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
-import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
-import { CacheRecord } from "../unifiedCache/entities/CacheRecord";
+import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
+import { CacheHelper } from "../cache/utils/CacheHelper";
+import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
+import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
+import { CacheRecord } from "../cache/entities/CacheRecord";
 
 /**
  * SPAClient class

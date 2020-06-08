@@ -4,7 +4,7 @@
  */
 
 import { StringDict } from "../utils/MsalTypes";
-import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { AccountEntity } from "../cache/entities/AccountEntity";
 
 /**
  * Result returned from the authority's token endpoint.
