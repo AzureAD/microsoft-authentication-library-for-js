@@ -16,7 +16,7 @@ import { B2cAuthority } from "../authority/B2cAuthority";
 import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { IAccount } from "../account/IAccount";
-import { AccountCache } from "../cache/utils/CacheTypes";
+import { AccountCache, InMemoryCache } from "../cache/utils/CacheTypes";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -120,8 +120,8 @@ export abstract class BaseClient {
      * Set the cache post acquireToken call
      */
     protected updateCache(): void {
-        const cache = this.unifiedCacheManager.getCacheInMemory();
-        this.cacheStorage.setCache(cache);
+        const cache = this.unifiedCacheManager.getCache();
+        this.cacheStorage.setCache(cache as InMemoryCache);
     }
 
     /**

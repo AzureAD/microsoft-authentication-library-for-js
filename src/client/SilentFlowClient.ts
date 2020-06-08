@@ -19,9 +19,6 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { IAccount } from "../account/IAccount";
-import { AccountFilter } from "../cache/utils/CacheTypes";
-import { AccountEntity } from "../cache/entities/AccountEntity";
 
 export class SilentFlowClient extends BaseClient {
 

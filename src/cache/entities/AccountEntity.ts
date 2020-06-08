@@ -9,7 +9,6 @@ import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
-import { IAccount } from "../../account/IAccount";
 import { CacheHelper } from "../utils/CacheHelper";
 
 /**
