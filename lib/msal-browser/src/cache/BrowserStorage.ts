@@ -108,7 +108,6 @@ export class BrowserStorage implements ICacheStorage {
      * @param value
      */
     setItem(key: string, value: string | object, type: string): void {
-        console.log(type);
         // save the cacheItem
         switch (type) {
             case CacheSchemaType.ACCOUNT:
