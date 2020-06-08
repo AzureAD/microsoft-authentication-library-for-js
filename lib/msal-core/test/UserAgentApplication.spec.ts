@@ -124,7 +124,7 @@ describe("UserAgentApplication.ts Class", function () {
         accessTokenKey = {
             authority: TEST_CONFIG.validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
-            scopes: "S1",
+            scopes: "S1 openid profile",
             homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
         };
         accessTokenValue = {
@@ -870,7 +870,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
     });
 
-    describe("Cache Storage Unit Tests", function () {
+    describe.only("Cache Storage Unit Tests", function () {
 
         beforeEach(function () {
             cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
@@ -892,7 +892,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                scopes: ["S1"],
+                scopes: ["S1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -971,12 +971,12 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and single matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["S1"],
+                scopes: ["S1", "openid", "profile"],
                 account: account
             };
             const tokenRequest2 : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
-                scopes: ["S1"],
+                scopes: ["S1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -1074,7 +1074,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and single matching accessToken is found which is expired", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
-                scopes: ["S1"],
+                scopes: ["S1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -1113,7 +1113,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["S1", "openid", "profile"],
+                scopes: ["S1",],
                 account: account,
                 claimsRequest: JSON.stringify(claimsRequestObj)
             };
