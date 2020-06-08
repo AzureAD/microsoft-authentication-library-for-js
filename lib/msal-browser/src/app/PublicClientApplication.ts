@@ -64,6 +64,7 @@ export class PublicClientApplication {
     // Input configuration by developer/user
     private config: Configuration;
 
+    // Default authority
     protected defaultAuthorityInstance: Authority;
 
     /**
