@@ -221,7 +221,7 @@ export class SPAClient extends BaseClient {
 
         // Get current cached tokens
         const cacheRecord = new CacheRecord();
-        cacheRecord.account = this.unifiedCacheManager.getAccount(request.account.generateAccountKey());
+        cacheRecord.account = this.unifiedCacheManager.getAccount(CacheHelper.generateAccountCacheKey(request.account));
 
         const homeAccountId = cacheRecord.account.homeAccountId;
         const env = cacheRecord.account.environment;

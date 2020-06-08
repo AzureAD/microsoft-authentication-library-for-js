@@ -27,19 +27,19 @@ export interface ICacheStorage {
      * @param key
      * @param value
      */
-    setItem(key: string, value: string | object, type: string, inMemory?: boolean): void;
+    setItem(key: string, value: string | object, type?: string, inMemory?: boolean): void;
 
     /**
      * Function which retrieves item from cache.
      * @param key
      */
-    getItem(key: string, type: string, inMemory?: boolean): string | object;
+    getItem(key: string, type?: string, inMemory?: boolean): string | object;
 
     /**
      * Function to remove an item from cache given its key.
      * @param key
      */
-    removeItem(key: string, type: string, inMemory?: boolean): boolean;
+    removeItem(key: string, type?: string, inMemory?: boolean): boolean;
 
     /**
      * Function which returns boolean whether cache contains a specific key.
