@@ -9,6 +9,102 @@ describe("ScopeSet.ts", () => {
     const profile = Constants.profileScope;
     const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
 
+    describe("isIntersectingScopes", function () {
+        it("should return true if cachedScopes and scopes share a single scope", function () {
+            const cachedScopes = ["S1"];
+            const scopes = ["S1"];
+            expect(ScopeSet.isIntersectingScopes(cachedScopes, scopes)).to.eql(true);
+        });
+
+        it("should return true if cachedScopes and scopes share a single scope while having other scopes", function () {
+            const cachedScopes = ["S1", "S2", "S3"];
+            const scopes = ["S4", "S1", "S5"];
+            expect(ScopeSet.isIntersectingScopes(cachedScopes, scopes)).to.eql(true);
+        });
+
+        it("should return true if cachedScopes and scopes share more than one scope", function () {
+            const cachedScopes = ["S1", "S2", "S3"];
+            const scopes = ["S2", "S1", "S5"];
+            expect(ScopeSet.isIntersectingScopes(cachedScopes, scopes)).to.eql(true);
+        });
+
+        it("should return false if cachedScopes and scopes do not share any scopes", function () {
+            const cachedScopes = ["S1"];
+            const scopes = ["S2"];
+            expect(ScopeSet.isIntersectingScopes(cachedScopes, scopes)).to.eql(false);
+        });
+
+        it("should return false if scopes is empty", function () {
+            const cachedScopes = ["S1"];
+            const scopes = [];
+            expect(ScopeSet.isIntersectingScopes(cachedScopes, scopes)).to.eql(false);
+        });
+
+        it("should return false if cachedScopes and scopes are both empty arrays", function () {
+            const cachedScopes = [];
+            const scopes = [];
+            expect(ScopeSet.isIntersectingScopes(cachedScopes, scopes)).to.eql(false);
+        });
+    });
+
+    describe("validateInputScope", function() {
+        it("should not throw any errors when a single scope is passed in scopes array", function () {
+            const scopes = ["S1"];
+            expect(() => ScopeSet.validateInputScope(scopes)).to.not.throw();
+        });
+
+        it("should not throw any errors when multiple scopes are passed in scopes array", function () {
+            const scopes = ["S1", "S2"];
+            expect(() => ScopeSet.validateInputScope(scopes)).to.not.throw();
+        });
+
+        it("should throw createScopesRequiredError if scopes are empty or null", function() {
+            const scopes = null;
+            let clientConfigError;
+
+            try {
+                ScopeSet.validateInputScope(scopes);
+            } catch (e) {
+                clientConfigError = e;
+            }
+
+            expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
+            expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
+            expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
+        });
+        
+        it("should throw createScopesNonArrayError if scopes is not an array object", function() {
+            const scopes = {};
+            let clientConfigError;
+
+            try {
+                // @ts-ignore
+                ScopeSet.validateInputScope(scopes);
+            } catch (e) {
+                clientConfigError = e;
+            }
+
+            expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
+            expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.nonArrayScopes.code);
+            expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.nonArrayScopes.desc);
+        });
+
+        it("should throw createEmptyScopesArrayError if scopes is an empty array", function() {
+            const scopes = [];
+            let clientConfigError;
+
+            try {
+                ScopeSet.validateInputScope(scopes);
+            } catch (e) {
+                clientConfigError = e;
+            }
+
+            expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
+            expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
+            expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
+        });
+    });
+
     describe("appendScopes", function() {
         it("should return null if no scopes are passed into the first argument", function() {
             expect(ScopeSet.appendScopes(null, ["S1"])).to.eql(null);
@@ -78,64 +174,6 @@ describe("ScopeSet.ts", () => {
 
         it("should return false if scopes does not include openid, profile, or clientId", function () {
             expect(ScopeSet.isLoginScopes(["S1"], clientId)).to.eql(false);
-        });
-    });
-
-    describe("validateInputScope", function() {
-        it("should not throw any errors when a single scope is passed in scopes array", function () {
-            const scopes = ["S1"];
-            expect(() => ScopeSet.validateInputScope(scopes)).to.not.throw();
-        });
-
-        it("should not throw any errors when multiple scopes are passed in scopes array", function () {
-            const scopes = ["S1", "S2"];
-            expect(() => ScopeSet.validateInputScope(scopes)).to.not.throw();
-        });
-
-        it("should throw createScopesRequiredError if scopes are empty or null", function() {
-            const scopes = null;
-            let clientConfigError;
-
-            try {
-                ScopeSet.validateInputScope(scopes);
-            } catch (e) {
-                clientConfigError = e;
-            }
-
-            expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
-            expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-            expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-        });
-        
-        it("should throw createScopesNonArrayError if scopes is not an array object", function() {
-            const scopes = {};
-            let clientConfigError;
-
-            try {
-                // @ts-ignore
-                ScopeSet.validateInputScope(scopes);
-            } catch (e) {
-                clientConfigError = e;
-            }
-
-            expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
-            expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.nonArrayScopes.code);
-            expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.nonArrayScopes.desc);
-        });
-
-        it("should throw createEmptyScopesArrayError if scopes is an empty array", function() {
-            const scopes = [];
-            let clientConfigError;
-
-            try {
-                ScopeSet.validateInputScope(scopes);
-            } catch (e) {
-                clientConfigError = e;
-            }
-
-            expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
-            expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
-            expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
         });
     });
 });
