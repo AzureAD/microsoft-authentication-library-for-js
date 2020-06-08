@@ -1,9 +1,14 @@
 import { ScopeSet } from "../src/ScopeSet";
 import { expect } from "chai";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
+import { Constants } from "../src/utils/Constants";
 import { TEST_CONFIG } from "./TestConstants";
 
 describe("ScopeSet.ts", () => {
+    const openid = Constants.openidScope;
+    const profile = Constants.profileScope;
+    const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
+
     describe("appendScopes", function() {
         it("should return null if no scopes are passed into the first argument", function() {
             expect(ScopeSet.appendScopes(null, ["S1"])).to.eql(null);
@@ -28,27 +33,51 @@ describe("ScopeSet.ts", () => {
 
     describe("generateLoginScopes", function() {
         it("should return original scopes passed in if original scopes are not login scopes", function() {
-            expect(ScopeSet.generateLoginScopes(["S1"], TEST_CONFIG.MSAL_CLIENT_ID)).to.eql(["S1"]);
+            expect(ScopeSet.generateLoginScopes(["S1"], clientId)).to.eql(["S1"]);
         });
 
         it("should append openid and profile to scopes, remove clientId from scopes if original scopes include clientId", function() {
-            expect(ScopeSet.generateLoginScopes([TEST_CONFIG.MSAL_CLIENT_ID], TEST_CONFIG.MSAL_CLIENT_ID)).to.include("openid");
-            expect(ScopeSet.generateLoginScopes([TEST_CONFIG.MSAL_CLIENT_ID], TEST_CONFIG.MSAL_CLIENT_ID)).to.include("profile");
-            expect(ScopeSet.generateLoginScopes([TEST_CONFIG.MSAL_CLIENT_ID], TEST_CONFIG.MSAL_CLIENT_ID)).to.not.include(TEST_CONFIG.MSAL_CLIENT_ID);
+            expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.include(openid);
+            expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.include(profile);
+            expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.not.include(clientId);
         });
 
         it("should append openid to scopes if original scopes are login scopes and does not include openid", function() {
-            expect(ScopeSet.generateLoginScopes([TEST_CONFIG.MSAL_CLIENT_ID, "profile"], TEST_CONFIG.MSAL_CLIENT_ID)).to.include("openid");
+            expect(ScopeSet.generateLoginScopes([clientId, profile], clientId)).to.include(openid);
         });
         
         it("should append profile to scopes if original scopes are login scopes and does not include profile", function() {
-            expect(ScopeSet.generateLoginScopes([TEST_CONFIG.MSAL_CLIENT_ID, "openid"], TEST_CONFIG.MSAL_CLIENT_ID)).to.include("profile");
+            expect(ScopeSet.generateLoginScopes([clientId, openid], clientId)).to.include(profile);
         });
         
         it("should not remove existing access token scopes in original scopes when appending login scopes", function() {
-            expect(ScopeSet.generateLoginScopes(["S1", TEST_CONFIG.MSAL_CLIENT_ID], TEST_CONFIG.MSAL_CLIENT_ID)).to.include("S1");
-            expect(ScopeSet.generateLoginScopes(["S1", TEST_CONFIG.MSAL_CLIENT_ID], TEST_CONFIG.MSAL_CLIENT_ID)).to.include("openid");
-            expect(ScopeSet.generateLoginScopes(["S1", TEST_CONFIG.MSAL_CLIENT_ID], TEST_CONFIG.MSAL_CLIENT_ID)).to.include("profile");
+            expect(ScopeSet.generateLoginScopes(["S1", clientId], clientId)).to.include("S1");
+            expect(ScopeSet.generateLoginScopes(["S1", clientId], clientId)).to.include(openid);
+            expect(ScopeSet.generateLoginScopes(["S1", clientId], clientId)).to.include(profile);
+        });
+    });
+
+    describe("isLoginScopes", function() {
+        it("should return true if scopes includes openid", function () {
+            expect(ScopeSet.isLoginScopes([openid], clientId)).to.eql(true);
+        });
+
+        it("should return true if scopes includes profile", function () {
+            expect(ScopeSet.isLoginScopes([profile], clientId)).to.eql(true);
+        });
+
+        it("should return true if clientId is passed in", function () {
+            expect(ScopeSet.isLoginScopes([clientId], clientId)).to.eql(true);
+        });
+
+        it("should return true if any login scope is present, even when additional scopes are passed in", function () {
+            expect(ScopeSet.isLoginScopes(["S1", openid], clientId)).to.eql(true);
+            expect(ScopeSet.isLoginScopes(["S1", profile], clientId)).to.eql(true);
+            expect(ScopeSet.isLoginScopes(["S1", clientId], clientId)).to.eql(true);
+        });
+
+        it("should return false if scopes does not include openid, profile, or clientId", function () {
+            expect(ScopeSet.isLoginScopes(["S1"], clientId)).to.eql(false);
         });
     });
 
