@@ -27,9 +27,11 @@ import { CacheRecord } from "./entities/CacheRecord";
 export class UnifiedCacheManager implements ICacheManager {
     // Storage interface
     private cacheStorage: ICacheStorage;
+    private inMemory: boolean;
 
     constructor(cacheImpl: ICacheStorage) {
         this.cacheStorage = cacheImpl;
+        this.inMemory = true;
     }
 
     /**
@@ -89,7 +91,7 @@ export class UnifiedCacheManager implements ICacheManager {
      */
     saveAccount(account: AccountEntity): void {
         const key = account.generateAccountKey();
-        this.cacheStorage.setItemInMemory(key, account, CacheSchemaType.ACCOUNT);
+        this.cacheStorage.setItem(key, account, CacheSchemaType.ACCOUNT, this.inMemory);
     }
 
     /**
@@ -99,7 +101,7 @@ export class UnifiedCacheManager implements ICacheManager {
     saveCredential(credential: Credential): void {
         console.log("in UCacheManager saving credential");
         const key = credential.generateCredentialKey();
-        this.cacheStorage.setItemInMemory(key, credential, CacheSchemaType.CREDENTIAL);
+        this.cacheStorage.setItem(key, credential, CacheSchemaType.CREDENTIAL, this.inMemory);
     }
 
     /**
@@ -107,7 +109,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param key
      */
     getAccount(key: string): AccountEntity {
-        return this.cacheStorage.getItemFromMemory(key, CacheSchemaType.ACCOUNT) as AccountEntity;
+        return this.cacheStorage.getItem(key, CacheSchemaType.ACCOUNT, this.inMemory) as AccountEntity;
     }
 
     /**
@@ -115,7 +117,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param key
      */
     getCredential(key: string): Credential {
-        return this.cacheStorage.getItemFromMemory(key, CacheSchemaType.CREDENTIAL) as Credential;
+        return this.cacheStorage.getItem(key, CacheSchemaType.CREDENTIAL, this.inMemory) as Credential;
     }
 
     /**
@@ -315,7 +317,7 @@ export class UnifiedCacheManager implements ICacheManager {
      */
     removeAccount(account: AccountEntity): boolean {
         const key = account.generateAccountKey();
-        return this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.ACCOUNT);
+        return this.cacheStorage.removeItem(key, CacheSchemaType.ACCOUNT, this.inMemory);
     }
 
     /**
@@ -328,19 +330,19 @@ export class UnifiedCacheManager implements ICacheManager {
 
         Object.keys(cache.idTokens).forEach((key) => {
             if (cache.idTokens[key].generateAccountId() === accountId) {
-                this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
+                this.cacheStorage.removeItem(key, CacheSchemaType.CREDENTIAL, this.inMemory);
             }
         });
 
         Object.keys(cache.accessTokens).forEach((key) => {
             if (cache.accessTokens[key].generateAccountId() === accountId) {
-                this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
+                this.cacheStorage.removeItem(key, CacheSchemaType.CREDENTIAL, this.inMemory);
             }
         });
 
         Object.keys(cache.refreshTokens).forEach((key) => {
             if (cache.refreshTokens[key].generateAccountId() === accountId) {
-                this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
+                this.cacheStorage.removeItem(key, CacheSchemaType.CREDENTIAL, this.inMemory);
             }
         });
 
@@ -353,6 +355,6 @@ export class UnifiedCacheManager implements ICacheManager {
      */
     removeCredential(credential: Credential): boolean {
         const key = credential.generateCredentialKey();
-        return this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
+        return this.cacheStorage.removeItem(key, CacheSchemaType.CREDENTIAL, this.inMemory);
     }
 }

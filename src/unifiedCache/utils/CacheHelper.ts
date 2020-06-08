@@ -210,7 +210,7 @@ export class CacheHelper {
         familyId?: string
     ): string {
         const credentialKey = [
-            CacheHelper.generateAccoundIdForCacheKey(homeAccountId, environment),
+            this.generateAccoundIdForCacheKey(homeAccountId, environment),
             this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
             this.generateTargetForCacheKey(target),
         ];
