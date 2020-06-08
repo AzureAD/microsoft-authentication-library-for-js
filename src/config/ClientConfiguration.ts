@@ -101,7 +101,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
-    storeInMemory: false,
+    storeInMemory: true,
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     telemetry: null
 };

@@ -23,6 +23,7 @@ import {
 import { ICacheManager } from "./interface/ICacheManager";
 import { CacheHelper } from "./utils/CacheHelper";
 import { CacheRecord } from "./entities/CacheRecord";
+import { StringUtils } from "../utils/StringUtils";
 
 export class UnifiedCacheManager implements ICacheManager {
     // Storage interface
@@ -31,7 +32,7 @@ export class UnifiedCacheManager implements ICacheManager {
 
     constructor(cacheImpl: ICacheStorage, storeInMemory: boolean) {
         this.cacheStorage = cacheImpl;
-        this.inMemory = true;
+        this.inMemory = storeInMemory;
     }
 
     /**
@@ -71,7 +72,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * Returns all accounts in memory
      */
     getAllAccounts(): AccountCache {
-        return this.getCacheInMemory().accounts;
+        return this.getAccountsFilteredBy();
     }
 
     /**
@@ -128,12 +129,12 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param realm
      */
     getAccountsFilteredBy(
-        accountFilter: AccountFilter
+        accountFilter?: AccountFilter
     ): AccountCache {
         return this.getAccountsFilteredByInternal(
-            accountFilter.homeAccountId,
-            accountFilter.environment,
-            accountFilter.realm
+            accountFilter ? accountFilter.homeAccountId : "",
+            accountFilter ? accountFilter.environment : "",
+            accountFilter ? accountFilter.realm : ""
         );
     }
 
@@ -155,15 +156,15 @@ export class UnifiedCacheManager implements ICacheManager {
         let matches: boolean = true;
 
         Object.keys(accounts).forEach((key) => {
-            if (!!homeAccountId) {
+            if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(key, homeAccountId);
             }
 
-            if (!!environment) {
+            if (!StringUtils.isEmpty(environment)) {
                 matches = matches && CacheHelper.matchEnvironment(key, environment);
             }
 
-            if (!!realm) {
+            if (!StringUtils.isEmpty(realm)) {
                 matches = matches && CacheHelper.matchRealm(key, realm);
             }
 
@@ -275,31 +276,31 @@ export class UnifiedCacheManager implements ICacheManager {
         let matches: boolean = true;
 
         Object.keys(cacheCredentials).forEach((key) => {
-            if (!!homeAccountId) {
+            if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(
                     key,
                     homeAccountId
                 );
             }
 
-            if (!!environment) {
+            if (!StringUtils.isEmpty(environment)) {
                 matches = matches && CacheHelper.matchEnvironment(key, environment);
             }
 
-            if (!!realm) {
+            if (!StringUtils.isEmpty(realm)) {
                 matches = matches && CacheHelper.matchRealm(key, realm);
             }
 
-            if (!!credentialType) {
+            if (!StringUtils.isEmpty(credentialType)) {
                 matches = matches && CacheHelper.matchCredentialType(key, credentialType);
             }
 
-            if (!!clientId) {
+            if (!StringUtils.isEmpty(clientId)) {
                 matches = matches && CacheHelper.matchClientId(key, clientId);
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            if (!!target && CacheHelper.getCredentialType(key) != CredentialType.ID_TOKEN) {
+            if (!StringUtils.isEmpty(target) && CacheHelper.getCredentialType(key) != CredentialType.ID_TOKEN) {
                 matches = matches && CacheHelper.matchTarget(key, target);
             }
 
@@ -441,31 +442,31 @@ export class UnifiedCacheManager implements ICacheManager {
     ): void {
         let matches: boolean = true;
         Object.keys(cacheCredentials).forEach((key) => {
-            if (!!homeAccountId) {
+            if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(
                     key,
                     homeAccountId
                 );
             }
 
-            if (!!environment) {
+            if (!StringUtils.isEmpty(environment)) {
                 matches = matches && CacheHelper.matchEnvironment(key, environment);
             }
 
-            if (!!realm) {
+            if (!StringUtils.isEmpty(realm)) {
                 matches = matches && CacheHelper.matchRealm(key, realm);
             }
 
-            if (!!credentialType) {
+            if (!StringUtils.isEmpty(credentialType)) {
                 matches = matches && CacheHelper.matchCredentialType(key, credentialType);
             }
 
-            if (!!clientId) {
+            if (!StringUtils.isEmpty(clientId)) {
                 matches = matches && CacheHelper.matchClientId(key, clientId);
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            if (!!target && CacheHelper.getCredentialType(key) != CredentialType.ID_TOKEN) {
+            if (!StringUtils.isEmpty(target) && CacheHelper.getCredentialType(key) != CredentialType.ID_TOKEN) {
                 matches = matches && CacheHelper.matchTarget(key, target);
             }
 
