@@ -24,7 +24,8 @@ import {
     CacheSchemaType,
     AuthenticationResult,
     SilentFlowRequest,
-    AccountEntity
+    AccountEntity,
+    IAccount
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -38,7 +39,6 @@ import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants"
 import { AuthCallback } from "../types/AuthCallback";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
-import { IAccount } from "@azure/msal-common/dist/src/account/IAccount";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -564,7 +564,7 @@ export class PublicClientApplication {
      * @returns {@link IAccount[]} - Array of account objects in cache
      */
     public getAllAccounts(): IAccount[] {
-        return null;
+        return this.authModule.getAllAccounts();
     }
 
     /**

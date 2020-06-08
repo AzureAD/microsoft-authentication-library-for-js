@@ -67,6 +67,14 @@ function handleResponse(resp) {
         showWelcomeMessage(resp.account);
     } else {
         // need to call getAccount here?
-        
+        const currentAccounts = myMSALObj.getAllAccounts();
+        console.log(currentAccounts);
+        if (currentAccounts === null) {
+            return;
+        } else if (currentAccounts.length > 1) {
+            // Add choose account code here
+        } else if (currentAccounts === 1) {
+            showWelcomeMessage(currentAccounts[0]);
+        }
     }
 }
