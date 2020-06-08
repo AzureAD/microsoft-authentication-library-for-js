@@ -805,6 +805,31 @@ describe("UserAgentApplication.ts Class", function () {
             msal.acquireTokenRedirect(tokenRequest);
         });
 
+        it("LoginStartPage is cached on acquireTokenRedirect call", (done) => {
+            const tokenRequest: AuthenticationParameters = {
+                scopes: ["S1"], 
+                account: account
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        const loginRequestUrl = window.location.href;
+                        const state = UrlUtils.deserializeHash(url).state;
+
+                        expect(cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${state}`)).to.be.equal(loginRequestUrl);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+
+            msal.handleRedirectCallback(authCallback);
+            msal.acquireTokenRedirect(tokenRequest);
+        });
+
         it("tests if error is thrown when null scopes are passed", function (done) {
             msal.handleRedirectCallback(authCallback);
             let authErr: AuthError;
