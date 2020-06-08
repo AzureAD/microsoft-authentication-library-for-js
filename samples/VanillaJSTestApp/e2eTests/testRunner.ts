@@ -20,20 +20,6 @@ const sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(fu
     return file.name;
 });
 
-// console.log(path.resolve(`${APP_DIR}/default/index.html`));
-
-//initialize express.
-const app = express();
-
-// Initialize variables.
-let port = DEFAULT_PORT; // 30662;
-
-// Configure morgan module to log all requests.
-app.use(morgan('dev'));
-
-// Set the front-end folder to serve public assets.
-app.use("/dist", express.static(path.join(PARENT_DIR, "../../lib/msal-core/dist")));
-
 // Clear require cache and create new mocha object to run new set of tests
 function createMochaObject(sampleName: string) {
     // Required to allow mocha to run multiple times
@@ -57,13 +43,25 @@ function createMochaObject(sampleName: string) {
 
 // Recursive test runner for each sample
 function runMochaTests(sampleIndex: number) {
+    //initialize express.
+    const app = express();
+
+    // Initialize variables.
+    let port = DEFAULT_PORT; // 30662;
+
+    // Configure morgan module to log all requests.
+    app.use(morgan('dev'));
+
+    // Set the front-end folder to serve public assets.
+    app.use("/dist", express.static(path.join(PARENT_DIR, "../../lib/msal-core/dist")));
+    
     let sampleName = sampleFolders[sampleIndex];
     const mocha = createMochaObject(sampleName);
     app.use(express.static(`${APP_DIR}/${sampleName}`));
 
     // Set up a route for index.html.
     app.get('*', function (req, res) {
-        res.sendFile(path.resolve(`${APP_DIR}/${sampleName}/index.html`));
+        res.sendFile(path.join(`${APP_DIR}/${sampleName}/index.html`));
     });
 
     let server = app.listen(port);

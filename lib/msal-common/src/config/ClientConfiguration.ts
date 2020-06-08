@@ -70,7 +70,7 @@ export type TelemetryOptions = {
 export type SystemOptions = {
     storeInMemory?: boolean;
     tokenRenewalOffsetSeconds?: number;
-    telemetry?: TelemetryOptions
+    telemetry?: TelemetryOptions;
 };
 
 /**
