@@ -4,7 +4,7 @@
  */
 
 import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
-import { ICacheStorage } from "../cache/ICacheStorage";
+import { ICacheStorage } from "../unifiedCache/interface/ICacheStorage";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
