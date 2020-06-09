@@ -103,14 +103,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 }
             },
             storageInterface: {
-                getCache: (): InMemoryCache => {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
+                getCache: (): object => {
+                    return {};
                 },
                 setCache: (): void => {
                     // dummy impl;
