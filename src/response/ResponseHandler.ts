@@ -119,12 +119,12 @@ export class ResponseHandler {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: responseScopes.asArray(),
+            account: CacheHelper.toIAccount(cacheRecord.account),
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
             expiresOn: new Date(cacheRecord.accessToken.expiresOn),
             extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
-            account: CacheHelper.toIAccount(cacheRecord.account),
             familyId: serverTokenResponse.foci || null,
         };
 

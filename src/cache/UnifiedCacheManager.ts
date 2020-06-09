@@ -164,7 +164,8 @@ export class UnifiedCacheManager implements ICacheManager {
 
             if (!StringUtils.isEmpty(environment)) {
                 matches =
-                    matches && CacheHelper.matchEnvironment(entity, environment);
+                    matches &&
+                    CacheHelper.matchEnvironment(entity, environment);
             }
 
             if (!StringUtils.isEmpty(realm)) {
@@ -222,7 +223,10 @@ export class UnifiedCacheManager implements ICacheManager {
         allCacheKeys.forEach((cacheKey) => {
             let matches: boolean = true;
             // don't parse any non-credential type cache entities
-            if (CacheHelper.getCredentialType(cacheKey) === Constants.NOT_DEFINED) {
+            if (
+                CacheHelper.getCredentialType(cacheKey) ===
+                Constants.NOT_DEFINED
+            ) {
                 return;
             }
 
@@ -257,8 +261,10 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            if (!StringUtils.isEmpty(target)
-                && CacheHelper.getCredentialType(cacheKey) != CredentialType.ID_TOKEN
+            if (
+                !StringUtils.isEmpty(target) &&
+                CacheHelper.getCredentialType(cacheKey) !=
+                    CredentialType.ID_TOKEN
             ) {
                 matches = matches && CacheHelper.matchTarget(entity, target);
             }

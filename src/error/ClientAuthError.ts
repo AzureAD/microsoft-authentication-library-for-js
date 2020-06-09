@@ -267,6 +267,15 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
+     * Throws error when multiple tokens are in cache for the given scope.
+     * @param scope
+     */
+    static createMultipleMatchingAccountsInCacheError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAccounts.code,
+            ClientAuthErrorMessage.multipleMatchingAccounts.desc);
+    }
+
+    /**
      * Throws error when no auth code or refresh token is given to ServerTokenRequestParameters.
      */
     static createTokenRequestCannotBeMadeError(): ClientAuthError {
