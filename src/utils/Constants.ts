@@ -32,7 +32,8 @@ export const Constants = {
     FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
-    AUTHORIZATION_PENDING: "authorization_pending"
+    AUTHORIZATION_PENDING: "authorization_pending",
+    NOT_DEFINED: "not_defined"
 };
 
 /**

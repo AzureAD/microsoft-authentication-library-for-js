@@ -14,7 +14,7 @@ import { ICacheStorage } from "./interface/ICacheStorage";
 import { Deserializer } from "./serialize/Deserializer";
 import { Serializer } from "./serialize/Serializer";
 import { Credential } from "./entities/Credential";
-import { CredentialType, CacheSchemaType } from "../utils/Constants";
+import { CredentialType, CacheSchemaType, Constants } from "../utils/Constants";
 import { AccountCache, CredentialCache } from "./utils/CacheTypes";
 import { ICacheManager } from "./interface/ICacheManager";
 import { CacheHelper } from "./utils/CacheHelper";
@@ -37,7 +37,8 @@ export class UnifiedCacheManager implements ICacheManager {
     getCache(): object {
         if (this.inMemory) {
             return this.cacheStorage.getCache();
-        } else {
+        }
+        else {
             const inMemoryCache = this.cacheStorage.getCache() as InMemoryCache;
             const cacheMap: object = {};
 
@@ -175,10 +176,11 @@ export class UnifiedCacheManager implements ICacheManager {
         let matches: boolean = true;
 
         allCacheKeys.forEach((cacheKey) => {
-            const entity: AccountEntity | Credential = cache[cacheKey];
-            if (entity.hasOwnProperty("credentialType")) {
+            // don't parse any non-credential type cache entities
+            if (CacheHelper.getCredentialType(cacheKey) !== Constants.NOT_DEFINED && CacheHelper.isAppMetadata(cacheKey)) {
                 return;
             }
+            const entity: AccountEntity = cache[cacheKey];
 
             if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(entity, homeAccountId);
@@ -246,7 +248,12 @@ export class UnifiedCacheManager implements ICacheManager {
         let matches: boolean = true;
 
         allCacheKeys.forEach((cacheKey) => {
-            const entity: AccountEntity | Credential = cache[cacheKey];
+            // don't parse any non-credential type cache entities
+            if (CacheHelper.getCredentialType(cacheKey) === Constants.NOT_DEFINED) {
+                return;
+            }
+
+            const entity: Credential = cache[cacheKey];
 
             if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(
@@ -265,23 +272,22 @@ export class UnifiedCacheManager implements ICacheManager {
                 matches = matches && CacheHelper.matchRealm(cache[cacheKey], realm);
             }
 
-            if (entity.hasOwnProperty("credentialType") && !StringUtils.isEmpty(credentialType)) {
+            if (!StringUtils.isEmpty(credentialType)) {
                 matches =
                     matches &&
-                    CacheHelper.matchCredentialType(entity as Credential, credentialType);
+                    CacheHelper.matchCredentialType(entity, credentialType);
             }
 
-            if (entity.hasOwnProperty("clientId") && !StringUtils.isEmpty(clientId)) {
+            if (!StringUtils.isEmpty(clientId)) {
                 matches =
-                    matches && CacheHelper.matchClientId(entity as Credential, clientId);
+                    matches && CacheHelper.matchClientId(entity, clientId);
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            if (entity.hasOwnProperty("target")
-                && !StringUtils.isEmpty(target)
-                && CacheHelper.getCredentialType(entity as Credential) != CredentialType.ID_TOKEN
+            if (!StringUtils.isEmpty(target)
+                && CacheHelper.getCredentialType(cacheKey) != CredentialType.ID_TOKEN
             ) {
-                matches = matches && CacheHelper.matchTarget(entity as Credential, target);
+                matches = matches && CacheHelper.matchTarget(entity, target);
             }
 
             if (matches) {
