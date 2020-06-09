@@ -381,7 +381,6 @@ export class SPAClient extends BaseClient {
             target: scopes.printScopes()
         };
         const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        console.log("Credential Cache: " , credentialCache);
         const accessTokens = Object.values(credentialCache);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.

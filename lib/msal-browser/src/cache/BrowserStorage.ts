@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICacheStorage, Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CacheHelper, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
+import { ICacheStorage, Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CacheHelper, CredentialType, Credential, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -136,43 +136,41 @@ export class BrowserStorage implements ICacheStorage {
      * @param key
      */
     getItem(key: string, type: string): string | object {
+        const value = this.windowStorage.getItem(key);
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
         switch (type) {
             case CacheSchemaType.ACCOUNT: {
-                return (JSON.parse(this.windowStorage.getItem(key)) as AccountEntity) || null;
+                const account = new AccountEntity();
+                return (CacheHelper.toObject(account, JSON.parse(value)) as AccountEntity);
             }
             case CacheSchemaType.CREDENTIAL: {
                 const credentialType = CacheHelper.getCredentialType(key);
-                let credential = null;
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
-                        credential =
-                            (JSON.parse(this.windowStorage.getItem(key)) as IdTokenEntity) || null;
-                        break;
+                        const idTokenEntity: IdTokenEntity = new IdTokenEntity();
+                        return (CacheHelper.toObject(idTokenEntity, JSON.parse(value)) as IdTokenEntity);
                     }
                     case CredentialType.ACCESS_TOKEN: {
-                        credential =
-                            (JSON.parse(this.windowStorage.getItem(key)) as AccessTokenEntity) ||
-                            null;
-                        break;
+                        const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
+                        return (CacheHelper.toObject(accessTokenEntity, JSON.parse(value)) as AccessTokenEntity);
                     }
                     case CredentialType.REFRESH_TOKEN: {
-                        credential =
-                            (JSON.parse(this.windowStorage.getItem(key)) as RefreshTokenEntity) ||
-                            null;
-                        break;
+                        const refreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
+                        return (CacheHelper.toObject(refreshTokenEntity, JSON.parse(value)) as RefreshTokenEntity);
                     }
                 }
-                return credential!;
             }
             case CacheSchemaType.APP_META_DATA: {
-                return (JSON.parse(this.windowStorage.getItem(key)) as AppMetadataEntity) || null;
+                return (JSON.parse(value) as AppMetadataEntity);
             }
             case CacheSchemaType.TEMPORARY: {
                 const itemCookie = this.getItemCookie(key);
                 if (this.cacheConfig.storeAuthStateInCookie) {
                     return itemCookie;
                 }
-                return this.windowStorage.getItem(key) || null;
+                return value;
             }
             default: {
                 console.log("Invalid Cache Type");

@@ -100,11 +100,12 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param key
      */
     getAccount(key: string): AccountEntity {
-        return this.cacheStorage.getItem(
+        const account = this.cacheStorage.getItem(
             key,
             CacheSchemaType.ACCOUNT,
             this.inMemory
         ) as AccountEntity;
+        return account;
     }
 
     /**
@@ -226,9 +227,7 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             const entity: Credential = this.cacheStorage.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as Credential;
-            console.log("entity: ", entity);
 
-            console.log("Before haid: ", matches);
             if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(
                     entity,
@@ -236,34 +235,28 @@ export class UnifiedCacheManager implements ICacheManager {
                 );
             }
 
-            console.log("Before env: ", matches);
             if (!StringUtils.isEmpty(environment)) {
                 matches =
                     matches &&
                     CacheHelper.matchEnvironment(entity, environment);
             }
 
-            console.log("Before realm: ", matches);
-            console.log("realm: ", realm);
             if (!StringUtils.isEmpty(realm)) {
                 matches = matches && CacheHelper.matchRealm(entity, realm);
             }
 
-            console.log("Before credentialType: ", matches);
             if (!StringUtils.isEmpty(credentialType)) {
                 matches =
                     matches &&
                     CacheHelper.matchCredentialType(entity, credentialType);
             }
 
-            console.log("Before clientid: ", matches);
             if (!StringUtils.isEmpty(clientId)) {
                 matches =
                     matches && CacheHelper.matchClientId(entity, clientId);
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            console.log("Before target: ", matches);
             if (!StringUtils.isEmpty(target)
                 && CacheHelper.getCredentialType(cacheKey) != CredentialType.ID_TOKEN
             ) {
@@ -275,8 +268,6 @@ export class UnifiedCacheManager implements ICacheManager {
             }
         });
 
-        console.log("Matching Creds: ", matchingCredentials);
-
         return matchingCredentials;
     }
 
@@ -285,7 +276,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param account
      */
     removeAccount(accountKey: string): boolean {
-        const account = this.getAccount(accountKey);
+        const account = this.getAccount(accountKey) as AccountEntity;
         return (
             this.removeAccountContext(account) &&
             this.cacheStorage.removeItem(
@@ -305,11 +296,17 @@ export class UnifiedCacheManager implements ICacheManager {
         const accountId = account.generateAccountId();
 
         allCacheKeys.forEach((cacheKey) => {
+            // don't parse any non-credential type cache entities
+            if (CacheHelper.getCredentialType(cacheKey) === Constants.NOT_DEFINED) {
+                return;
+            }
+
             const cacheEntity: Credential = this.cacheStorage.getItem(
                 cacheKey,
                 CacheSchemaType.CREDENTIAL,
                 this.inMemory
             ) as Credential;
+
             if (
                 !!cacheEntity &&
                 accountId === cacheEntity.generateAccountId()
