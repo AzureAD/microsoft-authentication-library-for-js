@@ -38,10 +38,10 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 #### Latest compiled and minified JavaScript
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.2/js/msal.js" integrity="sha384-YjtcEEqiYcRGh2K/ehq07C6Bk9jKrKoMgdFy9YGfTxtrmzV3GyNi0DDgwhmcCNrE" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.2/js/msal.js" integrity="sha384-rwyXLM4dOdS5ptZmCIqzjVrWmbPA6bnan0Fy35CYYY13MdE0gK/L0TVDnKdEQV7q" crossorigin="anonymous"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.2/js/msal.min.js" integrity="sha384-kb1EkR5mZZRISRcdpYMFQRBDBb/RG/tKvYeCbgFjLUhPu54tjm1O4OPkvmOMnpPJ" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.2/js/msal.min.js" integrity="sha384-4cH4i4aLXsdIJJz5DF27S+GxZXRSqBORS4NN7kc7NyZBBIugxFyt6hQt5FiR/DuZ" crossorigin="anonymous"></script>
 ```
 
 #### Alternate region URLs
@@ -49,10 +49,10 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 To help ensure reliability, Microsoft provides a second CDN:
 
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.2/js/msal.js" integrity="sha384-YjtcEEqiYcRGh2K/ehq07C6Bk9jKrKoMgdFy9YGfTxtrmzV3GyNi0DDgwhmcCNrE" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.2/js/msal.js" integrity="sha384-rwyXLM4dOdS5ptZmCIqzjVrWmbPA6bnan0Fy35CYYY13MdE0gK/L0TVDnKdEQV7q" crossorigin="anonymous"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.2/js/msal.min.js" integrity="sha384-kb1EkR5mZZRISRcdpYMFQRBDBb/RG/tKvYeCbgFjLUhPu54tjm1O4OPkvmOMnpPJ" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.2/js/msal.min.js" integrity="sha384-4cH4i4aLXsdIJJz5DF27S+GxZXRSqBORS4NN7kc7NyZBBIugxFyt6hQt5FiR/DuZ" crossorigin="anonymous"></script>
 ```
 
 Below is an example of how to use one CDN as a fallback when the other CDN is not working:
