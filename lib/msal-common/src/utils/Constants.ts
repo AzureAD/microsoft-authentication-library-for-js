@@ -44,22 +44,6 @@ export enum HeaderNames {
 }
 
 /**
- * Temporary cache keys for MSAL, deleted after any request.
- */
-export enum TemporaryCacheKeys {
-    AUTHORITY = "authority",
-    ACQUIRE_TOKEN_ACCOUNT = "acquireToken.account",
-    SESSION_STATE = "session.state",
-    REQUEST_STATE = "request.state",
-    NONCE_IDTOKEN = "nonce.idtoken",
-    ORIGIN_URI = "request.origin",
-    RENEW_STATUS = "token.renew.status",
-    URL_HASH = "urlHash",
-    REQUEST_PARAMS = "request.params",
-    SCOPES = "scopes"
-}
-
-/**
  * Persistent cache keys MSAL which stay while user is logged in.
  */
 export enum PersistentCacheKeys {
@@ -96,7 +80,6 @@ export enum AADAuthorityConstants {
  */
 export enum AADServerParamKeys {
     CLIENT_ID = "client_id",
-    RESOURCE = "resource",
     REDIRECT_URI = "redirect_uri",
     RESPONSE_TYPE = "response_type",
     RESPONSE_MODE = "response_mode",
@@ -158,6 +141,17 @@ export const PromptValue = {
 };
 
 /**
+ * // TODO: Have only one Prompr constant
+ * Allowed values for prompt
+ */
+export enum Prompt {
+    LOGIN = "login",
+    NONE = "none",
+    CONSENT = "consent",
+    SELECT_ACCOUNT = "select_account"
+}
+
+/**
  * SSO Types - generated to populate hints
  */
 export enum SSOTypes {
@@ -205,16 +199,6 @@ export enum ResponseMode {
     QUERY = "query",
     FRAGMENT = "fragment",
     FORM_POST = "form_post"
-}
-
-/**
- * Allowed values for prompt
- */
-export enum Prompt {
-    LOGIN = "login",
-    NONE = "none",
-    CONSENT = "consent",
-    SELECT_ACCOUNT = "select_account"
 }
 
 /**
