@@ -190,7 +190,7 @@ export class CacheHelper {
      * @param homeAccountId
      * @param environment
      */
-    static generateAccountIdForCacheKey(
+    private static generateAccountIdForCacheKey(
         homeAccountId: string,
         environment: string
     ): string {
@@ -205,7 +205,7 @@ export class CacheHelper {
      * @param clientId
      * @param familyId
      */
-    static generateCredentialIdForCacheKey(
+    private static generateCredentialIdForCacheKey(
         credentialType: CredentialType,
         clientId: string,
         realm?: string,
@@ -227,7 +227,7 @@ export class CacheHelper {
     /**
      * Generate target key component as per schema: <target>
      */
-    static generateTargetForCacheKey(scopes: string): string {
+    private static generateTargetForCacheKey(scopes: string): string {
         return (scopes || "").toLowerCase();
     }
 
@@ -255,32 +255,5 @@ export class CacheHelper {
         ];
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-    }
-
-    /**
-     * helper function to return `CacheSchemaType`
-     * @param key
-     */
-    static getCacheType(type: number): string {
-        switch (type) {
-            case CacheType.ADFS:
-            case CacheType.MSA:
-            case CacheType.MSSTS:
-            case CacheType.GENERIC:
-                return CacheSchemaType.ACCOUNT;
-
-            case CacheType.ACCESS_TOKEN:
-            case CacheType.REFRESH_TOKEN:
-            case CacheType.ID_TOKEN:
-                return CacheSchemaType.CREDENTIAL;
-
-            case CacheType.APP_META_DATA:
-                return CacheSchemaType.APP_META_DATA;
-
-            default: {
-                console.log("Invalid cache type");
-                return null;
-            }
-        }
     }
 }
