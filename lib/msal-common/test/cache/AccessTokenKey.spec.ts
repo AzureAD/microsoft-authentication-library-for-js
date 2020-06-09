@@ -9,7 +9,6 @@ describe("AccessTokenKey.ts tests", () => {
 
         let cryptoInterface: ICrypto;
         let scopeString: string;
-        let testResource: string;
         beforeEach(() => {
             cryptoInterface = {
                 createNewGuid(): string {
@@ -36,23 +35,21 @@ describe("AccessTokenKey.ts tests", () => {
                 }
             };
             scopeString = TEST_CONFIG.DEFAULT_SCOPES.join(" ");
-            testResource = "https://login.contoso.com/endpt";
         });
 
         it("Correctly assign values for key", () => {
-            const atKey = new AccessTokenKey(Constants.DEFAULT_AUTHORITY, TEST_CONFIG.MSAL_CLIENT_ID, scopeString, testResource, TEST_DATA_CLIENT_INFO.TEST_UID, TEST_DATA_CLIENT_INFO.TEST_UTID, cryptoInterface);
+            const atKey = new AccessTokenKey(Constants.DEFAULT_AUTHORITY, TEST_CONFIG.MSAL_CLIENT_ID, scopeString, TEST_DATA_CLIENT_INFO.TEST_UID, TEST_DATA_CLIENT_INFO.TEST_UTID, cryptoInterface);
             expect(atKey.authority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
             expect(atKey.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
             expect(atKey.scopes).to.be.eq(scopeString);
-            expect(atKey.resource).to.be.eq(testResource);
             expect(atKey.homeAccountIdentifier).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
         });
 
         it("Does not assign value for homeAccountId if uid or utid are empty", () => {
-            const atKey = new AccessTokenKey(Constants.DEFAULT_AUTHORITY, TEST_CONFIG.MSAL_CLIENT_ID, scopeString, testResource, "", TEST_DATA_CLIENT_INFO.TEST_UTID, cryptoInterface);
+            const atKey = new AccessTokenKey(Constants.DEFAULT_AUTHORITY, TEST_CONFIG.MSAL_CLIENT_ID, scopeString, "", TEST_DATA_CLIENT_INFO.TEST_UTID, cryptoInterface);
             expect(atKey.homeAccountIdentifier).to.be.undefined;
 
-            const atKey2 = new AccessTokenKey(Constants.DEFAULT_AUTHORITY, TEST_CONFIG.MSAL_CLIENT_ID, scopeString, testResource, TEST_DATA_CLIENT_INFO.TEST_UID, "", cryptoInterface);
+            const atKey2 = new AccessTokenKey(Constants.DEFAULT_AUTHORITY, TEST_CONFIG.MSAL_CLIENT_ID, scopeString, TEST_DATA_CLIENT_INFO.TEST_UID, "", cryptoInterface);
             expect(atKey2.homeAccountIdentifier).to.be.undefined;
         });
     });
