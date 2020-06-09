@@ -19,6 +19,22 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
     console.error(err);
 });
 
+function handleResponse(resp) {
+    if (resp !== null) {
+        showWelcomeMessage(resp.account);
+    } else {
+        // need to call getAccount here?
+        const currentAccounts = myMSALObj.getAllAccounts();
+        if (currentAccounts === null) {
+            return;
+        } else if (currentAccounts.length > 1) {
+            // Add choose account code here
+        } else if (currentAccounts.length === 1) {
+            showWelcomeMessage(currentAccounts[0]);
+        }
+    }
+}
+
 async function signIn(method) {
     signInType = isIE ? "loginRedirect" : method;
     if (signInType === "loginPopup") {
@@ -62,20 +78,3 @@ async function getTokenRedirect(request) {
     });
 }
 
-function handleResponse(resp) {
-    if (resp !== null) {
-        showWelcomeMessage(resp.account);
-    } else {
-        // need to call getAccount here?
-        const currentAccounts = myMSALObj.getAllAccounts();
-        // console.log("Current accounts: ", currentAccounts);
-        if (currentAccounts === null) {
-            return;
-        } else if (currentAccounts.length > 1) {
-            // Add choose account code here
-        } else if (currentAccounts.length === 1) {
-            // console.log(currentAccounts[0]);
-            showWelcomeMessage(currentAccounts[0]);
-        }
-    }
-}
