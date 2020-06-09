@@ -19,7 +19,7 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { CredentialFilter, CredentialCache } from "../unifiedCache/utils/CacheTypes";
+import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -88,7 +88,6 @@ export class SilentFlowClient extends BaseClient {
             idToken: cacheRecord.idToken.secret,
             idTokenClaims: idTokenObj.claims,
             accessToken: cacheRecord.accessToken.secret,
-            account: CacheHelper.toIAccount(cacheRecord.account),
             expiresOn: new Date(cacheRecord.accessToken.expiresOn),
             extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
             familyId: null,

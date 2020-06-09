@@ -124,7 +124,7 @@ export abstract class BaseClient {
         headers: Map<string, string>
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         return this.networkClient.sendPostRequestAsync<
-            ServerAuthorizationTokenResponse
+        ServerAuthorizationTokenResponse
         >(tokenEndpoint, {
             body: queryString,
             headers: headers,
