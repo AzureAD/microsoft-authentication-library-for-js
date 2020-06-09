@@ -338,6 +338,8 @@ export class UserAgentApplication {
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     acquireTokenRedirect(userRequest: AuthenticationParameters): void {
+        this.logger.verbose("AcquireTokenRedirect has been called");
+        
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
