@@ -3,12 +3,19 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheAccountType, EnvironmentAliases, PreferredCacheEnvironment, CacheType } from "../../utils/Constants";
+import {
+    Separators,
+    CacheAccountType,
+    EnvironmentAliases,
+    PreferredCacheEnvironment,
+    CacheType,
+} from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
+import { CacheHelper } from "../utils/CacheHelper";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs)
@@ -34,22 +41,15 @@ export class AccountEntity {
     }
 
     /**
-     * Generate Account Id key component as per the schema: <home_account_id>-<environment>
-     */
-    generateRealm(): string {
-        return (this.realm || "").toLowerCase();
-    }
-
-    /**
      * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
      */
-    public generateAccountKey(): string {
-        const accountKey = [
-            this.generateAccountId(),
-            this.generateRealm()
-        ];
-
-        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    generateAccountKey(): string {
+        return CacheHelper.generateAccountCacheKey({
+            homeAccountId: this.homeAccountId,
+            environment: this.environment,
+            tenantId: this.realm,
+            username: this.username,
+        });
     }
 
     /**
@@ -79,7 +79,13 @@ export class AccountEntity {
      * @param idToken
      * @param policy
      */
-    static createAccount(clientInfo: string, authority: Authority, idToken: IdToken, policy: string, crypto: ICrypto): AccountEntity {
+    static createAccount(
+        clientInfo: string,
+        authority: Authority,
+        idToken: IdToken,
+        policy: string,
+        crypto: ICrypto
+    ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
@@ -92,10 +98,13 @@ export class AccountEntity {
                 ? homeAccountId + Separators.CACHE_KEY_SEPARATOR + policy
                 : homeAccountId;
 
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        account.environment = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
+        const reqEnvironment =
+            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        account.environment = EnvironmentAliases.includes(reqEnvironment)
+            ? PreferredCacheEnvironment
+            : reqEnvironment;
 
-        account.realm = authority.tenant;
+        account.realm = idToken.claims.tid;
 
         if (idToken) {
             // How do you account for MSA CID here?
@@ -115,7 +124,10 @@ export class AccountEntity {
      * @param authority
      * @param idToken
      */
-    static createADFSAccount(authority: Authority, idToken: IdToken): AccountEntity {
+    static createADFSAccount(
+        authority: Authority,
+        idToken: IdToken
+    ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;

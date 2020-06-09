@@ -5,8 +5,6 @@
 
 import {
     Separators,
-    CacheType,
-    CacheSchemaType,
     CredentialType,
     EnvironmentAliases,
     Constants,
@@ -62,7 +60,10 @@ export class CacheHelper {
      * @param value
      * @param homeAccountId
      */
-    static matchHomeAccountId(entity: AccountEntity | Credential, homeAccountId: string): boolean {
+    static matchHomeAccountId(
+        entity: AccountEntity | Credential,
+        homeAccountId: string
+    ): boolean {
         return homeAccountId === entity.homeAccountId;
     }
 
@@ -72,7 +73,10 @@ export class CacheHelper {
      * @param environment
      * // TODO: Add Cloud specific aliases based on current cloud
      */
-    static matchEnvironment(entity: AccountEntity | Credential, environment: string): boolean {
+    static matchEnvironment(
+        entity: AccountEntity | Credential,
+        environment: string
+    ): boolean {
         if (
             EnvironmentAliases.includes(environment) &&
             EnvironmentAliases.includes(entity.environment)
@@ -88,9 +92,12 @@ export class CacheHelper {
      * @param key
      * @param credentialType
      */
-    static matchCredentialType(entity: Credential, credentialType: string): boolean {
+    static matchCredentialType(
+        entity: Credential,
+        credentialType: string
+    ): boolean {
         return (
-            credentialType.toLowerCase() === entity.credentialType
+            credentialType.toLowerCase() === entity.credentialType.toLowerCase()
         );
     }
 
@@ -100,9 +107,7 @@ export class CacheHelper {
      * @param clientId
      */
     static matchClientId(entity: Credential, clientId: string): boolean {
-        return (
-            clientId === entity.clientId
-        );
+        return clientId === entity.clientId;
     }
 
     /**
@@ -110,10 +115,11 @@ export class CacheHelper {
      * @param key
      * @param realm
      */
-    static matchRealm(entity: AccountEntity | Credential, realm: string): boolean {
-        return (
-            realm === entity.realm
-        );
+    static matchRealm(
+        entity: AccountEntity | Credential,
+        realm: string
+    ): boolean {
+        return realm === entity.realm;
     }
 
     /**
@@ -122,10 +128,7 @@ export class CacheHelper {
      * @param target
      */
     static matchTarget(entity: Credential, target: string): boolean {
-        return CacheHelper.targetsSubset(
-            entity.target,
-            target
-        );
+        return CacheHelper.targetsSubset(entity.target, target);
     }
 
     /**
@@ -150,7 +153,6 @@ export class CacheHelper {
      * @param key
      */
     static getCredentialType(key: string): string {
-
         if (key.indexOf(CredentialType.ACCESS_TOKEN) !== -1) {
             return CredentialType.ACCESS_TOKEN;
         } else if (key.indexOf(CredentialType.ID_TOKEN) !== -1) {
@@ -160,7 +162,6 @@ export class CacheHelper {
         }
 
         return Constants.NOT_DEFINED;
-
     }
 
     /**
@@ -199,6 +200,32 @@ export class CacheHelper {
     }
 
     /**
+     * generates credential key
+     */
+    static generateCredentialCacheKey(
+        homeAccountId: string,
+        environment: string,
+        credentialType: CredentialType,
+        clientId: string,
+        realm?: string,
+        target?: string,
+        familyId?: string
+    ): string {
+        const credentialKey = [
+            this.generateAccountIdForCacheKey(homeAccountId, environment),
+            this.generateCredentialIdForCacheKey(
+                credentialType,
+                clientId,
+                realm,
+                familyId
+            ),
+            this.generateTargetForCacheKey(target),
+        ];
+
+        return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
      * Generates Credential Id for keys
      * @param credentialType
      * @param realm
@@ -231,29 +258,12 @@ export class CacheHelper {
         return (scopes || "").toLowerCase();
     }
 
-    /**
-     * generates credential key
-     */
-    static generateCredentialCacheKey(
-        homeAccountId: string,
-        environment: string,
-        credentialType: CredentialType,
-        clientId: string,
-        realm?: string,
-        target?: string,
-        familyId?: string
-    ): string {
-        const credentialKey = [
-            this.generateAccountIdForCacheKey(homeAccountId, environment),
-            this.generateCredentialIdForCacheKey(
-                credentialType,
-                clientId,
-                realm,
-                familyId
-            ),
-            this.generateTargetForCacheKey(target),
-        ];
-
-        return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    static toIAccount(accountObj: AccountEntity): IAccount {
+        return {
+            homeAccountId: accountObj.homeAccountId,
+            environment: accountObj.environment,
+            tenantId: accountObj.realm,
+            username: accountObj.username,
+        };
     }
 }

@@ -13,7 +13,7 @@ import { AppMetadataEntity } from "../../src/unifiedCache/entities/AppMetadataEn
 
 const cacheJson = require("./serialize/cache.json");
 
-describe("UnifiedCacheManager test cases", () => {
+describe.only("UnifiedCacheManager test cases", () => {
     let store = {};
     let storageInterface: ICacheStorage;
     const cache = JSON.stringify(cacheJson);
@@ -29,12 +29,22 @@ describe("UnifiedCacheManager test cases", () => {
             setCache(inMemCache): void {
                 this.inMemCache = inMemCache;
             },
-            setItem(key: string, value: string): void {
-                store[key] = value;
-            },
-            setItemInMemory(key: string, value: object, type?: string): void {
+            setItem(
+                key: string,
+                value: string | object,
+                type?: string,
+                inMemory?: boolean
+            ): void {
+                // check memory type
+                if (!inMemory) {
+                    console.log(
+                        "Node doesn't support granular cache persistence yet"
+                    );
+                    return;
+                }
+
                 // read inMemoryCache
-                const cache = this.getCache();
+                const cache = this.getCache() as InMemoryCache;
 
                 // save the cacheItem
                 switch (type) {
@@ -43,20 +53,24 @@ describe("UnifiedCacheManager test cases", () => {
                         break;
                     }
                     case CacheSchemaType.CREDENTIAL: {
-                        const credentialType = CacheHelper.getCredentialType(key);
-                        console.log(credentialType);
+                        const credentialType = CacheHelper.getCredentialType(
+                            key
+                        );
                         switch (credentialType) {
                             case CredentialType.ID_TOKEN: {
                                 cache.idTokens[key] = value as IdTokenEntity;
                                 break;
                             }
                             case CredentialType.ACCESS_TOKEN: {
-                                cache.accessTokens[key] = value as AccessTokenEntity;
-                                console.log(value);
+                                cache.accessTokens[
+                                    key
+                                ] = value as AccessTokenEntity;
                                 break;
                             }
                             case CredentialType.REFRESH_TOKEN: {
-                                cache.refreshTokens[key] = value as RefreshTokenEntity;
+                                cache.refreshTokens[
+                                    key
+                                ] = value as RefreshTokenEntity;
                                 break;
                             }
                         }
@@ -75,39 +89,61 @@ describe("UnifiedCacheManager test cases", () => {
                 // update inMemoryCache
                 this.setCache(cache);
             },
-            getItem(key: string): string {
-                return store[key];
-            },
-            getItemFromMemory(key: string, type?: string): object {
+            getItem(
+                key: string,
+                type?: string,
+                inMemory?: boolean
+            ): string | object {
+                // check memory type
+                if (!inMemory) {
+                    console.log(
+                        "Node doesn't support granular cache persistence yet"
+                    );
+                    return {};
+                }
+
                 // read inMemoryCache
-                const cache = this.getCache();
+                const cache = this.getCache() as InMemoryCache;
 
                 // save the cacheItem
-                switch (type) {
+                switch (type!) {
                     case CacheSchemaType.ACCOUNT: {
-                        return cache.accounts[key] as AccountEntity || null;
+                        return (cache.accounts[key] as AccountEntity) || null;
                     }
                     case CacheSchemaType.CREDENTIAL: {
-                        const credentialType = CacheHelper.getCredentialType(key);
+                        const credentialType = CacheHelper.getCredentialType(
+                            key
+                        );
                         let credential = null;
                         switch (credentialType) {
                             case CredentialType.ID_TOKEN: {
-                                credential = cache.idTokens[key] as IdTokenEntity || null;
+                                credential =
+                                    (cache.idTokens[key] as IdTokenEntity) ||
+                                    null;
                                 break;
                             }
                             case CredentialType.ACCESS_TOKEN: {
-                                credential = cache.accessTokens[key] as AccessTokenEntity || null;
+                                credential =
+                                    (cache.accessTokens[
+                                        key
+                                    ] as AccessTokenEntity) || null;
                                 break;
                             }
                             case CredentialType.REFRESH_TOKEN: {
-                                credential = cache.refreshTokens[key] as RefreshTokenEntity || null;
+                                credential =
+                                    (cache.refreshTokens[
+                                        key
+                                    ] as RefreshTokenEntity) || null;
                                 break;
                             }
                         }
                         return credential!;
                     }
                     case CacheSchemaType.APP_META_DATA: {
-                        return cache.appMetadata[key] as AppMetadataEntity || null;
+                        return (
+                            (cache.appMetadata[key] as AppMetadataEntity) ||
+                            null
+                        );
                     }
                     default: {
                         console.log("Invalid Cache Type");
@@ -115,13 +151,21 @@ describe("UnifiedCacheManager test cases", () => {
                     }
                 }
             },
-            removeItem(key: string): boolean {
-                delete store[key];
-                return true;
-            },
-            removeItemFromMemory(key: string, type?: string): boolean {
+            removeItem(
+                key: string,
+                type?: string,
+                inMemory?: boolean
+            ): boolean {
+                // check memory type
+                if (!inMemory) {
+                    console.log(
+                        "Node doesn't support granular cache persistence yet"
+                    );
+                    return false;
+                }
+
                 // read inMemoryCache
-                const cache = this.getCache();
+                const cache = this.getCache() as InMemoryCache;
                 let result: boolean = false;
 
                 // save the cacheItem
@@ -134,7 +178,9 @@ describe("UnifiedCacheManager test cases", () => {
                         break;
                     }
                     case CacheSchemaType.CREDENTIAL: {
-                        const credentialType = CacheHelper.getCredentialType(key);
+                        const credentialType = CacheHelper.getCredentialType(
+                            key
+                        );
                         switch (credentialType) {
                             case CredentialType.ID_TOKEN: {
                                 if (!!cache.idTokens[key]) {
@@ -192,7 +238,7 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("initCache", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         // create mock AccessToken
         const atOne = mockCache.createMockATOne();
@@ -200,15 +246,16 @@ describe("UnifiedCacheManager test cases", () => {
         const atTwo = mockCache.createMockATTwo();
         const atTwoKey = atTwo.generateCredentialKey();
 
+        const cache = unifiedCacheManager.getCache() as InMemoryCache;
         expect(
-            Object.keys(unifiedCacheManager.getCacheInMemory().accessTokens)
+            Object.keys(cache.accessTokens)
                 .length
         ).to.equal(2);
         expect(
-            unifiedCacheManager.getCacheInMemory().accessTokens[atOneKey]
+            cache.accessTokens[atOneKey]
         ).to.eql(atOne);
         expect(
-            unifiedCacheManager.getCacheInMemory().accessTokens[atTwoKey]
+            cache.accessTokens[atTwoKey]
         ).to.eql(atTwo);
     });
 
@@ -224,12 +271,13 @@ describe("UnifiedCacheManager test cases", () => {
             clientInfo: "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9",
         });
 
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         const accountKey = ac.generateAccountKey();
+        const cache = unifiedCacheManager.getCache() as InMemoryCache;
         unifiedCacheManager.saveAccount(ac);
         expect(
-            unifiedCacheManager.getCacheInMemory().accounts[accountKey]
+            cache.accounts[accountKey]
                 .homeAccountId
         ).to.eql("someUid.someUtid");
     });
@@ -249,17 +297,18 @@ describe("UnifiedCacheManager test cases", () => {
             extendedExpiresOn: "4600",
         });
 
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
         const atKey = at.generateCredentialKey();
         unifiedCacheManager.saveCredential(at);
+        const cache = unifiedCacheManager.getCache() as InMemoryCache;
         expect(
-            unifiedCacheManager.getCacheInMemory().accessTokens[atKey]
+            cache.accessTokens[atKey]
                 .homeAccountId
         ).to.eql("someUid.someUtid");
     });
 
     it("getAccount", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         expect(
             unifiedCacheManager.getAccount(
@@ -269,7 +318,7 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("getCredential", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         expect(
             unifiedCacheManager.getCredential(
@@ -279,7 +328,7 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("getAccounts", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         const filterOne: AccountFilter = { homeAccountId: "uid.utid" };
         let accounts = unifiedCacheManager.getAccountsFilteredBy(filterOne);
@@ -291,7 +340,7 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("getCredentials", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         // filter by homeAccountId
         const filterOne: CredentialFilter = { homeAccountId: "uid.utid" };
@@ -314,7 +363,7 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("removeAccount", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         let ac = new AccountEntity();
         Object.assign(ac, {
@@ -327,15 +376,16 @@ describe("UnifiedCacheManager test cases", () => {
             clientInfo: "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9",
         });
 
-        unifiedCacheManager.removeAccount(ac);
+        unifiedCacheManager.removeAccount(ac.generateAccountKey());
         const accountKey = ac.generateAccountKey();
+        const cache = unifiedCacheManager.getCache() as InMemoryCache;
         expect(
-            unifiedCacheManager.getCacheInMemory().accounts[accountKey]
+            cache.accounts[accountKey]
         ).to.eql(undefined);
     });
 
     it("removeCredential", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         let at = new AccessTokenEntity();
         Object.assign(at, {
@@ -353,8 +403,9 @@ describe("UnifiedCacheManager test cases", () => {
 
         unifiedCacheManager.removeCredential(at);
         const atKey = at.generateCredentialKey();
+        const cache = unifiedCacheManager.getCache() as InMemoryCache;
         expect(
-            unifiedCacheManager.getCacheInMemory().accessTokens[atKey]
+            cache.accessTokens[atKey]
         ).to.eql(undefined);
     });
 });
