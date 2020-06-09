@@ -66,6 +66,9 @@ export const AADTrustedHostList: string[] = [
     "login.microsoftonline.us"
 ];
 
+/**
+ * TODO: placeholder for discovery endpoint call. dynamically generate preferredCache and cacheAliases per cloud
+ */
 export const EnvironmentAliases: string[] = [
     "login.microsoftonline.com",
     "login.windows.net",
@@ -73,7 +76,6 @@ export const EnvironmentAliases: string[] = [
     "login.microsoft.com",
     "sts.windows.net"
 ];
-
 export const PreferredCacheEnvironment: string = "login.windows.net";
 
 /**
