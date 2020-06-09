@@ -149,9 +149,8 @@ export class UnifiedCacheManager implements ICacheManager {
         const allCacheKeys = this.cacheStorage.getKeys();
         const matchingAccounts: AccountCache = {};
 
-        let matches: boolean = true;
-
         allCacheKeys.forEach((cacheKey) => {
+            let matches: boolean = true;
             // don't parse any non-credential type cache entities
             if (CacheHelper.getCredentialType(cacheKey) !== Constants.NOT_DEFINED || CacheHelper.isAppMetadata(cacheKey)) {
                 return;
@@ -218,16 +217,18 @@ export class UnifiedCacheManager implements ICacheManager {
     ): CredentialCache {
         const allCacheKeys = this.cacheStorage.getKeys();
         let matchingCredentials: CredentialCache;
-        let matches: boolean = true;
 
         allCacheKeys.forEach((cacheKey) => {
+            let matches: boolean = true;
             // don't parse any non-credential type cache entities
             if (CacheHelper.getCredentialType(cacheKey) === Constants.NOT_DEFINED) {
                 return;
             }
 
             const entity: Credential = this.cacheStorage.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as Credential;
+            console.log("entity: ", entity);
 
+            console.log("Before haid: ", matches);
             if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(
                     entity,
@@ -235,28 +236,33 @@ export class UnifiedCacheManager implements ICacheManager {
                 );
             }
 
+            console.log("Before env: ", matches);
             if (!StringUtils.isEmpty(environment)) {
                 matches =
                     matches &&
                     CacheHelper.matchEnvironment(entity, environment);
             }
 
+            console.log("Before realm: ", matches);
             if (!StringUtils.isEmpty(realm)) {
                 matches = matches && CacheHelper.matchRealm(entity, realm);
             }
 
+            console.log("Before credentialType: ", matches);
             if (!StringUtils.isEmpty(credentialType)) {
                 matches =
                     matches &&
                     CacheHelper.matchCredentialType(entity, credentialType);
             }
 
+            console.log("Before clientid: ", matches);
             if (!StringUtils.isEmpty(clientId)) {
                 matches =
                     matches && CacheHelper.matchClientId(entity, clientId);
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
+            console.log("Before target: ", matches);
             if (!StringUtils.isEmpty(target)
                 && CacheHelper.getCredentialType(cacheKey) != CredentialType.ID_TOKEN
             ) {
@@ -267,6 +273,8 @@ export class UnifiedCacheManager implements ICacheManager {
                 matchingCredentials[cacheKey] = entity;
             }
         });
+
+        console.log("Matching Creds: ", matchingCredentials);
 
         return matchingCredentials;
     }

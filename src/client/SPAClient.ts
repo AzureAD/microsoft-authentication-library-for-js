@@ -32,6 +32,7 @@ import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { IAccount } from "../account/IAccount";
+import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 
 /**
  * SPAClient class
@@ -371,16 +372,23 @@ export class SPAClient extends BaseClient {
      * @param scopes
      */
     private fetchAccessToken(homeAccountId: string, environment: string, scopes: ScopeSet): AccessTokenEntity {
-        const accessTokenKey: string = CacheHelper.generateCredentialCacheKey(
+        const accessTokenFilter: CredentialFilter = {
             homeAccountId,
             environment,
-            CredentialType.ACCESS_TOKEN,
-            this.config.authOptions.clientId,
-            this.defaultAuthority.tenant,
-            scopes.printScopes()
-        );
-
-        return this.unifiedCacheManager.getCredential(accessTokenKey) as AccessTokenEntity;
+            credentialType: CredentialType.ACCESS_TOKEN,
+            clientId: this.config.authOptions.clientId,
+            realm: this.defaultAuthority.tenant,
+            target: scopes.printScopes()
+        };
+        const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(accessTokenFilter);
+        console.log("Credential Cache: " , credentialCache);
+        const accessTokens = Object.values(credentialCache);
+        if (accessTokens.length > 1) {
+            // TODO: Figure out what to throw or return here.
+        } else if (accessTokens.length < 1) {
+            return null;
+        }
+        return accessTokens[0] as AccessTokenEntity;
     }
 
     /**
