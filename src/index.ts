@@ -24,6 +24,7 @@ export { JsonCache, InMemoryCache } from "./cache/utils/CacheTypes";
 export { Serializer } from "./cache/serialize/Serializer";
 export { Deserializer } from "./cache/serialize/Deserializer";
 export { CacheHelper } from "./cache/utils/CacheHelper";
+export { Credential } from "./cache/entities/Credential";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
 export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
