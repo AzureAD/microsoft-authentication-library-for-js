@@ -568,14 +568,16 @@ export class PublicClientApplication {
     }
 
     /**
-     * Returns the signed in account
+     * Returns the signed in account matching username.
      * (the account object is created at the time of successful login)
      * or null when no state is found
      * @returns {@link IAccount} - the account object stored in MSAL
      */
-    public getAccount(homeAccountId: string, env: string, realm: string): IAccount {
-        // return this.authModule.getAccount(homeAccountId, env, realm);
-        return null;
+    public getAccountByUsername(username: string): IAccount {
+        const allAccounts = this.getAllAccounts();
+        return allAccounts.filter((accountObj) => {
+            return accountObj.userName === username;
+        })[0];
     }
 
     // #endregion
