@@ -9,6 +9,7 @@ const isIE = msie > 0 || msie11 > 0;
 const isEdge = msedge > 0;
 
 let signInType;
+let username = "";
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
@@ -50,7 +51,8 @@ function signOut() {
     myMSALObj.logout();
 }
 
-async function getTokenPopup(request) {
+async function getTokenPopup(request, account) {
+    request.account = account;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
         if (error instanceof msal.InteractionRequiredAuthError) {
@@ -65,7 +67,8 @@ async function getTokenPopup(request) {
 }
 
 // This function can be removed if you do not need to support IE
-async function getTokenRedirect(request) {
+async function getTokenRedirect(request, account) {
+    request.account = account;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
         if (error instanceof msal.InteractionRequiredAuthError) {

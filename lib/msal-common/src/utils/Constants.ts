@@ -69,6 +69,7 @@ export const AADTrustedHostList: string[] = [
 export const EnvironmentAliases: string[] = [
     "login.microsoftonline.com",
     "login.windows.net",
+    "login.windows-ppe.net",
     "login.microsoft.com",
     "sts.windows.net"
 ];
