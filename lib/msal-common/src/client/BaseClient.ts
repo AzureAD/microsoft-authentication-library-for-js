@@ -138,7 +138,6 @@ export abstract class BaseClient {
             return accountValues.map<IAccount>((value) => {
                 return {
                     homeAccountId: value.homeAccountId,
-                    localAccountId: value.localAccountId,
                     environment: value.environment,
                     tenantId: value.realm,
                     userName: value.username

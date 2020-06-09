@@ -4,11 +4,9 @@ import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
-import { Constants } from "../../src";
+import { Constants, ICacheStorage } from "../../src";
 import { version } from "../../package.json";
 import {TEST_CONFIG} from "../utils/StringConstants";
-import { InMemoryCache } from "../../dist/src/unifiedCache/utils/CacheTypes";
-
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
 
@@ -67,16 +65,33 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.libraryInfo.cpu).to.be.empty;
     });
 
-    const clearFunc = (): void => {
-        return;
-    };
-
-    const removeFunc = (key: string): void => {
-        return;
-    };
-
-    const setFunc = (key: string, value: string): void => {
-        return;
+    let store = {};
+    const cacheStorageMock: ICacheStorage = {
+        setItem(key: string, value: string): void {
+            store[key] = value;
+        },
+        getItem(key: string): string {
+            return store[key];
+        },
+        removeItem(key: string): boolean {
+            delete store[key];
+            return true;
+        },
+        containsKey(key: string): boolean {
+            return !!store[key];
+        },
+        getKeys(): string[] {
+            return Object.keys(store);
+        },
+        clear(): void {
+            store = {};
+        },
+        getCache(): object {
+            return null;
+        },
+        setCache(): void {
+            return null;
+        }
     };
 
     const testPkceCodes = {
@@ -109,26 +124,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                     return testPkceCodes;
                 }
             },
-            storageInterface: {
-                clear: clearFunc,
-                containsKey: (key: string): boolean => {
-                    return true;
-                },
-                getItem: (key: string): string => {
-                    return "cacheItem";
-                },
-                getKeys: (): string[] => {
-                    return testKeySet;
-                },
-                removeItem: removeFunc,
-				setItem: setFunc,
-				getCache(): InMemoryCache {
-					return null;
-				},
-				setCache(): InMemoryCache {
-					return null;
-				}
-            },
+            storageInterface: cacheStorageMock,
             networkInterface: {
                 sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
                     return testNetworkResult;

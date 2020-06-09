@@ -4,22 +4,46 @@ import { TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_CONFIG, TEST
 import sinon from "sinon";
 import { ICacheStorage } from "../../src/cache/ICacheStorage";
 import { Constants } from "../../src/utils/Constants";
-import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { AadAuthority } from "../../src/authority/AadAuthority";
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { IdToken } from "../../src/account/IdToken";
 import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
-import { Account } from "../../src/account/Account";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
 import { AccessTokenCacheItem } from "../../src/cache/AccessTokenCacheItem";
-import { InMemoryCache } from "../../src/unifiedCache/utils/CacheTypes";
-import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
+
 
 describe("CacheHelpers.ts Tests", () => {
 
     let store = {};
+    let cacheStorageMock: ICacheStorage = {
+        setItem(key: string, value: string): void {
+            store[key] = value;
+        },
+        getItem(key: string): string {
+            return store[key];
+        },
+        removeItem(key: string): boolean {
+            delete store[key];
+            return true;
+        },
+        containsKey(key: string): boolean {
+            return !!store[key];
+        },
+        getKeys(): string[] {
+            return Object.keys(store);
+        },
+        clear(): void {
+            store = {};
+        },
+        getCache(): object {
+            return null;
+        },
+        setCache(): void {
+            return null;
+        },
+    };
+
     describe("Constructors", () => {
 
         beforeEach(() => {
@@ -27,33 +51,7 @@ describe("CacheHelpers.ts Tests", () => {
         });
 
         it("Creates a CacheHelpers class instance", () => {
-            const cacheStorage: ICacheStorage = {
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-				},
-				getCache(): InMemoryCache {
-					return null;
-				},
-				setCache(): InMemoryCache {
-					return null;
-				}
-            };
-
+            const cacheStorage: ICacheStorage = cacheStorageMock;
             const cacheHelpers = new CacheHelpers(cacheStorage);
             expect(cacheHelpers instanceof CacheHelpers).to.be.true;
         });
@@ -63,33 +61,7 @@ describe("CacheHelpers.ts Tests", () => {
 
         let cacheHelpers: CacheHelpers;
         beforeEach(() => {
-            const cacheStorage: ICacheStorage = {
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-				},
-				getCache(): InMemoryCache {
-					return null;
-				},
-				setCache(): InMemoryCache {
-					return null;
-				}
-            };
-
+            const cacheStorage: ICacheStorage = cacheStorageMock;
             cacheHelpers = new CacheHelpers(cacheStorage);
         });
 
@@ -97,7 +69,7 @@ describe("CacheHelpers.ts Tests", () => {
             store = {};
         });
 
-        
+
     });
 
     describe("Cache Setters", () => {
@@ -107,33 +79,7 @@ describe("CacheHelpers.ts Tests", () => {
         let idToken: IdToken;
         let clientInfo: ClientInfo;
         beforeEach(() => {
-            const cacheStorage: ICacheStorage = {
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-				},
-				getCache(): InMemoryCache {
-					return null;
-				},
-				setCache(): InMemoryCache {
-					return null;
-				}
-            };
-
+            const cacheStorage: ICacheStorage = cacheStorageMock;
             cacheHelpers = new CacheHelpers(cacheStorage);
 
             const idTokenClaims: IdTokenClaims = {
@@ -225,40 +171,15 @@ describe("CacheHelpers.ts Tests", () => {
             scopeString = TEST_CONFIG.DEFAULT_SCOPES.join(" ");
             testResource = "https://login.contoso.com/endpt";
             testResource2 = "https://login.contoso.com/endpt2";
-            cacheStorage = {
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-				},
-				getCache(): InMemoryCache {
-					return null;
-				},
-				setCache(): InMemoryCache {
-					return null;
-				}
-            };
+            const cacheStorage: ICacheStorage = cacheStorageMock;
 
             cacheHelpers = new CacheHelpers(cacheStorage);
             const atKey1 = new AccessTokenKey(
-				Constants.DEFAULT_AUTHORITY, 
-				TEST_CONFIG.MSAL_CLIENT_ID, 
-				scopeString, 
-				TEST_DATA_CLIENT_INFO.TEST_UID, 
-				TEST_DATA_CLIENT_INFO.TEST_UTID, 
+				Constants.DEFAULT_AUTHORITY,
+				TEST_CONFIG.MSAL_CLIENT_ID,
+				scopeString,
+				TEST_DATA_CLIENT_INFO.TEST_UID,
+				TEST_DATA_CLIENT_INFO.TEST_UTID,
 				cryptoInterface
 			);
             const atValue1: AccessTokenValue = {
