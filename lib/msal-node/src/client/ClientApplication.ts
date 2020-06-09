@@ -18,6 +18,7 @@ import {
     B2cAuthority,
     JsonCache,
     Serializer,
+    InMemoryCache,
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -190,6 +191,6 @@ export abstract class ClientApplication {
      * read the cache as a Json convertible object from memory
      */
     readCache(): JsonCache {
-        return Serializer.serializeAllCache(this.storage.getCache());
+        return Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
     }
 }

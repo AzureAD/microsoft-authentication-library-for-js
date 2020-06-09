@@ -9,6 +9,8 @@ import {
     CacheSchemaType,
     CredentialType,
     EnvironmentAliases,
+    Constants,
+    APP_META_DATA,
 } from "../../utils/Constants";
 import { IAccount } from "../../account/IAccount";
 import { AccountEntity } from "../entities/AccountEntity";
@@ -147,8 +149,26 @@ export class CacheHelper {
      * helper function to return `CredentialType`
      * @param key
      */
-    static getCredentialType(entity: Credential): string {
-        return entity.credentialType;
+    static getCredentialType(key: string): string {
+
+        if (key.indexOf(CredentialType.ACCESS_TOKEN) !== -1) {
+            return CredentialType.ACCESS_TOKEN;
+        } else if (key.indexOf(CredentialType.ID_TOKEN) !== -1) {
+            return CredentialType.ID_TOKEN;
+        } else if (key.indexOf(CredentialType.REFRESH_TOKEN) !== -1) {
+            return CredentialType.REFRESH_TOKEN;
+        }
+
+        return Constants.NOT_DEFINED;
+
+    }
+
+    /**
+     * returns if a given cache entity is of the type appmetadata
+     * @param key
+     */
+    static isAppMetadata(key: string): boolean {
+        return key.indexOf(APP_META_DATA) !== -1;
     }
 
     /**
@@ -214,7 +234,7 @@ export class CacheHelper {
     /**
      * generates credential key
      */
-    static generateCacheKey(
+    static generateCredentialCacheKey(
         homeAccountId: string,
         environment: string,
         credentialType: CredentialType,

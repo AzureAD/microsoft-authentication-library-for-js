@@ -98,7 +98,7 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      */
     fetchIdToken(homeAccountId: string, environment: string): IdTokenEntity {
-        const idTokenKey: string = CacheHelper.generateCacheKey(
+        const idTokenKey: string = CacheHelper.generateCredentialCacheKey(
             homeAccountId,
             environment,
             CredentialType.ID_TOKEN,
@@ -114,7 +114,7 @@ export class SilentFlowClient extends BaseClient {
      * @param scopes
      */
     fetchAccessToken(homeAccountId: string, environment: string, scopes: ScopeSet): AccessTokenEntity {
-        const accessTokenKey: string = CacheHelper.generateCacheKey(
+        const accessTokenKey: string = CacheHelper.generateCredentialCacheKey(
             homeAccountId,
             environment,
             CredentialType.ACCESS_TOKEN,
@@ -131,7 +131,7 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      */
     fetchRefreshToken(homeAccountId: string, environment: string): RefreshTokenEntity {
-        const refreshTokenKey: string = CacheHelper.generateCacheKey(
+        const refreshTokenKey: string = CacheHelper.generateCredentialCacheKey(
             homeAccountId,
             environment,
             CredentialType.REFRESH_TOKEN,

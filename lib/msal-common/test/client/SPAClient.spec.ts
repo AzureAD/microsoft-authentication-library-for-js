@@ -14,23 +14,22 @@ import { LogLevel } from "../../src/logger/Logger";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Authority } from "../../src/authority/Authority";
 import { PkceCodes } from "../../src/crypto/ICrypto";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
 import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
-import { TokenRenewParameters } from "../../src/request/TokenRenewParameters";
 import { BaseClient } from "../../src/client/BaseClient";
 import { Account } from "../../src/account/Account";
 import { TokenResponse } from "../../src/response/TokenResponse";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerError } from "../../src/error/ServerError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { InMemoryCache } from "../../src/unifiedCache/utils/CacheTypes";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
 import { AadAuthority } from "../../src/authority/AadAuthority";
+import { ICacheStorage } from "../../src/cache/ICacheStorage";
 
 describe("SPAClient.ts Class Unit Tests", () => {
 
@@ -42,6 +41,33 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
     let store = {};
     let defaultAuthConfig: ClientConfiguration;
+    let cacheStorageMock: ICacheStorage = {
+        setItem(key: string, value: string): void {
+            store[key] = value;
+        },
+        getItem(key: string): string {
+            return store[key];
+        },
+        removeItem(key: string): boolean {
+            delete store[key];
+            return true;
+        },
+        containsKey(key: string): boolean {
+            return !!store[key];
+        },
+        getKeys(): string[] {
+            return Object.keys(store);
+        },
+        clear(): void {
+            store = {};
+        },
+        getCache(): object {
+            return null;
+        },
+        setCache(): void {
+            return null;
+        },
+    };
 
     beforeEach(() => {
 
@@ -57,42 +83,14 @@ describe("SPAClient.ts Class Unit Tests", () => {
         defaultAuthConfig = {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient),
+                authority: AuthorityFactory.createInstance(
+                    TEST_CONFIG.validAuthority,
+                    mockHttpClient
+                ),
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
             },
-            storageInterface: {
-                getCache(): InMemoryCache {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
-                },
-                setCache(): void {
-                    // do nothing
-                },
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-                },
-            },
+            storageInterface: cacheStorageMock,
             networkInterface: {
                 sendGetRequestAsync<T>(
                     url: string,
@@ -781,7 +779,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
         const postLogoutRedirectUriFunc = () => {
             return TEST_URIS.TEST_LOGOUT_URI;
 		};
-		
+
 		const testAuthority = new AadAuthority(TEST_CONFIG.validAuthority, null);
 
         const Client_functionRedirectUris = new SPAClient({
@@ -791,38 +789,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 redirectUri: redirectUriFunc,
                 postLogoutRedirectUri: postLogoutRedirectUriFunc,
             },
-            storageInterface: {
-                getCache(): InMemoryCache {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
-                },
-                setCache(): void {
-                    // do nothing
-                },
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-                },
-            },
+            storageInterface: cacheStorageMock,
             networkInterface: null,
             cryptoInterface: null,
             loggerOptions: {
@@ -835,38 +802,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: testAuthority,
             },
-            storageInterface: {
-                getCache(): InMemoryCache {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
-                },
-                setCache(): void {
-                    // do nothing
-                },
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-                },
-            },
+            storageInterface: cacheStorageMock,
             networkInterface: null,
             cryptoInterface: null,
             loggerOptions: {
@@ -912,7 +848,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
             store = {};
             config = {
                 authOptions: {
-                    clientId: RANDOM_TEST_GUID
+                    clientId: RANDOM_TEST_GUID,
                 },
                 systemOptions: null,
                 cryptoInterface: {
@@ -935,44 +871,13 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     async generatePkceCodes(): Promise<PkceCodes> {
                         return {
                             challenge: TEST_CONFIG.TEST_CHALLENGE,
-                            verifier: TEST_CONFIG.TEST_VERIFIER
+                            verifier: TEST_CONFIG.TEST_VERIFIER,
                         };
-                    }
+                    },
                 },
                 networkInterface: null,
-                storageInterface: {
-                    getCache(): InMemoryCache {
-                        return {
-                            accounts: {},
-                            idTokens: {},
-                            accessTokens: {},
-                            refreshTokens: {},
-                            appMetadata: {}
-                        }
-                    },
-                    setCache(): void {
-                        // do nothing
-                    },
-                    setItem(key: string, value: string): void {
-                        store[key] = value;
-                    },
-                    getItem(key: string): string {
-                        return store[key];
-                    },
-                    removeItem(key: string): void {
-                        delete store[key];
-                    },
-                    containsKey(key: string): boolean {
-                        return !!store[key];
-                    },
-                    getKeys(): string[] {
-                        return Object.keys(store);
-                    },
-                    clear(): void {
-                        store = {};
-                    }
-                },
-                loggerOptions: null
+                storageInterface: cacheStorageMock,
+                loggerOptions: null,
             };
 
             const idTokenClaims: IdTokenClaims = {

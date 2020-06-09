@@ -18,7 +18,7 @@ const clearFunc = (): void => {
     return;
 };
 
-const removeFunc = (key: string): void => {
+const removeFunc = (key: string): boolean => {
     return;
 };
 
@@ -89,14 +89,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 },
             },
             storageInterface: {
-                getCache: (): InMemoryCache => {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
+                getCache: (): object => {
+                    return {};
                 },
                 setCache: (): void => {
                     // dummy impl;
