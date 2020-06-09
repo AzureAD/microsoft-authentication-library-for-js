@@ -84,9 +84,9 @@ export class SPAClient extends BaseClient {
         const acquireTokenAuthority =
             request && request.authority
                 ? AuthorityFactory.createInstance(
-                      request.authority,
-                      this.networkClient
-                  )
+                    request.authority,
+                    this.networkClient
+                )
                 : this.defaultAuthority;
 
         // This is temporary. Remove when ADFS is supported for browser
@@ -197,9 +197,9 @@ export class SPAClient extends BaseClient {
         const acquireTokenAuthority =
             codeRequest && codeRequest.authority
                 ? AuthorityFactory.createInstance(
-                      codeRequest.authority,
-                      this.networkClient
-                  )
+                    codeRequest.authority,
+                    this.networkClient
+                )
                 : this.defaultAuthority;
         if (!acquireTokenAuthority.discoveryComplete()) {
             try {
@@ -387,7 +387,7 @@ export class SPAClient extends BaseClient {
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<
-            ServerAuthorizationCodeResponse
+        ServerAuthorizationCodeResponse
         >();
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);
@@ -474,7 +474,7 @@ export class SPAClient extends BaseClient {
     private async getTokenResponse(tokenEndpoint: string, parameterBuilder: RequestParameterBuilder, authority: Authority, userState: string, cachedNonce?: string): Promise<AuthenticationResult> {
         // Perform token request.
         const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<
-            ServerAuthorizationTokenResponse
+        ServerAuthorizationTokenResponse
         >(tokenEndpoint, {
             body: parameterBuilder.createQueryString(),
             headers: this.createDefaultTokenRequestHeaders(),
