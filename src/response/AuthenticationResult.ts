@@ -13,11 +13,11 @@ export class AuthenticationResult {
     uniqueId: string;
     tenantId: string;
     scopes: Array<string>;
+    account: IAccount;
     idToken: string;
     idTokenClaims: StringDict;
     accessToken: string;
     expiresOn: Date;
-    account: IAccount;
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;
