@@ -22,6 +22,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 
 function handleResponse(resp) {
     if (resp !== null) {
+        console.log(resp);
         showWelcomeMessage(resp.account);
     } else {
         // need to call getAccount here?

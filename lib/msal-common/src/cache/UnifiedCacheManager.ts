@@ -216,7 +216,7 @@ export class UnifiedCacheManager implements ICacheManager {
         target?: string
     ): CredentialCache {
         const allCacheKeys = this.cacheStorage.getKeys();
-        let matchingCredentials: CredentialCache;
+        const matchingCredentials: CredentialCache = {};
 
         allCacheKeys.forEach((cacheKey) => {
             let matches: boolean = true;
@@ -244,6 +244,7 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             console.log("Before realm: ", matches);
+            console.log("realm: ", realm);
             if (!StringUtils.isEmpty(realm)) {
                 matches = matches && CacheHelper.matchRealm(entity, realm);
             }

@@ -573,10 +573,10 @@ export class PublicClientApplication {
      * or null when no state is found
      * @returns {@link IAccount} - the account object stored in MSAL
      */
-    public getAccountByUsername(username: string): IAccount {
+    public getAccountByUsername(userName: string): IAccount {
         const allAccounts = this.getAllAccounts();
         return allAccounts.filter((accountObj) => {
-            return accountObj.userName === username;
+            return accountObj.username === userName;
         })[0];
     }
 

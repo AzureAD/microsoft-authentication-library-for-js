@@ -17,6 +17,7 @@ import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { IAccount } from "../account/IAccount";
 import { AccountCache } from "../cache/utils/CacheTypes";
+import { CacheHelper } from "../cache/utils/CacheHelper";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -127,12 +128,7 @@ export abstract class BaseClient {
         } else {
             const allAccounts = accountValues.map<IAccount>((value) => {
                 const accountObj: AccountEntity = JSON.parse(JSON.stringify(value));
-                return {
-                    homeAccountId: accountObj.homeAccountId,
-                    environment: accountObj.environment,
-                    tenantId: accountObj.realm,
-                    userName: accountObj.username
-                };
+                return CacheHelper.toIAccount(accountObj);
             });
             return allAccounts;
         }
