@@ -228,7 +228,7 @@ export class SPAClient extends BaseClient {
         const homeAccountId = cacheRecord.account.homeAccountId;
         const env = cacheRecord.account.environment;
 
-        cacheRecord.accessToken = this.fetchAccessToken(homeAccountId, env, requestScopes);
+        cacheRecord.accessToken = this.fetchAccessToken(homeAccountId, env, requestScopes, cacheRecord.account.realm);
         cacheRecord.refreshToken = this.fetchRefreshToken(homeAccountId, env);
         if (!cacheRecord.accessToken) {
             throw ClientAuthError.createNoTokenInCacheError();
@@ -239,7 +239,7 @@ export class SPAClient extends BaseClient {
         // const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
         // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
         if (!request.forceRefresh && this.isTokenExpired(cacheRecord.accessToken.expiresOn)) {
-            cacheRecord.idToken = this.fetchIdToken(homeAccountId, env);
+            cacheRecord.idToken = this.fetchIdToken(homeAccountId, env, cacheRecord.account.realm);
             const idTokenObj = new IdToken(cacheRecord.idToken.secret, this.cryptoUtils);
 
             const cachedScopes = ScopeSet.fromString(cacheRecord.accessToken.target, this.config.authOptions.clientId, true);
@@ -250,7 +250,7 @@ export class SPAClient extends BaseClient {
                 idToken: idTokenObj.rawIdToken,
                 idTokenClaims: idTokenObj.claims,
                 accessToken: cacheRecord.accessToken.secret,
-                account: cacheRecord.account,
+                account: CacheHelper.toIAccount(cacheRecord.account),
                 expiresOn: new Date(cacheRecord.accessToken.expiresOn),
                 extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
                 familyId: null,
@@ -355,13 +355,13 @@ export class SPAClient extends BaseClient {
      * fetches idToken from cache if present
      * @param request
      */
-    private fetchIdToken(homeAccountId: string, environment: string): IdTokenEntity {
+    private fetchIdToken(homeAccountId: string, environment: string, inputRealm: string): IdTokenEntity {
         const idTokenKey: string = CacheHelper.generateCredentialCacheKey(
             homeAccountId,
             environment,
             CredentialType.ID_TOKEN,
             this.config.authOptions.clientId,
-            this.defaultAuthority.tenant
+            inputRealm
         );
         return this.unifiedCacheManager.getCredential(idTokenKey) as IdTokenEntity;
     }
@@ -371,13 +371,13 @@ export class SPAClient extends BaseClient {
      * @param request
      * @param scopes
      */
-    private fetchAccessToken(homeAccountId: string, environment: string, scopes: ScopeSet): AccessTokenEntity {
+    private fetchAccessToken(homeAccountId: string, environment: string, scopes: ScopeSet, inputRealm: string): AccessTokenEntity {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId,
             environment,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
-            realm: this.defaultAuthority.tenant,
+            realm: inputRealm,
             target: scopes.printScopes()
         };
         const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(accessTokenFilter);
@@ -404,7 +404,7 @@ export class SPAClient extends BaseClient {
         );
         return this.unifiedCacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
     }
-	
+
     /**
      * check if an access token is expired
      * @param expiresOn

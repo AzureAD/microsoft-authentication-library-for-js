@@ -42,7 +42,7 @@ export class AccountEntity {
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
-            userName: this.username
+            username: this.username
         });
     }
 
@@ -89,7 +89,7 @@ export class AccountEntity {
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         account.environment = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
 
-        account.realm = authority.tenant;
+        account.realm = idToken.claims.tid;
 
         if (idToken) {
             // How do you account for MSA CID here?

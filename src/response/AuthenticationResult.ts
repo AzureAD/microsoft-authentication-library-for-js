@@ -4,7 +4,7 @@
  */
 
 import { StringDict } from "../utils/MsalTypes";
-import { AccountEntity } from "../cache/entities/AccountEntity";
+import { IAccount } from "../account/IAccount";
 
 /**
  * Result returned from the authority's token endpoint.
@@ -17,7 +17,7 @@ export class AuthenticationResult {
     idTokenClaims: StringDict;
     accessToken: string;
     expiresOn: Date;
-    account: AccountEntity;
+    account: IAccount;
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;

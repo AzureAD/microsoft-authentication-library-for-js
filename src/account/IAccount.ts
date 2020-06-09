@@ -7,5 +7,5 @@ export interface IAccount {
     homeAccountId: string;
     environment: string;
     tenantId: string;
-    userName: string;
+    username: string;
 }
