@@ -8,13 +8,13 @@ import {
     CredentialType,
     CacheSchemaType,
     CacheHelper,
+    AccountEntity,
+    AccessTokenEntity,
+    RefreshTokenEntity,
+    IdTokenEntity,
+    AppMetadataEntity
 } from '@azure/msal-common';
 import { CacheOptions } from '../config/Configuration';
-import { AccountEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/AccountEntity';
-import { AccessTokenEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/AccessTokenEntity';
-import { RefreshTokenEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/RefreshTokenEntity';
-import { IdTokenEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/IdTokenEntity';
-import { AppMetadataEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/AppMetadataEntity';
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -245,7 +245,6 @@ export class Storage implements ICacheStorage {
 
     /**
      * Gets all keys in window.
-     * TODO: implement after the lookup implementation
      */
     getKeys(inMemory?: boolean): string[] {
         // check memory type

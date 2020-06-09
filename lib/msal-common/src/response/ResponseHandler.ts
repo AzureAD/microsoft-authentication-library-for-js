@@ -23,6 +23,8 @@ import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../unifiedCache/entities/CacheRecord";
+import { PreferredCacheEnvironment, EnvironmentAliases } from "../utils/Constants";
+import { CacheHelper } from "../unifiedCache/utils/CacheHelper";
 
 /**
  * Class that handles response parsing.
@@ -117,6 +119,7 @@ export class ResponseHandler {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: responseScopes.asArray(),
+            account: CacheHelper.toIAccount(cacheRecord.account),
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
@@ -168,10 +171,13 @@ export class ResponseHandler {
             authority
         );
 
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        const env = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
+
         // IdToken
         cacheRecord.idToken = IdTokenEntity.createIdTokenEntity(
             this.homeAccountIdentifier,
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            env,
             serverTokenResponse.id_token,
             this.clientId,
             idTokenObj.claims.tid
@@ -185,7 +191,7 @@ export class ResponseHandler {
 
         cacheRecord.accessToken = AccessTokenEntity.createAccessTokenEntity(
             this.homeAccountIdentifier,
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            env,
             serverTokenResponse.access_token,
             this.clientId,
             idTokenObj.claims.tid,
@@ -197,7 +203,7 @@ export class ResponseHandler {
         // refreshToken
         cacheRecord.refreshToken = RefreshTokenEntity.createRefreshTokenEntity(
             this.homeAccountIdentifier,
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            env,
             serverTokenResponse.refresh_token,
             this.clientId,
             serverTokenResponse.foci
