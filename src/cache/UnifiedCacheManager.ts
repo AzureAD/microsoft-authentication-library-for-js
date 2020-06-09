@@ -32,28 +32,6 @@ export class UnifiedCacheManager implements ICacheManager {
     }
 
     /**
-     * get the inMemory Cache
-     */
-    getCache(): object {
-        if (this.inMemory) {
-            return this.cacheStorage.getCache();
-        }
-        else {
-            const inMemoryCache = this.cacheStorage.getCache() as InMemoryCache;
-            const cacheMap: object = {};
-
-            // read all keys
-            Object.keys(inMemoryCache).forEach((key) => {
-                Object.keys(key).forEach((internalKey) => {
-                    cacheMap[internalKey] = key[internalKey];
-                });
-            });
-
-            return cacheMap;
-        }
-    }
-
-    /**
      * Initialize in memory cache from an exisiting cache vault
      * @param cache
      */
