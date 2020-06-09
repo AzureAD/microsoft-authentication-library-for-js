@@ -3,7 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CacheAccountType, EnvironmentAliases, PreferredCacheEnvironment, CacheType } from "../../utils/Constants";
+import {
+    Separators,
+    CacheAccountType,
+    EnvironmentAliases,
+    PreferredCacheEnvironment,
+    CacheType,
+} from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
@@ -73,7 +79,13 @@ export class AccountEntity {
      * @param idToken
      * @param policy
      */
-    static createAccount(clientInfo: string, authority: Authority, idToken: IdToken, policy: string, crypto: ICrypto): AccountEntity {
+    static createAccount(
+        clientInfo: string,
+        authority: Authority,
+        idToken: IdToken,
+        policy: string,
+        crypto: ICrypto
+    ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
@@ -86,8 +98,11 @@ export class AccountEntity {
                 ? homeAccountId + Separators.CACHE_KEY_SEPARATOR + policy
                 : homeAccountId;
 
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        account.environment = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
+        const reqEnvironment =
+            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        account.environment = EnvironmentAliases.includes(reqEnvironment)
+            ? PreferredCacheEnvironment
+            : reqEnvironment;
 
         account.realm = idToken.claims.tid;
 
@@ -109,7 +124,10 @@ export class AccountEntity {
      * @param authority
      * @param idToken
      */
-    static createADFSAccount(authority: Authority, idToken: IdToken): AccountEntity {
+    static createADFSAccount(
+        authority: Authority,
+        idToken: IdToken
+    ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;

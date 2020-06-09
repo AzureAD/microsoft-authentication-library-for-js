@@ -57,9 +57,7 @@ export abstract class ClientApplication {
      * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(
-        request: AuthorizationUrlRequest
-    ): Promise<string> {
+    async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
@@ -191,6 +189,8 @@ export abstract class ClientApplication {
      * read the cache as a Json convertible object from memory
      */
     readCache(): JsonCache {
-        return Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
+        return Serializer.serializeAllCache(
+            this.storage.getCache() as InMemoryCache
+        );
     }
 }

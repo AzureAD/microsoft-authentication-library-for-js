@@ -5,8 +5,6 @@
 
 import {
     Separators,
-    CacheType,
-    CacheSchemaType,
     CredentialType,
     EnvironmentAliases,
     Constants,
@@ -62,7 +60,10 @@ export class CacheHelper {
      * @param value
      * @param homeAccountId
      */
-    static matchHomeAccountId(entity: AccountEntity | Credential, homeAccountId: string): boolean {
+    static matchHomeAccountId(
+        entity: AccountEntity | Credential,
+        homeAccountId: string
+    ): boolean {
         return homeAccountId === entity.homeAccountId;
     }
 
@@ -72,7 +73,10 @@ export class CacheHelper {
      * @param environment
      * // TODO: Add Cloud specific aliases based on current cloud
      */
-    static matchEnvironment(entity: AccountEntity | Credential, environment: string): boolean {
+    static matchEnvironment(
+        entity: AccountEntity | Credential,
+        environment: string
+    ): boolean {
         if (
             EnvironmentAliases.includes(environment) &&
             EnvironmentAliases.includes(entity.environment)
@@ -116,10 +120,7 @@ export class CacheHelper {
      * @param target
      */
     static matchTarget(entity: Credential, target: string): boolean {
-        return CacheHelper.targetsSubset(
-            entity.target,
-            target
-        );
+        return CacheHelper.targetsSubset(entity.target, target);
     }
 
     /**
@@ -144,7 +145,6 @@ export class CacheHelper {
      * @param key
      */
     static getCredentialType(key: string): string {
-
         if (key.indexOf(CredentialType.ACCESS_TOKEN) !== -1) {
             return CredentialType.ACCESS_TOKEN;
         } else if (key.indexOf(CredentialType.ID_TOKEN) !== -1) {
@@ -154,7 +154,6 @@ export class CacheHelper {
         }
 
         return Constants.NOT_DEFINED;
-
     }
 
     /**
