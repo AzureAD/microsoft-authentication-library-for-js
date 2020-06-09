@@ -11,22 +11,22 @@ import { Constants } from "../../src/utils/Constants";
 
 
 describe("RequestUtils.ts class", () => {
+    describe("validateRequest", function() {
+        it("should throw emptyRequestError when the request passed in is null", () => {
+            let emptyRequestError: ClientConfigurationError;
 
-    it("Scopes cannot be empty", () => {
+            try {
+                const userRequest: AuthenticationParameters = null;
+                const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
+            } catch (e) {
+                emptyRequestError = e;
+            }
 
-        let emptyScopesError : ClientConfigurationError;
-
-        try {
-            const userRequest: AuthenticationParameters = {scopes: []};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
-        } catch (e) {
-            emptyScopesError = e;
-        };
-
-        expect(emptyScopesError instanceof ClientConfigurationError).to.be.true;
-        expect(emptyScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
-        expect(emptyScopesError.name).to.equal("ClientConfigurationError");
-        expect(emptyScopesError.stack).to.include("RequestUtils.spec.ts");
+            expect(emptyRequestError instanceof ClientConfigurationError).to.be.true;
+            expect(emptyRequestError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyRequestError.code);
+            expect(emptyRequestError.name).to.equal("ClientConfigurationError");
+            expect(emptyRequestError.stack).to.include("RequestUtils.spec.ts");
+        });
     });
 
     it("validate prompt", () => {
@@ -117,22 +117,6 @@ describe("RequestUtils.ts class", () => {
         const correlationId: string = RequestUtils.validateAndGenerateCorrelationId(userCorrelationId);
 
         expect(CryptoUtils.isGuid(correlationId)).to.be.equal(true);
-    });
-
-    it("validate empty request", () => {
-        let emptyRequestError: ClientConfigurationError;
-
-        try {
-            const userRequest: AuthenticationParameters = null;
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
-        } catch (e) {
-            emptyRequestError = e;
-        }
-
-        expect(emptyRequestError instanceof ClientConfigurationError).to.be.true;
-        expect(emptyRequestError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyRequestError.code);
-        expect(emptyRequestError.name).to.equal("ClientConfigurationError");
-        expect(emptyRequestError.stack).to.include("RequestUtils.spec.ts");
     });
 
     it("generate request signature", () => {

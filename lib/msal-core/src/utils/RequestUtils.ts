@@ -42,20 +42,16 @@ export class RequestUtils {
         
         const scopes = request.scopes;
 
-        let extraQueryParameters: StringDict;
+        ScopeSet.validateInputScope(scopes);
 
-        if (request) {
-            ScopeSet.validateInputScope(scopes);
+        // validate prompt parameter
+        this.validatePromptParameter(request.prompt);
 
-            // validate prompt parameter
-            this.validatePromptParameter(request.prompt);
+        // validate extraQueryParameters
+        const extraQueryParameters = this.validateEQParameters(request.extraQueryParameters, request.claimsRequest);
 
-            // validate extraQueryParameters
-            extraQueryParameters = this.validateEQParameters(request.extraQueryParameters, request.claimsRequest);
-
-            // validate claimsRequest
-            this.validateClaimsRequest(request.claimsRequest);
-        }
+        // validate claimsRequest
+        this.validateClaimsRequest(request.claimsRequest);
 
         // validate and generate state and correlationId
         const state = this.validateAndGenerateState(request && request.state, interactionType);
