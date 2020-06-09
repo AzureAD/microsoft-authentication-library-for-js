@@ -4,6 +4,7 @@ import {
     Deserializer,
     JsonCache,
     ClientAuthError,
+    StringUtils
 } from '@azure/msal-common';
 import { ICachePlugin } from './ICachePlugin';
 
@@ -16,7 +17,7 @@ const defaultSerializedCache: JsonCache = {
 };
 
 /**
- *
+ * In-memory token cache manager
  */
 export class CacheManager {
 
@@ -45,13 +46,18 @@ export class CacheManager {
      * Serializes in memory cache to JSON
      */
     serialize(): string {
-        const mergedCache = this.mergeState(
-            JSON.parse(this.cacheSnapshot),
-            Serializer.serializeAllCache(this.storage.getCache()));
+        let finalState = Serializer.serializeAllCache(this.storage.getCache());
 
+        // if cacheSnapshot not null or empty, merge
+        if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+            finalState = this.mergeState(
+                JSON.parse(this.cacheSnapshot),
+                finalState
+            );
+        }
         this.hasChanged = false;
 
-        return JSON.stringify(mergedCache);
+        return JSON.stringify(finalState);
     }
 
     /**
@@ -60,8 +66,11 @@ export class CacheManager {
      */
     deserialize(cache: string): void {
         this.cacheSnapshot = cache;
-        const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(cache)));
-        this.storage.setCache(deserializedCache);
+
+        if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+            const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(this.cacheSnapshot)));
+            this.storage.setCache(deserializedCache);
+        }
     }
 
     /**
@@ -69,15 +78,19 @@ export class CacheManager {
      */
     async writeToPersistence(): Promise<void> {
         if (this.persistence) {
-
             this.cacheSnapshot = await this.persistence.readFromStorage();
 
-            const mergedCache = this.mergeState(
-                JSON.parse(this.cacheSnapshot),
-                Serializer.serializeAllCache(this.storage.getCache()));
+            let finalState = Serializer.serializeAllCache(this.storage.getCache());
 
+            // if cacheSnapshot not null or empty, merge
+            if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+                finalState = this.mergeState(
+                    JSON.parse(this.cacheSnapshot),
+                    Serializer.serializeAllCache(this.storage.getCache()));
+            }
             this.hasChanged = false;
-            await this.persistence.writeToStorage(JSON.stringify(mergedCache));
+
+            await this.persistence.writeToStorage(JSON.stringify(finalState));
         } else {
             throw ClientAuthError.createCachePluginError();
         }
@@ -89,9 +102,12 @@ export class CacheManager {
      */
     async readFromPersistence(): Promise<void> {
         if (this.persistence) {
-            this.cacheSnapshot = await this.persistence.readFromStorage();
-            const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(this.cacheSnapshot)));
-            this.storage.setCache(deserializedCache);
+            const cache = await this.persistence.readFromStorage();
+
+            if (!StringUtils.isEmpty(cache)) {
+                const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(cache)));
+                this.storage.setCache(deserializedCache);
+            }
         } else {
             throw ClientAuthError.createCachePluginError();
         }
