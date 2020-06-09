@@ -42,7 +42,6 @@ export class AccountEntity {
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
-            localAccountId: this.localAccountId,
             userName: this.username
         });
     }

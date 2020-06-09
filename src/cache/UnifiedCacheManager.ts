@@ -108,7 +108,6 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param credential
      */
     saveCredential(credential: Credential): void {
-        console.log("in UCacheManager saving credential");
         const key = credential.generateCredentialKey();
         this.cacheStorage.setItem(
             key,
@@ -170,17 +169,16 @@ export class UnifiedCacheManager implements ICacheManager {
         realm?: string
     ): AccountCache {
         const allCacheKeys = this.cacheStorage.getKeys();
-        const cache = this.getCache();
         const matchingAccounts: AccountCache = {};
 
         let matches: boolean = true;
 
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
-            if (CacheHelper.getCredentialType(cacheKey) !== Constants.NOT_DEFINED && CacheHelper.isAppMetadata(cacheKey)) {
+            if (CacheHelper.getCredentialType(cacheKey) !== Constants.NOT_DEFINED || CacheHelper.isAppMetadata(cacheKey)) {
                 return;
             }
-            const entity: AccountEntity = cache[cacheKey];
+            const entity: AccountEntity = this.cacheStorage.getItem(cacheKey, CacheSchemaType.ACCOUNT) as AccountEntity;
 
             if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(entity, homeAccountId);
@@ -196,11 +194,9 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             if (matches) {
-                matchingAccounts[cacheKey] = cache[cacheKey];
+                matchingAccounts[cacheKey] = entity;
             }
         });
-
-        console.log("Matching accounts: ", matchingAccounts);
 
         return matchingAccounts;
     }
@@ -243,7 +239,6 @@ export class UnifiedCacheManager implements ICacheManager {
         target?: string
     ): CredentialCache {
         const allCacheKeys = this.cacheStorage.getKeys();
-        const cache = this.getCache();
         let matchingCredentials: CredentialCache;
         let matches: boolean = true;
 
@@ -253,11 +248,11 @@ export class UnifiedCacheManager implements ICacheManager {
                 return;
             }
 
-            const entity: Credential = cache[cacheKey];
+            const entity: Credential = this.cacheStorage.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as Credential;
 
             if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(
-                    cache[cacheKey],
+                    entity,
                     homeAccountId
                 );
             }
@@ -269,7 +264,7 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             if (!StringUtils.isEmpty(realm)) {
-                matches = matches && CacheHelper.matchRealm(cache[cacheKey], realm);
+                matches = matches && CacheHelper.matchRealm(entity, realm);
             }
 
             if (!StringUtils.isEmpty(credentialType)) {
@@ -291,7 +286,7 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             if (matches) {
-                matchingCredentials[cacheKey] = cache[cacheKey];
+                matchingCredentials[cacheKey] = entity;
             }
         });
 

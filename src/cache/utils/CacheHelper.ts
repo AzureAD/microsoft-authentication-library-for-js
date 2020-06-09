@@ -190,45 +190,12 @@ export class CacheHelper {
      * @param homeAccountId
      * @param environment
      */
-    static generateAccountIdForCacheKey(
+    private static generateAccountIdForCacheKey(
         homeAccountId: string,
         environment: string
     ): string {
         const accountId: Array<string> = [homeAccountId, environment];
         return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-    }
-
-    /**
-     * Generates Credential Id for keys
-     * @param credentialType
-     * @param realm
-     * @param clientId
-     * @param familyId
-     */
-    static generateCredentialIdForCacheKey(
-        credentialType: CredentialType,
-        clientId: string,
-        realm?: string,
-        familyId?: string
-    ): string {
-        const clientOrFamilyId =
-            credentialType === CredentialType.REFRESH_TOKEN
-                ? familyId || clientId
-                : clientId;
-        const credentialId: Array<string> = [
-            credentialType,
-            clientOrFamilyId,
-            realm || "",
-        ];
-
-        return credentialId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-    }
-
-    /**
-     * Generate target key component as per schema: <target>
-     */
-    static generateTargetForCacheKey(scopes: string): string {
-        return (scopes || "").toLowerCase();
     }
 
     /**
@@ -258,29 +225,35 @@ export class CacheHelper {
     }
 
     /**
-     * helper function to return `CacheSchemaType`
-     * @param key
+     * Generates Credential Id for keys
+     * @param credentialType
+     * @param realm
+     * @param clientId
+     * @param familyId
      */
-    static getCacheType(type: number): string {
-        switch (type) {
-            case CacheType.ADFS:
-            case CacheType.MSA:
-            case CacheType.MSSTS:
-            case CacheType.GENERIC:
-                return CacheSchemaType.ACCOUNT;
+    private static generateCredentialIdForCacheKey(
+        credentialType: CredentialType,
+        clientId: string,
+        realm?: string,
+        familyId?: string
+    ): string {
+        const clientOrFamilyId =
+            credentialType === CredentialType.REFRESH_TOKEN
+                ? familyId || clientId
+                : clientId;
+        const credentialId: Array<string> = [
+            credentialType,
+            clientOrFamilyId,
+            realm || "",
+        ];
 
-            case CacheType.ACCESS_TOKEN:
-            case CacheType.REFRESH_TOKEN:
-            case CacheType.ID_TOKEN:
-                return CacheSchemaType.CREDENTIAL;
+        return credentialId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
 
-            case CacheType.APP_META_DATA:
-                return CacheSchemaType.APP_META_DATA;
-
-            default: {
-                console.log("Invalid cache type");
-                return null;
-            }
-        }
+    /**
+     * Generate target key component as per schema: <target>
+     */
+    private static generateTargetForCacheKey(scopes: string): string {
+        return (scopes || "").toLowerCase();
     }
 }

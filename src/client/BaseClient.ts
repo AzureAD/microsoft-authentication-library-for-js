@@ -125,14 +125,16 @@ export abstract class BaseClient {
         if (numAccounts < 1) {
             return null;
         } else {
-            return accountValues.map<IAccount>((value) => {
+            const allAccounts = accountValues.map<IAccount>((value) => {
+                const accountObj: AccountEntity = JSON.parse(JSON.stringify(value));
                 return {
-                    homeAccountId: value.homeAccountId,
-                    environment: value.environment,
-                    tenantId: value.realm,
-                    userName: value.username
+                    homeAccountId: accountObj.homeAccountId,
+                    environment: accountObj.environment,
+                    tenantId: accountObj.realm,
+                    userName: accountObj.username
                 };
             });
+            return allAccounts;
         }
     }
 }
