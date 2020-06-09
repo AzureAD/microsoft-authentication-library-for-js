@@ -3,6 +3,7 @@
 ## Bugs
 * Ensure decoding query parameters doesnt remove plus signs twice. (#1746)
 * Fix popup about:blank errors. (#1667)
+* Fix processing and redirection of acquireTokenRedirect. (#1758)
 
 ## Enhancements
 * Remove url from timeout error message, move to errorPii logger. (#1686)
