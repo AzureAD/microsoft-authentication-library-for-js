@@ -47,6 +47,16 @@ describe("ScopeSet.ts", () => {
         });
     });
 
+    describe("removeElement", function() {
+        it("should return a filtered scopes array with the scope passed in removed", function() {
+            const unfilteredScopes = ["S1", "S2"];
+            const scopeToRemove = "S1";
+            const filteredScopes = ScopeSet.removeElement(unfilteredScopes, scopeToRemove);
+            expect(filteredScopes).to.not.eq(unfilteredScopes);
+            expect(filteredScopes).to.not.include(scopeToRemove);
+        });
+    });
+
     describe("validateInputScope", function() {
         it("should not throw any errors when a single scope is passed in scopes array", function () {
             const scopes = ["S1"];
@@ -102,6 +112,12 @@ describe("ScopeSet.ts", () => {
             expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
             expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
             expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
+        });
+    });
+
+    describe("getScopeFromState", function() {
+        it("should return an empty string if null is passed in as state", function(){
+            expect(ScopeSet.getScopeFromState(null)).to.eql("");
         });
     });
 
