@@ -351,6 +351,8 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
+        this.logger.verbose("LoginPopup has been called");
+
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup);
@@ -359,6 +361,7 @@ export class UserAgentApplication {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
         })
             .then((resp) => {
+                this.logger.verbose("Successfully logged in");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return resp;
             })
