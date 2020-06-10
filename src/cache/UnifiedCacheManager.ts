@@ -63,6 +63,7 @@ export class UnifiedCacheManager implements ICacheManager {
     saveCacheRecord(cacheRecord: CacheRecord): void {
         this.saveAccount(cacheRecord.account);
         this.saveCredential(cacheRecord.idToken);
+        // TODO: Check for scope intersection and delete accessToken with intersecting scopes
         this.saveCredential(cacheRecord.accessToken);
         this.saveCredential(cacheRecord.refreshToken);
     }
