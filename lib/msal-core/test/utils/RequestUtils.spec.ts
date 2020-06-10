@@ -9,9 +9,10 @@ import { TimeUtils } from "../../src/utils/TimeUtils";
 import sinon from "sinon";
 import { Constants } from "../../src/utils/Constants";
 
+const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
 
 describe("RequestUtils.ts class", () => {
-    describe("validateRequest", function() {
+    describe("validateRequest", () => {
         it("should throw emptyRequestError when the request passed in is null", () => {
             let emptyRequestError: ClientConfigurationError;
 
@@ -27,6 +28,57 @@ describe("RequestUtils.ts class", () => {
             expect(emptyRequestError.name).to.equal("ClientConfigurationError");
             expect(emptyRequestError.stack).to.include("RequestUtils.spec.ts");
         });
+
+        it("should throw scopesRequiredError if scopes are empty or null", () => {
+            let scopesRequiredError: ClientConfigurationError;
+
+            try {
+                const userRequest: AuthenticationParameters = { };
+                const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, clientId, Constants.interactionTypeSilent);
+            } catch (e) {
+                scopesRequiredError = e;
+            }
+
+            expect(scopesRequiredError instanceof ClientConfigurationError).to.eq(true);
+            expect(scopesRequiredError.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
+            expect(scopesRequiredError.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
+        });
+
+        it("should throw scopesNonArrayError if scopes is not an array object", () => {
+            let scopesNonArrayError: ClientConfigurationError;
+
+            try {
+                // @ts-ignore
+                const userRequest: AuthenticationParameters = { scopes: {} };
+                const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, clientId, Constants.interactionTypeSilent);
+            } catch (e) {
+                scopesNonArrayError = e;
+            }
+
+            expect(scopesNonArrayError instanceof ClientConfigurationError).to.eq(true);
+            expect(scopesNonArrayError.errorCode).to.equal(ClientConfigurationErrorMessage.nonArrayScopes.code);
+            expect(scopesNonArrayError.message).to.contain(ClientConfigurationErrorMessage.nonArrayScopes.desc);
+        });
+
+        it("should throw emptyScopesArrayError if scopes is an empty array", () => {
+            let emptyScopesArrayError: ClientConfigurationError;
+
+            try {
+                const userRequest: AuthenticationParameters = { scopes: [] };
+                const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, clientId, Constants.interactionTypeSilent);
+            } catch (e) {
+                emptyScopesArrayError = e;
+            }
+
+            expect(emptyScopesArrayError instanceof ClientConfigurationError).to.eq(true);
+            expect(emptyScopesArrayError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
+            expect(emptyScopesArrayError.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
+        });
+
+    });
+
+    describe("validateLoginRequest", () => {
+
     });
 
     it("validate prompt", () => {
