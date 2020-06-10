@@ -269,25 +269,7 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
-        try {
-            // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request, true);
-
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
-
-            // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
-
-            // Create login url.
-            const navigateUrl = await this.authModule.createUrl(validRequest);
-
-            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.browserCrypto);
-        } catch (e) {
-            this.browserStorage.cleanRequest();
-            throw e;
-        }
+        return this.acquireTokenRedirect(request);
     }
 
     /**
@@ -303,7 +285,7 @@ export class PublicClientApplication {
     async acquireTokenRedirect(request: AuthorizationUrlRequest): Promise<void> {
         try {
             // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request, false);
+            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
 
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
@@ -334,22 +316,7 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        try {
-            // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request, true);
-
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
-
-            // Create login url, which will by default append the client id scope to the call.
-            const navigateUrl = await this.authModule.createUrl(validRequest);
-
-            // Acquire token with popup
-            return await this.popupTokenHelper(navigateUrl, authCodeRequest);
-        } catch (e) {
-            this.browserStorage.cleanRequest();
-            throw e;
-        }
+        return this.acquireTokenPopup(request);
     }
 
     /**
@@ -362,7 +329,7 @@ export class PublicClientApplication {
     async acquireTokenPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request, false);
+            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
 
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
@@ -428,7 +395,7 @@ export class PublicClientApplication {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = this.initializeLoginRequest({
+        const silentRequest: AuthorizationUrlRequest = this.initializeRequest({
             ...request,
             prompt: PromptValue.NONE
         });
@@ -594,7 +561,7 @@ export class PublicClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    private preflightRequest(request: AuthorizationUrlRequest, isLoginCall: boolean): AuthorizationUrlRequest {
+    private preflightRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -603,24 +570,7 @@ export class PublicClientApplication {
             throw BrowserAuthError.createInteractionInProgressError();
         }
         
-        return isLoginCall ? this.initializeLoginRequest(request) : this.initializeRequest(request);
-    }
-
-    /**
-     * Helper to initialize request parameters for login calls
-     * @param request 
-     */
-    private initializeLoginRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
-        const validatedRequest: AuthorizationUrlRequest = {
-            ...request
-        };
-        
-        if (!validatedRequest.scopes) {
-            validatedRequest.scopes = [];
-        }
-
-        validatedRequest.scopes.push(this.config.auth.clientId);
-        return this.initializeRequest(validatedRequest);
+        return this.initializeRequest(request);
     }
 
     /**
