@@ -20,24 +20,20 @@ export class ScopeSet {
     // Original scopes passed to constructor. Usually used for caching or telemetry.
     private originalScopes: Set<string>;
 
-    constructor(
-        inputScopes: Array<string>,
-        clientId: string
-    ) {
+    constructor(inputScopes: Array<string>, clientId: string) {
         // lower case need for replaceDefaultScopes() because ADFS clientids don't have to be GUIDS.
         this.clientId = clientId.toLowerCase();
 
         // Filter empty string and null/undefined array items
         const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [];
         const filteredInput = scopeArr ? StringUtils.removeEmptyStringsFromArray(scopeArr) : [];
+        this.addDefaultScopes(filteredInput);
 
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);
 
-        this.scopes = new Set<string>(scopeArr);
+        this.scopes = new Set<string>(filteredInput);
         this.originalScopes = new Set<string>(this.scopes);
-
-        this.replaceDefaultScopes();
     }
 
     /**
@@ -46,10 +42,7 @@ export class ScopeSet {
      * @param appClientId
      * @param scopesRequired
     */
-    static fromString(
-        inputScopeString: string,
-        appClientId: string
-    ): ScopeSet {
+    static fromString(inputScopeString: string, appClientId: string): ScopeSet {
         inputScopeString = inputScopeString || "";
         const inputScopes: Array<string> = inputScopeString.split(" ");
         return new ScopeSet(inputScopes, appClientId);
@@ -58,13 +51,10 @@ export class ScopeSet {
     /**
      * Replace client id with the default scopes used for token acquisition.
      */
-    private replaceDefaultScopes(): void {
-        if (this.scopes.has(this.clientId)) {
-            this.removeScope(this.clientId);
-            this.appendScope(Constants.OPENID_SCOPE);
-            this.appendScope(Constants.PROFILE_SCOPE);
-        }
-        this.appendScope(Constants.OFFLINE_ACCESS_SCOPE);
+    private addDefaultScopes(scopeArr: Array<string>): void {
+        scopeArr.push(Constants.OPENID_SCOPE);
+        scopeArr.push(Constants.PROFILE_SCOPE);
+        scopeArr.push(Constants.OFFLINE_ACCESS_SCOPE);
     }
 
     /**
