@@ -195,8 +195,8 @@ export class ResponseHandler {
             this.clientId,
             idTokenObj.claims.tid,
             responseScopes.asArray().join(" "),
-            expiresInSeconds * 1000,
-            extendedExpiresInSeconds * 1000
+            expiresInSeconds,
+            extendedExpiresInSeconds
         );
 
         // refreshToken
