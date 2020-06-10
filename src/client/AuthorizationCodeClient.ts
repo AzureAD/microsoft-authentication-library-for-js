@@ -60,7 +60,7 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = await responseHandler.generateAuthenticationResult(
+        const tokenResponse = responseHandler.generateAuthenticationResult(
             response.body,
             this.defaultAuthority
         );

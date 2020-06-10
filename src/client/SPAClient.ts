@@ -237,7 +237,7 @@ export class SPAClient extends BaseClient {
         // User helper to retrieve token response.
         // Need to await function call before return to catch any thrown errors.
         // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
-        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, acquireTokenAuthority, userState, cachedNonce);
+        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, acquireTokenAuthority, cachedNonce);
     }
 
     /**
@@ -288,6 +288,7 @@ export class SPAClient extends BaseClient {
                 idToken: idTokenObj.rawIdToken,
                 idTokenClaims: idTokenObj.claims,
                 accessToken: cacheRecord.accessToken.secret,
+                fromCache: true,
                 account: CacheHelper.toIAccount(cacheRecord.account),
                 expiresOn: new Date(cacheRecord.accessToken.expiresOn),
                 extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
@@ -471,7 +472,7 @@ export class SPAClient extends BaseClient {
      * @param tokenRequest
      * @param codeResponse
      */
-    private async getTokenResponse(tokenEndpoint: string, parameterBuilder: RequestParameterBuilder, authority: Authority, userState: string, cachedNonce?: string): Promise<AuthenticationResult> {
+    private async getTokenResponse(tokenEndpoint: string, parameterBuilder: RequestParameterBuilder, authority: Authority, cachedNonce?: string): Promise<AuthenticationResult> {
         // Perform token request.
         const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<
         ServerAuthorizationTokenResponse
@@ -485,7 +486,7 @@ export class SPAClient extends BaseClient {
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
-        const tokenResponse = responseHandler.generateAuthenticationResult(acquiredTokenResponse.body, authority);
+        const tokenResponse = responseHandler.generateAuthenticationResult(acquiredTokenResponse.body, authority, cachedNonce);
 
         return tokenResponse;
     }
@@ -518,7 +519,7 @@ export class SPAClient extends BaseClient {
         // User helper to retrieve token response.
         // Need to await function call before return to catch any thrown errors.
         // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
-        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, authority, "");
+        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, authority);
     }
 
     // #endregion

@@ -88,6 +88,7 @@ export class SilentFlowClient extends BaseClient {
             idToken: cacheRecord.idToken.secret,
             idTokenClaims: idTokenObj.claims,
             accessToken: cacheRecord.accessToken.secret,
+            fromCache: true,
             expiresOn: new Date(cacheRecord.accessToken.expiresOn),
             extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
             familyId: null,
