@@ -13,11 +13,11 @@ import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { B2cAuthority } from "../authority/B2cAuthority";
-import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { IAccount } from "../account/IAccount";
 import { AccountCache } from "../cache/utils/CacheTypes";
 import { CacheHelper } from "../cache/utils/CacheHelper";
+import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -38,9 +38,6 @@ export abstract class BaseClient {
     // Network Interface
     protected networkClient: INetworkModule;
 
-    // Helper API object for serialized cache operations
-    protected unifiedCacheManager: UnifiedCacheManager;
-
     // Account object
     protected account: AccountEntity;
 
@@ -60,19 +57,10 @@ export abstract class BaseClient {
         // Initialize storage interface
         this.cacheStorage = this.config.storageInterface;
 
-        // Initialize serialized cache manager
-        this.unifiedCacheManager = new UnifiedCacheManager(
-            this.cacheStorage,
-            this.config.authOptions.clientId,
-            this.config.systemOptions.storeInMemory
-        );
-
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
-        B2cAuthority.setKnownAuthorities(
-            this.config.authOptions.knownAuthorities
-        );
+        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
 
         this.defaultAuthority = this.config.authOptions.authority;
     }
@@ -135,8 +123,8 @@ export abstract class BaseClient {
     /**
      * Get all currently signed in accounts.
      */
-    public getAllAccounts(): IAccount[] {
-        const currentAccounts: AccountCache = this.unifiedCacheManager.getAllAccounts();
+    static getAllAccounts(cacheStorage: ICacheStorage): IAccount[] {
+        const currentAccounts: AccountCache = UnifiedCacheManager.getAllAccounts(cacheStorage);
         const accountValues: AccountEntity[] = Object.values(currentAccounts);
         const numAccounts = accountValues.length;
         if (numAccounts < 1) {

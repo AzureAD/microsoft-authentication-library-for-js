@@ -33,6 +33,7 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { IAccount } from "../account/IAccount";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
+import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 
 /**
  * SPAClient class
@@ -230,7 +231,7 @@ export class SPAClient extends BaseClient {
 
         // Get current cached tokens
         const cacheRecord = new CacheRecord();
-        cacheRecord.account = this.unifiedCacheManager.getAccount(CacheHelper.generateAccountCacheKey(request.account));
+        cacheRecord.account = UnifiedCacheManager.getAccount(this.cacheStorage, CacheHelper.generateAccountCacheKey(request.account));
 
         const homeAccountId = cacheRecord.account.homeAccountId;
         const env = cacheRecord.account.environment;
@@ -305,7 +306,7 @@ export class SPAClient extends BaseClient {
      */
     async logout(account: IAccount, acquireTokenAuthority: Authority): Promise<string> {
         // Clear current account.
-        this.unifiedCacheManager.removeAccount(CacheHelper.generateAccountCacheKey(account));
+        UnifiedCacheManager.removeAccount(this.cacheStorage, CacheHelper.generateAccountCacheKey(account));
         // Get postLogoutRedirectUri.
         let postLogoutRedirectUri = "";
         try {
@@ -353,7 +354,7 @@ export class SPAClient extends BaseClient {
         cachedState: string
     ): string {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.unifiedCacheManager, this.cryptoUtils, this.logger);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
@@ -378,7 +379,7 @@ export class SPAClient extends BaseClient {
             this.config.authOptions.clientId,
             inputRealm
         );
-        return this.unifiedCacheManager.getCredential(idTokenKey) as IdTokenEntity;
+        return UnifiedCacheManager.getCredential(this.cacheStorage, idTokenKey) as IdTokenEntity;
     }
 
     /**
@@ -395,7 +396,7 @@ export class SPAClient extends BaseClient {
             realm: inputRealm,
             target: scopes.printScopes()
         };
-        const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(accessTokenFilter);
+        const credentialCache: CredentialCache = UnifiedCacheManager.getCredentialsFilteredBy(this.cacheStorage, accessTokenFilter);
         const accessTokens = Object.values(credentialCache);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
@@ -416,7 +417,7 @@ export class SPAClient extends BaseClient {
             CredentialType.REFRESH_TOKEN,
             this.config.authOptions.clientId
         );
-        return this.unifiedCacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
+        return UnifiedCacheManager.getCredential(this.cacheStorage, refreshTokenKey) as RefreshTokenEntity;
     }
 
     /**
@@ -449,7 +450,7 @@ export class SPAClient extends BaseClient {
         });
 
         // Create response handler
-        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.unifiedCacheManager, this.cryptoUtils, this.logger);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.cryptoUtils, this.logger);
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
@@ -544,11 +545,14 @@ export class SPAClient extends BaseClient {
      * @returns {@link Account} - the account object stored in MSAL
      */
     getAccount(homeAccountIdentifier: string, env?: string, rlm?: string): AccountEntity {
-        const accountCache = this.unifiedCacheManager.getAccountsFilteredBy({
-            homeAccountId: homeAccountIdentifier,
-            environment: env,
-            realm: rlm
-        });
+        const accountCache = UnifiedCacheManager.getAccountsFilteredBy(
+            this.cacheStorage,
+            {
+                homeAccountId: homeAccountIdentifier,
+                environment: env,
+                realm: rlm
+            }
+        );
 
         const numAccounts = Object.keys(accountCache).length;
         if (numAccounts < 1) {
