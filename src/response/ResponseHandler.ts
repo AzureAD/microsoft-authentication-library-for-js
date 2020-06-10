@@ -118,9 +118,8 @@ export class ResponseHandler {
 
         // save the response tokens
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
-        this.uCacheManager.saveCacheRecord(cacheRecord);
-
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId);
+        this.uCacheManager.saveCacheRecord(cacheRecord, responseScopes);
 
         const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
@@ -191,7 +190,7 @@ export class ResponseHandler {
         );
 
         // AccessToken
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId);
         // Expiration calculation
         const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
         const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;

@@ -20,14 +20,18 @@ import { ICacheManager } from "./interface/ICacheManager";
 import { CacheHelper } from "./utils/CacheHelper";
 import { CacheRecord } from "./entities/CacheRecord";
 import { StringUtils } from "../utils/StringUtils";
+import { AccessTokenEntity } from "./entities/AccessTokenEntity";
+import { ScopeSet } from "../request/ScopeSet";
 
 export class UnifiedCacheManager implements ICacheManager {
     // Storage interface
     private cacheStorage: ICacheStorage;
     private inMemory: boolean;
+    private clientId: string;
 
-    constructor(cacheImpl: ICacheStorage, storeInMemory: boolean) {
+    constructor(cacheImpl: ICacheStorage, clientId: string, storeInMemory: boolean) {
         this.cacheStorage = cacheImpl;
+        this.clientId = clientId;
         this.inMemory = storeInMemory;
     }
 
@@ -60,10 +64,10 @@ export class UnifiedCacheManager implements ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    saveCacheRecord(cacheRecord: CacheRecord): void {
+    saveCacheRecord(cacheRecord: CacheRecord, responseScopes: ScopeSet): void {
         this.saveAccount(cacheRecord.account);
         this.saveCredential(cacheRecord.idToken);
-        this.saveCredential(cacheRecord.accessToken);
+        this.saveAccessToken(cacheRecord.accessToken, responseScopes);
         this.saveCredential(cacheRecord.refreshToken);
     }
 
@@ -93,6 +97,30 @@ export class UnifiedCacheManager implements ICacheManager {
             CacheSchemaType.CREDENTIAL,
             this.inMemory
         );
+    }
+
+    /**
+     * saves access token credential
+     * @param credential 
+     */
+    saveAccessToken(credential: AccessTokenEntity, responseScopes: ScopeSet): void {
+        const currentTokenCache = this.getCredentialsFilteredBy({
+            clientId: credential.clientId,
+            credentialType: CredentialType.ACCESS_TOKEN,
+            environment: credential.environment,
+            homeAccountId: credential.homeAccountId,
+            realm: credential.realm
+        });
+        const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache) as AccessTokenEntity[];
+        if (currentAccessTokens) {
+            currentAccessTokens.forEach((tokenEntity) => {
+                const tokenScopeSet = ScopeSet.fromString(tokenEntity.target, this.clientId);
+                if (tokenScopeSet.intersectingScopeSets(responseScopes)) {
+                    this.removeCredential(tokenEntity);
+                }
+            });
+        }
+        this.saveCredential(credential);
     }
 
     /**
@@ -223,10 +251,7 @@ export class UnifiedCacheManager implements ICacheManager {
         allCacheKeys.forEach((cacheKey) => {
             let matches: boolean = true;
             // don't parse any non-credential type cache entities
-            if (
-                CacheHelper.getCredentialType(cacheKey) ===
-                Constants.NOT_DEFINED
-            ) {
+            if (CacheHelper.getCredentialType(cacheKey) === Constants.NOT_DEFINED) {
                 return;
             }
 
@@ -261,12 +286,8 @@ export class UnifiedCacheManager implements ICacheManager {
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            if (
-                !StringUtils.isEmpty(target) &&
-                CacheHelper.getCredentialType(cacheKey) !=
-                    CredentialType.ID_TOKEN
-            ) {
-                matches = matches && CacheHelper.matchTarget(entity, target);
+            if (!StringUtils.isEmpty(target) && CacheHelper.getCredentialType(cacheKey) !== CredentialType.ID_TOKEN) {
+                matches = matches && CacheHelper.matchTarget(entity, target, clientId);
             }
 
             if (matches) {
