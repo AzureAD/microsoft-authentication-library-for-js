@@ -57,4 +57,3 @@ export interface ICacheStorage {
      */
     clear(): void;
 }
-

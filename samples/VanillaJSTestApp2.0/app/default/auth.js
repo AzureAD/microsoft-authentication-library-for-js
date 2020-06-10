@@ -54,6 +54,7 @@ function signOut() {
 
 async function getTokenPopup(request, account) {
     request.account = account;
+    request.forceRefresh = true;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
         if (error instanceof msal.InteractionRequiredAuthError) {
@@ -70,6 +71,7 @@ async function getTokenPopup(request, account) {
 // This function can be removed if you do not need to support IE
 async function getTokenRedirect(request, account) {
     request.account = account;
+    request.forceRefresh = true;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
         if (error instanceof msal.InteractionRequiredAuthError) {

@@ -147,10 +147,9 @@ export abstract class ClientApplication {
     ): Promise<Authority> {
         const authority: Authority = authorityString
             ? AuthorityFactory.createInstance(
-                  authorityString,
-                  this.config.system!.networkClient!
-              )
-            : this.authority;
+                authorityString,
+                this.config.system!.networkClient!
+            ) : this.authority;
 
         if (authority.discoveryComplete()) {
             return authority;

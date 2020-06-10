@@ -19,29 +19,22 @@ export class ScopeSet {
     private scopes: Set<string>;
     // Original scopes passed to constructor. Usually used for caching or telemetry.
     private originalScopes: Set<string>;
-    // Boolean denoting whether scopes are required. Usually used for validation.
-    private scopesRequired: boolean;
 
     constructor(
         inputScopes: Array<string>,
-        clientId: string,
-        scopesRequired: boolean,
+        clientId: string
     ) {
         // lower case need for replaceDefaultScopes() because ADFS clientids don't have to be GUIDS.
         this.clientId = clientId.toLowerCase();
-        this.scopesRequired = scopesRequired;
 
         // Filter empty string and null/undefined array items
-        const filteredInput = inputScopes && StringUtils.removeEmptyStringsFromArray(inputScopes);
+        const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [];
+        const filteredInput = scopeArr ? StringUtils.removeEmptyStringsFromArray(scopeArr) : [];
 
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);
 
-        const scopeArr = filteredInput? StringUtils.trimAndConvertArrayEntriesToLowerCase([...filteredInput]): [];
         this.scopes = new Set<string>(scopeArr);
-        if (!this.scopesRequired) {
-            this.appendScope(this.clientId);
-        }
         this.originalScopes = new Set<string>(this.scopes);
 
         this.replaceDefaultScopes();
@@ -55,12 +48,11 @@ export class ScopeSet {
     */
     static fromString(
         inputScopeString: string,
-        appClientId: string,
-        scopesRequired: boolean
+        appClientId: string
     ): ScopeSet {
         inputScopeString = inputScopeString || "";
         const inputScopes: Array<string> = inputScopeString.split(" ");
-        return new ScopeSet(inputScopes, appClientId, scopesRequired);
+        return new ScopeSet(inputScopes, appClientId);
     }
 
     /**
@@ -81,20 +73,14 @@ export class ScopeSet {
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
     */
     private validateInputScopes(inputScopes: Array<string>): void {
-        if (this.scopesRequired) {
-            // Check if scopes are required but not given or is an empty array
-            if (!inputScopes || inputScopes.length < 1) {
-                throw ClientConfigurationError.createEmptyScopesArrayError(
-                    inputScopes
-                );
-            }
+        // Check if scopes are required but not given or is an empty array
+        if (!inputScopes || inputScopes.length < 1) {
+            throw ClientConfigurationError.createEmptyScopesArrayError(inputScopes);
         }
 
         // Check that scopes is an array object
         if (!Array.isArray(inputScopes)) {
-            throw ClientConfigurationError.createScopesNonArrayError(
-                inputScopes
-            );
+            throw ClientConfigurationError.createScopesNonArrayError(inputScopes);
         }
     }
 
@@ -114,9 +100,10 @@ export class ScopeSet {
         if (!scopeSet) {
             return false;
         }
+
         return (
-            this.scopes.size >= scopeSet.scopes.size &&
-                   scopeSet.asArray().every(scope => this.containsScope(scope))
+            this.scopes.size >= scopeSet.scopes.size && 
+                scopeSet.asArray().every(scope => this.containsScope(scope))
         );
     }
 
@@ -141,8 +128,7 @@ export class ScopeSet {
         try {
             const newScopeSet = new ScopeSet(
                 newScopes,
-                this.clientId,
-                this.scopesRequired
+                this.clientId
             );
             this.scopes = this.unionScopeSets(newScopeSet);
         } catch (e) {
@@ -156,9 +142,7 @@ export class ScopeSet {
      */
     removeScope(scope: string): void {
         if (StringUtils.isEmpty(scope)) {
-            throw ClientAuthError.createRemoveEmptyScopeFromSetError(
-                scope
-            );
+            throw ClientAuthError.createRemoveEmptyScopeFromSetError(scope);
         }
         this.scopes.delete(scope.trim().toLowerCase());
     }
@@ -169,9 +153,7 @@ export class ScopeSet {
      */
     unionScopeSets(otherScopes: ScopeSet): Set<string> {
         if (!otherScopes) {
-            throw ClientAuthError.createEmptyInputScopeSetError(
-                otherScopes
-            );
+            throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
         }
         return new Set<string>([
             ...otherScopes.asArray(),
@@ -185,17 +167,15 @@ export class ScopeSet {
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
         if (!otherScopes) {
-            throw ClientAuthError.createEmptyInputScopeSetError(
-                otherScopes
-            );
+            throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
         }
 
         const unionScopes = this.unionScopeSets(otherScopes);
 
         // Do not allow offline_access to be the only intersecting scope
-        const sizeOtherScopes = otherScopes.containsScope(Constants.OFFLINE_ACCESS_SCOPE)? otherScopes.getScopeCount() - 1 : otherScopes.getScopeCount();
-        const sizeThisScopes = this.containsScope(Constants.OFFLINE_ACCESS_SCOPE)? this.getScopeCount() - 1: this.getScopeCount();
-        const sizeUnionScopes = unionScopes.has(Constants.OFFLINE_ACCESS_SCOPE)? unionScopes.size - 1: unionScopes.size;
+        const sizeOtherScopes = otherScopes.containsScope(Constants.OFFLINE_ACCESS_SCOPE) ? otherScopes.getScopeCount() - 1 : otherScopes.getScopeCount();
+        const sizeThisScopes = this.containsScope(Constants.OFFLINE_ACCESS_SCOPE) ? this.getScopeCount() - 1: this.getScopeCount();
+        const sizeUnionScopes = unionScopes.has(Constants.OFFLINE_ACCESS_SCOPE) ? unionScopes.size - 1: unionScopes.size;
         return sizeUnionScopes < (sizeThisScopes + sizeOtherScopes);
     }
 
@@ -211,9 +191,9 @@ export class ScopeSet {
      */
     isLoginScopeSet(): boolean {
         const hasLoginScopes =
-                   this.originalScopes.has(this.clientId) ||
-                   this.originalScopes.has(Constants.OPENID_SCOPE) ||
-                   this.originalScopes.has(Constants.PROFILE_SCOPE);
+            this.originalScopes.has(this.clientId) ||
+            this.originalScopes.has(Constants.OPENID_SCOPE) ||
+            this.originalScopes.has(Constants.PROFILE_SCOPE);
         return this.originalScopes && hasLoginScopes;
     }
 

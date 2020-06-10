@@ -63,6 +63,7 @@ export abstract class BaseClient {
         // Initialize serialized cache manager
         this.unifiedCacheManager = new UnifiedCacheManager(
             this.cacheStorage,
+            this.config.authOptions.clientId,
             this.config.systemOptions.storeInMemory
         );
 

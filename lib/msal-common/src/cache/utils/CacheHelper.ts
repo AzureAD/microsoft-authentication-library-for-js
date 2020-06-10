@@ -13,6 +13,7 @@ import {
 import { IAccount } from "../../account/IAccount";
 import { AccountEntity } from "../entities/AccountEntity";
 import { Credential } from "../entities/Credential";
+import { ScopeSet } from "../../request/ScopeSet";
 
 export class CacheHelper {
     /**
@@ -89,7 +90,7 @@ export class CacheHelper {
 
     /**
      *
-     * @param key
+     * @param entity
      * @param credentialType
      */
     static matchCredentialType(entity: Credential, credentialType: string): boolean {
@@ -98,7 +99,7 @@ export class CacheHelper {
 
     /**
      *
-     * @param key
+     * @param entity
      * @param clientId
      */
     static matchClientId(entity: Credential, clientId: string): boolean {
@@ -107,7 +108,7 @@ export class CacheHelper {
 
     /**
      *
-     * @param key
+     * @param entity
      * @param realm
      */
     static matchRealm(entity: AccountEntity | Credential, realm: string): boolean {
@@ -115,29 +116,14 @@ export class CacheHelper {
     }
 
     /**
-     *
-     * @param key
+     * Returns true if the target scopes are a subset of the current entity's scopes, false otherwise.
+     * @param entity
      * @param target
      */
-    static matchTarget(entity: Credential, target: string): boolean {
-        return CacheHelper.targetsSubset(entity.target, target);
-    }
-
-    /**
-     * returns a boolean if the sets of scopes intersect (scopes are stored as "target" in cache)
-     * @param target
-     * @param credentialTarget
-     */
-    static targetsSubset(credentialTarget: string, target: string): boolean {
-        const targetSet = new Set(target.split(" "));
-        const credentialTargetSet = new Set(credentialTarget.split(" "));
-
-        let isSubset = true;
-        targetSet.forEach((key) => {
-            isSubset = isSubset && credentialTargetSet.has(key);
-        });
-
-        return isSubset;
+    static matchTarget(entity: Credential, target: string, clientId: string): boolean {
+        const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target, clientId);
+        const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target, clientId);
+        return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }
 
     /**
