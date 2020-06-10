@@ -20,6 +20,7 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
+import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -44,7 +45,7 @@ export class SilentFlowClient extends BaseClient {
             cacheRecord = new CacheRecord();
             // fetch account
             const accountKey: string = CacheHelper.generateAccountCacheKey(request.account);
-            cacheRecord.account = this.unifiedCacheManager.getAccount(accountKey);
+            cacheRecord.account = UnifiedCacheManager.getAccount(this.cacheStorage, accountKey);
 
             const homeAccountId = cacheRecord.account.homeAccountId;
             const environment = cacheRecord.account.environment;
@@ -107,7 +108,7 @@ export class SilentFlowClient extends BaseClient {
             this.config.authOptions.clientId,
             inputRealm
         );
-        return this.unifiedCacheManager.getCredential(idTokenKey) as IdTokenEntity;
+        return UnifiedCacheManager.getCredential(this.cacheStorage, idTokenKey) as IdTokenEntity;
     }
 
     /**
@@ -124,7 +125,7 @@ export class SilentFlowClient extends BaseClient {
             realm: inputRealm,
             target: scopes.printScopes()
         };
-        const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(accessTokenFilter);
+        const credentialCache: CredentialCache = UnifiedCacheManager.getCredentialsFilteredBy(this.cacheStorage, accessTokenFilter);
         const accessTokens = Object.values(credentialCache);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
@@ -145,7 +146,7 @@ export class SilentFlowClient extends BaseClient {
             CredentialType.REFRESH_TOKEN,
             this.config.authOptions.clientId
         );
-        return this.unifiedCacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
+        return UnifiedCacheManager.getCredential(this.cacheStorage, refreshTokenKey) as RefreshTokenEntity;
     }
 
     /**

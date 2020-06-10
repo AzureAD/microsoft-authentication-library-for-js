@@ -25,21 +25,22 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheHelper } from "../cache/utils/CacheHelper";
 import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
+import { ICacheStorage } from "../cache/interface/ICacheStorage";
 
 /**
  * Class that handles response parsing.
  */
 export class ResponseHandler {
     private clientId: string;
-    private uCacheManager: UnifiedCacheManager;
+    private cacheStorage: ICacheStorage;
     private cryptoObj: ICrypto;
     private logger: Logger;
     private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
 
-    constructor(clientId: string, unifiedCacheManager: UnifiedCacheManager, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheStorage: ICacheStorage, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
-        this.uCacheManager = unifiedCacheManager;
+        this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
     }
@@ -119,7 +120,7 @@ export class ResponseHandler {
         // save the response tokens
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId);
-        this.uCacheManager.saveCacheRecord(cacheRecord, responseScopes);
+        UnifiedCacheManager.saveCacheRecord(this.cacheStorage, cacheRecord, this.clientId, responseScopes);
 
         const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
