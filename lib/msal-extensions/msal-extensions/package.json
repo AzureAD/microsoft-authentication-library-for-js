@@ -23,7 +23,7 @@
   "module": "dist/test.esm.js",
   "dependencies": {
     "msal-keytar": "0.1.0",
-    "lockfile": "1.0.4"
+      "proper-lockfile": "4.1.1"
   },
   "devDependencies": {
     "husky": "^4.2.5",

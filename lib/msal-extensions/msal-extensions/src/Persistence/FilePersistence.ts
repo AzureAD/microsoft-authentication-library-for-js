@@ -21,7 +21,7 @@ export class FilePersistence implements IPersistence {
     public async save(contents: string): Promise<void> {
         const writeFilePromise = promisify(writeFile);
         try {
-            await writeFilePromise(this.getLocation(), contents);
+            await writeFilePromise(this.getFilePath(), contents);
         } catch (err) {
             if (err) {
                 console.log(err);
@@ -33,7 +33,7 @@ export class FilePersistence implements IPersistence {
     public async load(): Promise<string> {
         const readFilePromise = promisify(readFile);
         try{
-            return await readFilePromise(this.getLocation(), "UTF-8");
+            return await readFilePromise(this.getFilePath(), "UTF-8");
         } catch (err) {
            console.log(err);
            throw err;
@@ -43,7 +43,7 @@ export class FilePersistence implements IPersistence {
    public async delete(): Promise<boolean> {
        const deleteFilePromise = promisify(unlink)
        try {
-           await deleteFilePromise(this.getLocation());
+           await deleteFilePromise(this.getFilePath());
            return true;
        } catch (err) {
            console.log(err);
@@ -51,7 +51,7 @@ export class FilePersistence implements IPersistence {
        }
    }
 
-    public getLocation(): string {
+    public getFilePath(): string {
         return this.filePath;
     }
 

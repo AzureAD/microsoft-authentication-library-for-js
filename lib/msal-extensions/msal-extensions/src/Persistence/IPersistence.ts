@@ -8,4 +8,5 @@ export interface IPersistence {
     load(): Promise<string>;
     delete(): Promise<boolean>;
     reloadNecessary(lastSync: number): boolean;
+    getFilePath(): string;
 }

@@ -4,8 +4,8 @@
  */
 
 import { pid } from "process";
-import {IPersistence} from "Persistence/IPersistence";
-// import { lock } from "proper-lockfile"
+import { IPersistence } from "Persistence/IPersistence";
+import { lock } from "proper-lockfile";
 
 export class PersistenceCachePlugin {
 
@@ -26,12 +26,12 @@ export class PersistenceCachePlugin {
         if (await this.persistence.reloadNecessary(this.lastSync) || this.currentCache == null) {
             console.log("Reload necessary");
             try {
-                // const lockReleaseCallback = await lock(await this.persistence.getLocation());
-                // console.log("Created read lock");
+                const lockReleaseCallback = await lock(await this.persistence.getFilePath());
+                console.log("Created read lock");
                 this.currentCache = await this.persistence.load();
                 this.lastSync = new Date().getTime();
-                // lockReleaseCallback();
-                // console.log("Released lock");
+                lockReleaseCallback();
+                console.log("Released lock");
             } catch (error) {
                 console.error(error);
                 throw error;
@@ -43,16 +43,16 @@ export class PersistenceCachePlugin {
     public async writeToStorage(diskState: string): Promise<void> {
         try {
             console.log("Node process id: " + pid );
-            // const lockReleaseCallback = await lock(await this.persistence.getLocation());
-            // console.log("Created lock");
+            const lockReleaseCallback = await lock(await this.persistence.getFilePath());
+            console.log("Created lock");
 
             this.currentCache = diskState;
             this.lastSync = new Date().getTime();
             await this.persistence.save(this.currentCache);
-            // lockReleaseCallback();
-            // console.log("Released lock")
+            lockReleaseCallback();
+            console.log("Released lock")
         } catch (error) {
-            console.error(error)
+            console.error(error);
             throw(error);
         }
     }

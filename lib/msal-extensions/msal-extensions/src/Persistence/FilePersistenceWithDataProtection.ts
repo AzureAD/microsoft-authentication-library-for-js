@@ -18,11 +18,11 @@ export class FilePersistenceWithDataProtection implements IPersistence {
     }
 
     public async save(contents: string): Promise<void> {
-        await setPassword(this.serviceName, this.filePersistence.getLocation(), contents);
+        await setPassword(this.serviceName, this.filePersistence.getFilePath(), contents);
     }
 
     public async load(): Promise<string | null> {
-         return await getPassword(this.serviceName, this.filePersistence.getLocation());
+         return await getPassword(this.serviceName, this.filePersistence.getFilePath());
     }
 
     public async delete(): Promise<boolean> {
@@ -31,5 +31,9 @@ export class FilePersistenceWithDataProtection implements IPersistence {
 
     public reloadNecessary(lastSync: number): boolean {
         return this.filePersistence.reloadNecessary(lastSync);
+    }
+
+    public getFilePath(): string {
+        return this.filePersistence.getFilePath();
     }
 }

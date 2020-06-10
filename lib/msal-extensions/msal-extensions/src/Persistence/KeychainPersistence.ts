@@ -42,4 +42,8 @@ export class KeychainPersistence implements IPersistence {
     public reloadNecessary(lastSync: number): boolean {
         return this.filePersistence.reloadNecessary(lastSync);
     }
+
+    public getFilePath(): string {
+        return this.filePersistence.getFilePath();
+    }
 }
