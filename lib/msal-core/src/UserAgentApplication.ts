@@ -551,6 +551,7 @@ export class UserAgentApplication {
                 if (!isLoginCall) {
                     this.cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${request.state}`, serverAuthenticationRequest.state, this.inCookie);
                     this.logger.verbose("State cached for redirect");
+                    this.logger.verbosePii(`State cached: ${serverAuthenticationRequest.state}`);
                 } else {
                     this.logger.verbose("Interaction type redirect but login call is true. State not cached");
                 }
@@ -558,6 +559,7 @@ export class UserAgentApplication {
                 window.renewStates.push(serverAuthenticationRequest.state);
                 window.requestType = isLoginCall ? Constants.login : Constants.renewToken;
                 this.logger.verbose("State saved to window");
+                this.logger.verbosePii(`State saved: ${serverAuthenticationRequest.state}`);
 
                 // Register callback to capture results from server
                 this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
