@@ -1050,7 +1050,8 @@ export class UserAgentApplication {
             let urlNavigate: string;
             if (this.authorityInstance.EndSessionEndpoint) {
                 urlNavigate = `${this.authorityInstance.EndSessionEndpoint}?${correlationIdParam}${postLogoutQueryParam}`;
-                this.logger.verbose(`EndSessionEndpoint found, urlNavigate set to: ${this.authorityInstance.EndSessionEndpoint}`);
+                this.logger.verbose("EndSessionEndpoint found and urlNavigate set");
+                this.logger.verbosePii(`urlNavigate set to: ${this.authorityInstance.EndSessionEndpoint}`);
             } else {
                 urlNavigate = `${this.authority}oauth2/v2.0/logout?${correlationIdParam}${postLogoutQueryParam}`;
                 this.logger.verbose("No endpoint, urlNavigate set to default");
