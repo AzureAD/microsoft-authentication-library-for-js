@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
@@ -643,6 +644,8 @@ export class UserAgentApplication {
      * @param request
      */
     ssoSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+        this.logger.verbose("ssoSilent has been called");
+        
         // throw an error on an empty request
         if (!request) {
             throw ClientConfigurationError.createEmptyRequestError();
@@ -1011,6 +1014,7 @@ export class UserAgentApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      */
     logout(correlationId?: string): void {
+        this.logger.verbose("Logout has been called");
         this.logoutAsync(correlationId);
     }
 
@@ -1035,15 +1039,27 @@ export class UserAgentApplication {
 
             const correlationIdParam = `client-request-id=${requestCorrelationId}`;
 
-            const postLogoutQueryParam = this.getPostLogoutRedirectUri()
-                ? `&post_logout_redirect_uri=${encodeURIComponent(this.getPostLogoutRedirectUri())}`
-                : "";
+            let postLogoutQueryParam: string;
+            if (this.getPostLogoutRedirectUri()) {
+                postLogoutQueryParam = `&post_logout_redirect_uri=${encodeURIComponent(this.getPostLogoutRedirectUri())}`;
+                this.logger.verbose("redirectUri found and set");
+            } else {
+                postLogoutQueryParam = "";
+                this.logger.verbose("No redirectUri set for app. postLogoutQueryParam is empty");
+            }
 
-            const urlNavigate = this.authorityInstance.EndSessionEndpoint
-                ? `${this.authorityInstance.EndSessionEndpoint}?${correlationIdParam}${postLogoutQueryParam}`
-                : `${this.authority}oauth2/v2.0/logout?${correlationIdParam}${postLogoutQueryParam}`;
+            let urlNavigate: string;
+            if (this.authorityInstance.EndSessionEndpoint) {
+                urlNavigate = `${this.authorityInstance.EndSessionEndpoint}?${correlationIdParam}${postLogoutQueryParam}`;
+                this.logger.verbose(`EndSessionEndpoint found, urlNavigate set to: ${this.authorityInstance.EndSessionEndpoint}`);
+            } else {
+                urlNavigate = `${this.authority}oauth2/v2.0/logout?${correlationIdParam}${postLogoutQueryParam}`;
+                this.logger.verbose("No endpoint, urlNavigate set to default");
+            }
 
             this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, true);
+
+            this.logger.verbose("Navigating window to urlNavigate");
             this.navigateWindow(urlNavigate);
         } catch (error) {
             this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, false, error.errorCode);
