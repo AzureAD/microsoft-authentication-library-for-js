@@ -287,10 +287,13 @@ export class UserAgentApplication {
      * @param hash
      */
     public urlContainsHash(hash: string) {
+        this.logger.verbose("urlContainsHash has been called");
         return UrlUtils.urlContainsHash(hash);
     }
 
     private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
+        this.logger.verbose("authResponseHandler has been called");
+
         if (interactionType === Constants.interactionTypeRedirect) {
             if (this.errorReceivedCallback) {
                 this.tokenReceivedCallback(response);
@@ -298,6 +301,7 @@ export class UserAgentApplication {
                 this.authResponseCallback(null, response);
             }
         } else if (interactionType === Constants.interactionTypePopup) {
+            this.logger.verbose("Interaction type is popup, resolving");
             resolve(response);
         } else {
             throw ClientAuthError.createInvalidInteractionTypeError();
@@ -305,6 +309,8 @@ export class UserAgentApplication {
     }
 
     private authErrorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: any) : void {
+        this.logger.verbose("authErrorHandler has been called");
+
         // set interaction_status to complete
         this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         if (interactionType === Constants.interactionTypeRedirect) {
@@ -314,6 +320,7 @@ export class UserAgentApplication {
                 this.authResponseCallback(authErr, response);
             }
         } else if (interactionType === Constants.interactionTypePopup) {
+            this.logger.verbose("Interaction type is popup, rejecting");
             reject(authErr);
         } else {
             throw ClientAuthError.createInvalidInteractionTypeError();
