@@ -221,7 +221,7 @@ export class SPAClient extends BaseClient {
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
         }
-		
+
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
@@ -277,7 +277,7 @@ export class SPAClient extends BaseClient {
             if (acquireTokenAuthority.authorityType == AuthorityType.Adfs){
                 throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
             }
-	
+
             if (!acquireTokenAuthority.discoveryComplete()) {
                 try {
                     await acquireTokenAuthority.resolveEndpointsAsync();
@@ -426,11 +426,14 @@ export class SPAClient extends BaseClient {
      */
     private isTokenExpired(expiresOn: string): boolean {
         // check for access token expiry
-        const expirationSec = Number(expiresOn);
+        let expirationSec = Number(expiresOn);
         const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
 
         // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        return (expirationSec && expirationSec > offsetCurrentTimeSec);
+        if (!expirationSec) {
+            expirationSec = 0;
+        }
+        return (expirationSec > offsetCurrentTimeSec);
     }
 
     /**
