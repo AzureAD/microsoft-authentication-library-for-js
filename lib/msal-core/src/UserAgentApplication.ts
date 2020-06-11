@@ -1094,6 +1094,7 @@ export class UserAgentApplication {
      * @ignore
      */
     protected clearCache(): void {
+        this.logger.verbose("Clearing cache");
         window.renewStates = [];
         const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
         for (let i = 0; i < accessTokenItems.length; i++) {
@@ -1102,6 +1103,7 @@ export class UserAgentApplication {
         this.cacheStorage.resetCacheItems();
         // state not being sent would mean this call may not be needed; check later
         this.cacheStorage.clearMsalCookie();
+        this.logger.verbose("Cache cleared");
     }
 
     /**
@@ -1111,6 +1113,8 @@ export class UserAgentApplication {
      * @param accessToken
      */
     protected clearCacheForScope(accessToken: string) {
+        this.logger.verbose("Clearing access token from cache");
+        this.logger.verbosePii(`Access token: ${accessToken}`);
         const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
         for (let i = 0; i < accessTokenItems.length; i++) {
             const token = accessTokenItems[i];
