@@ -5,6 +5,7 @@
 
 import { Credential } from "./Credential";
 import { CredentialType } from "../../utils/Constants";
+import { TimeUtils } from '../../utils/TimeUtils';
 
 /**
  * ACCESS_TOKEN Credential Type
@@ -46,11 +47,9 @@ export class AccessTokenEntity extends Credential {
         atEntity.credentialType = CredentialType.ACCESS_TOKEN;
         atEntity.secret = accessToken;
 
-        const date = new Date();
-        const currentTime = date.getMilliseconds() / 1000;
+        const currentTime = TimeUtils.nowSeconds();
         atEntity.cachedAt = currentTime.toString();
 
-        // TODO: Crosscheck the exact conversion UTC
         // Token expiry time.
         // This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
         atEntity.expiresOn = expiresOn.toString();
