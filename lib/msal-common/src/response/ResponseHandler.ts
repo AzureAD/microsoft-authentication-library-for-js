@@ -106,7 +106,6 @@ export class ResponseHandler {
      * @param authority
      */
     generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string): AuthenticationResult {
-
         // create an idToken object (not entity)
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 

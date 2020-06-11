@@ -2,17 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-import { AccountEntity } from "../entities/AccountEntity";
-import { IdTokenEntity } from "../entities/IdTokenEntity";
-import { AccessTokenEntity } from "../entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
-import { AppMetadataEntity } from "../entities/AppMetadataEntity";
-import { CacheHelper } from "../utils/CacheHelper";
 import { AccountCacheMaps, IdTokenCacheMaps, AccessTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
-import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, InMemoryCache, JsonCache } from "../utils/CacheTypes";
-import { StringDict } from "../../utils/MsalTypes";
-import { StringUtils } from "../../utils/StringUtils";
+import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, StringDict, CacheHelper, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
+import { JsonCache, InMemoryCache } from "./SerializerTypes";
 
 // TODO: Can we write this with Generics?
 export class Deserializer {
@@ -33,7 +25,7 @@ export class Deserializer {
      * @param accounts
      */
     static deserializeAccounts(accounts: StringDict): AccountCache {
-        const accountObjects = {};
+        const accountObjects: AccountCache = {};
         Object.keys(accounts).map(function (key) {
             const mappedAcc = CacheHelper.renameKeys(
                 accounts[key],
@@ -52,7 +44,7 @@ export class Deserializer {
      * @param idTokens
      */
     static deserializeIdTokens(idTokens: StringDict): IdTokenCache {
-        const idObjects = {};
+        const idObjects: IdTokenCache = {};
         Object.keys(idTokens).map(function (key) {
             const mappedIdT = CacheHelper.renameKeys(
                 idTokens[key],
@@ -71,7 +63,7 @@ export class Deserializer {
      * @param accessTokens
      */
     static deserializeAccessTokens(accessTokens: StringDict): AccessTokenCache {
-        const atObjects = {};
+        const atObjects: AccessTokenCache = {};
         Object.keys(accessTokens).map(function (key) {
             const mappedAT = CacheHelper.renameKeys(
                 accessTokens[key],
@@ -90,7 +82,7 @@ export class Deserializer {
      * @param refreshTokens
      */
     static deserializeRefreshTokens(refreshTokens: StringDict): RefreshTokenCache {
-        const rtObjects = {};
+        const rtObjects: RefreshTokenCache = {};
         Object.keys(refreshTokens).map(function (key) {
             const mappedRT = CacheHelper.renameKeys(
                 refreshTokens[key],
@@ -109,7 +101,7 @@ export class Deserializer {
      * @param appMetadata
      */
     static deserializeAppMetadata(appMetadata: StringDict): AppMetadataCache {
-        const appMetadataObjects = {};
+        const appMetadataObjects: AppMetadataCache = {};
         Object.keys(appMetadata).map(function (key) {
             const mappedAmd = CacheHelper.renameKeys(
                 appMetadata[key],

@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 import { AccountCacheMaps, AccessTokenCacheMaps, IdTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
-import { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "../utils/CacheTypes";
-import { CacheHelper } from "../utils/CacheHelper";
+import { AccountCache, CacheHelper, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
 
 export class EntitySerializer {
     /**

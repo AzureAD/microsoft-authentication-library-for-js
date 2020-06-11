@@ -3,43 +3,28 @@
  * Licensed under the MIT License.
  */
 
-import { InMemoryCache } from "../utils/CacheTypes";
-
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
  */
 export interface ICacheStorage {
     /**
-     * Function to read serialized Cache from disk
-     * @param key
-     * @param value
-     */
-    getCache(): object;
-
-    /**
-     * Function to write serialized Cache to disk
-     * @param cache
-     */
-    setCache(cache: InMemoryCache): void;
-
-    /**
      * Function to set item in cache.
      * @param key
      * @param value
      */
-    setItem(key: string, value: string | object, type?: string, inMemory?: boolean): void;
+    setItem(key: string, value: string | object, type?: string): void;
 
     /**
      * Function which retrieves item from cache.
      * @param key
      */
-    getItem(key: string, type?: string, inMemory?: boolean): string | object;
+    getItem(key: string, type?: string): string | object;
 
     /**
      * Function to remove an item from cache given its key.
      * @param key
      */
-    removeItem(key: string, type?: string, inMemory?: boolean): boolean;
+    removeItem(key: string, type?: string): boolean;
 
     /**
      * Function which returns boolean whether cache contains a specific key.

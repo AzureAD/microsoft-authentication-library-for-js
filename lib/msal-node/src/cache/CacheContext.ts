@@ -3,8 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { JsonCache, Deserializer } from '@azure/msal-common';
 import { Storage } from '../cache/Storage';
+import { JsonCache } from "./serializer/SerializerTypes";
+import { Deserializer } from "./serializer/Deserializer";
 
 /**
  * class managing sync between the persistent cache blob in the disk and the in memory cache of the node

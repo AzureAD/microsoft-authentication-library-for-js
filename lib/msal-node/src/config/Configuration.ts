@@ -5,12 +5,12 @@
 import {
     LoggerOptions,
     INetworkModule,
-    LogLevel,
-    InMemoryCache,
+    LogLevel
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
 import { CACHE } from '../utils/Constants';
 import debug from 'debug';
+import { InMemoryCache } from "cache/serializer/SerializerTypes";
 
 /**
  * - clientId               - Client id of the application.

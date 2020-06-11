@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CacheHelper } from "../utils/CacheHelper";
+import { CacheHelper } from "@azure/msal-common";
 
 /**
  * Map for AccountCache entity serialization and deserialization

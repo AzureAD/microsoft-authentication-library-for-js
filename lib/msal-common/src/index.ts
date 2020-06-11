@@ -20,9 +20,7 @@ export { AuthorityType } from "./authority/AuthorityType";
 // Cache
 export { ICacheStorage } from "./cache/interface/ICacheStorage";
 export { UnifiedCacheManager } from "./cache/UnifiedCacheManager";
-export { JsonCache, InMemoryCache } from "./cache/utils/CacheTypes";
-export { Serializer } from "./cache/serialize/Serializer";
-export { Deserializer } from "./cache/serialize/Deserializer";
+export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "./cache/utils/CacheTypes";
 export { CacheHelper } from "./cache/utils/CacheHelper";
 export { Credential } from "./cache/entities/Credential";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";

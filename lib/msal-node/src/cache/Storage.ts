@@ -4,7 +4,6 @@
  */
 import {
     ICacheStorage,
-    InMemoryCache,
     CredentialType,
     CacheSchemaType,
     CacheHelper,
@@ -15,6 +14,9 @@ import {
     AppMetadataEntity
 } from '@azure/msal-common';
 import { CacheOptions } from '../config/Configuration';
+import { Deserializer } from "./serializer/Deserializer";
+import { Serializer } from "./serializer/Serializer";
+import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -286,5 +288,23 @@ export class Storage implements ICacheStorage {
                 this.removeItem(internalKey);
             });
         });
+    }
+
+    /**
+     * Initialize in memory cache from an exisiting cache vault
+     * @param cache
+     */
+    static generateInMemoryCache(cache: string): InMemoryCache {
+        return Deserializer.deserializeAllCache(
+            Deserializer.deserializeJSONBlob(cache)
+        );
+    }
+
+    /**
+     * retrieves the final JSON
+     * @param inMemoryCache
+     */
+    static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {
+        return Serializer.serializeAllCache(inMemoryCache);
     }
 }
