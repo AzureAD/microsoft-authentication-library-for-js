@@ -3,8 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict } from "../../utils/MsalTypes";
-
 import { AccountEntity } from "../entities/AccountEntity";
 import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
@@ -18,22 +16,6 @@ export type RefreshTokenCache = { [key: string]: RefreshTokenEntity };
 export type AppMetadataCache = { [key: string]: AppMetadataEntity };
 export type CredentialCache = {
     [key: string]: AccessTokenEntity | IdTokenEntity | RefreshTokenEntity;
-};
-
-export type JsonCache = {
-    Account?: StringDict;
-    IdToken?: StringDict;
-    AccessToken?: StringDict;
-    RefreshToken?: StringDict;
-    AppMetadata?: StringDict;
-};
-
-export type InMemoryCache = {
-    accounts: AccountCache;
-    idTokens: IdTokenCache;
-    accessTokens: AccessTokenCache;
-    refreshTokens: RefreshTokenCache;
-    appMetadata: AppMetadataCache;
 };
 
 /**

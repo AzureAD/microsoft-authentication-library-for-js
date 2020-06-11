@@ -16,7 +16,7 @@
         "resolveJsonModule": true
     },
     "include": [
-        "src/**/*", "src/cache/serialize/.ts"
+        "src/**/*"
     ],
     "exclude": [
         "node_modules"

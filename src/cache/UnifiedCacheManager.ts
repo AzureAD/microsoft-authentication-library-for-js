@@ -4,15 +4,11 @@
  */
 
 import {
-    InMemoryCache,
-    JsonCache,
     AccountFilter,
-    CredentialFilter,
+    CredentialFilter
 } from "./utils/CacheTypes";
 import { AccountEntity } from "./entities/AccountEntity";
 import { ICacheStorage } from "./interface/ICacheStorage";
-import { Deserializer } from "./serialize/Deserializer";
-import { Serializer } from "./serialize/Serializer";
 import { Credential } from "./entities/Credential";
 import { CredentialType, CacheSchemaType, Constants } from "../utils/Constants";
 import { AccountCache, CredentialCache } from "./utils/CacheTypes";
@@ -25,25 +21,7 @@ import { ScopeSet } from "../request/ScopeSet";
 export class UnifiedCacheManager {
 
     /**
-     * Initialize in memory cache from an exisiting cache vault
-     * @param cache
-     */
-    static generateInMemoryCache(cache: string): InMemoryCache {
-        return Deserializer.deserializeAllCache(
-            Deserializer.deserializeJSONBlob(cache)
-        );
-    }
-
-    /**
-     * retrieves the final JSON
-     * @param inMemoryCache
-     */
-    static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {
-        return Serializer.serializeAllCache(inMemoryCache);
-    }
-
-    /**
-     * Returns all accounts in memory
+     * Returns all accounts in cache
      */
     static getAllAccounts(cacheStorage: ICacheStorage): AccountCache {
         return this.getAccountsFilteredBy(cacheStorage);
@@ -53,24 +31,23 @@ export class UnifiedCacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    static saveCacheRecord(cacheStorage: ICacheStorage, cacheRecord: CacheRecord, clientId: string, responseScopes: ScopeSet, inMemory?: boolean): void {
-        this.saveAccount(cacheStorage, cacheRecord.account, inMemory);
-        this.saveCredential(cacheStorage, cacheRecord.idToken, inMemory);
-        this.saveAccessToken(cacheStorage, cacheRecord.accessToken, clientId, responseScopes, inMemory);
-        this.saveCredential(cacheStorage, cacheRecord.refreshToken, inMemory);
+    static saveCacheRecord(cacheStorage: ICacheStorage, cacheRecord: CacheRecord, clientId: string, responseScopes: ScopeSet): void {
+        this.saveAccount(cacheStorage, cacheRecord.account);
+        this.saveCredential(cacheStorage, cacheRecord.idToken);
+        this.saveAccessToken(cacheStorage, cacheRecord.accessToken, clientId, responseScopes);
+        this.saveCredential(cacheStorage, cacheRecord.refreshToken);
     }
 
     /**
      * saves account into cache
      * @param account
      */
-    private static saveAccount(cacheStorage: ICacheStorage, account: AccountEntity, inMemory?: boolean): void {
+    private static saveAccount(cacheStorage: ICacheStorage, account: AccountEntity): void {
         const key = account.generateAccountKey();
         cacheStorage.setItem(
             key,
             account,
-            CacheSchemaType.ACCOUNT,
-            inMemory
+            CacheSchemaType.ACCOUNT
         );
     }
 
@@ -78,13 +55,12 @@ export class UnifiedCacheManager {
      * saves credential - accessToken, idToken or refreshToken into cache
      * @param credential
      */
-    private static saveCredential(cacheStorage: ICacheStorage, credential: Credential, inMemory?: boolean): void {
+    private static saveCredential(cacheStorage: ICacheStorage, credential: Credential): void {
         const key = credential.generateCredentialKey();
         cacheStorage.setItem(
             key,
             credential,
-            CacheSchemaType.CREDENTIAL,
-            inMemory
+            CacheSchemaType.CREDENTIAL
         );
     }
 
@@ -92,7 +68,7 @@ export class UnifiedCacheManager {
      * saves access token credential
      * @param credential 
      */
-    private static saveAccessToken(cacheStorage: ICacheStorage, credential: AccessTokenEntity, clientId: string, responseScopes: ScopeSet, inMemory?: boolean): void {
+    private static saveAccessToken(cacheStorage: ICacheStorage, credential: AccessTokenEntity, clientId: string, responseScopes: ScopeSet): void {
         const currentTokenCache = this.getCredentialsFilteredBy(
             cacheStorage,
             {
@@ -108,22 +84,21 @@ export class UnifiedCacheManager {
             currentAccessTokens.forEach((tokenEntity) => {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target, clientId);
                 if (tokenScopeSet.intersectingScopeSets(responseScopes)) {
-                    this.removeCredential(cacheStorage, tokenEntity, inMemory);
+                    this.removeCredential(cacheStorage, tokenEntity);
                 }
             });
         }
-        this.saveCredential(cacheStorage, credential, inMemory);
+        this.saveCredential(cacheStorage, credential);
     }
 
     /**
      * Given account key retrieve an account
      * @param key
      */
-    static getAccount(cacheStorage: ICacheStorage, key: string, inMemory?: boolean): AccountEntity {
+    static getAccount(cacheStorage: ICacheStorage, key: string): AccountEntity {
         const account = cacheStorage.getItem(
             key,
-            CacheSchemaType.ACCOUNT,
-            inMemory
+            CacheSchemaType.ACCOUNT
         ) as AccountEntity;
         return account;
     }
@@ -132,11 +107,10 @@ export class UnifiedCacheManager {
      * retrieve a credential - accessToken, idToken or refreshToken; given the cache key
      * @param key
      */
-    static getCredential(cacheStorage: ICacheStorage, key: string, inMemory?: boolean): Credential {
+    static getCredential(cacheStorage: ICacheStorage, key: string): Credential {
         return cacheStorage.getItem(
             key,
-            CacheSchemaType.CREDENTIAL,
-            inMemory
+            CacheSchemaType.CREDENTIAL
         ) as Credential;
     }
 
@@ -298,16 +272,16 @@ export class UnifiedCacheManager {
      * returns a boolean if the given account is removed
      * @param account
      */
-    static removeAccount(cacheStorage: ICacheStorage, accountKey: string, inMemory?: boolean): boolean {
+    static removeAccount(cacheStorage: ICacheStorage, accountKey: string): boolean {
         const account = this.getAccount(cacheStorage, accountKey) as AccountEntity;
-        return (this.removeAccountContext(cacheStorage, account, inMemory) && cacheStorage.removeItem(accountKey, CacheSchemaType.ACCOUNT));
+        return (this.removeAccountContext(cacheStorage, account) && cacheStorage.removeItem(accountKey, CacheSchemaType.ACCOUNT));
     }
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    static removeAccountContext(cacheStorage: ICacheStorage, account: AccountEntity, inMemory?: boolean): boolean {
+    static removeAccountContext(cacheStorage: ICacheStorage, account: AccountEntity): boolean {
         const allCacheKeys = cacheStorage.getKeys();
         const accountId = account.generateAccountId();
 
@@ -317,10 +291,10 @@ export class UnifiedCacheManager {
                 return;
             }
 
-            const cacheEntity: Credential = cacheStorage.getItem(cacheKey, CacheSchemaType.CREDENTIAL, inMemory) as Credential;
+            const cacheEntity: Credential = cacheStorage.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as Credential;
 
             if (!!cacheEntity && accountId === cacheEntity.generateAccountId()) {
-                this.removeCredential(cacheStorage, cacheEntity, inMemory);
+                this.removeCredential(cacheStorage, cacheEntity);
             }
         });
 
@@ -331,8 +305,8 @@ export class UnifiedCacheManager {
      * returns a boolean if the given credential is removed
      * @param credential
      */
-    static removeCredential(cacheStorage: ICacheStorage, credential: Credential, inMemory?: boolean): boolean {
+    static removeCredential(cacheStorage: ICacheStorage, credential: Credential): boolean {
         const key = credential.generateCredentialKey();
-        return cacheStorage.removeItem(key, CacheSchemaType.CREDENTIAL, inMemory);
+        return cacheStorage.removeItem(key, CacheSchemaType.CREDENTIAL);
     }
 }
