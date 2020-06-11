@@ -124,7 +124,7 @@ describe("UserAgentApplication.ts Class", function () {
         accessTokenKey = {
             authority: TEST_CONFIG.validAuthority,
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
-            scopes: "S1 openid profile",
+            scopes: "s1 openid profile",
             homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
         };
         accessTokenValue = {
@@ -605,6 +605,114 @@ describe("UserAgentApplication.ts Class", function () {
             msal.loginRedirect({});
         });
 
+        it("loginRedirect does not navigate if onRedirectNavigate is implemented and returns false", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    throw new Error("window.location.assign should not be called when onRedirectNavigate returns false");
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.loginRedirect({
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+
+                    done();
+                    return false;
+                }
+            })
+        });
+
+        it("acquireTokenRedirect does not navigate if onRedirectNavigate is implemented and returns false", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    throw new Error("window.location.assign should not be called when onRedirectNavigate returns false");
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.acquireTokenRedirect({
+                scopes: [ "user.read" ],
+                account,
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+
+                    done();
+                    return false;
+                }
+            })
+        });
+
+        it("navigates if onRedirectNavigate returns null", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    expect(url).to.not.be.null;
+                    done();
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.loginRedirect({
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+                }
+            })
+        });
+
+        it("navigates if onRedirectNavigate returns true", done => {
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                hash: "",
+                assign: function (url) {
+                    expect(url).to.not.be.null;
+                    done();
+                }
+            };
+
+            msal = new UserAgentApplication(config);
+            msal.handleRedirectCallback(authCallback);
+            msal.loginRedirect({
+                onRedirectNavigate: url => {
+                    expect(url).to.be.not.null;
+
+                    return true
+                }
+            })
+        });
+
         it("exits login function with error if interaction is true", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
             window.location = oldWindowLocation;
@@ -650,7 +758,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("Account is cached on acquireTokenRedirect call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["S1"], 
+                scopes: ["s1"], 
                 account: account
             };
 
@@ -675,7 +783,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("State is cached on acquireTokenRedirect call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["S1"], 
+                scopes: ["s1"], 
                 account: account
             };
 
@@ -697,20 +805,45 @@ describe("UserAgentApplication.ts Class", function () {
             msal.acquireTokenRedirect(tokenRequest);
         });
 
-        it("tests if error is thrown when null scopes are passed", function (done) {	
-            msal.handleRedirectCallback(authCallback);	
-            let authErr: AuthError;	
-            try {	
-                msal.acquireTokenRedirect({});	
-            } catch (e) {	
-                authErr = e;	
-            }	
-            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);	
-            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);	
-            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);	
-            expect(authErr.name).to.equal("ClientConfigurationError");	
-            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");	
-            done();	
+        it("LoginStartPage is cached on acquireTokenRedirect call", (done) => {
+            const tokenRequest: AuthenticationParameters = {
+                scopes: ["s1"], 
+                account: account
+            };
+
+            window.location = {
+                ...oldWindowLocation,
+                assign: function (url) {
+                    try {
+                        const loginRequestUrl = window.location.href;
+                        const state = UrlUtils.deserializeHash(url).state;
+
+                        expect(cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${state}`)).to.be.equal(loginRequestUrl);
+                        done();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+
+            msal.handleRedirectCallback(authCallback);
+            msal.acquireTokenRedirect(tokenRequest);
+        });
+
+        it("tests if error is thrown when null scopes are passed", function (done) {
+            msal.handleRedirectCallback(authCallback);
+            let authErr: AuthError;
+            try {
+                msal.acquireTokenRedirect({});
+            } catch (e) {
+                authErr = e;
+            }
+            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
+            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
+            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
+            expect(authErr.name).to.equal("ClientConfigurationError");
+            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+            done();
         });
 
         it("tests if error is thrown when empty array of scopes are passed", function (done) {
@@ -892,7 +1025,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                scopes: ["S1", "openid", "profile"],
+                scopes: ["s1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -916,7 +1049,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken when authority is not passed and multiple accessTokens are present in the cache for a set of scopes", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                scopes: ["S1"],
+                scopes: ["s1"],
                 account: account
             };
             const params: kv = {  };
@@ -924,7 +1057,7 @@ describe("UserAgentApplication.ts Class", function () {
             setUtilUnifiedCacheQPStubs(params);
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.scopes = "S1 S2";
+            accessTokenKey.scopes = "s1 s2";
             accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -943,7 +1076,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken without sending authority when no matching accesstoken is found and multiple authorities exist", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                scopes: ["S3"],
+                scopes: ["s3"],
                 account: account
             };
             const params: kv = {  };
@@ -951,7 +1084,7 @@ describe("UserAgentApplication.ts Class", function () {
             setUtilUnifiedCacheQPStubs(params);
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.scopes = "S2";
+            accessTokenKey.scopes = "s2";
             accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -971,12 +1104,12 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and single matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["S1", "openid", "profile"],
+                scopes: ["s1", "openid", "profile"],
                 account: account
             };
             const tokenRequest2 : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
-                scopes: ["S1", "openid", "profile"],
+                scopes: ["s1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -1018,7 +1151,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and multiple matching accessTokens are found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["S1"],
+                scopes: ["s1"],
                 account: account
             };
             const params: kv = {  };
@@ -1026,7 +1159,7 @@ describe("UserAgentApplication.ts Class", function () {
             setUtilUnifiedCacheQPStubs(params);
             accessTokenKey.authority = accessTokenKey.authority + "/";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.scopes = "S1 S2";
+            accessTokenKey.scopes = "s1 s2";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
@@ -1044,20 +1177,21 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and no matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
-                scopes: ["S1"],
+                scopes: ["s1"],
                 account: account
             };
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
-                expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include("&state");
-                expect(url).to.include("&client_info=1");
-                done();
-                return {};
+                return new Promise<void>(() => {
+                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).to.include("&state");
+                    expect(url).to.include("&client_info=1");
+                    done();
+                });
             });
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -1074,7 +1208,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and single matching accessToken is found which is expired", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
-                scopes: ["S1", "openid", "profile"],
+                scopes: ["s1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -1082,14 +1216,15 @@ describe("UserAgentApplication.ts Class", function () {
             setUtilUnifiedCacheQPStubs(params);
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
-                expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
-                expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include("&state");
-                expect(url).to.include("&client_info=1");
-                done();
-                return {};
+                return new Promise<void>(() => {
+                    expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
+                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).to.include("&state");
+                    expect(url).to.include("&client_info=1");
+                    done();
+                });
             });
 
             accessTokenValue.expiresIn = "1300";
@@ -1113,7 +1248,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["S1",],
+                scopes: ["s1",],
                 account: account,
                 claimsRequest: JSON.stringify(claimsRequestObj)
             };
@@ -1123,15 +1258,16 @@ describe("UserAgentApplication.ts Class", function () {
             const cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
-                expect(cacheCallSpy.notCalled).to.be.true;
-                expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include("&state");
-                expect(url).to.include("&client_info=1");
-                expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
-                done();
-                return {};
+                return new Promise<void>(() => {
+                    expect(cacheCallSpy.notCalled).to.be.true;
+                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).to.include("&state");
+                    expect(url).to.include("&client_info=1");
+                    expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
+                    done();
+                });
             });
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -1149,7 +1285,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["S1"],
+                scopes: ["s1"],
                 account: account,
                 forceRefresh: true
             };
@@ -1160,14 +1296,15 @@ describe("UserAgentApplication.ts Class", function () {
             const cacheCallSpy = sinon.spy(msal, <any>"getCachedToken");
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
-                expect(cacheCallSpy.notCalled).to.be.true;
-                expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                expect(url).to.include("&state");
-                expect(url).to.include("&client_info=1");
-                done();
-                return {};
+                return new Promise<void>(() => {
+                    expect(cacheCallSpy.notCalled).to.be.true;
+                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).to.include("&state");
+                    expect(url).to.include("&client_info=1");
+                    done();
+                });
             });
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -1899,7 +2036,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("Account is cached on acquireTokenPopup call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["S1"], 
+                scopes: ["s1"], 
                 account: account
             };
 
