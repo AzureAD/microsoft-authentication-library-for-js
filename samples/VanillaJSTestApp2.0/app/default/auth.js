@@ -25,7 +25,9 @@ function authRedirectCallBack(error, response) {
             console.log('id_token acquired at: ' + new Date().toString());
             showWelcomeMessage(myMSALObj.getAccount());
             getTokenRedirect(loginRequest);
-        } else if (response.tokenType === "Bearer") {
+        } 
+        
+        if (response.tokenType === "Bearer") {
             console.log('access_token acquired at: ' + new Date().toString());
         } else {
             console.log("token type is:" + response.tokenType);
