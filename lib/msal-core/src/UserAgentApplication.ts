@@ -287,17 +287,20 @@ export class UserAgentApplication {
      * @param hash
      */
     public urlContainsHash(hash: string) {
-        this.logger.verbose("urlContainsHash has been called");
+        this.logger.verbose("UrlContainsHash has been called");
         return UrlUtils.urlContainsHash(hash);
     }
 
     private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
-        this.logger.verbose("authResponseHandler has been called");
+        this.logger.verbose("AuthResponseHandler has been called");
 
         if (interactionType === Constants.interactionTypeRedirect) {
+            this.logger.verbose("Interaction type is redirect");
             if (this.errorReceivedCallback) {
+                this.logger.verbose("ErrorReceivedCallback is not null, calling tokenReceivedCallback with response");
                 this.tokenReceivedCallback(response);
             } else if (this.authResponseCallback) {
+                this.logger.verbose("AuthResponseCallback is not null, calling authResponseCallback with null and response");
                 this.authResponseCallback(null, response);
             }
         } else if (interactionType === Constants.interactionTypePopup) {
@@ -309,14 +312,17 @@ export class UserAgentApplication {
     }
 
     private authErrorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: any) : void {
-        this.logger.verbose("authErrorHandler has been called");
+        this.logger.verbose("AuthErrorHandler has been called");
 
         // set interaction_status to complete
         this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         if (interactionType === Constants.interactionTypeRedirect) {
+            this.logger.verbose("Interaction type is redirect");
             if (this.errorReceivedCallback) {
+                this.logger.verbose("ErrorReceivedCallback is not null, calling errorReceivedCallback with authError and response.accountState");
                 this.errorReceivedCallback(authErr, response.accountState);
             } else {
+                this.logger.verbose("ErrorReceivedCallback is null, calling authResponseCallback with authError and response");
                 this.authResponseCallback(authErr, response);
             }
         } else if (interactionType === Constants.interactionTypePopup) {
@@ -1114,12 +1120,12 @@ export class UserAgentApplication {
      */
     protected clearCacheForScope(accessToken: string) {
         this.logger.verbose("Clearing access token from cache");
-        this.logger.verbosePii(`Access token: ${accessToken}`);
         const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
         for (let i = 0; i < accessTokenItems.length; i++) {
             const token = accessTokenItems[i];
             if (token.value.accessToken === accessToken) {
                 this.cacheStorage.removeItem(JSON.stringify(token.key));
+                this.logger.info(`Access token removed: ${token.key}`);
             }
         }
     }
