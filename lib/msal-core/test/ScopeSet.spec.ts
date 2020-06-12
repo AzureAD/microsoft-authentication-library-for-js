@@ -47,7 +47,7 @@ describe("ScopeSet.ts", () => {
         });
     });
 
-    describe("trimAndConvertToLowerCase", function() {
+    describe("trimAndConvertArrayToLowerCase", function() {
         it("should downcase and remove all whitespace from all scope strings in scopes array passed in", () => {
             const scopeSet = ["S1", " S2", " S3 "];
             expect(ScopeSet.trimAndConvertArrayToLowerCase(scopeSet)).to.be.deep.eq(["s1", "s2", "s3"]);         
