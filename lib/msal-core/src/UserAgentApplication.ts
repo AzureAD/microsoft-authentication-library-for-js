@@ -520,7 +520,7 @@ export class UserAgentApplication {
             // On Fulfillment
             const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
             const loginStartPage = request.redirectStartPage || window.location.href;
-
+            
             serverAuthenticationRequest = new ServerRequestParameters(
                 acquireTokenAuthority,
                 this.clientId,
@@ -530,7 +530,7 @@ export class UserAgentApplication {
                 request.state,
                 request.correlationId
             );
-
+            
             this.updateCacheEntries(serverAuthenticationRequest, account, isLoginCall, loginStartPage);
 
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
@@ -2218,7 +2218,7 @@ export class UserAgentApplication {
     private buildIDTokenRequest(request: AuthenticationParameters): AuthenticationParameters {
 
         const tokenRequest: AuthenticationParameters = {
-            scopes: [this.clientId],
+            scopes: [...request.scopes],
             authority: this.authority,
             account: this.getAccount(),
             extraQueryParameters: request.extraQueryParameters,

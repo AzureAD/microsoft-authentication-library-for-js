@@ -132,7 +132,6 @@ export class ScopeSet {
      */
     static appendScopes(reqScopes: Array<string>, scopesToAppend: Array<string>): Array<string> {
         if(reqScopes) {
-            return scopesToAppend ? [...reqScopes, ...scopesToAppend]: reqScopes;
             const convertedScopesToAppend = scopesToAppend ? this.trimAndConvertArrayToLowerCase([...scopesToAppend]) : null;
             const convertedReqScopes = this.trimAndConvertArrayToLowerCase([...reqScopes]);
             return convertedScopesToAppend ? [...convertedReqScopes, ...convertedScopesToAppend] : convertedReqScopes;
@@ -151,17 +150,15 @@ export class ScopeSet {
         const loginScopes = [...scopes];
         const clientIdIndex: number = loginScopes.indexOf(clientId);
         
-        if (this.isLoginScopes(loginScopes, clientId)) {
-            if (clientIdIndex >= 0) {
-                // Splice removes clientId from scope set, which will be replaced by openid and profile
-                loginScopes.splice(clientIdIndex, 1);
-            }
-            if (loginScopes.indexOf(Constants.openidScope) === -1) {
-                loginScopes.push(Constants.openidScope);
-            }
-            if (loginScopes.indexOf(Constants.profileScope) === -1) {
-                loginScopes.push(Constants.profileScope);
-            }
+        if (clientIdIndex >= 0) {
+            // Splice removes clientId from scope set, which will be replaced by openid and profile
+            loginScopes.splice(clientIdIndex, 1);
+        }
+        if (loginScopes.indexOf(Constants.openidScope) === -1) {
+            loginScopes.push(Constants.openidScope);
+        }
+        if (loginScopes.indexOf(Constants.profileScope) === -1) {
+            loginScopes.push(Constants.profileScope);
         }
         
         return loginScopes;

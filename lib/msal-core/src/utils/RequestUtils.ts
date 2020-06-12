@@ -79,7 +79,7 @@ export class RequestUtils {
         const requestScopes = (request && request.scopes) || [];
 
         // Append openid and profile to scopes by default for login calls
-        const scopes = ScopeSet.appendScopes(requestScopes, [Constants.openidScope, Constants.profileScope]);
+        const scopes = ScopeSet.generateLoginScopes(requestScopes, clientId);
 
         // validate request
         const userRequest: AuthenticationParameters = RequestUtils.validateRequest({...request, scopes}, clientId, interactionType);

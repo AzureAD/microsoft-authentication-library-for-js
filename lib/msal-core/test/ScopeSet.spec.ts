@@ -158,10 +158,6 @@ describe("ScopeSet.ts", () => {
     });
 
     describe("generateLoginScopes", function() {
-        it("should return original scopes passed in if original scopes are not login scopes", function() {
-            expect(ScopeSet.generateLoginScopes(["s1"], clientId)).to.eql(["s1"]);
-        });
-
         it("should append openid and profile to scopes, remove clientId from scopes if original scopes include clientId", function() {
             expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.include(openid);
             expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.include(profile);
