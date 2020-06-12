@@ -44,6 +44,7 @@ import { Constants,
     FramePrefix
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
+import { stat } from 'fs';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -1103,6 +1104,7 @@ export class UserAgentApplication {
      */
     isCallback(hash: string): boolean {
         this.logger.info("isCallback will be deprecated in favor of urlContainsHash in MSAL.js v2.0.");
+        this.logger.verbose("isCallback has been called");
         return UrlUtils.urlContainsHash(hash);
     }
 
@@ -1168,16 +1170,19 @@ export class UserAgentApplication {
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
     private handleAuthenticationResponse(hash: string): void {
+        this.logger.verbose("HandleAuthenticationResponse has been called");
+
         // retrieve the hash
         const locationHash = hash || window.location.hash;
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
         const stateInfo = this.getResponseState(locationHash);
+        this.logger.verbose("Response state returned");
 
         const tokenResponseCallback = window.callbackMappedToRenewStates[stateInfo.state];
         this.processCallBack(locationHash, stateInfo, tokenResponseCallback);
 
-        // If current window is opener, close all windows
+        // If current window is opened, close all windows
         WindowUtils.closePopups();
     }
 
@@ -1231,12 +1236,15 @@ export class UserAgentApplication {
      * @ignore
      */
     protected getResponseState(hash: string): ResponseStateInfo {
+        this.logger.verbose("GetResponseState has been called");
+
         const parameters = UrlUtils.deserializeHash(hash);
         let stateResponse: ResponseStateInfo;
         if (!parameters) {
             throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
         }
         if (parameters.hasOwnProperty(ServerHashParamKeys.STATE)) {
+            this.logger.verbose("Hash contains state");
             const parsedState = RequestUtils.parseLibraryState(parameters.state);
 
             stateResponse = {
