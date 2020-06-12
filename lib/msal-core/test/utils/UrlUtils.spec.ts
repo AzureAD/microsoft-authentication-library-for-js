@@ -48,8 +48,8 @@ describe("UrlUtils.ts class", () => {
         expect(hash).to.be.equal(TEST_URL_NO_HASH);
     });
 
-    it("checks that serverRequestParameter scopes have clientId appended after creating navigate url, but user provided scopes do not", function () {
-        const originalUserScopes = ["S1"];
+    it("checks that serverRequestParameter and user provided scopes are not mutated when creating Navigate URL string", function () {
+        const originalUserScopes = ["s1"];
         const userScopes = [...originalUserScopes];
         const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
         sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
@@ -67,10 +67,9 @@ describe("UrlUtils.ts class", () => {
 
         const uriString = UrlUtils.createNavigateUrl(originalReq);
 
-        expect(req.scopes).to.not.be.eql(userScopes);
+        expect(req.scopes).to.be.eql(userScopes);
         expect(userScopes).to.be.eql(originalUserScopes);
-        expect(req.scopes).to.include(TEST_CONFIG.MSAL_CLIENT_ID);
-        expect(req.scopes.length).to.be.eql(2);
+        expect(req.scopes.length).to.be.eql(1);
     });
 
     describe("urlContainsHash", () => {
