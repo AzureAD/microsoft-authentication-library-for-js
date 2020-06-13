@@ -50,11 +50,11 @@ export interface ICacheStorage {
     /**
      * Function which retrieves all current keys from the cache.
      */
-    getKeys(type?: string): string[];
+    getKeys(): string[];
 
     /**
      * Function which clears cache.
      */
-    clear(type?: string): void;
+    clear(): void;
 }
 
