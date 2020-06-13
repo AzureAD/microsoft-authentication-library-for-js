@@ -4,7 +4,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, TokenResponse, Account, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, TokenResponse, IAccount, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -227,19 +227,21 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 "nonce": "123523"
             };
 
-            const testAccount = new Account(idTokenClaims.oid, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, idTokenClaims, TEST_TOKENS.IDTOKEN_V2);
-            const testTokenResponse: TokenResponse = {
+            const testAccount: IAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                tenantId: idTokenClaims.tid,
+                username: idTokenClaims.preferred_username
+            };
+            const testTokenResponse: AuthenticationResult = {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
                 scopes: ["scope1", "scope2"],
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 account: testAccount,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
-                tokenType: "Bearer",
-                uniqueId: idTokenClaims.oid,
-                userRequestState: "testState"
+                uniqueId: idTokenClaims.oid
 			};
 			const browserCrypto = new CryptoOps();
 			const testAuthCodeRequest: AuthorizationCodeRequest = {

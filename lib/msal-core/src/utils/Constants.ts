@@ -157,5 +157,5 @@ export const FramePrefix = {
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-    return "1.3.1";
+    return "1.3.2";
 }

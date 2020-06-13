@@ -171,7 +171,7 @@ describe("CacheHelpers.ts Tests", () => {
             scopeString = TEST_CONFIG.DEFAULT_SCOPES.join(" ");
             testResource = "https://login.contoso.com/endpt";
             testResource2 = "https://login.contoso.com/endpt2";
-            const cacheStorage: ICacheStorage = cacheStorageMock;
+            cacheStorage = cacheStorageMock;
 
             cacheHelpers = new CacheHelpers(cacheStorage);
             const atKey1 = new AccessTokenKey(

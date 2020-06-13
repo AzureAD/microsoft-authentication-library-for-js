@@ -20,6 +20,9 @@ import { ICacheManager } from "./interface/ICacheManager";
 import { CacheHelper } from "./utils/CacheHelper";
 import { CacheRecord } from "./entities/CacheRecord";
 import { StringUtils } from "../utils/StringUtils";
+import { IdTokenEntity } from "./entities/IdTokenEntity";
+import { AccessTokenEntity } from "./entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
 
 export class UnifiedCacheManager implements ICacheManager {
     // Storage interface
@@ -219,13 +222,18 @@ export class UnifiedCacheManager implements ICacheManager {
         target?: string
     ): CredentialCache {
         const allCacheKeys = this.cacheStorage.getKeys();
-        const matchingCredentials: CredentialCache = {};
+        const matchingCredentials: CredentialCache = {
+            idTokens: {},
+            accessTokens: {},
+            refreshTokens: {}
+        };
 
         allCacheKeys.forEach((cacheKey) => {
             let matches: boolean = true;
             // don't parse any non-credential type cache entities
+            const credType = CacheHelper.getCredentialType(cacheKey);
             if (
-                CacheHelper.getCredentialType(cacheKey) ===
+                credType ===
                 Constants.NOT_DEFINED
             ) {
                 return;
@@ -264,14 +272,24 @@ export class UnifiedCacheManager implements ICacheManager {
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
             if (
                 !StringUtils.isEmpty(target) &&
-                CacheHelper.getCredentialType(cacheKey) !=
-                    CredentialType.ID_TOKEN
+                credType ===
+                    CredentialType.ACCESS_TOKEN
             ) {
                 matches = matches && CacheHelper.matchTarget(entity, target);
             }
 
             if (matches) {
-                matchingCredentials[cacheKey] = entity;
+                switch (credType) {
+                    case CredentialType.ID_TOKEN:
+                        matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
+                        break;
+                    case CredentialType.ACCESS_TOKEN:
+                        matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
+                        break;
+                    case CredentialType.REFRESH_TOKEN:
+                        matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
+                        break;
+                }
             }
         });
 

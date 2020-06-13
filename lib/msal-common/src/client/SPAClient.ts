@@ -269,7 +269,7 @@ export class SPAClient extends BaseClient {
         cacheRecord.accessToken = this.fetchAccessToken(homeAccountId, env, requestScopes, cacheRecord.account.realm);
         cacheRecord.refreshToken = this.fetchRefreshToken(homeAccountId, env);
         if (!cacheRecord.accessToken) {
-            throw ClientAuthError.createNoTokenInCacheError();
+            throw ClientAuthError.createNoTokensFoundError();
         }
 
         // const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, account && account.homeAccountId);
@@ -296,7 +296,7 @@ export class SPAClient extends BaseClient {
             };
         } else {
             if (!cacheRecord.refreshToken) {
-                throw ClientAuthError.createNoTokenInCacheError();
+                throw ClientAuthError.createNoTokensFoundError();
             }
 
             // Initialize authority or use default, and perform discovery endpoint check.
@@ -427,8 +427,10 @@ export class SPAClient extends BaseClient {
             realm: inputRealm,
             target: scopes.printScopes()
         };
-        const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.values(credentialCache);
+        const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(
+            accessTokenFilter
+        );
+        const accessTokens = Object.values(credentialCache.accessTokens);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
         } else if (accessTokens.length < 1) {
@@ -488,7 +490,11 @@ export class SPAClient extends BaseClient {
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
-        const tokenResponse = responseHandler.generateAuthenticationResult(acquiredTokenResponse.body, authority);
+        const tokenResponse = responseHandler.generateAuthenticationResult(
+            acquiredTokenResponse.body,
+            authority
+        );
+        tokenResponse.state = userState;
 
         return tokenResponse;
     }
