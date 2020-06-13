@@ -23,7 +23,7 @@
   "module": "dist/test.esm.js",
   "dependencies": {
     "msal-keytar": "0.1.0",
-      "proper-lockfile": "4.1.1"
+      "@azure/msal-common": "1.0.0-beta.2"
   },
   "devDependencies": {
     "husky": "^4.2.5",

@@ -6,36 +6,43 @@
 import { setPassword, getPassword, deletePassword } from "msal-keytar";
 import { FilePersistence } from "./FilePersistence";
 import { IPersistence } from "./IPersistence";
-import { userInfo } from "os";
+import { PersistenceError } from "../error/PersistenceError";
 
-export class LibSecretPersistence implements IPersistence{
+export class KeychainPersistence implements IPersistence {
 
-    protected readonly serviceName = "msal-extensions";
+    protected readonly serviceName;
     protected readonly accountName;
-
     private readonly filePersistence: FilePersistence;
 
-    constructor(fileLocation: string) {
+    constructor(fileLocation: string, serviceName: string, accountName: string) {
         this.filePersistence = new FilePersistence(fileLocation);
-        this.accountName = userInfo().username;
+        this.serviceName = serviceName;
+        this.accountName = accountName;
     }
 
     public async save(contents: string): Promise<void> {
-        await setPassword(this.serviceName, this.accountName, contents);
+        try {
+            await setPassword(this.serviceName, this.accountName, contents);
+        } catch (err) {
+            throw PersistenceError.createKeychainPersistenceError(err.code, err.message);
+        }
         // Write dummy data to update file mtime
-        await this.filePersistence.save("&");
+        await this.filePersistence.save("{}");
     }
 
     public async load(): Promise<string | null> {
-        return await getPassword(this.serviceName, this.accountName);
+        try{
+            return await getPassword(this.serviceName, this.accountName);
+        } catch(err){
+            throw PersistenceError.createKeychainPersistenceError(err.code, err.message);
+        }
     }
 
     public async delete(): Promise<boolean> {
         try {
             return await deletePassword(this.serviceName, this.accountName);
         } catch (err) {
-            console.log(err);
-            throw err;
+            throw PersistenceError.createKeychainPersistenceError(err.code, err.message);
         }
     }
 

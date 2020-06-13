@@ -97,7 +97,6 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param credential
      */
     saveCredential(credential: Credential): void {
-        console.log("in UCacheManager saving credential");
         const key = credential.generateCredentialKey();
         this.cacheStorage.setItemInMemory(key, credential, CacheSchemaType.CREDENTIAL);
     }

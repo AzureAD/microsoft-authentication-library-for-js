@@ -5,9 +5,11 @@
 
 import { writeFile, readFile, unlink } from "fs";
 import { promisify } from "util";
-import { accessSync, statSync, mkdirSync, closeSync, openSync } from "fs";
+import { statSync, mkdirSync, closeSync, openSync } from "fs";
 import { dirname } from "path";
 import { IPersistence } from "./IPersistence";
+import { Constants } from "../utils/Constants";
+import { PersistenceError } from "../error/PersistenceError";
 
 export class FilePersistence implements IPersistence {
 
@@ -23,55 +25,39 @@ export class FilePersistence implements IPersistence {
         try {
             await writeFilePromise(this.getFilePath(), contents);
         } catch (err) {
-            if (err) {
-                console.log(err);
-                throw err;
-            }
+            throw PersistenceError.createFileSystemError(err.code, err.message);
         }
     }
 
     public async load(): Promise<string> {
         const readFilePromise = promisify(readFile);
-        try{
+        try {
             return await readFilePromise(this.getFilePath(), "UTF-8");
         } catch (err) {
-           console.log(err);
-           throw err;
+            throw PersistenceError.createFileSystemError(err.code, err.message);
         }
     };
 
-   public async delete(): Promise<boolean> {
-       const deleteFilePromise = promisify(unlink)
-       try {
-           await deleteFilePromise(this.getFilePath());
-           return true;
-       } catch (err) {
-           console.log(err);
-           return false;
-       }
-   }
+    public async delete(): Promise<boolean> {
+        const deleteFilePromise = promisify(unlink);
+        try {
+            await deleteFilePromise(this.getFilePath());
+            return true;
+        } catch (err) {
+            if (err.code == Constants.ENOENT_ERROR) {
+                // file does not exist, so it was not deleted
+                return false;
+            }
+            throw PersistenceError.createFileSystemError(err.code, err.message);
+        }
+    }
 
     public getFilePath(): string {
         return this.filePath;
     }
 
     public reloadNecessary(lastSync: number): boolean {
-        if (!(this.fileExist())) { // TODO probably don't need this since we are creating the file.
-            return false;
-        }
         return lastSync < this.timeLastModified();
-    }
-
-    private fileExist(): boolean {
-        try {
-            accessSync(this.filePath);
-            return true;
-        } catch (err) {
-            if (err.code == "ENOENT") {
-                return false;
-            }
-            throw(err);
-        }
     }
 
     private timeLastModified(): number {
@@ -79,24 +65,28 @@ export class FilePersistence implements IPersistence {
             const stats = statSync(this.filePath);
             return stats.mtime.getTime();
         } catch (err) {
-            console.log(err);
-            throw(err);
+            if (err.code == Constants.ENOENT_ERROR) {
+                // file does not exist, so it's never been modified
+                return 0;
+            }
+            throw PersistenceError.createFileSystemError(err.code, err.message);
         }
     }
 
     private createCacheFile(): void {
         this.createFileDirectory();
+        // File is created only if it does not exist
         closeSync(openSync(this.filePath, "a"))
     }
 
     private createFileDirectory(): void {
         try {
             mkdirSync(dirname(this.filePath), {recursive: true});
-        } catch (error) {
-            if (error.code == "EEXIST") {
-                console.log("directory exists");
+        } catch (err) {
+            if (err.code == Constants.EEXIST_ERROR) {
+                console.log(`Directory ${dirname(this.filePath)} " already exists"`);
             } else {
-                throw error;
+                throw PersistenceError.createFileSystemError(err.code, err.message);
             }
         }
     }

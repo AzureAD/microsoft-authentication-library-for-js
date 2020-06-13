@@ -6,23 +6,32 @@
 import { setPassword, getPassword } from "msal-keytar";
 import { IPersistence } from "./IPersistence";
 import { FilePersistence } from "./FilePersistence";
+import { PersistenceError } from "../error/PersistenceError";
 
 export class FilePersistenceWithDataProtection implements IPersistence {
 
-    protected readonly serviceName = "msal-extensions";
-
+    protected readonly serviceName;
     private readonly filePersistence: FilePersistence;
 
-    constructor(fileLocation: string) {
+    constructor(fileLocation: string, serviceName?: string) {
+        this.serviceName = serviceName;
         this.filePersistence = new FilePersistence(fileLocation);
     }
 
     public async save(contents: string): Promise<void> {
-        await setPassword(this.serviceName, this.filePersistence.getFilePath(), contents);
+        try{
+            await setPassword(this.serviceName, this.filePersistence.getFilePath(), contents);
+        } catch(err) {
+            throw PersistenceError.createFilePersistenceWithDPAPIError(err.code, err.message);
+        }
     }
 
     public async load(): Promise<string | null> {
-         return await getPassword(this.serviceName, this.filePersistence.getFilePath());
+        try{
+            return await getPassword(this.serviceName, this.filePersistence.getFilePath());
+        } catch(err) {
+            throw PersistenceError.createFilePersistenceWithDPAPIError(err.code, err.message);
+        }
     }
 
     public async delete(): Promise<boolean> {

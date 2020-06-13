@@ -6,11 +6,13 @@
 const express = require("express");
 const msal = require('@azure/msal-node');
 const extensions = require("msal-node-extensions");
-const {promises: fs} = require("fs");
+const { promises: fs } = require("fs");
+const path = require("path");
+const os = require("os");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-const filePersistence = new extensions.FilePersistence("./data/extensions.json");
+const filePersistence = new extensions.FilePersistenceWithDataProtection(path.join(__dirname, "./data/extensions.json"), os.userInfo().username);
 const cachePlugin = new extensions.PersistenceCachePlugin(filePersistence);
 
 const publicClientConfig = {
@@ -32,7 +34,7 @@ const app = express();
 app.get('/', (req, res) => {
     const authCodeUrlParameters = {
         scopes: ["user.read"],
-        redirectUri: ["http://localhost:3000/redirect"],
+        redirectUri: "http://localhost:3000/redirect",
     };
 
     // get url to sign user in and consent to scopes needed for application
@@ -51,7 +53,7 @@ app.get('/redirect', (req, res) => {
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
-        res.send(200);
+        res.sendStatus(200);
         return msalCacheManager.writeToPersistence();
     }).catch((error) => {
         console.log(error);
