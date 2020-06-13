@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import {
-    Account,
+    IAccount,
     SPAClient,
     INetworkModule,
     TokenResponse,
@@ -23,7 +23,10 @@ import {
     AuthorizationCodeRequest,
     Constants,
     ClientAuthError,
-    AuthorityType
+    AuthorityType,
+    AuthenticationResult,
+    SilentFlowRequest,
+    AccountEntity
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -57,7 +60,7 @@ export class PublicClientApplication {
     private readonly networkClient: INetworkModule;
 
     // Response promise
-    private readonly tokenExchangePromise: Promise<TokenResponse>;
+    private readonly tokenExchangePromise: Promise<AuthenticationResult>;
 
     // Input configuration by developer/user
     private config: Configuration;
@@ -182,7 +185,7 @@ export class PublicClientApplication {
      * auth flows.
      * @returns token response or null. If the return value is null, then no auth redirect was detected.
      */
-    async handleRedirectPromise(): Promise<TokenResponse | null> {
+    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
         return this.tokenExchangePromise;
     }
 
@@ -191,7 +194,7 @@ export class PublicClientApplication {
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
      */
-    private async handleRedirectResponse(): Promise<TokenResponse> {
+    private async handleRedirectResponse(): Promise<AuthenticationResult> {
         // Get current location hash from window or cache.
         const {location: {hash}} = window;
         const cachedHash = this.browserStorage.getItem(TemporaryCacheKeys.URL_HASH);
@@ -244,7 +247,7 @@ export class PublicClientApplication {
 	 * @param responseHash
 	 * @param interactionHandler
 	 */
-    private async handleHash(responseHash: string): Promise<TokenResponse> {
+    private async handleHash(responseHash: string): Promise<AuthenticationResult> {
         const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
         if (!StringUtils.isEmpty(responseHash)) {
             // Hash contains known properties - handle and return in callback
@@ -328,9 +331,9 @@ export class PublicClientApplication {
      *
      * @param {@link (AuthenticationParameters:type)}
      *
-     * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async loginPopup(request: AuthorizationUrlRequest): Promise<TokenResponse> {
+    async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
@@ -354,9 +357,9 @@ export class PublicClientApplication {
      * @param {@link AuthenticationParameters}
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
-     * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async acquireTokenPopup(request: AuthorizationUrlRequest): Promise<TokenResponse> {
+    async acquireTokenPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
@@ -379,7 +382,7 @@ export class PublicClientApplication {
      * Helper which acquires an authorization code with a popup from given url, and exchanges the code for a set of OAuth tokens.
      * @param navigateUrl
      */
-    private async popupTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest): Promise<TokenResponse> {
+    private async popupTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         // Create popup interaction handler.
         const interactionHandler = new PopupHandler(this.authModule, this.browserStorage);
         // Show the UI once the url has been created. Get the window handle for the popup.
@@ -405,12 +408,12 @@ export class PublicClientApplication {
      *
      * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
-     * @param {@link AuthenticationParameters}
+     * @param {@link AuthorizationUrlRequest}
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters.
-     * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async ssoSilent(request: AuthorizationUrlRequest): Promise<TokenResponse> {
+    async ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -454,19 +457,18 @@ export class PublicClientApplication {
      * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async acquireTokenSilent(silentRequest: TokenRenewParameters): Promise<TokenResponse> {
+    async acquireTokenSilent(silentRequest: SilentFlowRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         const tokenRequest: AuthorizationUrlRequest = {
             ...silentRequest,
             redirectUri: "",
-            scopes: silentRequest.scopes || []
         };
 
         try {
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await this.authModule.getValidToken(tokenRequest, silentRequest.account, silentRequest.forceRefresh);
+            return await this.authModule.getValidToken(silentRequest);
         } catch (e) {
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
@@ -499,7 +501,7 @@ export class PublicClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, userRequestScopes: string): Promise<TokenResponse> {
+    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, userRequestScopes: string): Promise<AuthenticationResult> {
         try {
             // Create silent handler
             const silentHandler = new SilentHandler(this.authModule, this.browserStorage, this.config.system.loadFrameTimeout);
@@ -522,9 +524,9 @@ export class PublicClientApplication {
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      */
-    logout(): void {
+    logout(accountObj: IAccount): void {
         // create logout string and navigate user window to logout. Auth module will clear cache.
-        this.authModule.logout().then((logoutUri: string) => {
+        this.authModule.logout(accountObj, this.defaultAuthorityInstance).then((logoutUri: string) => {
             BrowserUtils.navigateWindow(logoutUri);
         });
     }
@@ -560,8 +562,8 @@ export class PublicClientApplication {
      * or null when no state is found
      * @returns {@link Account} - the account object stored in MSAL
      */
-    public getAccount(): Account {
-        return this.authModule.getAccount();
+    public getAccount(homeAccountId: string): AccountEntity {
+        return this.authModule.getAccount(homeAccountId);
     }
 
     // #endregion
@@ -599,10 +601,9 @@ export class PublicClientApplication {
         const validatedRequest: AuthorizationUrlRequest = {
             ...request
         };
-        
-        const cachedAccount = this.getAccount();
+
         // Check for ADAL SSO
-        if (StringUtils.isEmpty(validatedRequest.loginHint) && !cachedAccount) {
+        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
             // Only check for adal token if no SSO params are being used
             const adalIdTokenString = this.browserStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN);
             if (!StringUtils.isEmpty(adalIdTokenString)) {
