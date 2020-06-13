@@ -4,7 +4,7 @@
  */
 
 import { StringDict } from "../utils/MsalTypes";
-import { IAccount } from '../account/IAccount';
+import { IAccount } from "../account/IAccount";
 
 /**
  * Result returned from the authority's token endpoint.

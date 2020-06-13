@@ -107,10 +107,6 @@ export const ClientAuthErrorMessage = {
         code: "device_code_expired",
         desc: "Device code is expired."
     },
-    NoTokenInCache: {
-        code: "no_token_in_cache",
-        desc: "cache miss, there is no matching credential in the cache "
-    },
     NoAccountInSilentRequest: {
         code: "no_account_in_silent_request",
         desc: "Please pass an account object, silent flow is not supported without account information"
@@ -227,9 +223,8 @@ export class ClientAuthError extends AuthError {
     /**
      * Creates an error thrown when the authorization code required for a token request is null or empty.
      */
-    static createNoTokensFoundError(scopes: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code,
-            `${ClientAuthErrorMessage.noTokensFoundError.desc} Scopes: ${scopes}`);
+    static createNoTokensFoundError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code, ClientAuthErrorMessage.noTokensFoundError.desc);
     }
 
     /**
@@ -317,13 +312,6 @@ export class ClientAuthError extends AuthError {
      */
     static createDeviceCodeExpiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
-    }
-
-    /**
-     * Throws error for a cache miss
-     */
-    static createNoTokenInCacheError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.NoTokenInCache.code, `${ClientAuthErrorMessage.NoTokenInCache.desc}`);
     }
 
     /**
