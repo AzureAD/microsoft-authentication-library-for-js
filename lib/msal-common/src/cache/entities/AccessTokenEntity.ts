@@ -5,7 +5,7 @@
 
 import { Credential } from "./Credential";
 import { CredentialType } from "../../utils/Constants";
-import { TimeUtils } from '../../utils/TimeUtils';
+import { TimeUtils } from "../../utils/TimeUtils";
 
 /**
  * ACCESS_TOKEN Credential Type
