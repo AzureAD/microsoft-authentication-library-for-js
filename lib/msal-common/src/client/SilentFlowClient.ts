@@ -32,50 +32,48 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    public async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult>{
-        let cacheRecord: CacheRecord;
-        let idTokenObj: IdToken;
-        const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId, true);
-
+    public async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (request.account === null) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
-        } else {
-            // fetch account
-            const accountKey: string = CacheHelper.generateAccountCacheKey(request.account);
-            cacheRecord.account = this.unifiedCacheManager.getAccount(accountKey);
+        } 
 
-            const homeAccountId = cacheRecord.account.homeAccountId;
-            const environment = cacheRecord.account.environment;
+        const cacheRecord = new CacheRecord();
+        const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId, true);
+        // fetch account
+        const accountKey: string = CacheHelper.generateAccountCacheKey(request.account);
+        cacheRecord.account = this.unifiedCacheManager.getAccount(accountKey);
 
-            // fetch idToken, accessToken, refreshToken
-            cacheRecord.idToken = this.fetchIdToken(homeAccountId, environment, cacheRecord.account.realm);
-            idTokenObj = new IdToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
-            cacheRecord.accessToken = this.fetchAccessToken(homeAccountId, environment, requestScopes, cacheRecord.account.realm);
-            cacheRecord.refreshToken = this.fetchRefreshToken(homeAccountId, environment);
+        const homeAccountId = cacheRecord.account.homeAccountId;
+        const environment = cacheRecord.account.environment;
 
-            // If accessToken has expired, call refreshToken flow to fetch a new set of tokens
-            if (request.forceRefresh || (!!cacheRecord.accessToken && this.isTokenExpired(cacheRecord.accessToken.expiresOn))) {
-                // check if we have refreshToken
-                if (!!cacheRecord.refreshToken) {
-                    const refreshTokenClient = new RefreshTokenClient(this.config);
-                    const refreshTokenRequest: RefreshTokenRequest = {
-                        scopes: request.scopes,
-                        refreshToken: cacheRecord.refreshToken.secret,
-                        authority: request.authority
-                    };
+        // fetch idToken, accessToken, refreshToken
+        cacheRecord.idToken = this.fetchIdToken(homeAccountId, environment, cacheRecord.account.realm);
+        const idTokenObj = new IdToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
+        cacheRecord.accessToken = this.fetchAccessToken(homeAccountId, environment, requestScopes, cacheRecord.account.realm);
+        cacheRecord.refreshToken = this.fetchRefreshToken(homeAccountId, environment);
 
-                    return refreshTokenClient.acquireToken(refreshTokenRequest);
-                }
-                // no refresh Token
-                else {
-                    throw ClientAuthError.createNoTokenInCacheError();
-                }
+        // If accessToken has expired, call refreshToken flow to fetch a new set of tokens
+        if (request.forceRefresh || (!!cacheRecord.accessToken && this.isTokenExpired(cacheRecord.accessToken.expiresOn))) {
+            // check if we have refreshToken
+            if (!!cacheRecord.refreshToken) {
+                const refreshTokenClient = new RefreshTokenClient(this.config);
+                const refreshTokenRequest: RefreshTokenRequest = {
+                    scopes: request.scopes,
+                    refreshToken: cacheRecord.refreshToken.secret,
+                    authority: request.authority
+                };
+
+                return refreshTokenClient.acquireToken(refreshTokenRequest);
             }
-
-            if (cacheRecord.accessToken === null) {
-                throw ClientAuthError.createNoTokenInCacheError();
+            // no refresh Token
+            else {
+                throw ClientAuthError.createNoTokensFoundError();
             }
+        }
+
+        if (cacheRecord.accessToken === null) {
+            throw ClientAuthError.createNoTokensFoundError();
         }
 
         // generate Authentication Result
@@ -123,7 +121,7 @@ export class SilentFlowClient extends BaseClient {
             target: scopes.printScopes()
         };
         const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.values(credentialCache);
+        const accessTokens = Object.values(credentialCache.accessTokens);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
         } else if (accessTokens.length < 1) {

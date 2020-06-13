@@ -90,9 +90,9 @@ export class SPAClient extends BaseClient {
         const acquireTokenAuthority =
             request && request.authority
                 ? AuthorityFactory.createInstance(
-                      request.authority,
-                      this.networkClient
-                  )
+                    request.authority,
+                    this.networkClient
+                )
                 : this.defaultAuthority;
 
         // This is temporary. Remove when ADFS is supported for browser
@@ -207,9 +207,9 @@ export class SPAClient extends BaseClient {
         const acquireTokenAuthority =
             codeRequest && codeRequest.authority
                 ? AuthorityFactory.createInstance(
-                      codeRequest.authority,
-                      this.networkClient
-                  )
+                    codeRequest.authority,
+                    this.networkClient
+                )
                 : this.defaultAuthority;
         if (!acquireTokenAuthority.discoveryComplete()) {
             try {
@@ -298,7 +298,7 @@ export class SPAClient extends BaseClient {
         );
         cacheRecord.refreshToken = this.fetchRefreshToken(homeAccountId, env);
         if (!cacheRecord.accessToken) {
-            throw ClientAuthError.createNoTokenInCacheError();
+            throw ClientAuthError.createNoTokensFoundError();
         }
 
         // const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, account && account.homeAccountId);
@@ -341,15 +341,15 @@ export class SPAClient extends BaseClient {
             };
         } else {
             if (!cacheRecord.refreshToken) {
-                throw ClientAuthError.createNoTokenInCacheError();
+                throw ClientAuthError.createNoTokensFoundError();
             }
 
             // Initialize authority or use default, and perform discovery endpoint check.
             const acquireTokenAuthority = request.authority
                 ? AuthorityFactory.createInstance(
-                      request.authority,
-                      this.networkClient
-                  )
+                    request.authority,
+                    this.networkClient
+                )
                 : this.defaultAuthority;
 
             // This is temporary. Remove when ADFS is supported for browser
@@ -455,7 +455,7 @@ export class SPAClient extends BaseClient {
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<
-            ServerAuthorizationCodeResponse
+        ServerAuthorizationCodeResponse
         >();
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(
@@ -513,7 +513,7 @@ export class SPAClient extends BaseClient {
         const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(
             accessTokenFilter
         );
-        const accessTokens = Object.values(credentialCache);
+        const accessTokens = Object.values(credentialCache.accessTokens);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
         } else if (accessTokens.length < 1) {
@@ -572,7 +572,7 @@ export class SPAClient extends BaseClient {
     ): Promise<AuthenticationResult> {
         // Perform token request.
         const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<
-            ServerAuthorizationTokenResponse
+        ServerAuthorizationTokenResponse
         >(tokenEndpoint, {
             body: parameterBuilder.createQueryString(),
             headers: this.createDefaultTokenRequestHeaders(),
@@ -592,6 +592,7 @@ export class SPAClient extends BaseClient {
             acquiredTokenResponse.body,
             authority
         );
+        tokenResponse.state = userState;
 
         return tokenResponse;
     }

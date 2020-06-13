@@ -148,6 +148,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 cpu: TEST_CONFIG.TEST_CPU
             }
         });
+        cacheStorageMock.setItem("testKey", "cacheItem");
         // Crypto interface tests
         expect(newConfig.cryptoInterface).to.be.not.null;
         expect(newConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -159,17 +160,17 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Storage interface tests
         expect(newConfig.storageInterface).to.be.not.null;
         expect(newConfig.storageInterface.clear).to.be.not.null;
-        expect(newConfig.storageInterface.clear).to.be.eq(clearFunc);
+        expect(newConfig.storageInterface.clear).to.be.eq(cacheStorageMock.clear);
         expect(newConfig.storageInterface.containsKey).to.be.not.null;
         expect(newConfig.storageInterface.containsKey("testKey")).to.be.true;
         expect(newConfig.storageInterface.getItem).to.be.not.null;
         expect(newConfig.storageInterface.getItem("testKey")).to.be.eq("cacheItem");
         expect(newConfig.storageInterface.getKeys).to.be.not.null;
-        expect(newConfig.storageInterface.getKeys()).to.be.eq(testKeySet);
+        expect(newConfig.storageInterface.getKeys()).to.be.deep.eq(["testKey"]);
         expect(newConfig.storageInterface.removeItem).to.be.not.null;
-        expect(newConfig.storageInterface.removeItem).to.be.eq(removeFunc);
+        expect(newConfig.storageInterface.removeItem).to.be.eq(cacheStorageMock.removeItem);
         expect(newConfig.storageInterface.setItem).to.be.not.null;
-        expect(newConfig.storageInterface.setItem).to.be.eq(setFunc);
+        expect(newConfig.storageInterface.setItem).to.be.eq(cacheStorageMock.setItem);
         // Network interface tests
         expect(newConfig.networkInterface).to.be.not.null;
         expect(newConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
