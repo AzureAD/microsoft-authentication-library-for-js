@@ -9,6 +9,13 @@ let SCREENSHOT_NUM = 0;
 let username = "";
 let accountPwd = "";
 
+// Set App Info
+const clientId = "e3b9ad76-9763-4827-b088-80c7a7888f79";
+const authority = "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/"
+const scopes = ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
+const idTokenCacheKey = "msal." + clientId + ".idtoken"
+const clientInfoCacheKey = "msal." + clientId + ".client.info"
+
 function setupScreenshotDir() {
     if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
         fs.mkdirSync(SCREENSHOT_BASE_FOLDER_NAME);
@@ -97,6 +104,29 @@ async function loginPopup(page: puppeteer.Page, testName: string): Promise<void>
     await takeScreenshot(page, testName, `samplePageLoggedIn`);
 }
 
+async function validateAccessTokens(page: puppeteer.Page, localStorage: Storage) {
+    let accessTokensFound = 0
+    let accessTokenMatch: boolean;
+
+    Object.keys(localStorage).forEach(async (key) => {
+        if (key.includes("authority")) {
+            let cacheKey = JSON.parse(key);
+            let cachedScopeList = cacheKey.scopes.split(" ");
+
+            accessTokenMatch = cacheKey.authority === authority.toLowerCase() &&
+                                cacheKey.clientId.toLowerCase() === clientId.toLowerCase() &&
+                                scopes.every(scope => cachedScopeList.includes(scope));
+
+            if (accessTokenMatch) {
+                accessTokensFound += 1;
+                await page.evaluate((key) => window.localStorage.removeItem(key))
+            }
+        }
+    });
+
+    return accessTokensFound;
+}
+
 describe("Browser tests", function () {
     this.timeout(8000);
     this.retries(1);
@@ -113,16 +143,6 @@ describe("Browser tests", function () {
 
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
-    beforeEach(async () => {
-        SCREENSHOT_NUM = 0;
-        context = await browser.createIncognitoBrowserContext();
-        page = await context.newPage();
-        await page.goto('http://localhost:30662/');
-    });
-
-    afterEach(async () => {
-        await page.close();
-    });
 
     after(async () => {
         await context.close();
@@ -130,12 +150,25 @@ describe("Browser tests", function () {
     });
 
     describe("Test Login functions", async () => {  
+        beforeEach(async () => {
+            SCREENSHOT_NUM = 0;
+            context = await browser.createIncognitoBrowserContext();
+            page = await context.newPage();
+            await page.goto('http://localhost:30662/');
+        });
+    
+        afterEach(async () => {
+            await page.close();
+        });
+
         it("Performs loginRedirect", async () => {
             const testName = "redirectBaseCase";
             await loginRedirect(page, testName);
             
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-            expect(Object.keys(localStorage).length).to.be.eq(5);
+
+            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
+            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
         });
         
         it("Performs loginPopup", async () => {
@@ -143,42 +176,70 @@ describe("Browser tests", function () {
             await loginPopup(page, testName);
             
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-            expect(Object.keys(localStorage).length).to.be.eq(5);
+            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
+            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
         });
     });
 
     describe("Test AcquireToken functions", async () => {
-        it("Test acquireTokenRedirect", async () => {
-            const testName = "acquireTokenRedirectBaseCase";
+        const testName = "acquireTokenBaseCase";
+
+        before(async () => {
+            SCREENSHOT_NUM = 0;
+            context = await browser.createIncognitoBrowserContext();
+            page = await context.newPage();
+            await page.goto('http://localhost:30662/');
             await loginPopup(page, testName);
+        });
+    
+        after(async () => {
+            await page.close();
+        });
+
+        afterEach(async () => {
+            await page.reload();
+        });
+
+        it("Test acquireTokenRedirect", async () => {
+            await page.waitForSelector("#getAccessTokenRedirect");
             await page.click("#getAccessTokenRedirect");
             await page.waitForSelector("#access-token-info");
-            await takeScreenshot(page, testName, "accessTokenAcquired");
+            await takeScreenshot(page, testName, "accessTokenAcquiredRedirect");
 
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-            expect(Object.keys(localStorage).length).to.be.eq(6);
+            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
+            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
+
+            const accessTokensFound = await validateAccessTokens(page, localStorage);
+            expect(accessTokensFound).to.equal(1);
         }); 
 
         it("Test acquireTokenPopup", async () => {
-            const testName = "acquireTokenPopupBaseCase";
-            await loginPopup(page, testName);
+            await page.waitForSelector("#getAccessTokenPopup");
             await page.click("#getAccessTokenPopup");
             await page.waitForSelector("#access-token-info");
-            await takeScreenshot(page, testName, "accessTokenAcquired");
+            await takeScreenshot(page, testName, "accessTokenAcquiredPopup");
 
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-            expect(Object.keys(localStorage).length).to.be.eq(6);
+            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
+            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
+
+            const accessTokensFound = await validateAccessTokens(page, localStorage);
+            expect(accessTokensFound).to.equal(1);
         }); 
 
         it("Test acquireTokenSilent", async () => {
-            const testName = "acquireTokenSilentBaseCase";
-            await loginPopup(page, testName);
+            await page.waitForSelector("#getAccessTokenSilent");
             await page.click("#getAccessTokenSilent");
             await page.waitForSelector("#access-token-info");
-            await takeScreenshot(page, testName, "accessTokenAcquired");
+            await takeScreenshot(page, testName, "accessTokenAcquiredSilently");
 
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-            expect(Object.keys(localStorage).length).to.be.eq(6);
+            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
+            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
+            
+            const accessTokensFound = await validateAccessTokens(page, localStorage);
+            expect(accessTokensFound).to.equal(1);
         }); 
     });
 });
