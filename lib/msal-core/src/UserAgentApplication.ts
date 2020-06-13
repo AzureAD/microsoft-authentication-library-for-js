@@ -297,10 +297,10 @@ export class UserAgentApplication {
         if (interactionType === Constants.interactionTypeRedirect) {
             this.logger.verbose("Interaction type is redirect");
             if (this.errorReceivedCallback) {
-                this.logger.verbose("ErrorReceivedCallback is not null, calling tokenReceivedCallback with response");
+                this.logger.verbose("Two callbacks were provided to handleRedirectCallback, calling success callback with response");
                 this.tokenReceivedCallback(response);
             } else if (this.authResponseCallback) {
-                this.logger.verbose("AuthResponseCallback is not null, calling authResponseCallback with null and response");
+                this.logger.verbose("One callback was provided to handleRedirectCallback, calling authResponseCallback with response");
                 this.authResponseCallback(null, response);
             }
         } else if (interactionType === Constants.interactionTypePopup) {
@@ -319,10 +319,10 @@ export class UserAgentApplication {
         if (interactionType === Constants.interactionTypeRedirect) {
             this.logger.verbose("Interaction type is redirect");
             if (this.errorReceivedCallback) {
-                this.logger.verbose("ErrorReceivedCallback is not null, calling errorReceivedCallback with authError and response.accountState");
+                this.logger.verbose("Two callbacks were provided to handleRedirectCallback, calling error callback");
                 this.errorReceivedCallback(authErr, response.accountState);
             } else {
-                this.logger.verbose("ErrorReceivedCallback is null, calling authResponseCallback with authError and response");
+                this.logger.verbose("One callback was provided to handleRedirectCallback, calling authResponseCallback with error");
                 this.authResponseCallback(authErr, response);
             }
         } else if (interactionType === Constants.interactionTypePopup) {
