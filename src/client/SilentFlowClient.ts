@@ -52,7 +52,7 @@ export class SilentFlowClient extends BaseClient {
         const cachedRefreshToken = this.readRefreshTokenFromCache(homeAccountId, environment);
 
         // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (request.forceRefresh || (!!cachedAccessToken && this.isTokenExpired(cachedAccessToken.expiresOn))) {
+        if (request.forceRefresh || !cachedAccessToken || this.isTokenExpired(cachedAccessToken.expiresOn)) {
             // no refresh Token
             if (!cachedRefreshToken) {
                 throw ClientAuthError.createNoTokensFoundError();
@@ -66,10 +66,6 @@ export class SilentFlowClient extends BaseClient {
             };
 
             return refreshTokenClient.acquireToken(refreshTokenRequest);
-        }
-
-        if (cachedAccessToken === null) {
-            throw ClientAuthError.createNoTokensFoundError();
         }
 
         // generate Authentication Result
