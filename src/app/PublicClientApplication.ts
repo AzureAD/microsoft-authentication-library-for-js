@@ -575,9 +575,7 @@ export class PublicClientApplication {
      */
     public getAccountByUsername(userName: string): IAccount {
         const allAccounts = this.getAllAccounts();
-        return allAccounts.filter((accountObj) => {
-            return accountObj.username === userName;
-        })[0];
+        return allAccounts.filter(accountObj => accountObj.username === userName)[0];
     }
 
     // #endregion
