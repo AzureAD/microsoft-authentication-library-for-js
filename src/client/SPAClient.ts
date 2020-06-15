@@ -24,13 +24,12 @@ import { AuthorityType } from "../authority/AuthorityType";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { Authority } from "../authority/Authority";
-import { AccountEntity } from "../cache/entities/AccountEntity";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { CacheHelper } from "../cache/utils/CacheHelper";
+import { AccountEntity } from "../cache/entities/AccountEntity";
+import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
-import { CacheRecord } from "../cache/entities/CacheRecord";
 import { IAccount } from "../account/IAccount";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 
@@ -87,9 +86,7 @@ export class SPAClient extends BaseClient {
         return `${acquireTokenAuthority.authorizationEndpoint}?${queryString}`;
     }
 
-    private async createUrlRequestParamString(
-        request: AuthorizationUrlRequest
-    ): Promise<string> {
+    private async createUrlRequestParamString(request: AuthorizationUrlRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addResponseTypeCode();
@@ -119,9 +116,7 @@ export class SPAClient extends BaseClient {
 
         parameterBuilder.addState(request.state);
 
-        parameterBuilder.addNonce(
-            request.nonce || this.config.cryptoInterface.createNewGuid()
-        );
+        parameterBuilder.addNonce(request.nonce || this.config.cryptoInterface.createNewGuid());
 
         parameterBuilder.addClientInfo();
 
@@ -146,9 +141,7 @@ export class SPAClient extends BaseClient {
         parameterBuilder.addResponseMode(ResponseMode.FRAGMENT);
 
         if (request && request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
-                request && request.extraQueryParameters
-            );
+            parameterBuilder.addExtraQueryParameters(request && request.extraQueryParameters);
         }
 
         return parameterBuilder.createQueryString();
@@ -167,13 +160,7 @@ export class SPAClient extends BaseClient {
         }
 
         // Initialize authority or use default, and perform discovery endpoint check.
-        const acquireTokenAuthority =
-            codeRequest && codeRequest.authority
-                ? AuthorityFactory.createInstance(
-                    codeRequest.authority,
-                    this.networkClient
-                )
-                : this.defaultAuthority;
+        const acquireTokenAuthority = codeRequest && codeRequest.authority ? AuthorityFactory.createInstance(codeRequest.authority, this.networkClient) : this.defaultAuthority;
         if (!acquireTokenAuthority.discoveryComplete()) {
             try {
                 await acquireTokenAuthority.resolveEndpointsAsync();
@@ -229,51 +216,47 @@ export class SPAClient extends BaseClient {
         const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId);
 
         // Get current cached tokens
-        const cacheRecord = new CacheRecord();
-        cacheRecord.account = this.unifiedCacheManager.getAccount(CacheHelper.generateAccountCacheKey(request.account));
+        const cachedAccount = this.unifiedCacheManager.getAccount(CacheHelper.generateAccountCacheKey(request.account));
 
-        const homeAccountId = cacheRecord.account.homeAccountId;
-        const env = cacheRecord.account.environment;
+        const homeAccountId = cachedAccount.homeAccountId;
+        const env = cachedAccount.environment;
 
-        cacheRecord.accessToken = this.fetchAccessToken(homeAccountId, env, requestScopes, cacheRecord.account.realm);
-        cacheRecord.refreshToken = this.fetchRefreshToken(homeAccountId, env);
-        if (!cacheRecord.accessToken) {
-            throw ClientAuthError.createNoTokenInCacheError();
+        const cachedAccessToken = this.fetchAccessToken(homeAccountId, env, requestScopes, cachedAccount.realm);
+        const cachedRefreshToken = this.fetchRefreshToken(homeAccountId, env);
+        if (!cachedAccessToken) {
+            throw ClientAuthError.createNoTokensFoundError();
         }
 
-        // const cachedTokenItem = this.getCachedTokens(requestScopes, acquireTokenAuthority.canonicalAuthority, account && account.homeAccountId);
-        // const expirationSec = Number(cachedTokenItem.value.expiresOnSec);
-        // const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
         // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (!request.forceRefresh && this.isTokenExpired(cacheRecord.accessToken.expiresOn)) {
-            cacheRecord.idToken = this.fetchIdToken(homeAccountId, env, cacheRecord.account.realm);
-            const idTokenObj = new IdToken(cacheRecord.idToken.secret, this.cryptoUtils);
+        if (!request.forceRefresh && this.isTokenExpired(cachedAccessToken.expiresOn)) {
+            const cachedIdToken = this.fetchIdToken(homeAccountId, env, cachedAccount.realm);
+            const idTokenObj = new IdToken(cachedIdToken.secret, this.cryptoUtils);
 
-            const cachedScopes = ScopeSet.fromString(cacheRecord.accessToken.target, this.config.authOptions.clientId);
+            const cachedScopes = ScopeSet.fromString(cachedAccessToken.target, this.config.authOptions.clientId);
             return {
                 uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
                 tenantId: idTokenObj.claims.tid,
                 scopes: cachedScopes.asArray(),
                 idToken: idTokenObj.rawIdToken,
                 idTokenClaims: idTokenObj.claims,
-                accessToken: cacheRecord.accessToken.secret,
+                accessToken: cachedAccessToken.secret,
                 fromCache: true,
-                account: CacheHelper.toIAccount(cacheRecord.account),
-                expiresOn: new Date(cacheRecord.accessToken.expiresOn),
-                extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
+                account: CacheHelper.toIAccount(cachedAccount),
+                expiresOn: new Date(cachedAccessToken.expiresOn),
+                extExpiresOn: new Date(cachedAccessToken.extendedExpiresOn),
                 familyId: null,
                 state: ""
             };
         } else {
-            if (!cacheRecord.refreshToken) {
-                throw ClientAuthError.createNoTokenInCacheError();
+            if (!cachedRefreshToken) {
+                throw ClientAuthError.createNoTokensFoundError();
             }
 
             // Initialize authority or use default, and perform discovery endpoint check.
             const acquireTokenAuthority = request.authority ? AuthorityFactory.createInstance(request.authority, this.networkClient) : this.defaultAuthority;
 
             // This is temporary. Remove when ADFS is supported for browser
-            if (acquireTokenAuthority.authorityType == AuthorityType.Adfs){
+            if (acquireTokenAuthority.authorityType === AuthorityType.Adfs) {
                 throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
             }
 
@@ -288,7 +271,7 @@ export class SPAClient extends BaseClient {
             // Renew the tokens.
             const { tokenEndpoint } = acquireTokenAuthority;
             const refreshTokenRequest: RefreshTokenRequest = {
-                refreshToken: cacheRecord.refreshToken.secret,
+                refreshToken: cachedRefreshToken.secret,
                 scopes: request.scopes,
                 authority: acquireTokenAuthority.canonicalAuthority
             };
@@ -309,9 +292,7 @@ export class SPAClient extends BaseClient {
         // Get postLogoutRedirectUri.
         let postLogoutRedirectUri = "";
         try {
-            postLogoutRedirectUri =
-                `?${AADServerParamKeys.POST_LOGOUT_URI}=` +
-                encodeURIComponent(this.getPostLogoutRedirectUri());
+            postLogoutRedirectUri = `?${AADServerParamKeys.POST_LOGOUT_URI}=` + encodeURIComponent(this.getPostLogoutRedirectUri());
         } catch (e) {}
 
         // Acquire token authorities.
@@ -320,7 +301,7 @@ export class SPAClient extends BaseClient {
         }
 
         // This is temporary. Remove when ADFS is supported for browser
-        if (acquireTokenAuthority.authorityType == AuthorityType.Adfs) {
+        if (acquireTokenAuthority.authorityType === AuthorityType.Adfs) {
             throw ClientAuthError.createInvalidAuthorityTypeError(
                 acquireTokenAuthority.canonicalAuthority
             );
@@ -348,15 +329,14 @@ export class SPAClient extends BaseClient {
      * the client to exchange for a token in acquireToken.
      * @param hashFragment
      */
-    public handleFragmentResponse(
-        hashFragment: string,
-        cachedState: string
-    ): string {
+    public handleFragmentResponse(hashFragment: string, cachedState: string): string {
         // Handle responses.
         const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.unifiedCacheManager, this.cryptoUtils, this.logger);
+
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);
         return serverParams.code;
@@ -396,7 +376,7 @@ export class SPAClient extends BaseClient {
             target: scopes.printScopes()
         };
         const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.values(credentialCache);
+        const accessTokens = Object.values(credentialCache.accessTokens);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
         } else if (accessTokens.length < 1) {
@@ -425,14 +405,13 @@ export class SPAClient extends BaseClient {
      */
     private isTokenExpired(expiresOn: string): boolean {
         // check for access token expiry
-        let expirationSec = Number(expiresOn);
-        const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
+        const expirationSec = Number(expiresOn) || 0;
+        const offsetCurrentTimeSec =
+            TimeUtils.nowSeconds() +
+            this.config.systemOptions.tokenRenewalOffsetSeconds;
 
-        // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (!expirationSec) {
-            expirationSec = 0;
-        }
-        return (expirationSec > offsetCurrentTimeSec);
+        // If current time + offset is greater than token expiration time, then token is expired.
+        return offsetCurrentTimeSec > expirationSec;
     }
 
     /**
@@ -442,7 +421,7 @@ export class SPAClient extends BaseClient {
      * @param tokenRequest
      * @param codeResponse
      */
-    private async getTokenResponse(tokenEndpoint: string, parameterBuilder: RequestParameterBuilder, authority: Authority, cachedNonce?: string): Promise<AuthenticationResult> {
+    private async getTokenResponse(tokenEndpoint: string, parameterBuilder: RequestParameterBuilder, authority: Authority, cachedNonce?: string, userState?: string): Promise<AuthenticationResult> {
         // Perform token request.
         const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<
         ServerAuthorizationTokenResponse
@@ -457,6 +436,7 @@ export class SPAClient extends BaseClient {
         responseHandler.validateTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
         const tokenResponse = responseHandler.generateAuthenticationResult(acquiredTokenResponse.body, authority, cachedNonce);
+        tokenResponse.state = userState;
 
         return tokenResponse;
     }
@@ -505,9 +485,7 @@ export class SPAClient extends BaseClient {
         if (this.config.authOptions.redirectUri) {
             if (typeof this.config.authOptions.redirectUri === "function") {
                 return this.config.authOptions.redirectUri();
-            } else if (
-                !StringUtils.isEmpty(this.config.authOptions.redirectUri)
-            ) {
+            } else if (!StringUtils.isEmpty(this.config.authOptions.redirectUri)) {
                 return this.config.authOptions.redirectUri;
             }
         }
@@ -523,15 +501,10 @@ export class SPAClient extends BaseClient {
      */
     public getPostLogoutRedirectUri(): string {
         if (this.config.authOptions.postLogoutRedirectUri) {
-            if (
-                typeof this.config.authOptions.postLogoutRedirectUri ===
-                "function"
-            ) {
+            if (typeof this.config.authOptions.postLogoutRedirectUri === "function") {
                 return this.config.authOptions.postLogoutRedirectUri();
             } else if (
-                !StringUtils.isEmpty(
-                    this.config.authOptions.postLogoutRedirectUri
-                )
+                !StringUtils.isEmpty(this.config.authOptions.postLogoutRedirectUri)
             ) {
                 return this.config.authOptions.postLogoutRedirectUri;
             }

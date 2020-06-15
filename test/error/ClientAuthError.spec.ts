@@ -163,7 +163,7 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
     });
 
     it("createNoTokensFoundError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createNoTokensFoundError("scope1 scope2");
+        const err: ClientAuthError = ClientAuthError.createNoTokensFoundError();
 
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;

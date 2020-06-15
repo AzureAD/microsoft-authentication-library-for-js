@@ -1,19 +1,19 @@
 import { expect } from "chai";
-import { UnifiedCacheManager } from "../../src/unifiedCache/UnifiedCacheManager";
+import { UnifiedCacheManager } from "../../src/cache/UnifiedCacheManager";
 import { mockCache } from "./entities/cacheConstants";
-import { InMemoryCache, CredentialFilter, AccountFilter} from "../../src/unifiedCache/utils/CacheTypes";
-import { ICacheStorage } from "../../src/cache/ICacheStorage";
-import { Deserializer } from "../../src/unifiedCache/serialize/Deserializer";
-import { AccountEntity } from "../../src/unifiedCache/entities/AccountEntity";
-import { AccessTokenEntity } from "../../src/unifiedCache/entities/AccessTokenEntity";
+import { InMemoryCache, CredentialFilter, AccountFilter} from "../../src/cache/utils/CacheTypes";
+import { ICacheStorage } from "../../src/cache/interface/ICacheStorage";
+import { Deserializer } from "../../src/cache/serialize/Deserializer";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { CacheSchemaType, CacheHelper, CredentialType } from "../../src";
-import { IdTokenEntity } from "../../src/unifiedCache/entities/IdTokenEntity";
-import { RefreshTokenEntity } from "../../src/unifiedCache/entities/RefreshTokenEntity";
-import { AppMetadataEntity } from "../../src/unifiedCache/entities/AppMetadataEntity";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
+import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 
 const cacheJson = require("./serialize/cache.json");
 
-describe.only("UnifiedCacheManager test cases", () => {
+describe("UnifiedCacheManager test cases", () => {
     let store = {};
     let storageInterface: ICacheStorage;
     const cache = JSON.stringify(cacheJson);
@@ -35,14 +35,6 @@ describe.only("UnifiedCacheManager test cases", () => {
                 type?: string,
                 inMemory?: boolean
             ): void {
-                // check memory type
-                if (!inMemory) {
-                    console.log(
-                        "Node doesn't support granular cache persistence yet"
-                    );
-                    return;
-                }
-
                 // read inMemoryCache
                 const cache = this.getCache() as InMemoryCache;
 
@@ -94,13 +86,6 @@ describe.only("UnifiedCacheManager test cases", () => {
                 type?: string,
                 inMemory?: boolean
             ): string | object {
-                // check memory type
-                if (!inMemory) {
-                    console.log(
-                        "Node doesn't support granular cache persistence yet"
-                    );
-                    return {};
-                }
 
                 // read inMemoryCache
                 const cache = this.getCache() as InMemoryCache;
@@ -156,14 +141,6 @@ describe.only("UnifiedCacheManager test cases", () => {
                 type?: string,
                 inMemory?: boolean
             ): boolean {
-                // check memory type
-                if (!inMemory) {
-                    console.log(
-                        "Node doesn't support granular cache persistence yet"
-                    );
-                    return false;
-                }
-
                 // read inMemoryCache
                 const cache = this.getCache() as InMemoryCache;
                 let result: boolean = false;
@@ -226,14 +203,21 @@ describe.only("UnifiedCacheManager test cases", () => {
                 return result;
             },
             containsKey(key: string): boolean {
-                return !!store[key];
+                const cache = this.getCache() as InMemoryCache;
+                return !!cache.accounts[key] || !!cache.idTokens[key] || !!cache.accessTokens[key] || !!cache.refreshTokens[key] || !!cache.appMetadata[key];
             },
             getKeys(): string[] {
-                return Object.keys(store);
+                const cache = this.getCache() as InMemoryCache;
+                return [...Object.keys(cache.accounts), ...Object.keys(cache.idTokens), ...Object.keys(cache.accessTokens), ...Object.keys(cache.refreshTokens), ...Object.keys(cache.appMetadata)];
             },
             clear(): void {
-                store = {};
-            },
+                const cache = this.getCache() as InMemoryCache;
+                cache.accounts = {};
+                cache.idTokens = {};
+                cache.accessTokens = {};
+                cache.refreshTokens = {};
+                cache.appMetadata = {};
+            }
         };
     });
 
@@ -246,17 +230,10 @@ describe.only("UnifiedCacheManager test cases", () => {
         const atTwo = mockCache.createMockATTwo();
         const atTwoKey = atTwo.generateCredentialKey();
 
-        const cache = unifiedCacheManager.getCache() as InMemoryCache;
-        expect(
-            Object.keys(cache.accessTokens)
-                .length
-        ).to.equal(2);
-        expect(
-            cache.accessTokens[atOneKey]
-        ).to.eql(atOne);
-        expect(
-            cache.accessTokens[atTwoKey]
-        ).to.eql(atTwo);
+        const cache = storageInterface.getCache() as InMemoryCache;
+        expect(Object.keys(cache.accessTokens).length).to.equal(2);
+        expect(cache.accessTokens[atOneKey]).to.eql(atOne);
+        expect(cache.accessTokens[atTwoKey]).to.eql(atTwo);
     });
 
     it("save account", () => {
@@ -274,12 +251,9 @@ describe.only("UnifiedCacheManager test cases", () => {
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         const accountKey = ac.generateAccountKey();
-        const cache = unifiedCacheManager.getCache() as InMemoryCache;
+        const cache = storageInterface.getCache() as InMemoryCache;
         unifiedCacheManager.saveAccount(ac);
-        expect(
-            cache.accounts[accountKey]
-                .homeAccountId
-        ).to.eql("someUid.someUtid");
+        expect(cache.accounts[accountKey].homeAccountId).to.eql("someUid.someUtid");
     });
 
     it("save credential", () => {
@@ -300,43 +274,32 @@ describe.only("UnifiedCacheManager test cases", () => {
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
         const atKey = at.generateCredentialKey();
         unifiedCacheManager.saveCredential(at);
-        const cache = unifiedCacheManager.getCache() as InMemoryCache;
-        expect(
-            cache.accessTokens[atKey]
-                .homeAccountId
-        ).to.eql("someUid.someUtid");
+        const cache = storageInterface.getCache() as InMemoryCache;
+        expect(cache.accessTokens[atKey].homeAccountId).to.eql("someUid.someUtid");
     });
 
     it("getAccount", () => {
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
-        expect(
-            unifiedCacheManager.getAccount(
-                "someuid.someutid-login.microsoftonline.com-microsoft"
-            ).homeAccountId
-        ).to.eql("someUid.someUtid");
+        expect(unifiedCacheManager.getAccount("someuid.someutid-login.microsoftonline.com-microsoft").homeAccountId).to.eql("someUid.someUtid");
     });
 
     it("getCredential", () => {
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
-        expect(
-            unifiedCacheManager.getCredential(
-                "someuid.someutid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope6 scope7"
-            ).homeAccountId
-        ).to.eql("someUid.someUtid");
+        expect(unifiedCacheManager.getCredential("someuid.someutid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope6 scope7").homeAccountId).to.eql("someUid.someUtid");
     });
 
-    it("getAccounts", () => {
+    it("getAccountsFilteredBy", () => {
         let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
 
         const filterOne: AccountFilter = { homeAccountId: "uid.utid" };
         let accounts = unifiedCacheManager.getAccountsFilteredBy(filterOne);
         expect(Object.keys(accounts).length).to.eql(1);
 
-        const filterTwo: AccountFilter = { environment: "login.microsoftonline.com" };
+        const filterTwo: AccountFilter = { homeAccountId: "Wrong Id" };
         accounts = unifiedCacheManager.getAccountsFilteredBy(filterTwo);
-        expect(Object.keys(accounts).length).to.eql(2);
+        expect(Object.keys(accounts).length).to.eql(0);
     });
 
     it("getCredentials", () => {
@@ -353,13 +316,12 @@ describe.only("UnifiedCacheManager test cases", () => {
         const filterTwo: CredentialFilter = { homeAccountId: "someuid.someutid" };
         credentials = unifiedCacheManager.getCredentialsFilteredBy(filterTwo);
         expect(Object.keys(credentials.idTokens).length).to.eql(0);
-        expect(Object.keys(credentials.accessTokens).length).to.eql(1);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(0);
         expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
 
         // filter by target
         const filterThree = { target: "scope1 scope2 scope3" };
         credentials = unifiedCacheManager.getCredentialsFilteredBy(filterThree);
-        console.log(credentials.accessTokens);
     });
 
     it("removeAccount", () => {
@@ -378,10 +340,8 @@ describe.only("UnifiedCacheManager test cases", () => {
 
         unifiedCacheManager.removeAccount(ac.generateAccountKey());
         const accountKey = ac.generateAccountKey();
-        const cache = unifiedCacheManager.getCache() as InMemoryCache;
-        expect(
-            cache.accounts[accountKey]
-        ).to.eql(undefined);
+        const cache = storageInterface.getCache() as InMemoryCache;
+        expect(cache.accounts[accountKey]).to.eql(undefined);
     });
 
     it("removeCredential", () => {
@@ -403,9 +363,7 @@ describe.only("UnifiedCacheManager test cases", () => {
 
         unifiedCacheManager.removeCredential(at);
         const atKey = at.generateCredentialKey();
-        const cache = unifiedCacheManager.getCache() as InMemoryCache;
-        expect(
-            cache.accessTokens[atKey]
-        ).to.eql(undefined);
+        const cache = storageInterface.getCache() as InMemoryCache;
+        expect(cache.accessTokens[atKey]).to.eql(undefined);
     });
 });

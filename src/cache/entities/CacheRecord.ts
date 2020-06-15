@@ -13,4 +13,11 @@ export class CacheRecord {
     idToken: IdTokenEntity;
     accessToken: AccessTokenEntity;
     refreshToken: RefreshTokenEntity;
+
+    constructor(accountEntity: AccountEntity, idTokenEntity: IdTokenEntity, accessTokenEntity: AccessTokenEntity, refreshTokenEntity: RefreshTokenEntity) {
+        this.account = accountEntity;
+        this.idToken = idTokenEntity;
+        this.accessToken = accessTokenEntity;
+        this.refreshToken = refreshTokenEntity;
+    }
 }
