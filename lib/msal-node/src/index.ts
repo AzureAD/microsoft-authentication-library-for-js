@@ -12,10 +12,10 @@ export {
     AuthorizationCodeRequest,
     DeviceCodeRequest,
     RefreshTokenRequest,
-    Prompt,
+    PromptValue,
     ResponseMode,
     // Response
-    AuthResponse,
+    AuthenticationResult,
     // Error
     AuthError,
     AuthErrorMessage,
