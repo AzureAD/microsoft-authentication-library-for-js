@@ -1284,7 +1284,7 @@ export class UserAgentApplication {
             throw AuthError.createUnexpectedError("Hash was not parsed correctly.");
         }
         if (parameters.hasOwnProperty(ServerHashParamKeys.STATE)) {
-            this.logger.verbose("Hash contains state");
+            this.logger.verbose("Hash contains state. Creating stateInfo object");
             const parsedState = RequestUtils.parseLibraryState(parameters.state);
 
             stateResponse = {
@@ -1304,12 +1304,14 @@ export class UserAgentApplication {
 
         // loginRedirect
         if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_LOGIN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie) || stateResponse.state === this.silentAuthenticationState) {
+            this.logger.verbose("State matches cached state, setting requestType to login");
             stateResponse.requestType = Constants.login;
             stateResponse.stateMatch = true;
             return stateResponse;
         }
         // acquireTokenRedirect
         else if (stateResponse.state === this.cacheStorage.getItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${stateResponse.state}`, this.inCookie)) {
+            this.logger.verbose("State matches cached state, setting requestType to renewToken");
             stateResponse.requestType = Constants.renewToken;
             stateResponse.stateMatch = true;
             return stateResponse;
@@ -1317,10 +1319,12 @@ export class UserAgentApplication {
 
         // external api requests may have many renewtoken requests for different resource
         if (!stateResponse.stateMatch) {
+            this.logger.verbose("State does not match cached state, setting requestType to type from window");
             stateResponse.requestType = window.requestType;
             const statesInParentContext = window.renewStates;
             for (let i = 0; i < statesInParentContext.length; i++) {
                 if (statesInParentContext[i] === stateResponse.state) {
+                    this.logger.verbose("StateMatch set to true");
                     stateResponse.stateMatch = true;
                     break;
                 }
