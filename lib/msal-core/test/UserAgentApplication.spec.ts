@@ -1177,7 +1177,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and no matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
-                scopes: ["s1"],
+                scopes: ["s1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -1248,7 +1248,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["s1",],
+                scopes: ["s1", "openid", "profile",],
                 account: account,
                 claimsRequest: JSON.stringify(claimsRequestObj)
             };
@@ -1285,7 +1285,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["s1"],
+                scopes: ["s1", "openid", "profile"],
                 account: account,
                 forceRefresh: true
             };

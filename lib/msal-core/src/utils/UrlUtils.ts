@@ -44,8 +44,7 @@ export class UrlUtils {
         const str: Array<string> = [];
         str.push("response_type=" + serverRequestParams.responseType);
 
-        const loginScopes = ScopeSet.generateLoginScopes(scopes, serverRequestParams.clientId);
-        str.push("scope=" + encodeURIComponent(ScopeSet.parseScope(loginScopes)));
+        str.push("scope=" + encodeURIComponent(ScopeSet.parseScope(serverRequestParams.scopes)));
         str.push("client_id=" + encodeURIComponent(serverRequestParams.clientId));
         str.push("redirect_uri=" + encodeURIComponent(serverRequestParams.redirectUri));
 
