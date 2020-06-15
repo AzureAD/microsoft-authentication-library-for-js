@@ -113,7 +113,7 @@ export class UnifiedCacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm
         });
-        const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache) as AccessTokenEntity[];
+        const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache.accessTokens) as AccessTokenEntity[];
         if (currentAccessTokens) {
             currentAccessTokens.forEach((tokenEntity) => {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target, this.clientId);
