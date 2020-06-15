@@ -151,14 +151,14 @@ describe("SPAClient.ts Class Unit Tests", () => {
             store = {};
         });
 
-        it("Creates a login URL with default scopes", async () => {
+        it("Creates a login URL", async () => {
             const emptyRequest: AuthorizationUrlRequest = {
 				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: [],
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
 				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
 				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
 			};
-            const loginUrl = await Client.createLoginUrl(emptyRequest);
+            const loginUrl = await Client.createUrl(emptyRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
             expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
@@ -178,8 +178,8 @@ describe("SPAClient.ts Class Unit Tests", () => {
 				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
 				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
             };
-            const loginUrl = await Client.createLoginUrl(loginRequest);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2} ${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
+            const loginUrl = await Client.createUrl(loginRequest);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2}`)}`);
         });
 
         it("Uses authority if given in request", async () => {
@@ -187,12 +187,12 @@ describe("SPAClient.ts Class Unit Tests", () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
             const loginRequest: AuthorizationUrlRequest = {
 				redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [],
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
 				authority: `${TEST_URIS.ALTERNATE_INSTANCE}/common`,
 				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
 				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
             };
-            const loginUrl = await Client.createLoginUrl(loginRequest);
+            const loginUrl = await Client.createUrl(loginRequest);
             expect(loginUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
             expect(loginUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
@@ -211,122 +211,27 @@ describe("SPAClient.ts Class Unit Tests", () => {
 				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
 				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
 			};
-            await expect(Client.createLoginUrl(emptyRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
-        });
-    });
-
-    describe("Acquire Token Url Creation", () => {
-        let Client: SPAClient;
-        beforeEach(() => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            Client = new SPAClient(defaultAuthConfig);
+            await expect(Client.createUrl(emptyRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
         });
 
-        afterEach(() => {
-            sinon.restore();
-            store = {};
-        });
-
-        it("Creates a acquire token URL with scopes from given token request", async () => {
-            const testScope1 = "testscope1";
-            const testScope2 = "testscope2";
-            const tokenRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: [testScope1, testScope2],
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-            };
-            const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
-            expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-        });
-
-        it("Creates a acquire token URL with replaced client id scope", async () => {
-            const tokenRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-            };
-            const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
-            expect(acquireTokenUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(acquireTokenUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-        });
-
-        it("Throws error if no scopes are passed to createAcquireTokenUrl", async () => {
+        it("Throws error if no scopes are passed to createUrl", async () => {
             const emptyRequest: AuthorizationUrlRequest = {
 				redirectUri: TEST_URIS.TEST_REDIR_URI,
 				scopes: null,
 				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
 				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
 			};
-            await expect(Client.createAcquireTokenUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+            await expect(Client.createUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
         });
 
-        it("Throws error if empty scopes are passed to createAcquireTokenUrl", async () => {
+        it("Throws error if empty scopes are passed to createUrl", async () => {
             const emptyRequest: AuthorizationUrlRequest = {
 				redirectUri: TEST_URIS.TEST_REDIR_URI,
 				scopes: [],
 				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
 				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
 			};
-            await expect(Client.createAcquireTokenUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
-        });
-
-        it("Uses authority if given in request", async () => {
-            sinon.restore();
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
-            const tokenRequest: AuthorizationUrlRequest = {
-				authority: `${TEST_URIS.ALTERNATE_INSTANCE}/common`,
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-            };
-            const acquireTokenUrl = await Client.createAcquireTokenUrl(tokenRequest);
-            expect(acquireTokenUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
-            expect(acquireTokenUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            expect(acquireTokenUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-        });
-
-        it("Throws endpoint discovery error if resolveEndpointsAsync fails", async () => {
-            sinon.restore();
-            const exceptionString = "Could not make a network request.";
-            sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
-            const tokenRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-            };
-            await expect(Client.createAcquireTokenUrl(tokenRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
-        });
-
-        it("Cleans cache before error is thrown", async () => {
-            const guidCreationErr = "GUID can't be created.";
-            const tokenRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-            };
-            defaultAuthConfig.cryptoInterface.createNewGuid = (): string => {
-                throw AuthError.createUnexpectedError(guidCreationErr);
-            };
-            Client = new SPAClient(defaultAuthConfig);
-            await expect(Client.createAcquireTokenUrl(tokenRequest)).to.be.rejectedWith(guidCreationErr);
-            expect(defaultAuthConfig.storageInterface.getKeys()).to.be.empty;
+            await expect(Client.createUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
         });
     });
 

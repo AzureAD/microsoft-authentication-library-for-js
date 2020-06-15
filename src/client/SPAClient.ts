@@ -93,7 +93,7 @@ export class SPAClient extends BaseClient {
 
         // Client ID
         parameterBuilder.addClientId(this.config.authOptions.clientId);
-        const scopeSet = new ScopeSet((request && request.scopes) || [], this.config.authOptions.clientId);
+        const scopeSet = new ScopeSet((request && request.scopes) || []);
 
         if (request.extraScopesToConsent) {
             scopeSet.appendScopes(request && request.extraScopesToConsent);
@@ -176,7 +176,7 @@ export class SPAClient extends BaseClient {
             codeRequest.redirectUri || this.getRedirectUri()
         );
 
-        const scopeSet = new ScopeSet(codeRequest.scopes || [], this.config.authOptions.clientId);
+        const scopeSet = new ScopeSet(codeRequest.scopes || []);
         parameterBuilder.addScopes(scopeSet);
 
         // add code: set by user, not validated
@@ -193,7 +193,7 @@ export class SPAClient extends BaseClient {
         // User helper to retrieve token response.
         // Need to await function call before return to catch any thrown errors.
         // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
-        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, acquireTokenAuthority, cachedNonce);
+        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, acquireTokenAuthority, cachedNonce, userState);
     }
 
     /**
@@ -213,7 +213,7 @@ export class SPAClient extends BaseClient {
         }
 
         // Get account object for this request.
-        const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId);
+        const requestScopes = new ScopeSet(request.scopes || []);
 
         // Get current cached tokens
         const cachedAccount = this.unifiedCacheManager.getAccount(CacheHelper.generateAccountCacheKey(request.account));
@@ -232,7 +232,7 @@ export class SPAClient extends BaseClient {
             const cachedIdToken = this.fetchIdToken(homeAccountId, env, cachedAccount.realm);
             const idTokenObj = new IdToken(cachedIdToken.secret, this.cryptoUtils);
 
-            const cachedScopes = ScopeSet.fromString(cachedAccessToken.target, this.config.authOptions.clientId);
+            const cachedScopes = ScopeSet.fromString(cachedAccessToken.target);
             return {
                 uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
                 tenantId: idTokenObj.claims.tid,
@@ -455,7 +455,7 @@ export class SPAClient extends BaseClient {
 
         parameterBuilder.addRedirectUri(this.getRedirectUri());
 
-        const scopeSet = new ScopeSet(refreshTokenRequest.scopes || [], this.config.authOptions.clientId);
+        const scopeSet = new ScopeSet(refreshTokenRequest.scopes || []);
         parameterBuilder.addScopes(scopeSet);
 
         parameterBuilder.addRefreshToken(refreshTokenRequest.refreshToken);

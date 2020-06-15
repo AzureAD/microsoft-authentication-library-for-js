@@ -94,7 +94,7 @@ export class AuthorizationCodeClient extends BaseClient {
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);
 
-        const scopeSet = new ScopeSet(request.scopes || [], this.config.authOptions.clientId);
+        const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
 
         // add code: user set, not validated
@@ -120,7 +120,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        const scopeSet = new ScopeSet(request.scopes || [], this.config.authOptions.clientId);
+        const scopeSet = new ScopeSet(request.scopes || []);
         if (request.extraScopesToConsent) {
             scopeSet.appendScopes(request.extraScopesToConsent);
         }

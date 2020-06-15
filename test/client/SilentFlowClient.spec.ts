@@ -111,7 +111,7 @@ describe("SilentFlowClient unit tests", () => {
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(silentFlowRequest);
-        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0], "email", Constants.OFFLINE_ACCESS_SCOPE];
+        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0], "email"];
         expect(authResult.uniqueId).to.deep.eq(idTokenClaims.oid);
         expect(authResult.tenantId).to.deep.eq(idTokenClaims.tid);
         expect(authResult.scopes).to.deep.eq(expectedScopes);
@@ -121,7 +121,7 @@ describe("SilentFlowClient unit tests", () => {
         expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
         expect(authResult.state).to.be.undefined;
 
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`);
