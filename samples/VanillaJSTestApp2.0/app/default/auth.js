@@ -40,11 +40,11 @@ function handleResponse(resp) {
 async function signIn(method) {
     signInType = isIE ? "loginRedirect" : method;
     if (signInType === "loginPopup") {
-        myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
+        return myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
             console.log(error);
         });
     } else if (signInType === "loginRedirect") {
-        myMSALObj.loginRedirect(loginRequest)
+        return myMSALObj.loginRedirect(loginRequest)
     }
 }
 
