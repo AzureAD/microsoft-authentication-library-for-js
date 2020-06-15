@@ -1,8 +1,8 @@
-import { AccessTokenEntity } from "../../../src/unifiedCache/entities/AccessTokenEntity";
-import { IdTokenEntity } from "../../../src/unifiedCache/entities/IdTokenEntity";
-import { RefreshTokenEntity } from "../../../src/unifiedCache/entities/RefreshTokenEntity";
-import { AccountEntity } from "../../../src/unifiedCache/entities/AccountEntity";
-import { AppMetadataEntity } from "../../../src/unifiedCache/entities/AppMetadataEntity";
+import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
+import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
+import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";
+import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
+import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity";
 
 // mock tokens
 export const mockAccessTokenEntity_1 = {

@@ -15,7 +15,9 @@ import { AccountCache, CredentialCache } from "./utils/CacheTypes";
 import { CacheHelper } from "./utils/CacheHelper";
 import { CacheRecord } from "./entities/CacheRecord";
 import { StringUtils } from "../utils/StringUtils";
+import { IdTokenEntity } from "./entities/IdTokenEntity";
 import { AccessTokenEntity } from "./entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
 
 export class UnifiedCacheManager {
@@ -79,10 +81,10 @@ export class UnifiedCacheManager {
                 realm: credential.realm
             }
         );
-        const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache) as AccessTokenEntity[];
+        const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache.accessTokens) as AccessTokenEntity[];
         if (currentAccessTokens) {
             currentAccessTokens.forEach((tokenEntity) => {
-                const tokenScopeSet = ScopeSet.fromString(tokenEntity.target, clientId);
+                const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
                 if (tokenScopeSet.intersectingScopeSets(responseScopes)) {
                     this.removeCredential(cacheStorage, tokenEntity);
                 }
@@ -216,12 +218,17 @@ export class UnifiedCacheManager {
         target?: string
     ): CredentialCache {
         const allCacheKeys = cacheStorage.getKeys();
-        const matchingCredentials: CredentialCache = {};
+        const matchingCredentials: CredentialCache = {
+            idTokens: {},
+            accessTokens: {},
+            refreshTokens: {}
+        };
 
         allCacheKeys.forEach((cacheKey) => {
             let matches: boolean = true;
             // don't parse any non-credential type cache entities
-            if (CacheHelper.getCredentialType(cacheKey) === Constants.NOT_DEFINED) {
+            const credType = CacheHelper.getCredentialType(cacheKey);
+            if (credType === Constants.NOT_DEFINED) {
                 return;
             }
 
@@ -256,12 +263,23 @@ export class UnifiedCacheManager {
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            if (!StringUtils.isEmpty(target) && CacheHelper.getCredentialType(cacheKey) !== CredentialType.ID_TOKEN) {
-                matches = matches && CacheHelper.matchTarget(entity, target, clientId);
+            // TODO: Add case for target specific refresh tokens
+            if (!StringUtils.isEmpty(target) && credType === CredentialType.ACCESS_TOKEN) {
+                matches = matches && CacheHelper.matchTarget(entity, target);
             }
 
             if (matches) {
-                matchingCredentials[cacheKey] = entity;
+                switch (credType) {
+                    case CredentialType.ID_TOKEN:
+                        matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
+                        break;
+                    case CredentialType.ACCESS_TOKEN:
+                        matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
+                        break;
+                    case CredentialType.REFRESH_TOKEN:
+                        matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
+                        break;
+                }
             }
         });
 

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { AccessTokenEntity } from "../../../src/unifiedCache/entities/AccessTokenEntity";
+import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
 import { mockCache } from "./cacheConstants";
 
 describe("AccessTokenEntity.ts Unit Tests", () => {

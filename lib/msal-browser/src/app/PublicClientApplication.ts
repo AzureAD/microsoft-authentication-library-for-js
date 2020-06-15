@@ -269,7 +269,7 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
-        return this.acquireTokenRedirect(request);
+        return this.acquireTokenRedirect(this.generateLoginRequest(request));
     }
 
     /**
@@ -313,10 +313,10 @@ export class PublicClientApplication {
      *
      * @param {@link (AuthenticationParameters:type)}
      *
-     * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(request);
+        return this.acquireTokenPopup(this.generateLoginRequest(request));
     }
 
     /**
@@ -324,7 +324,7 @@ export class PublicClientApplication {
      * @param {@link AuthenticationParameters}
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
-     * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         try {
@@ -375,10 +375,10 @@ export class PublicClientApplication {
      *
      * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
-     * @param {@link AuthenticationParameters}
+     * @param {@link AuthorizationUrlRequest}
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters.
-     * @returns {Promise.<TokenResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
@@ -541,9 +541,7 @@ export class PublicClientApplication {
      */
     public getAccountByUsername(userName: string): IAccount {
         const allAccounts = this.getAllAccounts();
-        return allAccounts.filter((accountObj) => {
-            return accountObj.username === userName;
-        })[0];
+        return allAccounts.filter(accountObj => accountObj.username === userName)[0];
     }
 
     // #endregion
@@ -556,6 +554,20 @@ export class PublicClientApplication {
     private interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
         return (this.browserStorage.getItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY) as string) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+    }
+
+    /**
+     * Generates a request that will contain the openid and profile scopes.
+     * @param request 
+     */
+    private generateLoginRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+        const loginRequest = { ...request };
+        if (!loginRequest.scopes) {
+            loginRequest.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE];
+        } else {
+            loginRequest.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE);
+        }
+        return loginRequest;
     }
 
     /**

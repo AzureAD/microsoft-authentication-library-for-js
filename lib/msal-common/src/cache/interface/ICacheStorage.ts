@@ -30,7 +30,7 @@ export interface ICacheStorage {
      * Function which returns boolean whether cache contains a specific key.
      * @param key
      */
-    containsKey(key: string): boolean;
+    containsKey(key: string, type?: string): boolean;
 
     /**
      * Function which retrieves all current keys from the cache.
