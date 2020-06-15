@@ -1125,7 +1125,7 @@ export class UserAgentApplication {
             const token = accessTokenItems[i];
             if (token.value.accessToken === accessToken) {
                 this.cacheStorage.removeItem(JSON.stringify(token.key));
-                this.logger.info(`Access token removed: ${token.key}`);
+                this.logger.verbosePii(`Access token removed: ${token.key}`);
             }
         }
     }
