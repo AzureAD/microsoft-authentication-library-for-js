@@ -467,13 +467,13 @@ export class SPAClient extends BaseClient {
      */
     private isTokenExpired(expiresOn: string): boolean {
         // check for access token expiry
-        const expirationSec = Number(expiresOn);
+        const expirationSec = Number(expiresOn) || 0;
         const offsetCurrentTimeSec =
             TimeUtils.nowSeconds() +
             this.config.systemOptions.tokenRenewalOffsetSeconds;
 
-        // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        return expirationSec && offsetCurrentTimeSec < expirationSec;
+        // If current time + offset is greater than token expiration time, then token is expired.
+        return offsetCurrentTimeSec > expirationSec;
     }
 
     /**
