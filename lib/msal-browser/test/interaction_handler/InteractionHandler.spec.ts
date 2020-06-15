@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, IAccount, TokenResponse, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, IAccount, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
