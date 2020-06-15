@@ -499,9 +499,13 @@ export class UserAgentApplication {
      *
      */
     private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
+        this.logger.verbose("AcquireTokenHelper has been called");
+        this.logger.verbose(`Interaction type: ${interactionType}. isLoginCall: ${isLoginCall}`);
+
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
+        this.logger.verbosePii(`Serialized scopes: ${scope}`);
 
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
@@ -530,11 +534,14 @@ export class UserAgentApplication {
                 request.state,
                 request.correlationId
             );
+            this.logger.verbose("Finished building server authentication request");
 
             this.updateCacheEntries(serverAuthenticationRequest, account, isLoginCall, loginStartPage);
+            this.logger.verbose("Updating cache entries");
 
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             serverAuthenticationRequest.populateQueryParams(account, request);
+            this.logger.verbose("Query parameters populated from account");
 
             // Construct urlNavigate
             const urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
@@ -543,18 +550,26 @@ export class UserAgentApplication {
             if (interactionType === Constants.interactionTypeRedirect) {
                 if (!isLoginCall) {
                     this.cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${request.state}`, serverAuthenticationRequest.state, this.inCookie);
+                    this.logger.verbose("State cached for redirect");
+                    this.logger.verbosePii(`State cached: ${serverAuthenticationRequest.state}`);
+                } else {
+                    this.logger.verbose("Interaction type redirect but login call is true. State not cached");
                 }
             } else if (interactionType === Constants.interactionTypePopup) {
                 window.renewStates.push(serverAuthenticationRequest.state);
                 window.requestType = isLoginCall ? Constants.login : Constants.renewToken;
+                this.logger.verbose("State saved to window");
+                this.logger.verbosePii(`State saved: ${serverAuthenticationRequest.state}`);
 
                 // Register callback to capture results from server
                 this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
             } else {
+                this.logger.verbose("Invalid interaction error. State not cached");
                 throw ClientAuthError.createInvalidInteractionTypeError();
             }
 
             if (interactionType === Constants.interactionTypePopup) {
+                this.logger.verbose("Interaction type is popup. Generating popup window");
                 // Generate a popup window
                 try {
                     popUpWindow = this.openPopup(urlNavigate, "msal", Constants.popUpWidth, Constants.popUpHeight);
