@@ -43,7 +43,7 @@ export class Constants {
     static get renewToken(): string { return "RENEW_TOKEN"; }
     static get unknown(): string { return "UNKNOWN"; }
 
-    static get ADFS(): string { return "adfs"};
+    static get ADFS(): string { return "adfs"; };
 
     static get homeAccountIdentifier(): string { return "homeAccountIdentifier"; }
 
@@ -128,6 +128,11 @@ export const BlacklistedEQParams = [
 
 export type InteractionType = "redirectInteraction" | "popupInteraction" | "silentInteraction";
 
+export const NetworkRequestType = {
+    GET: "GET",
+    POST: "POST"
+};
+
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
  * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
@@ -153,5 +158,5 @@ export const FramePrefix = {
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-    return "1.3.1";
+    return "1.3.2";
 }

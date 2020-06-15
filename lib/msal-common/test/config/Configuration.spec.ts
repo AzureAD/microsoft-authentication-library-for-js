@@ -7,12 +7,17 @@ import { LogLevel } from "../../src/logger/Logger";
 import { Constants } from "../../src";
 import { version } from "../../package.json";
 import {TEST_CONFIG} from "../utils/StringConstants";
+import { InMemoryCache } from "../../dist/src/unifiedCache/utils/CacheTypes";
 
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default functions", async () => {
-        const emptyConfig: ClientConfiguration = buildClientConfiguration({});
+        const emptyConfig: ClientConfiguration = buildClientConfiguration({
+			authOptions: {
+				clientId: TEST_CONFIG.MSAL_CLIENT_ID
+			}
+		});
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -87,6 +92,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
 
     it("buildConfiguration correctly assigns new values", () => {
         const newConfig: ClientConfiguration = buildClientConfiguration({
+			authOptions: {
+				clientId: TEST_CONFIG.MSAL_CLIENT_ID
+			},
             cryptoInterface: {
                 createNewGuid: (): string => {
                     return "newGuid";
@@ -113,7 +121,13 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                     return testKeySet;
                 },
                 removeItem: removeFunc,
-                setItem: setFunc
+				setItem: setFunc,
+				getCache(): InMemoryCache {
+					return null;
+				},
+				setCache(): InMemoryCache {
+					return null;
+				}
             },
             networkInterface: {
                 sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {

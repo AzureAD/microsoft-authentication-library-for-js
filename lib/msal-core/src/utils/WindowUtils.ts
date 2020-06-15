@@ -45,13 +45,16 @@ export class WindowUtils {
      * Monitors a window until it loads a url with a hash
      * @ignore
      */
-    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, isSilentCall?: boolean): Promise<string> {
+    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger, isSilentCall?: boolean): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
 
+            logger.verbose("monitorWindowForHash polling started");
+
             const intervalId = setInterval(() => {
                 if (contentWindow.closed) {
+                    logger.error("monitorWindowForHash window closed");
                     clearInterval(intervalId);
                     reject(ClientAuthError.createUserCancelledError());
                     return;
@@ -88,11 +91,14 @@ export class WindowUtils {
                 }
 
                 if (href && UrlUtils.urlContainsHash(href)) {
+                    logger.verbose("monitorWindowForHash found url in hash");
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
+                    logger.error("monitorWindowForHash unable to find hash in url, timing out");
+                    logger.errorPii(`monitorWindowForHash polling timed out for url: ${urlNavigate}`);
                     clearInterval(intervalId);
-                    reject(ClientAuthError.createTokenRenewalTimeoutError(urlNavigate)); // better error?
+                    reject(ClientAuthError.createTokenRenewalTimeoutError());
                 }
             }, WindowUtils.POLLING_INTERVAL_MS);
         });
@@ -108,7 +114,7 @@ export class WindowUtils {
          * This trick overcomes iframe navigation in IE
          * IE does not load the page consistently in iframe
          */
-        logger.info("LoadFrame: " + frameName);
+        logger.infoPii("LoadFrame: " + frameName);
 
         return new Promise((resolve, reject) => {
             setTimeout(() => {
@@ -156,7 +162,7 @@ export class WindowUtils {
             return null;
         }
 
-        logger.info("Add msal frame to document:" + iframeId);
+        logger.infoPii("Add msal frame to document:" + iframeId);
         let adalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
         if (!adalFrame) {
             if (document.createElement &&

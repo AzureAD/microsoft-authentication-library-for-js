@@ -11,7 +11,7 @@ import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
 import HttpEvent from "../telemetry/HttpEvent";
 import { TrustedAuthority } from "./TrustedAuthority";
-import { Constants } from '../utils/Constants';
+import { Constants, NetworkRequestType } from "../utils/Constants";
 
 /**
  * @hidden
@@ -131,7 +131,7 @@ export class Authority {
     private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         const client = new XhrClient();
 
-        const httpMethod = "GET";
+        const httpMethod = NetworkRequestType.GET;
         const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, openIdConfigurationEndpoint, "openIdConfigurationEndpoint");
 
         return client.sendRequestAsync(openIdConfigurationEndpoint, httpMethod, /* enableCaching: */ true)
@@ -160,6 +160,9 @@ export class Authority {
     public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         if (this.IsValidationEnabled) {
             const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
+            if (TrustedAuthority.getTrustedHostList().length === 0) {
+                await TrustedAuthority.setTrustedAuthoritiesFromNetwork(telemetryManager, correlationId);
+            }
 
             if (!TrustedAuthority.IsInTrustedHostList(host)) {
                 throw ClientConfigurationError.createUntrustedAuthorityError(host);

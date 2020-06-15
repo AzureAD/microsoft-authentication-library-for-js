@@ -5,7 +5,6 @@ import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig } from "../../src/telemetry/TelemetryTypes";
 import { Logger } from "../../src/Logger";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
-import { XhrClient } from "../../src/XHRClient";
 
 const stubbedTelemetryConfig: TelemetryConfig = {
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -41,46 +40,11 @@ describe("TrustedAuthority.ts Class", function () {
     });
 
     describe("setTrustedAuthoritiesFromNetwork", () => {
-        afterEach(function() {
-            sinon.restore();
-        });
-
-        it("Sets TrustedHostList with Authorities known to Microsoft via Instance Discovery Network Call", (done) => {
+        it("Sets TrustedHostList with Authorities known to Microsoft via Instance Discovery Network Call", async () => {
             const countBefore = TrustedAuthority.getTrustedHostList().length;
-            sinon.stub(TrustedAuthority, "getTrustedHostList").returns([]);
-            TrustedAuthority.setTrustedAuthoritiesFromNetwork(true, stubbedTelemetryManager).then(() => {
-                sinon.restore();
-                const countAfter = TrustedAuthority.getTrustedHostList().length;
-                expect(countBefore).to.be.lessThan(countAfter);
-                done();
-            });
-            
-        });
-
-        it("Resolves without network call if validateAuthority is false", function (done) {
-            const countBefore = TrustedAuthority.getTrustedHostList().length;
-
-            sinon.stub(TrustedAuthority, "getTrustedHostList").returns([]);
-            sinon.stub(new XhrClient(), "sendRequestAsync").throws("This test should not make a network call");
-            TrustedAuthority.setTrustedAuthoritiesFromNetwork(false, stubbedTelemetryManager).then(() => {
-                sinon.restore();
-                const countAfter = TrustedAuthority.getTrustedHostList().length;
-                expect(countBefore).to.equal(countAfter);
-                done();
-            });            
-        });
-
-        it("Resolves without network call if validateAuthority is true and TrustedHostList already set", function (done) {
-            const countBefore = TrustedAuthority.getTrustedHostList().length;
-
-            sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
-            sinon.stub(new XhrClient(), "sendRequestAsync").throws("This test should not make a network call");
-            TrustedAuthority.setTrustedAuthoritiesFromNetwork(true, stubbedTelemetryManager).then(() => {
-                sinon.restore();
-                const countAfter = TrustedAuthority.getTrustedHostList().length;
-                expect(countBefore).to.equal(countAfter);
-                done();
-            });            
+            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(stubbedTelemetryManager);
+            const countAfter = TrustedAuthority.getTrustedHostList().length;
+            expect(countBefore).to.be.lessThan(countAfter);
         });
     });
 });

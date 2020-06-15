@@ -11,15 +11,13 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ITenantDiscoveryResponse, OpenIdConfiguration } from "./ITenantDiscoveryResponse";
 import TelemetryManager from "../telemetry/TelemetryManager";
-import { AuthOptions } from "../Configuration";
-import { TrustedAuthority } from "./TrustedAuthority";
+import { Constants } from "../utils/Constants";
+import { UrlUtils } from "../utils/UrlUtils";
 
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
-    private static cloudInstanceDiscoveryPromise: Promise<void>;
 
     public static async saveMetadataFromNetwork(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
-        await this.cloudInstanceDiscoveryPromise;
         const metadata = await authorityInstance.resolveEndpointsAsync(telemetryManager, correlationId);
         this.metadataMap.set(authorityInstance.CanonicalAuthority, metadata);
         return metadata;
@@ -50,17 +48,6 @@ export class AuthorityFactory {
     }
 
     /**
-     * 
-     * @param authConfig 
-     * @param telemetryManager 
-     */
-    public static initializeAuthorityData(authConfig: AuthOptions, telemetryManager: TelemetryManager) {
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(authConfig.validateAuthority, authConfig.knownAuthorities);
-        this.saveMetadataFromConfig(authConfig.authority, authConfig.authorityMetadata);
-        this.cloudInstanceDiscoveryPromise = TrustedAuthority.setTrustedAuthoritiesFromNetwork(authConfig.validateAuthority, telemetryManager);
-    }
-
-    /**
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
@@ -75,5 +62,16 @@ export class AuthorityFactory {
         }
 
         return new Authority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
+    }
+
+    public static isAdfs(authorityUrl: string): boolean {
+        const components = UrlUtils.GetUrlComponents(authorityUrl);
+        const pathSegments = components.PathSegments;
+
+        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
+            return true;
+        }
+
+        return false;
     }
 }

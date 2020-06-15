@@ -1,7 +1,7 @@
 import TelemetryManager from "../telemetry/TelemetryManager";
 import { XhrClient, XhrResponse } from "../XHRClient";
 import HttpEvent from "../telemetry/HttpEvent";
-import { AAD_INSTANCE_DISCOVERY_ENDPOINT } from "../utils/Constants";
+import { AAD_INSTANCE_DISCOVERY_ENDPOINT, NetworkRequestType } from "../utils/Constants";
 
 export class TrustedAuthority {
     private static TrustedHostList: Array<string> = [];
@@ -24,35 +24,36 @@ export class TrustedAuthority {
      * @param telemetryManager 
      * @param correlationId 
      */
-    public static setTrustedAuthoritiesFromNetwork(validateAuthority: boolean, telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
-        if (!validateAuthority || this.getTrustedHostList().length > 0) {
-            return Promise.resolve();
-        }
+    private static async getAliases(telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<any>> {
+        const client: XhrClient = new XhrClient();
 
-        return new Promise<void>((resolve, reject) => {
-            const client: XhrClient = new XhrClient();
+        const httpMethod = NetworkRequestType.GET;
+        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, AAD_INSTANCE_DISCOVERY_ENDPOINT, "getAliases");
+        return client.sendRequestAsync(AAD_INSTANCE_DISCOVERY_ENDPOINT, httpMethod, true)
+            .then((response: XhrResponse) => {
+                httpEvent.httpResponseStatus = response.statusCode;
+                telemetryManager.stopEvent(httpEvent);
+                return response.body.metadata;
+            })
+            .catch(err => {
+                httpEvent.serverErrorCode = err;
+                telemetryManager.stopEvent(httpEvent);
+                throw err;
+            });
+    }
 
-            const httpMethod = "GET";
-            const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, AAD_INSTANCE_DISCOVERY_ENDPOINT, "getAliases");
-            client.sendRequestAsync(AAD_INSTANCE_DISCOVERY_ENDPOINT, httpMethod, true)
-                .then((response: XhrResponse) => {
-                    httpEvent.httpResponseStatus = response.statusCode;
-                    telemetryManager.stopEvent(httpEvent);
-
-                    response.body.metadata.forEach(function(entry: any){
-                        const authorities: Array<string> = entry.aliases;
-                        authorities.forEach(function(authority: string) {
-                            TrustedAuthority.TrustedHostList.push(authority.toLowerCase());
-                        });
-                    });
-
-                    resolve();
-                })
-                .catch(err => {
-                    httpEvent.serverErrorCode = err;
-                    telemetryManager.stopEvent(httpEvent);
-                    reject(err);
-                });
+    /**
+     * 
+     * @param telemetryManager 
+     * @param correlationId 
+     */
+    public static async setTrustedAuthoritiesFromNetwork(telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
+        const metadata = await this.getAliases(telemetryManager, correlationId);
+        metadata.forEach(function(entry: any){
+            const authorities: Array<string> = entry.aliases;
+            authorities.forEach(function(authority: string) {
+                TrustedAuthority.TrustedHostList.push(authority.toLowerCase());
+            });
         });
     } 
 
