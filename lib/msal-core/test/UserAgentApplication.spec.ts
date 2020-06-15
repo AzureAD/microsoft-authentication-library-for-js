@@ -33,6 +33,8 @@ import { IdToken } from "../src/IdToken";
 import { TimeUtils } from "../src/utils/TimeUtils";
 import { RequestUtils } from "../src/utils/RequestUtils";
 import { UrlUtils } from "../src/utils/UrlUtils";
+import { AuthorityFactory } from "../src/authority/AuthorityFactory";
+import { TrustedAuthority } from "../src/authority/TrustedAuthority";
 
 type kv = {
     [key: string]: string;
@@ -105,6 +107,7 @@ describe("UserAgentApplication.ts Class", function () {
         sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "EndSessionEndpoint").value(validOpenIdConfigurationResponse.EndSessionEndpoint);
         sinon.stub(msal.getAuthorityInstance(), "SelfSignedJwtAudience").value(validOpenIdConfigurationResponse.Issuer);
+        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
         sinon.stub(WindowUtils, "isInIframe").returns(false);
         sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
     };
@@ -1220,7 +1223,7 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
-                console.error("Error in assertion: " + JSON.stringify(err));
+                expect(err).to.be.instanceOf(AuthError);
             });
         });
 
@@ -1255,7 +1258,7 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
-                console.error("Error in assertion: " + JSON.stringify(err));
+                expect(err).to.be.instanceOf(AuthError);
             });
         });
 
@@ -1296,7 +1299,7 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
-                console.error("Error in assertion: " + JSON.stringify(err));
+                expect(err).to.be.instanceOf(AuthError);
             });
         });
 
@@ -2117,7 +2120,8 @@ describe("UserAgentApplication.ts Class", function () {
         const config: Configuration = {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                redirectUri: TEST_URIS.TEST_REDIR_URI
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                knownAuthorities: ["login.microsoftonline.com"]
             }
         };
 
