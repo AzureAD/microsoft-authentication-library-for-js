@@ -15,6 +15,7 @@ steps:
   inputs:
     scanFolder: './'
     debugMode: false
+    toolVersion: '2.0.23'
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
   displayName: 'Post Analysis'
