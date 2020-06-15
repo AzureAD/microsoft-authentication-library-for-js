@@ -88,12 +88,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
             },
             storageInterface: {
-                getCache: (): object => {{
-                    return {};}
-                },
-                setCache: (): void => {
-                    // dummy impl;
-                },
+                getCache: (): object => ({}),
+                setCache: (): void => {},
                 clear: clearFunc,
                 containsKey: (key: string): boolean => {
                     return true;
