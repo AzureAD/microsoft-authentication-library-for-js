@@ -758,7 +758,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("Account is cached on acquireTokenRedirect call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["s1"], 
+                scopes: ["S1"], 
                 account: account
             };
 
@@ -783,7 +783,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("State is cached on acquireTokenRedirect call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["s1"], 
+                scopes: ["S1"], 
                 account: account
             };
 
@@ -807,7 +807,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("LoginStartPage is cached on acquireTokenRedirect call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["s1"], 
+                scopes: ["S1"], 
                 account: account
             };
 
@@ -1025,7 +1025,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken when authority is not passed and single accessToken is present in the cache for a set of scopes", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                scopes: ["s1", "openid", "profile"],
+                scopes: ["S1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -1038,7 +1038,7 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(response.idTokenClaims).to.be.deep.eq(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
                 expect(response.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESSTOKEN);
                 expect(response.account).to.be.eq(account);
-                expect(response.scopes).to.be.deep.eq(tokenRequest.scopes);
+                expect(response.scopes).to.be.deep.eq(["s1", "openid", "profile"]);
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err) {
@@ -1049,7 +1049,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken when authority is not passed and multiple accessTokens are present in the cache for a set of scopes", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                scopes: ["s1"],
+                scopes: ["S1"],
                 account: account
             };
             const params: kv = {  };
@@ -1076,7 +1076,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken without sending authority when no matching accesstoken is found and multiple authorities exist", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                scopes: ["s3"],
+                scopes: ["S3"],
                 account: account
             };
             const params: kv = {  };
@@ -1104,12 +1104,12 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and single matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["s1", "openid", "profile"],
+                scopes: ["S1", "openid", "profile"],
                 account: account
             };
             const tokenRequest2 : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
-                scopes: ["s1", "openid", "profile"],
+                scopes: ["S1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -1123,7 +1123,7 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(tokenRequest.scopes);
+                expect(response.scopes).to.be.deep.eq(["s1", "openid", "profile"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
@@ -1135,7 +1135,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
 
             msal.acquireTokenSilent(tokenRequest2).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(tokenRequest2.scopes);
+                expect(response.scopes).to.be.deep.eq(["s1", "openid", "profile"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
@@ -1151,7 +1151,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and multiple matching accessTokens are found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["s1"],
+                scopes: ["S1"],
                 account: account
             };
             const params: kv = {  };
@@ -1177,7 +1177,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and no matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
-                scopes: ["s1", "openid", "profile"],
+                scopes: ["S1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -1208,7 +1208,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests getCachedToken when authority is passed and single matching accessToken is found which is expired", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
-                scopes: ["s1", "openid", "profile"],
+                scopes: ["S1", "openid", "profile"],
                 account: account
             };
             const params: kv = {  };
@@ -1248,7 +1248,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["s1", "openid", "profile",],
+                scopes: ["S1", "openid", "profile",],
                 account: account,
                 claimsRequest: JSON.stringify(claimsRequestObj)
             };
@@ -1285,7 +1285,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
-                scopes: ["s1", "openid", "profile"],
+                scopes: ["S1", "openid", "profile"],
                 account: account,
                 forceRefresh: true
             };
