@@ -7,7 +7,7 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl } from "../utils/StringConstants";
-import { AuthError, ServerError, LogLevel, Constants, IAccount, IdTokenClaims, SPAClient, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, ClientAuthErrorMessage, SilentFlowRequest } from "@azure/msal-common";
+import { AuthError, ServerError, LogLevel, Constants, IAccount, IdTokenClaims, SPAClient, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, ClientAuthErrorMessage, SilentFlowRequest, CacheSchemaType } from "@azure/msal-common";
 import { AuthCallback } from "../../src/types/AuthCallback";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
@@ -338,9 +338,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				});
 				const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				await pca.loginRedirect(emptyRequest);
-				expect(browserStorage.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
-				expect(browserStorage.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
-				expect(browserStorage.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+				expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY)).to.be.deep.eq(RANDOM_TEST_GUID);
+				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`), CacheSchemaType.TEMPORARY)).to.be.eq(RANDOM_TEST_GUID);
+				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
 			});
 
 			it("Caches token request correctly", async () => {
@@ -361,7 +361,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				const browserCrypto = new CryptoOps();
 				await pca.loginRedirect(tokenRequest);
-				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS)));
+				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string));
 				expect(cachedRequest.scopes).to.be.deep.eq([TEST_CONFIG.MSAL_CLIENT_ID]);
 				expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
 				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
@@ -399,7 +399,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				};
 				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
 				const loginUrlSpy = sinon.spy(SPAClient.prototype, "createLoginUrl");
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -442,7 +442,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				};
 				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
 				const loginUrlSpy = sinon.spy(SPAClient.prototype, "createLoginUrl");
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -515,9 +515,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				});
 				const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				await pca.loginRedirect(emptyRequest);
-				expect(browserStorage.getItem(TemporaryCacheKeys.REQUEST_STATE)).to.be.deep.eq(RANDOM_TEST_GUID);
-				expect(browserStorage.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`)).to.be.eq(RANDOM_TEST_GUID);
-				expect(browserStorage.getItem(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+				expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY)).to.be.deep.eq(RANDOM_TEST_GUID);
+				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`), CacheSchemaType.TEMPORARY)).to.be.eq(RANDOM_TEST_GUID);
+				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.AUTHORITY}|${RANDOM_TEST_GUID}`), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
 			});
 	
 			it("Caches token request correctly", async () => {
@@ -539,7 +539,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				const browserCrypto = new CryptoOps();
 				await pca.acquireTokenRedirect(tokenRequest);
-				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(TemporaryCacheKeys.REQUEST_PARAMS)));
+				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string));
 				expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
 				expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
 				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
@@ -579,7 +579,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				};
 				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
 				const acquireTokenUrlSpy = sinon.spy(SPAClient.prototype, "createAcquireTokenUrl");
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -622,7 +622,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				};
 				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
 				const acquireTokenUrlSpy = sinon.spy(SPAClient.prototype, "createAcquireTokenUrl");
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
