@@ -53,7 +53,7 @@ describe("DeviceCodeClient unit tests", async () => {
 
             let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response
             };
 
@@ -87,8 +87,7 @@ describe("DeviceCodeClient unit tests", async () => {
 
             let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
-
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response
             };
 
@@ -110,7 +109,7 @@ describe("DeviceCodeClient unit tests", async () => {
 
             let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response,
             };
 
@@ -126,7 +125,7 @@ describe("DeviceCodeClient unit tests", async () => {
 
             let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response,
             };
 

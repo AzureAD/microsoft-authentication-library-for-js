@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { AccountEntity } from "../../../src/unifiedCache/entities/AccountEntity";
+import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
 import { mockAccountEntity } from "./cacheConstants";
 import { IdToken } from "../../../src/account/IdToken";
 import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
