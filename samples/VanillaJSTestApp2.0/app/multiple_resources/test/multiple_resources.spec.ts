@@ -81,7 +81,7 @@ describe("Browser tests", function () {
         await browser.close();
     });
 
-    it("Performs loginRedirect and acquires 2 tokens", async () => {
+    it.skip("Performs loginRedirect and acquires 2 tokens", async () => {
         const testName = "multipleResources";
         // Home Page
         await takeScreenshot(page, testName, `samplePageInit`);
