@@ -1225,7 +1225,7 @@ export class UserAgentApplication {
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
         const stateInfo = this.getResponseState(locationHash);
-        this.logger.verbose("Response state returned");
+        this.logger.verbose("Obtained response state");
 
         const tokenResponseCallback = window.callbackMappedToRenewStates[stateInfo.state];
         this.processCallBack(locationHash, stateInfo, tokenResponseCallback);
@@ -1242,15 +1242,19 @@ export class UserAgentApplication {
      */
     private handleRedirectAuthenticationResponse(hash: string): void {
         this.logger.info("Returned from redirect url");
+        this.logger.verbose("HandleRedirectAuthenticationResponse has been called");
 
         // clear hash from window
         window.location.hash = "";
+        this.logger.verbose("Window.location.hash cleared");
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
         const stateInfo = this.getResponseState(hash);
+        this.logger.verbose("Ensured window.parent is equal to window");
 
         // if set to navigate to loginRequest page post login
         if (this.config.auth.navigateToLoginRequestUrl && window.parent === window) {
+            this.logger.verbose("Navigation to login request url after login turned on");
             const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
 
             // Redirect to home page if login request url is null (real null or the string null)
@@ -1259,18 +1263,24 @@ export class UserAgentApplication {
                 window.location.assign("/");
                 return;
             } else {
+                this.logger.verbose("Valid login request url obtained from cache, removing hash from url");
                 const currentUrl = UrlUtils.removeHashFromUrl(window.location.href);
                 const finalRedirectUrl = UrlUtils.removeHashFromUrl(loginRequestUrl);
                 if (currentUrl !== finalRedirectUrl) {
+                    this.logger.verbose("Current url is not login request url, navigating");
                     window.location.assign(`${finalRedirectUrl}${hash}`);
                     return;
                 } else {
+                    this.logger.verbose("Current url matches login request url, parsing url components");
                     const loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
                     if (loginRequestUrlComponents.Hash){
+                        this.logger.verbose("Login url components contains hash, setting window location hash");
                         window.location.hash = loginRequestUrlComponents.Hash;
                     }
                 }
             }
+        } else if (!this.config.auth.navigateToLoginRequestUrl) {
+            this.logger.verbose("Default navigation to start page after login turned off");
         }
 
         this.processCallBack(hash, stateInfo, null);
