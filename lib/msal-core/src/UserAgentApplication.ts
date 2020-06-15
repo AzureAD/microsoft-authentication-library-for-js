@@ -505,7 +505,9 @@ export class UserAgentApplication {
 
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
-        const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
+
+        const scope = request.scopes ? ScopeSet.trimAndConvertArrayToLowerCase(request.scopes).join(" ") : this.clientId.toLowerCase();
+
         this.logger.verbosePii(`Serialized scopes: ${scope}`);
 
         let serverAuthenticationRequest: ServerRequestParameters;
