@@ -37,7 +37,7 @@ export class SilentFlowClient extends BaseClient {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         } 
 
-        const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId);
+        const requestScopes = new ScopeSet(request.scopes || []);
         // fetch account
         const accountKey: string = CacheHelper.generateAccountCacheKey(request.account);
         const cachedAccount = this.unifiedCacheManager.getAccount(accountKey);

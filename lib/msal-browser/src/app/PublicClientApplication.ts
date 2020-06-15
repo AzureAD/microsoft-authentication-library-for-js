@@ -269,7 +269,7 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
-        return this.acquireTokenRedirect(request);
+        return this.acquireTokenRedirect(this.generateLoginRequest(request));
     }
 
     /**
@@ -316,7 +316,7 @@ export class PublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(request);
+        return this.acquireTokenPopup(this.generateLoginRequest(request));
     }
 
     /**
@@ -554,6 +554,20 @@ export class PublicClientApplication {
     private interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
         return (this.browserStorage.getItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY) as string) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+    }
+
+    /**
+     * Generates a request that will contain the openid and profile scopes.
+     * @param request 
+     */
+    private generateLoginRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+        const loginRequest = { ...request };
+        if (!loginRequest.scopes) {
+            loginRequest.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE];
+        } else {
+            loginRequest.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE);
+        }
+        return loginRequest;
     }
 
     /**

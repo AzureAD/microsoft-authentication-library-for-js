@@ -120,9 +120,9 @@ export class CacheHelper {
      * @param entity
      * @param target
      */
-    static matchTarget(entity: Credential, target: string, clientId: string): boolean {
-        const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target, clientId);
-        const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target, clientId);
+    static matchTarget(entity: Credential, target: string): boolean {
+        const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target);
+        const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target);
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }
 

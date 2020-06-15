@@ -116,7 +116,7 @@ export class UnifiedCacheManager implements ICacheManager {
         const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache.accessTokens) as AccessTokenEntity[];
         if (currentAccessTokens) {
             currentAccessTokens.forEach((tokenEntity) => {
-                const tokenScopeSet = ScopeSet.fromString(tokenEntity.target, this.clientId);
+                const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
                 if (tokenScopeSet.intersectingScopeSets(responseScopes)) {
                     this.removeCredential(tokenEntity);
                 }
@@ -295,7 +295,7 @@ export class UnifiedCacheManager implements ICacheManager {
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
             // TODO: Add case for target specific refresh tokens
             if (!StringUtils.isEmpty(target) && credType === CredentialType.ACCESS_TOKEN) {
-                matches = matches && CacheHelper.matchTarget(entity, target, clientId);
+                matches = matches && CacheHelper.matchTarget(entity, target);
             }
 
             if (matches) {
