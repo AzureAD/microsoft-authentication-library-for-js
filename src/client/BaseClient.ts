@@ -94,23 +94,12 @@ export abstract class BaseClient {
      */
     protected createDefaultLibraryHeaders(): Map<string, string> {
         const headers = new Map<string, string>();
+
         // client info headers
-        headers.set(
-            `${AADServerParamKeys.X_CLIENT_SKU}`,
-            this.config.libraryInfo.sku
-        );
-        headers.set(
-            `${AADServerParamKeys.X_CLIENT_VER}`,
-            this.config.libraryInfo.version
-        );
-        headers.set(
-            `${AADServerParamKeys.X_CLIENT_OS}`,
-            this.config.libraryInfo.os
-        );
-        headers.set(
-            `${AADServerParamKeys.X_CLIENT_CPU}`,
-            this.config.libraryInfo.cpu
-        );
+        headers.set(`${AADServerParamKeys.X_CLIENT_SKU}`,this.config.libraryInfo.sku);
+        headers.set(`${AADServerParamKeys.X_CLIENT_VER}`, this.config.libraryInfo.version);
+        headers.set(`${AADServerParamKeys.X_CLIENT_OS}`, this.config.libraryInfo.os);
+        headers.set(`${AADServerParamKeys.X_CLIENT_CPU}`, this.config.libraryInfo.cpu);
 
         return headers;
     }
@@ -121,11 +110,7 @@ export abstract class BaseClient {
      * @param queryString
      * @param headers
      */
-    protected executePostToTokenEndpoint(
-        tokenEndpoint: string,
-        queryString: string,
-        headers: Map<string, string>
-    ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    protected executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Map<string, string>): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         return this.networkClient.sendPostRequestAsync<
         ServerAuthorizationTokenResponse
         >(tokenEndpoint, {
@@ -145,9 +130,7 @@ export abstract class BaseClient {
             return null;
         } else {
             const allAccounts = accountValues.map<IAccount>((value) => {
-                const accountObj: AccountEntity = JSON.parse(
-                    JSON.stringify(value)
-                );
+                const accountObj: AccountEntity = JSON.parse(JSON.stringify(value));
                 return CacheHelper.toIAccount(accountObj);
             });
             return allAccounts;
