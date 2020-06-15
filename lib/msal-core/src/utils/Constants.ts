@@ -43,6 +43,8 @@ export class Constants {
     static get renewToken(): string { return "RENEW_TOKEN"; }
     static get unknown(): string { return "UNKNOWN"; }
 
+    static get ADFS(): string { return "adfs"; };
+
     static get homeAccountIdentifier(): string { return "homeAccountIdentifier"; }
 
     static get common(): string { return "common"; }
@@ -125,6 +127,11 @@ export const BlacklistedEQParams = [
 ];
 
 export type InteractionType = "redirectInteraction" | "popupInteraction" | "silentInteraction";
+
+export const NetworkRequestType = {
+    GET: "GET",
+    POST: "POST"
+};
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of

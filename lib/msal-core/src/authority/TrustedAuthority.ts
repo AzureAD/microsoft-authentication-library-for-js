@@ -1,7 +1,7 @@
 import TelemetryManager from "../telemetry/TelemetryManager";
 import { XhrClient, XhrResponse } from "../XHRClient";
 import HttpEvent from "../telemetry/HttpEvent";
-import { AAD_INSTANCE_DISCOVERY_ENDPOINT } from "../utils/Constants";
+import { AAD_INSTANCE_DISCOVERY_ENDPOINT, NetworkRequestType } from "../utils/Constants";
 
 export class TrustedAuthority {
     private static TrustedHostList: Array<string> = [];
@@ -27,7 +27,7 @@ export class TrustedAuthority {
     private static async getAliases(telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<any>> {
         const client: XhrClient = new XhrClient();
 
-        const httpMethod = "GET";
+        const httpMethod = NetworkRequestType.GET;
         const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, AAD_INSTANCE_DISCOVERY_ENDPOINT, "getAliases");
         return client.sendRequestAsync(AAD_INSTANCE_DISCOVERY_ENDPOINT, httpMethod, true)
             .then((response: XhrResponse) => {
