@@ -47,9 +47,14 @@ describe("ScopeSet.ts", () => {
         });
     });
 
-    describe("trimAndConvertToLowerCase", function() {
+    describe("trimAndConvertArrayToLowerCase", () => {
         it("should downcase and remove all whitespace from all scope strings in scopes array passed in", () => {
             const scopeSet = ["S1", " S2", " S3 "];
+            expect(ScopeSet.trimAndConvertArrayToLowerCase(scopeSet)).to.be.deep.eq(["s1", "s2", "s3"]);         
+        });
+
+        it("should return the same array passed in if it is already downcased and trimmed", () => {
+            const scopeSet = ["s1", "s2", "s3"];
             expect(ScopeSet.trimAndConvertArrayToLowerCase(scopeSet)).to.be.deep.eq(["s1", "s2", "s3"]);         
         });
     });
@@ -61,17 +66,24 @@ describe("ScopeSet.ts", () => {
         });
     });
 
-    describe("removeElement", function() {
-        it("should return a filtered scopes array with the scope passed in removed", function() {
+    describe("removeElement", () => {
+        it("should return a filtered scopes array with the scope passed in removed", () => {
             const unfilteredScopes = ["s1", "s2"];
             const scopeToRemove = "s1";
             const filteredScopes = ScopeSet.removeElement(unfilteredScopes, scopeToRemove);
             expect(filteredScopes).to.not.eq(unfilteredScopes);
             expect(filteredScopes).to.not.include(scopeToRemove);
         });
+
+        it("should return the same array if the scope to remove is not present in array", () => {
+            const unfilteredScopes = ["s1","s2"];
+            const scopeToRemove = "s3";
+            const filteredScopes = ScopeSet.removeElement(unfilteredScopes, scopeToRemove);
+            expect(filteredScopes).to.deep.equal(unfilteredScopes);
+        })
     });
 
-    describe("validateInputScope", function() {
+    describe("validateInputScope", () => {
         it("should not throw any errors when a single scope is passed in scopes array", () => {
             const scopes = ["s1"];
             expect(() => ScopeSet.validateInputScope(scopes)).to.not.throw();
@@ -82,7 +94,7 @@ describe("ScopeSet.ts", () => {
             expect(() => ScopeSet.validateInputScope(scopes)).to.not.throw();
         });
 
-        it("should throw createScopesRequiredError if scopes are empty or null", function() {
+        it("should throw createScopesRequiredError if scopes are null", () => {
             const scopes = null;
             let clientConfigError;
 
@@ -97,8 +109,8 @@ describe("ScopeSet.ts", () => {
             expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
         });
         
-        it("should throw createScopesNonArrayError if scopes is not an array object", function() {
-            const scopes = {};
+        it("should throw createScopesNonArrayError if scopes is not an array object", () => {
+            const scopes = "s1 s2";
             let clientConfigError;
 
             try {
@@ -113,7 +125,7 @@ describe("ScopeSet.ts", () => {
             expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.nonArrayScopes.desc);
         });
 
-        it("should throw createEmptyScopesArrayError if scopes is an empty array", function() {
+        it("should throw createEmptyScopesArrayError if scopes is an empty array", () => {
             const scopes = [];
             let clientConfigError;
 
@@ -129,57 +141,63 @@ describe("ScopeSet.ts", () => {
         });
     });
 
-    describe("getScopeFromState", function() {
-        it("should return an empty string if null is passed in as state", function(){
+    describe("getScopeFromState", () => {
+        it("should return an empty string if null is passed in as state", () =>{
             expect(ScopeSet.getScopeFromState(null)).to.eql("");
         });
     });
 
-    describe("appendScopes", function() {
-        it("should return null if no scopes are passed into the first argument", function() {
+    describe("appendScopes", () => {
+        it("should return null if no scopes are passed into the first argument", () => {
             expect(ScopeSet.appendScopes(null, ["s1"])).to.eql(null);
         });
 
-        it("should return extended scopes if scopes and scopesToAppend are passed in", function() {
+        it("should return extended scopes if scopes and scopesToAppend are passed in", () => {
             expect(ScopeSet.appendScopes(["s1"], ["s2"])).to.eql(["s1", "s2"]);
         });
                 
-        it("should return extended scopes that include all the scopes in original scopes array and scopesToAppend", function() {
+        it("should return extended scopes that include all the scopes in original scopes array and scopesToAppend", () => {
             expect(ScopeSet.appendScopes(["s1", "s2"], ["s3", "s4"])).to.eql(["s1", "s2", "s3", "s4"]);
         });
 
-        it("should return original scopes if scopesToAppend is null", function() {
+        it("should return original scopes if scopesToAppend is null", () => {
             expect(ScopeSet.appendScopes(["s1"], null)).to.eql(["s1"]);
         });
         
-        it("should return original scopes if scopesToAppend is an empty array", function() {
+        it("should return original scopes if scopesToAppend is an empty array", () => {
             expect(ScopeSet.appendScopes(["s1"], [])).to.eql(["s1"]);
         });
     });
 
-    describe("generateLoginScopes", function() {
-        it("should append openid and profile to scopes, remove clientId from scopes if original scopes include clientId", function() {
+    describe("generateLoginScopes", () => {
+        it("should append openid and profile to scopes, remove clientId from scopes if original scopes include clientId", () => {
             expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.include(openid);
             expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.include(profile);
             expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.not.include(clientId);
         });
 
-        it("should append openid to scopes if original scopes are login scopes and does not include openid", function() {
-            expect(ScopeSet.generateLoginScopes([clientId, profile], clientId)).to.include(openid);
+        it("should append openid to scopes if original scopes are login scopes and does not include openid", () => {
+            const loginScopes = ScopeSet.generateLoginScopes([clientId, profile], clientId);
+            expect(loginScopes).to.include(openid);
+            expect(loginScopes).to.include(profile);
+            expect(loginScopes).to.not.include(clientId);
         });
         
-        it("should append profile to scopes if original scopes are login scopes and does not include profile", function() {
-            expect(ScopeSet.generateLoginScopes([clientId, openid], clientId)).to.include(profile);
+        it("should append profile to scopes if original scopes are login scopes and does not include profile", () => {
+            const loginScopes = ScopeSet.generateLoginScopes([clientId, openid], clientId);
+            expect(loginScopes).to.include(openid);
+            expect(loginScopes).to.include(profile);
+            expect(loginScopes).to.not.include(clientId);
         });
         
-        it("should not remove existing access token scopes in original scopes when appending login scopes", function() {
+        it("should not remove existing access token scopes in original scopes when appending login scopes", () => {
             expect(ScopeSet.generateLoginScopes(["S1", clientId], clientId)).to.include("S1");
             expect(ScopeSet.generateLoginScopes(["S1", clientId], clientId)).to.include(openid);
             expect(ScopeSet.generateLoginScopes(["S1", clientId], clientId)).to.include(profile);
         });
     });
 
-    describe("isLoginScopes", function() {
+    describe("isLoginScopes", () => {
         it("should return true if scopes includes openid", () => {
             expect(ScopeSet.isLoginScopes([openid], clientId)).to.eql(true);
         });
