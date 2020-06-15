@@ -13,7 +13,6 @@ steps:
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@3
   displayName: 'Run CredScan3'
   inputs:
-    scanFolder: './'
     debugMode: false
     toolVersion: '2.0.23'
 
