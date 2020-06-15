@@ -1155,8 +1155,11 @@ export class UserAgentApplication {
      */
     private processCallBack(hash: string, stateInfo: ResponseStateInfo, parentCallback?: Function): void {
         this.logger.info("Processing the callback from redirect response");
+        this.logger.verbose("ProcessCallBack has been called");
+
         // get the state info from the hash
         if (!stateInfo) {
+            this.logger.verbose("StateInfo is null, getting stateInfo from hash");
             stateInfo = this.getResponseState(hash);
         }
 
@@ -1178,24 +1181,29 @@ export class UserAgentApplication {
                     if (window.parent !== window) {
                         this.logger.verbose("Window is in iframe, acquiring token silently");
                     } else {
-                        this.logger.verbose("acquiring token interactive in progress");
+                        this.logger.verbose("Acquiring token interactive in progress");
                     }
+                    this.logger.verbose(`Response tokenType set to ${ServerHashParamKeys.ACCESS_TOKEN}`);
                     response.tokenType = ServerHashParamKeys.ACCESS_TOKEN;
                 }
                 else if (stateInfo.requestType === Constants.login) {
+                    this.logger.verbose(`Response tokenType set to ${ServerHashParamKeys.ID_TOKEN}`);
                     response.tokenType = ServerHashParamKeys.ID_TOKEN;
                 }
                 if (!parentCallback) {
+                    this.logger.verbose("No callbacks provided, setting redirectResponse to response");
                     this.redirectResponse = response;
                     return;
                 }
             } else if (!parentCallback) {
+                this.logger.verbose("Response is null and no callbacks provided, building redirectResponse");
                 this.redirectResponse = buildResponseStateOnly(accountState);
                 this.redirectError = authErr;
                 this.cacheStorage.resetTempCacheItems(stateInfo.state);
                 return;
             }
 
+            this.logger.verbose("Calling callback provided");
             parentCallback(response, authErr);
         } catch (err) {
             this.logger.error("Error occurred in token received callback function: " + err);
@@ -1222,7 +1230,7 @@ export class UserAgentApplication {
         const tokenResponseCallback = window.callbackMappedToRenewStates[stateInfo.state];
         this.processCallBack(locationHash, stateInfo, tokenResponseCallback);
 
-        // If current window is opened, close all windows
+        // If current window is opener, close all windows
         WindowUtils.closePopups();
     }
 
