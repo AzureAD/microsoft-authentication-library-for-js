@@ -96,14 +96,14 @@ describe("Browser tests", function () {
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         await takeScreenshot(page, testName, `samplePageLoggedIn`);
         let sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(Object.keys(sessionStorage).length).to.be.eq(3);
+        expect(Object.keys(sessionStorage).length).to.be.eq(4);
 
         // acquire First Access Token
         await page.click("#seeProfile");
         await page.waitFor(2000)
         await takeScreenshot(page, testName, `seeProfile`);
         sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(Object.keys(sessionStorage).length).to.be.eq(3);
+        expect(Object.keys(sessionStorage).length).to.be.eq(4);
 
         //acquire Second Access Token
         await page.click("#secondToken");
