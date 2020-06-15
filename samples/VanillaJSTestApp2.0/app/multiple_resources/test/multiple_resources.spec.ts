@@ -49,7 +49,7 @@ async function enterCredentials(page: puppeteer.Page, testName: string): Promise
     await page.click("#idSIButton9");
 }
 
-describe("Browser tests", function () {
+describe.skip("Browser tests", function () {
     this.timeout(0);
     this.retries(1);
 
