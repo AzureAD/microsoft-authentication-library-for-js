@@ -69,7 +69,6 @@ describe("CacheStorage.ts Class - Local Storage", function () {
 
         it("throws error if cache location is not supported", function () {
             sinon.stub(window, LOCAL_STORAGE).value(null);
-            console.log(window.localStorage);
             let authErr;
             try {
                 cacheStorage = new BrowserStorage(LOCAL_STORAGE);

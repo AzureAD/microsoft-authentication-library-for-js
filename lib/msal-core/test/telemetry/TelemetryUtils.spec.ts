@@ -2,8 +2,20 @@ import { expect } from "chai";
 import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix, supportsBrowserPerformance, startBrowserPerformanceMeasurement, endBrowserPerformanceMeasurement } from "../../src/telemetry/TelemetryUtils";
 import { EVENT_NAME_PREFIX } from "../../src/telemetry/TelemetryConstants";
 import { spy } from "sinon";
+import sinon from "sinon";
+import { TEST_CONFIG } from "../TestConstants";
+import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 
 describe("TelemetryUtils", () => {
+    before(function() {
+        // Ensure TrustedHostList is set
+        sinon.stub(TrustedAuthority, "getTrustedHostList").callsFake(function() {return TEST_CONFIG.knownAuthorities});
+    });
+
+    after(function() {
+        sinon.restore();
+    });
+
     it("TelemtryUtils.scrubTenantFromUri works on regular uri", () => {
         const uri = scrubTenantFromUri("https://login.microsoftonline.com/abc-123/banana/orange");
         expect(uri).to.eq("https://login.microsoftonline.com/abc-123/<tenant>/orange");
