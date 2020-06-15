@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { Authority } from "../../src/authority/Authority";
+import { Authority, AuthorityType } from "../../src/authority/Authority";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError"
-import { TEST_CONFIG, TENANT_DISCOVERY_RESPONSE } from "../TestConstants";
+import { TEST_CONFIG, TENANT_DISCOVERY_RESPONSE, ADFS_TEST_CONFIG } from "../TestConstants";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig } from "../../src/telemetry/TelemetryTypes";
 import { Logger } from "../../src";
@@ -60,6 +60,20 @@ describe("Authority.ts Class", function () {
             catch(e) {
                 expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInvalidPath)
             }
+        });
+    });
+
+    describe("get AuthorityType", () => {
+        it("Default type", () => {
+            authority = new Authority(TEST_CONFIG.validAuthority, true);
+
+            expect(authority.AuthorityType).to.equal(AuthorityType.Default)
+        });
+
+        it("ADFS type", () => {
+            authority = new Authority(ADFS_TEST_CONFIG.validAuthority, true);
+
+            expect(authority.AuthorityType).to.equal(AuthorityType.Adfs)
         });
     });
 
@@ -123,6 +137,16 @@ describe("Authority.ts Class", function () {
             expect(endpoints.Issuer).to.not.be.undefined;
         });
 
+        it("returns authority metadata with validateAuthority false", async function () {
+            authority = new Authority(TEST_CONFIG.validAuthority, false);
+            sinon.stub(TrustedAuthority, "getTrustedHostList").throws("Validation is disabled. This function should not be called.");
+            const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
+
+            expect(endpoints.EndSessionEndpoint).to.not.be.undefined;
+            expect(endpoints.AuthorizationEndpoint).to.not.be.undefined;
+            expect(endpoints.Issuer).to.not.be.undefined;
+        });
+
         it("Calls Instance Discovery Endpoint if TrustedHostList not set", async function () {
             // Testing of setTrustedAuthoritiesFromNetwork done in another test
             let setFromNetworkCalled = false;
@@ -164,19 +188,24 @@ describe("Authority.ts Class", function () {
     });
 
     describe("GetOpenIdConfigurationEndpoint", () => {
-        it("returns well-known endpoint", async function () {
+        it("returns well-known endpoint", () => {
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.include("/v2.0/.well-known/openid-configuration");
-            expect(endpoint).to.include(TEST_CONFIG.validAuthority);
+            expect(endpoint).to.equal(TEST_CONFIG.validAuthority + "/v2.0/.well-known/openid-configuration");
         });
     
-        it("returns well-known endpoint, alternate authority", async function () {
+        it("returns well-known endpoint, alternate authority", () => {
             authority = new Authority(TEST_CONFIG.alternateValidAuthority, true);
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.include("/v2.0/.well-known/openid-configuration");
-            expect(endpoint).to.include(TEST_CONFIG.alternateValidAuthority);
+            expect(endpoint).to.equal(TEST_CONFIG.alternateValidAuthority + "/v2.0/.well-known/openid-configuration");
+        });
+
+        it("returns v1 well-known endpoint, ADFS scenario", () => {
+            authority = new Authority(ADFS_TEST_CONFIG.validAuthority, true);
+            const endpoint = authority.GetOpenIdConfigurationEndpoint();
+    
+            expect(endpoint).to.equal(ADFS_TEST_CONFIG.validAuthority + "/.well-known/openid-configuration");
         });
     });
 });
