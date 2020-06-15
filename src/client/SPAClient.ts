@@ -40,6 +40,7 @@ import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
  * from the Microsoft STS using the authorization code flow.
  */
 export class SPAClient extends BaseClient {
+
     constructor(configuration: ClientConfiguration) {
         // Implement base module
         super(configuration);
@@ -137,9 +138,7 @@ export class SPAClient extends BaseClient {
 
         parameterBuilder.addState(request.state);
 
-        parameterBuilder.addNonce(
-            request.nonce || this.config.cryptoInterface.createNewGuid()
-        );
+        parameterBuilder.addNonce(request.nonce || this.config.cryptoInterface.createNewGuid());
 
         parameterBuilder.addClientInfo();
 
@@ -164,9 +163,7 @@ export class SPAClient extends BaseClient {
         parameterBuilder.addResponseMode(ResponseMode.FRAGMENT);
 
         if (request && request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
-                request && request.extraQueryParameters
-            );
+            parameterBuilder.addExtraQueryParameters(request && request.extraQueryParameters);
         }
 
         return parameterBuilder.createQueryString();
@@ -185,13 +182,7 @@ export class SPAClient extends BaseClient {
         }
 
         // Initialize authority or use default, and perform discovery endpoint check.
-        const acquireTokenAuthority =
-            codeRequest && codeRequest.authority
-                ? AuthorityFactory.createInstance(
-                    codeRequest.authority,
-                    this.networkClient
-                )
-                : this.defaultAuthority;
+        const acquireTokenAuthority = codeRequest && codeRequest.authority ? AuthorityFactory.createInstance(codeRequest.authority, this.networkClient) : this.defaultAuthority;
         if (!acquireTokenAuthority.discoveryComplete()) {
             try {
                 await acquireTokenAuthority.resolveEndpointsAsync();
@@ -207,11 +198,7 @@ export class SPAClient extends BaseClient {
             codeRequest.redirectUri || this.getRedirectUri()
         );
 
-        const scopeSet = new ScopeSet(
-            codeRequest.scopes || [],
-            this.config.authOptions.clientId,
-            true
-        );
+        const scopeSet = new ScopeSet(codeRequest.scopes || [], this.config.authOptions.clientId, true);
         parameterBuilder.addScopes(scopeSet);
 
         // add code: set by user, not validated
@@ -366,6 +353,7 @@ export class SPAClient extends BaseClient {
     public handleFragmentResponse(hashFragment: string, cachedState: string): string {
         // Handle responses.
         const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.unifiedCacheManager, this.cryptoUtils, this.logger);
+
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
@@ -438,13 +426,10 @@ export class SPAClient extends BaseClient {
      */
     private isTokenExpired(expiresOn: string): boolean {
         // check for access token expiry
-        let expirationSec = Number(expiresOn);
+        let expirationSec = Number(expiresOn) || 0;
         const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
 
         // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (!expirationSec) {
-            expirationSec = 0;
-        }
         return offsetCurrentTimeSec < expirationSec;
     }
 
