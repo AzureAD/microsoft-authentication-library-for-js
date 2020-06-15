@@ -61,7 +61,7 @@ export class AuthorityFactory {
             this.saveMetadataFromConfig(authorityUrl, authorityMetadata);
         }
 
-        return new Authority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
+        return new Authority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl), this.isAdfs(authorityUrl));
     }
 
     public static isAdfs(authorityUrl: string): boolean {

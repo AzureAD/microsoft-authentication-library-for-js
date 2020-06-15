@@ -11,7 +11,7 @@ import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
 import HttpEvent from "../telemetry/HttpEvent";
 import { TrustedAuthority } from "./TrustedAuthority";
-import { Constants, NetworkRequestType } from "../utils/Constants";
+import { NetworkRequestType } from "../utils/Constants";
 
 /**
  * @hidden
@@ -25,27 +25,22 @@ export enum AuthorityType {
  * @hidden
  */
 export class Authority {
-    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse, isAdfs?: boolean) {
         this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
+        this.authorityType = isAdfs ? AuthorityType.Adfs : AuthorityType.Default;
 
         this.validateAsUri();
         this.tenantDiscoveryResponse = authorityMetadata;
     }
 
     public get AuthorityType(): AuthorityType {
-        const components = UrlUtils.GetUrlComponents(this.canonicalAuthority);
-        const pathSegments = components.PathSegments;
-
-
-        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
-            return AuthorityType.Adfs;
-        }
-        
-        return AuthorityType.Default
+        return this.authorityType;
     };
 
     public IsValidationEnabled: boolean;
+
+    public authorityType: AuthorityType;
 
     public get Tenant(): string {
         return this.CanonicalAuthorityUrlComponents.PathSegments[0];
