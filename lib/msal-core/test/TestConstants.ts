@@ -61,6 +61,7 @@ export const TEST_CONFIG = {
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
+    knownAuthorities: ["login.microsoftonline.com","login.windows.net", "fabrikamb2c.b2clogin.com"],
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
     STATE: "1234",
@@ -69,8 +70,7 @@ export const TEST_CONFIG = {
 
 export const B2C_TEST_CONFIG = {
     validAuthority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
-    MSAL_CLIENT_ID: "e760cab2-b9a1-4c0d-86fb-ff7084abd902",
-    knownAuthorities: ["fabrikamb2c.b2clogin.com"]
+    MSAL_CLIENT_ID: "e760cab2-b9a1-4c0d-86fb-ff7084abd902"
 };
 
 export const TEST_RESPONSE_TYPE = {
