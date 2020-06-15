@@ -166,6 +166,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.body.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.body.access_token,
+                    fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount
                 };
@@ -266,6 +267,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.body.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.body.access_token,
+                    fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount
                 };
@@ -317,7 +319,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
 				const loginRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
-					scopes: ["user.read", TEST_CONFIG.MSAL_CLIENT_ID]
+					scopes: ["user.read"]
 				};
                 pca.loginRedirect(loginRequest);
             });
@@ -346,7 +348,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 			it("Caches token request correctly", async () => {
 				const tokenRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
-					scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+					scopes: [],
 					correlationId: RANDOM_TEST_GUID
 				};
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -362,7 +364,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const browserCrypto = new CryptoOps();
 				await pca.loginRedirect(tokenRequest);
 				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string));
-				expect(cachedRequest.scopes).to.be.deep.eq([TEST_CONFIG.MSAL_CLIENT_ID]);
+				expect(cachedRequest.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
 				expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
 				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
 				expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
@@ -379,7 +381,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					verifier: TEST_CONFIG.TEST_VERIFIER
 				});
 				const loginUrlErr = "loginUrlErr";
-				sinon.stub(SPAClient.prototype, "createLoginUrl").throws(new BrowserAuthError(loginUrlErr));
+				sinon.stub(SPAClient.prototype, "createUrl").throws(new BrowserAuthError(loginUrlErr));
 				await expect(pca.loginRedirect(emptyRequest)).to.be.rejectedWith(loginUrlErr);
 				await expect(pca.loginRedirect(emptyRequest)).to.be.rejectedWith(BrowserAuthError);
 				expect(browserStorage.getKeys()).to.be.empty;
@@ -400,7 +402,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
-				const loginUrlSpy = sinon.spy(SPAClient.prototype, "createLoginUrl");
+				const loginUrlSpy = sinon.spy(SPAClient.prototype, "createUrl");
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
 					verifier: TEST_CONFIG.TEST_VERIFIER
@@ -443,7 +445,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
-				const loginUrlSpy = sinon.spy(SPAClient.prototype, "createLoginUrl");
+				const loginUrlSpy = sinon.spy(SPAClient.prototype, "createUrl");
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
 					verifier: TEST_CONFIG.TEST_VERIFIER
@@ -493,7 +495,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
 				const loginRequest: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
-					scopes: ["user.read", TEST_CONFIG.MSAL_CLIENT_ID]
+					scopes: ["user.read", "openid", "profile"]
 				};
                 pca.acquireTokenRedirect(loginRequest);
             });
@@ -558,7 +560,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					verifier: TEST_CONFIG.TEST_VERIFIER
 				});
 				const loginUrlErr = "loginUrlErr";
-				sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").throws(new BrowserAuthError(loginUrlErr));
+				sinon.stub(SPAClient.prototype, "createUrl").throws(new BrowserAuthError(loginUrlErr));
 				await expect(pca.acquireTokenRedirect(emptyRequest)).to.be.rejectedWith(loginUrlErr);
 				await expect(pca.acquireTokenRedirect(emptyRequest)).to.be.rejectedWith(BrowserAuthError);
 				expect(browserStorage.getKeys()).to.be.empty;
@@ -580,7 +582,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
-				const acquireTokenUrlSpy = sinon.spy(SPAClient.prototype, "createAcquireTokenUrl");
+				const acquireTokenUrlSpy = sinon.spy(SPAClient.prototype, "createUrl");
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
 					verifier: TEST_CONFIG.TEST_VERIFIER
@@ -623,7 +625,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
-				const acquireTokenUrlSpy = sinon.spy(SPAClient.prototype, "createAcquireTokenUrl");
+				const acquireTokenUrlSpy = sinon.spy(SPAClient.prototype, "createUrl");
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
 					verifier: TEST_CONFIG.TEST_VERIFIER
@@ -697,10 +699,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.access_token,
+                    fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                     account: testAccount
                 };
-                sinon.stub(SPAClient.prototype, "createLoginUrl").resolves(testNavUrl);
+                sinon.stub(SPAClient.prototype, "createUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
@@ -718,7 +721,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("catches error and cleans cache before rethrowing", async () => {
                 const testError = "Error in creating a login url";
-                sinon.stub(SPAClient.prototype, "createLoginUrl").resolves(testNavUrl);
+                sinon.stub(SPAClient.prototype, "createUrl").resolves(testNavUrl);
 				sinon.stub(PopupHandler.prototype, "initiateAuthRequest").throws(testError);
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -781,10 +784,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.access_token,
+                    fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                     account: testAccount
                 };
-                sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
+                sinon.stub(SPAClient.prototype, "createUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
@@ -805,7 +809,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("catches error and cleans cache before rethrowing", async () => {
                 const testError = "Error in creating a login url";
-                sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
+                sinon.stub(SPAClient.prototype, "createUrl").resolves(testNavUrl);
 				sinon.stub(PopupHandler.prototype, "initiateAuthRequest").throws(testError);
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -883,10 +887,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount
             };
-            sinon.stub(SPAClient.prototype, "createLoginUrl").resolves(testNavUrl);
+            sinon.stub(SPAClient.prototype, "createUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
             sinon.stub(SilentHandler.prototype, "monitorFrameForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
 			sinon.stub(SilentHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
@@ -940,6 +945,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount
             };
@@ -1006,10 +1012,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount
             };
-            const createAcqTokenStub = sinon.stub(SPAClient.prototype, "createAcquireTokenUrl").resolves(testNavUrl);
+            const createAcqTokenStub = sinon.stub(SPAClient.prototype, "createUrl").resolves(testNavUrl);
 			const silentTokenHelperStub = sinon.stub(pca, <any>"silentTokenHelper").resolves(testTokenResponse);
 			sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 				challenge: TEST_CONFIG.TEST_CHALLENGE,

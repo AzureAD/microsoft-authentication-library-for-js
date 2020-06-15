@@ -228,26 +228,7 @@ export class SPAClient extends BaseClient {
         }
 
         // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (!request.forceRefresh && this.isTokenExpired(cachedAccessToken.expiresOn)) {
-            const cachedIdToken = this.fetchIdToken(homeAccountId, env, cachedAccount.realm);
-            const idTokenObj = new IdToken(cachedIdToken.secret, this.cryptoUtils);
-
-            const cachedScopes = ScopeSet.fromString(cachedAccessToken.target);
-            return {
-                uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
-                tenantId: idTokenObj.claims.tid,
-                scopes: cachedScopes.asArray(),
-                idToken: idTokenObj.rawIdToken,
-                idTokenClaims: idTokenObj.claims,
-                accessToken: cachedAccessToken.secret,
-                fromCache: true,
-                account: CacheHelper.toIAccount(cachedAccount),
-                expiresOn: new Date(cachedAccessToken.expiresOn),
-                extExpiresOn: new Date(cachedAccessToken.extendedExpiresOn),
-                familyId: null,
-                state: ""
-            };
-        } else {
+        if (request.forceRefresh || this.isTokenExpired(cachedAccessToken.expiresOn)) {
             if (!cachedRefreshToken) {
                 throw ClientAuthError.createNoTokensFoundError();
             }
@@ -276,6 +257,25 @@ export class SPAClient extends BaseClient {
                 authority: acquireTokenAuthority.canonicalAuthority
             };
             return this.renewToken(refreshTokenRequest, acquireTokenAuthority, tokenEndpoint);
+        } else {
+            const cachedIdToken = this.fetchIdToken(homeAccountId, env, cachedAccount.realm);
+            const idTokenObj = new IdToken(cachedIdToken.secret, this.cryptoUtils);
+
+            const cachedScopes = ScopeSet.fromString(cachedAccessToken.target);
+            return {
+                uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
+                tenantId: idTokenObj.claims.tid,
+                scopes: cachedScopes.asArray(),
+                idToken: idTokenObj.rawIdToken,
+                idTokenClaims: idTokenObj.claims,
+                accessToken: cachedAccessToken.secret,
+                fromCache: true,
+                account: CacheHelper.toIAccount(cachedAccount),
+                expiresOn: new Date(cachedAccessToken.expiresOn),
+                extExpiresOn: new Date(cachedAccessToken.extendedExpiresOn),
+                familyId: null,
+                state: ""
+            };
         }
     }
 
