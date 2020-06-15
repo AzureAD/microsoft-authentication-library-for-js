@@ -94,7 +94,7 @@ export class ResponseHandler {
         if (serverResponse.client_info) {
             this.clientInfo = buildClientInfo(serverResponse.client_info, this.cryptoObj);
             if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = this.clientInfo.uid + "." + this.clientInfo.utid;
+                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
             }
         }
     }
@@ -161,10 +161,8 @@ export class ResponseHandler {
      * @param authority
      */
     generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority): CacheRecord {
-        const cacheRecord = new CacheRecord();
-
         // Account
-        cacheRecord.account  = this.generateAccountEntity(
+        const cachedAccount  = this.generateAccountEntity(
             serverTokenResponse,
             idTokenObj,
             authority
@@ -174,7 +172,7 @@ export class ResponseHandler {
         const env = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
 
         // IdToken
-        cacheRecord.idToken = IdTokenEntity.createIdTokenEntity(
+        const cachedIdToken = IdTokenEntity.createIdTokenEntity(
             this.homeAccountIdentifier,
             env,
             serverTokenResponse.id_token,
@@ -188,7 +186,7 @@ export class ResponseHandler {
         const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
         const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
 
-        cacheRecord.accessToken = AccessTokenEntity.createAccessTokenEntity(
+        const cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
             this.homeAccountIdentifier,
             env,
             serverTokenResponse.access_token,
@@ -200,7 +198,7 @@ export class ResponseHandler {
         );
 
         // refreshToken
-        cacheRecord.refreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+        const cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
             this.homeAccountIdentifier,
             env,
             serverTokenResponse.refresh_token,
@@ -208,6 +206,6 @@ export class ResponseHandler {
             serverTokenResponse.foci
         );
 
-        return cacheRecord;
+        return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken);
     }
 }
