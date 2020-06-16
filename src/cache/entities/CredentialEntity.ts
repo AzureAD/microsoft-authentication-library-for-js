@@ -8,7 +8,7 @@ import { Separators, CredentialType, CacheType } from "../../utils/Constants";
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
  */
-export class Credential {
+export class CredentialEntity {
     homeAccountId: string;
     environment: string;
     credentialType: CredentialType;

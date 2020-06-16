@@ -12,7 +12,6 @@ import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { B2cAuthority } from "../authority/B2cAuthority";
-import { AccountEntity } from "../cache/entities/AccountEntity";
 import { CacheManager } from "../cache/interface/CacheManager";
 
 /**
@@ -33,9 +32,6 @@ export abstract class BaseClient {
 
     // Network Interface
     protected networkClient: INetworkModule;
-
-    // Account object
-    protected account: AccountEntity;
 
     // Default authority object
     protected defaultAuthority: Authority;

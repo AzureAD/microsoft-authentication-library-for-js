@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { Credential } from "./Credential";
+import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 
 /**
  * ACCESS_TOKEN Credential Type
  */
-export class AccessTokenEntity extends Credential {
+export class AccessTokenEntity extends CredentialEntity {
     realm: string;
     target: string;
     cachedAt: string;

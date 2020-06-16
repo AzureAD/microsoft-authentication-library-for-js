@@ -3,17 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { Credential } from "../entities/Credential";
+import { CredentialEntity } from "../entities/CredentialEntity";
 import {
     AccountCache,
     CredentialCache,
     AccountFilter,
-    CredentialFilter,
+    CredentialFilter
 } from "../utils/CacheTypes";
 import { CacheRecord } from "../entities/CacheRecord";
 import { ScopeSet } from "../../request/ScopeSet";
-import { AccountEntity } from "../entities/AccountEntity";
 import { IAccount } from "../../account/IAccount";
+import { AccountEntity } from "../entities/AccountEntity";
 
 export interface ICacheManager {
     /**
@@ -37,7 +37,7 @@ export interface ICacheManager {
      * retrieve a credential - accessToken, idToken or refreshToken; given the cache key
      * @param key
      */
-    getCredential(key: string): Credential;
+    getCredential(key: string): CredentialEntity;
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
@@ -74,5 +74,5 @@ export interface ICacheManager {
      * returns a boolean if the given credential is removed
      * @param credential
      */
-    removeCredential(credential: Credential): boolean;
+    removeCredential(credential: CredentialEntity): boolean;
 }

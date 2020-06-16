@@ -21,7 +21,7 @@ export { AuthorityType } from "./authority/AuthorityType";
 export { CacheManager } from "./cache/interface/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "./cache/utils/CacheTypes";
 export { CacheHelper } from "./cache/utils/CacheHelper";
-export { Credential } from "./cache/entities/Credential";
+export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
 export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
