@@ -4,9 +4,10 @@ import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
-import { Constants, ICacheStorage } from "../../src";
+import { Constants } from "../../src";
 import { version } from "../../package.json";
 import {TEST_CONFIG} from "../utils/StringConstants";
+import { MockStorageClass } from "../client/ClientTestUtils";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
 
@@ -65,34 +66,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.libraryInfo.cpu).to.be.empty;
     });
 
-    let store = {};
-    const cacheStorageMock: ICacheStorage = {
-        setItem(key: string, value: string): void {
-            store[key] = value;
-        },
-        getItem(key: string): string {
-            return store[key];
-        },
-        removeItem(key: string): boolean {
-            delete store[key];
-            return true;
-        },
-        containsKey(key: string): boolean {
-            return !!store[key];
-        },
-        getKeys(): string[] {
-            return Object.keys(store);
-        },
-        clear(): void {
-            store = {};
-        },
-        getCache(): object {
-            return null;
-        },
-        setCache(): void {
-            return null;
-        }
-    };
+    const cacheStorageMock = new MockStorageClass();
 
     const testPkceCodes = {
         challenge: "TestChallenge",

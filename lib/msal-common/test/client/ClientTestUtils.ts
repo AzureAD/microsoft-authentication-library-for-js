@@ -1,6 +1,29 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError} from "../../src";
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError, CacheManager} from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
 import { AuthorityFactory } from "../../src";
+
+export class MockStorageClass extends CacheManager {
+    store = {};
+    setItem(key: string, value: string | object, type?: string): void {
+        this.store[key] = value;
+    }
+    getItem(key: string, type?: string): string | object {
+        return this.store[key];
+    }
+    removeItem(key: string, type?: string): boolean {
+        delete this.store[key];
+        return true;
+    }
+    containsKey(key: string, type?: string): boolean {
+        return !!this.store[key];
+    }
+    getKeys(): string[] {
+        return Object.keys(this.store);
+    }
+    clear(): void {
+        this.store = {};
+    }
+}
 
 export class ClientTestUtils {
 
@@ -34,33 +57,7 @@ export class ClientTestUtils {
                 authority: authority,
                 knownAuthorities: [],
             },
-            storageInterface: {
-                getCache(): object {
-                    return {};
-                },
-                setCache(): void {
-                    // do nothing
-                },
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): boolean {
-                    delete store[key];
-                    return true;
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-                },
-            },
+            storageInterface: new MockStorageClass(),
             networkInterface: {
                 sendGetRequestAsync<T>(
                     url: string,

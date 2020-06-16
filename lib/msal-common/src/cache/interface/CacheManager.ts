@@ -6,7 +6,7 @@
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "../utils/CacheTypes";
 import { CacheRecord } from "../entities/CacheRecord";
 import { CacheSchemaType, CredentialType, Constants } from "../../utils/Constants";
-import { Credential } from "../entities/Credential";
+import { CredentialEntity } from "../entities/CredentialEntity";
 import { ScopeSet } from "../../request/ScopeSet";
 import { AccountEntity } from "../entities/AccountEntity";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
@@ -17,6 +17,7 @@ import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AuthError } from "../../error/AuthError";
 import { ICacheManager } from "./ICacheManager";
 import { IAccount } from "../../account/IAccount";
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -80,11 +81,26 @@ export abstract class CacheManager implements ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    saveCacheRecord(cacheRecord: CacheRecord, responseScopes: ScopeSet): void {
-        this.saveAccount(cacheRecord.account);
-        this.saveCredential(cacheRecord.idToken);
-        this.saveAccessToken(cacheRecord.accessToken, responseScopes);
-        this.saveCredential(cacheRecord.refreshToken);
+    saveCacheRecord(cacheRecord: CacheRecord, responseScopes?: ScopeSet): void {
+        if (!cacheRecord) {
+            throw ClientAuthError.createNullOrUndefinedCacheRecord();
+        }
+
+        if (!!cacheRecord.account) {
+            this.saveAccount(cacheRecord.account);
+        }
+
+        if (!!cacheRecord.idToken) {
+            this.saveCredential(cacheRecord.idToken);
+        }
+
+        if (!!cacheRecord.accessToken) {
+            this.saveAccessToken(cacheRecord.accessToken, responseScopes);
+        }
+
+        if (!!cacheRecord.refreshToken) {
+            this.saveCredential(cacheRecord.refreshToken);
+        }
     }
 
     /**
@@ -104,7 +120,7 @@ export abstract class CacheManager implements ICacheManager {
      * saves credential - accessToken, idToken or refreshToken into cache
      * @param credential
      */
-    private saveCredential(credential: Credential): void {
+    private saveCredential(credential: CredentialEntity): void {
         const key = credential.generateCredentialKey();
         this.setItem(
             key,
@@ -150,8 +166,8 @@ export abstract class CacheManager implements ICacheManager {
      * retrieve a credential - accessToken, idToken or refreshToken; given the cache key
      * @param key
      */
-    getCredential(key: string): Credential {
-        return this.getItem(key, CacheSchemaType.CREDENTIAL) as Credential;
+    getCredential(key: string): CredentialEntity {
+        return this.getItem(key, CacheSchemaType.CREDENTIAL) as CredentialEntity;
     }
 
     /**
@@ -186,7 +202,7 @@ export abstract class CacheManager implements ICacheManager {
 
         allCacheKeys.forEach((cacheKey) => {
             let matches: boolean = true;
-            // don't parse any non-credential type cache entities
+            // don't parse any non-account type cache entities
             if (CacheHelper.getCredentialType(cacheKey) !== Constants.NOT_DEFINED || CacheHelper.isAppMetadata(cacheKey)) {
                 return;
             }
@@ -264,7 +280,7 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            const entity: Credential = this.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as Credential;
+            const entity: CredentialEntity = this.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as CredentialEntity;
 
             if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(entity, homeAccountId);
@@ -316,6 +332,9 @@ export abstract class CacheManager implements ICacheManager {
      */
     removeAccount(accountKey: string): boolean {
         const account = this.getAccount(accountKey) as AccountEntity;
+        if (!account) {
+            throw ClientAuthError.createNoAccountFoundError();
+        }
         return (this.removeAccountContext(account) && this.removeItem(accountKey, CacheSchemaType.ACCOUNT));
     }
 
@@ -333,7 +352,7 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            const cacheEntity: Credential = this.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as Credential;
+            const cacheEntity: CredentialEntity = this.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as CredentialEntity;
 
             if (!!cacheEntity && accountId === cacheEntity.generateAccountId()) {
                 this.removeCredential(cacheEntity);
@@ -347,7 +366,7 @@ export abstract class CacheManager implements ICacheManager {
      * returns a boolean if the given credential is removed
      * @param credential
      */
-    removeCredential(credential: Credential): boolean {
+    removeCredential(credential: CredentialEntity): boolean {
         const key = credential.generateCredentialKey();
         return this.removeItem(key, CacheSchemaType.CREDENTIAL);
     }

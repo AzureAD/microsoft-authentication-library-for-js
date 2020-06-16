@@ -26,12 +26,12 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { Authority } from "../authority/Authority";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { CacheHelper } from "../cache/utils/CacheHelper";
-import { AccountEntity } from "../cache/entities/AccountEntity";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { IAccount } from "../account/IAccount";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
+import { AccountEntity } from "../cache/entities/AccountEntity";
 
 /**
  * SPAClient class

@@ -18,7 +18,7 @@ import { IdToken } from "../../src/account/IdToken";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { IAccount } from "../../src/account/IAccount";
-import { SilentFlowRequest, AccountEntity, UnifiedCacheManager, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity } from "../../src";
+import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager } from "../../src";
 
 describe("SilentFlowClient unit tests", () => {
     afterEach(() => {
@@ -87,7 +87,7 @@ describe("SilentFlowClient unit tests", () => {
         AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
         sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
         sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-        sinon.stub(UnifiedCacheManager.prototype, "getAccount").returns(testAccountEntity);
+        sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
 
         const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
         sinon.stub(SilentFlowClient.prototype, <any>"readIdTokenFromCache").returns(testIdToken);

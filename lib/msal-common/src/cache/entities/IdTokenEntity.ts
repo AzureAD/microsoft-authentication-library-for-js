@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { Credential } from "./Credential";
+import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType } from "../../utils/Constants";
 
 /**
  * ID_TOKEN Cache
  */
-export class IdTokenEntity extends Credential {
+export class IdTokenEntity extends CredentialEntity {
     realm: string;
 
     /**
