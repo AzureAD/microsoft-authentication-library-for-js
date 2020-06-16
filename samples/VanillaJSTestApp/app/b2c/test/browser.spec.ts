@@ -76,7 +76,7 @@ async function loginRedirect(page: puppeteer.Page, testName: string): Promise<vo
     // Enter credentials
     await enterCredentials(page, testName);
     // Wait for return to page
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
+    await page.waitForSelector("#getAccessTokenRedirect");
     await takeScreenshot(page, testName, `samplePageLoggedIn`);
 }
 
@@ -101,6 +101,7 @@ async function loginPopup(page: puppeteer.Page, testName: string): Promise<void>
     await enterCredentials(popupPage, testName);
     // Wait until popup window closes and see that we are logged in
     await popupWindowClosed;
+    await page.waitForSelector("#getAccessTokenPopup");
     await takeScreenshot(page, testName, `samplePageLoggedIn`);
 }
 
@@ -201,7 +202,6 @@ describe("Browser tests", function () {
         });
 
         it("Test acquireTokenRedirect", async () => {
-            await page.waitForSelector("#getAccessTokenRedirect");
             await page.click("#getAccessTokenRedirect");
             await page.waitForSelector("#access-token-info");
             await takeScreenshot(page, testName, "accessTokenAcquiredRedirect");
@@ -215,7 +215,6 @@ describe("Browser tests", function () {
         }); 
 
         it("Test acquireTokenPopup", async () => {
-            await page.waitForSelector("#getAccessTokenPopup");
             await page.click("#getAccessTokenPopup");
             await page.waitForSelector("#access-token-info");
             await takeScreenshot(page, testName, "accessTokenAcquiredPopup");
@@ -229,7 +228,6 @@ describe("Browser tests", function () {
         }); 
 
         it("Test acquireTokenSilent", async () => {
-            await page.waitForSelector("#getAccessTokenSilent");
             await page.click("#getAccessTokenSilent");
             await page.waitForSelector("#access-token-info");
             await takeScreenshot(page, testName, "accessTokenAcquiredSilently");
