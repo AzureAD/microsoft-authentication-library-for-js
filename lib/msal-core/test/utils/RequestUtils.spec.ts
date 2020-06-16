@@ -12,6 +12,10 @@ import { Constants, InteractionType } from "../../src/utils/Constants";
 
 const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
 
+const scopelessRequest: AuthenticationParameters = {
+    authority: TEST_CONFIG.validAuthority
+}
+
 describe("RequestUtils.ts class", () => {
     describe("validateRequest", () => {
         it("should throw emptyRequestError when the request passed in is null", () => {
@@ -34,8 +38,7 @@ describe("RequestUtils.ts class", () => {
             let scopesRequiredError: ClientConfigurationError;
 
             try {
-                const userRequest: AuthenticationParameters = { };
-                const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, clientId, Constants.interactionTypeSilent);
+                const request: AuthenticationParameters = RequestUtils.validateRequest(scopelessRequest, clientId, Constants.interactionTypeSilent);
             } catch (e) {
                 scopesRequiredError = e;
             }
