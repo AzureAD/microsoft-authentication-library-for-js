@@ -266,7 +266,7 @@ describe("CacheManager.ts test cases", () => {
         credentials = cacheManager.getCredentialsFilteredBy(filterThree);
     });
 
-    it("removeAccount", () => {
+    it.skip("removeAccount", () => {
         const account: AccountEntity = cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft");
         console.log(account.generateAccountKey);
         cacheManager.removeAccount("uid.utid-login.microsoftonline.com-microsoft");
