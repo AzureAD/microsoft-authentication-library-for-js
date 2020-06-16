@@ -25,8 +25,6 @@ export type NodeAuthOptions = {
 /**
  * Use this to configure the below cache configuration options:
  *
- * - cacheLocation            - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
- * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  * - cachePlugin for persistence provided to library
  */
 // TODO Temporary placeholder - this will be rewritten by cache PR.

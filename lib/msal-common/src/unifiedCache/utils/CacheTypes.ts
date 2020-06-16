@@ -18,6 +18,7 @@ export type RefreshTokenCache = { [key: string]: RefreshTokenEntity };
 export type AppMetadataCache = { [key: string]: AppMetadataEntity };
 
 export type JsonCache = {
+    [key: string]: StringDict;
     Account?: StringDict;
     IdToken?: StringDict;
     AccessToken?: StringDict;
