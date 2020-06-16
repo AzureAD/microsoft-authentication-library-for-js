@@ -39,10 +39,13 @@ export class RequestUtils {
         if (!request) {
             throw ClientConfigurationError.createEmptyRequestError();
         }
-        
-        const scopes = request.scopes;
 
-        ScopeSet.validateInputScope(scopes);
+        // Check scopes in request are valid
+        const requestScopes = request.scopes;
+        ScopeSet.validateInputScope(requestScopes);
+
+        // Generate missing login scopes when any login scope is included in request scopes, otherwise set scopes to requestScopes
+        const scopes = ScopeSet.isLoginScopes(requestScopes, clientId) ? ScopeSet.generateLoginScopes(requestScopes, clientId) : requestScopes;
 
         // validate prompt parameter
         this.validatePromptParameter(request.prompt);
@@ -75,15 +78,17 @@ export class RequestUtils {
      * @param interactionType 
      */
     static validateLoginRequest(request: AuthenticationParameters, clientId: string, interactionType: InteractionType): AuthenticationParameters {
-        // Check if request is empty or request scopes are null
         const requestScopes = (request && request.scopes) || [];
+        const extraScopesToConsent = (request && request.extraScopesToConsent) || [];
+
+        // Append extra scopes to consent to request scopes
+        const scopes = ScopeSet.appendScopes(requestScopes, extraScopesToConsent);
 
         // Append openid and profile to scopes by default for login calls
-        const scopes = ScopeSet.generateLoginScopes(requestScopes, clientId);
+        const loginScopes = ScopeSet.generateLoginScopes(scopes, clientId);
 
         // validate request
-        const userRequest: AuthenticationParameters = RequestUtils.validateRequest({...request, scopes}, clientId, interactionType);
-        userRequest.scopes = ScopeSet.appendScopes(userRequest.scopes, userRequest.extraScopesToConsent);
+        const userRequest: AuthenticationParameters = RequestUtils.validateRequest({...request, scopes: loginScopes}, clientId, interactionType);
 
         return userRequest;
     }

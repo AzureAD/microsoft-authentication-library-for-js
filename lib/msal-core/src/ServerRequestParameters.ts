@@ -59,8 +59,7 @@ export class ServerRequestParameters {
         this.nonce = CryptoUtils.createNewGuid();
 
         // Set request scopes
-        this.scopes = scopes && [...scopes] || [];
-        this.scopes = ScopeSet.trimAndConvertArrayToLowerCase(this.scopes);
+        this.scopes = ScopeSet.trimAndConvertArrayToLowerCase(scopes && [...scopes] || []);
 
         // set state (already set at top level)
         this.state = state;

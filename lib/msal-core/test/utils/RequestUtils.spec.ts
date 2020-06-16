@@ -83,32 +83,6 @@ describe("RequestUtils.ts class", () => {
             sinon.restore();
         });
 
-        it("should set request scopes to an empty array before appending login scopes if null request is received", () => {
-            const loginRequest: AuthenticationParameters = null;
-
-            sinon.stub(ScopeSet, "generateLoginScopes").callsFake((scopes: string[], clientId: string): string[] => {
-                expect(scopes).to.not.eql(null);
-                expect(scopes).to.not.eql(null);
-                expect(scopes.length).to.eql(0);
-                return [Constants.openidScope, Constants.profileScope];
-            });
-
-            const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateLoginRequest(loginRequest, clientId, Constants.interactionTypeSilent);
-        });
-
-        it("should not mutate scopes before appending login scopes if request scopes are not null", () => {
-            const onlyScope = "S1"
-            const loginRequest: AuthenticationParameters = { scopes: [ onlyScope ] };
- 
-            sinon.stub(ScopeSet, "generateLoginScopes").callsFake((scopes: string[], clientId: string): string[] => {
-                expect(scopes).to.eql([onlyScope]);
-                expect(scopes.length).to.eql(1);
-                return [...scopes, Constants.openidScope, Constants.profileScope];
-            });
-
-            const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateLoginRequest(loginRequest, clientId, Constants.interactionTypeSilent);
-        });
-
         it("should append openid and profile to request scopes if they are not included before calling validateRequest", () => {
             const loginRequest: AuthenticationParameters = { scopes: ["s1"] };
 
@@ -122,12 +96,19 @@ describe("RequestUtils.ts class", () => {
         });
 
         it("should append extra scopes to consent to request scopes after calling validateRequest", () => {
-            const extraScope = "s1"
+            const extraScope = "s1";
             const loginRequest: AuthenticationParameters = { extraScopesToConsent: [ extraScope ] };
             const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateLoginRequest(loginRequest, clientId, Constants.interactionTypeSilent);
             // At this point, scopes should include openid, profile and S1, the extra scope to consent
             expect(validatedLoginRequest.scopes.length).to.eql(3);
             expect(validatedLoginRequest.scopes).to.include(extraScope);
+        });
+
+        it("should only append login scopes once when openid and profile are passed in as extraScopesToAppend", () => {
+            const extraScopes = ["openid", "profile"];
+            const loginRequest: AuthenticationParameters = { extraScopesToConsent: extraScopes };
+            const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateLoginRequest(loginRequest, clientId, Constants.interactionTypeSilent);
+            expect(validatedLoginRequest.scopes).to.deep.eq(extraScopes);
         });
     });
 

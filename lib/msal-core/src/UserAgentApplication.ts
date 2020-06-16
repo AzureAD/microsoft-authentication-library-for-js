@@ -506,10 +506,6 @@ export class UserAgentApplication {
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
 
-        const scope = request.scopes ? ScopeSet.trimAndConvertArrayToLowerCase(request.scopes).join(" ") : this.clientId.toLowerCase();
-
-        this.logger.verbosePii(`Serialized scopes: ${scope}`);
-
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
 
@@ -564,7 +560,7 @@ export class UserAgentApplication {
                 this.logger.verbosePii(`State saved: ${serverAuthenticationRequest.state}`);
 
                 // Register callback to capture results from server
-                this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
+                this.registerCallback(serverAuthenticationRequest.state, serverAuthenticationRequest.scopes.join(" "), resolve, reject);
             } else {
                 this.logger.verbose("Invalid interaction error. State not cached");
                 throw ClientAuthError.createInvalidInteractionTypeError();
