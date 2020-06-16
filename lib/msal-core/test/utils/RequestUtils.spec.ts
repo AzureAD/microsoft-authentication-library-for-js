@@ -3,7 +3,7 @@ import { RequestUtils } from "../../src/utils/RequestUtils";
 import { CryptoUtils } from "../../src/utils/CryptoUtils";
 import { AuthenticationParameters } from "../../src/AuthenticationParameters";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
-import { TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "../TestConstants";
+import { TEST_CONFIG, TEST_TOKEN_LIFETIMES, TEST_URIS } from "../TestConstants";
 import { ScopeSet } from "../../src/ScopeSet";
 import { StringDict } from "../../src/MsalTypes";
 import { TimeUtils } from "../../src/utils/TimeUtils";
@@ -12,11 +12,13 @@ import { Constants, InteractionType } from "../../src/utils/Constants";
 
 const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
 
-const scopelessRequest: AuthenticationParameters = {
-    authority: TEST_CONFIG.validAuthority
-}
-
 describe("RequestUtils.ts class", () => {
+    const scopelessRequest: AuthenticationParameters = {
+        authority: TEST_CONFIG.validAuthority,
+        forceRefresh: false,
+        redirectUri: TEST_URIS.TEST_REDIR_URI,
+    };
+
     describe("validateRequest", () => {
         it("should throw emptyRequestError when the request passed in is null", () => {
             let emptyRequestError: ClientConfigurationError;
@@ -53,7 +55,7 @@ describe("RequestUtils.ts class", () => {
 
             try {
                 // @ts-ignore
-                const userRequest: AuthenticationParameters = { scopes: {} };
+                const userRequest: AuthenticationParameters = { ...scopelessRequest, scopes: {} };
                 const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, clientId, Constants.interactionTypeSilent);
             } catch (e) {
                 scopesNonArrayError = e;
@@ -68,7 +70,7 @@ describe("RequestUtils.ts class", () => {
             let emptyScopesArrayError: ClientConfigurationError;
 
             try {
-                const userRequest: AuthenticationParameters = { scopes: [] };
+                const userRequest: AuthenticationParameters = { ...scopelessRequest, scopes: [] };
                 const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, clientId, Constants.interactionTypeSilent);
             } catch (e) {
                 emptyScopesArrayError = e;
@@ -87,7 +89,7 @@ describe("RequestUtils.ts class", () => {
         });
 
         it("should append openid and profile to request scopes if they are not included before calling validateRequest", () => {
-            const loginRequest: AuthenticationParameters = { scopes: ["s1"] };
+            const loginRequest: AuthenticationParameters = { ...scopelessRequest, scopes: ["s1"] };
 
             sinon.stub(RequestUtils, "validateRequest").callsFake((loginRequest: AuthenticationParameters, clientId: string, interactionType: InteractionType) : AuthenticationParameters => {
                 expect(loginRequest.scopes).to.include(Constants.openidScope);
@@ -100,7 +102,7 @@ describe("RequestUtils.ts class", () => {
 
         it("should append extra scopes to consent to request scopes after calling validateRequest", () => {
             const extraScope = "s1";
-            const loginRequest: AuthenticationParameters = { extraScopesToConsent: [ extraScope ] };
+            const loginRequest: AuthenticationParameters = { ...scopelessRequest, extraScopesToConsent: [ extraScope ] };
             const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateLoginRequest(loginRequest, clientId, Constants.interactionTypeSilent);
             // At this point, scopes should include openid, profile and S1, the extra scope to consent
             expect(validatedLoginRequest.scopes.length).to.eql(3);
@@ -109,7 +111,7 @@ describe("RequestUtils.ts class", () => {
 
         it("should only append login scopes once when openid and profile are passed in as extraScopesToAppend", () => {
             const extraScopes = ["openid", "profile"];
-            const loginRequest: AuthenticationParameters = { extraScopesToConsent: extraScopes };
+            const loginRequest: AuthenticationParameters = { ...scopelessRequest, extraScopesToConsent: extraScopes };
             const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateLoginRequest(loginRequest, clientId, Constants.interactionTypeSilent);
             expect(validatedLoginRequest.scopes).to.deep.eq(extraScopes);
         });
