@@ -171,9 +171,10 @@ describe("ScopeSet.ts", () => {
 
     describe("generateLoginScopes", () => {
         it("should append openid and profile to scopes, remove clientId from scopes if original scopes include clientId", () => {
-            expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.include(openid);
-            expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.include(profile);
-            expect(ScopeSet.generateLoginScopes([clientId], clientId)).to.not.include(clientId);
+            const loginScopes = ScopeSet.generateLoginScopes([clientId], clientId); 
+            expect(loginScopes).to.include(openid);
+            expect(loginScopes).to.include(profile);
+            expect(loginScopes).to.not.include(clientId);
         });
 
         it("should append openid to scopes if original scopes are login scopes and does not include openid", () => {
@@ -191,9 +192,10 @@ describe("ScopeSet.ts", () => {
         });
         
         it("should not remove existing access token scopes in original scopes when appending login scopes", () => {
-            expect(ScopeSet.generateLoginScopes(["S1", clientId], clientId)).to.include("S1");
-            expect(ScopeSet.generateLoginScopes(["S1", clientId], clientId)).to.include(openid);
-            expect(ScopeSet.generateLoginScopes(["S1", clientId], clientId)).to.include(profile);
+            const loginScopes = ScopeSet.generateLoginScopes(["S1", clientId], clientId);
+            expect(loginScopes).to.include("S1");
+            expect(loginScopes).to.include(openid);
+            expect(loginScopes).to.include(profile);
         });
     });
 
