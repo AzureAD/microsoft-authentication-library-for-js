@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Storage } from './Storage';
 import {
     Serializer,
@@ -78,19 +83,20 @@ export class CacheManager {
      */
     async writeToPersistence(): Promise<void> {
         if (this.persistence) {
-            this.cacheSnapshot = await this.persistence.readFromStorage();
+            let cache = Serializer.serializeAllCache(this.storage.getCache());
 
-            let finalState = Serializer.serializeAllCache(this.storage.getCache());
+            const getMergedState = (stateFromDisk: string) => {
 
-            // if cacheSnapshot not null or empty, merge
-            if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-                finalState = this.mergeState(
-                    JSON.parse(this.cacheSnapshot),
-                    Serializer.serializeAllCache(this.storage.getCache()));
-            }
+                if (!StringUtils.isEmpty(stateFromDisk)) {
+                    this.cacheSnapshot = stateFromDisk;
+                    cache = this.mergeState(JSON.parse(stateFromDisk), cache);
+                }
+
+                return JSON.stringify(cache);
+            };
+
+            await this.persistence.writeToStorage(getMergedState);
             this.hasChanged = false;
-
-            await this.persistence.writeToStorage(JSON.stringify(finalState));
         } else {
             throw ClientAuthError.createCachePluginError();
         }
@@ -102,10 +108,11 @@ export class CacheManager {
      */
     async readFromPersistence(): Promise<void> {
         if (this.persistence) {
-            const cache = await this.persistence.readFromStorage();
+            this.cacheSnapshot = await this.persistence.readFromStorage();
 
-            if (!StringUtils.isEmpty(cache)) {
-                const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(cache)));
+            if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+                const cache = this.overlayDefaults(JSON.parse(this.cacheSnapshot));
+                const deserializedCache = Deserializer.deserializeAllCache(cache);
                 this.storage.setCache(deserializedCache);
             }
         } else {
