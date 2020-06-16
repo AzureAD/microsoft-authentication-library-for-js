@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Storage } from './Storage';
 import {
     Serializer,
@@ -17,7 +22,7 @@ const defaultSerializedCache: JsonCache = {
 };
 
 /**
- *
+ * In-memory token cache manager
  */
 export class CacheManager {
 
@@ -49,8 +54,8 @@ export class CacheManager {
         let finalState = Serializer.serializeAllCache(this.storage.getCache());
 
         // if cacheSnapshot not null or empty, merge
-        if(!StringUtils.isEmpty(this.cacheSnapshot)) {
-             finalState = this.mergeState(
+        if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+            finalState = this.mergeState(
                 JSON.parse(this.cacheSnapshot),
                 finalState);
         }
@@ -65,8 +70,10 @@ export class CacheManager {
      */
     deserialize(cache: string): void {
         this.cacheSnapshot = cache;
-        if(!StringUtils.isEmpty(this.cacheSnapshot)) {
-            const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(cache)));
+
+        if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+            const cache = this.overlayDefaults(JSON.parse(this.cacheSnapshot));
+            const deserializedCache = Deserializer.deserializeAllCache(cache);
             this.storage.setCache(deserializedCache);
         }
     }
@@ -76,20 +83,18 @@ export class CacheManager {
      */
     async writeToPersistence(): Promise<void> {
         if (this.persistence) {
+            let cache = Serializer.serializeAllCache(this.storage.getCache());
 
-            this.cacheSnapshot = await this.persistence.readFromStorage();
+            const getMergedState = (stateFromDisk: string) => {
+                if (!StringUtils.isEmpty(stateFromDisk)) {
+                    this.cacheSnapshot = stateFromDisk;
+                    cache = this.mergeState(JSON.parse(stateFromDisk), cache);
+                }
+                return JSON.stringify(cache);
+            };
 
-            let finalState = Serializer.serializeAllCache(this.storage.getCache());
-
-            // if cacheSnapshot not null or empty, merge
-            if(!StringUtils.isEmpty(this.cacheSnapshot)) {
-                finalState = this.mergeState(
-                    JSON.parse(this.cacheSnapshot),
-                    finalState);
-            }
+            await this.persistence.writeToStorage(getMergedState);
             this.hasChanged = false;
-
-            await this.persistence.writeToStorage(JSON.stringify(finalState));
         } else {
             throw ClientAuthError.createCachePluginError();
         }
@@ -102,9 +107,10 @@ export class CacheManager {
     async readFromPersistence(): Promise<void> {
         if (this.persistence) {
             this.cacheSnapshot = await this.persistence.readFromStorage();
-            console.log(this.cacheSnapshot);
-            if(!StringUtils.isEmpty(this.cacheSnapshot)){
-                const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(this.cacheSnapshot)));
+
+            if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+                const cache = this.overlayDefaults(JSON.parse(this.cacheSnapshot));
+                const deserializedCache = Deserializer.deserializeAllCache(cache);
                 this.storage.setCache(deserializedCache);
             }
         } else {
