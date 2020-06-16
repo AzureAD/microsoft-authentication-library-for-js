@@ -10,7 +10,7 @@ import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
-import { CacheManager, DefaultStorageClass } from "../cache/interface/CacheManager";
+import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;

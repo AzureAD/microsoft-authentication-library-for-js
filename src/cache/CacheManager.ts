@@ -3,21 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "../utils/CacheTypes";
-import { CacheRecord } from "../entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants } from "../../utils/Constants";
-import { CredentialEntity } from "../entities/CredentialEntity";
-import { ScopeSet } from "../../request/ScopeSet";
-import { AccountEntity } from "../entities/AccountEntity";
-import { AccessTokenEntity } from "../entities/AccessTokenEntity";
-import { CacheHelper } from "../utils/CacheHelper";
-import { StringUtils } from "../../utils/StringUtils";
-import { IdTokenEntity } from "../entities/IdTokenEntity";
-import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
-import { AuthError } from "../../error/AuthError";
-import { ICacheManager } from "./ICacheManager";
-import { IAccount } from "../../account/IAccount";
-import { ClientAuthError } from "../../error/ClientAuthError";
+import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "./utils/CacheTypes";
+import { CacheRecord } from "./entities/CacheRecord";
+import { CacheSchemaType, CredentialType, Constants } from "../utils/Constants";
+import { CredentialEntity } from "./entities/CredentialEntity";
+import { ScopeSet } from "../request/ScopeSet";
+import { AccountEntity } from "./entities/AccountEntity";
+import { AccessTokenEntity } from "./entities/AccessTokenEntity";
+import { CacheHelper } from "./utils/CacheHelper";
+import { StringUtils } from "../utils/StringUtils";
+import { IdTokenEntity } from "./entities/IdTokenEntity";
+import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
+import { AuthError } from "../error/AuthError";
+import { ICacheManager } from "./interface/ICacheManager";
+import { IAccount } from "../account/IAccount";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
