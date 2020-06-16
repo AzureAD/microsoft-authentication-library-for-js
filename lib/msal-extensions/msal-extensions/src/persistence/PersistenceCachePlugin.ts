@@ -6,6 +6,7 @@
 import { IPersistence } from "../persistence/IPersistence";
 import { CrossPlatformLock } from "../lock/CrossPlatformLock";
 import { CrossPlatformLockOptions } from "../lock/CrossPlatformLockOptions";
+import { pid } from "process";
 
 export class PersistenceCachePlugin {
 
@@ -27,37 +28,42 @@ export class PersistenceCachePlugin {
 
     public async readFromStorage(): Promise<string> {
         console.log("Reading from storage");
-        if (await this.persistence.reloadNecessary(this.lastSync) || this.currentCache == null) {
+        if (this.persistence.reloadNecessary(this.lastSync) || this.currentCache == null) {
             try {
-                console.log("Reload necessary");
+                console.log("Reload necessary.  Last sync time: " + this.lastSync);
                 this.crossPlatformLock = new CrossPlatformLock(this.lockFilePath, this.lockOptions);
                 await this.crossPlatformLock.lock();
 
                 this.currentCache = await this.persistence.load();
                 this.lastSync = new Date().getTime();
-
+                console.log("Last sync time updated to: ", this.lastSync);
             } finally {
                 await this.crossPlatformLock.unlock();
                 delete this.crossPlatformLock;
-                console.log("Released lock");
+                console.log("Pid " + pid + " Released lock");
             }
         }
         return this.currentCache;
     }
 
-    public async writeToStorage(diskState: string): Promise<void> {
+    public async writeToStorage(callback: (diskState: string) => string): Promise<void> {
         try {
+            console.log("Writing to storage");
             this.crossPlatformLock = new CrossPlatformLock(this.lockFilePath, this.lockOptions);
             await this.crossPlatformLock.lock();
-            console.log("Created lock");
 
-            this.currentCache = diskState;
-            this.lastSync = new Date().getTime();
+            if(this.persistence.reloadNecessary(this.lastSync)){
+                console.log("Reload necessary.  Last sync time: " + this.lastSync);
+                this.currentCache = await this.persistence.load();
+                this.lastSync = new Date().getTime();
+                console.log("Last sync time updated to: ", this.lastSync);
+            }
+
+            this.currentCache = await callback(this.currentCache);
             await this.persistence.save(this.currentCache);
-
         } finally {
             this.crossPlatformLock.unlock();
-            console.log("Released lock");
+            console.log("Pid " + pid + " Released lock");
         }
     }
 }

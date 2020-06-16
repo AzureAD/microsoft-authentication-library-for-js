@@ -12,7 +12,7 @@ const os = require("os");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-const filePersistence = new extensions.FilePersistenceWithDataProtection(path.join(__dirname, "./data/extensions.json"), os.userInfo().username);
+const filePersistence = new extensions.FilePersistenceWithDataProtection(path.join(__dirname, "./cache.json"), os.userInfo().username);
 const cachePlugin = new extensions.PersistenceCachePlugin(filePersistence);
 
 const publicClientConfig = {
@@ -52,7 +52,7 @@ app.get('/redirect', (req, res) => {
     };
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
-        console.log("\nResponse: \n:", response);
+        console.log("\nResponse: \n", response);
         res.sendStatus(200);
         return msalCacheManager.writeToPersistence();
     }).catch((error) => {
