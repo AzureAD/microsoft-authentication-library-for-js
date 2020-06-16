@@ -6,6 +6,7 @@
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { ClientAuthError } from "./error/ClientAuthError";
 import { StringUtils } from "./utils/StringUtils";
+import { IdToken } from "./IdToken";
 
 /**
  * @hidden
@@ -30,8 +31,8 @@ export class ClientInfo {
         this._utid = utid;
     }
 
-    static createClientInfoFromIdToken(oid:string): string {
-        const clientInfo = {uid: oid, utid: ""};
+    static createClientInfoFromIdToken(idToken:IdToken): string {
+        const clientInfo = {uid: idToken.subject, utid: ""};
 
         return CryptoUtils.base64Encode(JSON.stringify(clientInfo));
     }

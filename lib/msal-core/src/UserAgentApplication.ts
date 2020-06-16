@@ -1704,7 +1704,7 @@ export class UserAgentApplication {
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
                         clientInfo = hashParams[ServerHashParamKeys.CLIENT_INFO];
                     } else if (this.authorityInstance.AuthorityType === AuthorityType.Adfs) {
-                        clientInfo = ClientInfo.createClientInfoFromIdToken(idTokenObj.subject);
+                        clientInfo = ClientInfo.createClientInfoFromIdToken(idTokenObj);
                     } else {
                         this.logger.warning("ClientInfo not received in the response from AAD");
                     }
@@ -1753,7 +1753,7 @@ export class UserAgentApplication {
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
                         clientInfo = hashParams[ServerHashParamKeys.CLIENT_INFO];
                     } else if (this.authorityInstance.AuthorityType === AuthorityType.Adfs) {
-                        clientInfo = ClientInfo.createClientInfoFromIdToken(idTokenObj.subject);
+                        clientInfo = ClientInfo.createClientInfoFromIdToken(idTokenObj);
                     } else {
                         this.logger.warning("ClientInfo not received in the response from AAD");
                     }

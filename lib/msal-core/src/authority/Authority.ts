@@ -11,7 +11,7 @@ import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
 import HttpEvent from "../telemetry/HttpEvent";
 import { TrustedAuthority } from "./TrustedAuthority";
-import { NetworkRequestType, Constants } from "../utils/Constants";
+import { NetworkRequestType, Constants, WELL_KNOWN_SUFFIX } from "../utils/Constants";
 
 /**
  * @hidden
@@ -37,11 +37,7 @@ export class Authority {
         const components = UrlUtils.GetUrlComponents(authorityUrl);
         const pathSegments = components.PathSegments;
 
-        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
-            return true;
-        }
-
-        return false;
+        return (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS);
     }
 
     public get AuthorityType(): AuthorityType {
@@ -107,9 +103,9 @@ export class Authority {
     // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
     protected get DefaultOpenIdConfigurationEndpoint(): string {
         if (this.AuthorityType === AuthorityType.Adfs){
-            return `${this.CanonicalAuthority}.well-known/openid-configuration`;
+            return `${this.CanonicalAuthority}${WELL_KNOWN_SUFFIX}`;
         }
-        return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
+        return `${this.CanonicalAuthority}v2.0/${WELL_KNOWN_SUFFIX}`;
     }
 
     /**

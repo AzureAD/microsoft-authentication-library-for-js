@@ -3,8 +3,9 @@ import sinon from "sinon";
 import { ClientInfo } from "../src/ClientInfo";
 import { ClientAuthError, AuthError } from "../src";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
-import { TEST_DATA_CLIENT_INFO } from "./TestConstants";
+import { TEST_DATA_CLIENT_INFO, TEST_TOKENS } from "./TestConstants";
 import { CryptoUtils } from "../src/utils/CryptoUtils";
+import { IdToken } from "../src/IdToken";
 
 describe("Client Info", function () {
 
@@ -35,7 +36,10 @@ describe("Client Info", function () {
 
     describe("createClientInfoFromIdToken", () => {
         it("Returns encoded ClientInfo Object", () => {
-            const clientInfo = ClientInfo.createClientInfoFromIdToken("test-oid");
+            const tempIdToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);;
+            tempIdToken.subject = "test-oid";
+
+            const clientInfo = ClientInfo.createClientInfoFromIdToken(tempIdToken);
 
             const clientInfoObj = new ClientInfo(clientInfo);
 

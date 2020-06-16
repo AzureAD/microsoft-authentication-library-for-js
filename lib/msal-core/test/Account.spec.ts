@@ -38,16 +38,18 @@ describe("Account.ts Class", function() {
         });
 
         it("verifies accountIdentifier equal subject claim if objectId not present", () => {
-            const oldIdToken = idToken;
-            idToken.objectId = "";
+            const tempIdToken = idToken;
+            tempIdToken.objectId = "";
 
-            const account = Account.createAccount(idToken, clientInfo);
-            expect(account.accountIdentifier).to.equal(idToken.subject);
-            idToken = oldIdToken;
+            const account = Account.createAccount(tempIdToken, clientInfo);
+            expect(account.accountIdentifier).to.equal(tempIdToken.subject);
         });
 
         it("verifies homeAccountIdentifier is undefined if ClientInfo is empty", () => {
-            const emptyClientInfo = new ClientInfo(ClientInfo.createClientInfoFromIdToken(""));
+            const tempIdToken = idToken;
+            tempIdToken.subject = "";
+
+            const emptyClientInfo = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
             const account = Account.createAccount(idToken, emptyClientInfo);
     
             expect(account.homeAccountIdentifier).to.be.undefined;
@@ -66,7 +68,10 @@ describe("Account.ts Class", function() {
         });
 
         it("returns false if a1.homeAccountIdentifier evaluates to false", () => {
-            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(""));
+            const tempIdToken = idToken;
+            tempIdToken.subject = "";
+
+            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
             const account1 = Account.createAccount(idToken, clientInfo2);
             const account2 = Account.createAccount(idToken, clientInfo);
 
@@ -75,7 +80,10 @@ describe("Account.ts Class", function() {
         });
 
         it("returns false if a2.homeAccountIdentifier evaluates to false", () => {
-            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(""));
+            const tempIdToken = idToken;
+            tempIdToken.subject = "";
+
+            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
             const account1 = Account.createAccount(idToken, clientInfo);
             const account2 = Account.createAccount(idToken, clientInfo2);
 
@@ -91,7 +99,10 @@ describe("Account.ts Class", function() {
         });
 
         it("returns false if a1.homeAccountIdentifier !== a2.homeAccountIdentifier", () => {
-            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken("test-oid"));
+            const tempIdToken = idToken;
+            tempIdToken.subject = "test-oid";
+
+            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
             const account1 = Account.createAccount(idToken, clientInfo);
             const account2 = Account.createAccount(idToken, clientInfo2);
 
