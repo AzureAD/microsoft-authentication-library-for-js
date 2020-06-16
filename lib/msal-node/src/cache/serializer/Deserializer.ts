@@ -24,17 +24,19 @@ export class Deserializer {
      * Deserializes accounts to AccountEntity objects
      * @param accounts
      */
-    static deserializeAccounts(accounts: StringDict): AccountCache {
+    static deserializeAccounts(accounts: StringDict | undefined): AccountCache {
         const accountObjects: AccountCache = {};
-        Object.keys(accounts).map(function (key) {
-            const mappedAcc = CacheHelper.renameKeys(
-                accounts[key],
-                AccountCacheMaps.fromCacheMap
-            );
-            const account: AccountEntity = new AccountEntity();
-            CacheHelper.toObject(account, mappedAcc);
-            accountObjects[key] = account;
-        });
+        if (accounts) {
+            Object.keys(accounts).map(function (key) {
+                const mappedAcc = CacheHelper.renameKeys(
+                    accounts[key],
+                    AccountCacheMaps.fromCacheMap
+                );
+                const account: AccountEntity = new AccountEntity();
+                CacheHelper.toObject(account, mappedAcc);
+                accountObjects[key] = account;
+            });
+        }
 
         return accountObjects;
     }
@@ -43,18 +45,19 @@ export class Deserializer {
      * Deserializes id tokens to IdTokenEntity objects
      * @param idTokens
      */
-    static deserializeIdTokens(idTokens: StringDict): IdTokenCache {
+    static deserializeIdTokens(idTokens: StringDict | undefined): IdTokenCache {
         const idObjects: IdTokenCache = {};
-        Object.keys(idTokens).map(function (key) {
-            const mappedIdT = CacheHelper.renameKeys(
-                idTokens[key],
-                IdTokenCacheMaps.fromCacheMap
-            );
-            const idToken: IdTokenEntity = new IdTokenEntity();
-            CacheHelper.toObject(idToken, mappedIdT);
-            idObjects[key] = idToken;
-        });
-
+        if (idTokens) {
+            Object.keys(idTokens).map(function (key) {
+                const mappedIdT = CacheHelper.renameKeys(
+                    idTokens[key],
+                    IdTokenCacheMaps.fromCacheMap
+                );
+                const idToken: IdTokenEntity = new IdTokenEntity();
+                CacheHelper.toObject(idToken, mappedIdT);
+                idObjects[key] = idToken;
+            });
+        }
         return idObjects;
     }
 
@@ -62,17 +65,19 @@ export class Deserializer {
      * Deserializes access tokens to AccessTokenEntity objects
      * @param accessTokens
      */
-    static deserializeAccessTokens(accessTokens: StringDict): AccessTokenCache {
+    static deserializeAccessTokens(accessTokens: StringDict | undefined): AccessTokenCache {
         const atObjects: AccessTokenCache = {};
-        Object.keys(accessTokens).map(function (key) {
-            const mappedAT = CacheHelper.renameKeys(
-                accessTokens[key],
-                AccessTokenCacheMaps.fromCacheMap
-            );
-            const accessToken: AccessTokenEntity = new AccessTokenEntity();
-            CacheHelper.toObject(accessToken, mappedAT);
-            atObjects[key] = accessToken;
-        });
+        if (accessTokens) {
+            Object.keys(accessTokens).map(function (key) {
+                const mappedAT = CacheHelper.renameKeys(
+                    accessTokens[key],
+                    AccessTokenCacheMaps.fromCacheMap
+                );
+                const accessToken: AccessTokenEntity = new AccessTokenEntity();
+                CacheHelper.toObject(accessToken, mappedAT);
+                atObjects[key] = accessToken;
+            });
+        }
 
         return atObjects;
     }
@@ -81,17 +86,19 @@ export class Deserializer {
      * Deserializes refresh tokens to RefreshTokenEntity objects
      * @param refreshTokens
      */
-    static deserializeRefreshTokens(refreshTokens: StringDict): RefreshTokenCache {
+    static deserializeRefreshTokens(refreshTokens: StringDict | undefined): RefreshTokenCache {
         const rtObjects: RefreshTokenCache = {};
-        Object.keys(refreshTokens).map(function (key) {
-            const mappedRT = CacheHelper.renameKeys(
-                refreshTokens[key],
-                RefreshTokenCacheMaps.fromCacheMap
-            );
-            const refreshToken: RefreshTokenEntity = new RefreshTokenEntity();
-            CacheHelper.toObject(refreshToken, mappedRT);
-            rtObjects[key] = refreshToken;
-        });
+        if (refreshTokens) {
+            Object.keys(refreshTokens).map(function (key) {
+                const mappedRT = CacheHelper.renameKeys(
+                    refreshTokens[key],
+                    RefreshTokenCacheMaps.fromCacheMap
+                );
+                const refreshToken: RefreshTokenEntity = new RefreshTokenEntity();
+                CacheHelper.toObject(refreshToken, mappedRT);
+                rtObjects[key] = refreshToken;
+            });
+        }
 
         return rtObjects;
     }
@@ -100,17 +107,19 @@ export class Deserializer {
      * Deserializes appMetadata to AppMetaData objects
      * @param appMetadata
      */
-    static deserializeAppMetadata(appMetadata: StringDict): AppMetadataCache {
+    static deserializeAppMetadata(appMetadata: StringDict | undefined): AppMetadataCache {
         const appMetadataObjects: AppMetadataCache = {};
-        Object.keys(appMetadata).map(function (key) {
-            const mappedAmd = CacheHelper.renameKeys(
-                appMetadata[key],
-                AppMetadataCacheMaps.fromCacheMap
-            );
-            const amd: AppMetadataEntity = new AppMetadataEntity();
-            CacheHelper.toObject(amd, mappedAmd);
-            appMetadataObjects[key] = amd;
-        });
+        if (appMetadata) {
+            Object.keys(appMetadata).map(function (key) {
+                const mappedAmd = CacheHelper.renameKeys(
+                    appMetadata[key],
+                    AppMetadataCacheMaps.fromCacheMap
+                );
+                const amd: AppMetadataEntity = new AppMetadataEntity();
+                CacheHelper.toObject(amd, mappedAmd);
+                appMetadataObjects[key] = amd;
+            });
+        }
 
         return appMetadataObjects;
     }

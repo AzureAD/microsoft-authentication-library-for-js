@@ -6,11 +6,11 @@
 import { StringDict, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
 
 export type JsonCache = {
-    Account?: StringDict;
-    IdToken?: StringDict;
-    AccessToken?: StringDict;
-    RefreshToken?: StringDict;
-    AppMetadata?: StringDict;
+    Account: StringDict;
+    IdToken: StringDict;
+    AccessToken: StringDict;
+    RefreshToken: StringDict;
+    AppMetadata: StringDict;
 };
 
 export type InMemoryCache = {

@@ -18,7 +18,7 @@ export { B2cAuthority } from "./authority/B2cAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 // Cache
-export { CacheManager } from "./cache/interface/CacheManager";
+export { CacheManager } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "./cache/utils/CacheTypes";
 export { CacheHelper } from "./cache/utils/CacheHelper";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";

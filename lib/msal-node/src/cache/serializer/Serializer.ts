@@ -21,7 +21,7 @@ export class Serializer {
      * Serialize Accounts
      * @param accCache
      */
-    static serializeAccounts(accCache: AccountCache): StringDict | undefined {
+    static serializeAccounts(accCache: AccountCache): StringDict {
         const accounts: StringDict = {};
         Object.keys(accCache).map(function (key) {
             accounts[key] = JSON.stringify(EntitySerializer.mapAccountKeys(accCache, key));

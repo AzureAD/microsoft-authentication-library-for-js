@@ -24,7 +24,7 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheHelper } from "../cache/utils/CacheHelper";
 import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
-import { CacheManager } from "../cache/interface/CacheManager";
+import { CacheManager } from "../cache/CacheManager";
 
 /**
  * Class that handles response parsing.

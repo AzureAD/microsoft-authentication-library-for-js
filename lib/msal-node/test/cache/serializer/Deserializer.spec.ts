@@ -1,10 +1,10 @@
-import { JsonCache, InMemoryCache } from "cache/serializer/SerializerTypes";
-import { Deserializer } from "cache/serializer/Deserializer";
+import { JsonCache, InMemoryCache } from "../../../src/cache/serializer/SerializerTypes";
+import { Deserializer } from "../../../src/cache/serializer/Deserializer";
 import { MockCache } from "../cacheConstants";
 
 const cacheJson = require("./cache.json");
 
-describe.skip("Deserializer test cases", () => {
+describe("Deserializer test cases", () => {
 
     const cache = JSON.stringify(cacheJson);
     const jsonCache: JsonCache = Deserializer.deserializeJSONBlob(cache);
