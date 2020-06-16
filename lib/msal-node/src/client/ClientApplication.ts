@@ -228,6 +228,6 @@ export abstract class ClientApplication {
     }
 
     getAllAccounts(): IAccount[] {
-        return AuthorizationCodeClient.getAllAccounts(this.storage);
+        return this.storage.getAllAccounts();
     }
 }

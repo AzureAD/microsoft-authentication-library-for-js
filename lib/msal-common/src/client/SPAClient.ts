@@ -32,7 +32,6 @@ import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { IAccount } from "../account/IAccount";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
-import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 
 /**
  * SPAClient class
@@ -56,9 +55,7 @@ export class SPAClient extends BaseClient {
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
      * @param request
      */
-    async createUrl(
-        request: AuthorizationUrlRequest
-    ): Promise<string> {
+    async createUrl(request: AuthorizationUrlRequest): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check.
         const acquireTokenAuthority =
             request && request.authority
@@ -217,7 +214,7 @@ export class SPAClient extends BaseClient {
         const requestScopes = new ScopeSet(request.scopes || []);
 
         // Get current cached tokens
-        const cachedAccount = UnifiedCacheManager.getAccount(this.cacheStorage, CacheHelper.generateAccountCacheKey(request.account));
+        const cachedAccount = this.cacheStorage.getAccount(CacheHelper.generateAccountCacheKey(request.account));
 
         const homeAccountId = cachedAccount.homeAccountId;
         const env = cachedAccount.environment;
@@ -289,7 +286,7 @@ export class SPAClient extends BaseClient {
      */
     async logout(account: IAccount, acquireTokenAuthority: Authority): Promise<string> {
         // Clear current account.
-        UnifiedCacheManager.removeAccount(this.cacheStorage, CacheHelper.generateAccountCacheKey(account));
+        this.cacheStorage.removeAccount(CacheHelper.generateAccountCacheKey(account));
         // Get postLogoutRedirectUri.
         let postLogoutRedirectUri = "";
         try {
@@ -358,7 +355,7 @@ export class SPAClient extends BaseClient {
             this.config.authOptions.clientId,
             inputRealm
         );
-        return UnifiedCacheManager.getCredential(this.cacheStorage, idTokenKey) as IdTokenEntity;
+        return this.cacheStorage.getCredential(idTokenKey) as IdTokenEntity;
     }
 
     /**
@@ -375,7 +372,7 @@ export class SPAClient extends BaseClient {
             realm: inputRealm,
             target: scopes.printScopes()
         };
-        const credentialCache: CredentialCache = UnifiedCacheManager.getCredentialsFilteredBy(this.cacheStorage, accessTokenFilter);
+        const credentialCache: CredentialCache = this.cacheStorage.getCredentialsFilteredBy(accessTokenFilter);
         const accessTokens = Object.values(credentialCache.accessTokens);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
@@ -396,7 +393,7 @@ export class SPAClient extends BaseClient {
             CredentialType.REFRESH_TOKEN,
             this.config.authOptions.clientId
         );
-        return UnifiedCacheManager.getCredential(this.cacheStorage, refreshTokenKey) as RefreshTokenEntity;
+        return this.cacheStorage.getCredential(refreshTokenKey) as RefreshTokenEntity;
     }
 
     /**
@@ -520,14 +517,11 @@ export class SPAClient extends BaseClient {
      * @returns {@link Account} - the account object stored in MSAL
      */
     getAccount(homeAccountIdentifier: string, env?: string, rlm?: string): AccountEntity {
-        const accountCache = UnifiedCacheManager.getAccountsFilteredBy(
-            this.cacheStorage,
-            {
-                homeAccountId: homeAccountIdentifier,
-                environment: env,
-                realm: rlm
-            }
-        );
+        const accountCache = this.cacheStorage.getAccountsFilteredBy({
+            homeAccountId: homeAccountIdentifier,
+            environment: env,
+            realm: rlm
+        });
 
         const numAccounts = Object.keys(accountCache).length;
         if (numAccounts < 1) {
