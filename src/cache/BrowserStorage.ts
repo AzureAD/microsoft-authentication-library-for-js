@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICacheStorage, Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CacheHelper, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CacheHelper, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -16,7 +16,7 @@ const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
  * Cookies are only used if storeAuthStateInCookie is true, and are only used for
  * parameters such as state and nonce, generally.
  */
-export class BrowserStorage implements ICacheStorage {
+export class BrowserStorage extends CacheManager {
 
     // Cache configuration, either set by user or default values.
     private cacheConfig: CacheOptions;
@@ -26,6 +26,7 @@ export class BrowserStorage implements ICacheStorage {
     private clientId: string;
 
     constructor(clientId: string, cacheConfig: CacheOptions) {
+        super();
         // Validate cache location
         this.validateWindowStorage(cacheConfig.cacheLocation);
 
