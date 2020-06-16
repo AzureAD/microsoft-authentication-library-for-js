@@ -25,9 +25,9 @@ describe("UrlUtils.ts class", () => {
     const TEST_URL_HASH_TWO_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_2}`;
 
     it("replaceTenantPath", () => {
-        console.log(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678"));
-        console.log(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778"));
-        console.log(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678"));
+        expect(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678")).to.eq("http://a.com/1234-5678/d/");
+        expect(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778")).to.eq("http://a.com/1234-56778/");
+        expect(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678")).to.eq("http://a.com/1234-5678/");
     });
 
     it("test getHashFromUrl returns hash from url if hash is single character", () => {
