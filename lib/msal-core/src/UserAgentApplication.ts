@@ -787,7 +787,7 @@ export class UserAgentApplication {
 
             // resolve/reject based on cacheResult
             if (cacheResultResponse) {
-                this.logger.verbose("Token is already in cache for scope: " + scope);
+                this.logger.verbose("Token found in cache lookup");
                 resolve(cacheResultResponse);
                 return null;
             }
@@ -804,7 +804,7 @@ export class UserAgentApplication {
                 } else if (request.forceRefresh) {
                     logMessage = "Skipped cache lookup since request.forceRefresh option was set to true";
                 } else {
-                    logMessage = "Token is not in cache for scope: " + scope;
+                    logMessage = "No token found in cache lookup";
                 }
                 this.logger.verbose(logMessage);
 
@@ -1363,14 +1363,17 @@ export class UserAgentApplication {
      * @param {Account} account - Account for which the scopes were requested
      */
     private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): AuthResponse {
+        this.logger.verbose("GetCachedToken has been called");
         let accessTokenCacheItem: AccessTokenCacheItem = null;
         const scopes = serverAuthenticationRequest.scopes;
 
         // filter by clientId and account
         const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : null);
+        this.logger.verbose("Getting all cached tokens");
 
         // No match found after initial filtering
         if (tokenCacheItems.length === 0) {
+            this.logger.verbose("No matching tokens found when filtered by clientId and account");
             return null;
         }
 
@@ -1378,6 +1381,7 @@ export class UserAgentApplication {
 
         // if no authority passed
         if (!serverAuthenticationRequest.authority) {
+            this.logger.verbose("No authority passed, filtering tokens by scope");
             // filter by scope
             for (let i = 0; i < tokenCacheItems.length; i++) {
                 const cacheItem = tokenCacheItems[i];
@@ -1389,6 +1393,7 @@ export class UserAgentApplication {
 
             // if only one cached token found
             if (filteredItems.length === 1) {
+                this.logger.verbose("One matching token found, setting authorityInstance");
                 accessTokenCacheItem = filteredItems[0];
                 serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
             }
@@ -1398,16 +1403,19 @@ export class UserAgentApplication {
             }
             // if no match found, check if there was a single authority used
             else {
+                this.logger.verbose("No matching token found when filtering by scope");
                 const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
                 if (authorityList.length > 1) {
                     throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
                 }
 
+                this.logger.verbose("Got single authority, setting authorityInstance");
                 serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
             }
         }
         // if an authority is passed in the API
         else {
+            this.logger.verbose("Authority passed, filtering by authority and scope");
             // filter by authority and scope
             for (let i = 0; i < tokenCacheItems.length; i++) {
                 const cacheItem = tokenCacheItems[i];
@@ -1418,10 +1426,12 @@ export class UserAgentApplication {
             }
             // no match
             if (filteredItems.length === 0) {
+                this.logger.verbose("No matching tokens found");
                 return null;
             }
             // if only one cachedToken Found
             else if (filteredItems.length === 1) {
+                this.logger.verbose("Single token found");
                 accessTokenCacheItem = filteredItems[0];
             }
             else {
@@ -1431,10 +1441,12 @@ export class UserAgentApplication {
         }
 
         if (accessTokenCacheItem != null) {
+            this.logger.verbose("Evaluating access token found");
             const expired = Number(accessTokenCacheItem.value.expiresIn);
             // If expiration is within offset, it will force renew
             const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
             if (expired && (expired > TimeUtils.now() + offset)) {
+                this.logger.verbose("Token is not expired, renewing token");
                 const idTokenObj = new IdToken(accessTokenCacheItem.value.idToken);
                 if (!account) {
                     account = this.getAccount();
@@ -1457,12 +1469,15 @@ export class UserAgentApplication {
                     fromCache: true
                 };
                 ResponseUtils.setResponseIdToken(response, idTokenObj);
+                this.logger.verbose("Response generated and token set");
                 return response;
             } else {
+                this.logger.verbose("Token expired, removing from cache");
                 this.cacheStorage.removeItem(JSON.stringify(filteredItems[0].key));
                 return null;
             }
         } else {
+            this.logger.verbose("No tokens found");
             return null;
         }
     }
@@ -1474,6 +1489,7 @@ export class UserAgentApplication {
      * @ignore
      */
     private getUniqueAuthority(accessTokenCacheItems: Array<AccessTokenCacheItem>, property: string): Array<string> {
+        this.logger.verbose("GetUniqueAuthority has been called");
         const authorityList: Array<string> = [];
         const flags: Array<string> = [];
         accessTokenCacheItems.forEach(element => {
@@ -1491,6 +1507,7 @@ export class UserAgentApplication {
      *
      */
     private extractADALIdToken(): any {
+        this.logger.verbose("ExtractADALIdToken has been called");
         const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
         if (!StringUtils.isEmpty(adalIdToken)) {
             return TokenUtils.extractIdToken(adalIdToken);
