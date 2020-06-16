@@ -11,7 +11,6 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
 import { IdToken } from "../account/IdToken";
-import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AuthenticationResult } from "./AuthenticationResult";
@@ -119,7 +118,7 @@ export class ResponseHandler {
         // save the response tokens
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
-        UnifiedCacheManager.saveCacheRecord(this.cacheStorage, cacheRecord, this.clientId, responseScopes);
+        this.cacheStorage.saveCacheRecord(cacheRecord, responseScopes);
 
         const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,

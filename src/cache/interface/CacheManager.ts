@@ -15,11 +15,13 @@ import { StringUtils } from "../../utils/StringUtils";
 import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AuthError } from "../../error/AuthError";
+import { ICacheManager } from "./ICacheManager";
+import { IAccount } from "../../account/IAccount";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
  */
-export abstract class CacheManager {
+export abstract class CacheManager implements ICacheManager {
 
     /**
      * Function to set item in cache.
@@ -59,8 +61,19 @@ export abstract class CacheManager {
     /**
      * Returns all accounts in cache
      */
-    getAllAccounts(): AccountCache {
-        return this.getAccountsFilteredBy();
+    getAllAccounts(): IAccount[] {
+        const currentAccounts: AccountCache = this.getAccountsFilteredBy();
+        const accountValues: AccountEntity[] = Object.values(currentAccounts);
+        const numAccounts = accountValues.length;
+        if (numAccounts < 1) {
+            return null;
+        } else {
+            const allAccounts = accountValues.map<IAccount>((value) => {
+                const accountObj: AccountEntity = JSON.parse(JSON.stringify(value));
+                return CacheHelper.toIAccount(accountObj);
+            });
+            return allAccounts;
+        }
     }
 
     /**

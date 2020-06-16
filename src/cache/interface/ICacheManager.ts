@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntity } from "../entities/AccountEntity";
 import { Credential } from "../entities/Credential";
 import {
     AccountCache,
@@ -11,19 +10,22 @@ import {
     AccountFilter,
     CredentialFilter,
 } from "../utils/CacheTypes";
+import { CacheRecord } from "../entities/CacheRecord";
+import { ScopeSet } from "../../request/ScopeSet";
+import { AccountEntity } from "../entities/AccountEntity";
+import { IAccount } from "../../account/IAccount";
 
 export interface ICacheManager {
     /**
-     * saves account into cache
-     * @param account
+     * Returns all accounts in cache
      */
-    saveAccount(account: AccountEntity): void;
+    getAllAccounts(): IAccount[];
 
     /**
-     * saves credential - accessToken, idToken or refreshToken into cache
-     * @param credential
+     * saves a cache record
+     * @param cacheRecord
      */
-    saveCredential(credential: Credential): void;
+    saveCacheRecord(cacheRecord: CacheRecord, responseScopes: ScopeSet): void;
 
     /**
      * Given account key retrieve an account
@@ -61,6 +63,12 @@ export interface ICacheManager {
      * @param account
      */
     removeAccount(accountKey: string): boolean;
+
+    /**
+     * returns a boolean if the given account is removed
+     * @param account
+     */
+    removeAccountContext(account: AccountEntity): boolean;
 
     /**
      * returns a boolean if the given credential is removed

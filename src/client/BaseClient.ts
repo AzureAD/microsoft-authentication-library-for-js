@@ -13,10 +13,6 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { B2cAuthority } from "../authority/B2cAuthority";
 import { AccountEntity } from "../cache/entities/AccountEntity";
-import { IAccount } from "../account/IAccount";
-import { AccountCache } from "../cache/utils/CacheTypes";
-import { CacheHelper } from "../cache/utils/CacheHelper";
-import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 import { CacheManager } from "../cache/interface/CacheManager";
 
 /**
@@ -103,23 +99,5 @@ export abstract class BaseClient {
             body: queryString,
             headers: headers,
         });
-    }
-
-    /**
-     * Get all currently signed in accounts.
-     */
-    static getAllAccounts(cacheStorage: CacheManager): IAccount[] {
-        const currentAccounts: AccountCache = UnifiedCacheManager.getAllAccounts(cacheStorage);
-        const accountValues: AccountEntity[] = Object.values(currentAccounts);
-        const numAccounts = accountValues.length;
-        if (numAccounts < 1) {
-            return null;
-        } else {
-            const allAccounts = accountValues.map<IAccount>((value) => {
-                const accountObj: AccountEntity = JSON.parse(JSON.stringify(value));
-                return CacheHelper.toIAccount(accountObj);
-            });
-            return allAccounts;
-        }
     }
 }
