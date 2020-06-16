@@ -19,6 +19,7 @@ export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 // Cache
 export { ICacheStorage } from "./cache/interface/ICacheStorage";
+export { CacheManager } from "./cache/interface/CacheManager";
 export { UnifiedCacheManager } from "./cache/UnifiedCacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "./cache/utils/CacheTypes";
 export { CacheHelper } from "./cache/utils/CacheHelper";

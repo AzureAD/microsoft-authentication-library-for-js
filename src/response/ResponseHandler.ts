@@ -25,20 +25,20 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheHelper } from "../cache/utils/CacheHelper";
 import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
-import { ICacheStorage } from "../cache/interface/ICacheStorage";
+import { CacheManager } from "../cache/interface/CacheManager";
 
 /**
  * Class that handles response parsing.
  */
 export class ResponseHandler {
     private clientId: string;
-    private cacheStorage: ICacheStorage;
+    private cacheStorage: CacheManager;
     private cryptoObj: ICrypto;
     private logger: Logger;
     private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
 
-    constructor(clientId: string, cacheStorage: ICacheStorage, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
