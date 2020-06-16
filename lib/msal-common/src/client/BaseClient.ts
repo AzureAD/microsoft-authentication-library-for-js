@@ -4,7 +4,6 @@
  */
 
 import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
-import { ICacheStorage } from "../cache/interface/ICacheStorage";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
@@ -18,6 +17,7 @@ import { IAccount } from "../account/IAccount";
 import { AccountCache } from "../cache/utils/CacheTypes";
 import { CacheHelper } from "../cache/utils/CacheHelper";
 import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
+import { CacheManager } from "../cache/interface/CacheManager";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -33,7 +33,7 @@ export abstract class BaseClient {
     protected cryptoUtils: ICrypto;
 
     // Storage Interface
-    protected cacheStorage: ICacheStorage;
+    protected cacheStorage: CacheManager;
 
     // Network Interface
     protected networkClient: INetworkModule;
@@ -108,7 +108,7 @@ export abstract class BaseClient {
     /**
      * Get all currently signed in accounts.
      */
-    static getAllAccounts(cacheStorage: ICacheStorage): IAccount[] {
+    static getAllAccounts(cacheStorage: CacheManager): IAccount[] {
         const currentAccounts: AccountCache = UnifiedCacheManager.getAllAccounts(cacheStorage);
         const accountValues: AccountEntity[] = Object.values(currentAccounts);
         const numAccounts = accountValues.length;

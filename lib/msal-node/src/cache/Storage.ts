@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 import {
-    ICacheStorage,
     CredentialType,
     CacheSchemaType,
     CacheHelper,
@@ -11,7 +10,8 @@ import {
     AccessTokenEntity,
     RefreshTokenEntity,
     IdTokenEntity,
-    AppMetadataEntity
+    AppMetadataEntity,
+    CacheManager
 } from '@azure/msal-common';
 import { CacheOptions } from '../config/Configuration';
 import { Deserializer } from "./serializer/Deserializer";
@@ -21,12 +21,13 @@ import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
-export class Storage implements ICacheStorage {
+export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.
     private cacheConfig: CacheOptions;
     private inMemoryCache: InMemoryCache;
 
     constructor(cacheConfig: CacheOptions) {
+        super();
         this.cacheConfig = cacheConfig;
         if (this.cacheConfig.cacheLocation! === 'fileCache')
             this.inMemoryCache = this.cacheConfig.cacheInMemory!;
