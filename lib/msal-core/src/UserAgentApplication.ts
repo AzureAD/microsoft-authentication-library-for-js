@@ -829,7 +829,7 @@ export class UserAgentApplication {
                      * Already renewing for this scope, callback when we get the token.
                      */
                     if (window.activeRenewals[requestSignature]) {
-                        this.logger.verbose("Renew token for scope and authority: " + requestSignature + " is in progress. Registering callback");
+                        this.logger.verbose("Renewing token in progress. Registering callback");
                         // Active renewals contains the state for each renewal.
                         this.registerCallback(window.activeRenewals[requestSignature], requestSignature, resolve, reject);
                     }
@@ -1409,7 +1409,7 @@ export class UserAgentApplication {
                     throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
                 }
 
-                this.logger.verbose("Got single authority, setting authorityInstance");
+                this.logger.verbose("Single authority used, setting authorityInstance");
                 serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
             }
         }
@@ -1509,10 +1509,7 @@ export class UserAgentApplication {
     private extractADALIdToken(): any {
         this.logger.verbose("ExtractADALIdToken has been called");
         const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
-        if (!StringUtils.isEmpty(adalIdToken)) {
-            return TokenUtils.extractIdToken(adalIdToken);
-        }
-        return null;
+        return (!StringUtils.isEmpty(adalIdToken)) ? TokenUtils.extractIdToken(adalIdToken) : null;
     }
 
     /**
@@ -1521,21 +1518,23 @@ export class UserAgentApplication {
      * @ignore
      */
     private renewToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-        this.logger.verbose("renewToken is called for scope and authority: " + requestSignature);
+        this.logger.verbose("RenewToken has been called");
+        this.logger.verbosePii(`RenewToken scope and authority: ${requestSignature}`);
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, requestSignature);
         WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
-        this.logger.verbosePii("Renew token Expected state: " + serverAuthenticationRequest.state);
+        this.logger.verbosePii(`RenewToken expected state: ${serverAuthenticationRequest.state}`);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
         const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
 
         window.renewStates.push(serverAuthenticationRequest.state);
         window.requestType = Constants.renewToken;
+        this.logger.verbose("Set window.renewState and requestType");
         this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
-        this.logger.infoPii("Navigate to:" + urlNavigate);
+        this.logger.infoPii(`Navigate to: ${urlNavigate}`);
         this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
     }
 
@@ -1545,29 +1544,31 @@ export class UserAgentApplication {
      * @ignore
      */
     private renewIdToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
-        this.logger.info("renewidToken is called");
+        this.logger.info("RenewIdToken has been called");
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, requestSignature);
         WindowUtils.addHiddenIFrame(frameName, this.logger);
 
         this.updateCacheEntries(serverAuthenticationRequest, account, false);
 
-        this.logger.verbose("Renew Idtoken Expected state: " + serverAuthenticationRequest.state);
+        this.logger.verbose(`RenewIdToken expected state: ${serverAuthenticationRequest.state}`);
 
         // Build urlNavigate with "prompt=none" and navigate to URL in hidden iFrame
         const urlNavigate = UrlUtils.urlRemoveQueryStringParameter(UrlUtils.createNavigateUrl(serverAuthenticationRequest), Constants.prompt) + Constants.prompt_none + Constants.response_mode_fragment;
 
         if (this.silentLogin) {
+            this.logger.verbose("Silent login is true, set silentAuthenticationState");
             window.requestType = Constants.login;
             this.silentAuthenticationState = serverAuthenticationRequest.state;
         } else {
+            this.logger.verbose("Not silent login, set window.renewState and requestType");
             window.requestType = Constants.renewToken;
             window.renewStates.push(serverAuthenticationRequest.state);
         }
 
         // note: scope here is clientId
         this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
-        this.logger.infoPii("Navigate to:" + urlNavigate);
+        this.logger.infoPii(`Navigate to:" ${urlNavigate}`);
         this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
     }
 
