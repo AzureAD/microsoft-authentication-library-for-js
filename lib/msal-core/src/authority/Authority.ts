@@ -41,11 +41,7 @@ export class Authority {
     }
 
     public get AuthorityType(): AuthorityType {
-        if (Authority.isAdfs(this.canonicalAuthority)) {
-            return AuthorityType.Adfs;
-        }
-
-        return AuthorityType.Default;
+        return Authority.isAdfs(this.canonicalAuthority)? AuthorityType.Adfs : AuthorityType.Default;
     };
 
     public IsValidationEnabled: boolean;
@@ -102,10 +98,7 @@ export class Authority {
 
     // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
     protected get DefaultOpenIdConfigurationEndpoint(): string {
-        if (this.AuthorityType === AuthorityType.Adfs){
-            return `${this.CanonicalAuthority}${WELL_KNOWN_SUFFIX}`;
-        }
-        return `${this.CanonicalAuthority}v2.0/${WELL_KNOWN_SUFFIX}`;
+        return (this.AuthorityType === AuthorityType.Adfs)? `${this.CanonicalAuthority}${WELL_KNOWN_SUFFIX}` : `${this.CanonicalAuthority}v2.0/${WELL_KNOWN_SUFFIX}`;
     }
 
     /**
