@@ -4,8 +4,7 @@
  */
 
 import { Credential } from "./Credential";
-import { Separators } from "../../utils/Constants";
-import { AuthenticationResult } from "../../response/AuthenticationResult";
+import { CredentialType } from "../../utils/Constants";
 
 /**
  * ACCESS_TOKEN Credential Type
@@ -21,39 +20,23 @@ export class AccessTokenEntity extends Credential {
     tokenType?: string;
 
     /**
-     * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
-     */
-    public generateAccessTokenEntityKey(): string {
-        const accessTokenKeyArray: Array<string> = [
-            this.homeAccountId,
-            this.environment,
-            this.credentialType,
-            this.clientId,
-            this.realm,
-            this.target
-        ];
-
-        return accessTokenKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-    }
-
-    /**
      * Create AccessTokenEntity
-     * @param homeAccountId
-     * @param authenticationResult
-     * @param clientId
-     * @param authority
-     */
+    */
     static createAccessTokenEntity(
         homeAccountId: string,
-        authenticationResult: AuthenticationResult,
+        environment: string,
+        accessToken: string,
         clientId: string,
-        environment: string
+        tenantId: string,
+        scopes: string,
+        expiresOn: number,
+        extExpiresOn: number
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
         atEntity.homeAccountId = homeAccountId;
-        atEntity.credentialType = "AccessToken";
-        atEntity.secret = authenticationResult.accessToken;
+        atEntity.credentialType = CredentialType.ACCESS_TOKEN;
+        atEntity.secret = accessToken;
 
         const date = new Date();
         const currentTime = date.getMilliseconds() / 1000;
@@ -62,17 +45,13 @@ export class AccessTokenEntity extends Credential {
         // TODO: Crosscheck the exact conversion UTC
         // Token expiry time.
         // This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
-        atEntity.expiresOn = authenticationResult.expiresOn
-            .getMilliseconds()
-            .toString();
-        atEntity.extendedExpiresOn = authenticationResult.extExpiresOn
-            .getMilliseconds()
-            .toString();
+        atEntity.expiresOn = expiresOn.toString();
+        atEntity.extendedExpiresOn = extExpiresOn.toString();
 
         atEntity.environment = environment;
         atEntity.clientId = clientId;
-        atEntity.realm = authenticationResult.tenantId;
-        atEntity.target = authenticationResult.scopes.join(" ");
+        atEntity.realm = tenantId;
+        atEntity.target = scopes;
 
         return atEntity;
     }

@@ -71,7 +71,11 @@ export const BrowserAuthErrorMessage = {
     silentPromptValueError: {
         code: "silent_prompt_value_error",
         desc: "The value given for the prompt value is not valid for silent requests - must be set to 'none'."
-    }
+    },
+    tokenRequestCacheError: {
+        code: "token_request_cache_error",
+        desc: "The token request could not be fetched from the cache correctly."
+    },
 };
 
 /**
@@ -214,5 +218,14 @@ export class BrowserAuthError extends AuthError {
      */
     static createSilentPromptValueError(givenPrompt: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.silentPromptValueError.code, `${BrowserAuthErrorMessage.silentPromptValueError.desc} Given value: ${givenPrompt}`);
+    }
+
+    /**
+     * Creates an error thrown when the token request could not be retrieved from the cache
+     * @param errDetail
+     */
+    static createTokenRequestCacheError(errDetail: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.tokenRequestCacheError.code,
+            `${BrowserAuthErrorMessage.tokenRequestCacheError.desc} Error Detail: ${errDetail}`);
     }
 }

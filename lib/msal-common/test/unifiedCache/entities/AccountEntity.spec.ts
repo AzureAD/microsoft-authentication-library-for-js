@@ -18,7 +18,7 @@ describe("AccountEntity.ts Unit Tests", () => {
     it("generate an AccountEntityKey", () => {
         let ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
-        expect(ac.generateAccountEntityKey()).to.eql(
+        expect(ac.generateAccountKey()).to.eql(
             "uid.utid-login.microsoftonline.com-microsoft"
         );
     });
@@ -71,7 +71,9 @@ describe("AccountEntity.ts Unit Tests", () => {
         const authority =  AuthorityFactory.createInstance(
             Constants.DEFAULT_AUTHORITY,
             networkInterface
-        );
+		);
+		
+		const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const acc = AccountEntity.createAccount(
             "uid.utid",
@@ -81,7 +83,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             cryptoInterface
         );
 
-        expect(acc.generateAccountEntityKey()).to.eql(
+        expect(acc.generateAccountKey()).to.eql(
             "uid.utid-login.microsoftonline.com-microsoft"
         );
     });

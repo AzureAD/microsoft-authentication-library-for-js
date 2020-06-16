@@ -14,9 +14,6 @@ export const Constants = {
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
-
-    // Device code endpoint path
-    DEVICE_CODE_ENDPOINT_PATH: "oauth2/v2.0/devicecode",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -44,22 +41,6 @@ export const Constants = {
  */
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type"
-}
-
-/**
- * Temporary cache keys for MSAL, deleted after any request.
- */
-export enum TemporaryCacheKeys {
-    AUTHORITY = "authority",
-    ACQUIRE_TOKEN_ACCOUNT = "acquireToken.account",
-    SESSION_STATE = "session.state",
-    REQUEST_STATE = "request.state",
-    NONCE_IDTOKEN = "nonce.idtoken",
-    ORIGIN_URI = "request.origin",
-    RENEW_STATUS = "token.renew.status",
-    URL_HASH = "urlHash",
-    REQUEST_PARAMS = "request.params",
-    SCOPES = "scopes"
 }
 
 /**
@@ -99,7 +80,6 @@ export enum AADAuthorityConstants {
  */
 export enum AADServerParamKeys {
     CLIENT_ID = "client_id",
-    RESOURCE = "resource",
     REDIRECT_URI = "redirect_uri",
     RESPONSE_TYPE = "response_type",
     RESPONSE_MODE = "response_mode",
@@ -161,6 +141,17 @@ export const PromptValue = {
 };
 
 /**
+ * // TODO: Have only one Prompr constant
+ * Allowed values for prompt
+ */
+export enum Prompt {
+    LOGIN = "login",
+    NONE = "none",
+    CONSENT = "consent",
+    SELECT_ACCOUNT = "select_account"
+}
+
+/**
  * SSO Types - generated to populate hints
  */
 export enum SSOTypes {
@@ -211,16 +202,6 @@ export enum ResponseMode {
 }
 
 /**
- * Allowed values for prompt
- */
-export enum Prompt {
-    LOGIN = "login",
-    NONE = "none",
-    CONSENT = "consent",
-    SELECT_ACCOUNT = "select_account"
-}
-
-/**
  * allowed grant_type
  */
 export enum GrantType {
@@ -239,7 +220,7 @@ export enum CacheAccountType {
     MSSTS_ACCOUNT_TYPE = "MSSTS",
     ADFS_ACCOUNT_TYPE = "ADFS",
     MSAV1_ACCOUNT_TYPE = "MSA",
-    OTHER_ACCOUNT_TYPE = "Other"
+    GENERIC_ACCOUNT_TYPE = "Generic" // NTLM, Kerberos, FBA, Basic etc
 }
 
 /**
@@ -254,28 +235,45 @@ export enum Separators {
  * Credentail Type stored in the cache
  */
 export enum CredentialType {
-    ID_TOKEN = "IdToken",
-    ACCESS_TOKEN = "AccessToken",
-    REFRESH_TOKEN = "RefreshToken"
+    ID_TOKEN = "idtoken",
+    ACCESS_TOKEN = "accesstoken",
+    REFRESH_TOKEN = "refreshtoken",
 }
 
 /**
- * cache Type
+ * Credentail Type stored in the cache
  */
-export enum CacheEntity {
+export enum CacheSchemaType {
     ACCOUNT = "Account",
-    APP_META_DATA = "AppMetaData"
+    CREDENTIAL = "Credential",
+    APP_META_DATA = "AppMetadata"
 }
 
 /**
  * Combine all cache types
  */
-export enum CacheTypes {
-    ACCESS_TOKEN,
-    ID_TOKEN,
-    REFRESH_TOKEN,
-    ACCOUNT,
-    APP_META_DATA
+export enum CacheType {
+    ADFS = 1001,
+    MSA = 1002,
+    MSSTS = 1003,
+    GENERIC = 1004,
+    ACCESS_TOKEN = 2001,
+    REFRESH_TOKEN = 2002,
+    ID_TOKEN = 2003,
+    APP_META_DATA = 3001
+};
+
+/**
+ * accountId: <home_account_id>-<environment>
+ * credentialId: <credential_type>-<client-id>-<realm>
+ */
+export enum CredentialKeyPosition {
+    HOME_ACCOUNT_ID = 0,
+    ENVIRONMENT = 1,
+    CREDENTIAL_TYPE = 2,
+    CLIENT_ID = 3,
+    REALM = 4,
+    TARGET = 5
 };
 
 /**

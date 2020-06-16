@@ -2,9 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SPAClient, TokenResponse, StringUtils } from "@azure/msal-common";
+import { SPAClient, TokenResponse, StringUtils, AuthorizationCodeRequest, ProtocolUtils } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 
 /**
  * Abstract class which defines operations for a browser interaction handling class.
@@ -13,6 +14,7 @@ export abstract class InteractionHandler {
 
     protected authModule: SPAClient;
     protected browserStorage: BrowserStorage;
+    protected authCodeRequest: AuthorizationCodeRequest;
 
     constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
         this.authModule = authCodeModule;
@@ -23,7 +25,7 @@ export abstract class InteractionHandler {
      * Function to enable user interaction.
      * @param requestUrl
      */
-    abstract initiateAuthRequest(requestUrl: string): Window | Promise<HTMLIFrameElement>;
+    abstract initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Window | Promise<HTMLIFrameElement>;
 
     /**
      * Function to handle response parameters from hash.
@@ -35,10 +37,23 @@ export abstract class InteractionHandler {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
+        // Get cached items
+        const requestState = this.browserStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
+        const cachedNonceKey = this.browserStorage.generateNonceKey(requestState);
+        const cachedNonce = this.browserStorage.getItem(cachedNonceKey);
+
         // Handle code response.
-        const codeResponse = this.authModule.handleFragmentResponse(locationHash);
-        
+        const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
+
+        // Assign code to request
+        this.authCodeRequest.code = authCode;
+
+        // Extract user state.
+        const userState = ProtocolUtils.getUserRequestState(requestState);
+
         // Acquire token with retrieved code.
-        return this.authModule.acquireToken(codeResponse);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, userState, cachedNonce);
+        this.browserStorage.cleanRequest();
+        return tokenResponse;
     }
 }

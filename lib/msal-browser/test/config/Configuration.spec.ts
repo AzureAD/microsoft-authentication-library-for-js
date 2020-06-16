@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
-import { LogLevel } from "@azure/msal-common";
+import { LogLevel, Constants } from "@azure/msal-common";
 import sinon from "sinon";
 
 /**
@@ -28,7 +28,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
-        expect(emptyConfig.auth.authority).to.be.null;
+        expect(emptyConfig.auth.authority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         let redirUriResult: string = emptyConfig.auth.redirectUri instanceof Function ? emptyConfig.auth.redirectUri() : emptyConfig.auth.redirectUri;
         let postLogoutRediUriResult: string = emptyConfig.auth.postLogoutRedirectUri instanceof Function ? emptyConfig.auth.postLogoutRedirectUri() : emptyConfig.auth.postLogoutRedirectUri;
         expect(redirUriResult).to.be.eq(TEST_URIS.TEST_REDIR_URI);
