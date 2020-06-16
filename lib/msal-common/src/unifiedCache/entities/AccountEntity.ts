@@ -101,7 +101,7 @@ export class AccountEntity {
                 ? idToken.claims.oid
                 : idToken.claims.sid;
             account.localAccountId = localAccountId;
-            account.username = idToken.claims.preferred_username;
+            account.username = idToken.claims.preferred_username || idToken.claims.upn;
             account.name = idToken.claims.name;
         }
 

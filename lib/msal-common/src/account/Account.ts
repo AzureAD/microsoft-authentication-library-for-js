@@ -41,7 +41,7 @@ export class Account {
     constructor(accountIdentifier: string, homeAccountIdentifier: string, idTokenClaims: IdTokenClaims, rawIdToken: string) {
         this.accountIdentifier = accountIdentifier;
         this.homeAccountIdentifier = homeAccountIdentifier;
-        this.userName = idTokenClaims.preferred_username;
+        this.userName = idTokenClaims.preferred_username || idTokenClaims.upn;
         this.name = idTokenClaims.name;
         // will be deprecated soon
         this.idToken = rawIdToken;
