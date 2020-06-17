@@ -3,8 +3,9 @@
  * Licensed under the MIT License.
  */
 import { AccountCacheMaps, IdTokenCacheMaps, AccessTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
-import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, StringDict, CacheHelper, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
+import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, StringDict, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager } from "@azure/msal-common";
 import { JsonCache, InMemoryCache } from "./SerializerTypes";
+import { CacheContext } from "cache/CacheContext";
 
 // TODO: Can we write this with Generics?
 export class Deserializer {
@@ -28,12 +29,12 @@ export class Deserializer {
         const accountObjects: AccountCache = {};
         if (accounts) {
             Object.keys(accounts).map(function (key) {
-                const mappedAcc = CacheHelper.renameKeys(
-                    accounts[key],
+                const mappedAcc = CacheContext.renameKeys(
+                    JSON.parse(accounts[key]),
                     AccountCacheMaps.fromCacheMap
                 );
                 const account: AccountEntity = new AccountEntity();
-                CacheHelper.toObject(account, mappedAcc);
+                CacheManager.toObject(account, mappedAcc);
                 accountObjects[key] = account;
             });
         }
@@ -49,12 +50,12 @@ export class Deserializer {
         const idObjects: IdTokenCache = {};
         if (idTokens) {
             Object.keys(idTokens).map(function (key) {
-                const mappedIdT = CacheHelper.renameKeys(
-                    idTokens[key],
+                const mappedIdT = CacheContext.renameKeys(
+                    JSON.parse(idTokens[key]),
                     IdTokenCacheMaps.fromCacheMap
                 );
                 const idToken: IdTokenEntity = new IdTokenEntity();
-                CacheHelper.toObject(idToken, mappedIdT);
+                CacheManager.toObject(idToken, mappedIdT);
                 idObjects[key] = idToken;
             });
         }
@@ -69,12 +70,12 @@ export class Deserializer {
         const atObjects: AccessTokenCache = {};
         if (accessTokens) {
             Object.keys(accessTokens).map(function (key) {
-                const mappedAT = CacheHelper.renameKeys(
-                    accessTokens[key],
+                const mappedAT = CacheContext.renameKeys(
+                    JSON.parse(accessTokens[key]),
                     AccessTokenCacheMaps.fromCacheMap
                 );
                 const accessToken: AccessTokenEntity = new AccessTokenEntity();
-                CacheHelper.toObject(accessToken, mappedAT);
+                CacheManager.toObject(accessToken, mappedAT);
                 atObjects[key] = accessToken;
             });
         }
@@ -90,12 +91,12 @@ export class Deserializer {
         const rtObjects: RefreshTokenCache = {};
         if (refreshTokens) {
             Object.keys(refreshTokens).map(function (key) {
-                const mappedRT = CacheHelper.renameKeys(
-                    refreshTokens[key],
+                const mappedRT = CacheContext.renameKeys(
+                    JSON.parse(refreshTokens[key]),
                     RefreshTokenCacheMaps.fromCacheMap
                 );
                 const refreshToken: RefreshTokenEntity = new RefreshTokenEntity();
-                CacheHelper.toObject(refreshToken, mappedRT);
+                CacheManager.toObject(refreshToken, mappedRT);
                 rtObjects[key] = refreshToken;
             });
         }
@@ -111,12 +112,12 @@ export class Deserializer {
         const appMetadataObjects: AppMetadataCache = {};
         if (appMetadata) {
             Object.keys(appMetadata).map(function (key) {
-                const mappedAmd = CacheHelper.renameKeys(
-                    appMetadata[key],
+                const mappedAmd = CacheContext.renameKeys(
+                    JSON.parse(appMetadata[key]),
                     AppMetadataCacheMaps.fromCacheMap
                 );
                 const amd: AppMetadataEntity = new AppMetadataEntity();
-                CacheHelper.toObject(amd, mappedAmd);
+                CacheManager.toObject(amd, mappedAmd);
                 appMetadataObjects[key] = amd;
             });
         }

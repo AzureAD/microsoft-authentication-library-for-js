@@ -15,7 +15,7 @@ import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
-import { CacheHelper } from "../utils/CacheHelper";
+import { AccountInfo } from "../../account/AccountInfo";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs)
@@ -44,7 +44,7 @@ export class AccountEntity {
      * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
      */
     generateAccountKey(): string {
-        return CacheHelper.generateAccountCacheKey({
+        return AccountEntity.generateAccountCacheKey({
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
@@ -70,6 +70,32 @@ export class AccountEntity {
                 return null;
             }
         }
+    }
+
+    /**
+     * Returns the AccountInfo interface for this account.
+     */
+    getAccountInfo(): AccountInfo {
+        return {
+            homeAccountId: this.homeAccountId,
+            environment: this.environment,
+            tenantId: this.realm,
+            username: this.username
+        };
+    }
+
+    /**
+     * Generates account key from interface
+     * @param accountInterface
+     */
+    static generateAccountCacheKey(accountInterface: AccountInfo): string {
+        const accountKey = [
+            accountInterface.homeAccountId,
+            accountInterface.environment || "",
+            accountInterface.tenantId || "",
+        ];
+
+        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**

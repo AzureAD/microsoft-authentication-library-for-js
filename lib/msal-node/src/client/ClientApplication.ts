@@ -16,7 +16,7 @@ import {
     ClientAuthError,
     Constants,
     B2cAuthority,
-    IAccount
+    AccountInfo
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -227,7 +227,7 @@ export abstract class ClientApplication {
         );
     }
 
-    getAllAccounts(): IAccount[] {
+    getAllAccounts(): AccountInfo[] {
         return this.storage.getAllAccounts();
     }
 }

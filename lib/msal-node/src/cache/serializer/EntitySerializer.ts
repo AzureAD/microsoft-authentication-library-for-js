@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 import { AccountCacheMaps, AccessTokenCacheMaps, IdTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
-import { AccountCache, CacheHelper, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
+import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
+import { CacheContext } from "cache/CacheContext";
 
 export class EntitySerializer {
     /**
@@ -12,10 +13,11 @@ export class EntitySerializer {
       * @param key
       */
     static mapAccountKeys(accCache: AccountCache, key: string): object {
-        return CacheHelper.renameKeys(
-            accCache[key],
-            AccountCacheMaps.toCacheMap
-        );
+        return {};
+        // return CacheContext.renameKeys(
+        //     {...accCache[key]},
+        //     AccountCacheMaps.toCacheMap
+        // );
     }
 
     /**
@@ -24,10 +26,11 @@ export class EntitySerializer {
      * @param key
      */
     static mapIdTokenKeys(idTCache: IdTokenCache, key: string): object {
-        return CacheHelper.renameKeys(
-            idTCache[key],
-            IdTokenCacheMaps.toCacheMap
-        );
+        return {};
+        // return CacheContext.renameKeys(
+        //     idTCache[key],
+        //     IdTokenCacheMaps.toCacheMap
+        // );
     }
 
     /**
@@ -36,10 +39,11 @@ export class EntitySerializer {
      * @param key
      */
     static mapAccessTokenKeys(atCache: AccessTokenCache, key: string): object {
-        return CacheHelper.renameKeys(
-            atCache[key],
-            AccessTokenCacheMaps.toCacheMap
-        );
+        return {};
+        // return CacheContext.renameKeys(
+        //     atCache[key],
+        //     AccessTokenCacheMaps.toCacheMap
+        // );
     }
 
     /**
@@ -48,10 +52,11 @@ export class EntitySerializer {
      * @param key
      */
     static mapRefreshTokenKeys(rtCache: RefreshTokenCache, key: string): object {
-        return CacheHelper.renameKeys(
-            rtCache[key],
-            RefreshTokenCacheMaps.toCacheMap
-        );
+        return {};
+        // return CacheContext.renameKeys(
+        //     rtCache[key],
+        //     RefreshTokenCacheMaps.toCacheMap
+        // );
     }
 
     /**
@@ -60,9 +65,10 @@ export class EntitySerializer {
      * @param key
      */
     static mapAppMetadataKeys(amdtCache: AppMetadataCache, key: string): object {
-        return CacheHelper.renameKeys(
-            amdtCache[key],
-            AppMetadataCacheMaps.toCacheMap
-        );
+        return {};
+        // return CacheContext.renameKeys(
+        //     amdtCache[key],
+        //     AppMetadataCacheMaps.toCacheMap
+        // );
     }
 }

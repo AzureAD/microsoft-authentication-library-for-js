@@ -4,7 +4,7 @@
  */
 
 import { StringDict } from "../utils/MsalTypes";
-import { IAccount } from "../account/IAccount";
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * Result returned from the authority's token endpoint.
@@ -13,7 +13,7 @@ export class AuthenticationResult {
     uniqueId: string;
     tenantId: string;
     scopes: Array<string>;
-    account: IAccount;
+    account: AccountInfo;
     idToken: string;
     idTokenClaims: StringDict;
     accessToken: string;
