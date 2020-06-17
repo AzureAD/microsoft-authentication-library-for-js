@@ -39,7 +39,7 @@ export abstract class BaseClient {
     protected networkClient: INetworkModule;
 
     // Default authority object
-    protected defaultAuthority: Authority;
+    protected authority: Authority;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
@@ -59,7 +59,7 @@ export abstract class BaseClient {
 
         B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
 
-        this.defaultAuthority = this.config.authOptions.authority;
+        this.authority = this.config.authOptions.authority;
     }
 
     /**
@@ -75,7 +75,7 @@ export abstract class BaseClient {
         const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ? `?${AADServerParamKeys.POST_LOGOUT_URI}=` + encodeURIComponent(logoutRequest.postLogoutRedirectUri) : "";
 
         // Construct logout URI.
-        const logoutUri = `${this.defaultAuthority.endSessionEndpoint}${postLogoutUriParam}`;
+        const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}`;
         return logoutUri;
     }
 
