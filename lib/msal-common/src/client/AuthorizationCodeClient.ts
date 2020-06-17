@@ -41,7 +41,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
         const queryString = this.createAuthCodeUrlQueryString(request);
-        return `${this.defaultAuthority.authorizationEndpoint}?${queryString}`;
+        return `${this.authority.authorizationEndpoint}?${queryString}`;
     }
 
     /**
@@ -56,7 +56,7 @@ export class AuthorizationCodeClient extends BaseClient {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
 
-        const response = await this.executeTokenRequest(this.defaultAuthority, request);
+        const response = await this.executeTokenRequest(this.authority, request);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -67,7 +67,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.generateAuthenticationResult(response.body, this.defaultAuthority, cachedNonce, cachedState);
+        const tokenResponse = responseHandler.generateAuthenticationResult(response.body, this.authority, cachedNonce, cachedState);
 
         return tokenResponse;
     }
