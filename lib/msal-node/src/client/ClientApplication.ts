@@ -16,7 +16,8 @@ import {
     ClientAuthError,
     Constants,
     B2cAuthority,
-    IAccount
+    IAccount,
+    BaseAuthRequest
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -64,7 +65,7 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.getAuthCodeUrl(this.generateUrlRequest(request));
+        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequestScopes(request) as AuthorizationUrlRequest);
     }
 
     /**
@@ -84,7 +85,7 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.acquireToken(this.generateCodeRequest(request));
+        return authorizationCodeClient.acquireToken(this.initializeRequestScopes(request) as AuthorizationCodeRequest);
     }
 
     /**
@@ -102,7 +103,7 @@ export abstract class ClientApplication {
         const refreshTokenClient = new RefreshTokenClient(
             refreshTokenClientConfig
         );
-        return refreshTokenClient.acquireToken(this.generateRefreshTokenRequest(request));
+        return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
     protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
@@ -133,44 +134,16 @@ export abstract class ClientApplication {
 
     /**
      * Generates a request with the default scopes.
-     * @param request 
+     * @param authRequest 
      */
-    protected generateUrlRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
-        const urlRequest: AuthorizationUrlRequest = { ...request };
-        if (!urlRequest.scopes) {
-            urlRequest.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
+    protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
+        const request: BaseAuthRequest = { ...authRequest };
+        if (!request.scopes) {
+            request.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
         } else {
-            urlRequest.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE);
+            request.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE);
         }
-        return urlRequest;
-    }
-
-    /**
-     * Generates a request with the default scopes.
-     * @param request 
-     */
-    protected generateCodeRequest(request: AuthorizationCodeRequest): AuthorizationCodeRequest {
-        const tokenRequest: AuthorizationCodeRequest = { ...request };
-        if (!tokenRequest.scopes) {
-            tokenRequest.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
-        } else {
-            tokenRequest.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE);
-        }
-        return tokenRequest;
-    }
-
-    /**
-     * Generates a request with the default scopes.
-     * @param request 
-     */
-    protected generateRefreshTokenRequest(request: RefreshTokenRequest): RefreshTokenRequest {
-        const refreshTokenReq: RefreshTokenRequest = { ...request };
-        if (!refreshTokenReq.scopes) {
-            refreshTokenReq.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
-        } else {
-            refreshTokenReq.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE);
-        }
-        return refreshTokenReq;
+        return request;
     }
 
     /**
