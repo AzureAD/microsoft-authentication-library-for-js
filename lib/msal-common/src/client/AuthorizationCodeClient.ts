@@ -49,7 +49,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, cachedState?: string, cachedNonce?: string): Promise<AuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
         // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
@@ -67,7 +67,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.generateAuthenticationResult(response.body, this.defaultAuthority, cachedState, cachedNonce);
+        const tokenResponse = responseHandler.generateAuthenticationResult(response.body, this.defaultAuthority, cachedNonce, cachedState);
 
         return tokenResponse;
     }
