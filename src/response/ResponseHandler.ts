@@ -24,6 +24,7 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
+import { ProtocolUtils, LibraryStateObject } from "../utils/ProtocolUtils";
 
 /**
  * Class that handles response parsing.
@@ -49,11 +50,7 @@ export class ResponseHandler {
      * @param cachedState
      * @param cryptoObj
      */
-    validateServerAuthorizationCodeResponse(
-        serverResponseHash: ServerAuthorizationCodeResponse,
-        cachedState: string,
-        cryptoObj: ICrypto
-    ): void {
+    validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
         if (serverResponseHash.state !== cachedState) {
             throw ClientAuthError.createStateMismatchError();
         }
@@ -76,9 +73,7 @@ export class ResponseHandler {
      * Function which validates server authorization token response.
      * @param serverResponse
      */
-    validateTokenResponse(
-        serverResponse: ServerAuthorizationTokenResponse
-    ): void {
+    validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse): void {
         // Check for error
         if (serverResponse.error || serverResponse.error_description || serverResponse.suberror) {
             if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponse.error, serverResponse.error_description, serverResponse.suberror)) {
@@ -103,7 +98,7 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string): AuthenticationResult {
+    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): AuthenticationResult {
         // create an idToken object (not entity)
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
@@ -115,7 +110,8 @@ export class ResponseHandler {
         }
 
         // save the response tokens
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
+        const requestStateObj = ProtocolUtils.parseRequestState(cachedState, this.cryptoObj);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj.libraryState);
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
         this.cacheStorage.saveCacheRecord(cacheRecord, responseScopes);
 
@@ -131,6 +127,7 @@ export class ResponseHandler {
             expiresOn: new Date(cacheRecord.accessToken.expiresOn),
             extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
             familyId: serverTokenResponse.foci || null,
+            state: requestStateObj.userRequestState
         };
 
         return authenticationResult;
@@ -165,7 +162,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority): CacheRecord {
+    generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject): CacheRecord {
         // Account
         const cachedAccount  = this.generateAccountEntity(
             serverTokenResponse,
@@ -188,8 +185,15 @@ export class ResponseHandler {
         // AccessToken
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
         // Expiration calculation
-        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
-        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
+        const currentTime = TimeUtils.nowSeconds();
+        let tokenExpirationSeconds = serverTokenResponse.expires_in;
+        if (!libraryState) {
+            tokenExpirationSeconds += currentTime;
+        } else {
+            console.log(libraryState.ts);
+            tokenExpirationSeconds += libraryState.ts;
+        }
+        const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
 
         const cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
             this.homeAccountIdentifier,
@@ -198,8 +202,8 @@ export class ResponseHandler {
             this.clientId,
             idTokenObj.claims.tid,
             responseScopes.asArray().join(" "),
-            expiresInSeconds,
-            extendedExpiresInSeconds
+            tokenExpirationSeconds,
+            extendedTokenExpirationSeconds
         );
 
         // refreshToken
