@@ -7,15 +7,23 @@
 
 package com.reactlibrary;
 
+import android.util.Log;
+
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Callback;
+
+import com.facebook.react.bridge.WritableNativeMap;
+import com.microsoft.identity.client.*;
+import com.microsoft.identity.client.exception.MsalException;
+
+import static com.facebook.react.views.textinput.ReactTextInputManager.TAG;
 
 public class MSALModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
-    private ISingleAccountPublicClientApplication IPublicClientApplication;
+    private ISingleAccountPublicClientApplication publicClientApplication;
     private IAccount mAccount;
 
     public MSALModule(ReactApplicationContext reactContext) {
@@ -23,18 +31,18 @@ public class MSALModule extends ReactContextBaseJavaModule {
         this.reactContext = reactContext;
 
         try{
-            //initialize IPublicClientApplication with config file, located in main/java/res/raw/auth_config_single_account.json
-            IPublicClientApplication = PublicClientApplication.createSingleAccountPublicClientApplication(
+            //initialize publicClientApplication with config file, located in main/java/res/raw/auth_config_single_account.json
+            publicClientApplication = PublicClientApplication.createSingleAccountPublicClientApplication(
                 reactContext,
                 reactContext.getResources().getIdentifier("auth_config_single_account", "raw", reactContext.getPackageName()));
         } catch (Exception e) {
             //will handle this
-            Log.d(TAG, "Something wrong with initialization of IPublicClientApplication: " + e.toString());
+            Log.d(TAG, "Something wrong with initialization of publicClientApplication: " + e.toString());
         }
     }
 
      /**
-   * getName(): RNMsalPoc is the name used when importing the module from native modules
+   * getName(): MSAL is the name used when importing the module from native modules
    */
     @Override
     public String getName() {
@@ -48,7 +56,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void signIn(String scopesValue, Promise promise) {
         if (!scopesValue.isEmpty()) {
-            IPublicClientApplication.signIn(getCurrentActivity(), null, scopesValue.toLowerCase().split(" "), getLoginCallback(promise));
+            publicClientApplication.signIn(getCurrentActivity(), null, scopesValue.toLowerCase().split(" "), getLoginCallback(promise));
         } else {
             //using the code, message parameters; will change code in future when we know what that is
             promise.reject("scopescode", "Scopes is empty.");
@@ -56,7 +64,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * getLoginCallback should log messages of a successful authentication, update the current account, and then
+     * getLoginCallback should log messages of a successful authentication, update the current account, and then resolve/reject a promise
      * Based on getAuthCallback()
      */
 
@@ -89,6 +97,47 @@ public class MSALModule extends ReactContextBaseJavaModule {
         };
     }
 
+     /**
+     * getAccount(): retrieves account currently signed in
+     * Parameters: Promise promise (resolve will return the account as a map if it exists; reject will return null for nonexistent map or error)
+     */
+    @ReactMethod
+    public void getAccount(Promise promise) {
+        //first load account and get status string
+        String message = loadAccount();
+        if (mAccount == null) {
+            promise.reject("loadaccountnull", message);
+        } else {
+            promise.resolve(mapAccount(mAccount));
+        }
+    }
+
+    /**
+     * loadAccount(): will load a currently signed in account. Called in constructor.
+     * Returns a String with a message of the status (possibly an exception)
+     */
+
+    private String loadAccount() {
+        if (publicClientApplication == null) {
+            return "publicClientApplication is null";
+        }
+        String message = "";
+        try {
+            ICurrentAccountResult result = publicClientApplication.getCurrentAccount();
+            IAccount currAccount = result.getCurrentAccount();
+            if (currAccount == null) {
+                message = "No account currently signed in";
+            } else {
+                mAccount = currAccount;
+                message = "Retrieved signed in account";
+            }
+        } catch (Exception e) {
+            message = "Error while loading account: " + e.toString();
+            Log.d(TAG, message);
+        }
+        return message;
+    }
+
     /*
     * Helper functions:
     * mapMSALResult(IAuthenticationResult result): used to convert AuthenticationResult into a map
@@ -98,13 +147,25 @@ public class MSALModule extends ReactContextBaseJavaModule {
     private WritableNativeMap mapMSALResult (IAuthenticationResult result) {
         WritableNativeMap map = new WritableNativeMap();
         //add attributes from account
-        map.putString("authority", result.getAccount().getAuthority());
-        map.putString("accountId", result.getAccount().getId());
-        map.putString("tenantId", result.getAccount().getTenantId());
-        map.putString("username", result.getAccount().getUsername());
-        map.putString("idToken", (String) result.getAccount().getClaims().get("id_token"));
+        map.putMap("account", mapAccount(result.getAccount()));
         //add attributes from result
-        //access token?
+        return map;
+    }
+
+    /**
+     * Helper functions:
+     * mapAccount(): used to convert IAccount into a map
+     * so that it can be passed through a promise on the JS side
+     * */
+
+    private WritableNativeMap mapAccount (IAccount account) {
+        WritableNativeMap map = new WritableNativeMap();
+        //add attributes from account
+        map.putString("authority", account.getAuthority());
+        map.putString("accountId", account.getId());
+        map.putString("tenantId", account.getTenantId());
+        map.putString("username", account.getUsername());
+        map.putString("idToken", (String) account.getClaims().get("id_token"));
 
         return map;
     }
