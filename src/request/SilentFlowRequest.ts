@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { IAccount } from "../account/IAccount";
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -16,7 +16,7 @@ import { IAccount } from "../account/IAccount";
 export type SilentFlowRequest = {
     scopes: Array<string>;
     authority?: string;
-    account: IAccount;
+    account: AccountInfo;
     forceRefresh?: boolean;
     correlationId?: string;
 };

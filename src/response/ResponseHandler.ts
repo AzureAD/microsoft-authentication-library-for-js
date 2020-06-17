@@ -22,7 +22,6 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { CacheHelper } from "../cache/utils/CacheHelper";
 import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 
@@ -124,7 +123,7 @@ export class ResponseHandler {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: responseScopes.asArray(),
-            account: CacheHelper.toIAccount(cacheRecord.account),
+            account: cacheRecord.account.getAccountInfo(),
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,

@@ -27,7 +27,6 @@ import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
 import { IAccount } from "../../src/account/IAccount";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
-import { CacheManager } from "../../src";
 import { MockStorageClass } from "./ClientTestUtils";
 
 describe("SPAClient.ts Class Unit Tests", () => {
