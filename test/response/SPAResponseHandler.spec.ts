@@ -39,8 +39,9 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             getItem(key: string): string {
                 return store[key];
             },
-            removeItem(key: string): void {
+            removeItem(key: string): boolean {
                 delete store[key];
+                return true;
             },
             containsKey(key: string): boolean {
                 return !!store[key];
@@ -50,13 +51,13 @@ describe("SPAResponseHandler.ts Class Unit Tests", () => {
             },
             clear(): void {
                 store = {};
-			},
-			getCache(): InMemoryCache {
-				return null;
-			},
-			setCache(): InMemoryCache {
-				return null;
-			}
+            },
+            getCache(): object {
+                return null;
+            },
+            setCache(): void {
+                return null;
+            },
         };
         cacheHelpers = new CacheHelpers(cacheStorage);
         cryptoInterface = {

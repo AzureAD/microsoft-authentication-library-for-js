@@ -14,7 +14,7 @@ export interface ICacheStorage {
      * @param key
      * @param value
      */
-    getCache(): InMemoryCache;
+    getCache(): object;
 
     /**
      * Function to write serialized Cache to disk
@@ -27,47 +27,25 @@ export interface ICacheStorage {
      * @param key
      * @param value
      */
-    setItem(key: string, value: string): void;
-
-    /**
-     * Function to set item in Memory
-     * @param key
-     * @param value
-     * @param type
-     */
-    setItemInMemory(key: string, value: object, type?: string): void;
+    setItem(key: string, value: string | object, type?: string, inMemory?: boolean): void;
 
     /**
      * Function which retrieves item from cache.
      * @param key
      */
-    getItem(key: string): string;
-
-    /**
-     * Function to get an item from memory
-     * @param key
-     * @param type
-     */
-    getItemFromMemory(key: string, type?: string): object;
+    getItem(key: string, type?: string, inMemory?: boolean): string | object;
 
     /**
      * Function to remove an item from cache given its key.
      * @param key
      */
-    removeItem(key: string): boolean;
-
-    /**
-     * Function to remove an item from memory given its key
-     * @param key
-     * @param type
-     */
-    removeItemFromMemory(key: string, type?: string): boolean;
+    removeItem(key: string, type?: string, inMemory?: boolean): boolean;
 
     /**
      * Function which returns boolean whether cache contains a specific key.
      * @param key
      */
-    containsKey(key: string): boolean;
+    containsKey(key: string, type?: string): boolean;
 
     /**
      * Function which retrieves all current keys from the cache.
@@ -79,3 +57,4 @@ export interface ICacheStorage {
      */
     clear(): void;
 }
+

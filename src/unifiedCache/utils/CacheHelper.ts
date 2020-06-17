@@ -5,10 +5,14 @@
 
 import {
     Separators,
-    CredentialKeyPosition,
-    CacheType,
-    CacheSchemaType,
+    CredentialType,
+    EnvironmentAliases,
+    Constants,
+    APP_META_DATA,
 } from "../../utils/Constants";
+import { IAccount } from "../../account/IAccount";
+import { AccountEntity } from "../entities/AccountEntity";
+import { Credential } from "../entities/Credential";
 
 export class CacheHelper {
     /**
@@ -53,45 +57,47 @@ export class CacheHelper {
 
     /**
      *
-     * @param key
+     * @param value
      * @param homeAccountId
      */
-    static matchHomeAccountId(key: string, homeAccountId: string): boolean {
-        return (
-            homeAccountId ===
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.HOME_ACCOUNT_ID
-            ]
-        );
+    static matchHomeAccountId(
+        entity: AccountEntity | Credential,
+        homeAccountId: string
+    ): boolean {
+        return homeAccountId === entity.homeAccountId;
     }
 
     /**
      *
-     * @param key
+     * @param value
      * @param environment
+     * // TODO: Add Cloud specific aliases based on current cloud
      */
-    static matchEnvironment(key: string, environment: string): boolean {
-        return (
-            environment ===
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.ENVIRONMENT
-            ]
-        );
+    static matchEnvironment(
+        entity: AccountEntity | Credential,
+        environment: string
+    ): boolean {
+        if (
+            EnvironmentAliases.includes(environment) &&
+            EnvironmentAliases.includes(entity.environment)
+        ) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
      *
      * @param key
      * @param credentialType
-     * // TODO: Confirm equality for enum vs string here
      */
-    static matchCredentialType(key: string, credentialType: string): boolean {
+    static matchCredentialType(
+        entity: Credential,
+        credentialType: string
+    ): boolean {
         return (
-            credentialType.toLowerCase() ===
-            key
-                .split(Separators.CACHE_KEY_SEPARATOR)
-                [CredentialKeyPosition.CREDENTIAL_TYPE].toString()
-                .toLowerCase()
+            credentialType.toLowerCase() === entity.credentialType.toLowerCase()
         );
     }
 
@@ -100,13 +106,8 @@ export class CacheHelper {
      * @param key
      * @param clientId
      */
-    static matchClientId(key: string, clientId: string): boolean {
-        return (
-            clientId ===
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.CLIENT_ID
-            ]
-        );
+    static matchClientId(entity: Credential, clientId: string): boolean {
+        return clientId === entity.clientId;
     }
 
     /**
@@ -114,13 +115,11 @@ export class CacheHelper {
      * @param key
      * @param realm
      */
-    static matchRealm(key: string, realm: string): boolean {
-        return (
-            realm ===
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.REALM
-            ]
-        );
+    static matchRealm(
+        entity: AccountEntity | Credential,
+        realm: string
+    ): boolean {
+        return realm === entity.realm;
     }
 
     /**
@@ -128,13 +127,8 @@ export class CacheHelper {
      * @param key
      * @param target
      */
-    static matchTarget(key: string, target: string): boolean {
-        return CacheHelper.targetsIntersect(
-            key.split(Separators.CACHE_KEY_SEPARATOR)[
-                CredentialKeyPosition.TARGET
-            ],
-            target
-        );
+    static matchTarget(entity: Credential, target: string): boolean {
+        return CacheHelper.targetsSubset(entity.target, target);
     }
 
     /**
@@ -142,7 +136,7 @@ export class CacheHelper {
      * @param target
      * @param credentialTarget
      */
-    static targetsIntersect(credentialTarget: string, target: string): boolean {
+    static targetsSubset(credentialTarget: string, target: string): boolean {
         const targetSet = new Set(target.split(" "));
         const credentialTargetSet = new Set(credentialTarget.split(" "));
 
@@ -159,35 +153,117 @@ export class CacheHelper {
      * @param key
      */
     static getCredentialType(key: string): string {
-        return key.split(Separators.CACHE_KEY_SEPARATOR)[
-            CredentialKeyPosition.CREDENTIAL_TYPE
-        ];
+        if (key.indexOf(CredentialType.ACCESS_TOKEN) !== -1) {
+            return CredentialType.ACCESS_TOKEN;
+        } else if (key.indexOf(CredentialType.ID_TOKEN) !== -1) {
+            return CredentialType.ID_TOKEN;
+        } else if (key.indexOf(CredentialType.REFRESH_TOKEN) !== -1) {
+            return CredentialType.REFRESH_TOKEN;
+        }
+
+        return Constants.NOT_DEFINED;
     }
 
     /**
-     * helper function to return `CacheSchemaType`
+     * returns if a given cache entity is of the type appmetadata
      * @param key
      */
-    static getCacheType(type: number): string {
-        switch (type) {
-            case CacheType.ADFS:
-            case CacheType.MSA:
-            case CacheType.MSSTS:
-            case CacheType.GENERIC:
-                return CacheSchemaType.ACCOUNT;
+    static isAppMetadata(key: string): boolean {
+        return key.indexOf(APP_META_DATA) !== -1;
+    }
 
-            case CacheType.ACCESS_TOKEN:
-            case CacheType.REFRESH_TOKEN:
-            case CacheType.ID_TOKEN:
-                return CacheSchemaType.CREDENTIAL;
+    /**
+     * Generates account key from interface
+     * @param accountInterface
+     */
+    static generateAccountCacheKey(accountInterface: IAccount): string {
+        const accountKey = [
+            accountInterface.homeAccountId,
+            accountInterface.environment || "",
+            accountInterface.tenantId || "",
+        ];
 
-            case CacheType.APP_META_DATA:
-                return CacheSchemaType.APP_META_DATA;
+        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
 
-            default: {
-                console.log("Invalid cache type");
-                return null;
-            }
-        }
+    /**
+     * generates Account Id for keys
+     * @param homeAccountId
+     * @param environment
+     */
+    private static generateAccountIdForCacheKey(
+        homeAccountId: string,
+        environment: string
+    ): string {
+        const accountId: Array<string> = [homeAccountId, environment];
+        return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * generates credential key
+     */
+    static generateCredentialCacheKey(
+        homeAccountId: string,
+        environment: string,
+        credentialType: CredentialType,
+        clientId: string,
+        realm?: string,
+        target?: string,
+        familyId?: string
+    ): string {
+        const credentialKey = [
+            this.generateAccountIdForCacheKey(homeAccountId, environment),
+            this.generateCredentialIdForCacheKey(
+                credentialType,
+                clientId,
+                realm,
+                familyId
+            ),
+            this.generateTargetForCacheKey(target),
+        ];
+
+        return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Generates Credential Id for keys
+     * @param credentialType
+     * @param realm
+     * @param clientId
+     * @param familyId
+     */
+    private static generateCredentialIdForCacheKey(
+        credentialType: CredentialType,
+        clientId: string,
+        realm?: string,
+        familyId?: string
+    ): string {
+        const clientOrFamilyId =
+            credentialType === CredentialType.REFRESH_TOKEN
+                ? familyId || clientId
+                : clientId;
+        const credentialId: Array<string> = [
+            credentialType,
+            clientOrFamilyId,
+            realm || "",
+        ];
+
+        return credentialId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Generate target key component as per schema: <target>
+     */
+    private static generateTargetForCacheKey(scopes: string): string {
+        return (scopes || "").toLowerCase();
+    }
+
+    static toIAccount(accountObj: AccountEntity): IAccount {
+        return {
+            homeAccountId: accountObj.homeAccountId,
+            environment: accountObj.environment,
+            tenantId: accountObj.realm,
+            username: accountObj.username,
+        };
     }
 }

@@ -23,6 +23,8 @@ import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../unifiedCache/entities/CacheRecord";
+import { PreferredCacheEnvironment, EnvironmentAliases } from "../utils/Constants";
+import { CacheHelper } from "../unifiedCache/utils/CacheHelper";
 
 /**
  * Class that handles response parsing.
@@ -92,7 +94,7 @@ export class ResponseHandler {
         if (serverResponse.client_info) {
             this.clientInfo = buildClientInfo(serverResponse.client_info, this.cryptoObj);
             if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = this.cryptoObj.base64Encode(this.clientInfo.uid) + "." + this.cryptoObj.base64Encode(this.clientInfo.utid);
+                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
             }
         }
     }
@@ -111,21 +113,18 @@ export class ResponseHandler {
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
         this.uCacheManager.saveCacheRecord(cacheRecord);
 
-        // Expiration calculation
-        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
-        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
-
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
 
         const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: responseScopes.asArray(),
+            account: CacheHelper.toIAccount(cacheRecord.account),
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
-            expiresOn: new Date(expiresInSeconds),
-            extExpiresOn: new Date(extendedExpiresInSeconds),
+            expiresOn: new Date(cacheRecord.accessToken.expiresOn),
+            extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
             familyId: serverTokenResponse.foci || null,
         };
 
@@ -162,20 +161,20 @@ export class ResponseHandler {
      * @param authority
      */
     generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority): CacheRecord {
-
-        const cacheRecord = new CacheRecord();
-
         // Account
-        cacheRecord.account  = this.generateAccountEntity(
+        const cachedAccount  = this.generateAccountEntity(
             serverTokenResponse,
             idTokenObj,
             authority
         );
 
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        const env = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
+
         // IdToken
-        cacheRecord.idToken = IdTokenEntity.createIdTokenEntity(
+        const cachedIdToken = IdTokenEntity.createIdTokenEntity(
             this.homeAccountIdentifier,
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            env,
             serverTokenResponse.id_token,
             this.clientId,
             idTokenObj.claims.tid
@@ -183,26 +182,30 @@ export class ResponseHandler {
 
         // AccessToken
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
-        cacheRecord.accessToken = AccessTokenEntity.createAccessTokenEntity(
+        // Expiration calculation
+        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
+        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
+
+        const cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
             this.homeAccountIdentifier,
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            env,
             serverTokenResponse.access_token,
             this.clientId,
             idTokenObj.claims.tid,
             responseScopes.asArray().join(" "),
-            serverTokenResponse.expires_in,
-            serverTokenResponse.ext_expires_in
+            expiresInSeconds * 1000,
+            extendedExpiresInSeconds * 1000
         );
 
         // refreshToken
-        cacheRecord.refreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+        const cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
             this.homeAccountIdentifier,
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            env,
             serverTokenResponse.refresh_token,
             this.clientId,
             serverTokenResponse.foci
         );
 
-        return cacheRecord;
+        return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken);
     }
 }

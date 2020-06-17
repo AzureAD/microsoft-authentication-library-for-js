@@ -229,7 +229,7 @@ export class SPAResponseHandler {
 
         // Retrieve current id token object
         let idTokenObj: IdToken;
-        const cachedIdToken: string = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN);
+        const cachedIdToken: string = this.cacheStorage.getItem(PersistentCacheKeys.ID_TOKEN) as string;
         if (serverTokenResponse.id_token) {
             idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
             tokenResponse = SPAResponseHandler.setResponseIdToken(tokenResponse, idTokenObj);
@@ -255,7 +255,7 @@ export class SPAResponseHandler {
         let clientInfo: ClientInfo = null;
         if (idTokenObj) {
             // Retrieve client info
-            clientInfo = buildClientInfo(this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO), this.cryptoObj);
+            clientInfo = buildClientInfo(this.cacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO) as string, this.cryptoObj);
 
             // Create account object for request
             tokenResponse.account = Account.createAccount(idTokenObj, clientInfo, this.cryptoObj);
