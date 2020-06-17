@@ -20,8 +20,9 @@ function callMSGraph(endpoint, accessToken, callback) {
 }
 
 async function seeProfile() {
-    if (myMSALObj.getAccount()) {
-        const response = await getTokenPopup(loginRequest).catch(error => {
+    const currentAcc = myMSALObj.getAccountByUsername(username);
+    if (currentAcc) {
+        const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
             console.log(error);
         });
         callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
@@ -30,8 +31,9 @@ async function seeProfile() {
 }
 
 async function readMail() {
-    if (myMSALObj.getAccount()) {
-        const response = await getTokenPopup(tokenRequest).catch(error => {
+    const currentAcc = myMSALObj.getAccountByUsername(username);
+    if (currentAcc) {
+        const response = await getTokenPopup(tokenRequest, currentAcc).catch(error => {
             console.log(error);
         });
         callMSGraph(graphConfig.graphMailEndpoint, response.accessToken, updateUI);

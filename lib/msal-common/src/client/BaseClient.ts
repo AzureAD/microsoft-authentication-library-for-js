@@ -3,11 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ClientConfiguration,
-    buildClientConfiguration,
-} from "../config/ClientConfiguration";
-import { ICacheStorage } from "../cache/ICacheStorage";
+import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
+import { ICacheStorage } from "../cache/interface/ICacheStorage";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
@@ -16,11 +13,11 @@ import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { B2cAuthority } from "../authority/B2cAuthority";
-import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
-import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
+import { AccountEntity } from "../cache/entities/AccountEntity";
 import { IAccount } from "../account/IAccount";
-import { AccountCache } from "../unifiedCache/utils/CacheTypes";
-import { CacheHelper } from "../unifiedCache/utils/CacheHelper";
+import { AccountCache } from "../cache/utils/CacheTypes";
+import { CacheHelper } from "../cache/utils/CacheHelper";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.

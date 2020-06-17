@@ -17,24 +17,19 @@ import { PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
 import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
-import { TimeUtils } from "../../src/utils/TimeUtils";
-import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
-import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
 import { BaseClient } from "../../src/client/BaseClient";
-import { Account } from "../../src/account/Account";
-import { TokenResponse } from "../../src/response/TokenResponse";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerError } from "../../src/error/ServerError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
 import { AadAuthority } from "../../src/authority/AadAuthority";
-import { ICacheStorage } from "../../src/cache/ICacheStorage";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
 import { IAccount } from "../../src/account/IAccount";
-import { AccountEntity } from "../../src/unifiedCache/entities/AccountEntity";
-import { UnifiedCacheManager } from "../../src";
+import { ICacheStorage } from "../../src/cache/interface/ICacheStorage";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { UnifiedCacheManager } from "../../src/cache/UnifiedCacheManager";
 
 describe("SPAClient.ts Class Unit Tests", () => {
 

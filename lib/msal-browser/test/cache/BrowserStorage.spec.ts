@@ -5,7 +5,7 @@ import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
-import { ICacheStorage, Constants, PersistentCacheKeys, InMemoryCache, AuthorizationCodeRequest } from "@azure/msal-common";
+import { ICacheStorage, Constants, PersistentCacheKeys, InMemoryCache, AuthorizationCodeRequest, CacheSchemaType } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 
@@ -106,10 +106,10 @@ describe("BrowserStorage() tests", () => {
             expect(window.sessionStorage.getItem(clientInfoKey)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             expect(window.sessionStorage.getItem(errorKey)).to.be.eq(errorKeyVal);
             expect(window.sessionStorage.getItem(errorDescKey)).to.be.eq(errorDescVal);
-            expect(browserStorage.getItem(PersistentCacheKeys.ID_TOKEN)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getItem(PersistentCacheKeys.CLIENT_INFO)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-            expect(browserStorage.getItem(PersistentCacheKeys.ERROR)).to.be.eq(errorKeyVal);
-			expect(browserStorage.getItem(PersistentCacheKeys.ERROR_DESC)).to.be.eq(errorDescVal);
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ID_TOKEN), CacheSchemaType.TEMPORARY)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.CLIENT_INFO), CacheSchemaType.TEMPORARY)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ERROR), CacheSchemaType.TEMPORARY)).to.be.eq(errorKeyVal);
+			expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ERROR_DESC), CacheSchemaType.TEMPORARY)).to.be.eq(errorDescVal);
 		});
     });
 
@@ -117,16 +117,14 @@ describe("BrowserStorage() tests", () => {
 
         let browserSessionStorage: BrowserStorage;
         let browserLocalStorage: BrowserStorage;
-        let cacheKey: string;
         let cacheVal: string;
         let msalCacheKey: string;
         beforeEach(() => {
             browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
             cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
             browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-            cacheKey = "cacheKey";
             cacheVal = "cacheVal";
-            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${cacheKey}`;
+            msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
 
         afterEach(() => {
@@ -135,8 +133,8 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("setItem()", () => {
-            browserSessionStorage.setItem(cacheKey, cacheVal);
-            browserLocalStorage.setItem(cacheKey, cacheVal);
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
             expect(window.localStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
         });
@@ -144,36 +142,36 @@ describe("BrowserStorage() tests", () => {
         it("getItem()", () => {
             window.sessionStorage.setItem(msalCacheKey, cacheVal);
             window.localStorage.setItem(msalCacheKey, cacheVal);
-            expect(browserSessionStorage.getItem(cacheKey)).to.be.eq(cacheVal);
-            expect(browserLocalStorage.getItem(cacheKey)).to.be.eq(cacheVal);
+            expect(browserSessionStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
+            expect(browserLocalStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
         });
 
         it("removeItem()", () => {
-            browserSessionStorage.setItem(cacheKey, cacheVal);
-            browserLocalStorage.setItem(cacheKey, cacheVal);
-            browserSessionStorage.removeItem(cacheKey);
-            browserLocalStorage.removeItem(cacheKey);
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.removeItem(msalCacheKey);
+            browserLocalStorage.removeItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.null;
             expect(window.localStorage.getItem(msalCacheKey)).to.be.null;
         });
 
         it("containsKey()", () => {
-            browserSessionStorage.setItem(cacheKey, cacheVal);
-            browserLocalStorage.setItem(cacheKey, cacheVal);
-            expect(browserSessionStorage.containsKey(cacheKey)).to.be.true;
-            expect(browserLocalStorage.containsKey(cacheKey)).to.be.true;
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            expect(browserSessionStorage.containsKey(msalCacheKey)).to.be.true;
+            expect(browserLocalStorage.containsKey(msalCacheKey)).to.be.true;
         });
 
         it("getKeys()", () => {
-            browserSessionStorage.setItem(cacheKey, cacheVal);
-            browserLocalStorage.setItem(cacheKey, cacheVal);
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
             expect(browserSessionStorage.getKeys()).to.be.deep.eq([msalCacheKey]);
             expect(browserLocalStorage.getKeys()).to.be.deep.eq([msalCacheKey]);
         });
 
         it("clear()", () => {
-            browserSessionStorage.setItem(cacheKey, cacheVal);
-            browserLocalStorage.setItem(cacheKey, cacheVal);
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
             browserSessionStorage.clear();
             browserLocalStorage.clear();
             expect(browserSessionStorage.getKeys()).to.be.empty;
@@ -185,7 +183,6 @@ describe("BrowserStorage() tests", () => {
 
         let browserSessionStorage: BrowserStorage;
         let browserLocalStorage: BrowserStorage;
-        let cacheKey: string;
         let cacheVal: string;
         let msalCacheKey: string;
         beforeEach(() => {
@@ -193,9 +190,8 @@ describe("BrowserStorage() tests", () => {
             browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
             cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
             browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-            cacheKey = "cacheKey";
             cacheVal = "cacheVal";
-            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${cacheKey}`;
+            msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
 
         afterEach(() => {
@@ -204,13 +200,14 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("setItem()", () => {
-            browserSessionStorage.setItem(cacheKey, cacheVal);
-            browserLocalStorage.setItem(cacheKey, cacheVal);
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
             expect(document.cookie).to.be.eq(`${msalCacheKey}=${cacheVal}`);
-            browserSessionStorage.clearItemCookie(cacheKey);
+            browserSessionStorage.clearItemCookie(msalCacheKey);
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
             expect(window.localStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
             expect(document.cookie).to.be.eq(`${msalCacheKey}=${cacheVal}`);
+            browserLocalStorage.clearItemCookie(msalCacheKey);
         });
 
         it("getItem()", () => {
@@ -218,34 +215,34 @@ describe("BrowserStorage() tests", () => {
             window.sessionStorage.setItem(msalCacheKey, cacheVal);
             window.localStorage.setItem(msalCacheKey, cacheVal);
             browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
-            expect(browserSessionStorage.getItem(cacheKey)).to.be.eq(cacheVal);
+            expect(browserSessionStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
             expect(getCookieSpy.returned(cacheVal)).to.be.true;
             expect(getCookieSpy.calledOnce).to.be.true;
-            expect(browserLocalStorage.getItem(cacheKey)).to.be.eq(cacheVal);
+            expect(browserLocalStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
             expect(getCookieSpy.returned(cacheVal)).to.be.true;
             expect(getCookieSpy.calledTwice).to.be.true;
         });
 
         it("removeItem()", () => {
             const clearCookieSpy = sinon.spy(BrowserStorage.prototype, "clearItemCookie");
-            browserSessionStorage.setItem(cacheKey, cacheVal);
-            browserSessionStorage.removeItem(cacheKey);
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.removeItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.null;
             expect(document.cookie).to.be.empty;
             expect(clearCookieSpy.calledOnce).to.be.true;
-            browserLocalStorage.setItem(cacheKey, cacheVal);
-            browserLocalStorage.removeItem(cacheKey);
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.removeItem(msalCacheKey);
             expect(window.localStorage.getItem(msalCacheKey)).to.be.null;
             expect(document.cookie).to.be.empty;
             expect(clearCookieSpy.calledTwice).to.be.true;
         });
 
         it("clear()", () => {
-            browserSessionStorage.setItem(cacheKey, cacheVal);
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
             browserSessionStorage.clear();
             expect(browserSessionStorage.getKeys()).to.be.empty;
             expect(document.cookie).to.be.empty;
-            browserLocalStorage.setItem(cacheKey, cacheVal);
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
             browserLocalStorage.clear();
             expect(browserLocalStorage.getKeys()).to.be.empty;
             expect(document.cookie).to.be.empty;
@@ -256,16 +253,14 @@ describe("BrowserStorage() tests", () => {
 
         let browserSessionStorage: BrowserStorage;
         let browserLocalStorage: BrowserStorage;
-        let cacheKey: string;
         let cacheVal: string;
         let msalCacheKey: string;
         beforeEach(() => {
             browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
             cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
             browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-            cacheKey = "cacheKey";
             cacheVal = "cacheVal";
-            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${cacheKey}`;
+            msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
 
         it("setItemCookie()", () => {
@@ -350,8 +345,8 @@ describe("BrowserStorage() tests", () => {
         it("resetTempCacheItems() resets all temporary cache items with the given state", () => {
 			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
             browserStorage.updateCacheEntries(RANDOM_TEST_GUID, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`);
-            browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
-            browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI);
+            browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams", CacheSchemaType.TEMPORARY);
+            browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI, CacheSchemaType.TEMPORARY);
 
             browserStorage.resetRequestCache(RANDOM_TEST_GUID);
             const nonceKey = browserStorage.generateNonceKey(RANDOM_TEST_GUID);
@@ -375,7 +370,7 @@ describe("BrowserStorage() tests", () => {
                 correlationId: `${RANDOM_TEST_GUID}`
 			};
 
-			browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
+			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), cryptoObj.base64Encode(JSON.stringify(tokenRequest)), CacheSchemaType.TEMPORARY);
 
 			const cachedRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj);
 			expect(cachedRequest).to.be.deep.eq(tokenRequest);
@@ -412,7 +407,7 @@ describe("BrowserStorage() tests", () => {
                 correlationId: `${RANDOM_TEST_GUID}`
 			};
 			const stringifiedRequest = JSON.stringify(tokenRequest);
-			browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest.substring(0, stringifiedRequest.length / 2));
+			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), stringifiedRequest.substring(0, stringifiedRequest.length / 2), CacheSchemaType.TEMPORARY);
 			expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
 		});
 
@@ -422,7 +417,7 @@ describe("BrowserStorage() tests", () => {
 			const browserCrypto = new CryptoOps();
 			const authorityKey = browserStorage.generateAuthorityKey(RANDOM_TEST_GUID);
 			const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;
-			browserStorage.setItem(authorityKey, alternateAuthority);
+			browserStorage.setItem(browserStorage.generateCacheKey(authorityKey), alternateAuthority, CacheSchemaType.TEMPORARY);
 
 			const cachedRequest: AuthorizationCodeRequest = {
 				redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -432,7 +427,7 @@ describe("BrowserStorage() tests", () => {
 				scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
 			};
 			const stringifiedRequest = browserCrypto.base64Encode(JSON.stringify(cachedRequest));
-			browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest);
+			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), stringifiedRequest, CacheSchemaType.TEMPORARY);
 
 			// Perform test
 			const tokenRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, browserCrypto);

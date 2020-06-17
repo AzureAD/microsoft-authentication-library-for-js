@@ -28,6 +28,7 @@ export type BrowserAuthOptions = {
 export type CacheOptions = {
     cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
+    storeInMemory?: boolean;
 };
 
 /**

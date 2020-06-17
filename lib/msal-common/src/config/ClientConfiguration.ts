@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICacheStorage } from "../cache/ICacheStorage";
+import { ICacheStorage } from "../cache/interface/ICacheStorage";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { AuthError } from "../error/AuthError";
