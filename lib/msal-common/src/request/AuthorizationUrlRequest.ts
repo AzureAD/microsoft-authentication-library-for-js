@@ -5,12 +5,13 @@
 
 import { ResponseMode } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
+import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
  * @type AuthorizationCodeUrlRequest: Request object passed by user to retrieve a Code from the
  * server (first leg of authorization code grant flow)
  */
-export type AuthorizationUrlRequest = {
+export type AuthorizationUrlRequest = BaseAuthRequest & {
     /**
      * The redirect URI where authentication responses can be received by your application. It
      * must exactly match one of the redirect URIs registered in the Azure portal.
@@ -18,21 +19,9 @@ export type AuthorizationUrlRequest = {
     redirectUri: string;
 
     /**
-     * Scopes the application is requesting access to.
-     */
-    scopes: Array<string>;
-
-    /**
      * Scopes for a different resource when the user needs consent upfront
      */
     extraScopesToConsent?: Array<string>;
-
-    /**
-     * Url of the authority which the application acquires tokens from. Defaults to
-     * https://login.microsoftonline.com/common. If using the same authority for all request, authority should set
-     * on client application object and not request, to avoid resolving authority endpoints multiple times.
-     */
-    authority?: string;
 
     /**
      * Specifies the method that should be used to send the authentication result to your app.

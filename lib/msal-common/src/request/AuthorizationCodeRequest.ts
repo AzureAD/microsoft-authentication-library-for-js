@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { BaseAuthRequest } from "./BaseAuthRequest";
+
 /**
  * @type AuthorizationCodeRequest: Request object passed by user to acquire a token from the server exchanging a valid authorization code
  *  (second leg of OAuth2.0 Authorization Code flow)
@@ -27,11 +29,9 @@
  * correlationId:           Unique GUID set per request to trace a request end-to-end for telemetry purposes
  *
  */
-export type AuthorizationCodeRequest = {
-    scopes: Array<string>;
+export type AuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;
     code: string;
-    authority?: string;
     codeVerifier?: string;
     correlationId?: string;
 };
