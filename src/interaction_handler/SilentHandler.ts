@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, SPAClient, StringUtils, AuthorizationCodeRequest } from "@azure/msal-common";
+import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -11,7 +11,7 @@ import { BrowserStorage } from "../cache/BrowserStorage";
 export class SilentHandler extends InteractionHandler {
 
     private loadFrameTimeout: number;
-    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage, configuredLoadFrameTimeout: number) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, configuredLoadFrameTimeout: number) {
         super(authCodeModule, storageImpl);
         this.loadFrameTimeout = configuredLoadFrameTimeout;
     }

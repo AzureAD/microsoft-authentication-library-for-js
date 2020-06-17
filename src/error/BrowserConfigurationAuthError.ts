@@ -8,6 +8,14 @@ import { AuthError } from "@azure/msal-common";
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
  */
 export const BrowserConfigurationAuthErrorMessage = {
+    redirectUriNotSet: {
+        code: "redirect_uri_empty",
+        desc: "A redirect URI is required for all calls, and none has been set."
+    },
+    postLogoutUriNotSet: {
+        code: "post_logout_uri_empty",
+        desc: "A post logout redirect has not been set."
+    },
     storageNotSupportedError: {
         code: "storage_not_supported",
         desc: "Given storage configuration option was not supported."
@@ -34,6 +42,22 @@ export class BrowserConfigurationAuthError extends AuthError {
         this.name = "BrowserConfigurationAuthError";
 
         Object.setPrototypeOf(this, BrowserConfigurationAuthError.prototype);
+    }
+
+    /**
+     * Creates an error thrown when the redirect uri is empty (not set by caller)
+     */
+    static createRedirectUriEmptyError(): BrowserConfigurationAuthError {
+        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.redirectUriNotSet.code,
+            BrowserConfigurationAuthErrorMessage.redirectUriNotSet.desc);
+    }
+
+    /**
+     * Creates an error thrown when the post-logout redirect uri is empty (not set by caller)
+     */
+    static createPostLogoutRedirectUriEmptyError(): BrowserConfigurationAuthError {
+        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.postLogoutUriNotSet.code,
+            BrowserConfigurationAuthErrorMessage.postLogoutUriNotSet.desc);
     }
 
     /**
