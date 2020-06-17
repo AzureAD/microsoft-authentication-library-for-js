@@ -66,8 +66,8 @@ export class Account {
         const utid: string = clientInfo ? clientInfo.utid : "";
 
         let homeAccountIdentifier: string;
-        if (!StringUtils.isEmpty(uid) && !StringUtils.isEmpty(utid)) {
-            homeAccountIdentifier = CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
+        if (!StringUtils.isEmpty(uid)) {
+            homeAccountIdentifier = StringUtils.isEmpty(utid)? CryptoUtils.base64Encode(uid): CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
         }
         return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
     }

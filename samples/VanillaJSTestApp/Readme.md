@@ -1,4 +1,4 @@
-# MSAL.js 1.x Sample - Authorization Code Flow in Single-Page Applications
+# MSAL.js 1.x Sample - Implicit Flow in Single-Page Applications
 
 ## About this sample
 This developer sample is used to run basic use cases for the MSAL library. You can also alter the configuration in `./app/<sample-name>/authConfig.js` to execute other behaviors.

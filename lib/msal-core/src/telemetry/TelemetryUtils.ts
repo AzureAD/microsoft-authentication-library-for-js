@@ -1,14 +1,14 @@
 import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { UrlUtils } from "../utils/UrlUtils";
-import { AuthorityFactory } from "../authority/AuthorityFactory";
+import { Authority } from "../authority/Authority";
 
 export const scrubTenantFromUri = (uri: string): String => {
 
     const url = UrlUtils.GetUrlComponents(uri);
 
     // validate trusted host
-    if (AuthorityFactory.isAdfs(uri)) {
+    if (Authority.isAdfs(uri)) {
         /**
          * returning what was passed because the library needs to work with uris that are non
          * AAD trusted but passed by users such as B2C or others.

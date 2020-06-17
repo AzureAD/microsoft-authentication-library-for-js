@@ -7,7 +7,7 @@ import { AccessTokenCacheItem } from "./cache/AccessTokenCacheItem";
 import { AccessTokenKey } from "./cache/AccessTokenKey";
 import { AccessTokenValue } from "./cache/AccessTokenValue";
 import { ServerRequestParameters } from "./ServerRequestParameters";
-import { Authority } from "./authority/Authority";
+import { Authority, AuthorityType } from "./authority/Authority";
 import { ClientInfo } from "./ClientInfo";
 import { IdToken } from "./IdToken";
 import { Logger } from "./Logger";
@@ -1703,9 +1703,10 @@ export class UserAgentApplication {
                     // retrieve client_info - if it is not found, generate the uid and utid from idToken
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
                         clientInfo = hashParams[ServerHashParamKeys.CLIENT_INFO];
+                    } else if (this.authorityInstance.AuthorityType === AuthorityType.Adfs) {
+                        clientInfo = ClientInfo.createClientInfoFromIdToken(idTokenObj);
                     } else {
                         this.logger.warning("ClientInfo not received in the response from AAD");
-                        throw ClientAuthError.createClientInfoNotPopulatedError("ClientInfo not received in the response from the server");
                     }
 
                     response.account = Account.createAccount(idTokenObj, new ClientInfo(clientInfo));
@@ -1751,6 +1752,8 @@ export class UserAgentApplication {
                     response = ResponseUtils.setResponseIdToken(response, idTokenObj);
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
                         clientInfo = hashParams[ServerHashParamKeys.CLIENT_INFO];
+                    } else if (this.authorityInstance.AuthorityType === AuthorityType.Adfs) {
+                        clientInfo = ClientInfo.createClientInfoFromIdToken(idTokenObj);
                     } else {
                         this.logger.warning("ClientInfo not received in the response from AAD");
                     }
