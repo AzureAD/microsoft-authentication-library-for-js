@@ -1586,6 +1586,7 @@ export class UserAgentApplication {
      */
     /* tslint:disable:no-string-literal */
     private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: string, idTokenObj: IdToken): AuthResponse {
+        this.logger.verbose("SaveAccessToken has been called");
         let scope: string;
         const accessTokenResponse = { ...response };
         const clientObj: ClientInfo = new ClientInfo(clientInfo);
@@ -1593,12 +1594,14 @@ export class UserAgentApplication {
 
         // if the response contains "scope"
         if (parameters.hasOwnProperty(ServerHashParamKeys.SCOPE)) {
+            this.logger.verbose("Response parameters contains scope");
             // read the scopes
             scope = parameters[ServerHashParamKeys.SCOPE];
             const consentedScopes = scope.split(" ");
 
             // retrieve all access tokens from the cache, remove the dup scores
             const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, authority);
+            this.logger.verbose("Retrieving all access tokens from cache and removing duplicates");
 
             for (let i = 0; i < accessTokenCacheItems.length; i++) {
                 const accessTokenCacheItem = accessTokenCacheItems[i];
@@ -1619,12 +1622,14 @@ export class UserAgentApplication {
             const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ACCESS_TOKEN], idTokenObj.rawIdToken, expiration.toString(), clientInfo);
 
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            this.logger.verbose("Saving token to cache");
 
             accessTokenResponse.accessToken  = parameters[ServerHashParamKeys.ACCESS_TOKEN];
             accessTokenResponse.scopes = consentedScopes;
         }
         // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
         else {
+            this.logger.verbose("Response parameters does not contain scope, clientId set as scope");
             scope = this.clientId;
 
             // Generate and cache accessTokenKey and accessTokenValue
@@ -1632,11 +1637,13 @@ export class UserAgentApplication {
             expiration = Number(idTokenObj.expiration);
             const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ID_TOKEN], parameters[ServerHashParamKeys.ID_TOKEN], expiration.toString(), clientInfo);
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            this.logger.verbose("Saving token to cache");
             accessTokenResponse.scopes = [scope];
             accessTokenResponse.accessToken = parameters[ServerHashParamKeys.ID_TOKEN];
         }
 
         if (expiration) {
+            this.logger.verbose("New expiration set");
             accessTokenResponse.expiresOn = new Date(expiration * 1000);
         } else {
             this.logger.error("Could not parse expiresIn parameter");
