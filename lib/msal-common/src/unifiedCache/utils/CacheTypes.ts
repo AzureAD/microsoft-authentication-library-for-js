@@ -16,6 +16,11 @@ export type IdTokenCache = { [key: string]: IdTokenEntity };
 export type AccessTokenCache = { [key: string]: AccessTokenEntity };
 export type RefreshTokenCache = { [key: string]: RefreshTokenEntity };
 export type AppMetadataCache = { [key: string]: AppMetadataEntity };
+export type CredentialCache = {
+    idTokens: IdTokenCache;
+    accessTokens: AccessTokenCache;
+    refreshTokens: RefreshTokenCache;
+};
 
 export type JsonCache = {
     Account?: StringDict;
@@ -31,12 +36,6 @@ export type InMemoryCache = {
     accessTokens: AccessTokenCache;
     refreshTokens: RefreshTokenCache;
     appMetadata: AppMetadataCache;
-};
-
-export type CredentialCache = {
-    idTokens: IdTokenCache;
-    accessTokens: AccessTokenCache;
-    refreshTokens: RefreshTokenCache;
 };
 
 /**
