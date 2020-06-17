@@ -17,44 +17,71 @@ import { AdfsAuthority } from "./AdfsAuthority";
 export class AuthorityFactory {
 
     /**
-     * Parse the url and determine the type of authority
+     * Create an authority object of the correct type based on the url
+     * Performs basic authority validation - checks to see if the authority is of a valid type (i.e. aad, b2c, adfs)
+     * 
+     * Also performs endpoint discovery.
+     * 
+     * @param defaultAuthority 
+     * @param networkClient 
+     * @param authorityUri 
+     * @param adfsDisabled 
      */
-    private static detectAuthorityFromUrl(authorityString: string): AuthorityType {
-        const authorityUrl = new UrlString(authorityString);
-        const components = authorityUrl.getUrlComponents();
-        const pathSegments = components.PathSegments;
+    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, adfsDisabled?: boolean): Promise<Authority> {
+        // Initialize authority and perform discovery endpoint check.
+        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient);
 
-        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS)
-            return AuthorityType.Adfs;
-        else if (B2cAuthority.B2CTrustedHostList.length)
-            return AuthorityType.B2C;
+        // This is temporary. Remove when ADFS is supported for browser
+        if (adfsDisabled && acquireTokenAuthority.authorityType == AuthorityType.Adfs) {
+            throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
+        }
 
-        // defaults to Aad
-        return AuthorityType.Aad;
+        if (acquireTokenAuthority.discoveryComplete()) {
+            return acquireTokenAuthority;
+        }
+
+        try {
+            await acquireTokenAuthority.resolveEndpointsAsync();
+            return acquireTokenAuthority;
+        } catch (e) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+        }
     }
 
     /**
      * Create an authority object of the correct type based on the url
-     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
+     * Performs basic authority validation - checks to see if the authority is of a valid type (i.e. aad, b2c, adfs)
+     * 
+     * Does not perform endpoint discovery.
+     * 
+     * @param authorityUrl 
+     * @param networkInterface 
      */
-    public static createInstance(authorityUrl: string, networkInterface: INetworkModule): Authority {
+    static createInstance(authorityUrl: string, networkInterface: INetworkModule): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
+        return AuthorityFactory.detectAuthorityFromUrl(authorityUrl, networkInterface);
+    }
 
-        // Depending on above detection, create the right type.
-        switch (type) {
-            case AuthorityType.Aad:
-                return new AadAuthority(authorityUrl, networkInterface);
-            case AuthorityType.B2C:
-                return new B2cAuthority(authorityUrl, networkInterface);
-            case AuthorityType.Adfs:
-                return new AdfsAuthority(authorityUrl, networkInterface);
-            default:
-                throw ClientAuthError.createInvalidAuthorityTypeError(`${authorityUrl}`);
-        }
+    /**
+     * Parse the url and determine the type of authority.
+     * @param authorityString 
+     * @param networkInterface 
+     */
+    private static detectAuthorityFromUrl(authorityString: string, networkInterface: INetworkModule): Authority {
+        const authorityUrl: UrlString = new UrlString(authorityString);
+        const components = authorityUrl.getUrlComponents();
+        const pathSegments = components.PathSegments;
+
+        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS)
+            return new AdfsAuthority(authorityString, networkInterface);
+        else if (B2cAuthority.B2CTrustedHostList.length)
+            return new B2cAuthority(authorityString, networkInterface);
+
+        // defaults to Aad
+        return new AadAuthority(authorityString, networkInterface);
     }
 }

@@ -16,6 +16,7 @@ import { AccountInfo } from "../account/AccountInfo";
 export type SilentFlowRequest = {
     scopes: Array<string>;
     authority?: string;
+    redirectUri?: string;
     account: AccountInfo;
     forceRefresh?: boolean;
     correlationId?: string;

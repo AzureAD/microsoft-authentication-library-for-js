@@ -15,6 +15,10 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { StringUtils } from "../utils/StringUtils";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { UrlString } from "../url/UrlString";
+import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -45,9 +49,12 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
-
+    async acquireToken(request: AuthorizationCodeRequest, cachedState?: string, cachedNonce?: string): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
+        // If no code response is given, we cannot acquire a token.
+        if (!request || StringUtils.isEmpty(request.code)) {
+            throw ClientAuthError.createTokenRequestCannotBeMadeError();
+        }
 
         const response = await this.executeTokenRequest(this.defaultAuthority, request);
 
@@ -58,10 +65,28 @@ export class AuthorizationCodeClient extends BaseClient {
             this.logger
         );
 
+        // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.generateAuthenticationResult(response.body, this.defaultAuthority);
+        const tokenResponse = responseHandler.generateAuthenticationResult(response.body, this.defaultAuthority, cachedState, cachedNonce);
 
         return tokenResponse;
+    }
+
+    /**
+     * Handles the hash fragment response from public client code request. Returns a code response used by
+     * the client to exchange for a token in acquireToken.
+     * @param hashFragment
+     */
+    public handleFragmentResponse(hashFragment: string, cachedState: string): string {
+        // Handle responses.
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.cryptoUtils, this.logger);
+        // Deserialize hash fragment response parameters.
+        const hashUrlString = new UrlString(hashFragment);
+        const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+
+        // Get code response
+        responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);
+        return serverParams.code;
     }
 
     /**
@@ -69,9 +94,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest)
-        : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
         const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
 
@@ -138,12 +161,11 @@ export class AuthorizationCodeClient extends BaseClient {
         // add library info parameters
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
 
+        // add client_info=1
+        parameterBuilder.addClientInfo();
+
         if (request.codeChallenge) {
             parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
-        }
-
-        if (request.state) {
-            parameterBuilder.addState(request.state);
         }
 
         if (request.prompt) {
@@ -160,6 +182,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.nonce) {
             parameterBuilder.addNonce(request.nonce);
+        }
+
+        if (request.state) {
+            parameterBuilder.addState(request.state);
         }
 
         if (request.claims) {
