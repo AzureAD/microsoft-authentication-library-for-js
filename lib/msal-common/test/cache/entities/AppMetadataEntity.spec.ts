@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { AppMetadataEntity } from "../../../src/unifiedCache/entities/AppMetadataEntity";
+import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity";
 import { mockAppMetaDataEntity } from "./cacheConstants";
 
 describe("AppMetadataEntity.ts Unit Tests", () => {

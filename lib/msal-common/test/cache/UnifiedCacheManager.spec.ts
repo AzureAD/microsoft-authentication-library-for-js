@@ -1,15 +1,15 @@
 import { expect } from "chai";
-import { UnifiedCacheManager } from "../../src/unifiedCache/UnifiedCacheManager";
+import { UnifiedCacheManager } from "../../src/cache/UnifiedCacheManager";
 import { mockCache } from "./entities/cacheConstants";
-import { InMemoryCache, CredentialFilter, AccountFilter} from "../../src/unifiedCache/utils/CacheTypes";
-import { ICacheStorage } from "../../src/cache/ICacheStorage";
-import { Deserializer } from "../../src/unifiedCache/serialize/Deserializer";
-import { AccountEntity } from "../../src/unifiedCache/entities/AccountEntity";
-import { AccessTokenEntity } from "../../src/unifiedCache/entities/AccessTokenEntity";
+import { InMemoryCache, CredentialFilter, AccountFilter} from "../../src/cache/utils/CacheTypes";
+import { ICacheStorage } from "../../src/cache/interface/ICacheStorage";
+import { Deserializer } from "../../src/cache/serialize/Deserializer";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { CacheSchemaType, CacheHelper, CredentialType } from "../../src";
-import { IdTokenEntity } from "../../src/unifiedCache/entities/IdTokenEntity";
-import { RefreshTokenEntity } from "../../src/unifiedCache/entities/RefreshTokenEntity";
-import { AppMetadataEntity } from "../../src/unifiedCache/entities/AppMetadataEntity";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
+import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 
 const cacheJson = require("./serialize/cache.json");
 

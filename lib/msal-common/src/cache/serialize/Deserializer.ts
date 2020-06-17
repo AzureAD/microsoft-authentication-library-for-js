@@ -9,7 +9,7 @@ import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { CacheHelper } from "../utils/CacheHelper";
-import { AccountCacheMaps, IdTokenCacheMaps, AccessTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "../serialize/JsonKeys";
+import { AccountCacheMaps, IdTokenCacheMaps, AccessTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
 import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, InMemoryCache, JsonCache } from "../utils/CacheTypes";
 import { StringDict } from "../../utils/MsalTypes";
 import { StringUtils } from "../../utils/StringUtils";

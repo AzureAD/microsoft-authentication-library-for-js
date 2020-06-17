@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { MockCache } from "../entities/cacheConstants";
-import { Serializer } from "../../../src/unifiedCache/serialize/Serializer";
-import { Deserializer } from "../../../src/unifiedCache/serialize/Deserializer";
-import { JsonCache, InMemoryCache } from "../../../src/unifiedCache/utils/CacheTypes";
+import { Serializer } from "../../../src/cache/serialize/Serializer";
+import { Deserializer } from "../../../src/cache/serialize/Deserializer";
+import { JsonCache, InMemoryCache } from "../../../src/cache/utils/CacheTypes";
 
 const cachedJson = require("./cache.json");
 

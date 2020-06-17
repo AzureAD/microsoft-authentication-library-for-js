@@ -10,7 +10,7 @@ import {
     CredentialFilter,
 } from "./utils/CacheTypes";
 import { AccountEntity } from "./entities/AccountEntity";
-import { ICacheStorage } from "../cache/ICacheStorage";
+import { ICacheStorage } from "./interface/ICacheStorage";
 import { Deserializer } from "./serialize/Deserializer";
 import { Serializer } from "./serialize/Serializer";
 import { Credential } from "./entities/Credential";
@@ -66,6 +66,7 @@ export class UnifiedCacheManager implements ICacheManager {
     saveCacheRecord(cacheRecord: CacheRecord): void {
         this.saveAccount(cacheRecord.account);
         this.saveCredential(cacheRecord.idToken);
+        // TODO: Check for scope intersection and delete accessToken with intersecting scopes
         this.saveCredential(cacheRecord.accessToken);
         this.saveCredential(cacheRecord.refreshToken);
     }
@@ -156,17 +157,10 @@ export class UnifiedCacheManager implements ICacheManager {
         allCacheKeys.forEach((cacheKey) => {
             let matches: boolean = true;
             // don't parse any non-credential type cache entities
-            if (
-                CacheHelper.getCredentialType(cacheKey) !==
-                    Constants.NOT_DEFINED ||
-                CacheHelper.isAppMetadata(cacheKey)
-            ) {
+            if (CacheHelper.getCredentialType(cacheKey) !== Constants.NOT_DEFINED || CacheHelper.isAppMetadata(cacheKey)) {
                 return;
             }
-            const entity: AccountEntity = this.cacheStorage.getItem(
-                cacheKey,
-                CacheSchemaType.ACCOUNT
-            ) as AccountEntity;
+            const entity: AccountEntity = this.cacheStorage.getItem(cacheKey, CacheSchemaType.ACCOUNT) as AccountEntity;
 
             if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = CacheHelper.matchHomeAccountId(entity, homeAccountId);
@@ -245,13 +239,13 @@ export class UnifiedCacheManager implements ICacheManager {
                 return;
             }
 
-            const entity: Credential = this.cacheStorage.getItem(
-                cacheKey,
-                CacheSchemaType.CREDENTIAL
-            ) as Credential;
+            const entity: Credential = this.cacheStorage.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as Credential;
 
             if (!StringUtils.isEmpty(homeAccountId)) {
-                matches = CacheHelper.matchHomeAccountId(entity, homeAccountId);
+                matches = CacheHelper.matchHomeAccountId(
+                    entity,
+                    homeAccountId
+                );
             }
 
             if (!StringUtils.isEmpty(environment)) {
@@ -328,10 +322,7 @@ export class UnifiedCacheManager implements ICacheManager {
 
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
-            if (
-                CacheHelper.getCredentialType(cacheKey) ===
-                Constants.NOT_DEFINED
-            ) {
+            if (CacheHelper.getCredentialType(cacheKey) === Constants.NOT_DEFINED) {
                 return;
             }
 

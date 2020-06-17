@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { InMemoryCache } from "../unifiedCache/utils/CacheTypes";
+import { InMemoryCache } from "../utils/CacheTypes";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.

@@ -251,7 +251,7 @@ export class ClientAuthError extends AuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
             `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
     }
-
+	
     /**
      * Throws error when multiple tokens are in cache for the given scope.
      * @param scope
