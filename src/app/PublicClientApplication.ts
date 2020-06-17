@@ -24,7 +24,7 @@ import {
     CacheSchemaType,
     AuthenticationResult,
     SilentFlowRequest,
-    IAccount
+    AccountInfo
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -487,11 +487,12 @@ export class PublicClientApplication {
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      */
-    logout(account: IAccount, authorityString?: string): void {
+    logout(account: AccountInfo, authorityString?: string): void {
         const authorityObj = StringUtils.isEmpty(authorityString) ? this.defaultAuthorityInstance : AuthorityFactory.createInstance(
             this.config.auth.authority,
             this.config.system.networkClient
         );
+
         // create logout string and navigate user window to logout. Auth module will clear cache.
         this.authModule.logout(account, authorityObj).then((logoutUri: string) => {
             BrowserUtils.navigateWindow(logoutUri);
@@ -529,7 +530,7 @@ export class PublicClientApplication {
      * or null when no state is found
      * @returns {@link IAccount[]} - Array of account objects in cache
      */
-    public getAllAccounts(): IAccount[] {
+    public getAllAccounts(): AccountInfo[] {
         return this.browserStorage.getAllAccounts();
     }
 
@@ -539,7 +540,7 @@ export class PublicClientApplication {
      * or null when no state is found
      * @returns {@link IAccount} - the account object stored in MSAL
      */
-    public getAccountByUsername(userName: string): IAccount {
+    public getAccountByUsername(userName: string): AccountInfo {
         const allAccounts = this.getAllAccounts();
         return allAccounts.filter(accountObj => accountObj.username === userName)[0];
     }
