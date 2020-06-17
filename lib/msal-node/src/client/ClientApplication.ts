@@ -18,6 +18,7 @@ import {
     B2cAuthority,
     JsonCache,
     Serializer,
+    InMemoryCache,
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -56,9 +57,7 @@ export abstract class ClientApplication {
      * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(
-        request: AuthorizationUrlRequest
-    ): Promise<string> {
+    async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
@@ -100,7 +99,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenByRefreshToken(
         request: RefreshTokenRequest
-    ): Promise<string> {
+    ): Promise<AuthenticationResult> {
         const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
@@ -190,6 +189,8 @@ export abstract class ClientApplication {
      * read the cache as a Json convertible object from memory
      */
     readCache(): JsonCache {
-        return Serializer.serializeAllCache(this.storage.getCache());
+        return Serializer.serializeAllCache(
+            this.storage.getCache() as InMemoryCache
+        );
     }
 }
