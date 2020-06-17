@@ -3,48 +3,35 @@
  * Licensed under the MIT License.
  */
 
-import { InMemoryCache, JsonCache, AccountFilter, CredentialFilter  } from "./utils/CacheTypes";
+import {
+    InMemoryCache,
+    JsonCache,
+    AccountFilter,
+    CredentialFilter,
+} from "./utils/CacheTypes";
 import { AccountEntity } from "./entities/AccountEntity";
 import { ICacheStorage } from "../cache/ICacheStorage";
 import { Deserializer } from "./serialize/Deserializer";
 import { Serializer } from "./serialize/Serializer";
 import { Credential } from "./entities/Credential";
-import {
-    CredentialType,
-    CacheSchemaType
-} from "../utils/Constants";
-import {
-    AccountCache,
-    CredentialCache,
-    IdTokenCache,
-    AccessTokenCache,
-    RefreshTokenCache,
-} from "./utils/CacheTypes";
+import { CredentialType, CacheSchemaType, Constants } from "../utils/Constants";
+import { AccountCache, CredentialCache } from "./utils/CacheTypes";
 import { ICacheManager } from "./interface/ICacheManager";
 import { CacheHelper } from "./utils/CacheHelper";
 import { CacheRecord } from "./entities/CacheRecord";
+import { StringUtils } from "../utils/StringUtils";
+import { IdTokenEntity } from "./entities/IdTokenEntity";
+import { AccessTokenEntity } from "./entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
 
 export class UnifiedCacheManager implements ICacheManager {
     // Storage interface
     private cacheStorage: ICacheStorage;
+    private inMemory: boolean;
 
-    constructor(cacheImpl: ICacheStorage) {
+    constructor(cacheImpl: ICacheStorage, storeInMemory: boolean) {
         this.cacheStorage = cacheImpl;
-    }
-
-    /**
-     * sets the inMemory cache
-     * @param cache
-     */
-    setCacheInMemory(cache: InMemoryCache): void {
-        this.cacheStorage.setCache(cache);
-    }
-
-    /**
-     * get the inMemory Cache
-     */
-    getCacheInMemory(): InMemoryCache {
-        return this.cacheStorage.getCache();
+        this.inMemory = storeInMemory;
     }
 
     /**
@@ -69,7 +56,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * Returns all accounts in memory
      */
     getAllAccounts(): AccountCache {
-        return this.getCacheInMemory().accounts;
+        return this.getAccountsFilteredBy();
     }
 
     /**
@@ -89,7 +76,12 @@ export class UnifiedCacheManager implements ICacheManager {
      */
     saveAccount(account: AccountEntity): void {
         const key = account.generateAccountKey();
-        this.cacheStorage.setItemInMemory(key, account, CacheSchemaType.ACCOUNT);
+        this.cacheStorage.setItem(
+            key,
+            account,
+            CacheSchemaType.ACCOUNT,
+            this.inMemory
+        );
     }
 
     /**
@@ -97,9 +89,13 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param credential
      */
     saveCredential(credential: Credential): void {
-        console.log("in UCacheManager saving credential");
         const key = credential.generateCredentialKey();
-        this.cacheStorage.setItemInMemory(key, credential, CacheSchemaType.CREDENTIAL);
+        this.cacheStorage.setItem(
+            key,
+            credential,
+            CacheSchemaType.CREDENTIAL,
+            this.inMemory
+        );
     }
 
     /**
@@ -107,7 +103,12 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param key
      */
     getAccount(key: string): AccountEntity {
-        return this.cacheStorage.getItemFromMemory(key, CacheSchemaType.ACCOUNT) as AccountEntity;
+        const account = this.cacheStorage.getItem(
+            key,
+            CacheSchemaType.ACCOUNT,
+            this.inMemory
+        ) as AccountEntity;
+        return account;
     }
 
     /**
@@ -115,7 +116,11 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param key
      */
     getCredential(key: string): Credential {
-        return this.cacheStorage.getItemFromMemory(key, CacheSchemaType.CREDENTIAL) as Credential;
+        return this.cacheStorage.getItem(
+            key,
+            CacheSchemaType.CREDENTIAL,
+            this.inMemory
+        ) as Credential;
     }
 
     /**
@@ -125,13 +130,11 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredBy(
-        accountFilter: AccountFilter
-    ): AccountCache {
+    getAccountsFilteredBy(accountFilter?: AccountFilter): AccountCache {
         return this.getAccountsFilteredByInternal(
-            accountFilter.homeAccountId,
-            accountFilter.environment,
-            accountFilter.realm
+            accountFilter ? accountFilter.homeAccountId : "",
+            accountFilter ? accountFilter.environment : "",
+            accountFilter ? accountFilter.realm : ""
         );
     }
 
@@ -142,31 +145,45 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredByInternal(
+    private getAccountsFilteredByInternal(
         homeAccountId?: string,
         environment?: string,
         realm?: string
     ): AccountCache {
-        const accounts: AccountCache = this.getCacheInMemory().accounts;
+        const allCacheKeys = this.cacheStorage.getKeys();
         const matchingAccounts: AccountCache = {};
 
-        let matches: boolean = true;
+        allCacheKeys.forEach((cacheKey) => {
+            let matches: boolean = true;
+            // don't parse any non-credential type cache entities
+            if (
+                CacheHelper.getCredentialType(cacheKey) !==
+                    Constants.NOT_DEFINED ||
+                CacheHelper.isAppMetadata(cacheKey)
+            ) {
+                return;
+            }
+            const entity: AccountEntity = this.cacheStorage.getItem(
+                cacheKey,
+                CacheSchemaType.ACCOUNT
+            ) as AccountEntity;
 
-        Object.keys(accounts).forEach((key) => {
-            if (!!homeAccountId) {
-                matches = CacheHelper.matchHomeAccountId(key, homeAccountId);
+            if (!StringUtils.isEmpty(homeAccountId)) {
+                matches = CacheHelper.matchHomeAccountId(entity, homeAccountId);
             }
 
-            if (!!environment) {
-                matches = matches && CacheHelper.matchEnvironment(key, environment);
+            if (!StringUtils.isEmpty(environment)) {
+                matches =
+                    matches &&
+                    CacheHelper.matchEnvironment(entity, environment);
             }
 
-            if (!!realm) {
-                matches = matches && CacheHelper.matchRealm(key, realm);
+            if (!StringUtils.isEmpty(realm)) {
+                matches = matches && CacheHelper.matchRealm(entity, realm);
             }
 
             if (matches) {
-                matchingAccounts[key] = accounts[key];
+                matchingAccounts[cacheKey] = entity;
             }
         });
 
@@ -182,12 +199,11 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param realm
      * @param target
      */
-    getCredentialsFilteredBy(
-        filter: CredentialFilter
-    ): CredentialCache {
+    getCredentialsFilteredBy(filter: CredentialFilter): CredentialCache {
         return this.getCredentialsFilteredByInternal(
             filter.homeAccountId,
             filter.environment,
+            filter.credentialType,
             filter.clientId,
             filter.realm,
             filter.target
@@ -195,7 +211,7 @@ export class UnifiedCacheManager implements ICacheManager {
     }
 
     /**
-     * retrieve credentails matching all provided filters; if no filter is set, get all credentials
+     * Support function to help match credentials
      * @param homeAccountId
      * @param environment
      * @param credentialType
@@ -203,7 +219,7 @@ export class UnifiedCacheManager implements ICacheManager {
      * @param realm
      * @param target
      */
-    getCredentialsFilteredByInternal(
+    private getCredentialsFilteredByInternal(
         homeAccountId?: string,
         environment?: string,
         credentialType?: string,
@@ -211,98 +227,75 @@ export class UnifiedCacheManager implements ICacheManager {
         realm?: string,
         target?: string
     ): CredentialCache {
+        const allCacheKeys = this.cacheStorage.getKeys();
         const matchingCredentials: CredentialCache = {
             idTokens: {},
             accessTokens: {},
-            refreshTokens: {},
+            refreshTokens: {}
         };
 
-        matchingCredentials.idTokens = this.getCredentialsFilteredByCredentialType(
-            this.getCacheInMemory().idTokens,
-            homeAccountId,
-            environment,
-            credentialType,
-            clientId,
-            realm,
-            target
-        ) as IdTokenCache;
-
-        matchingCredentials.accessTokens = this.getCredentialsFilteredByCredentialType(
-            this.getCacheInMemory().accessTokens,
-            homeAccountId,
-            environment,
-            credentialType,
-            clientId,
-            realm,
-            target
-        ) as AccessTokenCache;
-
-        matchingCredentials.refreshTokens = this.getCredentialsFilteredByCredentialType(
-            this.getCacheInMemory().refreshTokens,
-            homeAccountId,
-            environment,
-            credentialType,
-            clientId,
-            realm,
-            target
-        ) as RefreshTokenCache;
-
-        return matchingCredentials;
-    }
-
-    /**
-     * Support function to help match credentials
-     * @param cacheCredentials
-     * @param homeAccountId
-     * @param environment
-     * @param credentialType
-     * @param clientId
-     * @param realm
-     * @param target
-     */
-    private getCredentialsFilteredByCredentialType(
-        cacheCredentials: object,
-        homeAccountId?: string,
-        environment?: string,
-        credentialType?: string,
-        clientId?: string,
-        realm?: string,
-        target?: string
-    ): Object {
-        const matchingCredentials = {};
-        let matches: boolean = true;
-
-        Object.keys(cacheCredentials).forEach((key) => {
-            if (!!homeAccountId) {
-                matches = CacheHelper.matchHomeAccountId(
-                    key,
-                    homeAccountId
-                );
+        allCacheKeys.forEach((cacheKey) => {
+            let matches: boolean = true;
+            // don't parse any non-credential type cache entities
+            const credType = CacheHelper.getCredentialType(cacheKey);
+            if (
+                credType ===
+                Constants.NOT_DEFINED
+            ) {
+                return;
             }
 
-            if (!!environment) {
-                matches = matches && CacheHelper.matchEnvironment(key, environment);
+            const entity: Credential = this.cacheStorage.getItem(
+                cacheKey,
+                CacheSchemaType.CREDENTIAL
+            ) as Credential;
+
+            if (!StringUtils.isEmpty(homeAccountId)) {
+                matches = CacheHelper.matchHomeAccountId(entity, homeAccountId);
             }
 
-            if (!!realm) {
-                matches = matches && CacheHelper.matchRealm(key, realm);
+            if (!StringUtils.isEmpty(environment)) {
+                matches =
+                    matches &&
+                    CacheHelper.matchEnvironment(entity, environment);
             }
 
-            if (!!credentialType) {
-                matches = matches && CacheHelper.matchCredentialType(key, credentialType);
+            if (!StringUtils.isEmpty(realm)) {
+                matches = matches && CacheHelper.matchRealm(entity, realm);
             }
 
-            if (!!clientId) {
-                matches = matches && CacheHelper.matchClientId(key, clientId);
+            if (!StringUtils.isEmpty(credentialType)) {
+                matches =
+                    matches &&
+                    CacheHelper.matchCredentialType(entity, credentialType);
+            }
+
+            if (!StringUtils.isEmpty(clientId)) {
+                matches =
+                    matches && CacheHelper.matchClientId(entity, clientId);
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            if (!!target && CacheHelper.getCredentialType(key) != CredentialType.ID_TOKEN) {
-                matches = matches && CacheHelper.matchTarget(key, target);
+            if (
+                !StringUtils.isEmpty(target) &&
+                credType ===
+                    CredentialType.ACCESS_TOKEN
+            ) {
+                matches = matches && CacheHelper.matchTarget(entity, target);
             }
 
             if (matches) {
-                matchingCredentials[key] = cacheCredentials[key];
+                switch (credType) {
+                    case CredentialType.ID_TOKEN:
+                        matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
+                        break;
+                    case CredentialType.ACCESS_TOKEN:
+                        matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
+                        break;
+                    case CredentialType.REFRESH_TOKEN:
+                        matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
+                        break;
+                }
             }
         });
 
@@ -313,38 +306,50 @@ export class UnifiedCacheManager implements ICacheManager {
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccount(account: AccountEntity): boolean {
-        const key = account.generateAccountKey();
-        return this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.ACCOUNT);
+    removeAccount(accountKey: string): boolean {
+        const account = this.getAccount(accountKey) as AccountEntity;
+        return (
+            this.removeAccountContext(account) &&
+            this.cacheStorage.removeItem(
+                accountKey,
+                CacheSchemaType.ACCOUNT,
+                this.inMemory
+            )
+        );
     }
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccountContext(account: AccountEntity): boolean {
-        const cache = this.getCacheInMemory();
+    private removeAccountContext(account: AccountEntity): boolean {
+        const allCacheKeys = this.cacheStorage.getKeys();
         const accountId = account.generateAccountId();
 
-        Object.keys(cache.idTokens).forEach((key) => {
-            if (cache.idTokens[key].generateAccountId() === accountId) {
-                this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
+        allCacheKeys.forEach((cacheKey) => {
+            // don't parse any non-credential type cache entities
+            if (
+                CacheHelper.getCredentialType(cacheKey) ===
+                Constants.NOT_DEFINED
+            ) {
+                return;
+            }
+
+            const cacheEntity: Credential = this.cacheStorage.getItem(
+                cacheKey,
+                CacheSchemaType.CREDENTIAL,
+                this.inMemory
+            ) as Credential;
+
+            if (
+                !!cacheEntity &&
+                accountId === cacheEntity.generateAccountId()
+            ) {
+                this.removeCredential(cacheEntity);
             }
         });
 
-        Object.keys(cache.accessTokens).forEach((key) => {
-            if (cache.accessTokens[key].generateAccountId() === accountId) {
-                this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
-            }
-        });
-
-        Object.keys(cache.refreshTokens).forEach((key) => {
-            if (cache.refreshTokens[key].generateAccountId() === accountId) {
-                this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
-            }
-        });
-
-        return this.removeAccount(account);
+        return true;
     }
 
     /**
@@ -353,6 +358,10 @@ export class UnifiedCacheManager implements ICacheManager {
      */
     removeCredential(credential: Credential): boolean {
         const key = credential.generateCredentialKey();
-        return this.cacheStorage.removeItemFromMemory(key, CacheSchemaType.CREDENTIAL);
+        return this.cacheStorage.removeItem(
+            key,
+            CacheSchemaType.CREDENTIAL,
+            this.inMemory
+        );
     }
 }

@@ -21,7 +21,15 @@ export class AccessTokenEntity extends Credential {
 
     /**
      * Create AccessTokenEntity
-    */
+     * @param homeAccountId
+     * @param environment
+     * @param accessToken
+     * @param clientId
+     * @param tenantId
+     * @param scopes
+     * @param expiresOn
+     * @param extExpiresOn
+     */
     static createAccessTokenEntity(
         homeAccountId: string,
         environment: string,
