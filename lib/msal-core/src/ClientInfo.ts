@@ -32,7 +32,10 @@ export class ClientInfo {
     }
 
     static createClientInfoFromIdToken(idToken:IdToken): string {
-        const clientInfo = {uid: idToken.subject, utid: ""};
+        const clientInfo = {
+            uid: idToken.subject, 
+            utid: ""
+        };
 
         return CryptoUtils.base64Encode(JSON.stringify(clientInfo));
     }
