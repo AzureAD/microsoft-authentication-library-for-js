@@ -1,5 +1,4 @@
 // App Auth Modules and Configuration
-export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
@@ -36,6 +35,7 @@ export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
+export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 // Logger Callback

@@ -344,6 +344,17 @@ export class BrowserStorage extends CacheManager {
     }
 
     /**
+     * Gets the cached authority based on the cached state. Returns empty if no cached state found.
+     */
+    getCachedAuthority(): string {
+        const state = this.getItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
+        if (!state) {
+            return "";
+        }
+        return this.getItem(this.generateCacheKey(this.generateAuthorityKey(state)), CacheSchemaType.TEMPORARY) as string;
+    }
+
+    /**
      * Updates account, authority, and state in cache
      * @param serverAuthenticationRequest
      * @param account

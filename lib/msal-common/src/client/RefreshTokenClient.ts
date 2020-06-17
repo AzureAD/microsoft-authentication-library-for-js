@@ -54,11 +54,17 @@ export class RefreshTokenClient extends BaseClient {
     private createTokenRequestBody(request: RefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
+        parameterBuilder.addClientId(this.config.authOptions.clientId);
+
+        parameterBuilder.addRedirectUri(request.redirectUri);
+
         const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
+
         parameterBuilder.addClientInfo();
+
         parameterBuilder.addRefreshToken(request.refreshToken);
 
         return parameterBuilder.createQueryString();

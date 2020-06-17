@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SPAClient, StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -12,11 +12,11 @@ import { TemporaryCacheKeys } from "../utils/BrowserConstants";
  */
 export abstract class InteractionHandler {
 
-    protected authModule: SPAClient;
+    protected authModule: AuthorizationCodeClient;
     protected browserStorage: BrowserStorage;
     protected authCodeRequest: AuthorizationCodeRequest;
 
-    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
     }

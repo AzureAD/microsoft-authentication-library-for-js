@@ -10,8 +10,9 @@
  * authority:               URL of the authority, the security token service (STS) from which MSAL will acquire tokens.
  * refreshToken:            A refresh token returned from a previous request to the Identity provider.
  */
-export class RefreshTokenRequest {
+export type RefreshTokenRequest = {
     scopes: Array<string>;
     refreshToken: string;
+    redirectUri?: string;
     authority?: string;
-}
+};
