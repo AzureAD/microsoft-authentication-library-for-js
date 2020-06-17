@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICacheStorage, Constants, PersistentCacheKeys, InMemoryCache, StringUtils, AuthorizationCodeRequest, ICrypto } from "@azure/msal-common";
+import { ICacheStorage, Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -256,14 +256,8 @@ export class BrowserStorage implements ICacheStorage {
     /**
      * Dummy implementation until browser cache is migrated
      */
-    getCache(): InMemoryCache {
-        return {
-            accounts: {},
-            idTokens: {},
-            accessTokens: {},
-            refreshTokens: {},
-            appMetadata: {}
-        };
+    getCache(): object {
+        return this.windowStorage;
     }
 
     /**

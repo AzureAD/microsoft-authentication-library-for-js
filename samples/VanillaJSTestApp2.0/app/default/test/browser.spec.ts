@@ -96,7 +96,7 @@ describe("Browser tests", function () {
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         await takeScreenshot(page, testName, `samplePageLoggedIn`);
         const sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(Object.keys(sessionStorage).length).to.be.eq(3);
+        expect(Object.keys(sessionStorage).length).to.be.eq(4);
     });
 
     it("Performs loginPopup", async () => {
@@ -120,6 +120,6 @@ describe("Browser tests", function () {
         expect(popupPage.isClosed()).to.be.true;
         await takeScreenshot(page, testName, `samplePageLoggedIn`);
         const sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(Object.keys(sessionStorage).length).to.be.eq(3);
+        expect(Object.keys(sessionStorage).length).to.be.eq(4);
     });
 });

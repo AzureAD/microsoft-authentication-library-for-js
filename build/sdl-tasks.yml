@@ -10,11 +10,11 @@ steps:
     optionsXS: 1
     optionsHMENABLE: 0
 
-# - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@3
-#   displayName: 'Run CredScan3'
-#   inputs:
-#     scanFolder: './'
-#     debugMode: false
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@3
+  displayName: 'Run CredScan3'
+  inputs:
+    scanFolder: './'
+    debugMode: false
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
   displayName: 'Post Analysis'

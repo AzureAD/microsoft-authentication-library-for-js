@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { IAccount } from "../account/IAccount";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -16,7 +16,7 @@ import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
 export type SilentFlowRequest = {
     scopes: Array<string>;
     authority?: string;
-    account?: AccountEntity;
+    account: IAccount;
     forceRefresh?: boolean;
     correlationId?: string;
 };
