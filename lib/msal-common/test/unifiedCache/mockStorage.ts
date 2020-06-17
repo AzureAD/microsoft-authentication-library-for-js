@@ -2,39 +2,34 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import {
-    ICacheStorage,
-    InMemoryCache,
-    CredentialType,
-    CacheSchemaType,
-    CacheHelper,
-    AccountEntity,
-    AccessTokenEntity,
-    RefreshTokenEntity,
-    IdTokenEntity,
-    AppMetadataEntity
-} from '@azure/msal-common';
-import { CacheOptions } from '../config/Configuration';
+import { ICacheStorage } from "../../src/cache/ICacheStorage";
+import { CacheHelper } from "../../src/unifiedCache/utils/CacheHelper";
+import { InMemoryCache } from "../../src/unifiedCache/utils/CacheTypes";
+import { CredentialType, CacheSchemaType } from "../../src/utils/Constants";
+import { AccountEntity } from "../../src/unifiedCache/entities/AccountEntity";
+import { AccessTokenEntity } from "../../src/unifiedCache/entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../../src/unifiedCache/entities/RefreshTokenEntity";
+import { IdTokenEntity } from "../../src/unifiedCache/entities/IdTokenEntity";
+import { AppMetadataEntity } from "../../src/unifiedCache/entities/AppMetadataEntity";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
 export class Storage implements ICacheStorage {
-    // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;
-    private inMemoryCache: InMemoryCache;
 
-    constructor(cacheConfig: CacheOptions) {
-        this.cacheConfig = cacheConfig;
-        if (this.cacheConfig.cacheLocation! === 'fileCache')
-            this.inMemoryCache = this.cacheConfig.cacheInMemory!;
-    }
+    private inMemoryCache;
 
     /**
      * gets the current in memory cache for the client
      */
     getCache(): object {
-        return this.inMemoryCache;
+        return {
+            accounts: {},
+            accessTokens: {},
+            idTokens: {},
+            refreshTokens: {},
+            appMetadata: {}
+        };
     }
 
     /**
@@ -96,7 +91,7 @@ export class Storage implements ICacheStorage {
                 break;
             }
             default: {
-                console.log('Invalid Cache Type');
+                console.log("Invalid Cache Type");
                 return;
             }
         }
@@ -120,7 +115,7 @@ export class Storage implements ICacheStorage {
         }
 
         // read inMemoryCache
-        const cache = this.getCache() as InMemoryCache;
+        const cache = this.getCache();
 
         // save the cacheItem
         switch (type!) {
@@ -155,7 +150,7 @@ export class Storage implements ICacheStorage {
                 return (cache.appMetadata[key] as AppMetadataEntity) || null;
             }
             default: {
-                console.log('Invalid Cache Type');
+                console.log("Invalid Cache Type");
                 return {};
             }
         }
@@ -175,7 +170,7 @@ export class Storage implements ICacheStorage {
         }
 
         // read inMemoryCache
-        const cache = this.getCache() as InMemoryCache;
+        const cache = this.getCache();
         let result: boolean = false;
 
         // save the cacheItem
@@ -222,7 +217,7 @@ export class Storage implements ICacheStorage {
                 break;
             }
             default: {
-                console.log('Invalid Cache Type');
+                console.log("Invalid Cache Type");
                 break;
             }
         }
@@ -245,6 +240,7 @@ export class Storage implements ICacheStorage {
 
     /**
      * Gets all keys in window.
+     * TODO: implement after the lookup implementation
      */
     getKeys(inMemory?: boolean): string[] {
         // check memory type
@@ -258,8 +254,8 @@ export class Storage implements ICacheStorage {
         let cacheKeys: string[] = [];
 
         // read all keys
-        Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
+        Object.keys(cache).forEach((key) => {
+            Object.keys(key).forEach((internalKey) => {
                 cacheKeys.push(internalKey);
             });
         });
@@ -281,8 +277,8 @@ export class Storage implements ICacheStorage {
         const cache = this.getCache();
 
         // read all keys
-        Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
+        Object.keys(cache).forEach((key) => {
+            Object.keys(key).forEach((internalKey) => {
                 this.removeItem(internalKey);
             });
         });

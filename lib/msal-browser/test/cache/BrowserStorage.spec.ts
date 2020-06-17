@@ -16,7 +16,7 @@ class TestCacheStorage implements ICacheStorage {
     getItem(key: string): string {
         throw new Error("Method not implemented.");
     }
-    removeItem(key: string): void {
+    removeItem(key: string): boolean {
         throw new Error("Method not implemented.");
     }
     containsKey(key: string): boolean {
@@ -28,7 +28,7 @@ class TestCacheStorage implements ICacheStorage {
     clear(): void {
         throw new Error("Method not implemented.");
 	}
-	getCache(): InMemoryCache {
+	getCache(): object {
 		return null;
 	}
 	setCache(): InMemoryCache {
@@ -317,7 +317,7 @@ describe("BrowserStorage() tests", () => {
             expect(browserLocalStorage.getCookieExpirationTime(cookieLifeDays)).to.be.eq(expectedDate.toUTCString());
         });
 	});
-	
+
 	describe("Helpers", () => {
 
 		it("generateAuthorityKey() creates a valid cache key for authority strings", () => {
@@ -331,7 +331,7 @@ describe("BrowserStorage() tests", () => {
             const nonceKey = browserStorage.generateNonceKey(RANDOM_TEST_GUID);
             expect(nonceKey).to.be.eq(`${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`);
 		});
-		
+
 		it("updateCacheEntries() correctly updates the authority, state and nonce in the cache", () => {
 			const authorityCacheSpy = sinon.spy(BrowserStorage.prototype, "setAuthorityCache");
 			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);

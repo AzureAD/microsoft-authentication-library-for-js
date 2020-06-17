@@ -98,7 +98,7 @@ export class RequestParameterBuilder {
 
     /**
      * add library info query params
-     * @param libraryInfo 
+     * @param libraryInfo
      */
     addLibraryInfo(libraryInfo: LibraryInfo): void {
         // Telemetry Info

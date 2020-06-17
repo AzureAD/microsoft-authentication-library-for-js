@@ -14,23 +14,27 @@ import { LogLevel } from "../../src/logger/Logger";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Authority } from "../../src/authority/Authority";
 import { PkceCodes } from "../../src/crypto/ICrypto";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
 import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AccessTokenKey } from "../../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../../src/cache/AccessTokenValue";
-import { TokenRenewParameters } from "../../src/request/TokenRenewParameters";
 import { BaseClient } from "../../src/client/BaseClient";
 import { Account } from "../../src/account/Account";
 import { TokenResponse } from "../../src/response/TokenResponse";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { ServerError } from "../../src/error/ServerError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { InMemoryCache } from "../../src/unifiedCache/utils/CacheTypes";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
 import { AadAuthority } from "../../src/authority/AadAuthority";
+import { ICacheStorage } from "../../src/cache/ICacheStorage";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
+import { IAccount } from "../../src/account/IAccount";
+import { AccountEntity } from "../../src/unifiedCache/entities/AccountEntity";
+import { UnifiedCacheManager } from "../../src";
 
 describe("SPAClient.ts Class Unit Tests", () => {
 
@@ -42,6 +46,33 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
     let store = {};
     let defaultAuthConfig: ClientConfiguration;
+    let cacheStorageMock: ICacheStorage = {
+        setItem(key: string, value: string): void {
+            store[key] = value;
+        },
+        getItem(key: string): string {
+            return store[key];
+        },
+        removeItem(key: string): boolean {
+            delete store[key];
+            return true;
+        },
+        containsKey(key: string): boolean {
+            return !!store[key];
+        },
+        getKeys(): string[] {
+            return Object.keys(store);
+        },
+        clear(): void {
+            store = {};
+        },
+        getCache(): object {
+            return null;
+        },
+        setCache(): void {
+            return null;
+        },
+    };
 
     beforeEach(() => {
 
@@ -57,42 +88,14 @@ describe("SPAClient.ts Class Unit Tests", () => {
         defaultAuthConfig = {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient),
+                authority: AuthorityFactory.createInstance(
+                    TEST_CONFIG.validAuthority,
+                    mockHttpClient
+                ),
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
             },
-            storageInterface: {
-                getCache(): InMemoryCache {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
-                },
-                setCache(): void {
-                    // do nothing
-                },
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-                },
-            },
+            storageInterface: cacheStorageMock,
             networkInterface: {
                 sendGetRequestAsync<T>(
                     url: string,
@@ -393,7 +396,8 @@ describe("SPAClient.ts Class Unit Tests", () => {
                                 ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
                                 access_token: TEST_TOKENS.LOGIN_AT_STRING,
                                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                                id_token: TEST_TOKENS.IDTOKEN_V2
+                                id_token: TEST_TOKENS.IDTOKEN_V2,
+                                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
                             }
                         };
                     };
@@ -411,6 +415,8 @@ describe("SPAClient.ts Class Unit Tests", () => {
                                 return "MTIzLXRlc3QtdWlk";
                             case "456-test-utid":
                                 return "NDU2LXRlc3QtdXRpZA==";
+                            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                             default:
                                 return input;
                         }
@@ -429,6 +435,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 });
 
                 it("Retrieves valid token response given valid code and state", async () => {
+                    sinon.restore();
                     // Set up stubs
                     const idTokenClaims = {
                         "ver": "2.0",
@@ -443,29 +450,30 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     };
                     sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
                     sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-
+                    sinon.stub();
+                    
                     // Set up cache
                     defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
 
                     // Build Test account
                     const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
                     const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
-                    const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface);
+                    const testAccount: IAccount = {
+                        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                        environment: "login.windows.net",
+                        tenantId: idTokenClaims.tid,
+                        username: idTokenClaims.preferred_username
+                    };
 
                     // Perform test
-                    const tokenResponse: TokenResponse = await Client.acquireToken(codeRequest, testState, idTokenClaims.nonce);
+                    const tokenResponse: AuthenticationResult = await Client.acquireToken(codeRequest, testState, idTokenClaims.nonce);
                     expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
                     expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
-                    expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
                     expect(tokenResponse.idTokenClaims).to.be.deep.eq(idTokenClaims);
                     expect(tokenResponse.idToken).to.be.deep.eq(TEST_TOKENS.IDTOKEN_V2);
                     expect(tokenResponse.accessToken).to.be.deep.eq(TEST_TOKENS.LOGIN_AT_STRING);
-                    expect(tokenResponse.refreshToken).to.be.deep.eq(TEST_TOKENS.REFRESH_TOKEN);
-                    expect(Account.compareAccounts(tokenResponse.account, testAccount)).to.be.true;
-                    expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
                     expect(tokenResponse.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
-                    expect(tokenResponse.userRequestState).to.be.deep.eq(testState);
-                    expect(Account.compareAccounts(Client.getAccount(), testAccount)).to.be.true;
+                    expect(tokenResponse.state).to.be.deep.eq(testState);
                 });
             });
         });
@@ -473,8 +481,15 @@ describe("SPAClient.ts Class Unit Tests", () => {
         describe("Renew token", () => {
 
             let authClient: SPAClient;
+            let testAccount: IAccount;
             beforeEach(() => {
                 authClient = new SPAClient(defaultAuthConfig);
+                testAccount = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: "login.windows.net",
+                    tenantId: "testTenantId",
+                    username: "testname@contoso.com"
+                };
             });
 
             afterEach(() => {
@@ -485,240 +500,41 @@ describe("SPAClient.ts Class Unit Tests", () => {
             describe("Error cases", () => {
 
                 it("Throws error if request object is null or undefined", async () => {
-                    await expect(authClient.getValidToken(null, null, false)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
-                    await expect(authClient.getValidToken(null, null, false)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(authClient.getValidToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+                    await expect(authClient.getValidToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
                 });
 
                 it("Throws error if scopes are not included in request object", async () => {
                     await expect(authClient.getValidToken({
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: null,
-						codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-						codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-					}, null, false)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                        scopes: null,
+                        account: testAccount
+					})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if scopes are empty in request object", async () => {
-                    const tokenRequest: AuthorizationUrlRequest = {
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: [],
-						codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-						codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                    const tokenRequest: SilentFlowRequest = {
+                        scopes: [],
+                        account: testAccount
                     };
-                    await expect(authClient.getValidToken(tokenRequest, null, false)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    await expect(authClient.getValidToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
-                it("Throws error if login hasn't been completed and client id is passed as scope", async () => {
-                    const tokenRequest: AuthorizationUrlRequest = {
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-						codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-						codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-                    };
-                    await expect(authClient.getValidToken(tokenRequest, null, false)).to.be.rejectedWith(ClientAuthErrorMessage.userLoginRequiredError.desc);
-                });
-
-                it("Throws error if endpoint discovery could not be completed", async () => {
-                    const exceptionString = "Could not make a network request.";
-                    sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
-					const tokenRequest: AuthorizationUrlRequest = {
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: ["scope1"],
-						codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-						codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-                    };
-                    await expect(authClient.getValidToken(tokenRequest, null, false)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
-                });
-
-                it("Throws error if it does not find token in empty cache", async () => {
-                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-                    const tokenRequest: AuthorizationUrlRequest = {
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: ["scope1"],
-						codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-						codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-                    };
-                    await expect(authClient.getValidToken(tokenRequest, null, false)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
-                });
-
-                it("Throws error if it does not find token in non-empty cache", async () => {
-                    const testScope1 = "scope1";
+                it("Throws error if it does not find token in cache", async () => {
                     const testScope2 = "scope2";
-                    const accessTokenKey1: AccessTokenKey = {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        scopes: testScope1,
-                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
-                    };
-                    const atValue: AccessTokenValue = {
-                        accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                        idToken: "",
-                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                        tokenType: "Bearer",
-                        expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
-                        extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
-                    };
-                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey1), JSON.stringify(atValue));
+                    const testAccountEntity: AccountEntity = new AccountEntity();
+                    testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
+                    testAccountEntity.localAccountId = "testId";
+                    testAccountEntity.environment = "login.windows.net";
+                    testAccountEntity.realm = "testTenantId";
+                    testAccountEntity.username = "username@contoso.com";
+                    testAccountEntity.authorityType = "MSSTS";
+                    sinon.stub(UnifiedCacheManager.prototype, "getAccount").returns(testAccountEntity);
 					sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-					const tokenRequest: AuthorizationUrlRequest = {
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: [testScope2],
-						codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-						codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+					const tokenRequest: SilentFlowRequest = {
+                        scopes: [testScope2],
+                        account: testAccount
                     };
-                    await expect(authClient.getValidToken(tokenRequest, null, false)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
-                });
-
-                it("Throws error if it finds too many tokens in cache for the same scope and client id but no authority, resource or account is given", async () => {
-                    const testScope = "scope1";
-                    const accessTokenKey1: AccessTokenKey = {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        scopes: testScope,
-                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
-                    };
-                    const accessTokenKey2: AccessTokenKey = {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        scopes: testScope,
-                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                        homeAccountIdentifier: "homeAccountId2"
-                    };
-                    const atValue: AccessTokenValue = {
-                        accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                        idToken: "",
-                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                        tokenType: "Bearer",
-                        expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
-                        extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
-                    };
-                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey1), JSON.stringify(atValue));
-                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey2), JSON.stringify(atValue));
-                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-                    const tokenRequest: AuthorizationUrlRequest = {
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: [testScope],
-						codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-						codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-                    };
-                    await expect(authClient.getValidToken(tokenRequest, null, false)).to.be.rejectedWith(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-                });
-            });
-
-            describe("Success cases", () => {
-
-                it("Returns correct access token entry if it does not need to be renewed", async () => {
-                    const testScope1 = "scope1";
-                    const accessTokenKey1: AccessTokenKey = {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        scopes: `${testScope1} ${Constants.OFFLINE_ACCESS_SCOPE}`,
-                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
-                    };
-                    const atValue: AccessTokenValue = {
-                        accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                        idToken: "",
-                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                        tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                        expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
-                        extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
-                    };
-                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey1), JSON.stringify(atValue));
-                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-                    const tokenRequest: AuthorizationUrlRequest = {
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: [testScope1],
-						codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-						codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-                    };
-                    const tokenResponse = await authClient.getValidToken(tokenRequest, null, false);
-                    expect(tokenResponse.uniqueId).to.be.empty;
-                    expect(tokenResponse.tenantId).to.be.empty;
-                    expect(tokenResponse.scopes).to.be.deep.eq([testScope1, Constants.OFFLINE_ACCESS_SCOPE]);
-                    expect(tokenResponse.tokenType).to.be.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
-                    expect(tokenResponse.idToken).to.be.empty;
-                    expect(tokenResponse.idTokenClaims).to.be.null;
-                    expect(tokenResponse.accessToken).to.be.eq(TEST_TOKENS.ACCESS_TOKEN);
-                    expect(tokenResponse.refreshToken).to.be.eq(TEST_TOKENS.REFRESH_TOKEN);
-                    expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
-                    expect(tokenResponse.account).to.be.null;
-                    expect(tokenResponse.userRequestState).to.be.empty;
-                });
-
-                it("Returns correct entry for id and access token if it does not need to be renewed", async () => {
-                    defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
-                        switch (input) {
-                            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                            default:
-                                return input;
-                        }
-                    };
-                    defaultAuthConfig.cryptoInterface.base64Encode = (input: string): string => {
-                        switch (input) {
-                            case "123-test-uid":
-                                return "MTIzLXRlc3QtdWlk";
-                            case "456-test-utid":
-                                return "NDU2LXRlc3QtdXRpZA==";
-                            default:
-                                return input;
-                        }
-                    };
-                    authClient = new SPAClient(defaultAuthConfig);
-                    const idTokenClaims = {
-                        "ver": "2.0",
-                        "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                        "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                        "exp": "1536361411",
-                        "name": "Abe Lincoln",
-                        "preferred_username": "AbeLi@microsoft.com",
-                        "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                        "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                        "nonce": "123523",
-                    };
-                    sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-                    const testScopes = ["scope1", "openid", "profile"];
-                    const accessTokenKey1: AccessTokenKey = {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        scopes: testScopes.join(" "),
-                        authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
-                    };
-                    const atValue: AccessTokenValue = {
-                        accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                        idToken: TEST_TOKENS.IDTOKEN_V2,
-                        refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                        tokenType: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                        expiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
-                        extExpiresOnSec: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`
-                    };
-                    defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.ID_TOKEN, TEST_TOKENS.IDTOKEN_V2);
-                    defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-                    defaultAuthConfig.storageInterface.setItem(JSON.stringify(accessTokenKey1), JSON.stringify(atValue));
-					sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-					const tokenRequest: AuthorizationUrlRequest = {
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: [testScopes[0]],
-						codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-						codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-                    };
-                    const tokenResponse = await authClient.getValidToken(tokenRequest, null, false);
-
-                    // Build Test account
-                    const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
-                    const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
-                    const testAccount = Account.createAccount(idToken, clientInfo, defaultAuthConfig.cryptoInterface);
-                    testScopes.push(Constants.OFFLINE_ACCESS_SCOPE);
-                    expect(tokenResponse.uniqueId).to.be.deep.eq(idTokenClaims.oid);
-                    expect(tokenResponse.tenantId).to.be.deep.eq(idTokenClaims.tid);
-                    expect(tokenResponse.tokenType).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER);
-                    expect(tokenResponse.idTokenClaims).to.be.deep.eq(idTokenClaims);
-                    expect(tokenResponse.idToken).to.be.deep.eq(TEST_TOKENS.IDTOKEN_V2);
-                    expect(tokenResponse.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESS_TOKEN);
-                    expect(tokenResponse.refreshToken).to.be.deep.eq(TEST_TOKENS.REFRESH_TOKEN);
-                    expect(Account.compareAccounts(tokenResponse.account, testAccount)).to.be.true;
-                    expect(tokenResponse.expiresOn.getTime() / 1000 <= TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN).to.be.true;
-                    expect(tokenResponse.scopes).to.be.deep.eq(testScopes);
-                    expect(tokenResponse.userRequestState).to.be.empty;
+                    await expect(authClient.getValidToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
                 });
             });
         });
@@ -781,7 +597,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
         const postLogoutRedirectUriFunc = () => {
             return TEST_URIS.TEST_LOGOUT_URI;
 		};
-		
+
 		const testAuthority = new AadAuthority(TEST_CONFIG.validAuthority, null);
 
         const Client_functionRedirectUris = new SPAClient({
@@ -791,38 +607,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 redirectUri: redirectUriFunc,
                 postLogoutRedirectUri: postLogoutRedirectUriFunc,
             },
-            storageInterface: {
-                getCache(): InMemoryCache {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
-                },
-                setCache(): void {
-                    // do nothing
-                },
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-                },
-            },
+            storageInterface: cacheStorageMock,
             networkInterface: null,
             cryptoInterface: null,
             loggerOptions: {
@@ -835,38 +620,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: testAuthority,
             },
-            storageInterface: {
-                getCache(): InMemoryCache {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
-                },
-                setCache(): void {
-                    // do nothing
-                },
-                setItem(key: string, value: string): void {
-                    store[key] = value;
-                },
-                getItem(key: string): string {
-                    return store[key];
-                },
-                removeItem(key: string): void {
-                    delete store[key];
-                },
-                containsKey(key: string): boolean {
-                    return !!store[key];
-                },
-                getKeys(): string[] {
-                    return Object.keys(store);
-                },
-                clear(): void {
-                    store = {};
-                },
-            },
+            storageInterface: cacheStorageMock,
             networkInterface: null,
             cryptoInterface: null,
             loggerOptions: {
@@ -907,12 +661,12 @@ describe("SPAClient.ts Class Unit Tests", () => {
         let client: SPAClient;
         let idToken: IdToken;
         let clientInfo: ClientInfo;
-        let testAccount: Account;
+        let testAccount: IAccount;
         beforeEach(() => {
             store = {};
             config = {
                 authOptions: {
-                    clientId: RANDOM_TEST_GUID
+                    clientId: RANDOM_TEST_GUID,
                 },
                 systemOptions: null,
                 cryptoInterface: {
@@ -935,44 +689,13 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     async generatePkceCodes(): Promise<PkceCodes> {
                         return {
                             challenge: TEST_CONFIG.TEST_CHALLENGE,
-                            verifier: TEST_CONFIG.TEST_VERIFIER
+                            verifier: TEST_CONFIG.TEST_VERIFIER,
                         };
-                    }
+                    },
                 },
                 networkInterface: null,
-                storageInterface: {
-                    getCache(): InMemoryCache {
-                        return {
-                            accounts: {},
-                            idTokens: {},
-                            accessTokens: {},
-                            refreshTokens: {},
-                            appMetadata: {}
-                        }
-                    },
-                    setCache(): void {
-                        // do nothing
-                    },
-                    setItem(key: string, value: string): void {
-                        store[key] = value;
-                    },
-                    getItem(key: string): string {
-                        return store[key];
-                    },
-                    removeItem(key: string): void {
-                        delete store[key];
-                    },
-                    containsKey(key: string): boolean {
-                        return !!store[key];
-                    },
-                    getKeys(): string[] {
-                        return Object.keys(store);
-                    },
-                    clear(): void {
-                        store = {};
-                    }
-                },
-                loggerOptions: null
+                storageInterface: cacheStorageMock,
+                loggerOptions: null,
             };
 
             const idTokenClaims: IdTokenClaims = {
@@ -989,7 +712,12 @@ describe("SPAClient.ts Class Unit Tests", () => {
             sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
             idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
             clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.cryptoInterface);
-            testAccount = Account.createAccount(idToken, clientInfo, config.cryptoInterface);
+            testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                tenantId: idTokenClaims.tid,
+                username: idTokenClaims.preferred_username
+            };
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             client = new SPAClient(defaultAuthConfig);
         });
@@ -1000,18 +728,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
         });
 
         it("returns null if nothing is in the cache", () => {
-            expect(client.getAccount()).to.be.null;
-        });
-
-        it("returns the current account if it exists", () => {
-
-            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.false;
-        });
-
-        it("Creates account object from cached id token and client info", () => {
-            store[PersistentCacheKeys.ID_TOKEN] = idToken;
-            store[PersistentCacheKeys.CLIENT_INFO] = clientInfo;
-            expect(Account.compareAccounts(client.getAccount(), testAccount)).to.be.false;
+            expect(client.getAccount(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID)).to.be.null;
         });
     });
 });
