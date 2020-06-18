@@ -77,7 +77,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
 
             //update account
                 Log.d(TAG, "Account: " + authenticationResult.getAccount().getUsername());
-                promise.resolve(mapMSALResult(authenticationResult));
+                promise.resolve(mapAccount(authenticationResult.getAccount()));
             }
 
             @Override
@@ -160,7 +160,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
         WritableNativeMap map = new WritableNativeMap();
         //add attributes from account
         map.putString("authority", account.getAuthority());
-        map.putString("accountId", account.getId());
+        map.putString("id", account.getId());
         map.putString("tenantId", account.getTenantId());
         map.putString("username", account.getUsername());
         map.putString("idToken", (String) account.getClaims().get("id_token"));
