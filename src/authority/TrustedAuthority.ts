@@ -71,8 +71,7 @@ export class TrustedAuthority {
 
     public static getInstanceMetadata(host: string): IInstanceDiscoveryMetadata {
         if (Object.keys(this.InstanceMetadata).indexOf(host.toLowerCase()) === -1) {
-            // TODO throw a better error here
-            throw "Host not found in InstanceMetadata";
+            return null;
         }
 
         return this.InstanceMetadata[host.toLowerCase()];
