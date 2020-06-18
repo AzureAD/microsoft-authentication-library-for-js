@@ -47,13 +47,11 @@ export class PublicClientApplication extends ClientApplication {
      * until the end-user completes input of credentials.
      * @param request
      */
-    public async acquireTokenByDeviceCode(
-        request: DeviceCodeRequest
-    ): Promise<string> {
+    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<string> {
         const deviceCodeConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
         const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
-        return deviceCodeClient.acquireToken(request);
+        return deviceCodeClient.acquireToken(this.initializeRequestScopes(request) as DeviceCodeRequest);
     }
 }

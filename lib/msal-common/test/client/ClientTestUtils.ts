@@ -1,4 +1,4 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, InMemoryCache, ClientAuthError} from "../../src";
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError} from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
 import { AuthorityFactory } from "../../src";
 
@@ -35,14 +35,8 @@ export class ClientTestUtils {
                 knownAuthorities: [],
             },
             storageInterface: {
-                getCache(): InMemoryCache {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
+                getCache(): object {
+                    return {};
                 },
                 setCache(): void {
                     // do nothing
@@ -53,8 +47,9 @@ export class ClientTestUtils {
                 getItem(key: string): string {
                     return store[key];
                 },
-                removeItem(key: string): void {
+                removeItem(key: string): boolean {
                     delete store[key];
+                    return true;
                 },
                 containsKey(key: string): boolean {
                     return !!store[key];

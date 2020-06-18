@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, Account, TokenResponse, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, IAccount, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
@@ -33,8 +33,8 @@ const clearFunc = (): void => {
     return;
 };
 
-const removeFunc = (key: string): void => {
-    return;
+const removeFunc = (key: string): boolean => {
+    return true;
 };
 
 const setFunc = (key: string, value: string): void => {
@@ -103,14 +103,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 }
             },
             storageInterface: {
-                getCache: (): InMemoryCache => {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
+                getCache: (): object => {
+                    return {};
                 },
                 setCache: (): void => {
                     // dummy impl;
@@ -184,19 +178,22 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 "nonce": "123523"
             };
 
-            const testAccount = new Account(idTokenClaims.oid, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, idTokenClaims, TEST_TOKENS.IDTOKEN_V2);
-            const testTokenResponse: TokenResponse = {
+            const testAccount: IAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                tenantId: idTokenClaims.tid,
+                username: idTokenClaims.preferred_username
+            };
+            const testTokenResponse: AuthenticationResult = {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
                 scopes: ["scope1", "scope2"],
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 account: testAccount,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
-                tokenType: "Bearer",
                 uniqueId: idTokenClaims.oid,
-                userRequestState: "testState"
+                state: "testState"
 			};
 			sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
 			const acquireTokenSpy = sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);

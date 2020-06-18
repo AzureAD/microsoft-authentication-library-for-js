@@ -44,6 +44,7 @@ import { Constants,
     FramePrefix
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
+import { TrustedAuthority } from "./authority/TrustedAuthority";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -219,7 +220,7 @@ export class UserAgentApplication {
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system.telemetry, this.clientId);
 
-        AuthorityFactory.setKnownAuthorities(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
         AuthorityFactory.saveMetadataFromConfig(this.config.auth.authority, this.config.auth.authorityMetadata);
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
@@ -287,17 +288,24 @@ export class UserAgentApplication {
      * @param hash
      */
     public urlContainsHash(hash: string) {
+        this.logger.verbose("UrlContainsHash has been called");
         return UrlUtils.urlContainsHash(hash);
     }
 
     private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
+        this.logger.verbose("AuthResponseHandler has been called");
+
         if (interactionType === Constants.interactionTypeRedirect) {
+            this.logger.verbose("Interaction type is redirect");
             if (this.errorReceivedCallback) {
+                this.logger.verbose("Two callbacks were provided to handleRedirectCallback, calling success callback with response");
                 this.tokenReceivedCallback(response);
             } else if (this.authResponseCallback) {
+                this.logger.verbose("One callback was provided to handleRedirectCallback, calling authResponseCallback with response");
                 this.authResponseCallback(null, response);
             }
         } else if (interactionType === Constants.interactionTypePopup) {
+            this.logger.verbose("Interaction type is popup, resolving");
             resolve(response);
         } else {
             throw ClientAuthError.createInvalidInteractionTypeError();
@@ -305,15 +313,21 @@ export class UserAgentApplication {
     }
 
     private authErrorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: any) : void {
+        this.logger.verbose("AuthErrorHandler has been called");
+
         // set interaction_status to complete
         this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
         if (interactionType === Constants.interactionTypeRedirect) {
+            this.logger.verbose("Interaction type is redirect");
             if (this.errorReceivedCallback) {
+                this.logger.verbose("Two callbacks were provided to handleRedirectCallback, calling error callback");
                 this.errorReceivedCallback(authErr, response.accountState);
             } else {
+                this.logger.verbose("One callback was provided to handleRedirectCallback, calling authResponseCallback with error");
                 this.authResponseCallback(authErr, response);
             }
         } else if (interactionType === Constants.interactionTypePopup) {
+            this.logger.verbose("Interaction type is popup, rejecting");
             reject(authErr);
         } else {
             throw ClientAuthError.createInvalidInteractionTypeError();
@@ -326,6 +340,8 @@ export class UserAgentApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     loginRedirect(userRequest?: AuthenticationParameters): void {
+        this.logger.verbose("LoginRedirect has been called");
+
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
@@ -338,6 +354,8 @@ export class UserAgentApplication {
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     acquireTokenRedirect(userRequest: AuthenticationParameters): void {
+        this.logger.verbose("AcquireTokenRedirect has been called");
+
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
@@ -351,6 +369,8 @@ export class UserAgentApplication {
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
+        this.logger.verbose("LoginPopup has been called");
+
         // validate request
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup);
@@ -359,6 +379,7 @@ export class UserAgentApplication {
             this.acquireTokenInteractive(Constants.interactionTypePopup, true, request, resolve, reject);
         })
             .then((resp) => {
+                this.logger.verbose("Successfully logged in");
                 this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
                 return resp;
             })
@@ -499,9 +520,13 @@ export class UserAgentApplication {
      *
      */
     private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
+        this.logger.verbose("AcquireTokenHelper has been called");
+        this.logger.verbose(`Interaction type: ${interactionType}. isLoginCall: ${isLoginCall}`);
+
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
+        this.logger.verbosePii(`Serialized scopes: ${scope}`);
 
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
@@ -530,11 +555,14 @@ export class UserAgentApplication {
                 request.state,
                 request.correlationId
             );
+            this.logger.verbose("Finished building server authentication request");
 
             this.updateCacheEntries(serverAuthenticationRequest, account, isLoginCall, loginStartPage);
+            this.logger.verbose("Updating cache entries");
 
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             serverAuthenticationRequest.populateQueryParams(account, request);
+            this.logger.verbose("Query parameters populated from account");
 
             // Construct urlNavigate
             const urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
@@ -543,18 +571,26 @@ export class UserAgentApplication {
             if (interactionType === Constants.interactionTypeRedirect) {
                 if (!isLoginCall) {
                     this.cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${request.state}`, serverAuthenticationRequest.state, this.inCookie);
+                    this.logger.verbose("State cached for redirect");
+                    this.logger.verbosePii(`State cached: ${serverAuthenticationRequest.state}`);
+                } else {
+                    this.logger.verbose("Interaction type redirect but login call is true. State not cached");
                 }
             } else if (interactionType === Constants.interactionTypePopup) {
                 window.renewStates.push(serverAuthenticationRequest.state);
                 window.requestType = isLoginCall ? Constants.login : Constants.renewToken;
+                this.logger.verbose("State saved to window");
+                this.logger.verbosePii(`State saved: ${serverAuthenticationRequest.state}`);
 
                 // Register callback to capture results from server
                 this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
             } else {
+                this.logger.verbose("Invalid interaction error. State not cached");
                 throw ClientAuthError.createInvalidInteractionTypeError();
             }
 
             if (interactionType === Constants.interactionTypePopup) {
+                this.logger.verbose("Interaction type is popup. Generating popup window");
                 // Generate a popup window
                 try {
                     popUpWindow = this.openPopup(urlNavigate, "msal", Constants.popUpWidth, Constants.popUpHeight);
@@ -636,6 +672,8 @@ export class UserAgentApplication {
      * @param request
      */
     ssoSilent(request: AuthenticationParameters): Promise<AuthResponse> {
+        this.logger.verbose("ssoSilent has been called");
+        
         // throw an error on an empty request
         if (!request) {
             throw ClientConfigurationError.createEmptyRequestError();
@@ -1004,6 +1042,7 @@ export class UserAgentApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      */
     logout(correlationId?: string): void {
+        this.logger.verbose("Logout has been called");
         this.logoutAsync(correlationId);
     }
 
@@ -1028,15 +1067,28 @@ export class UserAgentApplication {
 
             const correlationIdParam = `client-request-id=${requestCorrelationId}`;
 
-            const postLogoutQueryParam = this.getPostLogoutRedirectUri()
-                ? `&post_logout_redirect_uri=${encodeURIComponent(this.getPostLogoutRedirectUri())}`
-                : "";
+            let postLogoutQueryParam: string;
+            if (this.getPostLogoutRedirectUri()) {
+                postLogoutQueryParam = `&post_logout_redirect_uri=${encodeURIComponent(this.getPostLogoutRedirectUri())}`;
+                this.logger.verbose("redirectUri found and set");
+            } else {
+                postLogoutQueryParam = "";
+                this.logger.verbose("No redirectUri set for app. postLogoutQueryParam is empty");
+            }
 
-            const urlNavigate = this.authorityInstance.EndSessionEndpoint
-                ? `${this.authorityInstance.EndSessionEndpoint}?${correlationIdParam}${postLogoutQueryParam}`
-                : `${this.authority}oauth2/v2.0/logout?${correlationIdParam}${postLogoutQueryParam}`;
+            let urlNavigate: string;
+            if (this.authorityInstance.EndSessionEndpoint) {
+                urlNavigate = `${this.authorityInstance.EndSessionEndpoint}?${correlationIdParam}${postLogoutQueryParam}`;
+                this.logger.verbose("EndSessionEndpoint found and urlNavigate set");
+                this.logger.verbosePii(`urlNavigate set to: ${this.authorityInstance.EndSessionEndpoint}`);
+            } else {
+                urlNavigate = `${this.authority}oauth2/v2.0/logout?${correlationIdParam}${postLogoutQueryParam}`;
+                this.logger.verbose("No endpoint, urlNavigate set to default");
+            }
 
             this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, true);
+
+            this.logger.verbose("Navigating window to urlNavigate");
             this.navigateWindow(urlNavigate);
         } catch (error) {
             this.telemetryManager.stopAndFlushApiEvent(requestCorrelationId, apiEvent, false, error.errorCode);
@@ -1049,6 +1101,7 @@ export class UserAgentApplication {
      * @ignore
      */
     protected clearCache(): void {
+        this.logger.verbose("Clearing cache");
         window.renewStates = [];
         const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
         for (let i = 0; i < accessTokenItems.length; i++) {
@@ -1057,6 +1110,7 @@ export class UserAgentApplication {
         this.cacheStorage.resetCacheItems();
         // state not being sent would mean this call may not be needed; check later
         this.cacheStorage.clearMsalCookie();
+        this.logger.verbose("Cache cleared");
     }
 
     /**
@@ -1066,11 +1120,13 @@ export class UserAgentApplication {
      * @param accessToken
      */
     protected clearCacheForScope(accessToken: string) {
+        this.logger.verbose("Clearing access token from cache");
         const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
         for (let i = 0; i < accessTokenItems.length; i++) {
             const token = accessTokenItems[i];
             if (token.value.accessToken === accessToken) {
                 this.cacheStorage.removeItem(JSON.stringify(token.key));
+                this.logger.verbosePii(`Access token removed: ${token.key}`);
             }
         }
     }
@@ -2173,10 +2229,14 @@ export class UserAgentApplication {
      * @ignore
      */
     private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, isLoginCall: boolean, loginStartPage?: string) {
+        // Cache Request Originator Page
+        if (loginStartPage) {
+            this.cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${serverAuthenticationRequest.state}`, loginStartPage, this.inCookie);
+        }
+
         // Cache account and authority
         if (isLoginCall) {
-            // Cache the state, nonce, and login request data
-            this.cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${serverAuthenticationRequest.state}`, loginStartPage, this.inCookie);
+            // Cache the state
             this.cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}${Constants.resourceDelimiter}${serverAuthenticationRequest.state}`, serverAuthenticationRequest.state, this.inCookie);
         } else {
             this.setAccountCache(account, serverAuthenticationRequest.state);

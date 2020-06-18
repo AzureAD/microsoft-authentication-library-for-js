@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { IAccount } from "../account/IAccount";
+import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -13,10 +14,8 @@ import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
  * - forceRefresh: Forces silent requests to make network calls if true
  * - correlationId: GUID set by the user to trace the request
  */
-export type SilentFlowRequest = {
-    scopes: Array<string>;
-    authority?: string;
-    account?: AccountEntity;
+export type SilentFlowRequest = BaseAuthRequest & {
+    account: IAccount;
     forceRefresh?: boolean;
     correlationId?: string;
 };

@@ -69,7 +69,7 @@ export const ClientConfigurationErrorMessage: Record<string, IClientConfiguratio
     },
     untrustedAuthority: {
         code: "untrusted_authority",
-        desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
+        desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter or set validateAuthority=false."
     },
     b2cAuthorityUriInvalidPath: {
         code: "b2c_authority_uri_invalid_path",
@@ -185,9 +185,9 @@ export class ClientConfigurationError extends ClientAuthError {
             ClientConfigurationErrorMessage.invalidAuthorityType.desc);
     }
 
-    static createUntrustedAuthorityError(): ClientConfigurationError {
+    static createUntrustedAuthorityError(host: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
-            ClientConfigurationErrorMessage.untrustedAuthority.desc);
+            `${ClientConfigurationErrorMessage.untrustedAuthority.desc} Provided Authority: ${host}`);
     }
 
     static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
