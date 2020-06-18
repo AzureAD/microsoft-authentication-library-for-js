@@ -2,20 +2,27 @@ import { Constants } from "../utils/Constants";
 import { INetworkModule } from "../network/INetworkModule";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
 import { NetworkResponse } from "../network/NetworkManager";
+import { InstanceMetadataType } from "./InstanceMetadataType";
+import { IInstanceDiscoveryMetadata } from "./IInstanceDiscoveryMetadata";
 
 export class TrustedAuthority {
-    private static TrustedHostList: Array<string> = [];
+    private static InstanceMetadata: InstanceMetadataType = {};
 
     /**
      * 
      * @param validateAuthority 
      * @param knownAuthorities 
      */
-    public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>){
+    public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, instanceMetadata: Array<IInstanceDiscoveryMetadata>) {
+
         if (!this.getTrustedHostList().length){
-            knownAuthorities.forEach(function(authority) {
-                TrustedAuthority.TrustedHostList.push(authority.toLowerCase());
-            });
+            if (knownAuthorities.length && instanceMetadata.length) {
+                // TODO Put better error here
+                throw "Cannot pass both knownAuthorities and instanceMetadata";
+            }
+
+            this.createInstanceMetadataFromKnownAuthorities(knownAuthorities);
+            this.saveInstanceMetadata(instanceMetadata);            
         }
     }
 
@@ -36,16 +43,39 @@ export class TrustedAuthority {
     public static async setTrustedAuthoritiesFromNetwork(networkInterface: INetworkModule): Promise<void> {
         const response = await this.getAliases(networkInterface);
         const metadata = response.body.metadata;
-        metadata.forEach(function(entry: any){
-            const authorities: Array<string> = entry.aliases;
-            authorities.forEach(function(authority: string) {
-                TrustedAuthority.TrustedHostList.push(authority.toLowerCase());
-            });
-        });
+        this.saveInstanceMetadata(metadata);
     } 
 
+    public static saveInstanceMetadata(metadata: Array<IInstanceDiscoveryMetadata>): void {
+        metadata.forEach(function(entry: IInstanceDiscoveryMetadata){
+            const authorities = entry.aliases;
+            authorities.forEach(function(authority) {
+                TrustedAuthority.InstanceMetadata[authority.toLowerCase()] = entry;
+            });
+        });
+    }
+
+    public static createInstanceMetadataFromKnownAuthorities(knownAuthorities: Array<string>): void {
+        knownAuthorities.forEach(authority => {
+            this.InstanceMetadata[authority.toLowerCase()] = {
+                preferred_cache: authority.toLowerCase(),
+                preferred_network: authority.toLowerCase(),
+                aliases: [authority.toLowerCase()]
+            };
+        });
+    }
+
     public static getTrustedHostList(): Array<string> {
-        return this.TrustedHostList;
+        return Object.keys(this.InstanceMetadata);
+    }
+
+    public static getInstanceMetadata(host: string): IInstanceDiscoveryMetadata {
+        if (Object.keys(this.InstanceMetadata).indexOf(host.toLowerCase()) === -1) {
+            // TODO throw a better error here
+            throw "Host not found in InstanceMetadata";
+        }
+
+        return this.InstanceMetadata[host.toLowerCase()];
     }
 
     /**
@@ -53,6 +83,6 @@ export class TrustedAuthority {
      * @param host 
      */
     public static IsInTrustedHostList(host: string): boolean {
-        return this.TrustedHostList.indexOf(host.toLowerCase()) > -1;
+        return Object.keys(this.InstanceMetadata).indexOf(host.toLowerCase()) > -1;
     }
 }

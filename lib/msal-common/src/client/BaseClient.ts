@@ -70,7 +70,7 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.instanceMetadata);
 
         this.defaultAuthority = this.config.authOptions.authority;
     }
