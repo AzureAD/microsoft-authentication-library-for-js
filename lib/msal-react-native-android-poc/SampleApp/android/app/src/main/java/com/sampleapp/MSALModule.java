@@ -25,7 +25,6 @@ public class MSALModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
     private ISingleAccountPublicClientApplication publicClientApplication;
-    private IAccount mAccount;
 
     public MSALModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -78,7 +77,6 @@ public class MSALModule extends ReactContextBaseJavaModule {
 
             //update account
                 Log.d(TAG, "Account: " + authenticationResult.getAccount().getUsername());
-                mAccount = authenticationResult.getAccount();
                 promise.resolve(mapMSALResult(authenticationResult));
             }
 
@@ -104,39 +102,38 @@ public class MSALModule extends ReactContextBaseJavaModule {
      */
     @ReactMethod
     public void getAccount(Promise promise) {
-        //first load account and get status string
-        String message = loadAccount();
-        if (mAccount == null) {
-            promise.reject("loadaccountnull", message);
+        //if account is null, either no account is signed in or an error occured
+        IAccount account = loadAccount();
+        if (account == null) {
+            promise.reject("loadaccountnull", "No signed in account, or exception. Check Android log for details.");
         } else {
-            promise.resolve(mapAccount(mAccount));
+            promise.resolve(mapAccount(account));
         }
     }
 
     /**
-     * loadAccount(): will load a currently signed in account. Called in constructor.
-     * Returns a String with a message of the status (possibly an exception)
+     * loadAccount(): will load a currently signed in account. 
+     * Returns an IAccount if an account exists; returns null if no account is signed in or an error occurs
      */
 
-    private String loadAccount() {
+    private IAccount loadAccount() {
         if (publicClientApplication == null) {
-            return "publicClientApplication is null";
+            return null;
         }
-        String message = "";
         try {
             ICurrentAccountResult result = publicClientApplication.getCurrentAccount();
             IAccount currAccount = result.getCurrentAccount();
             if (currAccount == null) {
-                message = "No account currently signed in";
+                Log.d(TAG, "No account currently signed in.");
             } else {
-                mAccount = currAccount;
-                message = "Retrieved signed in account";
+                Log.d(TAG, "Retrieved account.");
             }
+            return currAccount;
         } catch (Exception e) {
-            message = "Error while loading account: " + e.toString();
-            Log.d(TAG, message);
+            Log.d(TAG, "Error loading account: " + e.toString());
+            return null;
         }
-        return message;
+        
     }
 
     /**
