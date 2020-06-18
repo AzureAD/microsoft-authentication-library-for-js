@@ -3,8 +3,6 @@
  * Licensed under the MIT License.
  */
 import {
-    ICacheStorage,
-    InMemoryCache,
     CredentialType,
     CacheSchemaType,
     CacheHelper,
@@ -12,19 +10,24 @@ import {
     AccessTokenEntity,
     RefreshTokenEntity,
     IdTokenEntity,
-    AppMetadataEntity
+    AppMetadataEntity,
+    CacheManager
 } from '@azure/msal-common';
 import { CacheOptions } from '../config/Configuration';
+import { Deserializer } from "./serializer/Deserializer";
+import { Serializer } from "./serializer/Serializer";
+import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
-export class Storage implements ICacheStorage {
+export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.
     private cacheConfig: CacheOptions;
     private inMemoryCache: InMemoryCache;
 
     constructor(cacheConfig: CacheOptions) {
+        super();
         this.cacheConfig = cacheConfig;
         if (this.cacheConfig.cacheLocation! === 'fileCache')
             this.inMemoryCache = this.cacheConfig.cacheInMemory!;
@@ -55,15 +58,8 @@ export class Storage implements ICacheStorage {
     setItem(
         key: string,
         value: string | object,
-        type?: string,
-        inMemory?: boolean
+        type?: string
     ): void {
-        // check memory type
-        if (!inMemory) {
-            console.log("Node doesn't support granular cache persistence yet");
-            return;
-        }
-
         // read inMemoryCache
         const cache = this.getCache() as InMemoryCache;
 
@@ -112,13 +108,7 @@ export class Storage implements ICacheStorage {
      * @param type
      * @param inMemory
      */
-    getItem(key: string, type?: string, inMemory?: boolean): string | object {
-        // check memory type
-        if (!inMemory) {
-            console.log("Node doesn't support granular cache persistence yet");
-            return {};
-        }
-
+    getItem(key: string, type?: string): string | object {
         // read inMemoryCache
         const cache = this.getCache() as InMemoryCache;
 
@@ -132,20 +122,15 @@ export class Storage implements ICacheStorage {
                 let credential = null;
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
-                        credential =
-                            (cache.idTokens[key] as IdTokenEntity) || null;
+                        credential = (cache.idTokens[key] as IdTokenEntity) || null;
                         break;
                     }
                     case CredentialType.ACCESS_TOKEN: {
-                        credential =
-                            (cache.accessTokens[key] as AccessTokenEntity) ||
-                            null;
+                        credential = (cache.accessTokens[key] as AccessTokenEntity) || null;
                         break;
                     }
                     case CredentialType.REFRESH_TOKEN: {
-                        credential =
-                            (cache.refreshTokens[key] as RefreshTokenEntity) ||
-                            null;
+                        credential = (cache.refreshTokens[key] as RefreshTokenEntity) || null;
                         break;
                     }
                 }
@@ -167,13 +152,7 @@ export class Storage implements ICacheStorage {
      * @param type
      * @param inMemory
      */
-    removeItem(key: string, type?: string, inMemory?: boolean): boolean {
-        // check memory type
-        if (!inMemory) {
-            console.log("Node doesn't support granular cache persistence yet");
-            return false;
-        }
-
+    removeItem(key: string, type?: string): boolean {
         // read inMemoryCache
         const cache = this.getCache() as InMemoryCache;
         let result: boolean = false;
@@ -246,13 +225,7 @@ export class Storage implements ICacheStorage {
     /**
      * Gets all keys in window.
      */
-    getKeys(inMemory?: boolean): string[] {
-        // check memory type
-        if (!inMemory) {
-            console.log("Node doesn't support granular cache persistence yet");
-            return [];
-        }
-
+    getKeys(): string[] {
         // read inMemoryCache
         const cache = this.getCache();
         let cacheKeys: string[] = [];
@@ -270,13 +243,7 @@ export class Storage implements ICacheStorage {
     /**
      * Clears all cache entries created by MSAL (except tokens).
      */
-    clear(inMemory?: boolean): void {
-        // check memory type
-        if (!inMemory) {
-            console.log("Node doesn't support granular cache persistence yet");
-            return;
-        }
-
+    clear(): void {
         // read inMemoryCache
         const cache = this.getCache();
 
@@ -286,5 +253,23 @@ export class Storage implements ICacheStorage {
                 this.removeItem(internalKey);
             });
         });
+    }
+
+    /**
+     * Initialize in memory cache from an exisiting cache vault
+     * @param cache
+     */
+    static generateInMemoryCache(cache: string): InMemoryCache {
+        return Deserializer.deserializeAllCache(
+            Deserializer.deserializeJSONBlob(cache)
+        );
+    }
+
+    /**
+     * retrieves the final JSON
+     * @param inMemoryCache
+     */
+    static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {
+        return Serializer.serializeAllCache(inMemoryCache);
     }
 }

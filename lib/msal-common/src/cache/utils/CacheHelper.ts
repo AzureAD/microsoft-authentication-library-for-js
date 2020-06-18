@@ -11,7 +11,7 @@ import {
 } from "../../utils/Constants";
 import { IAccount } from "../../account/IAccount";
 import { AccountEntity } from "../entities/AccountEntity";
-import { Credential } from "../entities/Credential";
+import { CredentialEntity } from "../entities/CredentialEntity";
 import { ScopeSet } from "../../request/ScopeSet";
 import { TrustedAuthority } from "../../authority/TrustedAuthority";
 
@@ -62,7 +62,7 @@ export class CacheHelper {
      * @param homeAccountId
      */
     static matchHomeAccountId(
-        entity: AccountEntity | Credential,
+        entity: AccountEntity | CredentialEntity,
         homeAccountId: string
     ): boolean {
         return homeAccountId === entity.homeAccountId;
@@ -75,7 +75,7 @@ export class CacheHelper {
      * // TODO: Add Cloud specific aliases based on current cloud
      */
     static matchEnvironment(
-        entity: AccountEntity | Credential,
+        entity: AccountEntity | CredentialEntity,
         environment: string
     ): boolean {
         if (
@@ -93,7 +93,7 @@ export class CacheHelper {
      * @param entity
      * @param credentialType
      */
-    static matchCredentialType(entity: Credential, credentialType: string): boolean {
+    static matchCredentialType(entity: CredentialEntity, credentialType: string): boolean {
         return credentialType.toLowerCase() === entity.credentialType.toLowerCase();
     }
 
@@ -102,7 +102,7 @@ export class CacheHelper {
      * @param entity
      * @param clientId
      */
-    static matchClientId(entity: Credential, clientId: string): boolean {
+    static matchClientId(entity: CredentialEntity, clientId: string): boolean {
         return clientId === entity.clientId;
     }
 
@@ -111,7 +111,7 @@ export class CacheHelper {
      * @param entity
      * @param realm
      */
-    static matchRealm(entity: AccountEntity | Credential, realm: string): boolean {
+    static matchRealm(entity: AccountEntity | CredentialEntity, realm: string): boolean {
         return realm === entity.realm;
     }
 
@@ -120,7 +120,7 @@ export class CacheHelper {
      * @param entity
      * @param target
      */
-    static matchTarget(entity: Credential, target: string): boolean {
+    static matchTarget(entity: CredentialEntity, target: string): boolean {
         const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target);
         const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target);
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);

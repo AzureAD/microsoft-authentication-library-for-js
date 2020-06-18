@@ -4,8 +4,8 @@
  */
 
 import { EntitySerializer } from "./EntitySerializer";
-import { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, JsonCache, InMemoryCache } from "../utils/CacheTypes";
-import { StringDict } from "../../utils/MsalTypes";
+import { StringDict, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
+import { InMemoryCache, JsonCache } from "./SerializerTypes";
 
 export class Serializer {
 
@@ -22,9 +22,9 @@ export class Serializer {
      * @param accCache
      */
     static serializeAccounts(accCache: AccountCache): StringDict {
-        const accounts = {};
+        const accounts: StringDict = {};
         Object.keys(accCache).map(function (key) {
-            accounts[key] = EntitySerializer.mapAccountKeys(accCache, key);
+            accounts[key] = JSON.stringify(EntitySerializer.mapAccountKeys(accCache, key));
         });
 
         return accounts;
@@ -35,9 +35,9 @@ export class Serializer {
      * @param idTCache
      */
     static serializeIdTokens(idTCache: IdTokenCache): StringDict{
-        const idTokens = {};
+        const idTokens: StringDict = {};
         Object.keys(idTCache).map(function (key) {
-            idTokens[key] = EntitySerializer.mapIdTokenKeys(idTCache, key);
+            idTokens[key] = JSON.stringify(EntitySerializer.mapIdTokenKeys(idTCache, key));
         });
 
         return idTokens;
@@ -48,9 +48,9 @@ export class Serializer {
      * @param atCache
      */
     static serializeAccessTokens(atCache: AccessTokenCache): StringDict {
-        const accessTokens = {};
+        const accessTokens: StringDict = {};
         Object.keys(atCache).map(function (key) {
-            accessTokens[key] = EntitySerializer.mapAccessTokenKeys(atCache, key);
+            accessTokens[key] = JSON.stringify(EntitySerializer.mapAccessTokenKeys(atCache, key));
         });
 
         return accessTokens;
@@ -60,10 +60,10 @@ export class Serializer {
      * Serialize refreshTokens
      * @param rtCache
      */
-    static serializeRefreshTokens(rtCache: RefreshTokenCache): StringDict{
-        const refreshTokens = {};
+    static serializeRefreshTokens(rtCache: RefreshTokenCache): StringDict {
+        const refreshTokens: StringDict = {};
         Object.keys(rtCache).map(function (key) {
-            refreshTokens[key] = EntitySerializer.mapRefreshTokenKeys(rtCache, key);
+            refreshTokens[key] = JSON.stringify(EntitySerializer.mapRefreshTokenKeys(rtCache, key));
         });
 
         return refreshTokens;
@@ -74,9 +74,9 @@ export class Serializer {
      * @param amdtCache
      */
     static serializeAppMetadata(amdtCache: AppMetadataCache): StringDict {
-        const appMetadata = {};
+        const appMetadata: StringDict = {};
         Object.keys(amdtCache).map(function (key) {
-            appMetadata[key] = EntitySerializer.mapAppMetadataKeys(amdtCache, key);
+            appMetadata[key] = JSON.stringify(EntitySerializer.mapAppMetadataKeys(amdtCache, key));
         });
 
         return appMetadata;
