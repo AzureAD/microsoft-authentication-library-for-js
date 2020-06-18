@@ -788,6 +788,7 @@ export class UserAgentApplication {
             // resolve/reject based on cacheResult
             if (cacheResultResponse) {
                 this.logger.verbose("Token found in cache lookup");
+                this.logger.verbosePii(`Scopes found: ${JSON.stringify(cacheResultResponse.scopes)}`);
                 resolve(cacheResultResponse);
                 return null;
             }
@@ -912,7 +913,6 @@ export class UserAgentApplication {
 
             return popupWindow;
         } catch (e) {
-            this.logger.error("Error opening popup " + e.message);
             this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             throw ClientAuthError.createPopupWindowError(e.toString());
         }
@@ -1155,8 +1155,7 @@ export class UserAgentApplication {
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
     private processCallBack(hash: string, stateInfo: ResponseStateInfo, parentCallback?: Function): void {
-        this.logger.info("Processing the callback from redirect response");
-        this.logger.verbose("ProcessCallBack has been called");
+        this.logger.info("ProcessCallBack has been called. Processing callback from redirect response");
 
         // get the state info from the hash
         if (!stateInfo) {
@@ -1192,19 +1191,19 @@ export class UserAgentApplication {
                     response.tokenType = ServerHashParamKeys.ID_TOKEN;
                 }
                 if (!parentCallback) {
-                    this.logger.verbose("No callbacks provided, setting redirectResponse to response");
+                    this.logger.verbose("Setting redirectResponse");
                     this.redirectResponse = response;
                     return;
                 }
             } else if (!parentCallback) {
-                this.logger.verbose("Response is null and no callbacks provided, building redirectResponse");
+                this.logger.verbose("Response is null, setting redirectResponse with state");
                 this.redirectResponse = buildResponseStateOnly(accountState);
                 this.redirectError = authErr;
                 this.cacheStorage.resetTempCacheItems(stateInfo.state);
                 return;
             }
 
-            this.logger.verbose("Calling callback provided");
+            this.logger.verbose("Calling callback provided to processCallback");
             parentCallback(response, authErr);
         } catch (err) {
             this.logger.error("Error occurred in token received callback function: " + err);
@@ -1251,11 +1250,10 @@ export class UserAgentApplication {
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
         const stateInfo = this.getResponseState(hash);
-        this.logger.verbose("Ensured window.parent is equal to window");
-
+        
         // if set to navigate to loginRequest page post login
         if (this.config.auth.navigateToLoginRequestUrl && window.parent === window) {
-            this.logger.verbose("Navigation to login request url after login turned on");
+            this.logger.verbose("Window.parent is equal to window, not in popup or iframe. Navigation to login request url after login turned on");
             const loginRequestUrl = this.cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${stateInfo.state}`, this.inCookie);
 
             // Redirect to home page if login request url is null (real null or the string null)
@@ -1343,10 +1341,13 @@ export class UserAgentApplication {
             const statesInParentContext = window.renewStates;
             for (let i = 0; i < statesInParentContext.length; i++) {
                 if (statesInParentContext[i] === stateResponse.state) {
-                    this.logger.verbose("StateMatch set to true");
+                    this.logger.verbose("Matching state found for request");
                     stateResponse.stateMatch = true;
                     break;
                 }
+            }
+            if (!stateResponse.stateMatch) {
+                this.logger.verbose("Matching state not found for request");
             }
         }
 
@@ -1447,7 +1448,7 @@ export class UserAgentApplication {
             // If expiration is within offset, it will force renew
             const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
             if (expired && (expired > TimeUtils.now() + offset)) {
-                this.logger.verbose("Token is not expired, renewing token");
+                this.logger.verbose("Token expiration is within offset, renewing token");
                 const idTokenObj = new IdToken(accessTokenCacheItem.value.idToken);
                 if (!account) {
                     account = this.getAccount();
