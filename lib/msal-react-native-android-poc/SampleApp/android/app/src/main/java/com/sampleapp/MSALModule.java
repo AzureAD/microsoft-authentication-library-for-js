@@ -58,8 +58,9 @@ public class MSALModule extends ReactContextBaseJavaModule {
         if (!scopesValue.isEmpty()) {
             publicClientApplication.signIn(getCurrentActivity(), null, scopesValue.toLowerCase().split(" "), getLoginCallback(promise));
         } else {
-            //using the code, message parameters; will change code in future when we know what that is
-            promise.reject("scopescode", "Scopes is empty.");
+            //the default is User.Read
+            String[] array = {"User.Read"};
+            publicClientApplication.signIn(getCurrentActivity(), null, array, getLoginCallback(promise));
         }
     }
 
