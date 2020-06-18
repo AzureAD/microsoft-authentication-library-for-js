@@ -104,16 +104,22 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
+    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string): AuthenticationResult {
 
         // create an idToken object (not entity)
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
+        // token nonce check (TODO: Add a warning if no nonce is given?)
+        if (!StringUtils.isEmpty(cachedNonce)) {
+            if (idTokenObj.claims.nonce !== cachedNonce) {
+                throw ClientAuthError.createNonceMismatchError();
+            }
+        }
+
         // save the response tokens
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
-        this.uCacheManager.saveCacheRecord(cacheRecord);
-
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
+        this.uCacheManager.saveCacheRecord(cacheRecord, responseScopes);
 
         const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
@@ -123,6 +129,7 @@ export class ResponseHandler {
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
+            fromCache: true,
             expiresOn: new Date(cacheRecord.accessToken.expiresOn),
             extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
             familyId: serverTokenResponse.foci || null,
@@ -181,7 +188,7 @@ export class ResponseHandler {
         );
 
         // AccessToken
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
         // Expiration calculation
         const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
         const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;

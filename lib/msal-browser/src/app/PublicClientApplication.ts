@@ -24,7 +24,6 @@ import {
     CacheSchemaType,
     AuthenticationResult,
     SilentFlowRequest,
-    AccountEntity,
     IAccount
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
@@ -270,25 +269,7 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
-        try {
-            // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
-
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
-
-            // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
-
-            // Create login url.
-            const navigateUrl = await this.authModule.createLoginUrl(validRequest);
-
-            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.browserCrypto);
-        } catch (e) {
-            this.browserStorage.cleanRequest();
-            throw e;
-        }
+        return this.acquireTokenRedirect(this.generateLoginRequest(request));
     }
 
     /**
@@ -313,7 +294,7 @@ export class PublicClientApplication {
             const interactionHandler = new RedirectHandler(this.authModule, this.browserStorage);
 
             // Create acquire token url.
-            const navigateUrl = await this.authModule.createAcquireTokenUrl(validRequest);
+            const navigateUrl = await this.authModule.createUrl(validRequest);
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.browserCrypto);
@@ -335,22 +316,7 @@ export class PublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        try {
-            // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
-
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
-
-            // Create login url, which will by default append the client id scope to the call.
-            const navigateUrl = await this.authModule.createLoginUrl(validRequest);
-
-            // Acquire token with popup
-            return await this.popupTokenHelper(navigateUrl, authCodeRequest);
-        } catch (e) {
-            this.browserStorage.cleanRequest();
-            throw e;
-        }
+        return this.acquireTokenPopup(this.generateLoginRequest(request));
     }
 
     /**
@@ -369,7 +335,7 @@ export class PublicClientApplication {
             const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
 
             // Create acquire token url.
-            const navigateUrl = await this.authModule.createAcquireTokenUrl(validRequest);
+            const navigateUrl = await this.authModule.createUrl(validRequest);
 
             // Acquire token with popup
             return await this.popupTokenHelper(navigateUrl, authCodeRequest);
@@ -441,7 +407,7 @@ export class PublicClientApplication {
         const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
 
         // Create authorize request url
-        const navigateUrl = await this.authModule.createLoginUrl(silentRequest);
+        const navigateUrl = await this.authModule.createUrl(silentRequest);
 
         return this.silentTokenHelper(navigateUrl, authCodeRequest, scopeString);
     }
@@ -480,7 +446,7 @@ export class PublicClientApplication {
                 const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentAuthUrlRequest);
 
                 // Create authorize request url
-                const navigateUrl = await this.authModule.createAcquireTokenUrl(silentAuthUrlRequest);
+                const navigateUrl = await this.authModule.createUrl(silentAuthUrlRequest);
 
                 // Get scopeString for iframe ID
                 const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
@@ -591,6 +557,20 @@ export class PublicClientApplication {
     }
 
     /**
+     * Generates a request that will contain the openid and profile scopes.
+     * @param request 
+     */
+    private generateLoginRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+        const loginRequest = { ...request };
+        if (!loginRequest.scopes) {
+            loginRequest.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE];
+        } else {
+            loginRequest.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE);
+        }
+        return loginRequest;
+    }
+
+    /**
      * Helper to validate app environment before making a request.
      */
     private preflightRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
@@ -601,7 +581,7 @@ export class PublicClientApplication {
         if (this.interactionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
-
+        
         return this.initializeRequest(request);
     }
 

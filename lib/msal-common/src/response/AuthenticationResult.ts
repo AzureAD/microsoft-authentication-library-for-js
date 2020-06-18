@@ -17,6 +17,7 @@ export class AuthenticationResult {
     idToken: string;
     idTokenClaims: StringDict;
     accessToken: string;
+    fromCache: boolean;
     expiresOn: Date;
     extExpiresOn?: Date;
     state?: string;
