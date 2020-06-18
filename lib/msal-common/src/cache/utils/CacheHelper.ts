@@ -6,7 +6,6 @@
 import {
     Separators,
     CredentialType,
-    EnvironmentAliases,
     Constants,
     APP_META_DATA,
 } from "../../utils/Constants";
@@ -14,6 +13,7 @@ import { IAccount } from "../../account/IAccount";
 import { AccountEntity } from "../entities/AccountEntity";
 import { Credential } from "../entities/Credential";
 import { ScopeSet } from "../../request/ScopeSet";
+import { TrustedAuthority } from "../../authority/TrustedAuthority";
 
 export class CacheHelper {
     /**
@@ -79,8 +79,8 @@ export class CacheHelper {
         environment: string
     ): boolean {
         if (
-            EnvironmentAliases.includes(environment) &&
-            EnvironmentAliases.includes(entity.environment)
+            TrustedAuthority.getInstanceMetadata(environment) &&
+            TrustedAuthority.getInstanceMetadata(entity.environment)
         ) {
             return true;
         }

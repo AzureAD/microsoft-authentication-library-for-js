@@ -24,7 +24,7 @@ import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheHelper } from "../cache/utils/CacheHelper";
-import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
 
 /**
  * Class that handles response parsing.
@@ -174,7 +174,7 @@ export class ResponseHandler {
         );
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
+        const env = TrustedAuthority.getInstanceMetadata(reqEnvironment) ? TrustedAuthority.getInstanceMetadata(reqEnvironment).preferred_cache : reqEnvironment;
 
         // IdToken
         const cachedIdToken = IdTokenEntity.createIdTokenEntity(

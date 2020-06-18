@@ -6,8 +6,6 @@
 import {
     Separators,
     CacheAccountType,
-    EnvironmentAliases,
-    PreferredCacheEnvironment,
     CacheType,
 } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
@@ -16,6 +14,7 @@ import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
 import { CacheHelper } from "../utils/CacheHelper";
+import { TrustedAuthority } from "../../authority/TrustedAuthority";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs)
@@ -100,8 +99,8 @@ export class AccountEntity {
 
         const reqEnvironment =
             authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        account.environment = EnvironmentAliases.includes(reqEnvironment)
-            ? PreferredCacheEnvironment
+        account.environment = TrustedAuthority.getInstanceMetadata(reqEnvironment)
+            ? TrustedAuthority.getInstanceMetadata(reqEnvironment).preferred_cache
             : reqEnvironment;
 
         account.realm = idToken.claims.tid;
