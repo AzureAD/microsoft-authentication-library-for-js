@@ -28,7 +28,7 @@ export abstract class BaseClient {
     protected cryptoUtils: ICrypto;
 
     // Storage Interface
-    protected cacheStorage: CacheManager;
+    protected cacheManager: CacheManager;
 
     // Network Interface
     protected networkClient: INetworkModule;
@@ -47,7 +47,7 @@ export abstract class BaseClient {
         this.cryptoUtils = this.config.cryptoInterface;
 
         // Initialize storage interface
-        this.cacheStorage = this.config.storageInterface;
+        this.cacheManager = this.config.storageInterface;
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
