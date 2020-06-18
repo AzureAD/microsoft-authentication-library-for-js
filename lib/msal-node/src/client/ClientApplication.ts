@@ -15,7 +15,7 @@ import {
     AuthorityFactory,
     ClientAuthError,
     Constants,
-    B2cAuthority,
+    TrustedAuthority,
     IAccount,
     BaseAuthRequest
 } from '@azure/msal-common';
@@ -44,7 +44,7 @@ export abstract class ClientApplication {
 
         this.cryptoProvider = new CryptoProvider();
         this.storage = new Storage(this.config.cache!);
-        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.instanceMetadata!);
         this.cacheContext = new CacheContext();
     }
 
