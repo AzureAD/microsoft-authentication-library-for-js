@@ -24,7 +24,7 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
-import { ProtocolUtils, LibraryStateObject } from "../utils/ProtocolUtils";
+import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
 
 /**
  * Class that handles response parsing.
@@ -110,8 +110,12 @@ export class ResponseHandler {
         }
 
         // save the response tokens
-        const requestStateObj = ProtocolUtils.parseRequestState(cachedState, this.cryptoObj);
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj.libraryState);
+        let requestStateObj: RequestStateObject = null;
+        if (!StringUtils.isEmpty(cachedState)) {
+            requestStateObj = ProtocolUtils.parseRequestState(cachedState, this.cryptoObj); 
+        }
+
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
         this.cacheStorage.saveCacheRecord(cacheRecord, responseScopes);
 
@@ -127,7 +131,7 @@ export class ResponseHandler {
             expiresOn: new Date(cacheRecord.accessToken.expiresOn),
             extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
             familyId: serverTokenResponse.foci || null,
-            state: requestStateObj.userRequestState
+            state: requestStateObj ? requestStateObj.userRequestState : ""
         };
 
         return authenticationResult;
@@ -184,15 +188,13 @@ export class ResponseHandler {
 
         // AccessToken
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
+
         // Expiration calculation
         const currentTime = TimeUtils.nowSeconds();
-        let tokenExpirationSeconds = serverTokenResponse.expires_in;
-        if (!libraryState) {
-            tokenExpirationSeconds += currentTime;
-        } else {
-            console.log(libraryState.ts);
-            tokenExpirationSeconds += libraryState.ts;
-        }
+
+        // If the request timestamp was sent in the library state, use that timestamp to calculate expiration. Otherwise, use current time.
+        const timestamp = libraryState ? libraryState.ts : currentTime;
+        const tokenExpirationSeconds = timestamp + serverTokenResponse.expires_in;
         const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
 
         const cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
