@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SystemOptions, LoggerOptions, INetworkModule, LogLevel, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, LogLevel, DEFAULT_SYSTEM_OPTIONS, Constants, IInstanceDiscoveryMetadata } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
@@ -14,6 +14,7 @@ export type BrowserAuthOptions = {
     clientId: string;
     authority?: string;
     knownAuthorities?: Array<string>;
+    instanceMetadata?: Array<IInstanceDiscoveryMetadata>;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
     navigateToLoginRequestUrl?: boolean;
@@ -67,6 +68,7 @@ const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
     authority: `${Constants.DEFAULT_AUTHORITY}/`,
     knownAuthorities: [],
+    instanceMetadata: [],
     redirectUri: () => BrowserUtils.getCurrentUri(),
     postLogoutRedirectUri: () => BrowserUtils.getCurrentUri(),
     navigateToLoginRequestUrl: true

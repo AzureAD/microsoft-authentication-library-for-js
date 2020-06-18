@@ -12,7 +12,7 @@ import {
     Authority,
     AuthorityFactory,
     InteractionRequiredAuthError,
-    B2cAuthority,
+    TrustedAuthority,
     AuthorizationUrlRequest,
     PersistentCacheKeys,
     IdToken,
@@ -101,7 +101,7 @@ export class PublicClientApplication {
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
         // Initialize default authority instance
-        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.instanceMetadata);
 
         this.defaultAuthorityInstance = AuthorityFactory.createInstance(
             this.config.auth.authority,
