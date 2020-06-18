@@ -530,7 +530,7 @@ export class PublicClientApplication {
      * @returns {@link IAccount[]} - Array of account objects in cache
      */
     public getAllAccounts(): IAccount[] {
-        return this.authModule.getAllAccounts();
+        return this.browserStorage.getAllAccounts();
     }
 
     /**

@@ -5,7 +5,6 @@
 
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
-import { Constants } from "../utils/Constants";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**

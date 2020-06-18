@@ -36,7 +36,6 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
-
         const queryString = this.createAuthCodeUrlQueryString(request);
         return `${this.defaultAuthority.authorizationEndpoint}?${queryString}`;
     }
@@ -54,7 +53,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
-            this.unifiedCacheManager,
+            this.cacheManager,
             this.cryptoUtils,
             this.logger
         );
