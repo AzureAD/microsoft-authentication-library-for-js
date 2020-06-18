@@ -11,6 +11,7 @@ import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
+import { IInstanceDiscoveryMetadata } from "../authority/IInstanceDiscoveryMetadata";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -44,6 +45,7 @@ export type AuthOptions = {
     clientId: string;
     authority?: Authority;
     knownAuthorities?: Array<string>;
+    instanceMetadata?: Array<IInstanceDiscoveryMetadata>;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
 };
@@ -95,6 +97,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
+    instanceMetadata: [],
     redirectUri: "",
     postLogoutRedirectUri: ""
 };

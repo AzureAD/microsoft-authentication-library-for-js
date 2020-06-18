@@ -4,9 +4,9 @@
  */
 
 /**
- * The OpenID Configuration Endpoint Response interface. Used by the authority class to get relevant OAuth endpoints.
+ * The Instance Discovery Metadata Response interface.
  */
-export interface IOpenIdConfigMetadata {
+export interface IInstanceDiscoveryMetadata {
     preferred_network: string;
     preferred_cache: string;
     aliases: Array<string>;
