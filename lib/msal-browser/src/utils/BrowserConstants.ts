@@ -49,4 +49,4 @@ export enum TemporaryCacheKeys {
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
-}
+};

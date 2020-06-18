@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { RefreshTokenEntity } from "../../../src/unifiedCache/entities/RefreshTokenEntity";
+import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";
 import { mockRefreshTokenEntity, mockRefreshTokenEntityWithFamilyId } from "./cacheConstants";
 
 describe("RefreshTokenEntity.ts Unit Tests", () => {

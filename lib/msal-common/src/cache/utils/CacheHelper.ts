@@ -92,13 +92,8 @@ export class CacheHelper {
      * @param key
      * @param credentialType
      */
-    static matchCredentialType(
-        entity: Credential,
-        credentialType: string
-    ): boolean {
-        return (
-            credentialType.toLowerCase() === entity.credentialType.toLowerCase()
-        );
+    static matchCredentialType(entity: Credential, credentialType: string): boolean {
+        return credentialType.toLowerCase() === entity.credentialType.toLowerCase();
     }
 
     /**
@@ -115,10 +110,7 @@ export class CacheHelper {
      * @param key
      * @param realm
      */
-    static matchRealm(
-        entity: AccountEntity | Credential,
-        realm: string
-    ): boolean {
+    static matchRealm(entity: AccountEntity | Credential, realm: string): boolean {
         return realm === entity.realm;
     }
 
@@ -263,7 +255,7 @@ export class CacheHelper {
             homeAccountId: accountObj.homeAccountId,
             environment: accountObj.environment,
             tenantId: accountObj.realm,
-            username: accountObj.username,
+            username: accountObj.username
         };
     }
 }

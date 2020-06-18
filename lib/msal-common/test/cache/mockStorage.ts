@@ -2,22 +2,23 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICacheStorage } from "../../src/cache/ICacheStorage";
-import { CacheHelper } from "../../src/unifiedCache/utils/CacheHelper";
-import { InMemoryCache } from "../../src/unifiedCache/utils/CacheTypes";
-import { CredentialType, CacheSchemaType } from "../../src/utils/Constants";
-import { AccountEntity } from "../../src/unifiedCache/entities/AccountEntity";
-import { AccessTokenEntity } from "../../src/unifiedCache/entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../../src/unifiedCache/entities/RefreshTokenEntity";
-import { IdTokenEntity } from "../../src/unifiedCache/entities/IdTokenEntity";
-import { AppMetadataEntity } from "../../src/unifiedCache/entities/AppMetadataEntity";
+
+import { ICacheStorage } from "../../src/cache/interface/ICacheStorage";
+import { InMemoryCache } from "../../src/cache/utils/CacheTypes";
+import { CacheSchemaType, CredentialType } from "../../src/utils/Constants";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { CacheHelper } from "../../src/cache/utils/CacheHelper";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
+import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
 export class Storage implements ICacheStorage {
 
-    private inMemoryCache;
+    private inMemoryCache: InMemoryCache;
 
     /**
      * gets the current in memory cache for the client
@@ -115,7 +116,7 @@ export class Storage implements ICacheStorage {
         }
 
         // read inMemoryCache
-        const cache = this.getCache();
+        const cache = this.getCache() as InMemoryCache;
 
         // save the cacheItem
         switch (type!) {
@@ -170,7 +171,7 @@ export class Storage implements ICacheStorage {
         }
 
         // read inMemoryCache
-        const cache = this.getCache();
+        const cache = this.getCache() as InMemoryCache;
         let result: boolean = false;
 
         // save the cacheItem
