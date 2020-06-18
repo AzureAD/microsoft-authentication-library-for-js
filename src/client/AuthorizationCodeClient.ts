@@ -79,7 +79,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     public handleFragmentResponse(hashFragment: string, cachedState: string): string {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheStorage, this.cryptoUtils, this.logger);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();

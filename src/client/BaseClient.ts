@@ -66,7 +66,7 @@ export abstract class BaseClient {
      */
     async getLogoutUri(logoutRequest: EndSessionRequest): Promise<string> {
         // Clear current account.
-        this.cacheStorage.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
+        this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
 
         // Get postLogoutRedirectUri.
         const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ? `?${AADServerParamKeys.POST_LOGOUT_URI}=` + encodeURIComponent(logoutRequest.postLogoutRedirectUri) : "";
