@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { Credential } from "./Credential";
+import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType } from "../../utils/Constants";
 
 /**
  * REFRESH_TOKEN Cache
  */
-export class RefreshTokenEntity extends Credential {
+export class RefreshTokenEntity extends CredentialEntity {
     familyId?: string;
 
     /**

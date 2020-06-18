@@ -11,7 +11,6 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
 import { IdToken } from "../account/IdToken";
-import { UnifiedCacheManager } from "../cache/UnifiedCacheManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AuthenticationResult } from "./AuthenticationResult";
@@ -25,21 +24,22 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheHelper } from "../cache/utils/CacheHelper";
 import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
+import { CacheManager } from "../cache/CacheManager";
 
 /**
  * Class that handles response parsing.
  */
 export class ResponseHandler {
     private clientId: string;
-    private uCacheManager: UnifiedCacheManager;
+    private cacheStorage: CacheManager;
     private cryptoObj: ICrypto;
     private logger: Logger;
     private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
 
-    constructor(clientId: string, unifiedCacheManager: UnifiedCacheManager, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
-        this.uCacheManager = unifiedCacheManager;
+        this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
     }
@@ -105,7 +105,6 @@ export class ResponseHandler {
      * @param authority
      */
     generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string): AuthenticationResult {
-
         // create an idToken object (not entity)
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
@@ -119,7 +118,7 @@ export class ResponseHandler {
         // save the response tokens
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
         const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
-        this.uCacheManager.saveCacheRecord(cacheRecord, responseScopes);
+        this.cacheStorage.saveCacheRecord(cacheRecord, responseScopes);
 
         const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,

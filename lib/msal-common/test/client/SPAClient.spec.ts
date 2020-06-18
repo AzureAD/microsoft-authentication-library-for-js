@@ -15,7 +15,6 @@ import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Authority } from "../../src/authority/Authority";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
-import { AuthError } from "../../src/error/AuthError";
 import { buildClientInfo, ClientInfo } from "../../src/account/ClientInfo";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
@@ -27,9 +26,9 @@ import { AadAuthority } from "../../src/authority/AadAuthority";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
 import { IAccount } from "../../src/account/IAccount";
-import { ICacheStorage } from "../../src/cache/interface/ICacheStorage";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
-import { UnifiedCacheManager } from "../../src/cache/UnifiedCacheManager";
+import { CacheManager } from "../../src";
+import { MockStorageClass } from "./ClientTestUtils";
 
 describe("SPAClient.ts Class Unit Tests", () => {
 
@@ -39,35 +38,9 @@ describe("SPAClient.ts Class Unit Tests", () => {
         }
     };
 
-    let store = {};
+    
     let defaultAuthConfig: ClientConfiguration;
-    let cacheStorageMock: ICacheStorage = {
-        setItem(key: string, value: string): void {
-            store[key] = value;
-        },
-        getItem(key: string): string {
-            return store[key];
-        },
-        removeItem(key: string): boolean {
-            delete store[key];
-            return true;
-        },
-        containsKey(key: string): boolean {
-            return !!store[key];
-        },
-        getKeys(): string[] {
-            return Object.keys(store);
-        },
-        clear(): void {
-            store = {};
-        },
-        getCache(): object {
-            return null;
-        },
-        setCache(): void {
-            return null;
-        },
-    };
+    let cacheStorageMock: MockStorageClass = new MockStorageClass();
 
     beforeEach(() => {
 
@@ -148,7 +121,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
         afterEach(() => {
             sinon.restore();
-            store = {};
+            defaultAuthConfig.storageInterface.clear();
         });
 
         it("Creates a login URL", async () => {
@@ -245,7 +218,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
             afterEach(() => {
                 sinon.restore();
-                store = {};
+                defaultAuthConfig.storageInterface.clear();
             });
 
             describe("Error Cases", () => {
@@ -394,7 +367,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
             afterEach(() => {
                 sinon.restore();
-                store = {};
+                defaultAuthConfig.storageInterface.clear();
             });
 
             describe("Error cases", () => {
@@ -428,7 +401,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     testAccountEntity.realm = "testTenantId";
                     testAccountEntity.username = "username@contoso.com";
                     testAccountEntity.authorityType = "MSSTS";
-                    sinon.stub(UnifiedCacheManager.prototype, "getAccount").returns(testAccountEntity);
+                    sinon.stub(MockStorageClass.prototype, "getAccount").returns(testAccountEntity);
 					sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
 					const tokenRequest: SilentFlowRequest = {
                         scopes: [testScope2],
@@ -448,7 +421,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
             afterEach(() => {
                 sinon.restore();
-                store = {};
+                defaultAuthConfig.storageInterface.clear();
             });
 
             it("returns valid server code response", () => {
@@ -480,10 +453,10 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${RANDOM_TEST_GUID}`;
 
                 expect(() => authModule.handleFragmentResponse(testErrorHash, RANDOM_TEST_GUID)).to.throw("msal error description");
-                expect(store).to.be.empty;
+                expect(cacheStorageMock.store).to.be.empty;
 
                 expect(() => authModule.handleFragmentResponse(testErrorHash, RANDOM_TEST_GUID)).to.throw(ServerError);
-                expect(store).to.be.empty;
+                expect(cacheStorageMock.store).to.be.empty;
             });
         });
     });
@@ -556,14 +529,12 @@ describe("SPAClient.ts Class Unit Tests", () => {
     });
 
     describe("getAccount()", () => {
-        let store;
         let config: ClientConfiguration;
         let client: SPAClient;
         let idToken: IdToken;
         let clientInfo: ClientInfo;
         let testAccount: IAccount;
         beforeEach(() => {
-            store = {};
             config = {
                 authOptions: {
                     clientId: RANDOM_TEST_GUID,
@@ -624,7 +595,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
         afterEach(() => {
             sinon.restore();
-            store = {};
+            cacheStorageMock.clear();
         });
 
         it("returns null if nothing is in the cache", () => {

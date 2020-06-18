@@ -1,7 +1,6 @@
-import { expect } from "chai";
-import { MockCache } from "../entities/cacheConstants";
-import { Deserializer } from "../../../src/cache/serialize/Deserializer";
-import { InMemoryCache, JsonCache } from "../../../src/cache/utils/CacheTypes";
+import { JsonCache, InMemoryCache } from "../../../src/cache/serializer/SerializerTypes";
+import { Deserializer } from "../../../src/cache/serializer/Deserializer";
+import { MockCache } from "../cacheConstants";
 
 const cacheJson = require("./cache.json");
 
@@ -10,7 +9,7 @@ describe("Deserializer test cases", () => {
     const cache = JSON.stringify(cacheJson);
     const jsonCache: JsonCache = Deserializer.deserializeJSONBlob(cache);
 
-    it("deserializeJSONBlob", () => {
+    test("deserializeJSONBlob", () => {
         const mockAccount = {
             "uid.utid-login.microsoftonline.com-microsoft": {
                 username: "John Doe",
@@ -23,51 +22,51 @@ describe("Deserializer test cases", () => {
             },
         };
         const acc = Deserializer.deserializeJSONBlob(cache);
-        expect(acc.Account).to.eql(mockAccount);
+        expect(acc.Account).toMatchObject(mockAccount);
     });
 
-    it("deSerializeAccounts", () => {
+    test("deSerializeAccounts", () => {
         // serialize the mock Account and Test equivalency with the cache.json provided
         const accCache = Deserializer.deserializeAccounts(jsonCache.Account);
-        expect(accCache[MockCache.accKey]).to.eql(MockCache.acc);
+        expect(accCache[MockCache.accKey]).toEqual(MockCache.acc);
     });
 
-    it("deSerializeIdTokens", () => {
+    test("deSerializeIdTokens", () => {
         // serialize the mock IdToken and Test equivalency with the cache.json provided
         const idTCache = Deserializer.deserializeIdTokens(jsonCache.IdToken);
-        expect(idTCache[MockCache.idTKey]).to.eql(MockCache.idT);
+        expect(idTCache[MockCache.idTKey]).toEqual(MockCache.idT);
     });
 
 
-    it("deSerializeAccessTokens", () => {
+    test("deSerializeAccessTokens", () => {
         // serialize the mock AccessToken and Test equivalency with the cache.json provided
         const atCache = Deserializer.deserializeAccessTokens(jsonCache.AccessToken);
-        expect(atCache[MockCache.atOneKey]).to.eql(MockCache.atOne);
+        expect(atCache[MockCache.atOneKey]).toEqual(MockCache.atOne);
     });
 
-    it("deSerializeRefreshTokens", () => {
+    test("deSerializeRefreshTokens", () => {
         // serialize the mock RefreshToken and Test equivalency with the cache.json provided
         const rtCache = Deserializer.deserializeRefreshTokens(jsonCache.RefreshToken);
-        expect(rtCache[MockCache.rtKey]).to.eql(MockCache.rt);
+        expect(rtCache[MockCache.rtKey]).toEqual(MockCache.rt);
     });
 
-    it("deserializeAppMetadata", () => {
+    test("deserializeAppMetadata", () => {
         // serialize the mock AppMetadata and Test equivalency with the cache.json provided
         const amdtCache = Deserializer.deserializeAppMetadata(jsonCache.AppMetadata);
-        expect(amdtCache[MockCache.amdtKey]).to.eql(MockCache.amdt);
+        expect(amdtCache[MockCache.amdtKey]).toEqual(MockCache.amdt);
     });
 
-    it("deserializeAll", () => {
+    test("deserializeAll", () => {
 
         // deserialize the cache from memory and Test equivalency with the generated mock cache
         const inMemoryCache: InMemoryCache = Deserializer.deserializeAllCache(jsonCache);
 
-        expect(inMemoryCache.accounts[MockCache.accKey]).to.eql(MockCache.acc);
-        expect(inMemoryCache.idTokens[MockCache.idTKey]).to.eql(MockCache.idT);
-        expect(inMemoryCache.accessTokens[MockCache.atOneKey]).to.eql(MockCache.atOne);
-        expect(inMemoryCache.accessTokens[MockCache.atTwoKey]).to.eql(MockCache.atTwo);
-        expect(inMemoryCache.refreshTokens[MockCache.rtKey]).to.eql(MockCache.rt);
-        expect(inMemoryCache.refreshTokens[MockCache.rtFKey]).to.eql(MockCache.rtF);
-        expect(inMemoryCache.appMetadata[MockCache.amdtKey]).to.eql(MockCache.amdt);
+        expect(inMemoryCache.accounts[MockCache.accKey]).toEqual(MockCache.acc);
+        expect(inMemoryCache.idTokens[MockCache.idTKey]).toEqual(MockCache.idT);
+        expect(inMemoryCache.accessTokens[MockCache.atOneKey]).toEqual(MockCache.atOne);
+        expect(inMemoryCache.accessTokens[MockCache.atTwoKey]).toEqual(MockCache.atTwo);
+        expect(inMemoryCache.refreshTokens[MockCache.rtKey]).toEqual(MockCache.rt);
+        expect(inMemoryCache.refreshTokens[MockCache.rtFKey]).toEqual(MockCache.rtF);
+        expect(inMemoryCache.appMetadata[MockCache.amdtKey]).toEqual(MockCache.amdt);
     });
 });
