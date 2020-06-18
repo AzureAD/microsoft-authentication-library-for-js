@@ -48,7 +48,7 @@ export class SilentFlowClient extends BaseClient {
     
         // Get account object for this request.
         const accountKey: string = AccountEntity.generateAccountCacheKey(request.account);
-        const cachedAccount = this.cacheStorage.getAccount(accountKey);
+        const cachedAccount = this.cacheManager.getAccount(accountKey);
 
         const homeAccountId = cachedAccount.homeAccountId;
         const environment = cachedAccount.environment;
@@ -107,7 +107,7 @@ export class SilentFlowClient extends BaseClient {
             this.config.authOptions.clientId,
             inputRealm
         );
-        return this.cacheStorage.getCredential(idTokenKey) as IdTokenEntity;
+        return this.cacheManager.getCredential(idTokenKey) as IdTokenEntity;
     }
 
     /**
@@ -124,7 +124,7 @@ export class SilentFlowClient extends BaseClient {
             realm: inputRealm,
             target: scopes.printScopes()
         };
-        const credentialCache: CredentialCache = this.cacheStorage.getCredentialsFilteredBy(accessTokenFilter);
+        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
         const accessTokens = Object.values(credentialCache.accessTokens);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
@@ -145,7 +145,7 @@ export class SilentFlowClient extends BaseClient {
             CredentialType.REFRESH_TOKEN,
             this.config.authOptions.clientId
         );
-        return this.cacheStorage.getCredential(refreshTokenKey) as RefreshTokenEntity;
+        return this.cacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
     }
 
     /**
