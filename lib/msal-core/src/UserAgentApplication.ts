@@ -884,6 +884,7 @@ export class UserAgentApplication {
      * @hidden
      */
     private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number) {
+        this.logger.verbose("OpenPopup has been called");
         try {
             /**
              * adding winLeft and winTop to account for dual monitor
@@ -911,7 +912,7 @@ export class UserAgentApplication {
 
             return popupWindow;
         } catch (e) {
-            this.logger.error("error opening popup " + e.message);
+            this.logger.error("Error opening popup " + e.message);
             this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
             throw ClientAuthError.createPopupWindowError(e.toString());
         }
