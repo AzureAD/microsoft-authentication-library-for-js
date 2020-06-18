@@ -8,20 +8,11 @@ import { ICrypto } from "../crypto/ICrypto";
 import { TimeUtils } from "./TimeUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 
-/**
- * Type which defines the object that is stringified, encoded and sent in the state value.
- * Contains the following:
- * - id - unique identifier for this request
- * - ts - timestamp for the time the request was made. Used to ensure that token expiration is not calculated incorrectly.
- */
 export type LibraryStateObject = {
     id: string,
     ts: number
 };
 
-/**
- * Type which defines the stringified and encoded object sent to the service in the authorize request.
- */
 export type RequestStateObject = {
     userRequestState: string,
     libraryState: LibraryStateObject
@@ -48,7 +39,6 @@ export class ProtocolUtils {
      * @param cryptoObj 
      */
     static generateLibraryState(cryptoObj: ICrypto): string {
-        // Create a state object containing a unique id and the timestamp of the request creation
         const stateObj: LibraryStateObject = {
             id: cryptoObj.createNewGuid(),
             ts: TimeUtils.nowSeconds()
@@ -59,18 +49,12 @@ export class ProtocolUtils {
         return cryptoObj.base64Encode(stateString);
     }
 
-    /**
-     * Parses the state into the RequestStateObject, which contains the LibraryState info and the state passed by the user.
-     * @param state 
-     * @param cryptoObj 
-     */
     static parseRequestState(state: string, cryptoObj: ICrypto): RequestStateObject {
         if (StringUtils.isEmpty(state)) {
             throw ClientAuthError.createInvalidStateError(state, "Null, undefined or empty state");
         }
 
         try {
-            // Split the state between library state and user passed state and decode them separately
             const splitState = decodeURIComponent(state).split(Constants.RESOURCE_DELIM);
             const libraryState = splitState[0];
             const userState = splitState.length > 1 ? splitState.slice(1).join(Constants.RESOURCE_DELIM) : "";
