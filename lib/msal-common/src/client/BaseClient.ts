@@ -13,9 +13,6 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { B2cAuthority } from "../authority/B2cAuthority";
 import { CacheManager } from "../cache/CacheManager";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { StringUtils } from "../utils/StringUtils";
-import { AccountInfo } from "../account/AccountInfo";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 
