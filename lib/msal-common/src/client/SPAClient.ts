@@ -51,30 +51,13 @@ export class SPAClient extends BaseClient {
     }
 
     /**
-     * Creates a url for logging in a user. This will by default append the client id to the list of scopes,
-     * allowing you to retrieve an id token in the subsequent code exchange. Also performs validation of the request parameters.
-     * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
-     * @param request
-     */
-    async createLoginUrl(request: AuthorizationUrlRequest): Promise<string> {
-        return this.createUrl(request, true);
-    }
-
-    /**
      * Creates a url for logging in a user. Also performs validation of the request parameters.
      * Including any SSO parameters (account, sid, login_hint) will short circuit the authentication and allow you to retrieve a code without interaction.
      * @param request
      */
-    async createAcquireTokenUrl(request: AuthorizationUrlRequest): Promise<string> {
-        return this.createUrl(request, false);
-    }
-
-    /**
-     * Helper function which creates URL. If isLoginCall is true, MSAL appends client id scope to retrieve id token from the service.
-     * @param request
-     * @param isLoginCall
-     */
-    private async createUrl(request: AuthorizationUrlRequest, isLoginCall: boolean): Promise<string> {
+    async createUrl(
+        request: AuthorizationUrlRequest
+    ): Promise<string> {
         // Initialize authority or use default, and perform discovery endpoint check.
         const acquireTokenAuthority =
             request && request.authority
@@ -98,24 +81,19 @@ export class SPAClient extends BaseClient {
         }
 
         const queryString = await this.createUrlRequestParamString(
-            request,
-            isLoginCall
+            request
         );
         return `${acquireTokenAuthority.authorizationEndpoint}?${queryString}`;
     }
 
-    private async createUrlRequestParamString(request: AuthorizationUrlRequest, isLoginCall: boolean): Promise<string> {
+    private async createUrlRequestParamString(request: AuthorizationUrlRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addResponseTypeCode();
 
         // Client ID
         parameterBuilder.addClientId(this.config.authOptions.clientId);
-        const scopeSet = new ScopeSet(
-            (request && request.scopes) || [],
-            this.config.authOptions.clientId,
-            !isLoginCall
-        );
+        const scopeSet = new ScopeSet((request && request.scopes) || []);
 
         if (request.extraScopesToConsent) {
             scopeSet.appendScopes(request && request.extraScopesToConsent);
@@ -198,7 +176,7 @@ export class SPAClient extends BaseClient {
             codeRequest.redirectUri || this.getRedirectUri()
         );
 
-        const scopeSet = new ScopeSet(codeRequest.scopes || [], this.config.authOptions.clientId, true);
+        const scopeSet = new ScopeSet(codeRequest.scopes || []);
         parameterBuilder.addScopes(scopeSet);
 
         // add code: set by user, not validated
@@ -215,7 +193,7 @@ export class SPAClient extends BaseClient {
         // User helper to retrieve token response.
         // Need to await function call before return to catch any thrown errors.
         // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
-        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, acquireTokenAuthority, userState, cachedNonce);
+        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, acquireTokenAuthority, cachedNonce, userState);
     }
 
     /**
@@ -235,7 +213,7 @@ export class SPAClient extends BaseClient {
         }
 
         // Get account object for this request.
-        const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId, true);
+        const requestScopes = new ScopeSet(request.scopes || []);
 
         // Get current cached tokens
         const cachedAccount = this.unifiedCacheManager.getAccount(CacheHelper.generateAccountCacheKey(request.account));
@@ -250,25 +228,7 @@ export class SPAClient extends BaseClient {
         }
 
         // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (!request.forceRefresh && this.isTokenExpired(cachedAccessToken.expiresOn)) {
-            const cachedIdToken = this.fetchIdToken(homeAccountId, env, cachedAccount.realm);
-            const idTokenObj = new IdToken(cachedIdToken.secret, this.cryptoUtils);
-
-            const cachedScopes = ScopeSet.fromString(cachedAccessToken.target, this.config.authOptions.clientId, true);
-            return {
-                uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
-                tenantId: idTokenObj.claims.tid,
-                scopes: cachedScopes.asArray(),
-                idToken: idTokenObj.rawIdToken,
-                idTokenClaims: idTokenObj.claims,
-                accessToken: cachedAccessToken.secret,
-                account: CacheHelper.toIAccount(cachedAccount),
-                expiresOn: new Date(cachedAccessToken.expiresOn),
-                extExpiresOn: new Date(cachedAccessToken.extendedExpiresOn),
-                familyId: null,
-                state: ""
-            };
-        } else {
+        if (request.forceRefresh || this.isTokenExpired(cachedAccessToken.expiresOn)) {
             if (!cachedRefreshToken) {
                 throw ClientAuthError.createNoTokensFoundError();
             }
@@ -297,6 +257,25 @@ export class SPAClient extends BaseClient {
                 authority: acquireTokenAuthority.canonicalAuthority
             };
             return this.renewToken(refreshTokenRequest, acquireTokenAuthority, tokenEndpoint);
+        } else {
+            const cachedIdToken = this.fetchIdToken(homeAccountId, env, cachedAccount.realm);
+            const idTokenObj = new IdToken(cachedIdToken.secret, this.cryptoUtils);
+
+            const cachedScopes = ScopeSet.fromString(cachedAccessToken.target);
+            return {
+                uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
+                tenantId: idTokenObj.claims.tid,
+                scopes: cachedScopes.asArray(),
+                idToken: idTokenObj.rawIdToken,
+                idTokenClaims: idTokenObj.claims,
+                accessToken: cachedAccessToken.secret,
+                fromCache: true,
+                account: CacheHelper.toIAccount(cachedAccount),
+                expiresOn: new Date(cachedAccessToken.expiresOn),
+                extExpiresOn: new Date(cachedAccessToken.extendedExpiresOn),
+                familyId: null,
+                state: ""
+            };
         }
     }
 
@@ -442,7 +421,7 @@ export class SPAClient extends BaseClient {
      * @param tokenRequest
      * @param codeResponse
      */
-    private async getTokenResponse(tokenEndpoint: string, parameterBuilder: RequestParameterBuilder, authority: Authority, userState: string, cachedNonce?: string): Promise<AuthenticationResult> {
+    private async getTokenResponse(tokenEndpoint: string, parameterBuilder: RequestParameterBuilder, authority: Authority, cachedNonce?: string, userState?: string): Promise<AuthenticationResult> {
         // Perform token request.
         const acquiredTokenResponse = await this.networkClient.sendPostRequestAsync<
         ServerAuthorizationTokenResponse
@@ -456,10 +435,7 @@ export class SPAClient extends BaseClient {
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
-        const tokenResponse = responseHandler.generateAuthenticationResult(
-            acquiredTokenResponse.body,
-            authority
-        );
+        const tokenResponse = responseHandler.generateAuthenticationResult(acquiredTokenResponse.body, authority, cachedNonce);
         tokenResponse.state = userState;
 
         return tokenResponse;
@@ -479,21 +455,19 @@ export class SPAClient extends BaseClient {
 
         parameterBuilder.addRedirectUri(this.getRedirectUri());
 
-        const scopeSet = new ScopeSet(
-            refreshTokenRequest.scopes || [],
-            this.config.authOptions.clientId,
-            true
-        );
+        const scopeSet = new ScopeSet(refreshTokenRequest.scopes || []);
         parameterBuilder.addScopes(scopeSet);
 
         parameterBuilder.addRefreshToken(refreshTokenRequest.refreshToken);
 
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
 
+        parameterBuilder.addClientInfo();
+
         // User helper to retrieve token response.
         // Need to await function call before return to catch any thrown errors.
         // if errors are thrown asynchronously in return statement, they are caught by caller of this function instead.
-        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, authority, "");
+        return await this.getTokenResponse(tokenEndpoint, parameterBuilder, authority);
     }
 
     // #endregion

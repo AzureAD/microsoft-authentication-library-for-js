@@ -10,6 +10,7 @@ import { CacheSchemaType, CacheHelper, CredentialType } from "../../src";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
+import { TEST_CONFIG } from "../utils/StringConstants";
 
 const cacheJson = require("./serialize/cache.json");
 
@@ -222,7 +223,7 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("initCache", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, TEST_CONFIG.MSAL_CLIENT_ID, true);
 
         // create mock AccessToken
         const atOne = mockCache.createMockATOne();
@@ -248,7 +249,7 @@ describe("UnifiedCacheManager test cases", () => {
             clientInfo: "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9",
         });
 
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, TEST_CONFIG.MSAL_CLIENT_ID, true);
 
         const accountKey = ac.generateAccountKey();
         const cache = storageInterface.getCache() as InMemoryCache;
@@ -271,7 +272,7 @@ describe("UnifiedCacheManager test cases", () => {
             extendedExpiresOn: "4600",
         });
 
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, TEST_CONFIG.MSAL_CLIENT_ID, true);
         const atKey = at.generateCredentialKey();
         unifiedCacheManager.saveCredential(at);
         const cache = storageInterface.getCache() as InMemoryCache;
@@ -279,19 +280,19 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("getAccount", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, TEST_CONFIG.MSAL_CLIENT_ID, true);
 
         expect(unifiedCacheManager.getAccount("someuid.someutid-login.microsoftonline.com-microsoft").homeAccountId).to.eql("someUid.someUtid");
     });
 
     it("getCredential", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, TEST_CONFIG.MSAL_CLIENT_ID, true);
 
         expect(unifiedCacheManager.getCredential("someuid.someutid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope6 scope7").homeAccountId).to.eql("someUid.someUtid");
     });
 
     it("getAccountsFilteredBy", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, TEST_CONFIG.MSAL_CLIENT_ID, true);
 
         const filterOne: AccountFilter = { homeAccountId: "uid.utid" };
         let accounts = unifiedCacheManager.getAccountsFilteredBy(filterOne);
@@ -303,7 +304,7 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("getCredentials", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, TEST_CONFIG.MSAL_CLIENT_ID, true);
 
         // filter by homeAccountId
         const filterOne: CredentialFilter = { homeAccountId: "uid.utid" };
@@ -325,7 +326,7 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("removeAccount", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, TEST_CONFIG.MSAL_CLIENT_ID, true);
 
         let ac = new AccountEntity();
         Object.assign(ac, {
@@ -345,7 +346,7 @@ describe("UnifiedCacheManager test cases", () => {
     });
 
     it("removeCredential", () => {
-        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, true);
+        let unifiedCacheManager = new UnifiedCacheManager(storageInterface, TEST_CONFIG.MSAL_CLIENT_ID, true);
 
         let at = new AccessTokenEntity();
         Object.assign(at, {
