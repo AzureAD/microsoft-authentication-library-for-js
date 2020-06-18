@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeClient, DeviceCodeRequest, Constants } from '@azure/msal-common';
+import { DeviceCodeClient, DeviceCodeRequest } from '@azure/msal-common';
 import { Configuration } from '../config/Configuration';
 import { ClientApplication } from './ClientApplication';
 
@@ -52,20 +52,6 @@ export class PublicClientApplication extends ClientApplication {
             request.authority
         );
         const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
-        return deviceCodeClient.acquireToken(this.generateDeviceCodeRequest(request));
-    }
-
-    /**
-     * Generates a request with the default scopes.
-     * @param request 
-     */
-    protected generateDeviceCodeRequest(request: DeviceCodeRequest): DeviceCodeRequest {
-        const refreshTokenReq: DeviceCodeRequest = { ...request };
-        if (!refreshTokenReq.scopes) {
-            refreshTokenReq.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
-        } else {
-            refreshTokenReq.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE);
-        }
-        return refreshTokenReq;
+        return deviceCodeClient.acquireToken(this.initializeRequestScopes(request) as DeviceCodeRequest);
     }
 }
