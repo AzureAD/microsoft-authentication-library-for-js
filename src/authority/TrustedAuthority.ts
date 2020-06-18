@@ -12,7 +12,7 @@ export class TrustedAuthority {
      * @param knownAuthorities 
      * @param instanceMetadata
      */
-    public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, instanceMetadata: Array<IInstanceDiscoveryMetadata>) {
+    public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, instanceMetadata: Array<IInstanceDiscoveryMetadata>): void {
         if (!this.getTrustedHostList().length){
             if (knownAuthorities.length && instanceMetadata.length) {
                 // TODO Put better error here
