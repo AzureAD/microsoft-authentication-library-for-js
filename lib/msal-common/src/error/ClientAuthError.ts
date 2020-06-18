@@ -44,7 +44,7 @@ export const ClientAuthErrorMessage = {
     },
     invalidStateError: {
         code: "invalid_state",
-        desc: "State was not valid, please check the network trace."
+        desc: "State was not the expected format. Please check the logs to determine whether the request was sent using ProtocolUtils.setRequestState()."
     },
     stateMismatchError: {
         code: "state_mismatch",
