@@ -53,7 +53,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
-            this.cacheStorage,
+            this.cacheManager,
             this.cryptoUtils,
             this.logger
         );
