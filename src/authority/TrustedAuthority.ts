@@ -70,11 +70,7 @@ export class TrustedAuthority {
     }
 
     public static getInstanceMetadata(host: string): IInstanceDiscoveryMetadata {
-        if (Object.keys(this.InstanceMetadata).indexOf(host.toLowerCase()) === -1) {
-            return null;
-        }
-
-        return this.InstanceMetadata[host.toLowerCase()];
+        return this.InstanceMetadata[host.toLowerCase()] || null;
     }
 
     /**
