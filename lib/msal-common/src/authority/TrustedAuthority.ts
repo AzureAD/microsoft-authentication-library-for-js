@@ -1,7 +1,6 @@
 import { Constants } from "../utils/Constants";
 import { INetworkModule } from "../network/INetworkModule";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
-import { NetworkResponse } from "../network/NetworkManager";
 import { InstanceMetadataType } from "./InstanceMetadataType";
 import { IInstanceDiscoveryMetadata } from "./IInstanceDiscoveryMetadata";
 
@@ -9,12 +8,11 @@ export class TrustedAuthority {
     private static InstanceMetadata: InstanceMetadataType = {};
 
     /**
-     * 
-     * @param validateAuthority 
+     * Set the InstanceMetadata object from knownAuthorities or instanceMetadata passed into the app config
      * @param knownAuthorities 
+     * @param instanceMetadata
      */
     public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, instanceMetadata: Array<IInstanceDiscoveryMetadata>) {
-
         if (!this.getTrustedHostList().length){
             if (knownAuthorities.length && instanceMetadata.length) {
                 // TODO Put better error here
@@ -27,25 +25,19 @@ export class TrustedAuthority {
     }
 
     /**
-     * 
-     * @param telemetryManager 
-     * @param correlationId 
-     */
-    private static async getAliases(networkInterface: INetworkModule): Promise<NetworkResponse<OpenIdConfigResponse>> {
-        return networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(Constants.AAD_INSTANCE_DISCOVERY_ENDPT);
-    }
-
-    /**
-     * 
-     * @param telemetryManager 
-     * @param correlationId 
+     * Called to get metadata from network if InstanceMetadata was not populated by config
+     * @param networkInterface 
      */
     public static async setTrustedAuthoritiesFromNetwork(networkInterface: INetworkModule): Promise<void> {
-        const response = await this.getAliases(networkInterface);
+        const response = await networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(Constants.AAD_INSTANCE_DISCOVERY_ENDPT);
         const metadata = response.body.metadata;
         this.saveInstanceMetadata(metadata);
     } 
 
+    /**
+     * 
+     * @param metadata 
+     */
     public static saveInstanceMetadata(metadata: Array<IInstanceDiscoveryMetadata>): void {
         metadata.forEach(function(entry: IInstanceDiscoveryMetadata){
             const authorities = entry.aliases;
@@ -55,6 +47,11 @@ export class TrustedAuthority {
         });
     }
 
+    /**
+     * Create a generic metadata object for each host passed to knownAuthorities.
+     * This is mostly useful for B2C or ADFS scenarios
+     * @param knownAuthorities 
+     */
     public static createInstanceMetadataFromKnownAuthorities(knownAuthorities: Array<string>): void {
         knownAuthorities.forEach(authority => {
             this.InstanceMetadata[authority.toLowerCase()] = {
@@ -69,6 +66,10 @@ export class TrustedAuthority {
         return Object.keys(this.InstanceMetadata);
     }
 
+    /**
+     * Get metadata for the provided host
+     * @param host 
+     */
     public static getInstanceMetadata(host: string): IInstanceDiscoveryMetadata {
         return this.InstanceMetadata[host.toLowerCase()] || null;
     }
