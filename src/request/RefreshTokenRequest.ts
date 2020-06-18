@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { BaseAuthRequest } from "./BaseAuthRequest";
+
 /**
  * @type RefreshTokenRequest
  *
@@ -10,9 +12,7 @@
  * authority:               URL of the authority, the security token service (STS) from which MSAL will acquire tokens.
  * refreshToken:            A refresh token returned from a previous request to the Identity provider.
  */
-export type RefreshTokenRequest = {
-    scopes: Array<string>;
+export type RefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
     redirectUri?: string;
-    authority?: string;
 };
