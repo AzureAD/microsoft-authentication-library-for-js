@@ -1226,7 +1226,7 @@ export class UserAgentApplication {
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
         const stateInfo = this.getResponseState(locationHash);
-        this.logger.verbose("Obtained response state");
+        this.logger.verbose("Obtained state from response");
 
         const tokenResponseCallback = window.callbackMappedToRenewStates[stateInfo.state];
         this.processCallBack(locationHash, stateInfo, tokenResponseCallback);
@@ -1264,7 +1264,7 @@ export class UserAgentApplication {
                 window.location.assign("/");
                 return;
             } else {
-                this.logger.verbose("Valid login request url obtained from cache, removing hash from url");
+                this.logger.verbose("Valid login request url obtained from cache");
                 const currentUrl = UrlUtils.removeHashFromUrl(window.location.href);
                 const finalRedirectUrl = UrlUtils.removeHashFromUrl(loginRequestUrl);
                 if (currentUrl !== finalRedirectUrl) {
@@ -1272,10 +1272,10 @@ export class UserAgentApplication {
                     window.location.assign(`${finalRedirectUrl}${hash}`);
                     return;
                 } else {
-                    this.logger.verbose("Current url matches login request url, parsing url components");
+                    this.logger.verbose("Current url matches login request url");
                     const loginRequestUrlComponents = UrlUtils.GetUrlComponents(loginRequestUrl);
                     if (loginRequestUrlComponents.Hash){
-                        this.logger.verbose("Login url components contains hash, setting window location hash");
+                        this.logger.verbose("Login request url contains hash, resetting non-msal hash");
                         window.location.hash = loginRequestUrlComponents.Hash;
                     }
                 }
@@ -1370,7 +1370,7 @@ export class UserAgentApplication {
 
         // filter by clientId and account
         const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : null);
-        this.logger.verbose("Getting all cached tokens");
+        this.logger.verbose("Getting all cached access tokens");
 
         // No match found after initial filtering
         if (tokenCacheItems.length === 0) {
@@ -1764,7 +1764,7 @@ export class UserAgentApplication {
 
                     // set authority
                     const authority: string = this.populateAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
-                    this.logger.verbose("Authority populated");
+                    this.logger.verbose("Got authority from cache");
 
                     // retrieve client_info - if it is not found, generate the uid and utid from idToken
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.CLIENT_INFO)) {
@@ -1847,7 +1847,7 @@ export class UserAgentApplication {
                         }
                         // Save the token
                         else {
-                            this.logger.verbose("Nonce matches, saving idToken to cache, saving idToken as access token for app");
+                            this.logger.verbose("Nonce matches, saving idToken to cache");
                             this.cacheStorage.setItem(PersistentCacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.ID_TOKEN]);
                             this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, clientInfo);
 
@@ -1855,7 +1855,7 @@ export class UserAgentApplication {
                             this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
                         }
                     } else {
-                        this.logger.verbose("No idToken or no nonce. Authority set as state");
+                        this.logger.verbose("No idToken or no nonce. Cache key for Authority set as state");
                         authorityKey = stateInfo.state;
                         acquireTokenAccountKey = stateInfo.state;
 
