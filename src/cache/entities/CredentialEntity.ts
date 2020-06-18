@@ -7,6 +7,22 @@ import { Separators, CredentialType, CacheType, Constants } from "../../utils/Co
 
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
+ * 
+ * Key:Value Schema:
+ * 
+ * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
+ * 
+ * Value Schema:
+ * {
+ *      homeAccountId: home account identifier for the auth scheme,
+ *      environment: entity that issued the token, represented as a full host
+ *      credentialType: Type of credential as a string, can be one of the following: RefreshToken, AccessToken, IdToken, Password, Cookie, Certificate, Other
+ *      clientId: client ID of the application
+ *      secret: Actual credential as a string
+ *      familyId: Family ID identifier, usually only used for refresh tokens
+ *      realm: Full tenant or organizational identifier that the account belongs to
+ *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
+ * }
  */
 export class CredentialEntity {
     homeAccountId: string;
