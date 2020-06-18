@@ -18,13 +18,10 @@ export { TrustedAuthority } from "./authority/TrustedAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 // Cache
-export { ICacheStorage } from "./cache/interface/ICacheStorage";
-export { UnifiedCacheManager } from "./cache/UnifiedCacheManager";
-export { JsonCache, InMemoryCache } from "./cache/utils/CacheTypes";
-export { Serializer } from "./cache/serialize/Serializer";
-export { Deserializer } from "./cache/serialize/Deserializer";
+export { CacheManager } from "./cache/CacheManager";
+export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "./cache/utils/CacheTypes";
 export { CacheHelper } from "./cache/utils/CacheHelper";
-export { Credential } from "./cache/entities/Credential";
+export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
 export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
