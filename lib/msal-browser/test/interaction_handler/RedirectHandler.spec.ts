@@ -4,7 +4,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, TokenResponse, IAccount, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, IAccount, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -63,7 +63,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             }
         };
 		const configObj = buildConfiguration(appConfig);
-		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
+        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
         const authCodeModule = new SPAClient({
             authOptions: {
 				...configObj.auth,
@@ -88,26 +89,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     return testPkceCodes;
                 },
             },
-            storageInterface: {
-                getCache: (): object => {
-                    return {};
-                },
-                setCache: (): void => {
-                    // dummy impl;
-                },
-                clear: clearFunc,
-                containsKey: (key: string): boolean => {
-                    return true;
-                },
-                getItem: (key: string): string => {
-                    return "cacheItem";
-                },
-                getKeys: (): string[] => {
-                    return testKeySet;
-                },
-                removeItem: removeFunc,
-                setItem: setFunc,
-            },
+            storageInterface: browserStorage,
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -135,7 +117,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true,
             },
         });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        
         redirectHandler = new RedirectHandler(authCodeModule, browserStorage);
     });
 
@@ -198,8 +180,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             });
             const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, new CryptoOps());
             expect(window).to.be.eq(windowObj);
-            expect(browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-            expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
 
@@ -249,16 +231,16 @@ describe("RedirectHandler.ts Unit Tests", () => {
 				scopes: ["scope1", "scope2"],
 				code: ""
 			};
-			browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
-            browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-            browserStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)), CacheSchemaType.TEMPORARY);
+            browserStorage.setItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
+            browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), TEST_HASHES.TEST_SUCCESS_CODE_HASH, CacheSchemaType.TEMPORARY);
             sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
 
             const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, browserCrypto);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
-            expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.null;
-            expect(browserStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.null;
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY)).to.be.null;
         });
     });
 });

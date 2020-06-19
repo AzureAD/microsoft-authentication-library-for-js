@@ -8,17 +8,17 @@ import { ClientConfiguration } from "../config/ClientConfiguration";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CredentialType } from "../utils/Constants";
-import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
-import { CacheHelper } from "../unifiedCache/utils/CacheHelper";
-import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
+import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
+import { CacheHelper } from "../cache/utils/CacheHelper";
+import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { IdToken } from "../account/IdToken";
 import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { CredentialFilter, CredentialCache } from "../unifiedCache/utils/CacheTypes";
+import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -37,10 +37,10 @@ export class SilentFlowClient extends BaseClient {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         } 
 
-        const requestScopes = new ScopeSet(request.scopes || [], this.config.authOptions.clientId, true);
+        const requestScopes = new ScopeSet(request.scopes || []);
         // fetch account
         const accountKey: string = CacheHelper.generateAccountCacheKey(request.account);
-        const cachedAccount = this.unifiedCacheManager.getAccount(accountKey);
+        const cachedAccount = this.cacheManager.getAccount(accountKey);
 
         const homeAccountId = cachedAccount.homeAccountId;
         const environment = cachedAccount.environment;
@@ -77,6 +77,7 @@ export class SilentFlowClient extends BaseClient {
             idToken: cachedIdToken.secret,
             idTokenClaims: idTokenObj.claims,
             accessToken: cachedAccessToken.secret,
+            fromCache: true,
             expiresOn: new Date(cachedAccessToken.expiresOn),
             extExpiresOn: new Date(cachedAccessToken.extendedExpiresOn),
             familyId: null,
@@ -95,7 +96,7 @@ export class SilentFlowClient extends BaseClient {
             this.config.authOptions.clientId,
             inputRealm
         );
-        return this.unifiedCacheManager.getCredential(idTokenKey) as IdTokenEntity;
+        return this.cacheManager.getCredential(idTokenKey) as IdTokenEntity;
     }
 
     /**
@@ -112,7 +113,7 @@ export class SilentFlowClient extends BaseClient {
             realm: inputRealm,
             target: scopes.printScopes()
         };
-        const credentialCache: CredentialCache = this.unifiedCacheManager.getCredentialsFilteredBy(accessTokenFilter);
+        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
         const accessTokens = Object.values(credentialCache.accessTokens);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
@@ -133,7 +134,7 @@ export class SilentFlowClient extends BaseClient {
             CredentialType.REFRESH_TOKEN,
             this.config.authOptions.clientId
         );
-        return this.unifiedCacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
+        return this.cacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
     }
 
     /**

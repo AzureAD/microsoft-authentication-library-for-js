@@ -2,7 +2,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants } from "@azure/msal-common";
+import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
@@ -183,7 +183,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             const popupWindow = popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
-            expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
 });

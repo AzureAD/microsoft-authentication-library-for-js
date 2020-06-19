@@ -18,7 +18,7 @@ import { IdToken } from "../../src/account/IdToken";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { IAccount } from "../../src/account/IAccount";
-import { SilentFlowRequest, AccountEntity, UnifiedCacheManager, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity } from "../../src";
+import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager } from "../../src";
 
 describe("SilentFlowClient unit tests", () => {
     afterEach(() => {
@@ -87,7 +87,7 @@ describe("SilentFlowClient unit tests", () => {
         AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
         sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
         sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-        sinon.stub(UnifiedCacheManager.prototype, "getAccount").returns(testAccountEntity);
+        sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
 
         const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
         sinon.stub(SilentFlowClient.prototype, <any>"readIdTokenFromCache").returns(testIdToken);
@@ -111,7 +111,7 @@ describe("SilentFlowClient unit tests", () => {
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(silentFlowRequest);
-        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0], "email", Constants.OFFLINE_ACCESS_SCOPE];
+        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0], "email"];
         expect(authResult.uniqueId).to.deep.eq(idTokenClaims.oid);
         expect(authResult.tenantId).to.deep.eq(idTokenClaims.tid);
         expect(authResult.scopes).to.deep.eq(expectedScopes);
@@ -121,7 +121,7 @@ describe("SilentFlowClient unit tests", () => {
         expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
         expect(authResult.state).to.be.undefined;
 
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`);

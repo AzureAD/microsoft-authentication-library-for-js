@@ -12,9 +12,10 @@ export type { AuthCallback } from "./types/AuthCallback";
 // Common Object Formats
 export {
     // Request
-    TokenRenewParameters,
+    AuthorizationUrlRequest,
+    SilentFlowRequest,
     // Response
-    TokenResponse,
+    AuthenticationResult,
     // Error
     InteractionRequiredAuthError,
     AuthError,

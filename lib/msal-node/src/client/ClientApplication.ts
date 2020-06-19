@@ -16,9 +16,8 @@ import {
     ClientAuthError,
     Constants,
     B2cAuthority,
-    JsonCache,
-    Serializer,
-    InMemoryCache,
+    IAccount,
+    BaseAuthRequest
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -26,6 +25,8 @@ import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants as NodeConstants } from './../utils/Constants';
 import { CacheContext } from '../cache/CacheContext';
+import { JsonCache, InMemoryCache } from "../cache/serializer/SerializerTypes";
+import { Serializer } from "../cache/serializer/Serializer";
 
 export abstract class ClientApplication {
     private config: Configuration;
@@ -64,7 +65,7 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.getAuthCodeUrl(request);
+        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequestScopes(request) as AuthorizationUrlRequest);
     }
 
     /**
@@ -77,16 +78,14 @@ export abstract class ClientApplication {
      *
      * @param request
      */
-    async acquireTokenByCode(
-        request: AuthorizationCodeRequest
-    ): Promise<AuthenticationResult> {
+    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.acquireToken(request);
+        return authorizationCodeClient.acquireToken(this.initializeRequestScopes(request) as AuthorizationCodeRequest);
     }
 
     /**
@@ -97,21 +96,17 @@ export abstract class ClientApplication {
      * handle the caching and refreshing of tokens automatically.
      * @param request
      */
-    async acquireTokenByRefreshToken(
-        request: RefreshTokenRequest
-    ): Promise<AuthenticationResult> {
+    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
         const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
         const refreshTokenClient = new RefreshTokenClient(
             refreshTokenClientConfig
         );
-        return refreshTokenClient.acquireToken(request);
+        return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
-    protected async buildOauthClientConfiguration(
-        authority?: string
-    ): Promise<ClientConfiguration> {
+    protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
             authOptions: {
@@ -138,19 +133,30 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Generates a request with the default scopes.
+     * @param authRequest 
+     */
+    protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
+        const request: BaseAuthRequest = { ...authRequest };
+        if (!request.scopes) {
+            request.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
+        } else {
+            request.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE);
+        }
+        return request;
+    }
+
+    /**
      * Create authority instance. If authority not passed in request, default to authority set on the application
      * object. If no authority set in application object, then default to common authority.
      * @param authorityString
      */
-    private async createAuthority(
-        authorityString?: string
-    ): Promise<Authority> {
+    private async createAuthority(authorityString?: string): Promise<Authority> {
         const authority: Authority = authorityString
             ? AuthorityFactory.createInstance(
-                  authorityString,
-                  this.config.system!.networkClient!
-              )
-            : this.authority;
+                authorityString,
+                this.config.system!.networkClient!
+            ) : this.authority;
 
         if (authority.discoveryComplete()) {
             return authority;
@@ -192,5 +198,9 @@ export abstract class ClientApplication {
         return Serializer.serializeAllCache(
             this.storage.getCache() as InMemoryCache
         );
+    }
+
+    getAllAccounts(): IAccount[] {
+        return this.storage.getAllAccounts();
     }
 }

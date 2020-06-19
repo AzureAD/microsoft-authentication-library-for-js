@@ -110,6 +110,14 @@ export const ClientAuthErrorMessage = {
     NoAccountInSilentRequest: {
         code: "no_account_in_silent_request",
         desc: "Please pass an account object, silent flow is not supported without account information"
+    },
+    invalidCacheRecord: {
+        code: "invalid_cache_record",
+        desc: "Cache record object was null or undefined."
+    },
+    noAccountFound: {
+        code: "no_account_found",
+        desc: "No account found in cache for given key."
     }
 };
 
@@ -251,7 +259,7 @@ export class ClientAuthError extends AuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
             `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
     }
-
+	
     /**
      * Throws error when multiple tokens are in cache for the given scope.
      * @param scope
@@ -319,5 +327,19 @@ export class ClientAuthError extends AuthError {
      */
     static createNoAccountInSilentRequestError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.NoAccountInSilentRequest.code, `${ClientAuthErrorMessage.NoAccountInSilentRequest.desc}`);
+    }
+
+    /**
+     * Throws error when cache record is null or undefined.
+     */
+    static createNullOrUndefinedCacheRecord(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidCacheRecord.code, ClientAuthErrorMessage.invalidCacheRecord.desc);
+    }
+
+    /**
+     * Throws error when account is not found in cache.
+     */
+    static createNoAccountFoundError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noAccountFound.code, ClientAuthErrorMessage.noAccountFound.desc);
     }
 }
