@@ -120,6 +120,7 @@ export class ResponseHandler {
         this.cacheStorage.saveCacheRecord(cacheRecord, responseScopes);
 
         const authenticationResult: AuthenticationResult = {
+            authority: authority.canonicalAuthority,
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: responseScopes.asArray(),

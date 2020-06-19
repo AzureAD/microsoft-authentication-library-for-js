@@ -21,6 +21,7 @@ import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
+import { AuthorizationCodeResponse } from "../response/AuthorizationCodeResponse";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -79,16 +80,21 @@ export class AuthorizationCodeClient extends BaseClient {
      * the client to exchange for a token in acquireToken.
      * @param hashFragment
      */
-    public handleFragmentResponse(hashFragment: string, cachedState: string): string {
+    handleFragmentResponse(hashFragment: string, cachedState: string): AuthorizationCodeResponse {
         // Handle responses.
         const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger);
+
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);
-        return serverParams.code;
+
+        return {
+            ...serverParams,
+            code: serverParams.code
+        };
     }
 
     /**

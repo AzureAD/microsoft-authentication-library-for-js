@@ -81,6 +81,7 @@ export class SilentFlowClient extends BaseClient {
 
         // generate Authentication Result
         return {
+            authority: `https://${cachedAccessToken.environment}/${cachedAccessToken.realm}/`,
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: cachedScopes.asArray(),

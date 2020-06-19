@@ -39,6 +39,7 @@ export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
+export { AuthorizationCodeResponse } from "./response/AuthorizationCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
