@@ -3,16 +3,15 @@ import sinon from "sinon";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Constants } from "../../src/utils/Constants";
-import { AuthorityType } from "../../src/authority/AuthorityType";
 import {
-    DEFAULT_TENANT_DISCOVERY_RESPONSE,
     TEST_URIS,
     RANDOM_TEST_GUID,
     DEFAULT_OPENID_CONFIG_RESPONSE
 } from "../utils/StringConstants";
-import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
+import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { ClientAuthErrorMessage } from "../../src";
 import { ClientTestUtils } from "../client/ClientTestUtils";
+import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 
 describe("Authority.ts Class Unit Tests", () => {
     afterEach(() => {
@@ -123,6 +122,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(() => authority.authorizationEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.tokenEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.endSessionEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
+                expect(() => authority.deviceCodeEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.selfSignedJwtAudience).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
             });
         });
@@ -168,6 +168,35 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
             expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
             expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
+        });
+
+        it("Attempts to set instance metadata from network if not set", async () => {
+            sinon.restore();
+            let setFromNetwork = false;
+            sinon.stub(TrustedAuthority, "getTrustedHostList").returns([]);
+            sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
+            sinon.stub(TrustedAuthority, "setTrustedAuthoritiesFromNetwork").callsFake(async () => {
+                setFromNetwork = true;
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(setFromNetwork).to.be.true;
+        });
+
+        it("throws untrustedAuthority error if host is not in TrustedHostList", async () => {
+            sinon.restore();
+            sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["testAuthority"]);
+            sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(false);
+
+            let err = null;
+            try {
+                await authority.resolveEndpointsAsync();
+            } catch (e) {
+                expect(e).to.be.instanceOf(ClientConfigurationError);
+                err = e;
+            }
+            expect(err.errorMessage).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.desc);
+            expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
         });
     });
 });
