@@ -112,6 +112,5 @@ export class ClientTestUtils {
             aliases: ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]};
         sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedInstanceMetadata.aliases);
         sinon.stub(TrustedAuthority, "getInstanceMetadata").returns(stubbedInstanceMetadata);
-
     }
 }
