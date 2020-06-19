@@ -30,5 +30,3 @@ const tokenRequest = {
 const silentRequest = {
     scopes: ["3fba556e-5d4a-48e3-8e1a-fd57c12cb82e", "User.Read", "Mail.Read"]
 };
-
-const logoutRequest = {};
