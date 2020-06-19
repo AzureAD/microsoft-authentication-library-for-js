@@ -469,9 +469,10 @@ export class PublicClientApplication {
      * @param logoutRequest 
      */
     logout(logoutRequest: EndSessionRequest): void {
+        const validLogoutRequest = this.generateLogoutRequest(logoutRequest);
         this.createAuthCodeClient(logoutRequest.authority).then((authClient: AuthorizationCodeClient) => {
             // create logout string and navigate user window to logout. Auth module will clear cache.
-            const logoutUri: string = authClient.getLogoutUri(logoutRequest);
+            const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             BrowserUtils.navigateWindow(logoutUri);
         });
     }
@@ -686,6 +687,13 @@ export class PublicClientApplication {
         request.codeChallengeMethod = Constants.S256_CODE_CHALLENGE_METHOD;
 
         return authCodeRequest;
+    }
+
+    private generateLogoutRequest(logoutRequest: EndSessionRequest): EndSessionRequest {
+        return {
+            ...logoutRequest,
+            postLogoutRedirectUri: logoutRequest.postLogoutRedirectUri || this.getPostLogoutRedirectUri()
+        };
     }
 
     // #endregion
