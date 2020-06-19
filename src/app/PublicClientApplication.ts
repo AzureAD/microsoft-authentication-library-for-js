@@ -25,7 +25,8 @@ import {
     AccountInfo,
     ResponseMode,
     ClientConfiguration,
-    SilentFlowClient
+    SilentFlowClient,
+    EndSessionRequest
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -467,10 +468,10 @@ export class PublicClientApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param logoutRequest 
      */
-    logout(account: AccountInfo, postLogoutRedirectUri?: string, authority?: string): void {
-        this.createAuthCodeClient(authority).then((authClient: AuthorizationCodeClient) => {
+    logout(logoutRequest: EndSessionRequest): void {
+        this.createAuthCodeClient(logoutRequest.authority).then((authClient: AuthorizationCodeClient) => {
             // create logout string and navigate user window to logout. Auth module will clear cache.
-            const logoutUri: string = authClient.getLogoutUri(account, postLogoutRedirectUri);
+            const logoutUri: string = authClient.getLogoutUri(logoutRequest);
             BrowserUtils.navigateWindow(logoutUri);
         });
     }
