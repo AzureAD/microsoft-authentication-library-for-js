@@ -470,7 +470,7 @@ export class PublicClientApplication {
     logout(account: AccountInfo, postLogoutRedirectUri?: string, authority?: string): void {
         this.createAuthCodeClient(authority).then((authClient: AuthorizationCodeClient) => {
             // create logout string and navigate user window to logout. Auth module will clear cache.
-            const logoutUri: string = authClient.getLogoutUri(account, postLogoutRedirectUri);
+            const logoutUri: string = authClient.getLogoutUri(account, postLogoutRedirectUri || this.getPostLogoutRedirectUri());
             BrowserUtils.navigateWindow(logoutUri);
         });
     }
