@@ -146,16 +146,14 @@ export class ResponseHandler {
     generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
         const authorityType = authority.authorityType;
 
-        if (!serverTokenResponse.client_info)
+        if (!serverTokenResponse.client_info) {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
-
-        switch (authorityType) {
-            case AuthorityType.Adfs:
-                return AccountEntity.createADFSAccount(authority, idToken);
-            // default to AAD
-            default:
-                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, null, this.cryptoObj);
         }
+
+        return (authorityType === AuthorityType.Adfs)? 
+            AccountEntity.createADFSAccount(authority, idToken): 
+            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
+    
     }
 
     /**
