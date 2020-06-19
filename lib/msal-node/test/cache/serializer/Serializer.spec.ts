@@ -21,7 +21,7 @@ describe("Serializer test cases", () => {
 
         // serialize the mock Account and Test equivalency with the cache.json provided
         const serializedAcc = Serializer.serializeAccounts(acc);
-        expect(JSON.parse(serializedAcc[MockCache.accKey])).toMatchObject(jsonCache.Account[MockCache.accKey]);
+        expect(serializedAcc[MockCache.accKey]).toMatchObject(jsonCache.Account[MockCache.accKey]);
     });
 
     test("serializeIdTokenCacheEntity", () => {
@@ -30,7 +30,7 @@ describe("Serializer test cases", () => {
 
         // serialize the mock IdToken and Test equivalency with the cache.json provided
         const serializedIdT = Serializer.serializeIdTokens(idt);
-        expect(JSON.parse(serializedIdT[MockCache.idTKey])).toMatchObject(jsonCache.IdToken[MockCache.idTKey]);
+        expect(serializedIdT[MockCache.idTKey]).toMatchObject(jsonCache.IdToken[MockCache.idTKey]);
     });
 
     test("serializeAccessTokenEntity", () => {
@@ -39,7 +39,7 @@ describe("Serializer test cases", () => {
 
         // serialize the mock AccessToken and Test equivalency with the cache.json provided
         const serializedAt = Serializer.serializeAccessTokens(at);
-        expect(JSON.parse(serializedAt[MockCache.atOneKey])).toMatchObject(jsonCache.AccessToken[MockCache.atOneKey]);
+        expect(serializedAt[MockCache.atOneKey]).toMatchObject(jsonCache.AccessToken[MockCache.atOneKey]);
     });
 
     test("serializeRefreshTokenCacheEntity", () => {
@@ -48,7 +48,7 @@ describe("Serializer test cases", () => {
 
         // serialize the mock RefreshToken and Test equivalency with the cache.json provided
         const serializedRT = Serializer.serializeRefreshTokens(rt);
-        expect(JSON.parse(serializedRT[MockCache.rtKey])).toMatchObject(jsonCache.RefreshToken[MockCache.rtKey]);
+        expect(serializedRT[MockCache.rtKey]).toMatchObject(jsonCache.RefreshToken[MockCache.rtKey]);
     });
 
     test("serializeAppMetadataCacheEntity", () => {
@@ -57,7 +57,7 @@ describe("Serializer test cases", () => {
 
         // serialize the mock AppMetadata and Test equivalency with the cache.json provided
         const serializedAmdt = Serializer.serializeAppMetadata(amdt);
-        expect(JSON.parse(serializedAmdt[MockCache.amdtKey])).toMatchObject(jsonCache.AppMetadata[MockCache.amdtKey]);
+        expect(serializedAmdt[MockCache.amdtKey]).toMatchObject(jsonCache.AppMetadata[MockCache.amdtKey]);
     });
 
     test("serializeAll", () => {
@@ -66,12 +66,12 @@ describe("Serializer test cases", () => {
         const inMemoryCache: InMemoryCache = Deserializer.deserializeAllCache(jsonCache);
         const jCache: JsonCache = Serializer.serializeAllCache(inMemoryCache);
 
-        expect(JSON.parse(jCache.Account[MockCache.accKey])).toMatchObject(jsonCache.Account[MockCache.accKey]);
-        expect(JSON.parse(jCache.IdToken[MockCache.idTKey])).toMatchObject(jsonCache.IdToken[MockCache.idTKey]);
-        expect(JSON.parse(jCache.AccessToken[MockCache.atOneKey])).toMatchObject(jsonCache.AccessToken[MockCache.atOneKey]);
-        expect(JSON.parse(jCache.AccessToken[MockCache.atTwoKey])).toMatchObject(jsonCache.AccessToken[MockCache.atTwoKey]);
-        expect(JSON.parse(jCache.RefreshToken[MockCache.rtKey])).toMatchObject(jsonCache.RefreshToken[MockCache.rtKey]);
-        expect(JSON.parse(jCache.RefreshToken[MockCache.rtFKey])).toMatchObject(jsonCache.RefreshToken[MockCache.rtFKey]);
-        expect(JSON.parse(jCache.AppMetadata[MockCache.amdtKey])).toMatchObject(jsonCache.AppMetadata[MockCache.amdtKey]);
+        expect(jCache.Account[MockCache.accKey]).toMatchObject(jsonCache.Account[MockCache.accKey]);
+        expect(jCache.IdToken[MockCache.idTKey]).toMatchObject(jsonCache.IdToken[MockCache.idTKey]);
+        expect(jCache.AccessToken[MockCache.atOneKey]).toMatchObject(jsonCache.AccessToken[MockCache.atOneKey]);
+        expect(jCache.AccessToken[MockCache.atTwoKey]).toMatchObject(jsonCache.AccessToken[MockCache.atTwoKey]);
+        expect(jCache.RefreshToken[MockCache.rtKey]).toMatchObject(jsonCache.RefreshToken[MockCache.rtKey]);
+        expect(jCache.RefreshToken[MockCache.rtFKey]).toMatchObject(jsonCache.RefreshToken[MockCache.rtFKey]);
+        expect(jCache.AppMetadata[MockCache.amdtKey]).toMatchObject(jsonCache.AppMetadata[MockCache.amdtKey]);
     });
 });
