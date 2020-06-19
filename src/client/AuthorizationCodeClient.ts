@@ -21,7 +21,7 @@ import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
-import { AuthorizationCodeResponse } from "../response/AuthorizationCodeResponse";
+import { AuthorizationCodePayload } from "../response/AuthorizationCodeResponse";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -52,7 +52,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
         // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
@@ -70,7 +70,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.generateAuthenticationResult(response.body, this.authority, cachedNonce, cachedState);
+        const tokenResponse = responseHandler.generateAuthenticationResult(response.body, this.authority, authCodePayload);
 
         return tokenResponse;
     }
@@ -80,7 +80,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * the client to exchange for a token in acquireToken.
      * @param hashFragment
      */
-    handleFragmentResponse(hashFragment: string, cachedState: string): AuthorizationCodeResponse {
+    handleFragmentResponse(hashFragment: string, cachedState: string): AuthorizationCodePayload {
         // Handle responses.
         const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger);
 

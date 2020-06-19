@@ -23,4 +23,6 @@ export type AuthenticationResult = {
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;
+    cloudGraphHostName?: string;
+    msGraphHost?: string; 
 };
