@@ -15,12 +15,15 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { IdToken } from "../../src/account/IdToken";
-import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { IAccount } from "../../src/account/IAccount";
 import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager } from "../../src";
 
 describe("SilentFlowClient unit tests", () => {
+    beforeEach(() => {
+        ClientTestUtils.setInstanceMetadataStubs();
+    });
+    
     afterEach(() => {
         sinon.restore();
     });

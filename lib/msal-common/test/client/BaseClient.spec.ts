@@ -47,8 +47,11 @@ class TestClient extends BaseClient {
 }
 
 describe("BaseClient.ts Class Unit Tests", () => {
-
     beforeEach(() => {
+        ClientTestUtils.setInstanceMetadataStubs();
+    });
+
+    afterEach(() => {
         sinon.restore();
     });
 

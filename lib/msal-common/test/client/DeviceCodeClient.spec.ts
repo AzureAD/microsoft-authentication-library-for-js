@@ -24,6 +24,10 @@ describe("DeviceCodeClient unit tests", async () => {
         sinon.restore();
     });
 
+    beforeEach(() => {
+        ClientTestUtils.setInstanceMetadataStubs();
+    });
+
     afterEach(() => {
         sinon.restore();
     });
