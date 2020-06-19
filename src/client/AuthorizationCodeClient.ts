@@ -20,7 +20,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { AccountEntity } from "../cache/entities/AccountEntity";
-import { AccountInfo } from "../account/AccountInfo";
+import { EndSessionRequest } from "../request/EndSessionRequest";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -96,12 +96,13 @@ export class AuthorizationCodeClient extends BaseClient {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param authorityUri
      */
-    getLogoutUri(account: AccountInfo, postLogoutRedirectUri: string): string {
+    getLogoutUri(logoutRequest: EndSessionRequest): string {
         // Clear current account.
-        this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(account));
+        this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
 
         // Get postLogoutRedirectUri.
-        const postLogoutUriParam = postLogoutRedirectUri ? `?${AADServerParamKeys.POST_LOGOUT_URI}=` + encodeURIComponent(postLogoutRedirectUri) : "";
+        const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ? 
+            `?${AADServerParamKeys.POST_LOGOUT_URI}=` + encodeURIComponent(logoutRequest.postLogoutRedirectUri) : "";
 
         // Construct logout URI.
         const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}`;
