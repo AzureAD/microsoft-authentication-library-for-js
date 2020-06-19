@@ -25,6 +25,7 @@ import { CacheRecord } from "../cache/entities/CacheRecord";
 import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
+import { AuthorizationCodePayload } from "./AuthorizationCodeResponse";
 
 /**
  * Class that handles response parsing.
@@ -98,7 +99,10 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): AuthenticationResult {
+    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, authCodePayload?: AuthorizationCodePayload): AuthenticationResult {
+        const cachedNonce = authCodePayload ? authCodePayload.nonce : "";
+        const cachedState = authCodePayload ? authCodePayload.state : "";
+
         // create an idToken object (not entity)
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
@@ -132,7 +136,9 @@ export class ResponseHandler {
             expiresOn: new Date(cacheRecord.accessToken.expiresOn),
             extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
             familyId: serverTokenResponse.foci || null,
-            state: requestStateObj ? requestStateObj.userRequestState : ""
+            state: requestStateObj ? requestStateObj.userRequestState : "",
+            cloudGraphHostName: authCodePayload.cloud_graph_host_name,
+            msGraphHost: authCodePayload.msgraph_host
         };
 
         return authenticationResult;
