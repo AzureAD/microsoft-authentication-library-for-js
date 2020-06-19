@@ -17,16 +17,25 @@ const myMSALObj = new msal.PublicClientApplication(msalConfig);
 // Register Callbacks for Redirect flow
 myMSALObj.handleRedirectPromise().then(response => {
     if (response) {
-        authRedirectCallBack(response);
+        handleResponse(response);
     }
 }).catch(error => {
     console.log(error);
 });
 
-function authRedirectCallBack(response) {
-    if (myMSALObj.getAccount()) {
-        console.log('id_token acquired at: ' + new Date().toString());
-        showWelcomeMessage(myMSALObj.getAccount());
+function handleResponse(response) {
+    if (response !== null) {
+        showWelcomeMessage(response.account);
+    } else {
+        // need to call getAccount here?
+        const currentAccounts = myMSALObj.getAllAccounts();
+        if (currentAccounts === null) {
+            return;
+        } else if (currentAccounts.length > 1) {
+            // Add choose account code here
+        } else if (currentAccounts.length === 1) {
+            showWelcomeMessage(currentAccounts[0]);
+        }
     }
     
     if (response.tokenType === "Bearer") {
@@ -40,56 +49,48 @@ function authRedirectCallBack(response) {
 }
 
 // Redirect: once login is successful and redirects with tokens, call Graph API
-if (myMSALObj.getAccount()) {
+let currentAccounts = myMSALObj.getAllAccounts();
+let account = ""
+if (currentAccounts === 1) {
     // avoid duplicate code execution on page load in case of iframe and Popup window.
-    showWelcomeMessage(myMSALObj.getAccount());
+    account = currentAccounts[0];
+    showWelcomeMessage(account);
 }
 
 async function signIn(method) {
     signInType = isIE ? "loginRedirect" : method;
     if (signInType === "loginPopup") {
-        const loginResponse = await myMSALObj.loginPopup({}).catch(function (error) {
+        const loginResponse = await myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
             console.log(error);
         });
-        console.log(loginResponse);
-        if (myMSALObj.getAccount()) {
-            showWelcomeMessage(myMSALObj.getAccount());
-        }
     } else if (signInType === "loginRedirect") {
-        myMSALObj.loginRedirect({});
+        myMSALObj.loginRedirect(loginRequest);
     }
 }
 
 function signOut() {
-    myMSALObj.logout();
+    const currentAcc = account;
+    myMSALObj.logout(currentAcc);
 }
 
 function getAccessTokenPopup() {
-    if (myMSALObj.getAccount()) {
-        myMSALObj.acquireTokenPopup(loginRequest).then(response => {
-            updateUI(response);
-            accessTokenButtonPopup.style.display = 'none';
-            accessTokenButtonRedirect.style.display = 'none';
-        }).catch(error => {
-            console.log(error);
-        });
-    }
+    request = loginRequest
+    request.account = account;
+    myMSALObj.acquireTokenPopup(request).then(handleResponse).catch(error => {
+        console.log(error);
+    });
 }
 
 function getAccessTokenRedirect() {
-    if (myMSALObj.getAccount()) {
-        myMSALObj.acquireTokenRedirect(loginRequest);
-    }
+    request = loginRequest
+    request.account = account;
+    myMSALObj.acquireTokenRedirect(request);
 }
 
 function getAccessTokenSilent() {
-    if (myMSALObj.getAccount()) {
-        myMSALObj.acquireTokenSilent(loginRequest).then(response => {
-            updateUI(response);
-            accessTokenButtonPopup.style.display = 'none';
-            accessTokenButtonRedirect.style.display = 'none';
-        }).catch(error => {
-            console.log(error);
-        })
-    }
+    request = loginRequest
+    request.account = account;
+    myMSALObj.acquireTokenSilent(request).then(handleResponse).catch(error => {
+        console.log(error);
+    })
 }
