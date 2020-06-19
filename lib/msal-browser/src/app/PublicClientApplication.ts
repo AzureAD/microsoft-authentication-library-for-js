@@ -25,8 +25,7 @@ import {
     AccountInfo,
     ResponseMode,
     ClientConfiguration,
-    SilentFlowClient,
-    EndSessionRequest
+    SilentFlowClient
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -468,11 +467,10 @@ export class PublicClientApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param logoutRequest 
      */
-    logout(logoutRequest: EndSessionRequest): void {
-        this.createAuthCodeClient(logoutRequest.authority).then((authClient: AuthorizationCodeClient) => {
+    logout(account: AccountInfo, postLogoutRedirectUri?: string, authority?: string): void {
+        this.createAuthCodeClient(authority).then((authClient: AuthorizationCodeClient) => {
             // create logout string and navigate user window to logout. Auth module will clear cache.
-            return authClient.getLogoutUri(logoutRequest);
-        }).then((logoutUri: string) => {
+            const logoutUri: string = authClient.getLogoutUri(account, postLogoutRedirectUri);
             BrowserUtils.navigateWindow(logoutUri);
         });
     }
@@ -690,18 +688,6 @@ export class PublicClientApplication {
         request.codeChallengeMethod = Constants.S256_CODE_CHALLENGE_METHOD;
 
         return authCodeRequest;
-    }
-
-    private generateLogoutRequest(request: EndSessionRequest): EndSessionRequest {
-        const logoutRequest = {
-            ...request
-        };
-
-        if (StringUtils.isEmpty(logoutRequest.postLogoutRedirectUri)) {
-            logoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri();
-        }
-
-        return logoutRequest;
     }
 
     // #endregion

@@ -8,7 +8,7 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
-import { GrantType } from "../utils/Constants";
+import { GrantType, AADServerParamKeys } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -19,6 +19,8 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
+import { AccountEntity } from "../cache/entities/AccountEntity";
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -87,6 +89,23 @@ export class AuthorizationCodeClient extends BaseClient {
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);
         return serverParams.code;
+    }
+
+    /**
+     * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
+     * Default behaviour is to redirect the user to `window.location.href`.
+     * @param authorityUri
+     */
+    getLogoutUri(account: AccountInfo, postLogoutRedirectUri: string): string {
+        // Clear current account.
+        this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(account));
+
+        // Get postLogoutRedirectUri.
+        const postLogoutUriParam = postLogoutRedirectUri ? `?${AADServerParamKeys.POST_LOGOUT_URI}=` + encodeURIComponent(postLogoutRedirectUri) : "";
+
+        // Construct logout URI.
+        const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}`;
+        return logoutUri;
     }
 
     /**
