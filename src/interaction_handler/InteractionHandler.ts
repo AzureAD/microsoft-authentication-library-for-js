@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient, AuthorizationCodeResponse, AuthorityFactory, INetworkModule } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient, AuthorizationCodePayload, AuthorityFactory, INetworkModule } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -43,7 +43,7 @@ export abstract class InteractionHandler {
         const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateCacheKey(cachedNonceKey), CacheSchemaType.TEMPORARY) as string;
 
         // Handle code response.
-        const authCodeResponse: AuthorizationCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+        const authCodeResponse: AuthorizationCodePayload = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Assign code to request
         this.authCodeRequest.code = authCodeResponse.code;
@@ -55,8 +55,11 @@ export abstract class InteractionHandler {
             }
         }
 
+        authCodeResponse.nonce = cachedNonce;
+        authCodeResponse.state = requestState;
+
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }
