@@ -88,12 +88,10 @@ export class AccountEntity {
 
         account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         account.clientInfo = clientInfo;
-        // TBD: Clarify "policy" addition
         const clientInfoObj = buildClientInfo(clientInfo, crypto);
         account.homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
 
-        const reqEnvironment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         account.environment = TrustedAuthority.getInstanceMetadata(reqEnvironment)
             ? TrustedAuthority.getInstanceMetadata(reqEnvironment).preferred_cache
             : reqEnvironment;
@@ -126,8 +124,12 @@ export class AccountEntity {
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
-        account.environment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        account.environment = TrustedAuthority.getInstanceMetadata(reqEnvironment)
+            ? TrustedAuthority.getInstanceMetadata(reqEnvironment).preferred_cache
+            : reqEnvironment;
+
         account.username = idToken.claims.upn;
         // add uniqueName to claims
         // account.name = idToken.claims.uniqueName;
