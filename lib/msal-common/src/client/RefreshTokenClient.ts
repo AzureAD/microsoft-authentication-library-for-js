@@ -28,7 +28,7 @@ export class RefreshTokenClient extends BaseClient {
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
-            this.unifiedCacheManager,
+            this.cacheManager,
             this.cryptoUtils,
             this.logger
         );

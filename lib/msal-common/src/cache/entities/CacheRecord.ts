@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntity } from "./AccountEntity";
 import { IdTokenEntity } from "./IdTokenEntity";
 import { AccessTokenEntity } from "./AccessTokenEntity";
 import { RefreshTokenEntity } from "./RefreshTokenEntity";
+import { AccountEntity } from "./AccountEntity";
 
 export class CacheRecord {
     account: AccountEntity;
@@ -14,7 +14,7 @@ export class CacheRecord {
     accessToken: AccessTokenEntity;
     refreshToken: RefreshTokenEntity;
 
-    constructor(accountEntity: AccountEntity, idTokenEntity: IdTokenEntity, accessTokenEntity: AccessTokenEntity, refreshTokenEntity: RefreshTokenEntity) {
+    constructor(accountEntity?: AccountEntity, idTokenEntity?: IdTokenEntity, accessTokenEntity?: AccessTokenEntity, refreshTokenEntity?: RefreshTokenEntity) {
         this.account = accountEntity;
         this.idToken = idTokenEntity;
         this.accessToken = accessTokenEntity;

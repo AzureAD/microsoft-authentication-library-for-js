@@ -16,10 +16,8 @@ import {
     ClientAuthError,
     Constants,
     B2cAuthority,
-    JsonCache,
-    Serializer,
-    InMemoryCache,
-    BaseAuthRequest,
+    IAccount,
+    BaseAuthRequest
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -27,6 +25,8 @@ import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants as NodeConstants } from './../utils/Constants';
 import { CacheContext } from '../cache/CacheContext';
+import { JsonCache, InMemoryCache } from "../cache/serializer/SerializerTypes";
+import { Serializer } from "../cache/serializer/Serializer";
 
 export abstract class ClientApplication {
     private config: Configuration;
@@ -198,5 +198,9 @@ export abstract class ClientApplication {
         return Serializer.serializeAllCache(
             this.storage.getCache() as InMemoryCache
         );
+    }
+
+    getAllAccounts(): IAccount[] {
+        return this.storage.getAllAccounts();
     }
 }
