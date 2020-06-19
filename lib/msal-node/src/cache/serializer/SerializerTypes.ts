@@ -3,14 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
+import {AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
+
+export type Dict = {
+    [key: string]: object;
+};
 
 export type JsonCache = {
-    Account: StringDict;
-    IdToken: StringDict;
-    AccessToken: StringDict;
-    RefreshToken: StringDict;
-    AppMetadata: StringDict;
+    Account: Dict;
+    IdToken: Dict;
+    AccessToken: Dict;
+    RefreshToken: Dict;
+    AppMetadata: Dict;
 };
 
 export type InMemoryCache = {
