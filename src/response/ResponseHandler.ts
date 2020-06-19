@@ -153,7 +153,6 @@ export class ResponseHandler {
         return (authorityType === AuthorityType.Adfs)? 
             AccountEntity.createADFSAccount(authority, idToken): 
             AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
-    
     }
 
     /**
