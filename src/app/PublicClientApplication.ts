@@ -218,7 +218,7 @@ export class PublicClientApplication {
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
         if (!StringUtils.isEmpty(responseHash)) {
             // Hash contains known properties - handle and return in callback
-            return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
+            return interactionHandler.handleCodeResponse(responseHash, this.networkClient, this.browserCrypto);
         }
 
         // There is no hash - assume we are in clean state and clear any current request data.
@@ -330,7 +330,7 @@ export class PublicClientApplication {
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
         // Handle response from hash string.
-        return await interactionHandler.handleCodeResponse(hash);
+        return await interactionHandler.handleCodeResponse(hash, this.networkClient);
     }
 
     // #endregion
@@ -453,7 +453,7 @@ export class PublicClientApplication {
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await silentHandler.monitorFrameForHash(msalFrame, this.config.system.iframeHashTimeout, navigateUrl);
             // Handle response from hash string.
-            return await silentHandler.handleCodeResponse(hash);
+            return await silentHandler.handleCodeResponse(hash, this.networkClient);
         } catch (e) {
             throw e;
         }
@@ -576,8 +576,10 @@ export class PublicClientApplication {
      * @param authorityUri 
      */
     private async getClientConfiguration(authorityUri?: string): Promise<ClientConfiguration> {
-        const discoveredAuthority = authorityUri ? await AuthorityFactory.createDiscoveredInstance(authorityUri, this.config.system.networkClient) 
-            : await this.defaultAuthorityPromise;
+        const defaultAuthority = await this.defaultAuthorityPromise;
+        const shouldCreateAuthority = !!authorityUri && authorityUri !== defaultAuthority.canonicalAuthority;
+        const discoveredAuthority = shouldCreateAuthority ? await AuthorityFactory.createDiscoveredInstance(authorityUri, this.config.system.networkClient) 
+            : defaultAuthority;
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
