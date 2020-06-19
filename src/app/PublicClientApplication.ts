@@ -102,11 +102,7 @@ export class PublicClientApplication {
         // Initialize default authority instance
         B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities);
 
-        this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(
-            this.config.auth.authority,
-            this.networkClient,
-            true
-        );
+        this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.networkClient, true);
 
         // Check for hash and save response promise
         this.tokenExchangePromise = this.handleRedirectResponse();
