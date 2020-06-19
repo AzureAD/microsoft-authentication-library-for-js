@@ -490,7 +490,7 @@ export class PublicClientApplication {
         if (this.config.auth.redirectUri) {
             if (typeof this.config.auth.redirectUri === "function") {
                 return this.config.auth.redirectUri();
-            } else if (!StringUtils.isEmpty(this.config.auth.redirectUri)) {
+            } else {
                 return this.config.auth.redirectUri;
             }
         }
@@ -508,9 +508,7 @@ export class PublicClientApplication {
         if (this.config.auth.postLogoutRedirectUri) {
             if (typeof this.config.auth.postLogoutRedirectUri === "function") {
                 return this.config.auth.postLogoutRedirectUri();
-            } else if (
-                !StringUtils.isEmpty(this.config.auth.postLogoutRedirectUri)
-            ) {
+            } else {
                 return this.config.auth.postLogoutRedirectUri;
             }
         }
@@ -576,10 +574,12 @@ export class PublicClientApplication {
      * @param authorityUri 
      */
     private async getClientConfiguration(authorityUri?: string): Promise<ClientConfiguration> {
+        const discoveredAuthority = authorityUri ? await AuthorityFactory.createDiscoveredInstance(authorityUri, this.config.system.networkClient) 
+            : await this.defaultAuthorityPromise;
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
-                authority: authorityUri ? await AuthorityFactory.createDiscoveredInstance(authorityUri, this.config.system.networkClient) : await this.defaultAuthorityPromise,
+                authority: discoveredAuthority,
                 knownAuthorities: this.config.auth.knownAuthorities
             },
             systemOptions: {
@@ -666,13 +666,10 @@ export class PublicClientApplication {
      * @param request 
      */
     private generateLoginRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
-        const loginRequest = { ...request };
-        if (!loginRequest.scopes) {
-            loginRequest.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE];
-        } else {
-            loginRequest.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE);
-        }
-        return loginRequest;
+        return {
+            ...request,
+            scopes: [...request.scopes, Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
+        };
     }
 
     private async generateAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {

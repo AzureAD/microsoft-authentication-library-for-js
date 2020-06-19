@@ -349,7 +349,7 @@ export class BrowserStorage extends CacheManager {
     getCachedAuthority(): string {
         const state = this.getItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
         if (!state) {
-            return "";
+            return null;
         }
         return this.getItem(this.generateCacheKey(this.generateAuthorityKey(state)), CacheSchemaType.TEMPORARY) as string;
     }
