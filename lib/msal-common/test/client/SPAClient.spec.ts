@@ -25,7 +25,7 @@ import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeReq
 import { AadAuthority } from "../../src/authority/AadAuthority";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
-import { IAccount } from "../../src/account/IAccount";
+import { AccountInfo } from "../../src/account/AccountInfo";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { MockStorageClass } from "./ClientTestUtils";
 
@@ -330,7 +330,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     // Build Test account
                     const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
                     const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
-                    const testAccount: IAccount = {
+                    const testAccount: AccountInfo = {
                         homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                         environment: "login.windows.net",
                         tenantId: idTokenClaims.tid,
@@ -353,7 +353,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
         describe("Renew token", () => {
 
             let authClient: SPAClient;
-            let testAccount: IAccount;
+            let testAccount: AccountInfo;
             beforeEach(() => {
                 authClient = new SPAClient(defaultAuthConfig);
                 testAccount = {
@@ -532,7 +532,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
         let client: SPAClient;
         let idToken: IdToken;
         let clientInfo: ClientInfo;
-        let testAccount: IAccount;
+        let testAccount: AccountInfo;
         beforeEach(() => {
             config = {
                 authOptions: {
