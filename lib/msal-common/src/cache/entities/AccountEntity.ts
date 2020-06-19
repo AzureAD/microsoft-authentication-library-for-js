@@ -82,7 +82,6 @@ export class AccountEntity {
         clientInfo: string,
         authority: Authority,
         idToken: IdToken,
-        policy: string,
         crypto: ICrypto
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
@@ -91,11 +90,7 @@ export class AccountEntity {
         account.clientInfo = clientInfo;
         // TBD: Clarify "policy" addition
         const clientInfoObj = buildClientInfo(clientInfo, crypto);
-        const homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
-        account.homeAccountId =
-            policy !== null
-                ? homeAccountId + Separators.CACHE_KEY_SEPARATOR + policy
-                : homeAccountId;
+        account.homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
 
         const reqEnvironment =
             authority.canonicalAuthorityUrlComponents.HostNameAndPort;
