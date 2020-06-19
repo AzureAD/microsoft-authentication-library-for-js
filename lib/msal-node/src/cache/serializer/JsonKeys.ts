@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CacheHelper } from "@azure/msal-common";
+import { CacheContext } from "cache/CacheContext";
 
 /**
  * Map for AccountCache entity serialization and deserialization
@@ -22,7 +22,7 @@ export class AccountCacheMaps {
         lastModificationApp: "last_modification_app",
     };
 
-    static fromCacheMap = CacheHelper.swap(AccountCacheMaps.toCacheMap);
+    static fromCacheMap = CacheContext.swap(AccountCacheMaps.toCacheMap);
 }
 
 /**
@@ -38,7 +38,7 @@ export class IdTokenCacheMaps {
         realm: "realm",
     };
 
-    static fromCacheMap = CacheHelper.swap(IdTokenCacheMaps.toCacheMap);
+    static fromCacheMap = CacheContext.swap(IdTokenCacheMaps.toCacheMap);
 }
 
 /**
@@ -61,7 +61,7 @@ export class AccessTokenCacheMaps {
         tokenType: "token_type",
     };
 
-    static fromCacheMap = CacheHelper.swap(AccessTokenCacheMaps.toCacheMap);
+    static fromCacheMap = CacheContext.swap(AccessTokenCacheMaps.toCacheMap);
 }
 
 /**
@@ -76,7 +76,7 @@ export class RefreshTokenCacheMaps {
         secret: "secret",
     };
 
-    static fromCacheMap = CacheHelper.swap(RefreshTokenCacheMaps.toCacheMap);
+    static fromCacheMap = CacheContext.swap(RefreshTokenCacheMaps.toCacheMap);
 }
 
 /**
@@ -89,5 +89,5 @@ export class AppMetadataCacheMaps {
         familyId: "family_id",
     };
 
-    static fromCacheMap = CacheHelper.swap(AppMetadataCacheMaps.toCacheMap);
+    static fromCacheMap = CacheContext.swap(AppMetadataCacheMaps.toCacheMap);
 }

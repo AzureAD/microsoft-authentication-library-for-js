@@ -1,15 +1,12 @@
 // App Auth Modules and Configuration
-export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
-export {
-    AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions, DEFAULT_SYSTEM_OPTIONS
-} from "./config/ClientConfiguration";
+export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
-export { IAccount } from "./account/IAccount";
+export { AccountInfo } from "./account/AccountInfo";
 export { IdToken } from "./account/IdToken";
 export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
@@ -21,7 +18,6 @@ export { AuthorityType } from "./authority/AuthorityType";
 // Cache
 export { CacheManager } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "./cache/utils/CacheTypes";
-export { CacheHelper } from "./cache/utils/CacheHelper";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
@@ -42,7 +38,9 @@ export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
+export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
+export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
@@ -52,9 +50,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export {
-    Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType
-} from "./utils/Constants";
+export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils } from "./utils/ProtocolUtils";

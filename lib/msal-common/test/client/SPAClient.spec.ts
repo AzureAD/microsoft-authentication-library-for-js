@@ -27,6 +27,7 @@ import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
 import { IAccount } from "../../src/account/IAccount";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { MockStorageClass, ClientTestUtils } from "./ClientTestUtils";
+import { MockStorageClass } from "./ClientTestUtils";
 
 describe("SPAClient.ts Class Unit Tests", () => {
 

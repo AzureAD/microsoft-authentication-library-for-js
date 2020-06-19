@@ -13,6 +13,7 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -34,7 +35,7 @@ export abstract class BaseClient {
     protected networkClient: INetworkModule;
 
     // Default authority object
-    protected defaultAuthority: Authority;
+    protected authority: Authority;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
@@ -54,7 +55,7 @@ export abstract class BaseClient {
 
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.instanceMetadata);
 
-        this.defaultAuthority = this.config.authOptions.authority;
+        this.authority = this.config.authOptions.authority;
     }
 
     /**
@@ -95,5 +96,16 @@ export abstract class BaseClient {
             body: queryString,
             headers: headers,
         });
+    }
+
+    /**
+     * Updates the authority object of the client. Endpoint discovery must be completed.
+     * @param updatedAuthority 
+     */
+    updateAuthority(updatedAuthority: Authority): void {
+        if (!updatedAuthority.discoveryComplete()) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Updated authority has not completed endpoint discovery.");
+        }
+        this.authority = updatedAuthority;
     }
 }
