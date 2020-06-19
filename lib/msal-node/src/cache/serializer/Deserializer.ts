@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 import { AccountCacheMaps, IdTokenCacheMaps, AccessTokenCacheMaps, RefreshTokenCacheMaps, AppMetadataCacheMaps } from "./JsonKeys";
-import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, StringDict, CacheHelper, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
-import { JsonCache, InMemoryCache } from "./SerializerTypes";
+import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, CacheHelper, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
+import { JsonCache, InMemoryCache, Dict } from "./SerializerTypes";
 
 // TODO: Can we write this with Generics?
 export class Deserializer {
@@ -24,7 +24,7 @@ export class Deserializer {
      * Deserializes accounts to AccountEntity objects
      * @param accounts
      */
-    static deserializeAccounts(accounts: StringDict | undefined): AccountCache {
+    static deserializeAccounts(accounts: Dict): AccountCache {
         const accountObjects: AccountCache = {};
         if (accounts) {
             Object.keys(accounts).map(function (key) {
@@ -45,7 +45,7 @@ export class Deserializer {
      * Deserializes id tokens to IdTokenEntity objects
      * @param idTokens
      */
-    static deserializeIdTokens(idTokens: StringDict | undefined): IdTokenCache {
+    static deserializeIdTokens(idTokens: Dict): IdTokenCache {
         const idObjects: IdTokenCache = {};
         if (idTokens) {
             Object.keys(idTokens).map(function (key) {
@@ -65,7 +65,7 @@ export class Deserializer {
      * Deserializes access tokens to AccessTokenEntity objects
      * @param accessTokens
      */
-    static deserializeAccessTokens(accessTokens: StringDict | undefined): AccessTokenCache {
+    static deserializeAccessTokens(accessTokens: Dict): AccessTokenCache {
         const atObjects: AccessTokenCache = {};
         if (accessTokens) {
             Object.keys(accessTokens).map(function (key) {
@@ -86,7 +86,7 @@ export class Deserializer {
      * Deserializes refresh tokens to RefreshTokenEntity objects
      * @param refreshTokens
      */
-    static deserializeRefreshTokens(refreshTokens: StringDict | undefined): RefreshTokenCache {
+    static deserializeRefreshTokens(refreshTokens: Dict): RefreshTokenCache {
         const rtObjects: RefreshTokenCache = {};
         if (refreshTokens) {
             Object.keys(refreshTokens).map(function (key) {
@@ -107,7 +107,7 @@ export class Deserializer {
      * Deserializes appMetadata to AppMetaData objects
      * @param appMetadata
      */
-    static deserializeAppMetadata(appMetadata: StringDict | undefined): AppMetadataCache {
+    static deserializeAppMetadata(appMetadata: Dict): AppMetadataCache {
         const appMetadataObjects: AppMetadataCache = {};
         if (appMetadata) {
             Object.keys(appMetadata).map(function (key) {

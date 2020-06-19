@@ -5,10 +5,10 @@
 
 import { Storage } from './Storage';
 import {
-    ClientAuthError, StringDict,
+    ClientAuthError,
     StringUtils
 } from '@azure/msal-common';
-import { InMemoryCache, JsonCache } from "cache/serializer/SerializerTypes";
+import { InMemoryCache, JsonCache, Dict } from "cache/serializer/SerializerTypes";
 import { ICachePlugin } from './ICachePlugin';
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -177,11 +177,11 @@ export class CacheManager {
      * @param newState
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
-        const accounts = oldState.Account != null ? this.mergeRemovalsStringDict(oldState.Account, newState.Account) : oldState.Account;
-        const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsStringDict(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
-        const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsStringDict(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
-        const idTokens = oldState.IdToken != null ? this.mergeRemovalsStringDict(oldState.IdToken, newState.IdToken) : oldState.IdToken;
-        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsStringDict(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
+        const accounts = oldState.Account != null ? this.mergeRemovalsDict(oldState.Account, newState.Account) : oldState.Account;
+        const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsDict(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
+        const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsDict(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
+        const idTokens = oldState.IdToken != null ? this.mergeRemovalsDict(oldState.IdToken, newState.IdToken) : oldState.IdToken;
+        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
 
         return {
             Account: accounts,
@@ -192,7 +192,7 @@ export class CacheManager {
         }
     }
 
-    private mergeRemovalsStringDict(oldAccounts: StringDict, newAccounts?: StringDict): StringDict {
+    private mergeRemovalsDict(oldAccounts: Dict, newAccounts?: Dict): Dict {
         let finalAccounts = oldAccounts;
         Object.keys(oldAccounts).forEach((oldKey) => {
             if (!newAccounts || !(newAccounts.hasOwnProperty(oldKey))) {
