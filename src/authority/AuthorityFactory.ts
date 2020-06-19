@@ -76,11 +76,11 @@ export class AuthorityFactory {
         const components = authorityUrl.getUrlComponents();
         const pathSegments = components.PathSegments;
 
-        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS)
+        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
             return new AdfsAuthority(authorityString, networkInterface);
-        else if (B2cAuthority.B2CTrustedHostList.length)
+        } else if (B2cAuthority.B2CTrustedHostList.length) {
             return new B2cAuthority(authorityString, networkInterface);
-
+        }
         // defaults to Aad
         return new AadAuthority(authorityString, networkInterface);
     }
