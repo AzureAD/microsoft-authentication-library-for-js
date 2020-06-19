@@ -21,7 +21,7 @@ import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
-import { AuthorizationCodePayload } from "../response/AuthorizationCodeResponse";
+import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 
 /**
  * Oauth2.0 Authorization Code client
