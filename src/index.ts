@@ -36,7 +36,6 @@ export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
-export { EndSessionRequest } from "./request/EndSessionRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 // Logger Callback

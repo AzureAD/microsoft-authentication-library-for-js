@@ -13,8 +13,6 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { B2cAuthority } from "../authority/B2cAuthority";
 import { CacheManager } from "../cache/CacheManager";
-import { AccountEntity } from "../cache/entities/AccountEntity";
-import { EndSessionRequest } from "../request/EndSessionRequest";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -57,23 +55,6 @@ export abstract class BaseClient {
         B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
 
         this.authority = this.config.authOptions.authority;
-    }
-
-    /**
-     * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
-     * Default behaviour is to redirect the user to `window.location.href`.
-     * @param authorityUri
-     */
-    async getLogoutUri(logoutRequest: EndSessionRequest): Promise<string> {
-        // Clear current account.
-        this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
-
-        // Get postLogoutRedirectUri.
-        const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ? `?${AADServerParamKeys.POST_LOGOUT_URI}=` + encodeURIComponent(logoutRequest.postLogoutRedirectUri) : "";
-
-        // Construct logout URI.
-        const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}`;
-        return logoutUri;
     }
 
     /**
