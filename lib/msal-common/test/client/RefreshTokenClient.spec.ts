@@ -18,6 +18,9 @@ import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { IAccount, AuthenticationResult } from "../../src";
 
 describe("RefreshTokenClient unit tests", () => {
+    beforeEach(() => {
+        ClientTestUtils.setInstanceMetadataStubs();
+    });
 
     afterEach(() => {
         sinon.restore();
