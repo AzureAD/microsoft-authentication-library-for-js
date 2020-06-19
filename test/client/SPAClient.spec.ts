@@ -22,13 +22,11 @@ import { ServerError } from "../../src/error/ServerError";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
-import { AadAuthority } from "../../src/authority/AadAuthority";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
 import { IAccount } from "../../src/account/IAccount";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
-import { CacheManager } from "../../src";
-import { MockStorageClass } from "./ClientTestUtils";
+import { MockStorageClass, ClientTestUtils } from "./ClientTestUtils";
 
 describe("SPAClient.ts Class Unit Tests", () => {
 
@@ -38,9 +36,8 @@ describe("SPAClient.ts Class Unit Tests", () => {
         }
     };
 
-    
     let defaultAuthConfig: ClientConfiguration;
-    let cacheStorageMock: MockStorageClass = new MockStorageClass();
+    const cacheStorageMock: MockStorageClass = new MockStorageClass();
 
     beforeEach(() => {
 
@@ -52,6 +49,8 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 return null;
             }
         };
+
+        ClientTestUtils.setInstanceMetadataStubs();
 
         defaultAuthConfig = {
             authOptions: {
@@ -101,6 +100,10 @@ describe("SPAClient.ts Class Unit Tests", () => {
         };
     });
 
+    afterEach(() => {
+        sinon.restore();
+    });
+
     describe("Constructor", () => {
 
         it("creates an SPAClient that extends the Client", () => {
@@ -126,30 +129,30 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
         it("Creates a login URL", async () => {
             const emptyRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-			};
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+            };
             const loginUrl = await Client.createUrl(emptyRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
             expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-			expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
-			expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`);
-			expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(Constants.S256_CODE_CHALLENGE_METHOD)}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(Constants.S256_CODE_CHALLENGE_METHOD)}`);
         });
 
         it("Creates a login URL with scopes from given token request", async () => {
             const testScope1 = "testscope1";
             const testScope2 = "testscope2";
             const loginRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: [testScope1, testScope2],
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: [testScope1, testScope2],
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
             };
             const loginUrl = await Client.createUrl(loginRequest);
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2}`)}`);
@@ -157,13 +160,14 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
         it("Uses authority if given in request", async () => {
             sinon.restore();
+            ClientTestUtils.setInstanceMetadataStubs();
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
             const loginRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				authority: `${TEST_URIS.ALTERNATE_INSTANCE}/common`,
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                authority: `${TEST_URIS.ALTERNATE_INSTANCE}/common`,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
             };
             const loginUrl = await Client.createUrl(loginRequest);
             expect(loginUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
@@ -179,31 +183,31 @@ describe("SPAClient.ts Class Unit Tests", () => {
             const exceptionString = "Could not make a network request.";
             sinon.stub(Authority.prototype, "resolveEndpointsAsync").throwsException(exceptionString);
             const emptyRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: [],
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-			};
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: [],
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+            };
             await expect(Client.createUrl(emptyRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${exceptionString}`);
         });
 
         it("Throws error if no scopes are passed to createUrl", async () => {
             const emptyRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: null,
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-			};
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: null,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+            };
             await expect(Client.createUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
         });
 
         it("Throws error if empty scopes are passed to createUrl", async () => {
             const emptyRequest: AuthorizationUrlRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: [],
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-			};
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: [],
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+            };
             await expect(Client.createUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
         });
     });
@@ -230,8 +234,8 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
                 it("Throws error if code response does not contain PKCE code", async () => {
                     const codeRequest: AuthorizationCodeRequest = {
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
-						scopes: ["scope"],
+                        redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        scopes: ["scope"],
                         code: null
                     };
                     await expect(Client.acquireToken(codeRequest, "", "")).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
@@ -239,12 +243,12 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 });
 
                 it("Throws error if authority endpoint resolution fails", async () => {
-					const codeRequest: AuthorizationCodeRequest = {
-						authority: Constants.DEFAULT_AUTHORITY,
+                    const codeRequest: AuthorizationCodeRequest = {
+                        authority: Constants.DEFAULT_AUTHORITY,
                         codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                         correlationId: RANDOM_TEST_GUID,
                         scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        redirectUri: TEST_URIS.TEST_REDIR_URI,
                         code: "This is an auth code"
                     };
                     const exceptionString = "Could not make a network request.";
@@ -256,8 +260,8 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
             describe("Success Cases", () => {
 
-				let testState: string;
-				let codeRequest: AuthorizationCodeRequest;
+                let testState: string;
+                let codeRequest: AuthorizationCodeRequest;
                 beforeEach(() => {
                     // Set up required objects and mocked return values
                     defaultAuthConfig.networkInterface.sendPostRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
@@ -298,11 +302,11 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
                     testState = "{stateObject}";
                     codeRequest = {
-						authority: Constants.DEFAULT_AUTHORITY,
+                        authority: Constants.DEFAULT_AUTHORITY,
                         codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                         correlationId: RANDOM_TEST_GUID,
                         scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-						redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        redirectUri: TEST_URIS.TEST_REDIR_URI,
                         code: "This is an auth code"
                     };
                 });
@@ -321,6 +325,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                         "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                         "nonce": "123523",
                     };
+                    ClientTestUtils.setInstanceMetadataStubs();
                     sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
                     sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
                     sinon.stub();
@@ -381,7 +386,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     await expect(authClient.getValidToken({
                         scopes: null,
                         account: testAccount
-					})).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+                    })).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
                 });
 
                 it("Throws error if scopes are empty in request object", async () => {
@@ -402,8 +407,8 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     testAccountEntity.username = "username@contoso.com";
                     testAccountEntity.authorityType = "MSSTS";
                     sinon.stub(MockStorageClass.prototype, "getAccount").returns(testAccountEntity);
-					sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-					const tokenRequest: SilentFlowRequest = {
+                    sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                    const tokenRequest: SilentFlowRequest = {
                         scopes: [testScope2],
                         account: testAccount
                     };
@@ -446,7 +451,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                 };
                 authModule = new SPAClient(defaultAuthConfig);
                 const code = authModule.handleFragmentResponse(testSuccessHash, RANDOM_TEST_GUID);
-                expect(code).to.be.eq(`thisIsATestCode`);
+                expect(code).to.be.eq("thisIsATestCode");
             });
 
             it("throws server error when error is in hash", () => {
@@ -469,9 +474,9 @@ describe("SPAClient.ts Class Unit Tests", () => {
 
         const postLogoutRedirectUriFunc = () => {
             return TEST_URIS.TEST_LOGOUT_URI;
-		};
+        };
 
-		const testAuthority = new AadAuthority(TEST_CONFIG.validAuthority, null);
+        const testAuthority = new Authority(TEST_CONFIG.validAuthority, null);
 
         const Client_functionRedirectUris = new SPAClient({
             authOptions: {

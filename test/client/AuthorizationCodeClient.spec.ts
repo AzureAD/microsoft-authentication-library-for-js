@@ -19,16 +19,15 @@ import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
-import { B2cAuthority } from "../../src/authority/B2cAuthority";
 
 describe("AuthorizationCodeClient unit tests", () => {
+    beforeEach(() => {
+        ClientTestUtils.setInstanceMetadataStubs();
+    });
 
     afterEach(() => {
-        let config = null;
+        const config = null;
         sinon.restore();
-        while (B2cAuthority.B2CTrustedHostList.length) {
-            B2cAuthority.B2CTrustedHostList.pop();
-        }
     });
 
     describe("Constructor", () => {
@@ -52,9 +51,9 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authCodeUrlRequest: AuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
@@ -94,7 +93,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.FORM_POST)}`)
+            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.FORM_POST)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(TEST_CONFIG.STATE)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(TEST_CONFIG.NONCE)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`);
