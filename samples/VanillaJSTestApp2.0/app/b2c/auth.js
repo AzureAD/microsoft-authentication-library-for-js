@@ -51,7 +51,7 @@ function handleResponse(response) {
 // Redirect: once login is successful and redirects with tokens, call Graph API
 let currentAccounts = myMSALObj.getAllAccounts();
 let account = ""
-if (currentAccounts === 1) {
+if (currentAccounts.length === 1) {
     // avoid duplicate code execution on page load in case of iframe and Popup window.
     account = currentAccounts[0];
     showWelcomeMessage(account);
