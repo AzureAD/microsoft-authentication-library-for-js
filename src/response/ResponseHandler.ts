@@ -25,7 +25,7 @@ import { CacheRecord } from "../cache/entities/CacheRecord";
 import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
-import { AuthorizationCodePayload } from "./AuthorizationCodeResponse";
+import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 
 /**
  * Class that handles response parsing.
