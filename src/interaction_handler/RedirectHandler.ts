@@ -59,7 +59,6 @@ export class RedirectHandler extends InteractionHandler {
         const requestState = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
         const cachedNonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateCacheKey(cachedNonceKey), CacheSchemaType.TEMPORARY) as string;
-        console.log(cachedNonce);
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
 
         // Handle code response.
