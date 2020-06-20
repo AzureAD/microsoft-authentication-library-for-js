@@ -46,8 +46,6 @@ export type AuthOptions = {
     authority?: Authority;
     knownAuthorities?: Array<string>;
     instanceMetadata?: Array<IInstanceDiscoveryMetadata>;
-    redirectUri?: string | (() => string);
-    postLogoutRedirectUri?: string | (() => string);
 };
 
 /**
