@@ -3,10 +3,9 @@
     "eslint.validate": [
         "javascript",
         "javascriptreact",
-        "typescript"
+        { "language": "typescript", "autoFix": true }
     ],
     "eslint.quiet": true,
-    "eslint.workingDirectories": ["./lib/msal-core", "./lib/msal-common", "./lib/msal-browser", "./lib/msal-node", "./lib/msal-angular"],
     "files.eol": "\n",
     "github-pr.targetBranch": "dev",
     "editor.codeActionsOnSave": {
