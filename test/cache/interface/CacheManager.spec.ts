@@ -3,7 +3,6 @@ import { CacheManager } from "../../../src/cache/CacheManager";
 import { CacheSchemaType, CredentialType } from "../../../src/utils/Constants";
 import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
-import { CacheHelper } from "../../../src/cache/utils/CacheHelper";
 import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity";
@@ -11,6 +10,7 @@ import { mockCache } from "../entities/cacheConstants";
 import { CacheRecord } from "../../../src/cache/entities/CacheRecord";
 import { ScopeSet } from "../../../src/request/ScopeSet";
 import { AccountFilter, CredentialFilter } from "../../../src/cache/utils/CacheTypes";
+import { CredentialEntity } from "../../../src";
 
 const cacheJson = require("../cache.json");
 
@@ -24,7 +24,7 @@ class TestStorageManager extends CacheManager {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(
+                const credentialType = CredentialEntity.getCredentialType(
                     key
                 );
                 switch (credentialType) {
@@ -60,7 +60,7 @@ class TestStorageManager extends CacheManager {
                 return CacheManager.toObject(new AccountEntity(), store[key]) as AccountEntity;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(
+                const credentialType = CredentialEntity.getCredentialType(
                     key
                 );
                 switch (credentialType) {
@@ -98,7 +98,7 @@ class TestStorageManager extends CacheManager {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(
+                const credentialType = CredentialEntity.getCredentialType(
                     key
                 );
                 switch (credentialType) {

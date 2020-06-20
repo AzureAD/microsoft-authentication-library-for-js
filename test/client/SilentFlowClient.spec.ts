@@ -17,7 +17,7 @@ import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { IdToken } from "../../src/account/IdToken";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { IAccount } from "../../src/account/IAccount";
+import { AccountInfo } from "../../src/account/AccountInfo";
 import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager } from "../../src";
 
 describe("SilentFlowClient unit tests", () => {
@@ -97,7 +97,7 @@ describe("SilentFlowClient unit tests", () => {
 
         const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new SilentFlowClient(config);
-        const testAccount: IAccount = {
+        const testAccount: AccountInfo = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             tenantId: idTokenClaims.tid,
             environment: "login.windows.net",
