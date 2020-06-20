@@ -130,7 +130,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * saves access token credential
-     * @param credential 
+     * @param credential
      */
     private saveAccessToken(credential: AccessTokenEntity, responseScopes: ScopeSet): void {
         const currentTokenCache = this.getCredentialsFilteredBy({
@@ -213,7 +213,6 @@ export abstract class CacheManager implements ICacheManager {
             } catch (e) {
                 return;
             }
-            
 
             if (!StringUtils.isEmpty(homeAccountId)) {
                 matches = this.matchHomeAccountId(entity, homeAccountId);
@@ -281,7 +280,7 @@ export abstract class CacheManager implements ICacheManager {
 
         allCacheKeys.forEach((cacheKey) => {
             let matches: boolean = true;
-            let entity: CredentialEntity
+            let entity: CredentialEntity;
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
             if (credType === Constants.NOT_DEFINED) {
@@ -498,6 +497,6 @@ export class DefaultStorageClass extends CacheManager {
     }
     clear(): void {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);   
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 }
