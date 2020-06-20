@@ -6,9 +6,9 @@
 import { Storage } from './Storage';
 import {
     ClientAuthError,
-    StringUtils
+    StringUtils,
 } from '@azure/msal-common';
-import { InMemoryCache, JsonCache, Dict } from "cache/serializer/SerializerTypes";
+import { InMemoryCache, JsonCache } from "cache/serializer/SerializerTypes";
 import { ICachePlugin } from './ICachePlugin';
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -192,7 +192,7 @@ export class CacheManager {
         }
     }
 
-    private mergeRemovalsDict(oldAccounts: Dict, newAccounts?: Dict): Dict {
+    private mergeRemovalsDict<T>(oldAccounts: Record<string, T>, newAccounts?:  Record<string, T>): Record<string, T> {
         let finalAccounts = oldAccounts;
         Object.keys(oldAccounts).forEach((oldKey) => {
             if (!newAccounts || !(newAccounts.hasOwnProperty(oldKey))) {
