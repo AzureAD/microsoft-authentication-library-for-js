@@ -433,7 +433,6 @@ export class SPAClient extends BaseClient {
         responseHandler.validateTokenResponse(acquiredTokenResponse.body);
         // Return token response with given parameters
         const tokenResponse = responseHandler.generateAuthenticationResult(acquiredTokenResponse.body, authority, cachedNonce, cachedState);
-        tokenResponse.state = cachedState;
 
         return tokenResponse;
     }

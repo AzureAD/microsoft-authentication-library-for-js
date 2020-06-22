@@ -119,7 +119,7 @@ describe("SilentFlowClient unit tests", () => {
         expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT.body.id_token);
         expect(authResult.idTokenClaims).to.deep.eq(idTokenClaims);
         expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
-        expect(authResult.state).to.be.undefined;
+        expect(authResult.state).to.be.empty;
 
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);

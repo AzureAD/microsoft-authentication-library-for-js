@@ -126,6 +126,10 @@ export const ClientAuthErrorMessage = {
     CachePluginError: {
         code: "no cache plugin set on CacheManager",
         desc: "ICachePlugin needs to be set before using readFromStorage or writeFromStorage"
+    },
+    noCryptoObj: {
+        code: "no_crypto_object",
+        desc: "No crypto object detected. This is required for the following operation: "
     }
 };
 
@@ -361,9 +365,17 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Throws error if ICachePlugin not set on CacheManager
+     * Throws error if ICachePlugin not set on CacheManager.
      */
     static createCachePluginError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.CachePluginError.code, `${ClientAuthErrorMessage.CachePluginError.desc}`);
+    }
+
+    /**
+     * Throws error if crypto object not found.
+     * @param operationName 
+     */
+    static createNoCryptoObjectError(operationName: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noCryptoObj.code, `${ClientAuthErrorMessage.noCryptoObj.desc}${operationName}`);
     }
 }
