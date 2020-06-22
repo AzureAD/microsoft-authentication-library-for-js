@@ -4,16 +4,11 @@
  */
 
 import { Storage } from './Storage';
-import {
-    ClientAuthError,
-    StringUtils,
-    IAccount,
-    CacheHelper
-} from '@azure/msal-common';
-import { InMemoryCache, JsonCache, Dict } from 'cache/serializer/SerializerTypes';
+import { ClientAuthError, StringUtils , IAccount, CacheHelper} from '@azure/msal-common';
+import { InMemoryCache, JsonCache } from './serializer/SerializerTypes';
 import { ICachePlugin } from './ICachePlugin';
-import { Deserializer } from "./serializer/Deserializer";
-import { Serializer } from "./serializer/Serializer";
+import { Deserializer } from './serializer/Deserializer';
+import { Serializer } from './serializer/Serializer';
 
 const defaultSerializedCache: JsonCache = {
     Account: {},
@@ -27,7 +22,6 @@ const defaultSerializedCache: JsonCache = {
  * In-memory token cache manager
  */
 export class CacheManager {
-
     private storage: Storage;
     private hasChanged: boolean;
     private cacheSnapshot: string;
@@ -53,7 +47,9 @@ export class CacheManager {
      * Serializes in memory cache to JSON
      */
     serialize(): string {
-        let finalState = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
+        let finalState = Serializer.serializeAllCache(
+            this.storage.getCache() as InMemoryCache
+        );
 
         // if cacheSnapshot not null or empty, merge
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
@@ -75,7 +71,9 @@ export class CacheManager {
         this.cacheSnapshot = cache;
 
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-            const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(this.cacheSnapshot)));
+            const deserializedCache = Deserializer.deserializeAllCache(
+                this.overlayDefaults(JSON.parse(this.cacheSnapshot))
+            );
             this.storage.setCache(deserializedCache);
         }
     }
@@ -85,10 +83,11 @@ export class CacheManager {
      */
     async writeToPersistence(): Promise<void> {
         if (this.persistence) {
-            let cache = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
+            let cache = Serializer.serializeAllCache(
+                this.storage.getCache() as InMemoryCache
+            );
 
             const getMergedState = (stateFromDisk: string) => {
-
                 if (!StringUtils.isEmpty(stateFromDisk)) {
                     this.cacheSnapshot = stateFromDisk;
                     cache = this.mergeState(JSON.parse(stateFromDisk), cache);
@@ -113,8 +112,12 @@ export class CacheManager {
             this.cacheSnapshot = await this.persistence.readFromStorage();
 
             if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-                const cache = this.overlayDefaults(JSON.parse(this.cacheSnapshot));
-                const deserializedCache = Deserializer.deserializeAllCache(cache);
+                const cache = this.overlayDefaults(
+                    JSON.parse(this.cacheSnapshot)
+                );
+                const deserializedCache = Deserializer.deserializeAllCache(
+                    cache
+                );
                 this.storage.setCache(deserializedCache);
             }
         } else {
@@ -152,7 +155,7 @@ export class CacheManager {
      * @param oldState
      * @param currentState
      */
-    private mergeState(oldState: JsonCache, currentState: JsonCache): JsonCache {
+    private mergeState(oldState: JsonCache,currentState: JsonCache): JsonCache {
         let stateAfterRemoval = this.mergeRemovals(oldState, currentState);
         return this.mergeUpdates(stateAfterRemoval, currentState);
     }
@@ -163,9 +166,8 @@ export class CacheManager {
      * @param newState
      */
     private mergeUpdates(oldState: any, newState: any): JsonCache {
-
         let finalState = oldState;
-        Object.keys(newState).forEach((newKey) => {
+        Object.keys(newState).forEach(newKey => {
             let newValue = newState[newKey];
 
             // if oldState does not contain value but newValue does, add it
@@ -201,21 +203,21 @@ export class CacheManager {
         const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsDict(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
         const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsDict(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
         const idTokens = oldState.IdToken != null ? this.mergeRemovalsDict(oldState.IdToken, newState.IdToken) : oldState.IdToken;
-        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
+        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict(oldState.AppMetadata, newState.AppMetadata): oldState.AppMetadata;
 
         return {
             Account: accounts,
             AccessToken: accessTokens,
             RefreshToken: refreshTokens,
             IdToken: idTokens,
-            AppMetadata: appMetadata
-        }
+            AppMetadata: appMetadata,
+        };
     }
 
-    private mergeRemovalsDict(oldAccounts: Dict, newAccounts?: Dict): Dict {
+    private mergeRemovalsDict<T>(oldAccounts: Record<string, T>, newAccounts?: Record<string, T>): Record<string, T> {
         let finalAccounts = oldAccounts;
-        Object.keys(oldAccounts).forEach((oldKey) => {
-            if (!newAccounts || !(newAccounts.hasOwnProperty(oldKey))) {
+        Object.keys(oldAccounts).forEach(oldKey => {
+            if (!newAccounts || !newAccounts.hasOwnProperty(oldKey)) {
                 delete finalAccounts[oldKey];
             }
         });

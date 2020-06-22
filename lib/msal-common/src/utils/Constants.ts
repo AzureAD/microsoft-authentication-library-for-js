@@ -236,9 +236,9 @@ export enum Separators {
  * Credentail Type stored in the cache
  */
 export enum CredentialType {
-    ID_TOKEN = "idtoken",
-    ACCESS_TOKEN = "accesstoken",
-    REFRESH_TOKEN = "refreshtoken",
+    ID_TOKEN = "IdToken",
+    ACCESS_TOKEN = "AccessToken",
+    REFRESH_TOKEN = "RefreshToken",
 }
 
 /**
