@@ -60,9 +60,9 @@ export const ClientConfigurationErrorMessage = {
         code: "pkce_params_missing",
         desc: "Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request"
     },
-    knownAuthoritiesAndInstanceMetadata: {
-        code: "invalid_known_authorities",
-        desc: "knownAuthorities and instanceMetadata cannot both be provided. Please provide instanceMetadata object for AAD, knownAuthorities otherwise."
+    b2cKnownAuthoritiesNotSet: {
+        code: "b2c_known_authorities_not_set",
+        desc: "Must set known authorities when validateAuthority is set to True and using B2C"
     },
     untrustedAuthority: {
         code: "untrusted_authority",
@@ -199,11 +199,11 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
-     * Throws an error when the user passes both knownAuthorities and instanceMetadata
+     * Throws an error when the user passes B2C authority and does not set knownAuthorities
      */
-    static createKnownAuthoritiesInstanceMetadataError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.knownAuthoritiesAndInstanceMetadata.code,
-            ClientConfigurationErrorMessage.knownAuthoritiesAndInstanceMetadata.desc);
+    static createKnownAuthoritiesNotSetError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.code,
+            ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
     }
 
     /**

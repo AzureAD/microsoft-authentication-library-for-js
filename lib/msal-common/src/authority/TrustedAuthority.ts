@@ -3,7 +3,6 @@ import { INetworkModule } from "../network/INetworkModule";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
 import { InstanceMetadataType } from "./InstanceMetadataType";
 import { IInstanceDiscoveryMetadata } from "./IInstanceDiscoveryMetadata";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 export class TrustedAuthority {
     private static InstanceMetadata: InstanceMetadataType = {};
@@ -16,7 +15,8 @@ export class TrustedAuthority {
     public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, instanceMetadata: Array<IInstanceDiscoveryMetadata>): void {
         if (!this.getTrustedHostList().length){
             if (knownAuthorities.length && instanceMetadata.length) {
-                ClientConfigurationError.createKnownAuthoritiesInstanceMetadataError();
+                // TODO Put better error here
+                throw "Cannot pass both knownAuthorities and instanceMetadata";
             }
 
             this.createInstanceMetadataFromKnownAuthorities(knownAuthorities);
