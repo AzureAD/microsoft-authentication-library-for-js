@@ -8,7 +8,7 @@ import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity
 export const mockAccessTokenEntity_1 = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
-    credentialType: "AccessToken",
+    credentialType: "accesstoken",
     clientId: "mock_client_id",
     secret: "an access token",
     realm: "microsoft",
@@ -21,7 +21,7 @@ export const mockAccessTokenEntity_1 = {
 export const mockAccessTokenEntity_2 = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
-    credentialType: "AccessToken",
+    credentialType: "accesstoken",
     clientId: "mock_client_id",
     secret: "an access token",
     realm: "microsoft",
@@ -34,7 +34,7 @@ export const mockAccessTokenEntity_2 = {
 export const mockIdTokenEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
-    credentialType: "IdToken",
+    credentialType: "idtoken",
     clientId: "mock_client_id",
     secret: "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
     realm: "microsoft"
@@ -43,7 +43,7 @@ export const mockIdTokenEntity = {
 export const mockRefreshTokenEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
-    credentialType: "RefreshToken",
+    credentialType: "refreshtoken",
     clientId: "mock_client_id",
     secret: "a refresh token"
 };
@@ -51,7 +51,7 @@ export const mockRefreshTokenEntity = {
 export const mockRefreshTokenEntityWithFamilyId = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
-    credentialType: "RefreshToken",
+    credentialType: "refreshtoken",
     clientId: "mock_client_id",
     secret: "a refresh token",
     familyId: "1"
