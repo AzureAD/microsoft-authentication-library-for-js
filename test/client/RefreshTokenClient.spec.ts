@@ -15,7 +15,7 @@ import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { IdToken } from "../../src/account/IdToken";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
-import { IAccount, AuthenticationResult } from "../../src";
+import { AccountInfo, AuthenticationResult } from "../../src";
 
 describe("RefreshTokenClient unit tests", () => {
 
@@ -62,7 +62,7 @@ describe("RefreshTokenClient unit tests", () => {
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
-        const testAccount: IAccount = {
+        const testAccount: AccountInfo = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             tenantId: idTokenClaims.tid,
             environment: "login.windows.net",
@@ -76,7 +76,7 @@ describe("RefreshTokenClient unit tests", () => {
         expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT.body.id_token);
         expect(authResult.idTokenClaims).to.deep.eq(idTokenClaims);
         expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
-        expect(authResult.state).to.be.undefined;
+        expect(authResult.state).to.be.empty;
 
         expect(createTokenRequestBodySpy.calledWith(refreshTokenRequest)).to.be.true;
 
