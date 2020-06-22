@@ -24,7 +24,7 @@ const defaultSerializedCache: JsonCache = {
 /**
  * In-memory token cache manager
  */
-export class CacheManager {
+export class TokenCache {
 
     private storage: Storage;
     private hasChanged: boolean;
@@ -84,7 +84,6 @@ export class CacheManager {
     async writeToPersistence(): Promise<void> {
         if (this.persistence) {
             let cache = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
-
             const getMergedState = (stateFromDisk: string) => {
 
                 if (!StringUtils.isEmpty(stateFromDisk)) {
@@ -144,13 +143,13 @@ export class CacheManager {
      */
     private mergeUpdates(oldState: any, newState: any): JsonCache {
 
-        let finalState = oldState;
-        Object.keys(newState).forEach((newKey) => {
+        let finalState = { ...oldState };
+        Object.keys(newState).forEach((newKey: string) => {
             let newValue = newState[newKey];
 
             // if oldState does not contain value but newValue does, add it
             if (!finalState.hasOwnProperty(newKey)) {
-                if (newValue != null) {
+                if (newValue !== null) {
                     finalState[newKey] = newValue;
                 }
             } else {
@@ -177,11 +176,11 @@ export class CacheManager {
      * @param newState
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
-        const accounts = oldState.Account != null ? this.mergeRemovalsStringDict(oldState.Account, newState.Account) : oldState.Account;
-        const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsStringDict(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
-        const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsStringDict(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
-        const idTokens = oldState.IdToken != null ? this.mergeRemovalsStringDict(oldState.IdToken, newState.IdToken) : oldState.IdToken;
-        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsStringDict(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
+        const accounts = oldState.Account !== null ? this.mergeRemovalsStringDict(oldState.Account, newState.Account) : oldState.Account;
+        const accessTokens = oldState.AccessToken !== null ? this.mergeRemovalsStringDict(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
+        const refreshTokens = oldState.RefreshToken !== null ? this.mergeRemovalsStringDict(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
+        const idTokens = oldState.IdToken !== null ? this.mergeRemovalsStringDict(oldState.IdToken, newState.IdToken) : oldState.IdToken;
+        const appMetadata = oldState.AppMetadata !== null ? this.mergeRemovalsStringDict(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
 
         return {
             Account: accounts,
@@ -192,14 +191,14 @@ export class CacheManager {
         }
     }
 
-    private mergeRemovalsStringDict(oldAccounts: StringDict, newAccounts?: StringDict): StringDict {
-        let finalAccounts = oldAccounts;
-        Object.keys(oldAccounts).forEach((oldKey) => {
-            if (!newAccounts || !(newAccounts.hasOwnProperty(oldKey))) {
-                delete finalAccounts[oldKey];
+    private mergeRemovalsStringDict(oldState: StringDict, newState?: StringDict): StringDict {
+        let finalState = { ...oldState };
+        Object.keys(oldState).forEach((oldKey) => {
+            if (!newState || !(newState.hasOwnProperty(oldKey))) {
+                delete finalState[oldKey];
             }
         });
-        return finalAccounts;
+        return finalState;
     }
 
     private overlayDefaults(passedInCache: JsonCache): JsonCache {
