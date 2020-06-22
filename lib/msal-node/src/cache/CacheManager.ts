@@ -5,7 +5,7 @@
 
 import { Storage } from './Storage';
 import { ClientAuthError, StringUtils } from '@azure/msal-common';
-import { InMemoryCache, JsonCache } from './serializer/SerializerTypes';
+import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity } from './serializer/SerializerTypes';
 import { ICachePlugin } from './ICachePlugin';
 import { Deserializer } from './serializer/Deserializer';
 import { Serializer } from './serializer/Serializer';
@@ -181,11 +181,11 @@ export class CacheManager {
      * @param newState
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
-        const accounts = oldState.Account != null ? this.mergeRemovalsDict(oldState.Account, newState.Account) : oldState.Account;
-        const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsDict(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
-        const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsDict(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
-        const idTokens = oldState.IdToken != null ? this.mergeRemovalsDict(oldState.IdToken, newState.IdToken) : oldState.IdToken;
-        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict(oldState.AppMetadata, newState.AppMetadata): oldState.AppMetadata;
+        const accounts = oldState.Account != null ? this.mergeRemovalsDict<SerializedAccountEntity>(oldState.Account, newState.Account) : oldState.Account;
+        const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsDict<SerializedAccessTokenEntity>(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
+        const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsDict<SerializedRefreshTokenEntity>(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
+        const idTokens = oldState.IdToken != null ? this.mergeRemovalsDict<SerializedIdTokenEntity>(oldState.IdToken, newState.IdToken) : oldState.IdToken;
+        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata): oldState.AppMetadata;
 
         return {
             Account: accounts,
