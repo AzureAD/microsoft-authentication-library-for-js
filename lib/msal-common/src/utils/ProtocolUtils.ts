@@ -48,6 +48,10 @@ export class ProtocolUtils {
      * @param cryptoObj 
      */
     static generateLibraryState(cryptoObj: ICrypto): string {
+        if (!cryptoObj) {
+            throw ClientAuthError.createNoCryptoObjectError("generateLibraryState");
+        }
+
         // Create a state object containing a unique id and the timestamp of the request creation
         const stateObj: LibraryStateObject = {
             id: cryptoObj.createNewGuid(),
@@ -65,6 +69,10 @@ export class ProtocolUtils {
      * @param cryptoObj 
      */
     static parseRequestState(state: string, cryptoObj: ICrypto): RequestStateObject {
+        if (!cryptoObj) {
+            throw ClientAuthError.createNoCryptoObjectError("parseRequestState");
+        }
+
         if (StringUtils.isEmpty(state)) {
             throw ClientAuthError.createInvalidStateError(state, "Null, undefined or empty state");
         }
