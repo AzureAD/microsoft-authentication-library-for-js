@@ -21,7 +21,7 @@ const defaultSerializedCache: JsonCache = {
 /**
  * In-memory token cache manager
  */
-export class CacheManager {
+export class CacheSerializer {
     private storage: Storage;
     private hasChanged: boolean;
     private cacheSnapshot: string;
