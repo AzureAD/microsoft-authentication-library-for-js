@@ -10,7 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@fluentui/react-native": "^0.15.58",
+    "@fluentui/react-native": "^0.15.63",
     "@react-native-community/toolbar-android": "0.1.0-rc.2",
     "react": "16.11.0",
     "react-native": "0.62.2"
