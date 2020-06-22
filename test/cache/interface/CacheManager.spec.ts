@@ -60,9 +60,7 @@ class TestStorageManager extends CacheManager {
                 return CacheManager.toObject(new AccountEntity(), store[key]) as AccountEntity;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CredentialEntity.getCredentialType(
-                    key
-                );
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
                         return CacheManager.toObject(new IdTokenEntity(), store[key]) as IdTokenEntity;
