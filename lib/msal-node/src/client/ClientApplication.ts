@@ -24,14 +24,14 @@ import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants as NodeConstants } from './../utils/Constants';
-import { CacheManager } from '../cache/CacheManager';
+import { TokenCache } from '../cache/TokenCache';
 
 export abstract class ClientApplication {
     private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
-    private cacheManager: CacheManager;
+    private tokenCache: TokenCache;
 
     /**
      * @constructor
@@ -40,7 +40,7 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
         this.storage = new Storage();
-        this.cacheManager = new CacheManager(
+        this.tokenCache = new TokenCache(
             this.storage,
             this.config.cache?.cachePlugin
         );
@@ -106,8 +106,8 @@ export abstract class ClientApplication {
         return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
-    getCacheManager(): CacheManager {
-        return this.cacheManager;
+    getCacheManager(): TokenCache {
+        return this.tokenCache;
     }
 
     protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {

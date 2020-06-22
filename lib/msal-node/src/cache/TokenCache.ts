@@ -21,7 +21,8 @@ const defaultSerializedCache: JsonCache = {
 /**
  * In-memory token cache manager
  */
-export class CacheManager {
+export class TokenCache {
+
     private storage: Storage;
     private hasChanged: boolean;
     private cacheSnapshot: string;
@@ -83,10 +84,7 @@ export class CacheManager {
      */
     async writeToPersistence(): Promise<void> {
         if (this.persistence) {
-            let cache = Serializer.serializeAllCache(
-                this.storage.getCache() as InMemoryCache
-            );
-
+            let cache = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
             const getMergedState = (stateFromDisk: string) => {
                 if (!StringUtils.isEmpty(stateFromDisk)) {
                     this.cacheSnapshot = stateFromDisk;
@@ -148,13 +146,14 @@ export class CacheManager {
      * @param newState
      */
     private mergeUpdates(oldState: any, newState: any): JsonCache {
-        let finalState = oldState;
-        Object.keys(newState).forEach(newKey => {
+
+        let finalState = { ...oldState };
+        Object.keys(newState).forEach((newKey: string) => {
             let newValue = newState[newKey];
 
             // if oldState does not contain value but newValue does, add it
             if (!finalState.hasOwnProperty(newKey)) {
-                if (newValue != null) {
+                if (newValue !== null) {
                     finalState[newKey] = newValue;
                 }
             } else {
@@ -196,14 +195,14 @@ export class CacheManager {
         };
     }
 
-    private mergeRemovalsDict<T>(oldAccounts: Record<string, T>, newAccounts?: Record<string, T>): Record<string, T> {
-        let finalAccounts = oldAccounts;
-        Object.keys(oldAccounts).forEach(oldKey => {
-            if (!newAccounts || !newAccounts.hasOwnProperty(oldKey)) {
-                delete finalAccounts[oldKey];
+    private mergeRemovalsDict<T>(oldState: Record<string, T>, newState?:  Record<string, T>):  Record<string, T> {
+        let finalState = { ...oldState };
+        Object.keys(oldState).forEach((oldKey) => {
+            if (!newState || !(newState.hasOwnProperty(oldKey))) {
+                delete finalState[oldKey];
             }
         });
-        return finalAccounts;
+        return finalState;
     }
 
     private overlayDefaults(passedInCache: JsonCache): JsonCache {
