@@ -3,12 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { EntitySerializer } from "./EntitySerializer";
-import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
-import { InMemoryCache, JsonCache, Dict } from "./SerializerTypes";
+import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from '@azure/msal-common';
+import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedAppMetadataEntity } from './SerializerTypes';
 
 export class Serializer {
-
     /**
      * serialize the JSON blob
      * @param data
@@ -21,10 +19,24 @@ export class Serializer {
      * Serialize Accounts
      * @param accCache
      */
-    static serializeAccounts(accCache: AccountCache): Dict {
-        const accounts: Dict = {};
-        Object.keys(accCache).map(function (key) {
-            accounts[key] = EntitySerializer.mapAccountKeys(accCache, key);
+    static serializeAccounts(
+        accCache: AccountCache
+    ): Record<string, SerializedAccountEntity> {
+        const accounts: Record<string, SerializedAccountEntity> = {};
+        Object.keys(accCache).map(function(key) {
+            const accountEntity = accCache[key];
+            accounts[key] = {
+                home_account_id: accountEntity.homeAccountId,
+                environment: accountEntity.environment,
+                realm: accountEntity.realm,
+                local_account_id: accountEntity.localAccountId,
+                username: accountEntity.username,
+                authority_type: accountEntity.authorityType,
+                name: accountEntity.name,
+                client_info: accountEntity.clientInfo,
+                last_modification_time: accountEntity.lastModificationTime,
+                last_modification_app: accountEntity.lastModificationApp,
+            };
         });
 
         return accounts;
@@ -34,10 +46,20 @@ export class Serializer {
      * Serialize IdTokens
      * @param idTCache
      */
-    static serializeIdTokens(idTCache: IdTokenCache): Dict{
-        const idTokens: Dict = {};
-        Object.keys(idTCache).map(function (key) {
-            idTokens[key] = EntitySerializer.mapIdTokenKeys(idTCache, key);
+    static serializeIdTokens(
+        idTCache: IdTokenCache
+    ): Record<string, SerializedIdTokenEntity> {
+        const idTokens: Record<string, SerializedIdTokenEntity> = {};
+        Object.keys(idTCache).map(function(key) {
+            const idTEntity = idTCache[key];
+            idTokens[key] = {
+                home_account_id: idTEntity.homeAccountId,
+                environment: idTEntity.environment,
+                credential_type: idTEntity.credentialType,
+                client_id: idTEntity.clientId,
+                secret: idTEntity.secret,
+                realm: idTEntity.realm,
+            };
         });
 
         return idTokens;
@@ -47,10 +69,27 @@ export class Serializer {
      * Serializes AccessTokens
      * @param atCache
      */
-    static serializeAccessTokens(atCache: AccessTokenCache): Dict {
-        const accessTokens: Dict = {};
-        Object.keys(atCache).map(function (key) {
-            accessTokens[key] = EntitySerializer.mapAccessTokenKeys(atCache, key);
+    static serializeAccessTokens(
+        atCache: AccessTokenCache
+    ): Record<string, SerializedAccessTokenEntity> {
+        const accessTokens: Record<string, SerializedAccessTokenEntity> = {};
+        Object.keys(atCache).map(function(key) {
+            const atEntity = atCache[key];
+            accessTokens[key] = {
+                home_account_id: atEntity.homeAccountId,
+                environment: atEntity.environment,
+                credential_type: atEntity.credentialType,
+                client_id: atEntity.clientId,
+                secret: atEntity.secret,
+                realm: atEntity.realm,
+                target: atEntity.target,
+                cached_at: atEntity.cachedAt,
+                expires_on: atEntity.expiresOn,
+                extended_expires_on: atEntity.extendedExpiresOn,
+                refresh_on: atEntity.refreshOn,
+                key_id: atEntity.keyId,
+                token_type: atEntity.tokenType,
+            };
         });
 
         return accessTokens;
@@ -60,10 +99,22 @@ export class Serializer {
      * Serialize refreshTokens
      * @param rtCache
      */
-    static serializeRefreshTokens(rtCache: RefreshTokenCache): Dict {
-        const refreshTokens: Dict = {};
-        Object.keys(rtCache).map(function (key) {
-            refreshTokens[key] = EntitySerializer.mapRefreshTokenKeys(rtCache, key);
+    static serializeRefreshTokens(
+        rtCache: RefreshTokenCache
+    ): Record<string, SerializedRefreshTokenEntity> {
+        const refreshTokens: Record<string, SerializedRefreshTokenEntity> = {};
+        Object.keys(rtCache).map(function(key) {
+            const rtEntity = rtCache[key];
+            refreshTokens[key] = {
+                home_account_id: rtEntity.homeAccountId,
+                environment: rtEntity.environment,
+                credential_type: rtEntity.credentialType,
+                client_id: rtEntity.clientId,
+                secret: rtEntity.secret,
+                family_id: rtEntity.familyId,
+                target: rtEntity.target,
+                realm: rtEntity.realm,
+            };
         });
 
         return refreshTokens;
@@ -73,10 +124,17 @@ export class Serializer {
      * Serialize amdtCache
      * @param amdtCache
      */
-    static serializeAppMetadata(amdtCache: AppMetadataCache): Dict {
-        const appMetadata: Dict = {};
-        Object.keys(amdtCache).map(function (key) {
-            appMetadata[key] = EntitySerializer.mapAppMetadataKeys(amdtCache, key);
+    static serializeAppMetadata(
+        amdtCache: AppMetadataCache
+    ): Record<string, SerializedAppMetadataEntity> {
+        const appMetadata: Record<string, SerializedAppMetadataEntity> = {};
+        Object.keys(amdtCache).map(function(key) {
+            const amdtEntity = amdtCache[key];
+            appMetadata[key] = {
+                client_id: amdtEntity.clientId,
+                environment: amdtEntity.environment,
+                family_id: amdtEntity.familyId,
+            };
         });
 
         return appMetadata;
