@@ -16,7 +16,7 @@ export class TrustedAuthority {
     public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, instanceMetadata: Array<IInstanceDiscoveryMetadata>): void {
         if (!this.getTrustedHostList().length){
             if (knownAuthorities.length && instanceMetadata.length) {
-                ClientConfigurationError.createKnownAuthoritiesInstanceMetadataError();
+                throw ClientConfigurationError.createKnownAuthoritiesInstanceMetadataError();
             }
 
             this.createInstanceMetadataFromKnownAuthorities(knownAuthorities);
