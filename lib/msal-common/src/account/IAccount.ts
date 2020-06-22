@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-export type AccountInfo = {
+export interface IAccount {
     homeAccountId: string;
     environment: string;
     tenantId: string;
     username: string;
-};
+}

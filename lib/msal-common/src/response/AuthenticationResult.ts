@@ -4,17 +4,16 @@
  */
 
 import { StringDict } from "../utils/MsalTypes";
-import { AccountInfo } from "../account/AccountInfo";
+import { IAccount } from "../account/IAccount";
 
 /**
  * Result returned from the authority's token endpoint.
  */
-export type AuthenticationResult = {
-    authority: string;
+export class AuthenticationResult {
     uniqueId: string;
     tenantId: string;
     scopes: Array<string>;
-    account: AccountInfo;
+    account: IAccount;
     idToken: string;
     idTokenClaims: StringDict;
     accessToken: string;
@@ -23,6 +22,4 @@ export type AuthenticationResult = {
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;
-    cloudGraphHostName?: string;
-    msGraphHost?: string; 
-};
+}

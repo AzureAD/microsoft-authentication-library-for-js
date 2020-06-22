@@ -49,7 +49,7 @@ export class DeviceCodeClient extends BaseClient {
         const queryString = this.createQueryString(request);
         const headers = this.createDefaultLibraryHeaders();
 
-        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers);
+        return this.executePostRequestToDeviceCodeEndpoint(this.defaultAuthority.deviceCodeEndpoint, queryString, headers);
     }
 
     /**
@@ -138,7 +138,7 @@ export class DeviceCodeClient extends BaseClient {
 
                     } else {
                         const response = await this.executePostToTokenEndpoint(
-                            this.authority.tokenEndpoint,
+                            this.defaultAuthority.tokenEndpoint,
                             requestBody,
                             headers);
 

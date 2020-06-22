@@ -12,15 +12,14 @@ import {
 } from "../utils/CacheTypes";
 import { CacheRecord } from "../entities/CacheRecord";
 import { ScopeSet } from "../../request/ScopeSet";
+import { IAccount } from "../../account/IAccount";
 import { AccountEntity } from "../entities/AccountEntity";
-import { AccountInfo } from "../../account/AccountInfo";
 
 export interface ICacheManager {
-
     /**
      * Returns all accounts in cache
      */
-    getAllAccounts(): AccountInfo[];
+    getAllAccounts(): IAccount[];
 
     /**
      * saves a cache record

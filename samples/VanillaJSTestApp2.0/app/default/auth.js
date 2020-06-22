@@ -48,8 +48,8 @@ async function signIn(method) {
 }
 
 function signOut() {
-    logoutRequest.account = myMSALObj.getAccountByUsername(username);
-    myMSALObj.logout(logoutRequest);
+    const currentAcc = myMSALObj.getAccountByUsername(username);
+    myMSALObj.logout(currentAcc);
 }
 
 async function getTokenPopup(request, account) {

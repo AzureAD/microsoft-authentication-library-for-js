@@ -13,29 +13,11 @@ import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
+import { CacheHelper } from "../utils/CacheHelper";
 import { TrustedAuthority } from "../../authority/TrustedAuthority";
-import { AccountInfo } from "../../account/AccountInfo";
 
 /**
- * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
- * 
- * Key : Value Schema
- * 
- * Key: <home_account_id>-<environment>-<realm*>
- * 
- * Value Schema:
- * {
- *      homeAccountId: home account identifier for the auth scheme,
- *      environment: entity that issued the token, represented as a full host
- *      realm: Full tenant or organizational identifier that the account belongs to
- *      localAccountId: Original tenant-specific accountID, usually used for legacy cases
- *      username: primary username that represents the user, usually corresponds to preferred_username in the v2 endpt
- *      authorityType: Accounts authority type as a string
- *      name: Full name for the account, including given name and family name,
- *      clientInfo: Full base64 encoded client info received from ESTS
- *      lastModificationTime: last time this entity was modified in the cache
- *      lastModificationApp: 
- * }
+ * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs)
  */
 export class AccountEntity {
     homeAccountId: string;
@@ -61,7 +43,7 @@ export class AccountEntity {
      * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
      */
     generateAccountKey(): string {
-        return AccountEntity.generateAccountCacheKey({
+        return CacheHelper.generateAccountCacheKey({
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
@@ -87,32 +69,6 @@ export class AccountEntity {
                 return null;
             }
         }
-    }
-
-    /**
-     * Returns the AccountInfo interface for this account.
-     */
-    getAccountInfo(): AccountInfo {
-        return {
-            homeAccountId: this.homeAccountId,
-            environment: this.environment,
-            tenantId: this.realm,
-            username: this.username
-        };
-    }
-
-    /**
-     * Generates account key from interface
-     * @param accountInterface
-     */
-    static generateAccountCacheKey(accountInterface: AccountInfo): string {
-        const accountKey = [
-            accountInterface.homeAccountId,
-            accountInterface.environment || "",
-            accountInterface.tenantId || "",
-        ];
-
-        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**

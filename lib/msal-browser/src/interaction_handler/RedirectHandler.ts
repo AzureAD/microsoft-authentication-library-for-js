@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, INetworkModule, AuthorityFactory, AuthorizationCodePayload } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, ICrypto, ProtocolUtils, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -46,7 +46,7 @@ export class RedirectHandler extends InteractionHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponse(locationHash: string, networkModule: INetworkModule, browserCrypto?: ICrypto): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, browserCrypto?: ICrypto): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
@@ -62,26 +62,17 @@ export class RedirectHandler extends InteractionHandler {
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
 
         // Handle code response.
-        const authCodeResponse: AuthorizationCodePayload = this.authModule.handleFragmentResponse(locationHash, requestState);
-
-        // Assign code to request
-        this.authCodeRequest.code = authCodeResponse.code;
-        if (authCodeResponse.cloud_graph_host_name) {
-            const cloudInstanceAuthorityUri = `https://${authCodeResponse.cloud_instance_host_name}/common/`;
-            if (cloudInstanceAuthorityUri !== this.browserStorage.getCachedAuthority()) {
-                const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(this.authCodeRequest.authority, networkModule, true);
-                this.authModule.updateAuthority(cloudInstanceAuthority);
-            }
-        }
-
-        authCodeResponse.nonce = cachedNonce;
-        authCodeResponse.state = requestState;
+        const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
+        this.authCodeRequest.code = authCode;
 
         // Hash was processed successfully - remove from cache
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
+        // Extract user state.
+        const userState = ProtocolUtils.getUserRequestState(requestState);
+
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, userState, cachedNonce);
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }

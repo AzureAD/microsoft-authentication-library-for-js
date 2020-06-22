@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient, AuthorizationCodePayload, AuthorityFactory, INetworkModule } from "@azure/msal-common";
+import { SPAClient, StringUtils, AuthorizationCodeRequest, ProtocolUtils, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -12,11 +12,11 @@ import { TemporaryCacheKeys } from "../utils/BrowserConstants";
  */
 export abstract class InteractionHandler {
 
-    protected authModule: AuthorizationCodeClient;
+    protected authModule: SPAClient;
     protected browserStorage: BrowserStorage;
     protected authCodeRequest: AuthorizationCodeRequest;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
     }
@@ -31,7 +31,7 @@ export abstract class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponse(locationHash: string, networkModule: INetworkModule): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
@@ -43,23 +43,16 @@ export abstract class InteractionHandler {
         const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateCacheKey(cachedNonceKey), CacheSchemaType.TEMPORARY) as string;
 
         // Handle code response.
-        const authCodeResponse: AuthorizationCodePayload = this.authModule.handleFragmentResponse(locationHash, requestState);
+        const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Assign code to request
-        this.authCodeRequest.code = authCodeResponse.code;
-        if (authCodeResponse.cloud_graph_host_name) {
-            const cloudInstanceAuthorityUri = `https://${authCodeResponse.cloud_instance_host_name}/common/`;
-            if (cloudInstanceAuthorityUri !== this.browserStorage.getCachedAuthority()) {
-                const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(this.authCodeRequest.authority, networkModule, true);
-                this.authModule.updateAuthority(cloudInstanceAuthority);
-            }
-        }
+        this.authCodeRequest.code = authCode;
 
-        authCodeResponse.nonce = cachedNonce;
-        authCodeResponse.state = requestState;
+        // Extract user state.
+        const userState = ProtocolUtils.getUserRequestState(requestState);
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, userState, cachedNonce);
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }

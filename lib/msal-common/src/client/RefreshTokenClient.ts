@@ -24,7 +24,7 @@ export class RefreshTokenClient extends BaseClient {
     }
 
     public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
-        const response = await this.executeTokenRequest(request, this.authority);
+        const response = await this.executeTokenRequest(request, this.defaultAuthority);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -34,7 +34,10 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.generateAuthenticationResult(response.body, this.authority);
+        const tokenResponse = responseHandler.generateAuthenticationResult(
+            response.body,
+            this.defaultAuthority
+        );
 
         return tokenResponse;
     }
@@ -51,17 +54,11 @@ export class RefreshTokenClient extends BaseClient {
     private createTokenRequestBody(request: RefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
-
-        parameterBuilder.addRedirectUri(request.redirectUri);
-
         const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
-        
+        parameterBuilder.addClientId(this.config.authOptions.clientId);
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
-
         parameterBuilder.addClientInfo();
-
         parameterBuilder.addRefreshToken(request.refreshToken);
 
         return parameterBuilder.createQueryString();

@@ -16,7 +16,7 @@ import {
     ClientAuthError,
     Constants,
     TrustedAuthority,
-    AccountInfo,
+    IAccount,
     BaseAuthRequest
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
@@ -137,10 +137,13 @@ export abstract class ClientApplication {
      * @param authRequest 
      */
     protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
-        return {
-            ...authRequest,
-            scopes: [...authRequest.scopes, Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
-        };
+        const request: BaseAuthRequest = { ...authRequest };
+        if (!request.scopes) {
+            request.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
+        } else {
+            request.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE);
+        }
+        return request;
     }
 
     /**
@@ -197,7 +200,7 @@ export abstract class ClientApplication {
         );
     }
 
-    getAllAccounts(): AccountInfo[] {
+    getAllAccounts(): IAccount[] {
         return this.storage.getAllAccounts();
     }
 }

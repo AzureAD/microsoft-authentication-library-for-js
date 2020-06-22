@@ -54,32 +54,4 @@ export class CacheContext {
             },
         };
     }
-
-    /**
-     * helper function to swap keys and objects
-     * @param cacheMap
-     */
-    static swap(cacheMap: {[index: string]: object}): object {
-        const ret: {[index: string]: object | string} = {};
-        for (const key in cacheMap) {
-            ret[JSON.stringify(cacheMap[key])] = key;
-        }
-        return ret;
-    }
-
-    /**
-     * helper function to map an obj to a new keyset
-     * @param objAT
-     * @param keysMap
-     */
-    static renameKeys(objAT: {[index: string]: object}, keysMap: {[index: string]: object}): object {
-        const keyValues = Object.keys(objAT).map((key) => {
-            if (objAT[key]) {
-                const newKey = JSON.stringify(keysMap[key]) || key;
-                return { [newKey]: objAT[key] };
-            }
-            return null;
-        });
-        return Object.assign({}, ...keyValues);
-    }
 }

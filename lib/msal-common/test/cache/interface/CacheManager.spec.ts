@@ -57,7 +57,7 @@ class TestStorageManager extends CacheManager {
         // save the cacheItem
         switch (type) {
             case CacheSchemaType.ACCOUNT: {
-                return CacheManager.toObject(new AccountEntity(), store[key]) as AccountEntity;
+                return CacheHelper.toObject(new AccountEntity(), store[key]) as AccountEntity;
             }
             case CacheSchemaType.CREDENTIAL: {
                 const credentialType = CacheHelper.getCredentialType(
@@ -65,19 +65,19 @@ class TestStorageManager extends CacheManager {
                 );
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
-                        return CacheManager.toObject(new IdTokenEntity(), store[key]) as IdTokenEntity;
+                        return CacheHelper.toObject(new IdTokenEntity(), store[key]) as IdTokenEntity;
                     }
                     case CredentialType.ACCESS_TOKEN: {
-                        return CacheManager.toObject(new AccessTokenEntity(), store[key]) as AccessTokenEntity;
+                        return CacheHelper.toObject(new AccessTokenEntity(), store[key]) as AccessTokenEntity;
                     }
                     case CredentialType.REFRESH_TOKEN: {
-                        return CacheManager.toObject(new RefreshTokenEntity(), store[key]) as RefreshTokenEntity;
+                        return CacheHelper.toObject(new RefreshTokenEntity(), store[key]) as RefreshTokenEntity;
                     }
                 }
                 break;
             }
             case CacheSchemaType.APP_META_DATA: {
-                return CacheManager.toObject(new AppMetadataEntity(), store[key]) as AppMetadataEntity;
+                return CacheHelper.toObject(new AppMetadataEntity(), store[key]) as AppMetadataEntity;
             }
             default: {
                 console.log("Invalid Cache Type");
@@ -266,7 +266,7 @@ describe("CacheManager.ts test cases", () => {
         credentials = cacheManager.getCredentialsFilteredBy(filterThree);
     });
 
-    it("removeAccount", () => {
+    it.skip("removeAccount", () => {
         const account: AccountEntity = cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft");
         console.log(account.generateAccountKey);
         cacheManager.removeAccount("uid.utid-login.microsoftonline.com-microsoft");
