@@ -59,10 +59,9 @@ export class NetworkManager {
     private preProcess(thumbprint: NetworkThumbprint, isInteractive: boolean): void {
         const key = generateCacheKey(thumbprint);
         const cacheValue = this.cacheStorage.getItem(key);
-        const date = new Date();
 
         if (cacheValue) {
-            if (cacheValue.throttleTime >= date.getTime()) {
+            if (cacheValue.throttleTime >= Date.now()) {
                 // remove throttle here
                 return;
             }
