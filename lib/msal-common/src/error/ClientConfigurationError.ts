@@ -66,7 +66,7 @@ export const ClientConfigurationErrorMessage = {
     },
     untrustedAuthority: {
         code: "untrusted_authority",
-        desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
+        desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
     }
 };
 
