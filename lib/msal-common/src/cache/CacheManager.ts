@@ -5,7 +5,7 @@
 
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, EnvironmentAliases, APP_META_DATA } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_META_DATA } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -17,6 +17,7 @@ import { AuthError } from "../error/AuthError";
 import { ICacheManager } from "./interface/ICacheManager";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { AccountInfo } from "../account/AccountInfo";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -394,8 +395,8 @@ export abstract class CacheManager implements ICacheManager {
         environment: string
     ): boolean {
         if (
-            EnvironmentAliases.includes(environment) &&
-            EnvironmentAliases.includes(entity.environment)
+            TrustedAuthority.getInstanceMetadata(environment) &&
+            TrustedAuthority.getInstanceMetadata(entity.environment)
         ) {
             return true;
         }
