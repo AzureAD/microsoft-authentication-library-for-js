@@ -9,6 +9,8 @@ package com.sampleapp;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -113,7 +115,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * loadAccount(): will load a currently signed in account. 
+     * loadAccount(): will load a currently signed in account.
      * Returns an IAccount if an account exists; returns null if no account is signed in or an error occurs
      */
 
@@ -134,7 +136,28 @@ public class MSALModule extends ReactContextBaseJavaModule {
             Log.d(TAG, "Error loading account: " + e.toString());
             return null;
         }
-        
+
+    }
+
+    /**
+     * signOut(): signs out the user currently signed in
+     * Parameters: Promise promise (resolve will return a boolean true if account was successfully signed out and reject will return the exception)
+     */
+    @ReactMethod
+    public void signOut(Promise promise) {
+        publicClientApplication.signOut (new ISingleAccountPublicClientApplication.SignOutCallback() {
+            @Override
+            public void onSignOut() {
+                Log.d(TAG, "User successfully signed out.");
+                promise.resolve(true);
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                Log.d(TAG, "Error while signing out: " + exception.toString());
+                promise.reject(exception);
+            }
+        });
     }
 
     /**
