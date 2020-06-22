@@ -160,6 +160,47 @@ public class MSALModule extends ReactContextBaseJavaModule {
         });
     }
 
+      /**
+     * acquireTokenSilent: attempts to obtain a token silently from the cache
+     * Parameters: string scopesValue (string containing scopes separated by a " "), Promise promise (returned to an async function)
+     */
+    @ReactMethod
+    public void acquireTokenSilent(String scopesValue, Promise promise) {
+        //get account
+        IAccount account = loadAccount();
+        if (account == null) {
+            promise.reject("loadaccountnull", "acquireTokenSilent: No signed in account, or exception. Check Android log for details.");
+        } else if (!scopesValue.isEmpty()) {
+            publicClientApplication.acquireTokenSilentAsync(scopesValue.toLowerCase().split(" "), account.getAuthority(), getAuthSilentCallback(promise));
+        } else {
+            //the default is User.Read
+            String[] array = {"User.Read"};
+            publicClientApplication.acquireTokenSilentAsync(array, account.getAuthority(), getAuthSilentCallback(promise));
+        }
+    }
+
+    /**
+     * SilentAuthenticationCallback is the callback function for acquireTokenSlient.
+     * If successful, it will return a map of the IAuthenticationResult.
+     * If there's an error, the exception will be returned.
+     */
+
+    private SilentAuthenticationCallback getAuthSilentCallback(final Promise promise) {
+        return new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                Log.d(TAG, "Acquire tokens silently success.");
+                promise.resolve(mapMSALResult(authenticationResult));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                Log.d(TAG, "Error while acquiring tokens silently: " + exception.toString());
+                promise.reject(exception);
+            }
+        };
+    }
+
     /**
     * Helper functions:
     * mapMSALResult(IAuthenticationResult result): used to convert AuthenticationResult into a map
