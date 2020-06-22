@@ -6,9 +6,11 @@
 import { Storage } from './Storage';
 import {
     ClientAuthError,
-    StringUtils
+    StringUtils,
+    IAccount,
+    CacheHelper
 } from '@azure/msal-common';
-import { InMemoryCache, JsonCache, Dict } from "cache/serializer/SerializerTypes";
+import { InMemoryCache, JsonCache, Dict } from 'cache/serializer/SerializerTypes';
 import { ICachePlugin } from './ICachePlugin';
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -118,6 +120,24 @@ export class CacheManager {
         } else {
             throw ClientAuthError.createCachePluginError();
         }
+    }
+
+
+    /**
+     * API that retrieves all accounts currently in cache to the user
+     */
+    getAllAccounts(): IAccount[] {
+        return this.storage.getAllAccounts();
+    }
+
+    /**
+     * API to remove a specific account and the relevant data from cache
+     * @param account
+     */
+    removeAccount(account: IAccount) {
+        this.storage.removeAccount(
+            CacheHelper.generateAccountCacheKey(account)
+        );
     }
 
     /**
