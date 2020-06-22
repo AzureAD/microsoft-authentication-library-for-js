@@ -70,7 +70,7 @@ export abstract class CacheManager implements ICacheManager {
         } else {
             const allAccounts = accountValues.map<AccountInfo>((value) => {
                 let accountObj: AccountEntity = new AccountEntity();
-                accountObj = CacheManager.toObject(accountObj, JSON.parse(JSON.stringify(value)));
+                accountObj = CacheManager.toObject(accountObj, value) as AccountEntity;
                 return accountObj.getAccountInfo();
             });
             return allAccounts;

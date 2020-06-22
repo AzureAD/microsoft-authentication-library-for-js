@@ -23,15 +23,15 @@ import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
-import { Constants as NodeConstants } from './../utils/Constants';
-import { CacheManager } from '../cache/CacheManager';
+import { NodeConstants } from '../utils/NodeConstants';
+import { CacheSerializer } from '../cache/CacheSerializer';
 
 export abstract class ClientApplication {
     private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
-    private cacheManager: CacheManager;
+    private cacheManager: CacheSerializer;
 
     /**
      * @constructor
@@ -40,7 +40,7 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
         this.storage = new Storage();
-        this.cacheManager = new CacheManager(
+        this.cacheManager = new CacheSerializer(
             this.storage,
             this.config.cache?.cachePlugin
         );
@@ -106,7 +106,7 @@ export abstract class ClientApplication {
         return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
-    getCacheManager(): CacheManager {
+    getCacheManager(): CacheSerializer {
         return this.cacheManager;
     }
 

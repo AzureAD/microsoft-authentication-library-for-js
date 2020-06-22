@@ -4,7 +4,7 @@
  */
 
 import { PkceCodes } from '@azure/msal-common';
-import { CharSet, Hash, RANDOM_OCTET_SIZE } from '../utils/Constants';
+import { CharSet, Hash, RANDOM_OCTET_SIZE } from '../utils/NodeConstants';
 import { EncodingUtils } from './../utils/EncodingUtils';
 import crypto from 'crypto';
 

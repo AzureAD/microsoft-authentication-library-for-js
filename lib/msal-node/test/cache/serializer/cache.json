@@ -24,7 +24,7 @@
             "secret": "a refresh token",
             "client_id": "mock_client_id",
             "home_account_id": "uid.utid",
-            "familyId": "1"
+            "family_id": "1"
         }
     },
     "AccessToken": {
