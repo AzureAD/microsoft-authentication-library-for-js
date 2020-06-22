@@ -96,7 +96,9 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
-    instanceMetadata: []
+    instanceMetadata: [],
+    redirectUri: "",
+    postLogoutRedirectUri: ""
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
