@@ -5,7 +5,7 @@
 
 import { Storage } from './Storage';
 import { ClientAuthError, StringUtils } from '@azure/msal-common';
-import { InMemoryCache, JsonCache } from 'cache/serializer/SerializerTypes';
+import { InMemoryCache, JsonCache } from './serializer/SerializerTypes';
 import { ICachePlugin } from './ICachePlugin';
 import { Deserializer } from './serializer/Deserializer';
 import { Serializer } from './serializer/Serializer';
