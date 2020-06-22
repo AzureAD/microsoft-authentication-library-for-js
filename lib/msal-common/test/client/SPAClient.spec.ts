@@ -25,9 +25,10 @@ import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeReq
 import { AadAuthority } from "../../src/authority/AadAuthority";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
-import { IAccount } from "../../src/account/IAccount";
+import { AccountInfo } from "../../src/account/AccountInfo";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { MockStorageClass } from "./ClientTestUtils";
+import { TimeUtils } from "../../src/utils/TimeUtils";
 
 describe("SPAClient.ts Class Unit Tests", () => {
 
@@ -273,14 +274,19 @@ describe("SPAClient.ts Class Unit Tests", () => {
                             }
                         };
                     };
+                    testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+                    const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;
                     defaultAuthConfig.cryptoInterface.base64Decode = (input: string): string => {
                         switch (input) {
                             case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                                 return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                            case `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9`:
+                                return decodedLibState;
                             default:
                                 return input;
                         }
                     };
+                    
                     defaultAuthConfig.cryptoInterface.base64Encode = (input: string): string => {
                         switch (input) {
                             case "123-test-uid":
@@ -295,7 +301,6 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     };
                     Client = new SPAClient(defaultAuthConfig);
 
-                    testState = "{stateObject}";
                     codeRequest = {
 						authority: Constants.DEFAULT_AUTHORITY,
                         codeVerifier: TEST_CONFIG.TEST_VERIFIER,
@@ -323,19 +328,9 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
                     sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
                     sinon.stub();
-                    
+
                     // Set up cache
                     defaultAuthConfig.storageInterface.setItem(PersistentCacheKeys.CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-
-                    // Build Test account
-                    const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, defaultAuthConfig.cryptoInterface);
-                    const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, defaultAuthConfig.cryptoInterface);
-                    const testAccount: IAccount = {
-                        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                        environment: "login.windows.net",
-                        tenantId: idTokenClaims.tid,
-                        username: idTokenClaims.preferred_username
-                    };
 
                     // Perform test
                     const tokenResponse: AuthenticationResult = await Client.acquireToken(codeRequest, testState, idTokenClaims.nonce);
@@ -345,7 +340,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
                     expect(tokenResponse.idToken).to.be.deep.eq(TEST_TOKENS.IDTOKEN_V2);
                     expect(tokenResponse.accessToken).to.be.deep.eq(TEST_TOKENS.LOGIN_AT_STRING);
                     expect(tokenResponse.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
-                    expect(tokenResponse.state).to.be.deep.eq(testState);
+                    expect(tokenResponse.state).to.be.deep.eq("userState");
                 });
             });
         });
@@ -353,7 +348,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
         describe("Renew token", () => {
 
             let authClient: SPAClient;
-            let testAccount: IAccount;
+            let testAccount: AccountInfo;
             beforeEach(() => {
                 authClient = new SPAClient(defaultAuthConfig);
                 testAccount = {
@@ -532,7 +527,7 @@ describe("SPAClient.ts Class Unit Tests", () => {
         let client: SPAClient;
         let idToken: IdToken;
         let clientInfo: ClientInfo;
-        let testAccount: IAccount;
+        let testAccount: AccountInfo;
         beforeEach(() => {
             config = {
                 authOptions: {
