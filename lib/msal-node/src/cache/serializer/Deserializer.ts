@@ -2,12 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager } from "@azure/msal-common";
-import { JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedAppMetadataEntity} from "./SerializerTypes";
+import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager } from '@azure/msal-common';
+import { JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedAppMetadataEntity } from './SerializerTypes';
 
-// TODO: Can we write this with Generics?
+/**
+ * This class deserializes cache entities read from the file into in memory object types defined internally
+ */
 export class Deserializer {
-
     /**
      * Parse the JSON blob in memory and deserialize the content
      * @param cachedJson
@@ -164,11 +165,21 @@ export class Deserializer {
      */
     static deserializeAllCache(jsonCache: JsonCache): InMemoryCache {
         return {
-            accounts: jsonCache.Account? this.deserializeAccounts(jsonCache.Account): {},
-            idTokens: jsonCache.IdToken? this.deserializeIdTokens(jsonCache.IdToken): {},
-            accessTokens: jsonCache.AccessToken? this.deserializeAccessTokens(jsonCache.AccessToken) : {},
-            refreshTokens: jsonCache.RefreshToken? this.deserializeRefreshTokens(jsonCache.RefreshToken): {},
-            appMetadata: jsonCache.AppMetadata? this.deserializeAppMetadata(jsonCache.AppMetadata): {}
+            accounts: jsonCache.Account
+                ? this.deserializeAccounts(jsonCache.Account)
+                : {},
+            idTokens: jsonCache.IdToken
+                ? this.deserializeIdTokens(jsonCache.IdToken)
+                : {},
+            accessTokens: jsonCache.AccessToken
+                ? this.deserializeAccessTokens(jsonCache.AccessToken)
+                : {},
+            refreshTokens: jsonCache.RefreshToken
+                ? this.deserializeRefreshTokens(jsonCache.RefreshToken)
+                : {},
+            appMetadata: jsonCache.AppMetadata
+                ? this.deserializeAppMetadata(jsonCache.AppMetadata)
+                : {},
         };
     }
 }

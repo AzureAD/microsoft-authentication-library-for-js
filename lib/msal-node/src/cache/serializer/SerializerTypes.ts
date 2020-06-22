@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
+import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache } from "@azure/msal-common";
 
 export type JsonCache = {
     Account: Record<string, SerializedAccountEntity>;
@@ -66,8 +66,8 @@ export type SerializedRefreshTokenEntity = {
     client_id: string;
     secret: string;
     family_id?: string;
-    target?: string,
-    realm?: string
+    target?: string;
+    realm?: string;
 };
 
 export type SerializedAppMetadataEntity = {

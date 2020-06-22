@@ -7,7 +7,6 @@ import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMet
 import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedAppMetadataEntity } from "./SerializerTypes";
 
 export class Serializer {
-
     /**
      * serialize the JSON blob
      * @param data
@@ -45,7 +44,7 @@ export class Serializer {
      * Serialize IdTokens
      * @param idTCache
      */
-    static serializeIdTokens(idTCache: IdTokenCache): Record<string, SerializedIdTokenEntity>{
+    static serializeIdTokens(idTCache: IdTokenCache): Record<string, SerializedIdTokenEntity> {
         const idTokens: Record<string, SerializedIdTokenEntity> = {};
         Object.keys(idTCache).map(function (key) {
             const idTEntity = idTCache[key];
@@ -66,7 +65,7 @@ export class Serializer {
      * Serializes AccessTokens
      * @param atCache
      */
-    static serializeAccessTokens(atCache: AccessTokenCache):Record<string, SerializedAccessTokenEntity>{
+    static serializeAccessTokens(atCache: AccessTokenCache): Record<string, SerializedAccessTokenEntity> {
         const accessTokens: Record<string, SerializedAccessTokenEntity> = {};
         Object.keys(atCache).map(function (key) {
             const atEntity = atCache[key];
