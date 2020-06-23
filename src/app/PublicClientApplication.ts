@@ -104,8 +104,7 @@ export class PublicClientApplication {
 
         this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(
             this.config.auth.authority,
-            this.networkClient,
-            true
+            this.networkClient
         );
     }
 
