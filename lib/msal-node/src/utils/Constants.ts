@@ -42,6 +42,6 @@ export const CACHE = {
 /**
  * Constants for headers
  */
-export const NodeConstants = {
+export const Constants = {
     MSAL_SKU: 'msal.js.node',
 };

@@ -23,15 +23,15 @@ import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
-import { NodeConstants } from '../utils/NodeConstants';
-import { CacheSerializer } from '../cache/CacheSerializer';
+import { Constants as NodeConstants } from './../utils/Constants';
+import { TokenCache } from '../cache/TokenCache';
 
 export abstract class ClientApplication {
     private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
-    private cacheManager: CacheSerializer;
+    private tokenCache: TokenCache;
 
     /**
      * @constructor
@@ -40,7 +40,7 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
         this.storage = new Storage();
-        this.cacheManager = new CacheSerializer(
+        this.tokenCache = new TokenCache(
             this.storage,
             this.config.cache?.cachePlugin
         );
@@ -106,8 +106,8 @@ export abstract class ClientApplication {
         return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
-    getCacheManager(): CacheSerializer {
-        return this.cacheManager;
+    getCacheManager(): TokenCache {
+        return this.tokenCache;
     }
 
     protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
