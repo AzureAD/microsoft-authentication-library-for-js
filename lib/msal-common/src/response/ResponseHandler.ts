@@ -11,33 +11,34 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
 import { IdToken } from "../account/IdToken";
-import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AuthenticationResult } from "./AuthenticationResult";
-import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
+import { AccountEntity } from "../cache/entities/AccountEntity";
 import { Authority } from "../authority/Authority";
 import { AuthorityType } from "../authority/AuthorityType";
-import { IdTokenEntity } from "../unifiedCache/entities/IdTokenEntity";
-import { AccessTokenEntity } from "../unifiedCache/entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../unifiedCache/entities/RefreshTokenEntity";
+import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
+import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
-import { CacheRecord } from "../unifiedCache/entities/CacheRecord";
+import { CacheRecord } from "../cache/entities/CacheRecord";
+import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
+import { CacheManager } from "../cache/CacheManager";
 
 /**
  * Class that handles response parsing.
  */
 export class ResponseHandler {
     private clientId: string;
-    private uCacheManager: UnifiedCacheManager;
+    private cacheStorage: CacheManager;
     private cryptoObj: ICrypto;
     private logger: Logger;
     private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
 
-    constructor(clientId: string, unifiedCacheManager: UnifiedCacheManager, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger) {
         this.clientId = clientId;
-        this.uCacheManager = unifiedCacheManager;
+        this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
     }
@@ -92,7 +93,7 @@ export class ResponseHandler {
         if (serverResponse.client_info) {
             this.clientInfo = buildClientInfo(serverResponse.client_info, this.cryptoObj);
             if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = this.cryptoObj.base64Encode(this.clientInfo.uid) + "." + this.cryptoObj.base64Encode(this.clientInfo.utid);
+                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
             }
         }
     }
@@ -102,30 +103,33 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority): AuthenticationResult {
-
+    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string): AuthenticationResult {
         // create an idToken object (not entity)
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
+        // token nonce check (TODO: Add a warning if no nonce is given?)
+        if (!StringUtils.isEmpty(cachedNonce)) {
+            if (idTokenObj.claims.nonce !== cachedNonce) {
+                throw ClientAuthError.createNonceMismatchError();
+            }
+        }
+
         // save the response tokens
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority);
-        this.uCacheManager.saveCacheRecord(cacheRecord);
-
-        // Expiration calculation
-        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
-        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
-
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
+        this.cacheStorage.saveCacheRecord(cacheRecord, responseScopes);
 
         const authenticationResult: AuthenticationResult = {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: responseScopes.asArray(),
+            account: cacheRecord.account.getAccountInfo(),
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
-            expiresOn: new Date(expiresInSeconds),
-            extExpiresOn: new Date(extendedExpiresInSeconds),
+            fromCache: true,
+            expiresOn: new Date(cacheRecord.accessToken.expiresOn),
+            extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
             familyId: serverTokenResponse.foci || null,
         };
 
@@ -162,47 +166,51 @@ export class ResponseHandler {
      * @param authority
      */
     generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority): CacheRecord {
-
-        const cacheRecord = new CacheRecord();
-
         // Account
-        cacheRecord.account  = this.generateAccountEntity(
+        const cachedAccount  = this.generateAccountEntity(
             serverTokenResponse,
             idTokenObj,
             authority
         );
 
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        const env = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
+
         // IdToken
-        cacheRecord.idToken = IdTokenEntity.createIdTokenEntity(
+        const cachedIdToken = IdTokenEntity.createIdTokenEntity(
             this.homeAccountIdentifier,
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            env,
             serverTokenResponse.id_token,
             this.clientId,
             idTokenObj.claims.tid
         );
 
         // AccessToken
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope, this.clientId, true);
-        cacheRecord.accessToken = AccessTokenEntity.createAccessTokenEntity(
+        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
+        // Expiration calculation
+        const expiresInSeconds = TimeUtils.nowSeconds() + serverTokenResponse.expires_in;
+        const extendedExpiresInSeconds = expiresInSeconds + serverTokenResponse.ext_expires_in;
+
+        const cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
             this.homeAccountIdentifier,
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            env,
             serverTokenResponse.access_token,
             this.clientId,
             idTokenObj.claims.tid,
             responseScopes.asArray().join(" "),
-            serverTokenResponse.expires_in,
-            serverTokenResponse.ext_expires_in
+            expiresInSeconds,
+            extendedExpiresInSeconds
         );
 
         // refreshToken
-        cacheRecord.refreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+        const cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
             this.homeAccountIdentifier,
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            env,
             serverTokenResponse.refresh_token,
             this.clientId,
             serverTokenResponse.foci
         );
 
-        return cacheRecord;
+        return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken);
     }
 }

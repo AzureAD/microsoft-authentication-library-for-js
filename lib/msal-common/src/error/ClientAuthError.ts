@@ -75,6 +75,10 @@ export const ClientAuthErrorMessage = {
         desc: "The cache contains multiple tokens satisfying the requirements. " +
             "Call AcquireToken again providing more requirements such as authority or account."
     },
+    multipleMatchingAccounts: {
+        code: "multiple_matching_accounts",
+        desc: "The cache contains multiple accounts satisfying the given parameters. Please pass more info to obtain the correct account"
+    },
     tokenRequestCannotBeMade: {
         code: "request_cannot_be_made",
         desc: "Token request cannot be made without authorization code or refresh token."
@@ -102,6 +106,18 @@ export const ClientAuthErrorMessage = {
     DeviceCodeExpired: {
         code: "device_code_expired",
         desc: "Device code is expired."
+    },
+    NoAccountInSilentRequest: {
+        code: "no_account_in_silent_request",
+        desc: "Please pass an account object, silent flow is not supported without account information"
+    },
+    invalidCacheRecord: {
+        code: "invalid_cache_record",
+        desc: "Cache record object was null or undefined."
+    },
+    noAccountFound: {
+        code: "no_account_found",
+        desc: "No account found in cache for given key."
     },
     CachePluginError: {
         code: "no cache plugin set on CacheManager",
@@ -219,9 +235,8 @@ export class ClientAuthError extends AuthError {
     /**
      * Creates an error thrown when the authorization code required for a token request is null or empty.
      */
-    static createNoTokensFoundError(scopes: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code,
-            `${ClientAuthErrorMessage.noTokensFoundError.desc} Scopes: ${scopes}`);
+    static createNoTokensFoundError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code, ClientAuthErrorMessage.noTokensFoundError.desc);
     }
 
     /**
@@ -247,6 +262,15 @@ export class ClientAuthError extends AuthError {
     static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
             `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
+    }
+
+    /**
+     * Throws error when multiple tokens are in cache for the given scope.
+     * @param scope
+     */
+    static createMultipleMatchingAccountsInCacheError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAccounts.code,
+            ClientAuthErrorMessage.multipleMatchingAccounts.desc);
     }
 
     /**
@@ -300,6 +324,27 @@ export class ClientAuthError extends AuthError {
      */
     static createDeviceCodeExpiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
+    }
+
+    /**
+     * Throws error when silent requests are made without an account object
+     */
+    static createNoAccountInSilentRequestError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.NoAccountInSilentRequest.code, `${ClientAuthErrorMessage.NoAccountInSilentRequest.desc}`);
+    }
+
+    /**
+     * Throws error when cache record is null or undefined.
+     */
+    static createNullOrUndefinedCacheRecord(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidCacheRecord.code, ClientAuthErrorMessage.invalidCacheRecord.desc);
+    }
+
+    /**
+     * Throws error when account is not found in cache.
+     */
+    static createNoAccountFoundError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noAccountFound.code, ClientAuthErrorMessage.noAccountFound.desc);
     }
 
     /**

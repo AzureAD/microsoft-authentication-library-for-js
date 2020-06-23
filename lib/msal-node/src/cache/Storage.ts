@@ -3,23 +3,30 @@
  * Licensed under the MIT License.
  */
 import {
-    ICacheStorage,
-    InMemoryCache,
     CredentialType,
     CacheSchemaType,
-    CacheHelper,
+    AccountEntity,
+    AccessTokenEntity,
+    RefreshTokenEntity,
+    IdTokenEntity,
+    AppMetadataEntity,
+    CacheManager,
+    CredentialEntity
 } from '@azure/msal-common';
-import { AccountEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/AccountEntity';
-import { AccessTokenEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/AccessTokenEntity';
-import { RefreshTokenEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/RefreshTokenEntity';
-import { IdTokenEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/IdTokenEntity';
-import { AppMetadataEntity } from '@azure/msal-common/dist/src/unifiedCache/entities/AppMetadataEntity';
+import { Deserializer } from "./serializer/Deserializer";
+import { Serializer } from "./serializer/Serializer";
+import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
-export class Storage implements ICacheStorage {
+export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.
+
+    constructor() {
+        super();
+    }
+
     private inMemoryCache: InMemoryCache = {
         accounts: {},
         accessTokens: {},
@@ -27,6 +34,7 @@ export class Storage implements ICacheStorage {
         appMetadata: {},
         idTokens: {},
     };
+
     private changeEmitters: Array<Function> = [];
 
     registerChangeEmitter(func: () => void): void {
@@ -40,7 +48,7 @@ export class Storage implements ICacheStorage {
     /**
      * gets the current in memory cache for the client
      */
-    getCache(): InMemoryCache {
+    getCache(): object {
         return this.inMemoryCache;
     }
 
@@ -54,27 +62,19 @@ export class Storage implements ICacheStorage {
     }
 
     /**
-     * Sets the cache item with the key and value given.
-     * @param key
-     * @param value
-     * TODO: Implement after granular persistence of cache is supported
-     */
-    setItem(key: string, value: string): void {
-        if (key && value) {
-            this.emitChange();
-            return;
-        }
-    }
-
-    /**
-     * Set item in Memory
+     * Set Item in memory
      * @param key
      * @param value
      * @param type
+     * @param inMemory
      */
-    setItemInMemory(key: string, value: object, type?: string): void {
+    setItem(
+        key: string,
+        value: string | object,
+        type?: string
+    ): void {
         // read inMemoryCache
-        const cache = this.getCache();
+        const cache = this.getCache() as InMemoryCache;
 
         // save the cacheItem
         switch (type) {
@@ -83,7 +83,7 @@ export class Storage implements ICacheStorage {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
                         cache.idTokens[key] = value as IdTokenEntity;
@@ -119,40 +119,32 @@ export class Storage implements ICacheStorage {
      * Gets cache item with given key.
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
-     * TODO: Implement after granular persistence of cache is supported
+     * @param type
+     * @param inMemory
      */
-    getItem(key: string): string {
-        return key ? 'random' : 'truly random';
-    }
-
-    getItemFromMemory(key: string, type?: string): object {
+    getItem(key: string, type?: string): string | object {
         // read inMemoryCache
-        const cache = this.getCache();
+        const cache = this.getCache() as InMemoryCache;
 
         // save the cacheItem
-        switch (type) {
+        switch (type!) {
             case CacheSchemaType.ACCOUNT: {
                 return (cache.accounts[key] as AccountEntity) || null;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 let credential = null;
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
-                        credential =
-                            (cache.idTokens[key] as IdTokenEntity) || null;
+                        credential = (cache.idTokens[key] as IdTokenEntity) || null;
                         break;
                     }
                     case CredentialType.ACCESS_TOKEN: {
-                        credential =
-                            (cache.accessTokens[key] as AccessTokenEntity) ||
-                            null;
+                        credential = (cache.accessTokens[key] as AccessTokenEntity) || null;
                         break;
                     }
                     case CredentialType.REFRESH_TOKEN: {
-                        credential =
-                            (cache.refreshTokens[key] as RefreshTokenEntity) ||
-                            null;
+                        credential = (cache.refreshTokens[key] as RefreshTokenEntity) || null;
                         break;
                     }
                 }
@@ -169,25 +161,14 @@ export class Storage implements ICacheStorage {
     }
 
     /**
-     * Removes the cache item with the given key.
-     * @param key
-     */
-    removeItem(key: string): boolean {
-        if (!key) {
-            return false;
-        }
-        this.emitChange();
-        return true;
-    }
-
-    /**
      * Removes the cache item from memory with the given key.
      * @param key
      * @param type
+     * @param inMemory
      */
-    removeItemFromMemory(key: string, type?: string): boolean {
+    removeItem(key: string, type?: string): boolean {
         // read inMemoryCache
-        const cache = this.getCache();
+        const cache = this.getCache() as InMemoryCache;
         let result: boolean = false;
 
         // save the cacheItem
@@ -200,7 +181,7 @@ export class Storage implements ICacheStorage {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
                         if (!!cache.idTokens[key]) {
@@ -258,17 +239,53 @@ export class Storage implements ICacheStorage {
 
     /**
      * Gets all keys in window.
-     * TODO: implement after the lookup implementation
      */
     getKeys(): string[] {
-        return [];
+        // read inMemoryCache
+        const cache = this.getCache();
+        let cacheKeys: string[] = [];
+
+        // read all keys
+        Object.keys(cache).forEach(key => {
+            Object.keys(key).forEach(internalKey => {
+                cacheKeys.push(internalKey);
+            });
+        });
+
+        return cacheKeys;
     }
 
     /**
      * Clears all cache entries created by MSAL (except tokens).
      */
     clear(): void {
+        // read inMemoryCache
+        const cache = this.getCache();
+
+        // read all keys
+        Object.keys(cache).forEach(key => {
+            Object.keys(key).forEach(internalKey => {
+                this.removeItem(internalKey);
+            });
+        });
         this.emitChange();
-        return;
+    }
+
+    /**
+     * Initialize in memory cache from an exisiting cache vault
+     * @param cache
+     */
+    static generateInMemoryCache(cache: string): InMemoryCache {
+        return Deserializer.deserializeAllCache(
+            Deserializer.deserializeJSONBlob(cache)
+        );
+    }
+
+    /**
+     * retrieves the final JSON
+     * @param inMemoryCache
+     */
+    static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {
+        return Serializer.serializeAllCache(inMemoryCache);
     }
 }

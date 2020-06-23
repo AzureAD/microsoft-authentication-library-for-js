@@ -5,11 +5,11 @@
 import {
     LoggerOptions,
     INetworkModule,
-    LogLevel,
+    LogLevel
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
 import debug from 'debug';
-import { ICachePlugin } from 'cache/ICachePlugin';
+import { ICachePlugin } from "cache/ICachePlugin";
 
 /**
  * - clientId               - Client id of the application.
@@ -25,9 +25,8 @@ export type NodeAuthOptions = {
 /**
  * Use this to configure the below cache configuration options:
  *
- * - cachePlugin for persistence provided to library
+ * - cachePlugin   - Plugin for reading and writing token cache to disk.
  */
-// TODO Temporary placeholder - this will be rewritten by cache PR.
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
 };

@@ -4,7 +4,7 @@
  */
 const express = require("express");
 const msal = require('@azure/msal-node');
-const {promises: fs} = require("fs");
+const { promises: fs } = require("fs");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
@@ -12,8 +12,11 @@ const readFromStorage = () => {
     return fs.readFile("./data/cache.json", "utf-8");
 };
 
-const writeToStorage = (cache) => {
-    return fs.writeFile("./data/cacheAfterWrite.json", cache)
+const writeToStorage = (getMergedState) => {
+    return readFromStorage().then(oldFile =>{
+        const mergedState = getMergedState(oldFile);
+        return fs.writeFile("./data/cacheAfterWrite.json", mergedState);
+    })
 };
 
 const cachePlugin = {
@@ -28,7 +31,7 @@ const publicClientConfig = {
         redirectUri: "http://localhost:3000/redirect",
     },
     cache: {
-        cachePlugin: cachePlugin
+        cachePlugin
     },
 };
 const pca = new msal.PublicClientApplication(publicClientConfig);

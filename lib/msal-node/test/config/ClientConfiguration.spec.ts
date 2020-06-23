@@ -66,7 +66,6 @@ describe('ClientConfiguration tests', () => {
         // auth options
         expect(config.auth!.authority).toEqual('');
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
-
     });
 
     test('builds configuration and assigns default functions', () => {
@@ -113,6 +112,7 @@ describe('ClientConfiguration tests', () => {
                     piiLoggingEnabled: true,
                 },
             },
+            cache: {},
         };
 
         const testNetworkOptions = {
@@ -141,6 +141,5 @@ describe('ClientConfiguration tests', () => {
         // auth options
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.AUTHORITY);
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
-
     });
 });
