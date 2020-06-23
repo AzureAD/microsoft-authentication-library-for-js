@@ -106,9 +106,6 @@ export class PublicClientApplication {
             this.networkClient,
             true
         );
-
-        // Check for hash and save response promise
-        this.tokenExchangePromise = this.handleRedirectResponse();
     }
 
     // #region Redirect Flow
@@ -149,7 +146,7 @@ export class PublicClientApplication {
      * @returns token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
-        return this.tokenExchangePromise;
+        return this.handleRedirectResponse();
     }
 
     /**
@@ -162,7 +159,6 @@ export class PublicClientApplication {
         const {location: {hash}} = window;
         const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
-
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
         const currentUrl = BrowserUtils.getCurrentUri();
         if (loginRequestUrl === currentUrl) {
@@ -172,7 +168,7 @@ export class PublicClientApplication {
                 return this.handleHash(hash);
             } else {
                 // Loaded page with no valid hash - pass in the value retrieved from cache, or null/empty string
-                return this.handleHash(cachedHash);
+                return this.handleHash(`${cachedHash}`);
             }
         }
 
@@ -180,7 +176,6 @@ export class PublicClientApplication {
             // Returned from authority using redirect - need to perform navigation before processing response
             const hashKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH);
             this.browserStorage.setItem(hashKey, hash, CacheSchemaType.TEMPORARY);
-
             if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
                 console.warn("Unable to get valid login request url from cache, redirecting to home page");
@@ -219,7 +214,6 @@ export class PublicClientApplication {
             // Hash contains known properties - handle and return in callback
             return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
         }
-
         // There is no hash - assume we are in clean state and clear any current request data.
         this.browserStorage.cleanRequest();
         return null;
@@ -489,10 +483,14 @@ export class PublicClientApplication {
     public getRedirectUri(): string {
         if (this.config.auth.redirectUri) {
             if (typeof this.config.auth.redirectUri === "function") {
-                return this.config.auth.redirectUri();
-            } else {
-                return this.config.auth.redirectUri;
+                const redirectUri = this.config.auth.redirectUri();
+                if (StringUtils.isEmpty(redirectUri)) {
+                    throw BrowserConfigurationAuthError.createRedirectUriEmptyError();
+                }
+                return redirectUri;
             }
+
+            return this.config.auth.redirectUri;
         }
         // This should never throw unless window.location.href is returning empty.
         throw BrowserConfigurationAuthError.createRedirectUriEmptyError();
@@ -507,10 +505,14 @@ export class PublicClientApplication {
     public getPostLogoutRedirectUri(): string {
         if (this.config.auth.postLogoutRedirectUri) {
             if (typeof this.config.auth.postLogoutRedirectUri === "function") {
-                return this.config.auth.postLogoutRedirectUri();
-            } else {
-                return this.config.auth.postLogoutRedirectUri;
+                const postLogoutUri = this.config.auth.postLogoutRedirectUri();
+                if (StringUtils.isEmpty(postLogoutUri)) {
+                    throw BrowserConfigurationAuthError.createPostLogoutRedirectUriEmptyError();
+                }
+                return postLogoutUri;
             }
+
+            return this.config.auth.postLogoutRedirectUri;
         }
         // This should never throw unless window.location.href is returning empty.
         throw BrowserConfigurationAuthError.createPostLogoutRedirectUriEmptyError();
@@ -653,10 +655,14 @@ export class PublicClientApplication {
         if (StringUtils.isEmpty(validatedRequest.nonce)) {
             validatedRequest.nonce = this.browserCrypto.createNewGuid();
         }
+
+        if (StringUtils.isEmpty(validatedRequest.authority)) {
+            validatedRequest.authority = this.config.auth.authority;
+        }
         
         validatedRequest.responseMode = ResponseMode.FRAGMENT;
 
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority || this.config.auth.authority);
+        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
         return validatedRequest;
     }
@@ -668,7 +674,7 @@ export class PublicClientApplication {
     private generateLoginRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
         return {
             ...request,
-            scopes: [...request.scopes, Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
+            scopes: [...((request && request.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
         };
     }
 

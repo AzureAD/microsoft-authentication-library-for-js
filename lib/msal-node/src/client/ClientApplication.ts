@@ -143,7 +143,7 @@ export abstract class ClientApplication {
     protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
         return {
             ...authRequest,
-            scopes: [...authRequest.scopes, Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
         };
     }
 
@@ -153,11 +153,7 @@ export abstract class ClientApplication {
      * @param authorityString
      */
     private async createAuthority(authorityString?: string): Promise<Authority> {
-        const authority: Authority = authorityString
-            ? AuthorityFactory.createInstance(
-                authorityString,
-                this.config.system!.networkClient!
-            ) : this.authority;
+        const authority: Authority = authorityString ? AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!) : this.authority;
 
         if (authority.discoveryComplete()) {
             return authority;
