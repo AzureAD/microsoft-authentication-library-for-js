@@ -5,10 +5,11 @@
 
 import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
 import { INetworkModule } from "../network/INetworkModule";
+import { NetworkManager } from "../network/NetworkManager";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
-import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
+import { AADServerParamKeys, Constants, HeaderNames, HeaderValues } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
@@ -70,6 +71,7 @@ export abstract class BaseClient {
     protected createDefaultTokenRequestHeaders(): Record<string, string> {
         const headers = this.createDefaultLibraryHeaders();
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
+        headers[HeaderNames.X_MS_LIB_CAPABILITY] = HeaderNames.X_MS_LIB_CAPABILITY_VALUE;
 
         if (this.serverTelemetryManager) {
             headers[HeaderNames.X_CLIENT_CURR_TELEM] = this.serverTelemetryManager.generateCurrentRequestHeaderValue();

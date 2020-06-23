@@ -7,6 +7,7 @@ import { ICrypto } from '../crypto/ICrypto';
 import { ICacheStorage } from '../cache/interface/ICacheStorage';
 import { INetworkModule, NetworkRequestOptions } from './INetworkModule';
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { Constants, HeaderNames } from "../utils/Constants";
 
 export type NetworkResponse<T> = {
     headers: Record<string, string>;
@@ -14,27 +15,6 @@ export type NetworkResponse<T> = {
     status: number;
 };
 
-export class NetworkThumbprint {
-    clientId: string;
-    authority: string;
-    scopes: Array<string>;
-    homeAccountIdentifier: string;
-
-    constructor(clientId: string, authority: string, scopes: Array<string>, homeAccountIdentifier: string) {
-        this.clientId = clientId;
-        this.authority = authority;
-        this.scopes = scopes;
-        this.homeAccountIdentifier = homeAccountIdentifier;
-    }
-
-    // base64Encode function
-
-    // base64Decode function
-
-    // generateCacheKey
-}
-
-// TODO placeholder: this will be filled in by the throttling PR
 export class NetworkManager {
     cryptoObj: ICrypto;
     cacheStorage: ICacheStorage
@@ -46,12 +26,11 @@ export class NetworkManager {
         this.networkClient = networkClient;
     }
 
-    private async sendPostRequest(tokenEndpoint: string, options: NetworkRequestOptions, isInteractive: boolean): Promise<NetworkResponse<T>> {
-        const thumbprint = new NetworkThumbprint();
+    public async sendPostRequest(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, isInteractive: boolean): Promise<NetworkResponse<T>> {
 
         this.preProcess(thumbprint, isInteractive);
         const response = await this.networkClient.sendPostRequestAsync<ServerAuthorizationTokenResponse>(tokenEndpoint, options);
-        this.postProcess(thumbprint, response as ServerAuthorizationTokenResponse);
+        this.postProcess(thumbprint, response);
 
         return response;
     }
@@ -62,34 +41,38 @@ export class NetworkManager {
 
         if (cacheValue) {
             if (cacheValue.throttleTime >= Date.now()) {
-                // remove throttle here
+                // TODO: remove throttle from cache
                 return;
             }
             if (isInteractive) {
                 return;
             }
-            // throw error back to user here
+            // TODO: throw error back to user here
         }
     }
-        // create thumbprint
-        // check against cache + STATE
-            // if we find nothing, make request
-            // if we find something:
-                // check if throttled
-                // check expiration of throttle
-                    // remove throttle if expired?
+
         
 
-    private postProcess(thumbprint: NetworkThumbprint, response: ServerAuthorizationTokenResponse): void {
-
+    private postProcess(thumbprint: RequestThumbprint, response: NetworkResponse<ServerAuthorizationTokenResponse>): void {
+        if (this.checkResponseForThrottle(response)) {
+            const throttleTime = this.calculateThrottleTime(parseInt(response.headers.get(HeaderNames.RETRY_AFTER)));
+            // TODO: setItem to cache
+        }
     }
-    // private postProcess()
-        // create thumbprint
-        // check the response, put things in cache if necessary
 
-    // cache storage? 
+    private checkResponseForThrottle(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
+        if (response.status == 429 || response.status >= 500 && response.status < 600) {
+            return true;
+        }
 
+        if (response.headers.has(HeaderNames.RETRY_AFTER) && response.status < 200 && response.status >= 300) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private calculateThrottleTime(throttleTime: number): number {
+        return Math.min(throttleTime || Date.now() + Constants.DEFAULT_THROTTLE_TIME_MS, Constants.DEFAULT_MAX_THROTTLE_TIME_MS);
+    }
 }
-
-
-// InteractionType state?
