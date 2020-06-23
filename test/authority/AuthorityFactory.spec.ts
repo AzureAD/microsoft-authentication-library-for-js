@@ -8,6 +8,7 @@ import { Constants } from "../../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { Authority } from "../../src/authority/Authority";
 import { AdfsAuthority } from "../../src/authority/AdfsAuthority";
+import { ClientAuthErrorMessage } from "../../src";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
     const networkInterface: INetworkModule = {
@@ -87,5 +88,9 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(B2cAuthority.B2CTrustedHostList).to.include("fabrikamb2c.b2clogin.com");
         expect(B2cAuthority.B2CTrustedHostList).not.to.include("fake.b2clogin.com");
         expect(B2cAuthority.B2CTrustedHostList.length).to.equal(1);
+    });
+
+    it("createDiscoveredInstance() throws error if adfsEnabled is not true", async () => {
+        await expect(AuthorityFactory.createDiscoveredInstance(TEST_CONFIG.ADFS_VALID_AUTHORITY, networkInterface, true)).to.be.rejectedWith(ClientAuthErrorMessage.invalidAuthorityType.desc)
     });
 });
