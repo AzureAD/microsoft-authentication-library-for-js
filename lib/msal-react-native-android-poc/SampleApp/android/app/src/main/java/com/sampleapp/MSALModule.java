@@ -23,6 +23,8 @@ import com.microsoft.identity.client.exception.MsalException;
 
 import static com.facebook.react.views.textinput.ReactTextInputManager.TAG;
 
+import java.util.Arrays;
+
 public class MSALModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
@@ -212,6 +214,12 @@ public class MSALModule extends ReactContextBaseJavaModule {
         //add attributes from account
         map.putMap("account", mapAccount(result.getAccount()));
         //add attributes from result
+        map.putString("accessToken", result.getAccessToken());
+        map.putString("authenticationScheme", result.getAuthenticationScheme());
+        map.putString("authorizationHeader", result.getAuthorizationHeader());
+        map.putString("expiresOn", result.getExpiresOn().toString());
+        map.putString("scope", Arrays.toString(result.getScope()));
+        map.putString("tenantId", result.getTenantId());
         return map;
     }
 
