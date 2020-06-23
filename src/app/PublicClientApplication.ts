@@ -582,7 +582,8 @@ export class PublicClientApplication {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
-                knownAuthorities: this.config.auth.knownAuthorities
+                knownAuthorities: this.config.auth.knownAuthorities,
+                instanceMetadata: this.config.auth.instanceMetadata
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
