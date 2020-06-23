@@ -113,6 +113,7 @@ export abstract class ClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
+                instanceMetadata: this.config.auth.instanceMetadata
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!
