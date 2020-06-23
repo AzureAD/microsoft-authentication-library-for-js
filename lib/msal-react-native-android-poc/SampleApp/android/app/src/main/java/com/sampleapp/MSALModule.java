@@ -142,6 +142,20 @@ public class MSALModule extends ReactContextBaseJavaModule {
     }
 
     /**
+     * isSharedDevice: returns a boolean on if device is shared or not
+     * Parameters: Promise promise (resolve will return a boolean and reject will return an exception)
+     */
+    @ReactMethod
+    public void isSharedDevice(Promise promise) {
+        try {
+            promise.resolve(publicClientApplication.isSharedDevice());
+        } catch (Exception error) {
+            Log.d(TAG, "Error in 'isSharedDevice': " + error.toString());
+            promise.reject(error);
+        }
+    }
+
+    /**
      * signOut(): signs out the user currently signed in
      * Parameters: Promise promise (resolve will return a boolean true if account was successfully signed out and reject will return the exception)
      */
