@@ -64,10 +64,6 @@ function runMochaTests(sampleIndex: number) {
         res.sendFile(path.join(`${APP_DIR}/${sampleName}/index.html`));
     });
 
-    if (sampleName === "adfs") {
-        port = 8080; // Temporary workaround until lab team adds redirectUri
-    }
-
     let server = app.listen(port);
     console.log(`Listening on port ${port}...`);
 

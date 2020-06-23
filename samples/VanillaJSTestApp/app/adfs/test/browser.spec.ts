@@ -138,7 +138,7 @@ describe("Browser tests", function () {
             SCREENSHOT_NUM = 0;
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            await page.goto('http://localhost:8080/');
+            await page.goto('http://localhost:30662/');
         });
     
         afterEach(async () => {
@@ -172,7 +172,7 @@ describe("Browser tests", function () {
             SCREENSHOT_NUM = 0;
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            await page.goto('http://localhost:8080/');
+            await page.goto('http://localhost:30662/');
             await loginPopup(page, testName);
         });
     
