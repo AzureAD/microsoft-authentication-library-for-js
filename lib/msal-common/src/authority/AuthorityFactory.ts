@@ -5,7 +5,6 @@
 import { Authority } from "./Authority";
 import { AadAuthority } from "./AadAuthority";
 import { B2cAuthority } from "./B2cAuthority";
-import { AuthorityType } from "./AuthorityType";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "./../error/ClientAuthError";
 import { INetworkModule } from "./../network/INetworkModule";
@@ -27,14 +26,9 @@ export class AuthorityFactory {
      * @param authorityUri 
      * @param adfsDisabled 
      */
-    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, adfsDisabled?: boolean): Promise<Authority> {
+    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient);
-
-        // This is temporary. Remove when ADFS is supported for browser
-        if (adfsDisabled && acquireTokenAuthority.authorityType == AuthorityType.Adfs) {
-            throw ClientAuthError.createInvalidAuthorityTypeError(acquireTokenAuthority.canonicalAuthority);
-        }
 
         if (acquireTokenAuthority.discoveryComplete()) {
             return acquireTokenAuthority;
