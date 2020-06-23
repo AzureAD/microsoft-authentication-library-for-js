@@ -41,6 +41,7 @@ describe('PublicClientApplication', () => {
             clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: authority,
             knownAuthorities: [],
+            instanceMetadata: []
         },
     };
 
