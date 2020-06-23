@@ -5,11 +5,11 @@ import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
-import { ICacheStorage, Constants, PersistentCacheKeys, InMemoryCache, AuthorizationCodeRequest, CacheSchemaType } from "@azure/msal-common";
+import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 
-class TestCacheStorage implements ICacheStorage {
+class TestCacheStorage extends CacheManager {
     setItem(key: string, value: string): void {
         throw new Error("Method not implemented.");
     }
@@ -27,12 +27,6 @@ class TestCacheStorage implements ICacheStorage {
     }
     clear(): void {
         throw new Error("Method not implemented.");
-	}
-	getCache(): object {
-		return null;
-	}
-	setCache(): InMemoryCache {
-		return null;
 	}
 }
 
