@@ -16,7 +16,7 @@ import {
     ClientAuthError,
     Constants,
     B2cAuthority,
-    IAccount,
+    AccountInfo,
     BaseAuthRequest
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
@@ -187,7 +187,7 @@ export abstract class ClientApplication {
         return this._authority;
     }
 
-    getAllAccounts(): IAccount[] {
+    getAllAccounts(): AccountInfo[] {
         return this.storage.getAllAccounts();
     }
 }
