@@ -4,14 +4,11 @@
  */
 
 import { Storage } from './Storage';
-import {
-    ClientAuthError, StringDict,
-    StringUtils
-} from '@azure/msal-common';
-import { InMemoryCache, JsonCache } from "cache/serializer/SerializerTypes";
+import { ClientAuthError, StringUtils } from '@azure/msal-common';
+import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity } from './serializer/SerializerTypes';
 import { ICachePlugin } from './ICachePlugin';
-import { Deserializer } from "./serializer/Deserializer";
-import { Serializer } from "./serializer/Serializer";
+import { Deserializer } from './serializer/Deserializer';
+import { Serializer } from './serializer/Serializer';
 
 const defaultSerializedCache: JsonCache = {
     Account: {},
@@ -51,7 +48,9 @@ export class TokenCache {
      * Serializes in memory cache to JSON
      */
     serialize(): string {
-        let finalState = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
+        let finalState = Serializer.serializeAllCache(
+            this.storage.getCache() as InMemoryCache
+        );
 
         // if cacheSnapshot not null or empty, merge
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
@@ -73,7 +72,9 @@ export class TokenCache {
         this.cacheSnapshot = cache;
 
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-            const deserializedCache = Deserializer.deserializeAllCache(this.overlayDefaults(JSON.parse(this.cacheSnapshot)));
+            const deserializedCache = Deserializer.deserializeAllCache(
+                this.overlayDefaults(JSON.parse(this.cacheSnapshot))
+            );
             this.storage.setCache(deserializedCache);
         }
     }
@@ -85,7 +86,6 @@ export class TokenCache {
         if (this.persistence) {
             let cache = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
             const getMergedState = (stateFromDisk: string) => {
-
                 if (!StringUtils.isEmpty(stateFromDisk)) {
                     this.cacheSnapshot = stateFromDisk;
                     cache = this.mergeState(JSON.parse(stateFromDisk), cache);
@@ -110,8 +110,12 @@ export class TokenCache {
             this.cacheSnapshot = await this.persistence.readFromStorage();
 
             if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-                const cache = this.overlayDefaults(JSON.parse(this.cacheSnapshot));
-                const deserializedCache = Deserializer.deserializeAllCache(cache);
+                const cache = this.overlayDefaults(
+                    JSON.parse(this.cacheSnapshot)
+                );
+                const deserializedCache = Deserializer.deserializeAllCache(
+                    cache
+                );
                 this.storage.setCache(deserializedCache);
             }
         } else {
@@ -131,7 +135,7 @@ export class TokenCache {
      * @param oldState
      * @param currentState
      */
-    private mergeState(oldState: JsonCache, currentState: JsonCache): JsonCache {
+    private mergeState(oldState: JsonCache,currentState: JsonCache): JsonCache {
         let stateAfterRemoval = this.mergeRemovals(oldState, currentState);
         return this.mergeUpdates(stateAfterRemoval, currentState);
     }
@@ -176,22 +180,22 @@ export class TokenCache {
      * @param newState
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
-        const accounts = oldState.Account !== null ? this.mergeRemovalsStringDict(oldState.Account, newState.Account) : oldState.Account;
-        const accessTokens = oldState.AccessToken !== null ? this.mergeRemovalsStringDict(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
-        const refreshTokens = oldState.RefreshToken !== null ? this.mergeRemovalsStringDict(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
-        const idTokens = oldState.IdToken !== null ? this.mergeRemovalsStringDict(oldState.IdToken, newState.IdToken) : oldState.IdToken;
-        const appMetadata = oldState.AppMetadata !== null ? this.mergeRemovalsStringDict(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
+        const accounts = oldState.Account != null ? this.mergeRemovalsDict<SerializedAccountEntity>(oldState.Account, newState.Account) : oldState.Account;
+        const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsDict<SerializedAccessTokenEntity>(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
+        const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsDict<SerializedRefreshTokenEntity>(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
+        const idTokens = oldState.IdToken != null ? this.mergeRemovalsDict<SerializedIdTokenEntity>(oldState.IdToken, newState.IdToken) : oldState.IdToken;
+        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata): oldState.AppMetadata;
 
         return {
             Account: accounts,
             AccessToken: accessTokens,
             RefreshToken: refreshTokens,
             IdToken: idTokens,
-            AppMetadata: appMetadata
-        }
+            AppMetadata: appMetadata,
+        };
     }
 
-    private mergeRemovalsStringDict(oldState: StringDict, newState?: StringDict): StringDict {
+    private mergeRemovalsDict<T>(oldState: Record<string, T>, newState?:  Record<string, T>):  Record<string, T> {
         let finalState = { ...oldState };
         Object.keys(oldState).forEach((oldKey) => {
             if (!newState || !(newState.hasOwnProperty(oldKey))) {
