@@ -1062,19 +1062,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("logout", () => {
 
         it("passes logoutUri from authModule to window nav util", (done) => {
-            sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory: boolean) => {
                 expect(urlNavigate).to.be.eq(testLogoutUrl);
                 expect(noHistory).to.be.undefined;
                 done();
             });
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                environment: "login.windows.net",
-                tenantId: "testTenantId",
-                username: "test@contoso.com"
+            pca.logout({});
+            const validatedLogoutRequest: EndSessionRequest = {
+                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
             };
-            pca.logout(testAccount);
+            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
         });
     });
 

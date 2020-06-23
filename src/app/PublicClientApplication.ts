@@ -462,13 +462,12 @@ export class PublicClientApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param logoutRequest 
      */
-    logout(logoutRequest: EndSessionRequest): void {
+    async logout(logoutRequest: EndSessionRequest): Promise<void> {
         const validLogoutRequest = this.generateLogoutRequest(logoutRequest);
-        this.createAuthCodeClient(logoutRequest.authority).then((authClient: AuthorizationCodeClient) => {
-            // create logout string and navigate user window to logout. Auth module will clear cache.
-            const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-            BrowserUtils.navigateWindow(logoutUri);
-        });
+        const authClient = await this.createAuthCodeClient(logoutRequest.authority);
+        // create logout string and navigate user window to logout. Auth module will clear cache.
+        const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
+        BrowserUtils.navigateWindow(logoutUri);
     }
 
     // #endregion
@@ -699,7 +698,7 @@ export class PublicClientApplication {
     private generateLogoutRequest(logoutRequest: EndSessionRequest): EndSessionRequest {
         return {
             ...logoutRequest,
-            postLogoutRedirectUri: logoutRequest.postLogoutRedirectUri || this.getPostLogoutRedirectUri()
+            postLogoutRedirectUri: (logoutRequest && logoutRequest.postLogoutRedirectUri) || this.getPostLogoutRedirectUri()
         };
     }
 
