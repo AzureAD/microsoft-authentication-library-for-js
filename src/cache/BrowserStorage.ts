@@ -386,6 +386,7 @@ export class BrowserStorage extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
     }
 
     cleanRequest(): void {
