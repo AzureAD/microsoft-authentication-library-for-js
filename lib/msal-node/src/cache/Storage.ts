@@ -13,7 +13,6 @@ import {
     CacheManager,
     CredentialEntity
 } from '@azure/msal-common';
-import { CacheOptions } from '../config/Configuration';
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
@@ -23,14 +22,27 @@ import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
  */
 export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;
-    private inMemoryCache: InMemoryCache;
 
-    constructor(cacheConfig: CacheOptions) {
+    constructor() {
         super();
-        this.cacheConfig = cacheConfig;
-        if (this.cacheConfig.cacheLocation! === 'fileCache')
-            this.inMemoryCache = this.cacheConfig.cacheInMemory!;
+    }
+
+    private inMemoryCache: InMemoryCache = {
+        accounts: {},
+        accessTokens: {},
+        refreshTokens: {},
+        appMetadata: {},
+        idTokens: {},
+    };
+
+    private changeEmitters: Array<Function> = [];
+
+    registerChangeEmitter(func: () => void): void {
+        this.changeEmitters.push(func);
+    }
+
+    emitChange() {
+        this.changeEmitters.forEach(func => func.call(null));
     }
 
     /**
@@ -46,6 +58,7 @@ export class Storage extends CacheManager {
      */
     setCache(inMemoryCache: InMemoryCache) {
         this.inMemoryCache = inMemoryCache;
+        this.emitChange();
     }
 
     /**
@@ -99,6 +112,7 @@ export class Storage extends CacheManager {
 
         // update inMemoryCache
         this.setCache(cache);
+        this.emitChange();
     }
 
     /**
@@ -209,6 +223,7 @@ export class Storage extends CacheManager {
         // write to the cache after removal
         if (result) {
             this.setCache(cache);
+            this.emitChange();
         }
         return result;
     }
@@ -253,6 +268,7 @@ export class Storage extends CacheManager {
                 this.removeItem(internalKey);
             });
         });
+        this.emitChange();
     }
 
     /**
