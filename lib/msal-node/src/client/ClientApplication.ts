@@ -24,16 +24,14 @@ import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants as NodeConstants } from './../utils/Constants';
-import { CacheContext } from '../cache/CacheContext';
-import { JsonCache, InMemoryCache } from "../cache/serializer/SerializerTypes";
-import { Serializer } from "../cache/serializer/Serializer";
+import { TokenCache } from '../cache/TokenCache';
 
 export abstract class ClientApplication {
     private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
-    private cacheContext: CacheContext;
+    private tokenCache: TokenCache;
 
     /**
      * @constructor
@@ -41,11 +39,13 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
-
+        this.storage = new Storage();
+        this.tokenCache = new TokenCache(
+            this.storage,
+            this.config.cache?.cachePlugin
+        );
         this.cryptoProvider = new CryptoProvider();
-        this.storage = new Storage(this.config.cache!);
         B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
-        this.cacheContext = new CacheContext();
     }
 
     /**
@@ -106,6 +106,10 @@ export abstract class ClientApplication {
         return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
+    getCacheManager(): TokenCache {
+        return this.tokenCache;
+    }
+
     protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
@@ -134,10 +138,10 @@ export abstract class ClientApplication {
 
     /**
      * Generates a request with the default scopes.
-     * @param authRequest 
+     * @param authRequest
      */
     protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
-        const request: BaseAuthRequest = { ...authRequest };
+        const request: BaseAuthRequest = {...authRequest};
         if (!request.scopes) {
             request.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
         } else {
@@ -181,23 +185,6 @@ export abstract class ClientApplication {
         );
 
         return this._authority;
-    }
-
-    /**
-     * Initialize cache from a user provided Json file
-     * @param cacheObject
-     */
-    initializeCache(cacheObject: JsonCache) {
-        this.cacheContext.setCurrentCache(this.storage, cacheObject);
-    }
-
-    /**
-     * read the cache as a Json convertible object from memory
-     */
-    readCache(): JsonCache {
-        return Serializer.serializeAllCache(
-            this.storage.getCache() as InMemoryCache
-        );
     }
 
     getAllAccounts(): IAccount[] {

@@ -131,11 +131,11 @@ export class CacheHelper {
      * @param key
      */
     static getCredentialType(key: string): string {
-        if (key.indexOf(CredentialType.ACCESS_TOKEN) !== -1) {
+        if (key.indexOf(CredentialType.ACCESS_TOKEN.toLowerCase()) !== -1) {
             return CredentialType.ACCESS_TOKEN;
-        } else if (key.indexOf(CredentialType.ID_TOKEN) !== -1) {
+        } else if (key.indexOf(CredentialType.ID_TOKEN.toLowerCase()) !== -1) {
             return CredentialType.ID_TOKEN;
-        } else if (key.indexOf(CredentialType.REFRESH_TOKEN) !== -1) {
+        } else if (key.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) !== -1) {
             return CredentialType.REFRESH_TOKEN;
         }
 
