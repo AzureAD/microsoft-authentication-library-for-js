@@ -21,12 +21,8 @@ const defaultSerializedCache: JsonCache = {
 /**
  * In-memory token cache manager
  */
-<<<<<<< HEAD:lib/msal-node/src/cache/CacheSerializer.ts
-export class CacheSerializer {
-=======
 export class TokenCache {
 
->>>>>>> dev:lib/msal-node/src/cache/TokenCache.ts
     private storage: Storage;
     private hasChanged: boolean;
     private cacheSnapshot: string;
