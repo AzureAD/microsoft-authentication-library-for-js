@@ -610,7 +610,7 @@ export class PublicClientApplication {
 
         validatedRequest.state = ProtocolUtils.setRequestState(
             (request && request.state) || "",
-            this.browserCrypto.createNewGuid()
+            this.browserCrypto
         );
 
         validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();

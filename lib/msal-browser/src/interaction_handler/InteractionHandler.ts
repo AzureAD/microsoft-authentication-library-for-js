@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SPAClient, StringUtils, AuthorizationCodeRequest, ProtocolUtils, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
+import { SPAClient, StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -48,11 +48,8 @@ export abstract class InteractionHandler {
         // Assign code to request
         this.authCodeRequest.code = authCode;
 
-        // Extract user state.
-        const userState = ProtocolUtils.getUserRequestState(requestState);
-
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, userState, cachedNonce);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, requestState, cachedNonce);
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }
