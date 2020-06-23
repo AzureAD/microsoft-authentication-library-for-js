@@ -6,7 +6,8 @@
 import { AccountInfo } from "../account/AccountInfo";
 
 export type EndSessionRequest = {
-    account: AccountInfo,
+    account?: AccountInfo,
     postLogoutRedirectUri?: string,
-    authority?: string
+    authority?: string,
+    correlationId?: string
 };
