@@ -266,7 +266,6 @@ describe("CacheManager.ts test cases", () => {
 
     it("removeAccount", () => {
         const account: AccountEntity = cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft");
-        console.log(account.generateAccountKey);
         cacheManager.removeAccount("uid.utid-login.microsoftonline.com-microsoft");
         expect(store["uid.utid-login.microsoftonline.com-microsoft"]).to.eql(undefined);
     });

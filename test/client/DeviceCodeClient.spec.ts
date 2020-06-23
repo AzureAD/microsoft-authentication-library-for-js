@@ -20,11 +20,7 @@ import { ClientTestUtils } from "./ClientTestUtils";
 
 describe("DeviceCodeClient unit tests", async () => {
 
-    before(() => {
-        sinon.restore();
-    });
-
-    afterEach(() => {
+    beforeEach(() => {
         sinon.restore();
     });
 
