@@ -69,8 +69,8 @@ export abstract class CacheManager implements ICacheManager {
             return null;
         } else {
             const allAccounts = accountValues.map<AccountInfo>((value) => {
-                const accountEntity: AccountEntity = new AccountEntity();
-                const accountObj = CacheManager.toObject(accountEntity, value) as AccountEntity;
+                let accountObj: AccountEntity = new AccountEntity();
+                accountObj = CacheManager.toObject(accountObj, value) as AccountEntity;
                 return accountObj.getAccountInfo();
             });
             return allAccounts;
@@ -476,19 +476,19 @@ export abstract class CacheManager implements ICacheManager {
 }
 
 export class DefaultStorageClass extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
+    setItem(): void {
         const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    getItem(key: string, type?: string): string | object {
+    getItem(): string | object {
         const notImplErr = "Storage interface - getItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    removeItem(key: string, type?: string): boolean {
+    removeItem(): boolean {
         const notImplErr = "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    containsKey(key: string, type?: string): boolean {
+    containsKey(): boolean {
         const notImplErr = "Storage interface - containsKey() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
