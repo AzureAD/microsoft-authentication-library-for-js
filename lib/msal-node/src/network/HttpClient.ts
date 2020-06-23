@@ -8,7 +8,7 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
 } from '@azure/msal-common';
-import { HttpMethod } from '../utils/NodeConstants';
+import { HttpMethod } from '../utils/Constants';
 import axios, { AxiosRequestConfig } from 'axios';
 
 /**
