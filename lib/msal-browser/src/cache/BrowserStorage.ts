@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CacheHelper, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -144,22 +144,22 @@ export class BrowserStorage extends CacheManager {
         switch (type) {
             case CacheSchemaType.ACCOUNT: {
                 const account = new AccountEntity();
-                return (CacheHelper.toObject(account, JSON.parse(value)) as AccountEntity);
+                return (CacheManager.toObject(account, JSON.parse(value)) as AccountEntity);
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
                         const idTokenEntity: IdTokenEntity = new IdTokenEntity();
-                        return (CacheHelper.toObject(idTokenEntity, JSON.parse(value)) as IdTokenEntity);
+                        return (CacheManager.toObject(idTokenEntity, JSON.parse(value)) as IdTokenEntity);
                     }
                     case CredentialType.ACCESS_TOKEN: {
                         const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-                        return (CacheHelper.toObject(accessTokenEntity, JSON.parse(value)) as AccessTokenEntity);
+                        return (CacheManager.toObject(accessTokenEntity, JSON.parse(value)) as AccessTokenEntity);
                     }
                     case CredentialType.REFRESH_TOKEN: {
                         const refreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
-                        return (CacheHelper.toObject(refreshTokenEntity, JSON.parse(value)) as RefreshTokenEntity);
+                        return (CacheManager.toObject(refreshTokenEntity, JSON.parse(value)) as RefreshTokenEntity);
                     }
                 }
             }

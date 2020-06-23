@@ -9,7 +9,6 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CredentialType } from "../utils/Constants";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
-import { CacheHelper } from "../cache/utils/CacheHelper";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
@@ -19,6 +18,8 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
+import { AccountEntity } from "../cache/entities/AccountEntity";
+import { CredentialEntity } from "../cache/entities/CredentialEntity";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -39,7 +40,7 @@ export class SilentFlowClient extends BaseClient {
 
         const requestScopes = new ScopeSet(request.scopes || []);
         // fetch account
-        const accountKey: string = CacheHelper.generateAccountCacheKey(request.account);
+        const accountKey: string = AccountEntity.generateAccountCacheKey(request.account);
         const cachedAccount = this.cacheManager.getAccount(accountKey);
 
         const homeAccountId = cachedAccount.homeAccountId;
@@ -73,7 +74,7 @@ export class SilentFlowClient extends BaseClient {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: requestScopes.asArray(),
-            account: CacheHelper.toIAccount(cachedAccount),
+            account: cachedAccount.getAccountInfo(),
             idToken: cachedIdToken.secret,
             idTokenClaims: idTokenObj.claims,
             accessToken: cachedAccessToken.secret,
@@ -89,7 +90,7 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      */
     private readIdTokenFromCache(homeAccountId: string, environment: string, inputRealm: string): IdTokenEntity {
-        const idTokenKey: string = CacheHelper.generateCredentialCacheKey(
+        const idTokenKey: string = CredentialEntity.generateCredentialCacheKey(
             homeAccountId,
             environment,
             CredentialType.ID_TOKEN,
@@ -128,7 +129,7 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      */
     private readRefreshTokenFromCache(homeAccountId: string, environment: string): RefreshTokenEntity {
-        const refreshTokenKey: string = CacheHelper.generateCredentialCacheKey(
+        const refreshTokenKey: string = CredentialEntity.generateCredentialCacheKey(
             homeAccountId,
             environment,
             CredentialType.REFRESH_TOKEN,
