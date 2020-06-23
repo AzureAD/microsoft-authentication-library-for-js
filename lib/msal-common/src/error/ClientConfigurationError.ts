@@ -52,6 +52,10 @@ export const ClientConfigurationErrorMessage = {
         code: "token_request_empty",
         desc: "Token request was empty and not found in cache."
     },
+    logoutRequestEmptyError: {
+        code: "logout_request_empty",
+        desc: "The logout request was null or undefined."
+    },
     invalidCodeChallengeMethod: {
         code: "invalid_code_challenge_method",
         desc: "code_challenge_method passed is invalid. Valid values are \"plain\" and \"S256\"."
@@ -166,6 +170,16 @@ export class ClientConfigurationError extends ClientAuthError {
     static createInvalidPromptError(promptValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
             `${ClientConfigurationErrorMessage.invalidPrompt.desc} Given value: ${promptValue}`);
+    }
+
+    /**
+     * Throws error when token request is empty and nothing cached in storage.
+     */
+    static createEmptyLogoutRequestError(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.logoutRequestEmptyError.code,
+            ClientConfigurationErrorMessage.logoutRequestEmptyError.desc
+        );
     }
 
     /**

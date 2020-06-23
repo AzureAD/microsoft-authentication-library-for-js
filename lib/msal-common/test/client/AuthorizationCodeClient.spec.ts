@@ -11,7 +11,10 @@ import {
     ClientConfigurationErrorMessage,
     ClientAuthErrorMessage,
     ServerError,
-    IdToken
+    IdToken,
+    CacheManager,
+    AccountInfo,
+    AccountEntity
 } from "../../src";
 import {
     ALTERNATE_OPENID_CONFIG_RESPONSE,
@@ -316,6 +319,68 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`);
+        });
+    });
+
+    describe("getLogoutUri()", () => {
+
+        it("Returns a uri and clears the cache", async () => {
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                tenantId: "testTenantId",
+                username: "test@contoso.com"
+            };
+
+            const removeAccountSpy = sinon.stub(CacheManager.prototype, "clear").returns();
+            const logoutUri = client.getLogoutUri({account: null});
+
+            expect(removeAccountSpy.calledOnce).to.be.true;
+            expect(logoutUri).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(`{tenant}`, "common"));
+        });
+
+        it("Returns a uri and clears the cache of relevant account info", async () => {
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                tenantId: "testTenantId",
+                username: "test@contoso.com"
+            };
+
+            const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);
+            const logoutUri = client.getLogoutUri({account: testAccount});
+
+            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).to.be.true;
+            expect(logoutUri).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(`{tenant}`, "common"));
+        });
+
+        it("Returns a uri with given postLogoutUri and correlationId", async () => {
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                tenantId: "testTenantId",
+                username: "test@contoso.com"
+            };
+
+            const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);
+            const logoutUri = client.getLogoutUri({
+                account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
+            });
+
+            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).to.be.true;
+            const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(`{tenant}`, "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}`;
+            expect(logoutUri).to.be.eq(testLogoutUriWithParams);
         });
     });
 });
