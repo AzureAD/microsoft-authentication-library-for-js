@@ -1267,6 +1267,7 @@ export class UserAgentApplication {
                 const finalRedirectUrl = UrlUtils.removeHashFromUrl(loginRequestUrl);
                 if (currentUrl !== finalRedirectUrl) {
                     this.logger.verbose("Current url is not login request url, navigating");
+                    this.logger.verbosePii(`CurrentUrl: ${currentUrl}, finalRedirectUrl: ${finalRedirectUrl}`);
                     window.location.assign(`${finalRedirectUrl}${hash}`);
                     return;
                 } else {
