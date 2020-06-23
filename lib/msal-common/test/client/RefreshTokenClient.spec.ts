@@ -23,7 +23,7 @@ describe("RefreshTokenClient unit tests", () => {
         ClientTestUtils.setInstanceMetadataStubs();
     });
 
-    beforeEach(() => {
+    afterEach(() => {
         sinon.restore();
     });
 
