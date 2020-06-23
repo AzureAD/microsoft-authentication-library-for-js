@@ -25,13 +25,13 @@ import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { Authority } from "../authority/Authority";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { CacheHelper } from "../cache/utils/CacheHelper";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
-import { IAccount } from "../account/IAccount";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { AccountEntity } from "../cache/entities/AccountEntity";
+import { AccountInfo } from "../account/AccountInfo";
+import { CredentialEntity } from "../cache/entities/CredentialEntity";
 
 /**
  * SPAClient class
@@ -214,7 +214,7 @@ export class SPAClient extends BaseClient {
         const requestScopes = new ScopeSet(request.scopes || []);
 
         // Get current cached tokens
-        const cachedAccount = this.cacheManager.getAccount(CacheHelper.generateAccountCacheKey(request.account));
+        const cachedAccount = this.cacheManager.getAccount(AccountEntity.generateAccountCacheKey(request.account));
 
         const homeAccountId = cachedAccount.homeAccountId;
         const env = cachedAccount.environment;
@@ -268,7 +268,7 @@ export class SPAClient extends BaseClient {
                 idTokenClaims: idTokenObj.claims,
                 accessToken: cachedAccessToken.secret,
                 fromCache: true,
-                account: CacheHelper.toIAccount(cachedAccount),
+                account: cachedAccount.getAccountInfo(),
                 expiresOn: new Date(cachedAccessToken.expiresOn),
                 extExpiresOn: new Date(cachedAccessToken.extendedExpiresOn),
                 familyId: null,
@@ -284,9 +284,9 @@ export class SPAClient extends BaseClient {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param authorityUri
      */
-    async logout(account: IAccount, acquireTokenAuthority: Authority): Promise<string> {
+    async logout(account: AccountInfo, acquireTokenAuthority: Authority): Promise<string> {
         // Clear current account.
-        this.cacheManager.removeAccount(CacheHelper.generateAccountCacheKey(account));
+        this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(account));
         // Get postLogoutRedirectUri.
         let postLogoutRedirectUri = "";
         try {
@@ -348,7 +348,7 @@ export class SPAClient extends BaseClient {
      * @param request
      */
     private fetchIdToken(homeAccountId: string, environment: string, inputRealm: string): IdTokenEntity {
-        const idTokenKey: string = CacheHelper.generateCredentialCacheKey(
+        const idTokenKey: string = CredentialEntity.generateCredentialCacheKey(
             homeAccountId,
             environment,
             CredentialType.ID_TOKEN,
@@ -387,7 +387,7 @@ export class SPAClient extends BaseClient {
      * @param request
      */
     private fetchRefreshToken(homeAccountId: string, environment: string): RefreshTokenEntity {
-        const refreshTokenKey: string = CacheHelper.generateCredentialCacheKey(
+        const refreshTokenKey: string = CredentialEntity.generateCredentialCacheKey(
             homeAccountId,
             environment,
             CredentialType.REFRESH_TOKEN,

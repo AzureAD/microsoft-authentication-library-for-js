@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheHelper } from '@azure/msal-common';
+import { StringUtils, AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager } from '@azure/msal-common';
 import { JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedAppMetadataEntity } from './SerializerTypes';
 
 /**
@@ -27,7 +27,7 @@ export class Deserializer {
     static deserializeAccounts(accounts: Record<string, SerializedAccountEntity>): AccountCache {
         const accountObjects: AccountCache = {};
         if (accounts) {
-            Object.keys(accounts).map(function(key) {
+            Object.keys(accounts).map(function (key) {
                 const serializedAcc = accounts[key];
                 const mappedAcc = {
                     homeAccountId: serializedAcc.home_account_id,
@@ -42,7 +42,7 @@ export class Deserializer {
                     lastModificationApp: serializedAcc.last_modification_app,
                 };
                 const account: AccountEntity = new AccountEntity();
-                CacheHelper.toObject(account, mappedAcc);
+                CacheManager.toObject(account, mappedAcc);
                 accountObjects[key] = account;
             });
         }
@@ -57,7 +57,7 @@ export class Deserializer {
     static deserializeIdTokens(idTokens: Record<string, SerializedIdTokenEntity>): IdTokenCache {
         const idObjects: IdTokenCache = {};
         if (idTokens) {
-            Object.keys(idTokens).map(function(key) {
+            Object.keys(idTokens).map(function (key) {
                 const serializedIdT = idTokens[key];
                 const mappedIdT = {
                     homeAccountId: serializedIdT.home_account_id,
@@ -68,7 +68,7 @@ export class Deserializer {
                     realm: serializedIdT.realm,
                 };
                 const idToken: IdTokenEntity = new IdTokenEntity();
-                CacheHelper.toObject(idToken, mappedIdT);
+                CacheManager.toObject(idToken, mappedIdT);
                 idObjects[key] = idToken;
             });
         }
@@ -82,7 +82,7 @@ export class Deserializer {
     static deserializeAccessTokens(accessTokens: Record<string, SerializedAccessTokenEntity>): AccessTokenCache {
         const atObjects: AccessTokenCache = {};
         if (accessTokens) {
-            Object.keys(accessTokens).map(function(key) {
+            Object.keys(accessTokens).map(function (key) {
                 const serializedAT = accessTokens[key];
                 const mappedAT = {
                     homeAccountId: serializedAT.home_account_id,
@@ -100,7 +100,7 @@ export class Deserializer {
                     tokenType: serializedAT.token_type,
                 };
                 const accessToken: AccessTokenEntity = new AccessTokenEntity();
-                CacheHelper.toObject(accessToken, mappedAT);
+                CacheManager.toObject(accessToken, mappedAT);
                 atObjects[key] = accessToken;
             });
         }
@@ -115,7 +115,7 @@ export class Deserializer {
     static deserializeRefreshTokens(refreshTokens: Record<string, SerializedRefreshTokenEntity>): RefreshTokenCache {
         const rtObjects: RefreshTokenCache = {};
         if (refreshTokens) {
-            Object.keys(refreshTokens).map(function(key) {
+            Object.keys(refreshTokens).map(function (key) {
                 const serializedRT = refreshTokens[key];
                 const mappedRT = {
                     homeAccountId: serializedRT.home_account_id,
@@ -128,7 +128,7 @@ export class Deserializer {
                     realm: serializedRT.realm,
                 };
                 const refreshToken: RefreshTokenEntity = new RefreshTokenEntity();
-                CacheHelper.toObject(refreshToken, mappedRT);
+                CacheManager.toObject(refreshToken, mappedRT);
                 rtObjects[key] = refreshToken;
             });
         }
@@ -143,7 +143,7 @@ export class Deserializer {
     static deserializeAppMetadata(appMetadata: Record<string, SerializedAppMetadataEntity>): AppMetadataCache {
         const appMetadataObjects: AppMetadataCache = {};
         if (appMetadata) {
-            Object.keys(appMetadata).map(function(key) {
+            Object.keys(appMetadata).map(function (key) {
                 const serializedAmdt = appMetadata[key];
                 const mappedAmd = {
                     clientId: serializedAmdt.client_id,
@@ -151,7 +151,7 @@ export class Deserializer {
                     familyId: serializedAmdt.family_id,
                 };
                 const amd: AppMetadataEntity = new AppMetadataEntity();
-                CacheHelper.toObject(amd, mappedAmd);
+                CacheManager.toObject(amd, mappedAmd);
                 appMetadataObjects[key] = amd;
             });
         }
