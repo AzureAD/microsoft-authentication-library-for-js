@@ -4,7 +4,7 @@ This document will outline techniques your application can use to improve the pe
 
 ## Bypass cloud instance discovery resolution
 
-By default, during the process of retrieving a token, MSAL.js will make a network request to retrieve metadata associated with the various Azure clouds. If you would like to skip this network request, you can provide the required metadata in the configuration of `UserAgentApplication`.
+By default, during the process of retrieving a token, MSAL.js will make a network request to retrieve metadata associated with the various Azure clouds. If you would like to skip this network request, you can provide the required metadata in the configuration of `PublicClientApplication`.
 
 **Important:** It is your application's responsibility to ensure it is using correct, up-to-date cloud instance metadata. Failure to do so may result in your application not working correctly.
 
@@ -22,7 +22,7 @@ The example shown below shows 5 such JSON objects in the array. If none of the a
 Example:
 
 ```js
-const msalInstance = new msal.UserAgentApplication({
+const msalInstance = new msal.PublicClientApplication({
     auth: {
         instanceMetadata: [
         {
