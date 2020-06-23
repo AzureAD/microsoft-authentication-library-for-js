@@ -5,7 +5,6 @@ import { TEST_CONFIG } from "../utils/StringConstants";
 import { Constants } from "../../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { Authority } from "../../src/authority/Authority";
-import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 import { AuthorityType } from "../../src/authority/AuthorityType";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
