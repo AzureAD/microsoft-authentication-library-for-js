@@ -151,7 +151,6 @@ public class MSALModule extends ReactContextBaseJavaModule {
             promise.resolve(publicClientApplication.isSharedDevice());
         } catch (Exception error) {
             Log.d(TAG, "Error in 'isSharedDevice': " + error.toString());
-            promise.reject(error);
         }
     }
 
