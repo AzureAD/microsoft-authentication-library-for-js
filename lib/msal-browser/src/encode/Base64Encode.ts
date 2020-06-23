@@ -15,10 +15,10 @@ export class Base64Encode {
      * @param input 
      */
     urlEncode(input: string): string {
-        return this.encode(input)
+        return encodeURIComponent(this.encode(input)
             .replace(/=/g, "")
             .replace(/\+/g, "-")
-            .replace(/\//g, "_");
+            .replace(/\//g, "_"));
     }
 
     /**
@@ -37,7 +37,7 @@ export class Base64Encode {
      * @param input 
      */
     encode(input: string): string {
-        const inputUtf8Arr = BrowserStringUtils.stringToUtf8Arr(encodeURIComponent(input));
+        const inputUtf8Arr = BrowserStringUtils.stringToUtf8Arr(input);
         return this.base64EncArr(inputUtf8Arr);
     }
 

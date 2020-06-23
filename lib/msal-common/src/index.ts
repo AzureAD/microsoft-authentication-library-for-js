@@ -53,3 +53,4 @@ export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaT
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils } from "./utils/ProtocolUtils";
+export { TimeUtils } from "./utils/TimeUtils";
