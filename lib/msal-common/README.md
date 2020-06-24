@@ -2,17 +2,16 @@
 [![npm version](https://img.shields.io/npm/v/@azure/msal-common.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-common/)[![npm version](https://img.shields.io/npm/dm/@azure/msal-common.svg)](https://nodei.co/npm/@azure/msal-common/)[![Coverage Status](https://coveralls.io/repos/github/AzureAD/microsoft-authentication-library-for-js/badge.svg?branch=dev)](https://coveralls.io/github/AzureAD/microsoft-authentication-library-for-js?branch=dev)
 
 | <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-core/" target="_blank">Library Reference</a> |
-| --- | --- | --- | --- | --- |
+| --- | --- | --- |
 
 1. [About](#about)
 2. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/FAQ.md)
 3. [Releases](#releases)
-4. [Prerequisites](#prerequisites)
+4. [Prerequisites and Usage](#prerequisites-and-usage)
 5. [Installation](#installation)
-6. [Usage](#usage)
-9. [Security Reporting](#security-reporting)
-10. [License](#license)
-11. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
+6. [Security Reporting](#security-reporting)
+7. [License](#license)
+8. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
 
 ## About
 
