@@ -23,7 +23,7 @@ import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, Ref
 
 describe("SilentFlowClient unit tests", () => {
     beforeEach(() => {
-        ClientTestUtils.setInstanceMetadataStubs();
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
     });
     
     afterEach(() => {

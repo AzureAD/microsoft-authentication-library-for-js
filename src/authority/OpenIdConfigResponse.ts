@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { IInstanceDiscoveryMetadata } from "./IInstanceDiscoveryMetadata";
+import { ICloudDiscoveryMetadata } from "./ICloudDiscoveryMetadata";
 
 /**
  * The OpenID Configuration Endpoint Response interface. Used by the authority class to get relevant OAuth endpoints.
  */
 export interface OpenIdConfigResponse {
     tenant_discovery_endpoint: string;
-    metadata: Array<IInstanceDiscoveryMetadata>;
+    metadata: Array<ICloudDiscoveryMetadata>;
 }

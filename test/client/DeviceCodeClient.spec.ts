@@ -25,7 +25,7 @@ describe("DeviceCodeClient unit tests", async () => {
     });
 
     beforeEach(() => {
-        ClientTestUtils.setInstanceMetadataStubs();
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
     });
 
     afterEach(() => {

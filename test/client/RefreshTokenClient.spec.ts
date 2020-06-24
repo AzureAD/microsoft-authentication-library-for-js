@@ -20,7 +20,7 @@ import { AccountInfo, AuthenticationResult } from "../../src";
 
 describe("RefreshTokenClient unit tests", () => {
     beforeEach(() => {
-        ClientTestUtils.setInstanceMetadataStubs();
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
     });
 
     afterEach(() => {

@@ -33,7 +33,7 @@ import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 
 describe("AuthorizationCodeClient unit tests", () => {
     beforeEach(() => {
-        ClientTestUtils.setInstanceMetadataStubs();
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
     });
 
     afterEach(() => {

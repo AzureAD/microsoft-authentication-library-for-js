@@ -12,7 +12,7 @@ import { ClientTestUtils } from "../../client/ClientTestUtils";
 
 describe("AccountEntity.ts Unit Tests", () => {
     beforeEach(() => {
-        ClientTestUtils.setInstanceMetadataStubs();
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
     });
 
     afterEach(() => {

@@ -3,7 +3,7 @@ import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
 import { AuthorityFactory } from "../../src";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 import sinon from "sinon";
-import { IInstanceDiscoveryMetadata } from "../../src/authority/IInstanceDiscoveryMetadata";
+import { IInstanceDiscoveryMetadata } from "../../src/authority/ICloudDiscoveryMetadata";
 import { CacheManager } from "../../src/cache/CacheManager";
 
 export class MockStorageClass extends CacheManager {
@@ -105,13 +105,13 @@ export class ClientTestUtils {
         };
     }
 
-    static setInstanceMetadataStubs(): void {
+    static setCloudDiscoveryMetadataStubs(): void {
         sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
-        const stubbedInstanceMetadata: IInstanceDiscoveryMetadata = {
+        const stubbedCloudDiscoveryMetadata: ICloudDiscoveryMetadata = {
             preferred_cache: "login.windows.net",
             preferred_network: "login.microsoftonline.com",
             aliases: ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]};
-        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedInstanceMetadata.aliases);
-        sinon.stub(TrustedAuthority, "getInstanceMetadata").returns(stubbedInstanceMetadata);
+        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
+        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
     }
 }

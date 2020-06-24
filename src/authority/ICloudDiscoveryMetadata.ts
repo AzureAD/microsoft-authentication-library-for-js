@@ -4,9 +4,9 @@
  */
 
 /**
- * The Instance Discovery Metadata Response interface.
+ * The Cloud Discovery Metadata Response interface.
  */
-export interface IInstanceDiscoveryMetadata {
+export interface ICloudDiscoveryMetadata {
     preferred_network: string;
     preferred_cache: string;
     aliases: Array<string>;

@@ -1,30 +1,30 @@
 import { Constants } from "../utils/Constants";
 import { INetworkModule } from "../network/INetworkModule";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
-import { InstanceMetadataType } from "./InstanceMetadataType";
-import { IInstanceDiscoveryMetadata } from "./IInstanceDiscoveryMetadata";
+import { CloudDiscoveryMetadataType } from "./CloudDiscoveryMetadataType";
+import { ICloudDiscoveryMetadata } from "./ICloudDiscoveryMetadata";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 export class TrustedAuthority {
-    private static InstanceMetadata: InstanceMetadataType = {};
+    private static CloudDiscoveryMetadata: CloudDiscoveryMetadataType = {};
 
     /**
-     * Set the InstanceMetadata object from knownAuthorities or instanceMetadata passed into the app config
+     * Set the CloudDiscoveryMetadata object from knownAuthorities or cloudDiscoveryMetadata passed into the app config
      * @param knownAuthorities 
-     * @param instanceMetadata
+     * @param cloudDiscoveryMetadata
      */
-    public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, instanceMetadata: string): void {
+    public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, cloudDiscoveryMetadata: string): void {
         if (!this.getTrustedHostList().length){
-            if (knownAuthorities.length && instanceMetadata) {
-                throw ClientConfigurationError.createKnownAuthoritiesInstanceMetadataError();
+            if (knownAuthorities.length && cloudDiscoveryMetadata) {
+                throw ClientConfigurationError.createKnownAuthoritiesCloudDiscoveryMetadataError();
             }
 
-            this.createInstanceMetadataFromKnownAuthorities(knownAuthorities);
+            this.createCloudDiscoveryMetadataFromKnownAuthorities(knownAuthorities);
             
             try {
-                if (instanceMetadata) {
-                    const parsedMetadata = JSON.parse(instanceMetadata) as OpenIdConfigResponse;
-                    this.saveInstanceMetadata(parsedMetadata.metadata);
+                if (cloudDiscoveryMetadata) {
+                    const parsedMetadata = JSON.parse(cloudDiscoveryMetadata) as OpenIdConfigResponse;
+                    this.saveCloudDiscoveryMetadata(parsedMetadata.metadata);
                 }
             } catch (e) {
                 throw ClientConfigurationError.createInvalidCloudDiscoveryMetadataError();
@@ -33,24 +33,24 @@ export class TrustedAuthority {
     }
 
     /**
-     * Called to get metadata from network if InstanceMetadata was not populated by config
+     * Called to get metadata from network if CloudDiscoveryMetadata was not populated by config
      * @param networkInterface 
      */
     public static async setTrustedAuthoritiesFromNetwork(networkInterface: INetworkModule): Promise<void> {
         const response = await networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(Constants.AAD_INSTANCE_DISCOVERY_ENDPT);
         const metadata = response.body.metadata;
-        this.saveInstanceMetadata(metadata);
+        this.saveCloudDiscoveryMetadata(metadata);
     } 
 
     /**
      * 
      * @param metadata 
      */
-    public static saveInstanceMetadata(metadata: Array<IInstanceDiscoveryMetadata>): void {
-        metadata.forEach(function(entry: IInstanceDiscoveryMetadata){
+    public static saveCloudDiscoveryMetadata(metadata: Array<ICloudDiscoveryMetadata>): void {
+        metadata.forEach(function(entry: ICloudDiscoveryMetadata){
             const authorities = entry.aliases;
             authorities.forEach(function(authority) {
-                TrustedAuthority.InstanceMetadata[authority.toLowerCase()] = entry;
+                TrustedAuthority.CloudDiscoveryMetadata[authority.toLowerCase()] = entry;
             });
         });
     }
@@ -60,9 +60,9 @@ export class TrustedAuthority {
      * This is mostly useful for B2C or ADFS scenarios
      * @param knownAuthorities 
      */
-    public static createInstanceMetadataFromKnownAuthorities(knownAuthorities: Array<string>): void {
+    public static createCloudDiscoveryMetadataFromKnownAuthorities(knownAuthorities: Array<string>): void {
         knownAuthorities.forEach(authority => {
-            this.InstanceMetadata[authority.toLowerCase()] = {
+            this.CloudDiscoveryMetadata[authority.toLowerCase()] = {
                 preferred_cache: authority.toLowerCase(),
                 preferred_network: authority.toLowerCase(),
                 aliases: [authority.toLowerCase()]
@@ -71,15 +71,15 @@ export class TrustedAuthority {
     }
 
     public static getTrustedHostList(): Array<string> {
-        return Object.keys(this.InstanceMetadata);
+        return Object.keys(this.CloudDiscoveryMetadata);
     }
 
     /**
      * Get metadata for the provided host
      * @param host 
      */
-    public static getInstanceMetadata(host: string): IInstanceDiscoveryMetadata {
-        return this.InstanceMetadata[host.toLowerCase()] || null;
+    public static getCloudDiscoveryMetadata(host: string): ICloudDiscoveryMetadata {
+        return this.CloudDiscoveryMetadata[host.toLowerCase()] || null;
     }
 
     /**
@@ -87,6 +87,6 @@ export class TrustedAuthority {
      * @param host 
      */
     public static IsInTrustedHostList(host: string): boolean {
-        return Object.keys(this.InstanceMetadata).indexOf(host.toLowerCase()) > -1;
+        return Object.keys(this.CloudDiscoveryMetadata).indexOf(host.toLowerCase()) > -1;
     }
 }

@@ -408,8 +408,8 @@ export abstract class CacheManager implements ICacheManager {
         environment: string
     ): boolean {
         if (
-            TrustedAuthority.getInstanceMetadata(environment) &&
-            TrustedAuthority.getInstanceMetadata(entity.environment)
+            TrustedAuthority.getCloudDiscoveryMetadata(environment) &&
+            TrustedAuthority.getCloudDiscoveryMetadata(entity.environment)
         ) {
             return true;
         }
