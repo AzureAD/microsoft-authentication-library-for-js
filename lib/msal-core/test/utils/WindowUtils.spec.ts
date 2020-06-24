@@ -9,24 +9,7 @@ import { Logger } from "../../src";
 const logger = new Logger(() => {});
 
 describe("WindowUtils", () => {
-    describe("monitorWindowForHash", () => {
-        it("times out (popup)", done => {
-            const iframe = {
-                contentWindow: {
-                    location: {
-                        href: "http://localhost",
-                        hash: ""
-                    }
-                }
-            };
-
-            // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 500, "url", logger)
-                .catch((err: ClientAuthError) => {
-                    done();
-                });
-        });
-
+    describe("monitorIframeForHash", () => {
         it("times out (iframe)", done => {
             const iframe = {
                 contentWindow: {
@@ -36,7 +19,7 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 500, "http://login.microsoftonline.com", logger, true)
+            WindowUtils.monitorIframeForHash(iframe.contentWindow, 500, "http://login.microsoftonline.com", logger)
                 .catch((err: ClientAuthError) => {
                     done();
                 });
@@ -53,7 +36,7 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 1000, "url", logger)
+            WindowUtils.monitorPopupForHash(iframe.contentWindow, 1000, "url", logger)
                 .then((hash: string) => {
                     expect(hash).to.equal("#access_token=hello");
                     done();
@@ -66,9 +49,53 @@ describe("WindowUtils", () => {
                 };
             }, 500);
         });
+    });
+
+    describe("monitorPopupForHash", () => {
+        it("times out", done => {
+            const popup = {
+                contentWindow: {
+                    location: {
+                        href: "http://localhost",
+                        hash: ""
+                    }
+                }
+            };
+
+            // @ts-ignore
+            WindowUtils.monitorPopupForHash(popup.contentWindow, 500, "url", logger)
+                .catch((err: ClientAuthError) => {
+                    done();
+                });
+        });
+
+        it("returns hash", done => {
+            const popup = {
+                contentWindow: {
+                    location: {
+                        href: "http://localhost",
+                        hash: ""
+                    }
+                }
+            };
+
+            // @ts-ignore
+            WindowUtils.monitorPopupForHash(popup.contentWindow, 1000, "url", logger)
+                .then((hash: string) => {
+                    expect(hash).to.equal("#access_token=hello");
+                    done();
+                });
+
+            setTimeout(() => {
+                popup.contentWindow.location = {
+                    href: "http://localhost/#/access_token=hello",
+                    hash: "#access_token=hello"
+                };
+            }, 500);
+        });
 
         it("closed", done => {
-            const iframe = {
+            const popup = {
                 contentWindow: {
                     location: {
                         href: "http://localhost",
@@ -79,14 +106,14 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 1000, "url", logger)
+            WindowUtils.monitorPopupForHash(popup.contentWindow, 1000, "url", logger)
                 .catch((error: ClientAuthError) => {
                     expect(error.errorCode).to.equal('user_cancelled');
                     done();
                 });
 
             setTimeout(() => {
-                iframe.contentWindow.closed = true;
+                popup.contentWindow.closed = true;
             }, 500);
         });
     });
