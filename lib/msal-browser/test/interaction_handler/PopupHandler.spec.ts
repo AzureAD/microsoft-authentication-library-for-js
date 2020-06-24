@@ -2,7 +2,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
@@ -12,18 +12,26 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
 
-const DEFAULT_POPUP_TIMEOUT_MS = 60000;
-const clearFunc = (): void => {
-    return;
-};
-
-const removeFunc = (key: string): boolean => {
-    return;
-};
-
-const setFunc = (key: string, value: string): void => {
-    return;
-};
+class TestStorageInterface extends CacheManager {
+    setItem(key: string, value: string | object, type?: string): void {
+        return;
+    }
+    getItem(key: string, type?: string): string | object {
+        return "cacheItem";
+    }
+    removeItem(key: string, type?: string): boolean {
+        return true;
+    }
+    containsKey(key: string, type?: string): boolean {
+        return true;
+    }
+    getKeys(): string[] {
+        return testKeySet;
+    }
+    clear(): void {
+        return;
+    }
+}
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -63,7 +71,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         };
 		const configObj = buildConfiguration(appConfig);
 		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        const authCodeModule = new SPAClient({
+        const authCodeModule = new AuthorizationCodeClient({
             authOptions: {
 				...configObj.auth,
 				authority: authorityInstance,
@@ -87,22 +95,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                     return testPkceCodes;
                 },
             },
-            storageInterface: {
-                getCache: (): object => ({}),
-                setCache: (): void => {},
-                clear: clearFunc,
-                containsKey: (key: string): boolean => {
-                    return true;
-                },
-                getItem: (key: string): string => {
-                    return "cacheItem";
-                },
-                getKeys: (): string[] => {
-                    return testKeySet;
-                },
-                removeItem: removeFunc,
-                setItem: setFunc,
-            },
+            storageInterface: new TestStorageInterface(),
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,

@@ -14,6 +14,7 @@ export {
     // Request
     AuthorizationUrlRequest,
     SilentFlowRequest,
+    EndSessionRequest,
     // Response
     AuthenticationResult,
     // Error
