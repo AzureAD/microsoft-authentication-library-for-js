@@ -130,6 +130,10 @@ export const ClientAuthErrorMessage = {
     noCryptoObj: {
         code: "no_crypto_object",
         desc: "No crypto object detected. This is required for the following operation: "
+    },
+    invalidCacheType: {
+        code: "invalid_cache_type",
+        desc: "Invalid cache type"
     }
 };
 
@@ -377,5 +381,12 @@ export class ClientAuthError extends AuthError {
      */
     static createNoCryptoObjectError(operationName: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noCryptoObj.code, `${ClientAuthErrorMessage.noCryptoObj.desc}${operationName}`);
+    }
+
+    /**
+    * Throws error if cache type is invalid.
+    */
+    static createInvalidCacheTypeError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidCacheType.code, `${ClientAuthErrorMessage.invalidCacheType.desc}`);
     }
 }
