@@ -51,6 +51,7 @@ function signOut() {
     const logoutRequest = {
         account: myMSALObj.getAccountByUsername(username)
     };
+
     myMSALObj.logout(logoutRequest);
 }
 
@@ -83,4 +84,3 @@ async function getTokenRedirect(request, account) {
         }
     });
 }
-

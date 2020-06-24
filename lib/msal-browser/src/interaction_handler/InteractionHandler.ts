@@ -36,10 +36,10 @@ export abstract class InteractionHandler {
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
-
+        console.log("Location Hash:", decodeURIComponent(locationHash));
         // Handle code response.
         const requestState = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
-        const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
+        const authCode = this.authModule.handleFragmentResponse(decodeURIComponent(locationHash), requestState);
         
         // Get cached items
         const cachedNonceKey = this.browserStorage.generateNonceKey(requestState);
