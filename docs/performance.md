@@ -12,9 +12,10 @@ By default, during the process of retrieving a token, MSAL.js will make a networ
 
 Instructions (AAD Scenarios):
 
-1. Instance Discovery Endpoint: `https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize`
-2. Make a request to the instance discovery endpoint
-3. Provide the **entire** JSON response to the `auth.cloudDiscoveryMetadata` property.
+Instance Discovery Endpoint: `https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize`
+
+1. Make a request to the instance discovery endpoint above
+2. Provide the **entire** JSON response to the `auth.cloudDiscoveryMetadata` property.
 
 The example shown below shows 5 such JSON objects in the array. If none of the aliases listed match your authority you do not need to include the corresponding object in the array. 
 
