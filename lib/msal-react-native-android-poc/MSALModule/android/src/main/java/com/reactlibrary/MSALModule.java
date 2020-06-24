@@ -22,6 +22,8 @@ import com.microsoft.identity.client.exception.MsalException;
 
 import static com.facebook.react.views.textinput.ReactTextInputManager.TAG;
 
+import java.util.Arrays;
+
 public class MSALModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
@@ -138,6 +140,20 @@ public class MSALModule extends ReactContextBaseJavaModule {
         
     }
 
+     /**
+     * isSharedDevice: returns a boolean on if device is shared or not
+     * Parameters: Promise promise (resolve will return a boolean and reject will return an exception)
+     */
+    @ReactMethod
+    public void isSharedDevice(Promise promise) {
+        try {
+            promise.resolve(publicClientApplication.isSharedDevice());
+        } catch (Exception error) {
+            Log.d(TAG, "Error in 'isSharedDevice': " + error.toString());
+            promise.reject(error);
+        }
+    }
+
     /**
      * signOut(): signs out the user currently signed in
      * Parameters: Promise promise (resolve will return a boolean true if account was successfully signed out and reject will return the exception)
@@ -159,7 +175,48 @@ public class MSALModule extends ReactContextBaseJavaModule {
         });
     }
 
-    /*
+    /**
+     * acquireTokenSilent: attempts to obtain a token silently from the cache
+     * Parameters: string scopesValue (string containing scopes separated by a " "), Promise promise (returned to an async function)
+     */
+    @ReactMethod
+    public void acquireTokenSilent(String scopesValue, Promise promise) {
+        //get account
+        IAccount account = loadAccount();
+        if (account == null) {
+            promise.reject("loadaccountnull", "acquireTokenSilent: No signed in account, or exception. Check Android log for details.");
+        } else if (!scopesValue.isEmpty()) {
+            publicClientApplication.acquireTokenSilentAsync(scopesValue.toLowerCase().split(" "), account.getAuthority(), getAuthSilentCallback(promise));
+        } else {
+            //the default is User.Read
+            String[] array = {"User.Read"};
+            publicClientApplication.acquireTokenSilentAsync(array, account.getAuthority(), getAuthSilentCallback(promise));
+        }
+    }
+
+    /**
+     * SilentAuthenticationCallback is the callback function for acquireTokenSlient.
+     * If successful, it will return a map of the IAuthenticationResult.
+     * If there's an error, the exception will be returned.
+     */
+
+    private SilentAuthenticationCallback getAuthSilentCallback(final Promise promise) {
+        return new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                Log.d(TAG, "Acquire tokens silently success.");
+                promise.resolve(mapMSALResult(authenticationResult));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                Log.d(TAG, "Error while acquiring tokens silently: " + exception.toString());
+                promise.reject(exception);
+            }
+        };
+    }
+
+    /**
     * Helper functions:
     * mapMSALResult(IAuthenticationResult result): used to convert AuthenticationResult into a map
     * so that it can be passed through a promise on the JS side
@@ -170,6 +227,12 @@ public class MSALModule extends ReactContextBaseJavaModule {
         //add attributes from account
         map.putMap("account", mapAccount(result.getAccount()));
         //add attributes from result
+        map.putString("accessToken", result.getAccessToken());
+        map.putString("authenticationScheme", result.getAuthenticationScheme());
+        map.putString("authorizationHeader", result.getAuthorizationHeader());
+        map.putString("expiresOn", result.getExpiresOn().toString());
+        map.putString("scope", Arrays.toString(result.getScope()));
+        map.putString("tenantId", result.getTenantId());
         return map;
     }
 
