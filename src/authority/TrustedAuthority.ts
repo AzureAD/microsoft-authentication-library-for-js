@@ -13,14 +13,22 @@ export class TrustedAuthority {
      * @param knownAuthorities 
      * @param instanceMetadata
      */
-    public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, instanceMetadata: Array<IInstanceDiscoveryMetadata>): void {
+    public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, instanceMetadata: string): void {
         if (!this.getTrustedHostList().length){
-            if (knownAuthorities.length && instanceMetadata.length) {
+            if (knownAuthorities.length && instanceMetadata) {
                 throw ClientConfigurationError.createKnownAuthoritiesInstanceMetadataError();
             }
 
             this.createInstanceMetadataFromKnownAuthorities(knownAuthorities);
-            this.saveInstanceMetadata(instanceMetadata);            
+            
+            try {
+                if (instanceMetadata) {
+                    const parsedMetadata = JSON.parse(instanceMetadata) as OpenIdConfigResponse;
+                    this.saveInstanceMetadata(parsedMetadata.metadata);
+                }
+            } catch (e) {
+                throw ClientConfigurationError.createInvalidCloudDiscoveryMetadataError();
+            }
         }
     }
 

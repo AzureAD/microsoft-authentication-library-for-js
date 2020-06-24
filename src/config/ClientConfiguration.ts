@@ -45,7 +45,7 @@ export type AuthOptions = {
     clientId: string;
     authority?: Authority;
     knownAuthorities?: Array<string>;
-    instanceMetadata?: Array<IInstanceDiscoveryMetadata>;
+    instanceMetadata?: string;
 };
 
 /**
@@ -94,7 +94,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
-    instanceMetadata: []
+    instanceMetadata: ""
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {

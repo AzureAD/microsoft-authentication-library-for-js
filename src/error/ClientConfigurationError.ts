@@ -68,6 +68,10 @@ export const ClientConfigurationErrorMessage = {
         code: "invalid_known_authorities",
         desc: "knownAuthorities and instanceMetadata cannot both be provided. Please provide instanceMetadata object for AAD, knownAuthorities otherwise."
     },
+    invalidCloudDiscoveryMetadata: {
+        code: "invalid_cloud_discovery_metadata",
+        desc: "Invalid cloudDiscoveryMetadata provided is invalid. Must be a JSON object containing tenant_discovery_endpoint and metadata fields"
+    },
     untrustedAuthority: {
         code: "untrusted_authority",
         desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
@@ -218,6 +222,14 @@ export class ClientConfigurationError extends ClientAuthError {
     static createKnownAuthoritiesInstanceMetadataError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.knownAuthoritiesAndInstanceMetadata.code,
             ClientConfigurationErrorMessage.knownAuthoritiesAndInstanceMetadata.desc);
+    }
+
+    /**
+     * Throws an error when the user passes invalid cloudDiscoveryMetadata
+     */
+    static createInvalidCloudDiscoveryMetadataError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCloudDiscoveryMetadata.code,
+            ClientConfigurationErrorMessage.invalidCloudDiscoveryMetadata.desc);
     }
 
     /**
