@@ -12,6 +12,7 @@ import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../..
 import { ClientAuthErrorMessage } from "../../src";
 import { ClientTestUtils } from "../client/ClientTestUtils";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
+import { hostname } from "os";
 
 describe("Authority.ts Class Unit Tests", () => {
     afterEach(() => {
@@ -178,6 +179,12 @@ describe("Authority.ts Class Unit Tests", () => {
             sinon.stub(TrustedAuthority, "setTrustedAuthoritiesFromNetwork").callsFake(async () => {
                 setFromNetwork = true;
             });
+            sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").callsFake(() => {
+                return {
+                    preferred_cache: Constants.DEFAULT_AUTHORITY_HOST, 
+                    preferred_network: Constants.DEFAULT_AUTHORITY_HOST, 
+                    aliases: [Constants.DEFAULT_AUTHORITY_HOST]}
+            });
 
             await authority.resolveEndpointsAsync();
             expect(setFromNetwork).to.be.true;
@@ -205,6 +212,12 @@ describe("Authority.ts Class Unit Tests", () => {
             authority = new Authority(authorityUrl, networkInterface);
             sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
             sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
+            sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").callsFake(() => {
+                return {
+                    preferred_cache: Constants.DEFAULT_AUTHORITY_HOST, 
+                    preferred_network: Constants.DEFAULT_AUTHORITY_HOST, 
+                    aliases: [Constants.DEFAULT_AUTHORITY_HOST]}
+            });
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").callsFake((openIdEndpoint) => {
                 endpoint = openIdEndpoint;
                 return DEFAULT_OPENID_CONFIG_RESPONSE; // Response is required but is not important for this test

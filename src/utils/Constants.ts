@@ -9,6 +9,7 @@ export const Constants = {
     CACHE_PREFIX: "msal",
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
+    DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
     // ADFS String
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
