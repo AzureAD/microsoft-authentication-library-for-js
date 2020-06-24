@@ -11,7 +11,8 @@ import {
     IdTokenEntity,
     AppMetadataEntity,
     CacheManager,
-    CredentialEntity
+    CredentialEntity,
+    ClientAuthError
 } from '@azure/msal-common';
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -105,8 +106,7 @@ export class Storage extends CacheManager {
                 break;
             }
             default: {
-                console.log('Invalid Cache Type');
-                return;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
 
@@ -154,8 +154,8 @@ export class Storage extends CacheManager {
                 return (cache.appMetadata[key] as AppMetadataEntity) || null;
             }
             default: {
-                console.log('Invalid Cache Type');
-                return {};
+                throw ClientAuthError.createInvalidCacheTypeError();
+                return {}; //TODO: what about this?
             }
         }
     }
@@ -215,8 +215,7 @@ export class Storage extends CacheManager {
                 break;
             }
             default: {
-                console.log('Invalid Cache Type');
-                break;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
 
