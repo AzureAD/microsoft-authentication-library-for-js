@@ -63,7 +63,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `clientId` | App ID of your application. Can be found in your [portal registration](../README#prerequisites). | UUID/GUID | None. This parameter is required in order for MSAL to perform any actions. |
 | `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}`. | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
 | `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
-| `instanceMetadata` | An array of JSON objects that are known to be valid. Used in AAD scenarios. | Array of JSON objects | Empty array `[]` |
+| `instanceMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See performance.md for more info | string | Empty string `""` |
 | `redirectUri` | URI where the authorization code response is sent back to. Whatever location is specified here must have the MSAL library available to handle the response. | String in URI format | Login request page (`window.location.href` of page which made auth request) |
 | `postLogoutRedirectUri` | URI that is redirected to after a logout() call is made. | String in URI format | Login request page (`window.location.href` of page which made auth request) |
 | `navigateToLoginRequestUrl` | If `true`, will navigate back to the original request location before processing the authorization code response. If the `redirectUri` is the same as the original request location, this flag should be set to false. | boolean | `true` |
