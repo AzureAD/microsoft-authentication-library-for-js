@@ -5,8 +5,7 @@
 import {
     LoggerOptions,
     INetworkModule,
-    LogLevel,
-    IInstanceDiscoveryMetadata
+    LogLevel
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
 import debug from 'debug';
@@ -21,7 +20,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     knownAuthorities?: Array<string>;
-    instanceMetadata?: string;
+    cloudDiscoveryMetadata?: string;
 };
 
 /**
@@ -61,7 +60,7 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
     authority: '',
     knownAuthorities: [],
-    instanceMetadata: ""
+    cloudDiscoveryMetadata: ""
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};

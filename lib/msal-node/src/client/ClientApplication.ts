@@ -45,7 +45,7 @@ export abstract class ClientApplication {
             this.config.cache?.cachePlugin
         );
         this.cryptoProvider = new CryptoProvider();
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.instanceMetadata!);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
     }
 
     /**
@@ -117,7 +117,7 @@ export abstract class ClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
-                instanceMetadata: this.config.auth.instanceMetadata
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!

@@ -136,8 +136,8 @@ export class AccountEntity {
         account.homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        account.environment = TrustedAuthority.getInstanceMetadata(reqEnvironment)
-            ? TrustedAuthority.getInstanceMetadata(reqEnvironment).preferred_cache
+        account.environment = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment)
+            ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache
             : reqEnvironment;
 
         account.realm = idToken.claims.tid;
@@ -170,8 +170,8 @@ export class AccountEntity {
         account.homeAccountId = idToken.claims.sub;
         
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        account.environment = TrustedAuthority.getInstanceMetadata(reqEnvironment)
-            ? TrustedAuthority.getInstanceMetadata(reqEnvironment).preferred_cache
+        account.environment = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment)
+            ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache
             : reqEnvironment;
 
         account.username = idToken.claims.upn;

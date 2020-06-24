@@ -10,7 +10,6 @@ import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
-import { IInstanceDiscoveryMetadata } from "../authority/IInstanceDiscoveryMetadata";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 
 // Token renewal offset default in seconds
@@ -45,7 +44,7 @@ export type AuthOptions = {
     clientId: string;
     authority?: Authority;
     knownAuthorities?: Array<string>;
-    instanceMetadata?: string;
+    cloudDiscoveryMetadata?: string;
 };
 
 /**
@@ -94,7 +93,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
-    instanceMetadata: ""
+    cloudDiscoveryMetadata: ""
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {

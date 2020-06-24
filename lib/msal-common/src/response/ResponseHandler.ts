@@ -170,7 +170,7 @@ export class ResponseHandler {
         );
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = TrustedAuthority.getInstanceMetadata(reqEnvironment) ? TrustedAuthority.getInstanceMetadata(reqEnvironment).preferred_cache : reqEnvironment;
+        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : reqEnvironment;
 
         // IdToken
         const cachedIdToken = IdTokenEntity.createIdTokenEntity(

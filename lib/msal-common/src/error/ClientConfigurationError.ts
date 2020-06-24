@@ -64,9 +64,9 @@ export const ClientConfigurationErrorMessage = {
         code: "pkce_params_missing",
         desc: "Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request"
     },
-    knownAuthoritiesAndInstanceMetadata: {
+    knownAuthoritiesAndCloudDiscoveryMetadata: {
         code: "invalid_known_authorities",
-        desc: "knownAuthorities and instanceMetadata cannot both be provided. Please provide instanceMetadata object for AAD, knownAuthorities otherwise."
+        desc: "knownAuthorities and cloudDiscoveryMetadata cannot both be provided. Please provide cloudDiscoveryMetadata object for AAD, knownAuthorities otherwise."
     },
     invalidCloudDiscoveryMetadata: {
         code: "invalid_cloud_discovery_metadata",
@@ -217,11 +217,11 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
-     * Throws an error when the user passes both knownAuthorities and instanceMetadata
+     * Throws an error when the user passes both knownAuthorities and cloudDiscoveryMetadata
      */
-    static createKnownAuthoritiesInstanceMetadataError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.knownAuthoritiesAndInstanceMetadata.code,
-            ClientConfigurationErrorMessage.knownAuthoritiesAndInstanceMetadata.desc);
+    static createKnownAuthoritiesCloudDiscoveryMetadataError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.knownAuthoritiesAndCloudDiscoveryMetadata.code,
+            ClientConfigurationErrorMessage.knownAuthoritiesAndCloudDiscoveryMetadata.desc);
     }
 
     /**

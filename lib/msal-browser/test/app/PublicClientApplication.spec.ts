@@ -46,12 +46,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
-        const stubbedInstanceMetadata: IInstanceDiscoveryMetadata = {
+        const stubbedCloudDiscoveryMetadata: IInstanceDiscoveryMetadata = {
             preferred_cache: "login.windows.net",
             preferred_network: "login.microsoftonline.com",
             aliases: ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]};
-        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedInstanceMetadata.aliases);
-        sinon.stub(TrustedAuthority, "getInstanceMetadata").returns(stubbedInstanceMetadata);
+        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
+        sinon.stub(TrustedAuthority, "getcloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
     });
 
     afterEach(() => {

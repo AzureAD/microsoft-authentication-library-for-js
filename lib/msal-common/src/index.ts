@@ -11,7 +11,7 @@ export { IdToken } from "./account/IdToken";
 export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
-export { IInstanceDiscoveryMetadata } from "./authority/IInstanceDiscoveryMetadata";
+export { ICloudDiscoveryMetadata } from "./authority/ICloudDiscoveryMetadata";
 export { TrustedAuthority } from "./authority/TrustedAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";

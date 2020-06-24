@@ -97,7 +97,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             beforeEach(async () => {
                 sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-                ClientTestUtils.setInstanceMetadataStubs();
+                ClientTestUtils.setCloudDiscoveryMetadataStubs();
                 await authority.resolveEndpointsAsync();
             });
 
@@ -148,7 +148,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         it("discoveryComplete returns true if resolveEndpointsAsync resolves successfully", async () => {
-            ClientTestUtils.setInstanceMetadataStubs();
+            ClientTestUtils.setCloudDiscoveryMetadataStubs();
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             await authority.resolveEndpointsAsync();
             expect(authority.discoveryComplete()).to.be.true;
@@ -159,7 +159,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 return DEFAULT_OPENID_CONFIG_RESPONSE;
             };
             authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface);
-            ClientTestUtils.setInstanceMetadataStubs();
+            ClientTestUtils.setCloudDiscoveryMetadataStubs();
             await authority.resolveEndpointsAsync();
 
             expect(authority.discoveryComplete()).to.be.true;
