@@ -367,11 +367,7 @@ export class BrowserStorage extends CacheManager {
         // check state and remove associated cache items
         this.getKeys().forEach(key => {
             if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
-                const splitKey = key.split(Constants.RESOURCE_DELIM);
-                const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
-                if (keyState === state) {
-                    this.removeItem(key);
-                }
+                this.removeItem(key);
             }
         });
 

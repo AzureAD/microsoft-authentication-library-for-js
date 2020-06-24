@@ -4,7 +4,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, IAccount, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType } from "@azure/msal-common";
+import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, CacheManager } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -14,18 +14,6 @@ import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 
-const clearFunc = (): void => {
-    return;
-};
-
-const removeFunc = (key: string): boolean => {
-    return;
-};
-
-const setFunc = (key: string, value: string): void => {
-    return;
-};
-
 const testPkceCodes = {
     challenge: "TestChallenge",
     verifier: "TestVerifier"
@@ -34,8 +22,6 @@ const testPkceCodes = {
 const testNetworkResult = {
     testParam: "testValue"
 };
-
-const testKeySet = ["testKey1", "testKey2"];
 
 const networkInterface = {
 	sendGetRequestAsync<T>(
@@ -209,7 +195,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 "nonce": "123523"
             };
 
-            const testAccount: IAccount = {
+            const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: idTokenClaims.tid,
@@ -218,6 +204,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             const testTokenResponse: AuthenticationResult = {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
+                fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
