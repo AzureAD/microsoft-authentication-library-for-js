@@ -4,7 +4,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, CacheManager } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -51,7 +51,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
 		const configObj = buildConfiguration(appConfig);
         const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
         browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
-        const authCodeModule = new SPAClient({
+        const authCodeModule = new AuthorizationCodeClient({
             authOptions: {
 				...configObj.auth,
 				authority: authorityInstance,
@@ -221,8 +221,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
 			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)), CacheSchemaType.TEMPORARY);
             browserStorage.setItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
             browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), TEST_HASHES.TEST_SUCCESS_CODE_HASH, CacheSchemaType.TEMPORARY);
-            sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
+            sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
             const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, browserCrypto);
             expect(tokenResponse).to.deep.eq(testTokenResponse);

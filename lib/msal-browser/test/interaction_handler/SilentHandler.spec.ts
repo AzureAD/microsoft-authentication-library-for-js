@@ -2,7 +2,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheManager } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
@@ -63,7 +63,7 @@ describe("SilentHandler.ts Unit Tests", () => {
 
     let browserStorage: BrowserStorage;
     let silentHandler: SilentHandler;
-    let authCodeModule: SPAClient;
+    let authCodeModule: AuthorizationCodeClient;
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -72,7 +72,7 @@ describe("SilentHandler.ts Unit Tests", () => {
         };
 		const configObj = buildConfiguration(appConfig);
 		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        authCodeModule = new SPAClient({
+        authCodeModule = new AuthorizationCodeClient({
             authOptions: {
 				...configObj.auth,
 				authority: authorityInstance,

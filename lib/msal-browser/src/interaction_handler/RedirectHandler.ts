@@ -55,21 +55,21 @@ export class RedirectHandler extends InteractionHandler {
         // Interaction is completed - remove interaction status.
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
 
-        // Get cached items
+        // Handle code response.
         const requestState = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
+        const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
+
+        // Get cached items
         const cachedNonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateCacheKey(cachedNonceKey), CacheSchemaType.TEMPORARY) as string;
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
-
-        // Handle code response.
-        const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
         this.authCodeRequest.code = authCode;
 
         // Hash was processed successfully - remove from cache
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, requestState, cachedNonce);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }

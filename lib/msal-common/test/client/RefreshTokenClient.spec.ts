@@ -6,6 +6,7 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
+    TEST_URIS,
 } from "../utils/StringConstants";
 import {BaseClient} from "../../src/client/BaseClient";
 import {AADServerParamKeys, GrantType, Constants} from "../../src/utils/Constants";
@@ -19,7 +20,7 @@ import { AccountInfo, AuthenticationResult } from "../../src";
 
 describe("RefreshTokenClient unit tests", () => {
 
-    afterEach(() => {
+    beforeEach(() => {
         sinon.restore();
     });
 
@@ -58,7 +59,8 @@ describe("RefreshTokenClient unit tests", () => {
         const client = new RefreshTokenClient(config);
         const refreshTokenRequest: RefreshTokenRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            refreshToken: TEST_TOKENS.REFRESH_TOKEN
+            refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+            redirectUri: TEST_URIS.TEST_REDIR_URI
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);

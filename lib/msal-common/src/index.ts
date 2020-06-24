@@ -1,5 +1,4 @@
 // App Auth Modules and Configuration
-export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
