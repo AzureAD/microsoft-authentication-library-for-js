@@ -138,6 +138,10 @@ export const ClientAuthErrorMessage = {
     unexpectedAccountType: {
         code: "unexpected_account_type",
         desc: "Unexpected account type."
+    },
+    unexpectedCredentialType: {
+        code: "unexpected_credential_type",
+        desc: "Unexpected credential type."
     }
 };
 
@@ -399,5 +403,12 @@ export class ClientAuthError extends AuthError {
     */
     static createUnexpectedAccountTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.unexpectedAccountType.code, `${ClientAuthErrorMessage.unexpectedAccountType.desc}`);
+    }
+
+    /**
+    * Throws error if unexpected credential type.
+    */
+    static createUnexpectedCredentialTypeError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.unexpectedCredentialType.code, `${ClientAuthErrorMessage.unexpectedCredentialType.desc}`);
     }
 }

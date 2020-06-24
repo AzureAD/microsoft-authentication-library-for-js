@@ -4,6 +4,7 @@
  */
 
 import { Separators, CredentialType, CacheType, Constants } from "../../utils/Constants";
+import { ClientAuthError } from '../../error/ClientAuthError';
 
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
@@ -87,8 +88,7 @@ export class CredentialEntity {
             case CredentialType.REFRESH_TOKEN:
                 return CacheType.REFRESH_TOKEN;
             default: {
-                console.log("Unexpected credential type");
-                return null;
+                throw ClientAuthError.createUnexpectedCredentialTypeError();
             }
         }
     }
