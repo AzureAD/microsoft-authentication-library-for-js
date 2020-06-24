@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { AuthorityType } from "./AuthorityType";
-import { TenantDiscoveryResponse } from "./TenantDiscoveryResponse";
+import { IOpenIdConfigResponse } from "./IOpenIdConfigResponse";
 import { UrlString } from "./../url/UrlString";
 import { IUri } from "./../url/IUri";
 import { ClientAuthError } from "./../error/ClientAuthError";
@@ -24,7 +24,7 @@ export class Authority {
     // Canonicaly authority url components
     private _canonicalAuthorityUrlComponents: IUri;
     // Tenant discovery response retrieved from OpenID Configuration Endpoint
-    private tenantDiscoveryResponse: TenantDiscoveryResponse;
+    private tenantDiscoveryResponse: IOpenIdConfigResponse;
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
 
@@ -161,8 +161,8 @@ export class Authority {
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
      * @param openIdConfigurationEndpoint
      */
-    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<NetworkResponse<TenantDiscoveryResponse>> {
-        return this.networkInterface.sendGetRequestAsync<TenantDiscoveryResponse>(openIdConfigurationEndpoint);
+    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<NetworkResponse<IOpenIdConfigResponse>> {
+        return this.networkInterface.sendGetRequestAsync<IOpenIdConfigResponse>(openIdConfigurationEndpoint);
     }
 
     /**
