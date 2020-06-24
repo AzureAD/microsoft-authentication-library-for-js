@@ -21,7 +21,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     knownAuthorities?: Array<string>;
-    instanceMetadata?: Array<IInstanceDiscoveryMetadata>;
+    instanceMetadata?: string;
 };
 
 /**
@@ -61,7 +61,7 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
     authority: '',
     knownAuthorities: [],
-    instanceMetadata: []
+    instanceMetadata: ""
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};

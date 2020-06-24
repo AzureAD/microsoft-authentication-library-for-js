@@ -14,7 +14,7 @@ export type BrowserAuthOptions = {
     clientId: string;
     authority?: string;
     knownAuthorities?: Array<string>;
-    instanceMetadata?: Array<IInstanceDiscoveryMetadata>;
+    instanceMetadata?: string;
     redirectUri?: string | (() => string);
     postLogoutRedirectUri?: string | (() => string);
     navigateToLoginRequestUrl?: boolean;
@@ -68,7 +68,7 @@ const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
     authority: `${Constants.DEFAULT_AUTHORITY}/`,
     knownAuthorities: [],
-    instanceMetadata: [],
+    instanceMetadata: "",
     redirectUri: () => BrowserUtils.getCurrentUri(),
     postLogoutRedirectUri: () => BrowserUtils.getCurrentUri(),
     navigateToLoginRequestUrl: true
