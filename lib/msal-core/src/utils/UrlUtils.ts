@@ -39,12 +39,12 @@ export class UrlUtils {
      * @param scopes
      */
     static createNavigationUrlString(serverRequestParams: ServerRequestParameters): Array<string> {
-        const scopes = serverRequestParams.scopes;
+        const scopes = ScopeSet.generateLoginScopes(serverRequestParams.scopes, serverRequestParams.clientId);
 
         const str: Array<string> = [];
         str.push("response_type=" + serverRequestParams.responseType);
 
-        str.push("scope=" + encodeURIComponent(ScopeSet.parseScope(serverRequestParams.scopes)));
+        str.push("scope=" + encodeURIComponent(ScopeSet.parseScope(scopes)));
         str.push("client_id=" + encodeURIComponent(serverRequestParams.clientId));
         str.push("redirect_uri=" + encodeURIComponent(serverRequestParams.redirectUri));
 
