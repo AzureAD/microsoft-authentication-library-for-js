@@ -9,7 +9,7 @@ import {
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
 import debug from 'debug';
-import { ICachePlugin } from "cache/ICachePlugin";
+import { ICachePlugin } from "../cache/ICachePlugin";
 
 /**
  * - clientId               - Client id of the application.
