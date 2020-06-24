@@ -1,3 +1,6 @@
+# 1.0.0-beta.3
+- 
+
 # 1.0.0-beta.2
 - Fixed an issue where types were not being exported from the correct location (#1613)
 - Fixed an issue where system configuration values were being overwritten with `undefined` (#1631)
