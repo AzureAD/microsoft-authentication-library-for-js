@@ -51,7 +51,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             preferred_network: "login.microsoftonline.com",
             aliases: ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]};
         sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
-        sinon.stub(TrustedAuthority, "getcloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
+        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
     });
 
     afterEach(() => {
