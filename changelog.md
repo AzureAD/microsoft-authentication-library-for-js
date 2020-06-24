@@ -1,6 +1,6 @@
 # 1.0.0-beta.3
 - Initialization of B2cTrustedHostList (#1646)
-- Unified Cache support (#1444, #1471, #1519, #1520, #1522, #1609, #1622, #1624, #1655, , #1680, #1762)
+- Unified Cache support (#1444, #1471, #1519, #1520, #1522, #1609, #1622, #1624, #1655, #1680, #1762)
 - `Request` update in msal-common (#1682, #1771)
 - SilentFlow support (#1711)
 - Utilize `Scopeset` across all libraries (#1770)
