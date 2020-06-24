@@ -338,7 +338,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 username: "test@contoso.com"
             };
 
-            const removeAccountSpy = sinon.stub(CacheManager.prototype, "clear").returns();
+            const removeAccountSpy = sinon.stub(MockStorageClass.prototype, "clear").returns();
             const logoutUri = client.getLogoutUri({account: null});
 
             expect(removeAccountSpy.calledOnce).to.be.true;
