@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult, CacheManager } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
@@ -9,7 +9,7 @@ import sinon from "sinon";
 
 class TestInteractionHandler extends InteractionHandler {
 
-    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
         super(authCodeModule, storageImpl);
     }
 
@@ -78,7 +78,7 @@ class TestStorageInterface extends CacheManager {
 
 describe("InteractionHandler.ts Unit Tests", () => {
 
-    let authCodeModule: SPAClient;
+    let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserStorage;
     beforeEach(() => {
         const appConfig: Configuration = {
@@ -88,7 +88,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
         };
 		const configObj = buildConfiguration(appConfig);
 		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        authCodeModule = new SPAClient({
+        authCodeModule = new AuthorizationCodeClient({
             authOptions: {
 				...configObj.auth,
 				authority: authorityInstance,
@@ -187,8 +187,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 uniqueId: idTokenClaims.oid,
                 state: "testState"
 			};
-			sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-			const acquireTokenSpy = sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
+			sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+			const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
 			interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);

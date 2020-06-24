@@ -34,7 +34,7 @@ export abstract class BaseClient {
     protected networkClient: INetworkModule;
 
     // Default authority object
-    protected defaultAuthority: Authority;
+    protected authority: Authority;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
@@ -54,7 +54,7 @@ export abstract class BaseClient {
 
         B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
 
-        this.defaultAuthority = this.config.authOptions.authority;
+        this.authority = this.config.authOptions.authority;
     }
 
     /**
