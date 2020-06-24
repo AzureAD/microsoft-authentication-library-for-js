@@ -1,5 +1,10 @@
 # 2.0.0-beta.3
-* 
+* add `setKnownAuthorities` to constructor call for B2C Authority scenarios (#1646)
+* `@azure/msal-browser` now follows a unified cache schema similar to other MSAL libraries (#1624, #1655, #1680, #1711, #1762, #1771)
+* Updated browser library to follow common format for request, response, and client configurations (#1682, #1711, #1762, #1770, #1771, #1793)
+* Account interface updated to AccountInfo.ts (#1789)
+* Library state is now sent as a encoded JSON object (#1790)
+* Added a request object for logout APIs, made logout async (#1802)
 
 # 2.0.0-beta.2
 * Fixed an issue where the system config values were being overwritten with `undefined` (#1631)
