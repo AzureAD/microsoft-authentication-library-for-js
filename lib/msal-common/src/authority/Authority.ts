@@ -165,10 +165,7 @@ export class Authority {
         return this.networkInterface.sendGetRequestAsync<IOpenIdConfigResponse>(openIdConfigurationEndpoint);
     }
 
-    /**
-     * Perform endpoint discovery to discover the /authorize, /token and logout endpoints.
-     */
-    public async resolveEndpointsAsync(): Promise<void> {
+    private async validateAndSetPreferredNetwork(): Promise<void> {
         const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
         if (TrustedAuthority.getTrustedHostList().length === 0) {
             await TrustedAuthority.setTrustedAuthoritiesFromNetwork(this.networkInterface);
@@ -182,7 +179,13 @@ export class Authority {
         if (host !== preferredNetwork) {
             this.canonicalAuthority = this.canonicalAuthority.replace(host, preferredNetwork);
         }
+    }
 
+    /**
+     * Perform endpoint discovery to discover the /authorize, /token and logout endpoints.
+     */
+    public async resolveEndpointsAsync(): Promise<void> {
+        await this.validateAndSetPreferredNetwork();
         const openIdConfigEndpoint = this.defaultOpenIdConfigurationEndpoint;
         const response = await this.discoverEndpoints(openIdConfigEndpoint);
         this.tenantDiscoveryResponse = response.body;
