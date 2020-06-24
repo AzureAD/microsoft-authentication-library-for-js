@@ -5,13 +5,13 @@
 import {
     CredentialType,
     CacheSchemaType,
-    CacheHelper,
     AccountEntity,
     AccessTokenEntity,
     RefreshTokenEntity,
     IdTokenEntity,
     AppMetadataEntity,
-    CacheManager
+    CacheManager,
+    CredentialEntity
 } from '@azure/msal-common';
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -83,7 +83,7 @@ export class Storage extends CacheManager {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
                         cache.idTokens[key] = value as IdTokenEntity;
@@ -132,7 +132,7 @@ export class Storage extends CacheManager {
                 return (cache.accounts[key] as AccountEntity) || null;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 let credential = null;
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
@@ -181,7 +181,7 @@ export class Storage extends CacheManager {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
                         if (!!cache.idTokens[key]) {

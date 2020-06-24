@@ -1,6 +1,7 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError, CacheManager} from "../../src";
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError} from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
 import { AuthorityFactory } from "../../src";
+import { CacheManager } from "../../src/cache/CacheManager";
 
 export class MockStorageClass extends CacheManager {
     store = {};

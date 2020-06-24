@@ -44,8 +44,6 @@ export type AuthOptions = {
     clientId: string;
     authority?: Authority;
     knownAuthorities?: Array<string>;
-    redirectUri?: string | (() => string);
-    postLogoutRedirectUri?: string | (() => string);
 };
 
 /**
@@ -93,9 +91,7 @@ export type LibraryInfo = {
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
-    knownAuthorities: [],
-    redirectUri: "",
-    postLogoutRedirectUri: ""
+    knownAuthorities: []
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {

@@ -16,7 +16,7 @@ import {
     ClientAuthError,
     Constants,
     B2cAuthority,
-    IAccount,
+    AccountInfo,
     BaseAuthRequest
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
@@ -141,13 +141,10 @@ export abstract class ClientApplication {
      * @param authRequest
      */
     protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
-        const request: BaseAuthRequest = {...authRequest};
-        if (!request.scopes) {
-            request.scopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
-        } else {
-            request.scopes.push(Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE);
-        }
-        return request;
+        return {
+            ...authRequest,
+            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+        };
     }
 
     /**
@@ -156,11 +153,7 @@ export abstract class ClientApplication {
      * @param authorityString
      */
     private async createAuthority(authorityString?: string): Promise<Authority> {
-        const authority: Authority = authorityString
-            ? AuthorityFactory.createInstance(
-                authorityString,
-                this.config.system!.networkClient!
-            ) : this.authority;
+        const authority: Authority = authorityString ? AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!) : this.authority;
 
         if (authority.discoveryComplete()) {
             return authority;
@@ -187,7 +180,7 @@ export abstract class ClientApplication {
         return this._authority;
     }
 
-    getAllAccounts(): IAccount[] {
+    getAllAccounts(): AccountInfo[] {
         return this.storage.getAllAccounts();
     }
 }

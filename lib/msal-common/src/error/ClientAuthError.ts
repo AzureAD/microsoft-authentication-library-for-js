@@ -42,6 +42,10 @@ export const ClientAuthErrorMessage = {
         code: "blank_guid_generated",
         desc: "The guid generated was blank. Please review the trace to determine the root cause."
     },
+    invalidStateError: {
+        code: "invalid_state",
+        desc: "State was not the expected format. Please check the logs to determine whether the request was sent using ProtocolUtils.setRequestState()."
+    },
     stateMismatchError: {
         code: "state_mismatch",
         desc: "State mismatch error. Please check your network. Continued requests may cause cache overflow."
@@ -122,6 +126,10 @@ export const ClientAuthErrorMessage = {
     CachePluginError: {
         code: "no cache plugin set on CacheManager",
         desc: "ICachePlugin needs to be set before using readFromStorage or writeFromStorage"
+    },
+    noCryptoObj: {
+        code: "no_crypto_object",
+        desc: "No crypto object detected. This is required for the following operation: "
     }
 };
 
@@ -197,6 +205,15 @@ export class ClientAuthError extends AuthError {
     static createHashNotDeserializedError(hashParamObj: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.hashNotDeserialized.code,
             `${ClientAuthErrorMessage.hashNotDeserialized.desc} Given Object: ${hashParamObj}`);
+    }
+
+    /**
+     * Creates an error thrown when the state cannot be parsed.
+     * @param invalidState 
+     */
+    static createInvalidStateError(invalidState: string, errorString?: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code, 
+            `${ClientAuthErrorMessage.invalidStateError.desc} Invalid State: ${invalidState}, Root Err: ${errorString}`);
     }
 
     /**
@@ -348,9 +365,17 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Throws error if ICachePlugin not set on CacheManager
+     * Throws error if ICachePlugin not set on CacheManager.
      */
     static createCachePluginError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.CachePluginError.code, `${ClientAuthErrorMessage.CachePluginError.desc}`);
+    }
+
+    /**
+     * Throws error if crypto object not found.
+     * @param operationName 
+     */
+    static createNoCryptoObjectError(operationName: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noCryptoObj.code, `${ClientAuthErrorMessage.noCryptoObj.desc}${operationName}`);
     }
 }

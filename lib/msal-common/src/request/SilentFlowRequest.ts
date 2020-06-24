@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { IAccount } from "../account/IAccount";
+import { AccountInfo } from "../account/AccountInfo";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
@@ -13,9 +13,11 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - account: Account entity to lookup the credentials
  * - forceRefresh: Forces silent requests to make network calls if true
  * - correlationId: GUID set by the user to trace the request
+ * - redirectUri: The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
  */
 export type SilentFlowRequest = BaseAuthRequest & {
-    account: IAccount;
+    account: AccountInfo;
     forceRefresh?: boolean;
     correlationId?: string;
+    redirectUri?: string;
 };
