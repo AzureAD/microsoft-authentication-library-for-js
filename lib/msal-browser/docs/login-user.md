@@ -2,9 +2,9 @@
 
 Before you start here, make sure you understand how to [initialize the application object](./initialization.md).
 
-The login APIs in MSAL retrieve an `authorization code` which can be exchanged for an [`id token`](https://docs.microsoft.com/azure/active-directory/develop/id-tokens) for a signed in user, while consenting scopes for an additional resource. If your application does not use `id tokens`, please see [here](./acquire-token.md) for information on how to acquire `access tokens` without an `id token`.
+The login APIs in MSAL retrieve an `authorization code` which can be exchanged for an [ID token](https://docs.microsoft.com/azure/active-directory/develop/id-tokens) for a signed in user, while consenting scopes for an additional resource, and an [access token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) containing the user consented scopes to allow your app to securely call the API.
 
-You can read more about `id tokens` on our [Azure Docs pages](https://docs.microsoft.com/azure/active-directory/develop/id-tokens).
+You can read more about ID tokens on our [Azure Docs pages](https://docs.microsoft.com/azure/active-directory/develop/id-tokens).
 
 ## Choosing an Interaction Type
 
@@ -55,23 +55,45 @@ var loginRequest = {
 };
 
 try {
-    msalInstance.loginRedirect({});
+    msalInstance.loginRedirect(loginRequest);
 } catch (err) {
     // handle error
 }
 ```
 
-When a login call has succeeded, you can use the `getAccount()` function to retrieve the user information.
+## Account APIs
+
+When a login call has succeeded, you can use the `getAllAccounts()` function to retrieve information about currently signed in users.
 ```javascript
-const myAccount = msalInstance.getAccount();
+const myAccounts: AccountInfo[] = msalInstance.getAllAccounts();
+```
+
+If you know the username of the account, you can also retrieve the account information by using the the `getAccountByUsername()` API:
+```javascript
+const username = "test@contoso.com";
+const myAccount: AccountInfo = msalInstance.getAccountByUsername(username);
+```
+
+These APIs will return an account object or an array of account objects with the following signature:
+```javascript
+{
+    // home account identifier for this account object
+    homeAccountId: string;
+    // Entity who issued the token represented as a full host of it (e.g. login.microsoftonline.com)
+    environment: string;
+    // Full tenant or organizational id that this account belongs to
+    tenantId: string;
+    // preferred_username claim of the id_token that represents this account.
+    username: string;
+};
 ```
 
 ## Silent login with ssoSilent()
 
-If you already have a session that exists with the authentication server, you can use the ssoSilent() API to make request for tokens without interaction. You will need to pass a `login_hint` (usually the user's `upn`) in the request object in order to successfully obtain a token silently.
+If you already have a session that exists with the authentication server, you can use the ssoSilent() API to make request for tokens without interaction. You will need to pass a `login_hint` (which can be retrieved from the account object `username` property or the `upn` claim in the ID token) in the request object in order to successfully obtain a token silently.
 
 ```javascript
-const silentRequest = {
+const request = {
     scopes: ["User.Read", "Mail.Read"],
     loginHint: "user@contoso.com"
 };
