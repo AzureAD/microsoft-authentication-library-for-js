@@ -3,15 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { ICacheStorage } from "../cache/ICacheStorage";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { AuthError } from "../error/AuthError";
 import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
-import { InMemoryCache } from "../unifiedCache/utils/CacheTypes";
 import { Authority } from "../authority/Authority";
+import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -26,10 +25,10 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - crypto: implementation of crypto functions
  */
 export type ClientConfiguration = {
-    authOptions?: AuthOptions,
+    authOptions: AuthOptions,
     systemOptions?: SystemOptions,
     loggerOptions?: LoggerOptions,
-    storageInterface?: ICacheStorage,
+    storageInterface?: CacheManager,
     networkInterface?: INetworkModule,
     cryptoInterface?: ICrypto,
     libraryInfo?: LibraryInfo
@@ -69,7 +68,7 @@ export type TelemetryOptions = {
  */
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
-    telemetry?: TelemetryOptions
+    telemetry?: TelemetryOptions;
 };
 
 /**
@@ -110,41 +109,6 @@ const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info
-};
-
-const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
-    clear: () => {
-        const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    containsKey: (): boolean => {
-        const notImplErr = "Storage interface - containsKey() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    getItem: (): string => {
-        const notImplErr = "Storage interface - getItem() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    getKeys: (): string[] => {
-        const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    removeItem: () => {
-        const notImplErr = "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    setItem: () => {
-        const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    getCache: (): InMemoryCache => {
-        const notImplErr = "Storage interface - getCache() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    setCache: () => {
-        const notImplErr = "Storage interface - setCache() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    }
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -205,7 +169,7 @@ export function buildClientConfiguration(
         authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption },
-        storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
+        storageInterface: storageImplementation || new DefaultStorageClass(),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo }

@@ -2,6 +2,8 @@ export { PublicClientApplication } from './client/PublicClientApplication';
 export { ConfidentialClientApplication } from './client/ConfidentialClientApplication';
 export { Configuration, buildAppConfiguration } from './config/Configuration';
 export { Storage } from './cache/Storage';
+export { TokenCache } from './cache/TokenCache';
+export { ICachePlugin } from './cache/ICachePlugin';
 
 // crypto
 export { CryptoProvider } from './crypto/CryptoProvider';
@@ -12,10 +14,10 @@ export {
     AuthorizationCodeRequest,
     DeviceCodeRequest,
     RefreshTokenRequest,
-    Prompt,
+    PromptValue,
     ResponseMode,
     // Response
-    AuthResponse,
+    AuthenticationResult,
     // Error
     AuthError,
     AuthErrorMessage,

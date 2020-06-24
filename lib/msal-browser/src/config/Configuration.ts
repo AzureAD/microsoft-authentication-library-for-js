@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SystemOptions, LoggerOptions, INetworkModule, LogLevel, DEFAULT_SYSTEM_OPTIONS } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, LogLevel, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
@@ -28,6 +28,7 @@ export type BrowserAuthOptions = {
 export type CacheOptions = {
     cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
+    storeInMemory?: boolean;
 };
 
 /**
@@ -64,7 +65,7 @@ export type Configuration = {
 // Default auth options for browser
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
-    authority: null,
+    authority: `${Constants.DEFAULT_AUTHORITY}/`,
     knownAuthorities: [],
     redirectUri: () => BrowserUtils.getCurrentUri(),
     postLogoutRedirectUri: () => BrowserUtils.getCurrentUri(),

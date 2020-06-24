@@ -44,16 +44,16 @@ describe("DeviceCodeClient unit tests", async () => {
 
         it("Acquires a token successfully", async () => {
 
-            sinon.stub(DeviceCodeClient.prototype, <any>"executeGetRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            sinon.stub(BaseClient.prototype, "executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 
-            const createDeviceCodeUrlSpy = sinon.spy(DeviceCodeClient.prototype, <any>"createDeviceCodeUrl");
+            const queryStringSpy = sinon.spy(DeviceCodeClient.prototype, <any>"createQueryString");
             const createTokenRequestBodySpy = sinon.spy(DeviceCodeClient.prototype, <any>"createTokenRequestBody");
 
             let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response
             };
 
@@ -62,10 +62,8 @@ describe("DeviceCodeClient unit tests", async () => {
             const authenticationResult = await client.acquireToken(request);
 
             // Check that device code url is correct
-            expect(createDeviceCodeUrlSpy.returnValues[0]).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(createDeviceCodeUrlSpy.returnValues[0]).to.contain("oauth2/v2.0/devicecode");
-            expect(createDeviceCodeUrlSpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
-            expect(createDeviceCodeUrlSpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
+            expect(queryStringSpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
+            expect(queryStringSpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
 
             // Check that deviceCodeCallback was called with the right arguments
             expect(deviceCodeResponse).to.deep.eq(DEVICE_CODE_RESPONSE);
@@ -80,7 +78,7 @@ describe("DeviceCodeClient unit tests", async () => {
 
         it("Acquires a token successfully after authorization_pending error", async () => {
 
-            sinon.stub(DeviceCodeClient.prototype, <any>"executeGetRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const tokenRequestStub = sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint");
 
@@ -89,8 +87,7 @@ describe("DeviceCodeClient unit tests", async () => {
 
             let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
-
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response
             };
 
@@ -107,12 +104,12 @@ describe("DeviceCodeClient unit tests", async () => {
         it("Throw device code flow cancelled exception if DeviceCodeRequest.cancel=true", async () => {
 
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            sinon.stub(DeviceCodeClient.prototype, <any>"executeGetRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 
             let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response,
             };
 
@@ -124,11 +121,11 @@ describe("DeviceCodeClient unit tests", async () => {
 
         it("Throw device code expired exception if device code is expired", async () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            sinon.stub(DeviceCodeClient.prototype, <any>"executeGetRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_EXPIRED_RESPONSE);
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_EXPIRED_RESPONSE);
 
             let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response,
             };
 

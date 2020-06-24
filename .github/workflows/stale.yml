@@ -13,12 +13,11 @@ jobs:
     - uses: actions/stale@v3
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        stale-issue-message: 'Stale issue message'
-        stale-pr-message: 'Stale pull request message'
+        stale-issue-message: 'This issue has not seen activity in 14 days. It may be closed if it remains stale.'
+        stale-pr-message: 'This PR has not seen activity in 14 days. It may be closed if it remains stale.'
         stale-issue-label: 'no-issue-activity'
         stale-pr-label: 'no-pr-activity'
-        exempt-issue-labels: 'internal, feature'
+        exempt-issue-labels: 'internal, feature, enhancement, known-issue'
         exempt-pr-labels: 'work-in-progress'
         days-before-stale: 14
         days-before-close: -1
-        debug-only: true

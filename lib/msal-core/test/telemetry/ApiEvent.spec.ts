@@ -8,8 +8,19 @@ import { expect } from "chai";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "../../src/telemetry/TelemetryConstants";
 import { hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import sinon from "sinon";
+import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 
 describe("ApiEvent", () => {
+    before(function() {
+        // Ensure TrustedHostList is set
+        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
+    });
+
+    after(function() {
+        sinon.restore();
+    });
+    
     it("constructs and carries exepcted values", () => {
         const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { });

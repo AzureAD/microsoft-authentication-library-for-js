@@ -137,10 +137,8 @@ export class ClientAuthError extends AuthError {
         return new ClientAuthError(ClientAuthErrorMessage.popUpWindowError.code, errorMessage);
     }
 
-    static createTokenRenewalTimeoutError(urlNavigate: string): ClientAuthError {
-        const errorMessage = `URL navigated to is ${urlNavigate}, ${ClientAuthErrorMessage.tokenRenewalError.desc}`;
-        return new ClientAuthError(ClientAuthErrorMessage.tokenRenewalError.code,
-            errorMessage);
+    static createTokenRenewalTimeoutError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.tokenRenewalError.code, ClientAuthErrorMessage.tokenRenewalError.desc);
     }
 
     static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {

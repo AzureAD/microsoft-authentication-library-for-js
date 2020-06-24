@@ -39,22 +39,22 @@ export class RequestUtils {
         if (!request) {
             throw ClientConfigurationError.createEmptyRequestError();
         }
-        
-        const scopes = [...request.scopes];
-        let extraQueryParameters: StringDict;
 
-        if (request) {
-            ScopeSet.validateInputScope(scopes);
+        // Check scopes in request are valid
+        const requestScopes = request.scopes;
+        ScopeSet.validateInputScope(requestScopes);
 
-            // validate prompt parameter
-            this.validatePromptParameter(request.prompt);
+        // Generate missing login scopes when any login scope is included in request scopes, otherwise set scopes to requestScopes
+        const scopes = ScopeSet.isLoginScopes(requestScopes, clientId) ? ScopeSet.generateLoginScopes(requestScopes, clientId) : requestScopes;
 
-            // validate extraQueryParameters
-            extraQueryParameters = this.validateEQParameters(request.extraQueryParameters, request.claimsRequest);
+        // validate prompt parameter
+        this.validatePromptParameter(request.prompt);
 
-            // validate claimsRequest
-            this.validateClaimsRequest(request.claimsRequest);
-        }
+        // validate extraQueryParameters
+        const extraQueryParameters = this.validateEQParameters(request.extraQueryParameters, request.claimsRequest);
+
+        // validate claimsRequest
+        this.validateClaimsRequest(request.claimsRequest);
 
         // validate and generate state and correlationId
         const state = this.validateAndGenerateState(request && request.state, interactionType);
@@ -78,15 +78,17 @@ export class RequestUtils {
      * @param interactionType 
      */
     static validateLoginRequest(request: AuthenticationParameters, clientId: string, interactionType: InteractionType): AuthenticationParameters {
-        // Check if request is empty or request scopes are null
         const requestScopes = (request && request.scopes) || [];
+        const extraScopesToConsent = (request && request.extraScopesToConsent) || [];
+
+        // Append extra scopes to consent to request scopes
+        const scopes = ScopeSet.appendScopes(requestScopes, extraScopesToConsent);
 
         // Append openid and profile to scopes by default for login calls
-        const scopes = ScopeSet.appendScopes(requestScopes, [Constants.openidScope, Constants.profileScope]);
+        const loginScopes = ScopeSet.generateLoginScopes(scopes, clientId);
 
         // validate request
-        const userRequest: AuthenticationParameters = RequestUtils.validateRequest({...request, scopes}, clientId, interactionType);
-        userRequest.scopes = ScopeSet.appendScopes(userRequest.scopes, userRequest.extraScopesToConsent);
+        const userRequest: AuthenticationParameters = RequestUtils.validateRequest({...request, scopes: loginScopes}, clientId, interactionType);
 
         return userRequest;
     }

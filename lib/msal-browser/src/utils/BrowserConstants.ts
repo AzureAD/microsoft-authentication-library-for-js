@@ -34,3 +34,19 @@ export enum HTTP_REQUEST_TYPE {
     GET = "GET",
     POST = "POST"
 };
+
+/**
+ * Temporary cache keys for MSAL, deleted after any request.
+ */
+export enum TemporaryCacheKeys {
+    AUTHORITY = "authority",
+    ACQUIRE_TOKEN_ACCOUNT = "acquireToken.account",
+    SESSION_STATE = "session.state",
+    REQUEST_STATE = "request.state",
+    NONCE_IDTOKEN = "nonce.id_token",
+    ORIGIN_URI = "request.origin",
+    RENEW_STATUS = "token.renew.status",
+    URL_HASH = "urlHash",
+    REQUEST_PARAMS = "request.params",
+    SCOPES = "scopes"
+};

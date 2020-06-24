@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage, InteractionRequiredAuthSubErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 import { ServerError } from "../../src/error/ServerError";
 import { AuthError } from "../../src/error/AuthError";
-import { IdToken } from "../../src/auth/IdToken";
 
 
 describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {

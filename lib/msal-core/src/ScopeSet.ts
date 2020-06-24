@@ -16,9 +16,10 @@ export class ScopeSet {
      */
     // TODO: Rename this, intersecting scopes isn't a great name for duplicate checker
     static isIntersectingScopes(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        cachedScopes = this.convertToLowerCase(cachedScopes);
-        for (let i = 0; i < scopes.length; i++) {
-            if (cachedScopes.indexOf(scopes[i].toLowerCase()) > -1) {
+        const convertedCachedScopes = this.trimAndConvertArrayToLowerCase([...cachedScopes]);
+        const requestScopes = this.trimAndConvertArrayToLowerCase([...scopes]);
+        for (let i = 0; i < requestScopes.length; i++) {
+            if (convertedCachedScopes.indexOf(requestScopes[i].toLowerCase()) > -1) {
                 return true;
             }
         }
@@ -32,18 +33,27 @@ export class ScopeSet {
      * @param scopes
      */
     static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
-        cachedScopes = this.convertToLowerCase(cachedScopes);
-        return scopes.every((value: any): boolean => cachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
+        const convertedCachedScopes = this.trimAndConvertArrayToLowerCase([...cachedScopes]);
+        const requestScopes = this.trimAndConvertArrayToLowerCase([...scopes]);
+        return requestScopes.every((value: any): boolean => convertedCachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
     }
 
     /**
-     * toLower
+     *  Trims and converts string to lower case
      *
      * @param scopes
      */
     // TODO: Rename this, too generic name for a function that only deals with scopes
-    static convertToLowerCase(scopes: Array<string>): Array<string> {
-        return scopes.map(scope => scope.toLowerCase());
+    static trimAndConvertToLowerCase(scope: string): string {
+        return scope.trim().toLowerCase();
+    }
+
+    /**
+     * Performs trimeAndConvertToLowerCase on string array
+     * @param scopes 
+     */
+    static trimAndConvertArrayToLowerCase(scopes: Array<string>): Array<string> {
+        return scopes.map(scope => this.trimAndConvertToLowerCase(scope));
     }
 
     /**
@@ -54,7 +64,8 @@ export class ScopeSet {
      */
     // TODO: Rename this, too generic name for a function that only deals with scopes
     static removeElement(scopes: Array<string>, scope: string): Array<string> {
-        return scopes.filter(value => value !== scope);
+        const scopeVal = this.trimAndConvertToLowerCase(scope);
+        return scopes.filter(value => value !== scopeVal);
     }
 
     /**
@@ -119,9 +130,11 @@ export class ScopeSet {
      * Appends extraScopesToConsent if passed
      * @param {@link AuthenticationParameters}
      */
-    static appendScopes(scopes: Array<string>, scopesToAppend: Array<string>): Array<string> {
-        if(scopes) {
-            return scopesToAppend ? [...scopes, ...scopesToAppend]: scopes;
+    static appendScopes(reqScopes: Array<string>, scopesToAppend: Array<string>): Array<string> {
+        if(reqScopes) {
+            const convertedScopesToAppend = scopesToAppend ? this.trimAndConvertArrayToLowerCase([...scopesToAppend]) : null;
+            const convertedReqScopes = this.trimAndConvertArrayToLowerCase([...reqScopes]);
+            return convertedScopesToAppend ? [...convertedReqScopes, ...convertedScopesToAppend] : convertedReqScopes;
         }
         return null;
     }
@@ -137,17 +150,15 @@ export class ScopeSet {
         const loginScopes = [...scopes];
         const clientIdIndex: number = loginScopes.indexOf(clientId);
         
-        if (this.isLoginScopes(loginScopes, clientId)) {
-            if (clientIdIndex >= 0) {
-                // Splice removes clientId from scope set, which will be replaced by openid and profile
-                loginScopes.splice(clientIdIndex, 1);
-            }
-            if (loginScopes.indexOf(Constants.openidScope) === -1) {
-                loginScopes.push(Constants.openidScope);
-            }
-            if (loginScopes.indexOf(Constants.profileScope) === -1) {
-                loginScopes.push(Constants.profileScope);
-            }
+        if (clientIdIndex >= 0) {
+            // Splice removes clientId from scope set, which will be replaced by openid and profile
+            loginScopes.splice(clientIdIndex, 1);
+        }
+        if (loginScopes.indexOf(Constants.openidScope) === -1) {
+            loginScopes.push(Constants.openidScope);
+        }
+        if (loginScopes.indexOf(Constants.profileScope) === -1) {
+            loginScopes.push(Constants.profileScope);
         }
         
         return loginScopes;

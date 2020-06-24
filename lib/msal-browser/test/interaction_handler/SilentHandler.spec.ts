@@ -2,12 +2,12 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache } from "@azure/msal-common";
+import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, testNavUrl } from "../utils/StringConstants";
+import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 
@@ -16,7 +16,7 @@ const clearFunc = (): void => {
     return;
 };
 
-const removeFunc = (key: string): void => {
+const removeFunc = (key: string): boolean => {
     return;
 };
 
@@ -35,6 +35,21 @@ const testNetworkResult = {
 
 const testKeySet = ["testKey1", "testKey2"];
 
+const networkInterface = {
+	sendGetRequestAsync<T>(
+		url: string,
+		options?: NetworkRequestOptions
+	): T {
+		return null;
+	},
+	sendPostRequestAsync<T>(
+		url: string,
+		options?: NetworkRequestOptions
+	): T {
+		return null;
+	},
+};
+
 describe("SilentHandler.ts Unit Tests", () => {
 
     let browserStorage: BrowserStorage;
@@ -46,9 +61,13 @@ describe("SilentHandler.ts Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-        const configObj = buildConfiguration(appConfig);
+		const configObj = buildConfiguration(appConfig);
+		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
         authCodeModule = new SPAClient({
-            authOptions: configObj.auth,
+            authOptions: {
+				...configObj.auth,
+				authority: authorityInstance,
+			},
             systemOptions: {
                 tokenRenewalOffsetSeconds:
                     configObj.system.tokenRenewalOffsetSeconds,
@@ -69,14 +88,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
             },
             storageInterface: {
-                getCache: (): InMemoryCache => {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
+                getCache: (): object => {
+                    return {};
                 },
                 setCache: (): void => {
                     // dummy impl;
@@ -140,17 +153,33 @@ describe("SilentHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", async () => {
-            await expect(silentHandler.initiateAuthRequest("")).to.be.rejectedWith(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            await expect(silentHandler.initiateAuthRequest("")).to.be.rejectedWith(BrowserAuthError);
+			const testTokenReq: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+			};
+            await expect(silentHandler.initiateAuthRequest("", testTokenReq)).to.be.rejectedWith(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            await expect(silentHandler.initiateAuthRequest("", testTokenReq)).to.be.rejectedWith(BrowserAuthError);
 
-            await expect(silentHandler.initiateAuthRequest(null)).to.be.rejectedWith(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            await expect(silentHandler.initiateAuthRequest(null)).to.be.rejectedWith(BrowserAuthError);
+            await expect(silentHandler.initiateAuthRequest(null, testTokenReq)).to.be.rejectedWith(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            await expect(silentHandler.initiateAuthRequest(null, testTokenReq)).to.be.rejectedWith(BrowserAuthError);
         });
 
         it("Creates a frame asynchronously when created with default timeout", async () => {
+			const testTokenReq: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+			};
             const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
             const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
-            const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
+            const authFrame = await silentHandler.initiateAuthRequest(testNavUrl, testTokenReq);
             expect(loadFrameSyncSpy.calledOnce).to.be.true;
             expect(loadFrameSpy.called).to.be.true;
             expect(authFrame instanceof HTMLIFrameElement).to.be.true;
@@ -158,10 +187,18 @@ describe("SilentHandler.ts Unit Tests", () => {
         }).timeout(DEFAULT_IFRAME_TIMEOUT_MS + 1000);
 
         it("Creates a frame synchronously when created with a timeout of 0", async () => {
+			const testTokenReq: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+			};
             silentHandler = new SilentHandler(authCodeModule, browserStorage, 0);
             const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
             const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
-            const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
+            const authFrame = await silentHandler.initiateAuthRequest(testNavUrl, testTokenReq);
             expect(loadFrameSyncSpy.calledOnce).to.be.true;
             expect(loadFrameSpy.called).to.be.false;
             expect(authFrame instanceof HTMLIFrameElement).to.be.true;

@@ -71,19 +71,6 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });
 
-    it("createTokenRequestCacheError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createTokenRequestCacheError("Couldn't parse request from cache");
-
-        expect(err instanceof ClientAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.tokenRequestCacheError.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.tokenRequestCacheError.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.tokenRequestCacheError.desc);
-        expect(err.name).to.equal("ClientAuthError");
-        expect(err.stack).to.include("ClientAuthError.spec.ts");
-    });
-
     it("createEndpointDiscoveryIncompleteError creates a ClientAuthError object", () => {
         const err: ClientAuthError = ClientAuthError.createEndpointDiscoveryIncompleteError("Test endpoint error.");
 
@@ -176,7 +163,7 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
     });
 
     it("createNoTokensFoundError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createNoTokensFoundError("scope1 scope2");
+        const err: ClientAuthError = ClientAuthError.createNoTokensFoundError();
 
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;

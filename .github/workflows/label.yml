@@ -6,14 +6,15 @@
 # https://github.com/actions/labeler/blob/master/README.md
 
 name: Labeler
-on: pull_request
+on: 
+- pull_request
 
 jobs:
   label:
-
     runs-on: ubuntu-latest
-
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository)
     steps:
     - uses: actions/labeler@v2
       with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        configuration-path: ".github/labeler.yml"

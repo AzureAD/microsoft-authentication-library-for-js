@@ -10,6 +10,7 @@ import { StringDict } from "./MsalTypes";
 import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, libraryVersion } from "./utils/Constants";
 import { StringUtils } from "./utils/StringUtils";
+import { ScopeSet } from "./ScopeSet";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -58,7 +59,7 @@ export class ServerRequestParameters {
         this.nonce = CryptoUtils.createNewGuid();
 
         // Set request scopes
-        this.scopes = [...scopes];
+        this.scopes = ScopeSet.trimAndConvertArrayToLowerCase(scopes && [...scopes] || []);
 
         // set state (already set at top level)
         this.state = state;

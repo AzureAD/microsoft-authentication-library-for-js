@@ -1,4 +1,4 @@
-import { UserAgentApplication, Logger } from "msal";
+import { UserAgentApplication, Logger, LogLevel } from "msal";
 
 export const requiresInteraction = errorMessage => {
     if (!errorMessage || !errorMessage.length) {
@@ -75,6 +75,9 @@ export const msalApp = new UserAgentApplication({
         navigateFrameWait: 500,
         logger: new Logger((logLevel, message) => {
             console.log(message);
+        }, {
+            level: LogLevel.Verbose,
+            piiLoggingEnabled: true
         }),
         telemetry: {
             applicationName: "react-sample-app",

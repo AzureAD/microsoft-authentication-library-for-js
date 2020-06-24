@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     SKU: "msal.js.common",
@@ -14,9 +13,6 @@ export const Constants = {
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
-
-    // Device code endpoint path
-    DEVICE_CODE_ENDPOINT_PATH: "oauth2/v2.0/devicecode",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -36,7 +32,8 @@ export const Constants = {
     FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
-    AUTHORIZATION_PENDING: "authorization_pending"
+    AUTHORIZATION_PENDING: "authorization_pending",
+    NOT_DEFINED: "not_defined"
 };
 
 /**
@@ -44,22 +41,6 @@ export const Constants = {
  */
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type"
-}
-
-/**
- * Temporary cache keys for MSAL, deleted after any request.
- */
-export enum TemporaryCacheKeys {
-    AUTHORITY = "authority",
-    ACQUIRE_TOKEN_ACCOUNT = "acquireToken.account",
-    SESSION_STATE = "session.state",
-    REQUEST_STATE = "request.state",
-    NONCE_IDTOKEN = "nonce.idtoken",
-    ORIGIN_URI = "request.origin",
-    RENEW_STATUS = "token.renew.status",
-    URL_HASH = "urlHash",
-    REQUEST_PARAMS = "request.params",
-    SCOPES = "scopes"
 }
 
 /**
@@ -86,6 +67,18 @@ export const AADTrustedHostList: string[] = [
 ];
 
 /**
+ * TODO: placeholder for discovery endpoint call. dynamically generate preferredCache and cacheAliases per cloud
+ */
+export const EnvironmentAliases: string[] = [
+    "login.microsoftonline.com",
+    "login.windows.net",
+    "login.windows-ppe.net",
+    "login.microsoft.com",
+    "sts.windows.net"
+];
+export const PreferredCacheEnvironment: string = "login.windows.net";
+
+/**
  * String constants related to AAD Authority
  */
 export enum AADAuthorityConstants {
@@ -99,7 +92,6 @@ export enum AADAuthorityConstants {
  */
 export enum AADServerParamKeys {
     CLIENT_ID = "client_id",
-    RESOURCE = "resource",
     REDIRECT_URI = "redirect_uri",
     RESPONSE_TYPE = "response_type",
     RESPONSE_MODE = "response_mode",
@@ -211,16 +203,6 @@ export enum ResponseMode {
 }
 
 /**
- * Allowed values for prompt
- */
-export enum Prompt {
-    LOGIN = "login",
-    NONE = "none",
-    CONSENT = "consent",
-    SELECT_ACCOUNT = "select_account"
-}
-
-/**
  * allowed grant_type
  */
 export enum GrantType {
@@ -239,7 +221,7 @@ export enum CacheAccountType {
     MSSTS_ACCOUNT_TYPE = "MSSTS",
     ADFS_ACCOUNT_TYPE = "ADFS",
     MSAV1_ACCOUNT_TYPE = "MSA",
-    OTHER_ACCOUNT_TYPE = "Other"
+    GENERIC_ACCOUNT_TYPE = "Generic" // NTLM, Kerberos, FBA, Basic etc
 }
 
 /**
@@ -256,26 +238,31 @@ export enum Separators {
 export enum CredentialType {
     ID_TOKEN = "IdToken",
     ACCESS_TOKEN = "AccessToken",
-    REFRESH_TOKEN = "RefreshToken"
+    REFRESH_TOKEN = "RefreshToken",
 }
 
 /**
- * cache Type
+ * Credentail Type stored in the cache
  */
-export enum CacheEntity {
+export enum CacheSchemaType {
     ACCOUNT = "Account",
-    APP_META_DATA = "AppMetaData"
+    CREDENTIAL = "Credential",
+    APP_META_DATA = "AppMetadata",
+    TEMPORARY = "TempCache"
 }
 
 /**
  * Combine all cache types
  */
-export enum CacheTypes {
-    ACCESS_TOKEN,
-    ID_TOKEN,
-    REFRESH_TOKEN,
-    ACCOUNT,
-    APP_META_DATA
+export enum CacheType {
+    ADFS = 1001,
+    MSA = 1002,
+    MSSTS = 1003,
+    GENERIC = 1004,
+    ACCESS_TOKEN = 2001,
+    REFRESH_TOKEN = 2002,
+    ID_TOKEN = 2003,
+    APP_META_DATA = 3001
 };
 
 /**

@@ -74,10 +74,10 @@ export class Logger {// Singleton Class
         const timestamp = new Date().toUTCString();
         let log: string;
         if (!StringUtils.isEmpty(this.correlationId)) {
-            log = timestamp + ":" + this.correlationId + "-" + libraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+            log = timestamp + ":" + this.correlationId + "-" + libraryVersion() + "-" + LogLevel[logLevel] + (containsPii ? "-pii" : "") + " " + logMessage;
         }
         else {
-            log = timestamp + ":" + libraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+            log = timestamp + ":" + libraryVersion() + "-" + LogLevel[logLevel] + (containsPii ? "-pii" : "") + " " + logMessage;
         }
         this.executeCallback(logLevel, log, containsPii);
     }

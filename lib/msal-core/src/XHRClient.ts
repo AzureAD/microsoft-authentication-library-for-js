@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { NetworkRequestType } from "./utils/Constants";
+
 /**
  * XHR client for JSON endpoints
  * https://www.npmjs.com/package/async-promise
@@ -43,7 +45,7 @@ export class XhrClient {
                 reject(xhr.status);
             };
 
-            if (method === "GET") {
+            if (method === NetworkRequestType.GET) {
                 xhr.send();
             }
             else {

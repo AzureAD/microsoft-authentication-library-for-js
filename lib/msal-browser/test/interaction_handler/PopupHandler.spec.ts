@@ -2,11 +2,11 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache } from "@azure/msal-common";
+import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import sinon from "sinon";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -17,7 +17,7 @@ const clearFunc = (): void => {
     return;
 };
 
-const removeFunc = (key: string): void => {
+const removeFunc = (key: string): boolean => {
     return;
 };
 
@@ -36,6 +36,21 @@ const testNetworkResult = {
 
 const testKeySet = ["testKey1", "testKey2"];
 
+const networkInterface = {
+	sendGetRequestAsync<T>(
+		url: string,
+		options?: NetworkRequestOptions
+	): T {
+		return null;
+	},
+	sendPostRequestAsync<T>(
+		url: string,
+		options?: NetworkRequestOptions
+	): T {
+		return null;
+	},
+};
+
 describe("PopupHandler.ts Unit Tests", () => {
 
     let browserStorage: BrowserStorage;
@@ -46,9 +61,13 @@ describe("PopupHandler.ts Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-        const configObj = buildConfiguration(appConfig);
+		const configObj = buildConfiguration(appConfig);
+		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
         const authCodeModule = new SPAClient({
-            authOptions: configObj.auth,
+            authOptions: {
+				...configObj.auth,
+				authority: authorityInstance,
+			},
             systemOptions: {
                 tokenRenewalOffsetSeconds:
                     configObj.system.tokenRenewalOffsetSeconds,
@@ -69,18 +88,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
             },
             storageInterface: {
-                getCache: (): InMemoryCache => {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
-                },
-                setCache: (): void => {
-                    // dummy impl;
-                },
+                getCache: (): object => ({}),
+                setCache: (): void => {},
                 clear: clearFunc,
                 containsKey: (key: string): boolean => {
                     return true;
@@ -140,14 +149,30 @@ describe("PopupHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if request uri is empty", () => {
-            expect(() => popupHandler.initiateAuthRequest("")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.initiateAuthRequest("")).to.throw(BrowserAuthError);
+			const testTokenReq: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+			};
+            expect(() => popupHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthError);
 
-            expect(() => popupHandler.initiateAuthRequest(null)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.initiateAuthRequest(null)).to.throw(BrowserAuthError);
+            expect(() => popupHandler.initiateAuthRequest(null, testTokenReq)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest(null, testTokenReq)).to.throw(BrowserAuthError);
         });
 
         it("opens a popup window", () => {
+			const testTokenReq: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+			};
             // sinon.stub(window, "open").returns(window);
             window.focus = (): void => {
                 return;
@@ -157,8 +182,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 return window;
             };
 
-            const popupWindow = popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE);
-            expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            const popupWindow = popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
 });

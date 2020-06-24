@@ -39,7 +39,7 @@ export default C =>
                         })
                         : msalApp.acquireTokenPopup(request);
                 } else {
-                    console.error('Non-interactive error:', error.errorCode)
+                    console.error('Non-interactive error:', error)
                 }
             });
         }

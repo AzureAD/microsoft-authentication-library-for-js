@@ -4,11 +4,10 @@
  */
 
 import { BaseClient } from "./BaseClient";
-import { AuthorizationCodeUrlRequest } from "../request/AuthorizationCodeUrlRequest";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
-import { RequestValidator } from "../request/RequestValidator";
 import { GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
@@ -36,8 +35,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(request: AuthorizationCodeUrlRequest): Promise<string> {
-
+    async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
         const queryString = this.createAuthCodeUrlQueryString(request);
         return `${this.defaultAuthority.authorizationEndpoint}?${queryString}`;
     }
@@ -55,19 +53,17 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
-            this.unifiedCacheManager,
+            this.cacheManager,
             this.cryptoUtils,
             this.logger
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = await responseHandler.generateAuthenticationResult(
+        const tokenResponse = responseHandler.generateAuthenticationResult(
             response.body,
             this.defaultAuthority
         );
 
-        // set the final cache and return the auth response
-        this.updateCache();
         return tokenResponse;
     }
 
@@ -95,13 +91,9 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
         // validate the redirectUri (to be a non null value)
-        RequestValidator.validateRedirectUri(request.redirectUri);
         parameterBuilder.addRedirectUri(request.redirectUri);
 
-        const scopeSet = new ScopeSet(
-            request.scopes || [],
-            this.config.authOptions.clientId,
-            false);
+        const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
 
         // add code: user set, not validated
@@ -122,18 +114,18 @@ export class AuthorizationCodeClient extends BaseClient {
      * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
      * @param request
      */
-    private createAuthCodeUrlQueryString(request: AuthorizationCodeUrlRequest): string {
+    private createAuthCodeUrlQueryString(request: AuthorizationUrlRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        const scopeSet = new ScopeSet(request.scopes || [],
-            this.config.authOptions.clientId,
-            false);
+        const scopeSet = new ScopeSet(request.scopes || []);
+        if (request.extraScopesToConsent) {
+            scopeSet.appendScopes(request.extraScopesToConsent);
+        }
         parameterBuilder.addScopes(scopeSet);
 
         // validate the redirectUri (to be a non null value)
-        RequestValidator.validateRedirectUri(request.redirectUri);
         parameterBuilder.addRedirectUri(request.redirectUri);
 
         // generate the correlationId if not set by the user and add
@@ -146,8 +138,10 @@ export class AuthorizationCodeClient extends BaseClient {
         // add response_type = code
         parameterBuilder.addResponseTypeCode();
 
+        // add library info parameters
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
         if (request.codeChallenge) {
-            RequestValidator.validateCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
             parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
         }
 
@@ -156,7 +150,6 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         if (request.prompt) {
-            RequestValidator.validatePrompt(request.prompt);
             parameterBuilder.addPrompt(request.prompt);
         }
 
@@ -174,6 +167,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.claims) {
             parameterBuilder.addClaims(request.claims);
+        }
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
         }
 
         return parameterBuilder.createQueryString();

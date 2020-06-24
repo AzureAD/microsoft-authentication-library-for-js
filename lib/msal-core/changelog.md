@@ -1,3 +1,17 @@
+# 1.3.2
+
+## Bugs
+* Ensure decoding query parameters doesnt remove plus signs twice. (#1746)
+* Fix popup about:blank errors. (#1667)
+* Fix processing and redirection of acquireTokenRedirect. (#1758)
+
+## Enhancements
+* Remove url from timeout error message, move to errorPii logger. (#1686)
+* Add onRedirectNavigate callback to stop navigatation and get redirect url. (#1691)
+* Allow applications to bypass network request for OpenID configuration. (#1578)
+* Extend acquireTokenSilent Instrumentation. (#1629)
+* Add performance instrumentation to TelemetryManager events. (#1643) 
+
 # 1.3.1
 
 ## Bugs

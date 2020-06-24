@@ -43,10 +43,6 @@ export const ClientConfigurationErrorMessage: Record<string, IClientConfiguratio
         code: "nonarray_input_scopes_error",
         desc: "Scopes cannot be passed as non-array."
     },
-    clientScope: {
-        code: "clientid_input_scopes_error",
-        desc: "Client ID can only be provided as a single scope."
-    },
     invalidPrompt: {
         code: "invalid_prompt_value",
         desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'",
@@ -69,7 +65,7 @@ export const ClientConfigurationErrorMessage: Record<string, IClientConfiguratio
     },
     untrustedAuthority: {
         code: "untrusted_authority",
-        desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
+        desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter or set validateAuthority=false."
     },
     b2cAuthorityUriInvalidPath: {
         code: "b2c_authority_uri_invalid_path",
@@ -185,9 +181,9 @@ export class ClientConfigurationError extends ClientAuthError {
             ClientConfigurationErrorMessage.invalidAuthorityType.desc);
     }
 
-    static createUntrustedAuthorityError(): ClientConfigurationError {
+    static createUntrustedAuthorityError(host: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
-            ClientConfigurationErrorMessage.untrustedAuthority.desc);
+            `${ClientConfigurationErrorMessage.untrustedAuthority.desc} Provided Authority: ${host}`);
     }
 
     static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {

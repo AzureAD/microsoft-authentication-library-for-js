@@ -25,9 +25,9 @@ describe("UrlUtils.ts class", () => {
     const TEST_URL_HASH_TWO_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_2}`;
 
     it("replaceTenantPath", () => {
-        console.log(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678"));
-        console.log(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778"));
-        console.log(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678"));
+        expect(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678")).to.eq("http://a.com/1234-5678/d/");
+        expect(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778")).to.eq("http://a.com/1234-56778/");
+        expect(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678")).to.eq("http://a.com/1234-5678/");
     });
 
     it("test getHashFromUrl returns hash from url if hash is single character", () => {
@@ -48,24 +48,28 @@ describe("UrlUtils.ts class", () => {
         expect(hash).to.be.equal(TEST_URL_NO_HASH);
     });
 
-    it("Scopes are from serverRequestParameters are mutated, but not user-given scopes", function () {
-        const scopes = ["S1"];
+    it("checks that serverRequestParameter and user provided scopes are not mutated when creating Navigate URL string", function () {
+        const originalUserScopes = ["s1"];
+        const userScopes = [...originalUserScopes];
         const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
         sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
-        const req = new ServerRequestParameters(
+        const originalReq = new ServerRequestParameters(
             authority,
             TEST_CONFIG.MSAL_CLIENT_ID,
             TEST_RESPONSE_TYPE.token,
             TEST_URIS.TEST_REDIR_URI,
-            scopes,
+            userScopes,
             TEST_CONFIG.STATE,
             TEST_CONFIG.CorrelationId
         );
-        const uriString = UrlUtils.createNavigateUrl(req);
+        
+        const req = { ...originalReq };
 
-        expect(req.scopes).to.not.be.equal(scopes);
-        expect(req.scopes.length).to.be.eql(3);
-        expect(scopes.length).to.be.eql(1);
+        const uriString = UrlUtils.createNavigateUrl(originalReq);
+
+        expect(req.scopes).to.be.eql(userScopes);
+        expect(userScopes).to.be.eql(originalUserScopes);
+        expect(req.scopes.length).to.be.eql(1);
     });
 
     describe("urlContainsHash", () => {
