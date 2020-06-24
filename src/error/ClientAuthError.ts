@@ -134,6 +134,10 @@ export const ClientAuthErrorMessage = {
     invalidCacheType: {
         code: "invalid_cache_type",
         desc: "Invalid cache type"
+    },
+    unexpectedAccountType: {
+        code: "unexpected_account_type",
+        desc: "Unexpected account type."
     }
 };
 
@@ -388,5 +392,12 @@ export class ClientAuthError extends AuthError {
     */
     static createInvalidCacheTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidCacheType.code, `${ClientAuthErrorMessage.invalidCacheType.desc}`);
+    }
+
+    /**
+    * Throws error if unexpected account type.
+    */
+    static createUnexpectedAccountTypeError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.unexpectedAccountType.code, `${ClientAuthErrorMessage.unexpectedAccountType.desc}`);
     }
 }

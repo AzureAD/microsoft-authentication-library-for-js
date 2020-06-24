@@ -16,6 +16,7 @@ import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
 import { AccountInfo } from "../../account/AccountInfo";
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -84,8 +85,7 @@ export class AccountEntity {
             case CacheAccountType.GENERIC_ACCOUNT_TYPE:
                 return CacheType.GENERIC;
             default: {
-                console.log("Unexpected account type");
-                return null;
+                throw ClientAuthError.createUnexpectedAccountTypeError();
             }
         }
     }
