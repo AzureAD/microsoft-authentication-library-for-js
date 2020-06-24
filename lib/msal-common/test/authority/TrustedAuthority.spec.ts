@@ -1,9 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
-import { NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { NetworkResponse } from "../../src/network/NetworkManager";
-import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 
 describe("TrustedAuthority.ts Class", function () {
@@ -68,6 +65,19 @@ describe("TrustedAuthority.ts Class", function () {
                 done();
             }
         });
+
+        it("throws error if cloudDiscoveryMetadata provided is invalid JSON object", (done) => {
+            sinon.stub(TrustedAuthority, "getTrustedHostList").returns([]);
+
+            try {
+                TrustedAuthority.setTrustedAuthoritiesFromConfig([], "This is not a valid json object");
+            } catch (e) {
+                expect(e).to.be.instanceOf(ClientConfigurationError);
+                expect(e.errorCode).to.eq(ClientConfigurationErrorMessage.invalidCloudDiscoveryMetadata.code);
+                expect(e.errorMessage).to.eq(ClientConfigurationErrorMessage.invalidCloudDiscoveryMetadata.desc);
+                done();
+            }
+        });
     });
 
     describe("Helper Functions", () => {
@@ -128,6 +138,31 @@ describe("TrustedAuthority.ts Class", function () {
             });
             expect(savedcloudDiscoveryMetadata.preferred_cache).to.eq(testAuthorities[0]);
             expect(savedcloudDiscoveryMetadata.preferred_network).to.eq(testAuthorities[0]);
+        });
+
+        it("getTrustedHostList", () => {
+            sinon.stub(TrustedAuthority, <any>"CloudDiscoveryMetadata").get(() => {
+                return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]}
+            });
+
+            expect(TrustedAuthority.getTrustedHostList()).to.include("fabrikamb2c.b2clogin.com");
+            expect(TrustedAuthority.getTrustedHostList()).to.be.length(1);
+        });
+
+        it("getCloudDiscoveryMetadata returns metadata object if host exists", () => {
+            sinon.stub(TrustedAuthority, <any>"CloudDiscoveryMetadata").get(() => {
+                return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]}
+            });
+
+            expect(TrustedAuthority.getCloudDiscoveryMetadata("fabrikamb2c.b2clogin.com")).to.eq(cloudDiscoveryMetadata[0]);
+        });
+
+        it("getCloudDiscoveryMetadata returns null if host does not exist", () => {
+            sinon.stub(TrustedAuthority, <any>"CloudDiscoveryMetadata").get(() => {
+                return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]}
+            });
+
+            expect(TrustedAuthority.getCloudDiscoveryMetadata("notInCloudDiscoveryMetadata")).to.be.null;
         });
     });
 });

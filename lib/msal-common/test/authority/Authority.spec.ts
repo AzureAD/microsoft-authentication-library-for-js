@@ -198,5 +198,20 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(err.errorMessage).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.desc);
             expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
         });
+
+        it("ADFS authority uses v1 well-known endpoint", async () => {
+            const authorityUrl = "https://login.microsoftonline.com/adfs/"
+            let endpoint = "";
+            authority = new Authority(authorityUrl, networkInterface);
+            sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
+            sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").callsFake((openIdEndpoint) => {
+                endpoint = openIdEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE; // Response is required but is not important for this test
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).to.equal(`${authorityUrl}.well-known/openid-configuration`);
+        });
     });
 });
