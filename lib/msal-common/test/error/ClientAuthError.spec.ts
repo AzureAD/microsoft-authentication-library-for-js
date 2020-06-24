@@ -304,4 +304,17 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });
+
+    it("createInvalidCacheTypeError creates a ClientAuthError object", () => {
+        const err: ClientAuthError = ClientAuthError.createInvalidCacheTypeError();
+
+        expect(err instanceof ClientAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(ClientAuthErrorMessage.invalidCacheType.code);
+        expect(err.errorMessage).to.include(ClientAuthErrorMessage.invalidCacheType.desc);
+        expect(err.message).to.include(ClientAuthErrorMessage.invalidCacheType.desc);
+        expect(err.name).to.equal("ClientAuthError");
+        expect(err.stack).to.include("ClientAuthError.spec.ts");
+    });
 });
