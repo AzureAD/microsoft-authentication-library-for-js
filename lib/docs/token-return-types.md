@@ -2,8 +2,8 @@
 
 When acquiring tokens, MSAL JS v1 considers three different Token Request types:
 
-|Token Type | Definition |
-| ------- | -------- | ------- |
+| Token Type | Definition |
+| ------- | -------- |
 | **token** | Indicates a request will be made for an Access Token |
 | **id_token** | Indicates a request will be made for an ID Token |
 | **id_token token** | Indicates that both an ID Token and Access Token will be requested |
