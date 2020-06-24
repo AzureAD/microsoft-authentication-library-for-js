@@ -11,6 +11,8 @@ export type { AuthCallback } from "./types/AuthCallback";
 
 // Common Object Formats
 export {
+    // Account
+    AccountInfo,
     // Request
     AuthorizationUrlRequest,
     SilentFlowRequest,
