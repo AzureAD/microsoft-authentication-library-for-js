@@ -7,11 +7,13 @@ import { StringUtils } from "./../utils/StringUtils";
 import { ClientConfigurationError } from "./../error/ClientConfigurationError";
 import { PromptValue, CodeChallengeMethodValues} from "./../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
+import { Logger } from "../logger/Logger";
 
 /**
  * Validates server consumable params from the "request" objects
  */
 export class RequestValidator {
+    private logger: Logger;
 
     /**
      * Utility to check if the `redirectUri` in the request is a non-null value
@@ -72,7 +74,7 @@ export class RequestValidator {
      * Removes unnecessary or duplicate query parameters from extraQueryParameters
      * @param request
      */
-    static sanitizeEQParams(eQParams: StringDict, queryParams: Map<string, string>) : StringDict {
+    static sanitizeEQParams(eQParams: StringDict, queryParams: Map<string, string>, logger: Logger) : StringDict {
         if (!eQParams) {
             return null;
         }
@@ -80,7 +82,7 @@ export class RequestValidator {
         // Remove any query parameters already included in SSO params
         queryParams.forEach((value, key) => {
             if (eQParams[key]) {
-                console.log("Removed param " + key + " from extraQueryParameters since it was already present in library query parameters.");
+                logger.info(`Removed param ${key} from extraQueryParameters since it was already present in library query parameters.`);
                 delete eQParams[key];
             }
         });
