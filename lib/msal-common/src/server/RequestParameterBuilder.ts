@@ -10,7 +10,6 @@ import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "../request/RequestValidator";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
-import { Logger } from '../logger/Logger';
 
 export class RequestParameterBuilder {
 
@@ -216,8 +215,8 @@ export class RequestParameterBuilder {
      * add extraQueryParams
      * @param eQparams
      */
-    addExtraQueryParameters(eQparams: StringDict, logger: Logger): void {
-        RequestValidator.sanitizeEQParams(eQparams, this.parameters, logger);
+    addExtraQueryParameters(eQparams: StringDict): void {
+        RequestValidator.sanitizeEQParams(eQparams, this.parameters);
         Object.keys(eQparams).forEach((key) => {
             this.parameters.set(key, eQparams[key]);
         });
