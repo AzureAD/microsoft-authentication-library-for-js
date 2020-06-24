@@ -227,7 +227,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         if (request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters, this.logger);
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
         }
 
         return parameterBuilder.createQueryString();
