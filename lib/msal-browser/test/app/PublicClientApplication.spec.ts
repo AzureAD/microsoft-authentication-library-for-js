@@ -1068,7 +1068,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(noHistory).to.be.undefined;
                 done();
             });
-            pca.logout({});
+            pca.logout();
             const validatedLogoutRequest: EndSessionRequest = {
                 postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
             };
