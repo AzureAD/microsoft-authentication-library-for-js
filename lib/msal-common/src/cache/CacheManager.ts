@@ -401,15 +401,15 @@ export abstract class CacheManager implements ICacheManager {
      *
      * @param value
      * @param environment
-     * // TODO: Add Cloud specific aliases based on current cloud
      */
     private matchEnvironment(
         entity: AccountEntity | CredentialEntity,
         environment: string
     ): boolean {
+        const cloudMetadata = TrustedAuthority.getCloudDiscoveryMetadata(environment);
         if (
-            TrustedAuthority.getCloudDiscoveryMetadata(environment) &&
-            TrustedAuthority.getCloudDiscoveryMetadata(entity.environment)
+            cloudMetadata &&
+            cloudMetadata.aliases.indexOf(entity.environment) > -1
         ) {
             return true;
         }
