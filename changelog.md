@@ -6,6 +6,8 @@
 - Utilize `Scopeset` across all libraries (#1770)
 - AccountInfo interface (#1789)
 - `state` support in msal-common (#1790)
+- Removal of SPA Client (#1793)
+- EndSessionRequest (#1802)
 
 # 1.0.0-beta.2
 - Fixed an issue where types were not being exported from the correct location (#1613)
