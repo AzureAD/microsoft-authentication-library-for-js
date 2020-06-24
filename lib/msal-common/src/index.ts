@@ -37,6 +37,7 @@ export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
+export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";

@@ -20,7 +20,8 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { AccountEntity } from "../cache/entities/AccountEntity";
-import { AccountInfo } from "../account/AccountInfo";
+import { EndSessionRequest } from "../request/EndSessionRequest";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -79,7 +80,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * the client to exchange for a token in acquireToken.
      * @param hashFragment
      */
-    public handleFragmentResponse(hashFragment: string, cachedState: string): string {
+    handleFragmentResponse(hashFragment: string, cachedState: string): string {
         // Handle responses.
         const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger);
         // Deserialize hash fragment response parameters.
@@ -96,15 +97,29 @@ export class AuthorizationCodeClient extends BaseClient {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param authorityUri
      */
-    getLogoutUri(account: AccountInfo, postLogoutRedirectUri: string): string {
-        // Clear current account.
-        this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(account));
+    getLogoutUri(logoutRequest: EndSessionRequest): string {
+        // Throw error if logoutRequest is null/undefined
+        if (!logoutRequest) {
+            throw ClientConfigurationError.createEmptyLogoutRequestError();
+        }
+
+        if (logoutRequest.account) {
+            // Clear given account.
+            this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
+        } else {
+            // Clear all accounts and tokens
+            this.cacheManager.clear();
+        }
 
         // Get postLogoutRedirectUri.
-        const postLogoutUriParam = postLogoutRedirectUri ? `?${AADServerParamKeys.POST_LOGOUT_URI}=` + encodeURIComponent(postLogoutRedirectUri) : "";
+        const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ? 
+            `?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(logoutRequest.postLogoutRedirectUri)}` : "";
 
+        const correlationIdParam = logoutRequest.correlationId ? 
+            `&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(logoutRequest.correlationId)}` : "";
+        
         // Construct logout URI.
-        const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}`;
+        const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}${correlationIdParam}`;
         return logoutUri;
     }
 
