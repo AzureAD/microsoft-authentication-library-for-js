@@ -1,6 +1,6 @@
 import { Constants } from "../utils/Constants";
 import { INetworkModule } from "../network/INetworkModule";
-import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
+import { ICloudInstanceDiscoveryResponse } from "./ICloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadataType } from "./CloudDiscoveryMetadataType";
 import { ICloudDiscoveryMetadata } from "./ICloudDiscoveryMetadata";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
@@ -23,7 +23,7 @@ export class TrustedAuthority {
             
             try {
                 if (cloudDiscoveryMetadata) {
-                    const parsedMetadata = JSON.parse(cloudDiscoveryMetadata) as OpenIdConfigResponse;
+                    const parsedMetadata = JSON.parse(cloudDiscoveryMetadata) as ICloudInstanceDiscoveryResponse;
                     this.saveCloudDiscoveryMetadata(parsedMetadata.metadata);
                 }
             } catch (e) {
@@ -37,7 +37,7 @@ export class TrustedAuthority {
      * @param networkInterface 
      */
     public static async setTrustedAuthoritiesFromNetwork(networkInterface: INetworkModule): Promise<void> {
-        const response = await networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(Constants.AAD_INSTANCE_DISCOVERY_ENDPT);
+        const response = await networkInterface.sendGetRequestAsync<ICloudInstanceDiscoveryResponse>(Constants.AAD_INSTANCE_DISCOVERY_ENDPT);
         const metadata = response.body.metadata;
         this.saveCloudDiscoveryMetadata(metadata);
     } 
