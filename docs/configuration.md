@@ -14,7 +14,7 @@ const msalConfig = {
         clientId: "enter_client_id_here",
         authority: "https://login.microsoftonline.com/common",
         knownAuthorities: [],
-        instanceMetdata: [],
+        cloudDiscoveryMetdata: "",
         redirectUri: "enter_redirect_uri_here",
         postLogoutRedirectUri: "enter_postlogout_uri_here",
         navigateToLoginRequestUrl: true
