@@ -178,6 +178,11 @@ export class Authority {
             throw ClientConfigurationError.createUntrustedAuthorityError();
         }
 
+        const preferredNetwork = TrustedAuthority.getCloudDiscoveryMetadata(host).preferred_network;
+        if (host !== preferredNetwork) {
+            this.canonicalAuthority = this.canonicalAuthority.replace(host, preferredNetwork);
+        }
+
         const openIdConfigEndpoint = this.defaultOpenIdConfigurationEndpoint;
         const response = await this.discoverEndpoints(openIdConfigEndpoint);
         this.tenantDiscoveryResponse = response.body;
