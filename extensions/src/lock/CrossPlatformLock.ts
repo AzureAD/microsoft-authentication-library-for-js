@@ -9,6 +9,7 @@ import { pid } from "process";
 import { CrossPlatformLockOptions } from "./CrossPlatformLockOptions";
 import { Constants } from "../utils/Constants";
 import { PersistenceError } from "../error/PersistenceError";
+import { Logger } from "@azure/msal-common";
 
 /**
  * Cross-process lock that works on all platforms.
@@ -20,10 +21,13 @@ export class CrossPlatformLock {
     private readonly retryNumber: number;
     private readonly retryDelay: number;
 
-    constructor(lockFilePath:string, lockOptions?: CrossPlatformLockOptions) {
+    private logger: Logger;
+
+    constructor(lockFilePath:string, logger: Logger, lockOptions?: CrossPlatformLockOptions) {
         this.lockFilePath = lockFilePath;
         this.retryNumber = lockOptions ? lockOptions.retryNumber : 500;
         this.retryDelay = lockOptions ? lockOptions.retryDelay : 100;
+        this.logger = logger;
     }
 
     /**
@@ -35,17 +39,17 @@ export class CrossPlatformLock {
         const processId = pid.toString();
         for (let tryCount = 0; tryCount < this.retryNumber; tryCount++)
             try {
-                console.log("Pid " + pid + " trying to acquire lock");
+                this.logger.info(`Pid ${pid} trying to acquire lock`);
                 const openPromise = promisify(open);
                 this.lockFileDescriptor = await openPromise(this.lockFilePath, "wx+");
 
-                console.log("Pid " + pid + " acquired lock");
+                this.logger.info(`Pid ${pid} acquired lock`);
                 const writePromise = promisify(write);
                 await writePromise(this.lockFileDescriptor, processId);
                 break;
             } catch (err) {
                 if (err.code == Constants.EEXIST_ERROR) {
-                    console.log(err);
+                    this.logger.info(err);
                     await this.sleep(this.retryDelay);
                 } else {
                     throw PersistenceError.createCrossPlatformLockError(err.code, err.message);
@@ -65,7 +69,7 @@ export class CrossPlatformLock {
             await closePromise(this.lockFileDescriptor);
         } catch(err){
             if(err.code == Constants.ENOENT_ERROR){
-                console.log("Lockfile does not exist");
+                this.logger.warning("Tried to unlock but Lockfile does not exist");
             } else {
                 throw PersistenceError.createCrossPlatformLockError(err.code, err.message);
             }

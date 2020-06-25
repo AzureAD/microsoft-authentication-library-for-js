@@ -8,6 +8,7 @@ import { FilePersistence } from "./FilePersistence";
 import { PersistenceError } from "../error/PersistenceError";
 import { Dpapi } from "../dpapi/Dpapi";
 import { DataProtectionScope } from "./DataProtectionScope";
+import { Logger, LoggerOptions } from "@azure/msal-common";
 
 export class FilePersistenceWithDataProtection implements IPersistence {
 
@@ -15,7 +16,7 @@ export class FilePersistenceWithDataProtection implements IPersistence {
     private scope: DataProtectionScope;
     private optionalEntropy: Uint8Array;
 
-    constructor(scope: DataProtectionScope, optionalEntropy?: string) {
+    private constructor(scope: DataProtectionScope, optionalEntropy?: string) {
         this.scope = scope;
         this.optionalEntropy = optionalEntropy ? Buffer.from(optionalEntropy, "utf-8") : null;
     }
@@ -23,10 +24,11 @@ export class FilePersistenceWithDataProtection implements IPersistence {
     public static async create(
         fileLocation: string,
         scope: DataProtectionScope,
-        optionalEntropy?: string): Promise<FilePersistenceWithDataProtection> {
+        optionalEntropy?: string,
+        loggerOptions?: LoggerOptions): Promise<FilePersistenceWithDataProtection> {
 
         const persistence = new FilePersistenceWithDataProtection(scope, optionalEntropy);
-        persistence.filePersistence = await FilePersistence.create(fileLocation);
+        persistence.filePersistence = await FilePersistence.create(fileLocation, loggerOptions);
         return persistence;
     }
 
@@ -45,8 +47,8 @@ export class FilePersistenceWithDataProtection implements IPersistence {
     public async load(): Promise<string | null> {
         try {
             const encryptedContents = await this.filePersistence.loadBuffer();
-            // TODO use MSAL common util instead
             if (typeof encryptedContents === "undefined" || !encryptedContents || 0 === encryptedContents.length) {
+                this.filePersistence.getLogger().info("Encrypted contents loaded from file were null or empty");
                 return null;
             }
             return Dpapi.unprotectData(
@@ -68,5 +70,9 @@ export class FilePersistenceWithDataProtection implements IPersistence {
 
     public getFilePath(): string {
         return this.filePersistence.getFilePath();
+    }
+
+    public getLogger(): Logger {
+        return this.filePersistence.getLogger();
     }
 }

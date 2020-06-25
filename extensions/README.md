@@ -16,16 +16,14 @@ Linux - LibSecret is used for encryption.
 
 ## Building
 
-The extensions contain prebuild binaries. To build from source, you will need Python on you path.
+The extensions contain prebuild binaries. To build from source, you will need Python on you path,
+as [node-gyp](https://github.com/nodejs/node-gyp) is used to build addons for accessing system APIs.
+
+On linux, the library uses `libsecret` so you may need to install it.
 
 - Navigate to `lib/msal-common` and run `npm run build` then `npm link`
 - Navigate to `extensions` and run `npm link @azure/msal-common`
-- Install [node-gyp](https://github.com/nodejs/node-gyp) by running `npm install -g node-gyp`
-- Run `node-gyp configure`
-- Run `node-gyp build`
 - Run `npm run build`
-
-On linux, the library uses `libsecret` so you may need to install it.
 
 ## Contributing
 

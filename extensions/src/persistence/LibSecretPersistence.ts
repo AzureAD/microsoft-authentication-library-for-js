@@ -7,6 +7,7 @@ import { setPassword, getPassword, deletePassword } from "keytar";
 import { FilePersistence } from "./FilePersistence";
 import { IPersistence } from "./IPersistence";
 import { PersistenceError } from "../error/PersistenceError";
+import { Logger, LoggerOptions } from "@azure/msal-common";
 
 export class LibSecretPersistence implements IPersistence {
 
@@ -22,10 +23,11 @@ export class LibSecretPersistence implements IPersistence {
     public static async create(
         fileLocation: string,
         serviceName: string,
-        accountName: string): Promise<LibSecretPersistence> {
+        accountName: string,
+        loggerOptions: LoggerOptions): Promise<LibSecretPersistence> {
 
         const persistence = new LibSecretPersistence(serviceName, accountName);
-        persistence.filePersistence = await FilePersistence.create(fileLocation);
+        persistence.filePersistence = await FilePersistence.create(fileLocation, loggerOptions);
         return persistence;
     }
 
@@ -61,5 +63,9 @@ export class LibSecretPersistence implements IPersistence {
 
     public getFilePath(): string {
         return this.filePersistence.getFilePath();
+    }
+
+    public getLogger(): Logger {
+        return this.filePersistence.getLogger();
     }
 }

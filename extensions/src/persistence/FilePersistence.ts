@@ -9,14 +9,20 @@ import { dirname } from "path";
 import { IPersistence } from "./IPersistence";
 import { Constants } from "../utils/Constants";
 import { PersistenceError } from "../error/PersistenceError";
+import { Logger, LoggerOptions, LogLevel } from "@azure/msal-common";
 
 export class FilePersistence implements IPersistence {
 
     private filePath: string;
+    private logger: Logger;
 
-    public static async create(fileLocation: string): Promise<FilePersistence> {
+    private constructor() {
+    }
+
+    public static async create(fileLocation: string, loggerOptions?: LoggerOptions): Promise<FilePersistence> {
         const filePersistence = new FilePersistence();
         filePersistence.filePath = fileLocation;
+        filePersistence.logger = new Logger(loggerOptions || FilePersistence.createDefaultLoggerOptions());
         await filePersistence.createCacheFile();
         return filePersistence;
     }
@@ -65,6 +71,7 @@ export class FilePersistence implements IPersistence {
         } catch (err) {
             if (err.code == Constants.ENOENT_ERROR) {
                 // file does not exist, so it was not deleted
+                this.logger.warning("Cache file does not exist, so it could not be deleted");
                 return false;
             }
             throw PersistenceError.createFileSystemError(err.code, err.message);
@@ -79,6 +86,20 @@ export class FilePersistence implements IPersistence {
         return lastSync < await this.timeLastModified();
     }
 
+    public getLogger(): Logger {
+        return this.logger;
+    }
+
+    private static createDefaultLoggerOptions(): LoggerOptions {
+        return {
+            loggerCallback: () => {
+                // allow users to not set loggerCallback
+            },
+            piiLoggingEnabled: false,
+            logLevel: LogLevel.Info
+        }
+    }
+
     private async timeLastModified(): Promise<number> {
         try {
             const statPromise = promisify(stat);
@@ -87,6 +108,7 @@ export class FilePersistence implements IPersistence {
         } catch (err) {
             if (err.code == Constants.ENOENT_ERROR) {
                 // file does not exist, so it's never been modified
+                this.logger.verbose("Cache file does not exist");
                 return 0;
             }
             throw PersistenceError.createFileSystemError(err.code, err.message);
@@ -98,7 +120,8 @@ export class FilePersistence implements IPersistence {
         // File is created only if it does not exist
         const closePromise = promisify(close);
         const openPromise = promisify(open);
-        await closePromise(await openPromise(this.filePath, "a"))
+        await closePromise(await openPromise(this.filePath, "a"));
+        this.logger.info(`File created at ${this.filePath}`);
     }
 
     private async createFileDirectory(): Promise<void> {
@@ -107,7 +130,7 @@ export class FilePersistence implements IPersistence {
             await mkdirPromise(dirname(this.filePath), {recursive: true});
         } catch (err) {
             if (err.code == Constants.EEXIST_ERROR) {
-                console.log(`Directory ${dirname(this.filePath)} " already exists"`);
+                this.logger.info(`Directory ${dirname(this.filePath)}  already exists`);
             } else {
                 throw PersistenceError.createFileSystemError(err.code, err.message);
             }
