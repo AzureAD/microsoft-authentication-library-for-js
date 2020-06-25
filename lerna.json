@@ -10,7 +10,6 @@
         "@azure/msal-node",
         "vanilla-js-test-app",
         "vanilla-js-test-app-2.0",
-          "msal-keytar",
           "msal-node-extensions"
       ]
     }

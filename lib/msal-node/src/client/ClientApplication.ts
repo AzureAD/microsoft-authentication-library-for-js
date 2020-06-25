@@ -136,10 +136,6 @@ export abstract class ClientApplication {
         };
     }
 
-    getCacheManager(): CacheManager {
-        return this.cacheManager;
-    }
-
     /**
      * Generates a request with the default scopes.
      * @param authRequest
