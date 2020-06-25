@@ -70,7 +70,7 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidCloudDiscoveryMetadata: {
         code: "invalid_cloud_discovery_metadata",
-        desc: "Invalid cloudDiscoveryMetadata provided is invalid. Must be a JSON object containing tenant_discovery_endpoint and metadata fields"
+        desc: "Invalid cloudDiscoveryMetadata provided. Must be a JSON object containing tenant_discovery_endpoint and metadata fields"
     },
     untrustedAuthority: {
         code: "untrusted_authority",
