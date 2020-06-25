@@ -5,6 +5,7 @@ import { TrustedHostListType } from "./TrustedHostListType";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { StringUtils } from "../utils/StringUtils";
+import { UrlString } from "../url/UrlString";
 
 export class TrustedAuthority {
     private static TrustedHostList: TrustedHostListType = {};
@@ -37,11 +38,21 @@ export class TrustedAuthority {
      * Called to get metadata from network if CloudDiscoveryMetadata was not populated by config
      * @param networkInterface 
      */
-    public static async setTrustedAuthoritiesFromNetwork(networkInterface: INetworkModule): Promise<void> {
-        const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${Constants.DEFAULT_AUTHORITY}oauth2/v2.0/authorize`;
-        const response = await networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint);
-        const metadata = response.body.metadata;
-        this.saveCloudDiscoveryMetadata(metadata);
+    public static async setTrustedAuthoritiesFromNetwork(authorityToVerify: UrlString, networkInterface: INetworkModule): Promise<void> {
+        const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${authorityToVerify.urlString}oauth2/v2.0/authorize`;
+        try {
+            const response = await networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint);
+            const metadata = response.body.metadata;
+            this.saveCloudDiscoveryMetadata(metadata);
+        } catch(e) {
+            return;
+        }
+
+        const host = authorityToVerify.getUrlComponents().HostNameAndPort;
+        if (this.getTrustedHostList().length > 0 && !this.IsInTrustedHostList(host)) {
+            // Custom Domain scenario, host is trusted because Instance Discovery call succeeded 
+            this.createCloudDiscoveryMetadataFromKnownAuthorities([host]);
+        }
     } 
 
     /**

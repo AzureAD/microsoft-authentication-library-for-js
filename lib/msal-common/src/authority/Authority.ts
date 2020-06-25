@@ -12,7 +12,6 @@ import { NetworkResponse } from "./../network/NetworkManager";
 import { Constants } from "./../utils/Constants";
 import { TrustedAuthority } from "./TrustedAuthority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { CloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -171,36 +170,28 @@ export class Authority {
         return `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
     }
 
-    private async validateAndSetPreferredNetwork(): Promise<string> {
+    private async validateAndSetPreferredNetwork(): Promise<void> {
         const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
         if (TrustedAuthority.getTrustedHostList().length === 0) {
-            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(this.networkInterface);
+            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(this._canonicalAuthority, this.networkInterface);
         }
 
         if (!TrustedAuthority.IsInTrustedHostList(host)) {
-            // Last effort to determine if the host is trusted by MS 
-            const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(this.aadInstanceDiscoveryEndpointUrl);
-            if (response.body && response.body.tenant_discovery_endpoint){
-                TrustedAuthority.createCloudDiscoveryMetadataFromKnownAuthorities([host]);
-                return response.body.tenant_discovery_endpoint;
-            } else {
-                throw ClientConfigurationError.createUntrustedAuthorityError();
-            }
+            throw ClientConfigurationError.createUntrustedAuthorityError();
         }
 
         const preferredNetwork = TrustedAuthority.getCloudDiscoveryMetadata(host).preferred_network;
         if (host !== preferredNetwork) {
             this.canonicalAuthority = this.canonicalAuthority.replace(host, preferredNetwork);
         }
-
-        return this.defaultOpenIdConfigurationEndpoint;
     }
 
     /**
      * Perform endpoint discovery to discover the /authorize, /token and logout endpoints.
      */
     public async resolveEndpointsAsync(): Promise<void> {
-        const openIdConfigEndpoint = await this.validateAndSetPreferredNetwork();
+        await this.validateAndSetPreferredNetwork();
+        const openIdConfigEndpoint = this.defaultOpenIdConfigurationEndpoint;
         const response = await this.discoverEndpoints(openIdConfigEndpoint);
         this.tenantDiscoveryResponse = response.body;
     }
