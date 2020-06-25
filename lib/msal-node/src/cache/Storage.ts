@@ -155,7 +155,6 @@ export class Storage extends CacheManager {
             }
             default: {
                 throw ClientAuthError.createInvalidCacheTypeError();
-                return {}; //TODO: what about this?
             }
         }
     }
