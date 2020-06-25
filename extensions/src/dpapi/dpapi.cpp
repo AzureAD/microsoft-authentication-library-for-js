@@ -1,9 +1,16 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+ // Implementation referenced from https://github.com/bradhugh/node-dpapi
+
 #include <node.h>
 #include <nan.h>
 #include <Windows.h>
 #include <dpapi.h>
 #include <functional>
 #include <iostream>
+#include <string>
 
 v8::Local<v8::String> CreateUtf8String(v8::Isolate* isolate, char* strData)
 {
@@ -95,8 +102,9 @@ void ProtectDataCommon(bool protect, Nan::NAN_METHOD_ARGS_TYPE info)
 	if (!success)
 	{
 		DWORD errorCode = GetLastError();
+		std::string errorMessage = std::string("Encryption/Decryption failed. Error code: ") + std::to_string(errorCode);
 		isolate->ThrowException(v8::Exception::Error(
-			CreateUtf8String(isolate, "Decryption failed.")));
+			CreateUtf8String(isolate, &errorMessage[0])));
 
 		return;
 	}
