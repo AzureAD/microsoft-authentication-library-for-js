@@ -31,7 +31,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 }
             };
             const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface);
-            expect(authority.canonicalAuthority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+            expect(authority.canonicalAuthority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
         });
 
         it("Throws error if URI is not in valid format", () => {
@@ -67,7 +67,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("Gets canonical authority that ends in '/'", () => {
             expect(authority.canonicalAuthority.endsWith("/")).to.be.true;
-            expect(authority.canonicalAuthority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+            expect(authority.canonicalAuthority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
         });
 
         it("Set canonical authority performs validation and canonicalization on url", () => {
