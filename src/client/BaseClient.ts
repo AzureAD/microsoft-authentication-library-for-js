@@ -38,6 +38,9 @@ export abstract class BaseClient {
     // Server Telemetry Manager
     protected serverTelemetryManager: ServerTelemetryManager;
 
+    // Network Manager
+    protected networkManager: NetworkManager;
+
     // Default authority object
     protected authority: Authority;
 
@@ -61,6 +64,14 @@ export abstract class BaseClient {
         this.serverTelemetryManager = this.config.serverTelemetryManager;
 
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
+        // Set the NetworkManager
+        this.networkManager = new NetworkManager(
+            this.config.cryptoInterface, 
+            this.config.storageInterface, 
+            this.config.networkInterface
+        );
+
+        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
 
         this.authority = this.config.authOptions.authority;
     }
