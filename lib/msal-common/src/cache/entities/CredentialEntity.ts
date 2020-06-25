@@ -4,7 +4,7 @@
  */
 
 import { Separators, CredentialType, CacheType, Constants } from "../../utils/Constants";
-import { ClientAuthError } from '../../error/ClientAuthError';
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
