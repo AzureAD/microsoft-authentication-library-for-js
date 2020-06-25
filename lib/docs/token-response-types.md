@@ -1,4 +1,4 @@
-# Token Return Types
+# Token Response Types
 
 When acquiring tokens, `msal@1.x.x` considers three different response types:
 
@@ -67,7 +67,7 @@ As described in the table above, the `response_type` is determined based on spec
     + `scopes: ['openid']`
     + `scopes: ['profile']`
 
-    Are all functionaly equivalent to `scopes: ['openid', 'profile']` when set in the request configuration object before passing it in as a parameter to any of UserAgentApplication's public APIs.
+    Are all functionally equivalent to `scopes: ['openid', 'profile']` when set in the request configuration object before passing it in as a parameter to any of UserAgentApplication's public APIs.
 
 + On a related note, `login` APIs (i.e. `loginPopup` and `loginRedirect`) will append 'openid' and 'profile' (without duplication) to the scopes array in every call, no matter what other scopes are present. This means that `login` APIs may be called with an empty scopes array in the request configuration object.
 
