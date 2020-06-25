@@ -67,8 +67,8 @@ As described in the table above, the `response_type` is determined based on spec
     + `scopes: ['openid']`
     + `scopes: ['profile']`
 
-    Are all functionally equivalent to `scopes: ['openid', 'profile']` when set in the request configuration object before passing it in as a parameter to any of UserAgentApplication's public APIs.
+    Are all functionally equivalent to `scopes: ['openid', 'profile']` from the library's perspective.
 
-+ On a related note, `login` APIs (i.e. `loginPopup` and `loginRedirect`) will append 'openid' and 'profile' (without duplication) to the scopes array in every call, no matter what other scopes are present. This means that `login` APIs may be called with an empty scopes array in the request configuration object.
++ On a related note, `login` APIs (i.e. `loginPopup` and `loginRedirect`) will append `openid` and `profile` (without duplication) to the scopes array in every call, no matter what other scopes are present. This means that `login` APIs may be called with an empty scopes array in the request configuration object.
 
 + If any scopes other than those shown above are present in the scopes array, they will remain in the array unchanged, and `openid` and `profile` will just be appended as necessary.
