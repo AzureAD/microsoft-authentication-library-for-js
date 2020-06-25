@@ -10,6 +10,13 @@ import { IPersistence } from "./IPersistence";
 import { Constants } from "../utils/Constants";
 import { PersistenceError } from "../error/PersistenceError";
 
+/**
+ * Reads and writes data to file specified by file location. File contents are not
+ * encrypted.
+ *
+ * If file or directory has not been created, it FilePersistence.create() will create
+ * file and any directories in the path recursively.
+ */
 export class FilePersistence implements IPersistence {
 
     private filePath: string;

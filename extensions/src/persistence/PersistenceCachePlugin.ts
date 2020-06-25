@@ -8,6 +8,19 @@ import { CrossPlatformLock } from "../lock/CrossPlatformLock";
 import { CrossPlatformLockOptions } from "../lock/CrossPlatformLockOptions";
 import { pid } from "process";
 
+/**
+ * MSAL cache plugin which enables callers to write the MSAL cache to disk on Windows,
+ * macOs, and Linux.
+ *
+ * - Persistence can be one of:
+ * - FilePersistence: Writes and reads from an unencrypted file. Can be used on Windows,
+ * macOs, or Linux.
+ * - FilePersistenceWithDataProtection: Used on Windows, writes and reads from file encrypted
+ * with windows dpapi.
+ * - KeychainPersistence: Used on macOs, writes and reads from keychain.
+ * - LibSecretPersistence: Used on linux, writes and reads from secret service API. Requires
+ * libsecret be installed.
+ */
 export class PersistenceCachePlugin {
 
     public persistence: IPersistence;
@@ -26,6 +39,10 @@ export class PersistenceCachePlugin {
         this.lockOptions = lockOptions;
     }
 
+    /**
+     * Reads from storage and avoids saves an in memory copy. If persistence has not been updated
+     * since last time data was read, in memory copy is used.
+     */
     public async readFromStorage(): Promise<string> {
         console.log("Reading from storage");
         if (await this.persistence.reloadNecessary(this.lastSync) || this.currentCache == null) {
@@ -46,6 +63,10 @@ export class PersistenceCachePlugin {
         return this.currentCache;
     }
 
+    /**
+     * Writes to storage. If persistence has not been updated since last time data was read,
+     * reads and latest state from persistence, sends state via callback, and updates in memory copy.
+     */
     public async writeToStorage(callback: (diskState: string) => string): Promise<void> {
         try {
             console.log("Writing to storage");
