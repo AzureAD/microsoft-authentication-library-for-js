@@ -5,7 +5,15 @@
 
 import { Storage } from './Storage';
 import { ClientAuthError, StringUtils } from '@azure/msal-common';
-import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity } from './serializer/SerializerTypes';
+import {
+    InMemoryCache,
+    JsonCache,
+    SerializedAccountEntity,
+    SerializedAccessTokenEntity,
+    SerializedRefreshTokenEntity,
+    SerializedIdTokenEntity,
+    SerializedAppMetadataEntity
+} from './serializer/SerializerTypes';
 import { ICachePlugin } from './ICachePlugin';
 import { Deserializer } from './serializer/Deserializer';
 import { Serializer } from './serializer/Serializer';
@@ -135,7 +143,7 @@ export class TokenCache {
      * @param oldState
      * @param currentState
      */
-    private mergeState(oldState: JsonCache,currentState: JsonCache): JsonCache {
+    private mergeState(oldState: JsonCache, currentState: JsonCache): JsonCache {
         let stateAfterRemoval = this.mergeRemovals(oldState, currentState);
         return this.mergeUpdates(stateAfterRemoval, currentState);
     }
@@ -146,15 +154,13 @@ export class TokenCache {
      * @param newState
      */
     private mergeUpdates(oldState: any, newState: any): JsonCache {
-
-        let finalState = { ...oldState };
         Object.keys(newState).forEach((newKey: string) => {
             let newValue = newState[newKey];
 
             // if oldState does not contain value but newValue does, add it
-            if (!finalState.hasOwnProperty(newKey)) {
+            if (!oldState.hasOwnProperty(newKey)) {
                 if (newValue !== null) {
-                    finalState[newKey] = newValue;
+                    oldState[newKey] = newValue;
                 }
             } else {
                 // both oldState and newState contain the key, do deep update
@@ -163,14 +169,14 @@ export class TokenCache {
                 let newValueIsNotArray = !Array.isArray(newValue);
 
                 if (newValueNotNull && newValueIsObject && newValueIsNotArray) {
-                    this.mergeUpdates(finalState[newKey], newValue);
+                    this.mergeUpdates(oldState[newKey], newValue);
                 } else {
-                    finalState[newKey] = newValue;
+                    oldState[newKey] = newValue;
                 }
             }
         });
 
-        return finalState;
+        return oldState;
     }
 
     /**
@@ -184,7 +190,7 @@ export class TokenCache {
         const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsDict<SerializedAccessTokenEntity>(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
         const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsDict<SerializedRefreshTokenEntity>(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
         const idTokens = oldState.IdToken != null ? this.mergeRemovalsDict<SerializedIdTokenEntity>(oldState.IdToken, newState.IdToken) : oldState.IdToken;
-        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata): oldState.AppMetadata;
+        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
 
         return {
             Account: accounts,
@@ -192,11 +198,12 @@ export class TokenCache {
             RefreshToken: refreshTokens,
             IdToken: idTokens,
             AppMetadata: appMetadata,
+            ...oldState
         };
     }
 
-    private mergeRemovalsDict<T>(oldState: Record<string, T>, newState?:  Record<string, T>):  Record<string, T> {
-        let finalState = { ...oldState };
+    private mergeRemovalsDict<T>(oldState: Record<string, T>, newState?: Record<string, T>): Record<string, T> {
+        let finalState = {...oldState};
         Object.keys(oldState).forEach((oldKey) => {
             if (!newState || !(newState.hasOwnProperty(oldKey))) {
                 delete finalState[oldKey];
