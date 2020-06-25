@@ -2163,8 +2163,7 @@ export class UserAgentApplication {
          * Returns response type "id_token token" if both login scopes and access token scopes are present
          * Returns response type "id_token" if only login scopes are present
          */
-        const loginScopes = ScopeSet.generateLoginScopes(scopes, this.clientId);
-        return (loginScopes.length > 2) ? ResponseTypes.id_token_token : ResponseTypes.id_token;
+        return (scopes.length > 2) ? ResponseTypes.id_token_token : ResponseTypes.id_token;
     }
 
     /**
