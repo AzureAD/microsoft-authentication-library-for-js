@@ -17,7 +17,7 @@ Instance Discovery Endpoint: `https://login.microsoftonline.com/common/discovery
 1. Make a request to the instance discovery endpoint above
 2. Provide the **entire** JSON response to the `auth.cloudDiscoveryMetadata` property.
 
-The example shown below shows 5 such JSON objects in the array. If none of the aliases listed match your authority you do not need to include the corresponding object in the array. 
+**Note** If none of the aliases listed in the response match your authority you should pass your authority domain in `auth.knownAuthorities` instead. 
 
 Example:
 
