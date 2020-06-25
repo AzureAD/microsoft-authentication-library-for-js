@@ -37,7 +37,8 @@ export class TrustedAuthority {
      * @param networkInterface 
      */
     public static async setTrustedAuthoritiesFromNetwork(networkInterface: INetworkModule): Promise<void> {
-        const response = await networkInterface.sendGetRequestAsync<ICloudInstanceDiscoveryResponse>(Constants.AAD_INSTANCE_DISCOVERY_ENDPT);
+        const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${Constants.DEFAULT_AUTHORITY}oauth2/v2.0/authorize`;
+        const response = await networkInterface.sendGetRequestAsync<ICloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint);
         const metadata = response.body.metadata;
         this.saveCloudDiscoveryMetadata(metadata);
     } 
