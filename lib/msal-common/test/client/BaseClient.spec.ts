@@ -25,24 +25,12 @@ class TestClient extends BaseClient {
         return this.cryptoUtils;
     }
 
-    getCacheStorage(){
-        return this.spaCacheManager;
-    }
-
     getNetworkClient(){
         return this.networkClient;
     }
 
-    getCacheManger(){
-        return this.spaCacheManager;
-    }
-
-    getAccount(){
-        return this.account;
-    }
-
     getDefaultAuthorityInstance(){
-        return this.defaultAuthority;
+        return this.authority;
     }
 
     createDefaultLibraryHeaders(): Map<string, string> {
@@ -77,9 +65,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
 
-            expect(client.getAccount()).to.be.not.null;
-            expect(client.getCacheManger()).to.be.not.null;
-            expect(client.getCacheStorage()).to.be.not.null;
             expect(client.getConfig()).to.be.not.null;
             expect(client.getCryptoUtils()).to.be.not.null;
             expect(client.getDefaultAuthorityInstance()).to.be.not.null;

@@ -16,22 +16,22 @@ import {
     ClientAuthError,
     Constants,
     B2cAuthority,
-    JsonCache,
-    Serializer,
+    AccountInfo,
+    BaseAuthRequest
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants as NodeConstants } from './../utils/Constants';
-import { CacheContext } from '../cache/CacheContext';
+import { TokenCache } from '../cache/TokenCache';
 
 export abstract class ClientApplication {
     private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
-    private cacheContext: CacheContext;
+    private tokenCache: TokenCache;
 
     /**
      * @constructor
@@ -39,11 +39,13 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
-
+        this.storage = new Storage();
+        this.tokenCache = new TokenCache(
+            this.storage,
+            this.config.cache?.cachePlugin
+        );
         this.cryptoProvider = new CryptoProvider();
-        this.storage = new Storage(this.config.cache!);
         B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
-        this.cacheContext = new CacheContext();
     }
 
     /**
@@ -56,16 +58,14 @@ export abstract class ClientApplication {
      * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(
-        request: AuthorizationUrlRequest
-    ): Promise<string> {
+    async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.getAuthCodeUrl(request);
+        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequestScopes(request) as AuthorizationUrlRequest);
     }
 
     /**
@@ -78,16 +78,14 @@ export abstract class ClientApplication {
      *
      * @param request
      */
-    async acquireTokenByCode(
-        request: AuthorizationCodeRequest
-    ): Promise<AuthenticationResult> {
+    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.acquireToken(request);
+        return authorizationCodeClient.acquireToken(this.initializeRequestScopes(request) as AuthorizationCodeRequest);
     }
 
     /**
@@ -98,21 +96,21 @@ export abstract class ClientApplication {
      * handle the caching and refreshing of tokens automatically.
      * @param request
      */
-    async acquireTokenByRefreshToken(
-        request: RefreshTokenRequest
-    ): Promise<string> {
+    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
         const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
         const refreshTokenClient = new RefreshTokenClient(
             refreshTokenClientConfig
         );
-        return refreshTokenClient.acquireToken(request);
+        return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
-    protected async buildOauthClientConfiguration(
-        authority?: string
-    ): Promise<ClientConfiguration> {
+    getCacheManager(): TokenCache {
+        return this.tokenCache;
+    }
+
+    protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
             authOptions: {
@@ -139,19 +137,23 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Generates a request with the default scopes.
+     * @param authRequest
+     */
+    protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
+        return {
+            ...authRequest,
+            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+        };
+    }
+
+    /**
      * Create authority instance. If authority not passed in request, default to authority set on the application
      * object. If no authority set in application object, then default to common authority.
      * @param authorityString
      */
-    private async createAuthority(
-        authorityString?: string
-    ): Promise<Authority> {
-        const authority: Authority = authorityString
-            ? AuthorityFactory.createInstance(
-                  authorityString,
-                  this.config.system!.networkClient!
-              )
-            : this.authority;
+    private async createAuthority(authorityString?: string): Promise<Authority> {
+        const authority: Authority = authorityString ? AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!) : this.authority;
 
         if (authority.discoveryComplete()) {
             return authority;
@@ -178,18 +180,7 @@ export abstract class ClientApplication {
         return this._authority;
     }
 
-    /**
-     * Initialize cache from a user provided Json file
-     * @param cacheObject
-     */
-    initializeCache(cacheObject: JsonCache) {
-        this.cacheContext.setCurrentCache(this.storage, cacheObject);
-    }
-
-    /**
-     * read the cache as a Json convertible object from memory
-     */
-    readCache(): JsonCache {
-        return Serializer.serializeAllCache(this.storage.getCache());
+    getAllAccounts(): AccountInfo[] {
+        return this.storage.getAllAccounts();
     }
 }

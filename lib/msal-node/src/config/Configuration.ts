@@ -5,12 +5,11 @@
 import {
     LoggerOptions,
     INetworkModule,
-    LogLevel,
-    InMemoryCache,
+    LogLevel
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
-import { CACHE } from '../utils/Constants';
 import debug from 'debug';
+import { ICachePlugin } from "../cache/ICachePlugin";
 
 /**
  * - clientId               - Client id of the application.
@@ -26,14 +25,10 @@ export type NodeAuthOptions = {
 /**
  * Use this to configure the below cache configuration options:
  *
- * - cacheLocation            - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
- * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+ * - cachePlugin   - Plugin for reading and writing token cache to disk.
  */
-// TODO Temporary placeholder - this will be rewritten by cache PR.
 export type CacheOptions = {
-    cacheLocation?: string;
-    storeAuthStateInCookie?: boolean;
-    cacheInMemory?: InMemoryCache;
+    cachePlugin?: ICachePlugin;
 };
 
 /**
@@ -66,17 +61,7 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     knownAuthorities: [],
 };
 
-const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-    cacheLocation: CACHE.FILE_CACHE,
-    storeAuthStateInCookie: false,
-    cacheInMemory: {
-        accounts: {},
-        idTokens: {},
-        accessTokens: {},
-        refreshTokens: {},
-        appMetadata: {},
-    },
-};
+const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (
