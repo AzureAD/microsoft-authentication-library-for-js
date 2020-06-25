@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { AuthorityType } from "./AuthorityType";
-import { IOpenIdConfigResponse } from "./IOpenIdConfigResponse";
+import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
 import { UrlString } from "./../url/UrlString";
 import { IUri } from "./../url/IUri";
 import { ClientAuthError } from "./../error/ClientAuthError";
@@ -12,7 +12,7 @@ import { NetworkResponse } from "./../network/NetworkManager";
 import { Constants } from "./../utils/Constants";
 import { TrustedAuthority } from "./TrustedAuthority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ICloudInstanceDiscoveryResponse } from "./ICloudInstanceDiscoveryResponse";
+import { CloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -25,7 +25,7 @@ export class Authority {
     // Canonicaly authority url components
     private _canonicalAuthorityUrlComponents: IUri;
     // Tenant discovery response retrieved from OpenID Configuration Endpoint
-    private tenantDiscoveryResponse: IOpenIdConfigResponse;
+    private tenantDiscoveryResponse: OpenIdConfigResponse;
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
 
@@ -162,8 +162,8 @@ export class Authority {
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
      * @param openIdConfigurationEndpoint
      */
-    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<NetworkResponse<IOpenIdConfigResponse>> {
-        return this.networkInterface.sendGetRequestAsync<IOpenIdConfigResponse>(openIdConfigurationEndpoint);
+    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<NetworkResponse<OpenIdConfigResponse>> {
+        return this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(openIdConfigurationEndpoint);
     }
 
     // Default AAD Instance Discovery Endpoint
@@ -179,7 +179,7 @@ export class Authority {
 
         if (!TrustedAuthority.IsInTrustedHostList(host)) {
             // Last effort to determine if the host is trusted by MS 
-            const response = await this.networkInterface.sendGetRequestAsync<ICloudInstanceDiscoveryResponse>(this.aadInstanceDiscoveryEndpointUrl);
+            const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(this.aadInstanceDiscoveryEndpointUrl);
             if (response.body && response.body.tenant_discovery_endpoint){
                 TrustedAuthority.createCloudDiscoveryMetadataFromKnownAuthorities([host]);
                 return response.body.tenant_discovery_endpoint;

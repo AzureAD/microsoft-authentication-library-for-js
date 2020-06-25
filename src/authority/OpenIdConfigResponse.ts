@@ -6,9 +6,9 @@
 /**
  * Tenant Discovery Response which contains the relevant OAuth endpoints and data needed for authentication and authorization.
  */
-export interface IOpenIdConfigResponse {
+export type OpenIdConfigResponse = {
     authorization_endpoint: string;
     token_endpoint: string;
     end_session_endpoint: string;
     issuer: string;
-}
+};

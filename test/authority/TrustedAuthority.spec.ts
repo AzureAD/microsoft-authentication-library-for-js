@@ -141,7 +141,7 @@ describe("TrustedAuthority.ts Class", function () {
         });
 
         it("getTrustedHostList", () => {
-            sinon.stub(TrustedAuthority, <any>"CloudDiscoveryMetadata").get(() => {
+            sinon.stub(TrustedAuthority, <any>"TrustedHostList").get(() => {
                 return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]}
             });
 
@@ -150,7 +150,7 @@ describe("TrustedAuthority.ts Class", function () {
         });
 
         it("getCloudDiscoveryMetadata returns metadata object if host exists", () => {
-            sinon.stub(TrustedAuthority, <any>"CloudDiscoveryMetadata").get(() => {
+            sinon.stub(TrustedAuthority, <any>"TrustedHostList").get(() => {
                 return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]}
             });
 
@@ -158,7 +158,7 @@ describe("TrustedAuthority.ts Class", function () {
         });
 
         it("getCloudDiscoveryMetadata returns null if host does not exist", () => {
-            sinon.stub(TrustedAuthority, <any>"CloudDiscoveryMetadata").get(() => {
+            sinon.stub(TrustedAuthority, <any>"TrustedHostList").get(() => {
                 return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]}
             });
 
