@@ -2,15 +2,15 @@
 
 When acquiring tokens, `msal@1.x.x` considers three different response types:
 
-| Token Type | Definition | Reference | Request Example |
+| Response Type | Definition | Reference | Request Example |
 | ------- | -------- | -------- | -------- |
 | **token** | Indicates a request will be made for an Access Token | [OAuth 2.0 Implicit Flow Specification](https://tools.ietf.org/html/rfc6749#section-4.2.1) | [Request example](https://tools.ietf.org/html/rfc6749#section-4.2.1)
 | **id_token** | Indicates a request will be made for an ID Token | [OpenID Connect Specification](https://openid.net/specs/openid-connect-core-1_0.html#Authentication) | [Request Example](https://openid.net/specs/openid-connect-core-1_0.html#id_tokenExample)
-| **id_token token** | Indicates that both an ID Token and Access Token will be requested | [OpenID Connect Specification](https://openid.net/specs/openid-connect-core-1_0.html#Authentication) | [Request Example](https://openid.net/specs/openid-connect-core-1_0.html#id_token-tokenExample)
+| **id_token token** | Indicates that both an ID Token and Access Token will be requested | [OpenID Connect Specification](https://openid.net/specs/openid-connect-core-1_0.h:tml#Authentication) | [Request Example](https://openid.net/specs/openid-connect-core-1_0.html#id_token-tokenExample)
 
 The table below describes the mapping of `msal@1.x.x` APIs in combination with the user-provided `scopes` to the resulting `response_type` set in the server request.
 
-| Scenarios | ClientId as Only Scope | No Scopes | Access Token Scopes with No ClientId | Access Token Scopes with ClientId
+| Scenarios | Client ID as Only Scope | No Scopes | Access Token Scopes with No client ID | Access Token Scopes with client ID
 | ------- | ------- | -------- | --------- | -------- |
 | **loginRedirect/Popup** | id_token | id_token |id_token token | id_token token
 | **acquireTokenInteractive** | id_token | Error | token | id_token token 
@@ -22,11 +22,11 @@ The table below describes the mapping of `msal@1.x.x` APIs in combination with t
 As described in the table above, the `response_type` is determined based on specific combinations of the following attributes:
 
 + `Scenario`: 
-    - The `msal@1.x.x` API called and the conditions it is called under
+    - The `msal@1.x.x` API called and the conditions it is called under.
     - The first three rows assume that either no `account` object was passed in or the `account` object passed in is the same as the one stored in the MSAL Cache.
     - The last three rows describe scenarios in which an `account` object was included in the request, and that `account` object is **different** from the one found in the MSAL Cache.
 
-+ `ClientId as Only Scope`: The result of passing in a scopes array containing only the client ID value.
++ `Client ID as Only Scope`: The result of passing in a scopes array containing only the client ID value.
 
 
 ```js
@@ -39,14 +39,14 @@ As described in the table above, the `response_type` is determined based on spec
     const request = { scopes: [] };
 ```
 
-+ `Access Token Scopes with No ClientId:` The result of passing in a scopes array that contains resource scopes (i.e. 'user.read') but doesn't contain the value of the ClientId.
++ `Access Token Scopes with No client ID:` The result of passing in a scopes array that contains resource scopes (i.e. 'user.read') but doesn't contain the value of the client ID.
 
 
 ```js
     const request = { scopes: ['user.read'] };
 ```
 
-+ `Access Token Scopes with ClientId:` The result of passing in a scopes array that contains resource scopes (i.e. 'user.read') and the value of the ClientId.
++ `Access Token Scopes with client ID:` The result of passing in a scopes array that contains resource scopes (i.e. 'user.read') and the value of the client ID.
 
 
 ```js
