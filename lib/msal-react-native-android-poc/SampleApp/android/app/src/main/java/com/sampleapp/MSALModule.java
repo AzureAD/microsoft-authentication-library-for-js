@@ -23,6 +23,9 @@ import com.microsoft.identity.client.exception.MsalException;
 
 import static com.facebook.react.views.textinput.ReactTextInputManager.TAG;
 
+//import DEFAULT_SCOPES from Constants.java
+import static com.sampleapp.Constants.DEFAULT_SCOPES;
+
 import java.util.Arrays;
 
 public class MSALModule extends ReactContextBaseJavaModule {
@@ -63,8 +66,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
             publicClientApplication.signIn(getCurrentActivity(), null, scopesValue.toLowerCase().split(" "), getLoginCallback(promise));
         } else {
             //the default is User.Read
-            String[] array = {"User.Read"};
-            publicClientApplication.signIn(getCurrentActivity(), null, array, getLoginCallback(promise));
+            publicClientApplication.signIn(getCurrentActivity(), null, DEFAULT_SCOPES, getLoginCallback(promise));
         }
     }
 
@@ -185,8 +187,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
             publicClientApplication.acquireToken(getCurrentActivity(), scopesValue.toLowerCase().split(" "), getAuthInteractiveCallback(promise));
         } else {
             //the default is User.Read
-            String[] array = {"User.Read"};
-            publicClientApplication.acquireToken(getCurrentActivity(), array, getAuthInteractiveCallback(promise));
+            publicClientApplication.acquireToken(getCurrentActivity(), DEFAULT_SCOPES, getAuthInteractiveCallback(promise));
         }
     }
 
@@ -232,8 +233,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
             publicClientApplication.acquireTokenSilentAsync(scopesValue.toLowerCase().split(" "), account.getAuthority(), getAuthSilentCallback(promise));
         } else {
             //the default is User.Read
-            String[] array = {"User.Read"};
-            publicClientApplication.acquireTokenSilentAsync(array, account.getAuthority(), getAuthSilentCallback(promise));
+            publicClientApplication.acquireTokenSilentAsync(DEFAULT_SCOPES, account.getAuthority(), getAuthSilentCallback(promise));
         }
     }
 

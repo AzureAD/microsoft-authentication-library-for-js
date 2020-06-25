@@ -22,6 +22,9 @@ import com.microsoft.identity.client.exception.MsalException;
 
 import static com.facebook.react.views.textinput.ReactTextInputManager.TAG;
 
+//import DEFAULT_SCOPES from Constants.java
+import static com.reactlibrary.Constants.DEFAULT_SCOPES;
+
 import java.util.Arrays;
 
 public class MSALModule extends ReactContextBaseJavaModule {
