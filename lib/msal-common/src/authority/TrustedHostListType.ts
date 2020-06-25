@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { ICloudDiscoveryMetadata } from "./ICloudDiscoveryMetadata";
+import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 
 /**
  * Key-Value type to support Cloud Discovery Metadata
  */
-export type CloudDiscoveryMetadataType = Record<string, ICloudDiscoveryMetadata>;
+export type TrustedHostListType = Record<string, CloudDiscoveryMetadata>;

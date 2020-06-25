@@ -146,7 +146,7 @@ export class ResponseHandler {
     generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
         const authorityType = authority.authorityType;
 
-        if (!serverTokenResponse.client_info) {
+        if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
         }
 
