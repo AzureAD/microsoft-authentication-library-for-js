@@ -6,7 +6,7 @@
 const express = require("express");
 const msal = require('@azure/msal-node');
 const extensions = require("msal-node-extensions");
-const {promises: fs} = require("fs");
+const { promises: fs } = require("fs");
 const path = require("path");
 
 const SERVER_PORT = process.env.PORT || 3000;
@@ -14,7 +14,6 @@ const cachePath = path.join(__dirname, "./cache.json");
 
 extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataProtectionScope.LocalMachine)
     .then((filePersistence) => {
-            const cachePlugin = new extensions.PersistenceCachePlugin(filePersistence);
 
             const publicClientConfig = {
                 auth: {
@@ -23,7 +22,7 @@ extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataPr
                     redirectUri: "http://localhost:3000/redirect",
                 },
                 cache: {
-                    cachePlugin: cachePlugin
+                    cachePlugin:  new extensions.PersistenceCachePlugin(filePersistence)
                 },
             };
             const pca = new msal.PublicClientApplication(publicClientConfig);
@@ -40,7 +39,6 @@ extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataPr
 
                 // get url to sign user in and consent to scopes needed for application
                 pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
-                    console.log(response);
                     res.redirect(response);
                 }).catch((error) => console.log(JSON.stringify(error)));
             });
@@ -63,10 +61,7 @@ extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataPr
             });
 
             msalCacheManager.readFromPersistence().then(() => {
-                app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`))
+                app.listen(SERVER_PORT, () => console.log(`Msal Extensions Sample app listening on port ${SERVER_PORT}!`))
             });
         }
     );
-
-
-
