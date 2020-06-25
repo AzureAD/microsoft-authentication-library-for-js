@@ -43,7 +43,7 @@ Most APIs from MSAL 1.x have been carried forward to MSAL 2.x without change. So
 - `getAccountState`
 - `isCallback`
 
-In MSAL 2.x, handling the response from the hash is an asynchronous operation, as MSAL will perform a token exchange as soon as it parses the authorization code from the response. Because of this, when performing redirect calls, MSAL provides the `handleRedirectPromise` function which will return a promise that resolves when the redirect has been fully handled by MSAL.
+In MSAL 2.x, handling the response from the hash is an asynchronous operation, as MSAL will perform a token exchange as soon as it parses the authorization code from the response. Because of this, when performing redirect calls, MSAL provides the `handleRedirectPromise` function which will return a promise that resolves when the redirect has been fully handled by MSAL. When using a redirect method, the page used as the `redirectUri` must implement  `handleRedirectPromise` to ensure the response is handled and tokens are cached when returning from the redirect.
 
 ```javascript
 const myMSALObj = new msal.PublicClientApplication(msalConfig); 
