@@ -8,12 +8,12 @@ export const Constants = {
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
     // default authority
-    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
+    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
     // ADFS String
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
-    AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
