@@ -170,7 +170,11 @@ export class ResponseHandler {
         );
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : reqEnvironment;
+        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+
+        if (StringUtils.isEmpty(env)) {
+            throw ClientAuthError.createInvalidCacheEnvironmentError();
+        }
 
         // IdToken
         const cachedIdToken = IdTokenEntity.createIdTokenEntity(

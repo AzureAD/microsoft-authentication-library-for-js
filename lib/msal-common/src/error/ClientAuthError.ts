@@ -119,6 +119,10 @@ export const ClientAuthErrorMessage = {
         code: "invalid_cache_record",
         desc: "Cache record object was null or undefined."
     },
+    invalidCacheEnvironment: {
+        code: "invalid_cache_environment",
+        desc: "Invalid environment when attempting to create cache entry"
+    },
     noAccountFound: {
         code: "no_account_found",
         desc: "No account found in cache for given key."
@@ -355,6 +359,13 @@ export class ClientAuthError extends AuthError {
      */
     static createNullOrUndefinedCacheRecord(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidCacheRecord.code, ClientAuthErrorMessage.invalidCacheRecord.desc);
+    }
+
+    /**
+     * Throws error when provided environment is not part of the CloudDiscoveryMetadata object
+     */
+    static createInvalidCacheEnvironmentError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidCacheEnvironment.code, ClientAuthErrorMessage.invalidCacheEnvironment.desc);
     }
 
     /**

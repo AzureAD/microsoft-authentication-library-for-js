@@ -15,6 +15,7 @@ import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
 import { TrustedAuthority } from "../../authority/TrustedAuthority";
 import { AccountInfo } from "../../account/AccountInfo";
+import { ClientAuthError } from '../../error/ClientAuthError';
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -136,10 +137,12 @@ export class AccountEntity {
         account.homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        account.environment = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment)
-            ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache
-            : reqEnvironment;
-
+        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+        if (StringUtils.isEmpty(env)) {
+            throw ClientAuthError.createInvalidCacheEnvironmentError();
+        }
+        
+        account.environment = env;
         account.realm = idToken.claims.tid;
 
         if (idToken) {
@@ -170,10 +173,13 @@ export class AccountEntity {
         account.homeAccountId = idToken.claims.sub;
         
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        account.environment = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment)
-            ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache
-            : reqEnvironment;
+        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
 
+        if (StringUtils.isEmpty(env)) {
+            throw ClientAuthError.createInvalidCacheEnvironmentError();
+        }
+
+        account.environment = env;
         account.username = idToken.claims.upn;
         // add uniqueName to claims
         // account.name = idToken.claims.uniqueName;
