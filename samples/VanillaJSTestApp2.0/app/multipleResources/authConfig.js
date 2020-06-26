@@ -12,7 +12,7 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"],
+    scopes: ["User.Read", "https://msidlab0.spoppe.com/user.read"],
     redirectUri: "http://localhost:30662/"
 };
 

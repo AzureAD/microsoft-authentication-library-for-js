@@ -24,7 +24,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 function handleResponse(resp) {
     if (resp !== null) {
         showWelcomeMessage(resp.account);
-        getTokenRedirect(loginRequest, resp.account);
+        getTokenRedirect(tokenRequest, resp.account);
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
@@ -34,7 +34,7 @@ function handleResponse(resp) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
             showWelcomeMessage(currentAccounts[0]);
-            getTokenRedirect(loginRequest, currentAccounts[0]);
+            getTokenRedirect(tokenRequest, currentAccounts[0]);
         }
     }
 }
