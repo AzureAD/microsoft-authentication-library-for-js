@@ -3,13 +3,11 @@ The Microsoft Authentication Extensions for Node offers secure mechanisms for cl
 
 MSAL Node supports an in-memory cache by default and provides the ICacheManager to perform cache serialization. Developers are required to implement their own cache persistance across multiple platforms and Microsoft Authentication Extensions makes this simpler.
 
-The supported platforms are Windows, Mac and Linux.
+Supported platforms are Windows, Mac and Linux:
 
-Windows - Dpapi is used for encryption.
-
-MAC - The MAC KeyChain is used.
-
-Linux - LibSecret is used for encryption.
+- Windows - DPAPI is used for encryption.
+- MAC - The MAC KeyChain is used.
+- Linux - LibSecret is used for encryption.
 
 > Note: It is recommended to use this library for cache persistence support for Public client applications such as Desktop apps only. In web applications, this may lead to scale and performance issues. Web applications are recommended to persist the cache in session.
 
@@ -20,7 +18,6 @@ The extensions contain prebuild binaries. To build from source, you will need Py
 
 - Navigate to `lib/msal-common` and run `npm run build` then `npm link`
 - Navigate to `extensions` and run `npm link @azure/msal-common`
-- Install [node-gyp](https://github.com/nodejs/node-gyp) by running `npm install -g node-gyp`
 - Run `node-gyp configure`
 - Run `node-gyp build`
 - Run `npm run build`
