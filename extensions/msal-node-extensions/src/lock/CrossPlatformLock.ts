@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { open, close, write, unlink } from "fs";
-import { promisify } from "util";
+import { promises as fs } from "fs"
 import { pid } from "process";
 import { CrossPlatformLockOptions } from "./CrossPlatformLockOptions";
 import { Constants } from "../utils/Constants";
@@ -36,12 +35,10 @@ export class CrossPlatformLock {
         for (let tryCount = 0; tryCount < this.retryNumber; tryCount++)
             try {
                 console.log("Pid " + pid + " trying to acquire lock");
-                const openPromise = promisify(open);
-                this.lockFileDescriptor = await openPromise(this.lockFilePath, "wx+");
+                this.lockFileDescriptor = await fs.open(this.lockFilePath, "wx+");
 
                 console.log("Pid " + pid + " acquired lock");
-                const writePromise = promisify(write);
-                await writePromise(this.lockFileDescriptor, processId);
+                await fs.write(this.lockFileDescriptor, processId);
                 break;
             } catch (err) {
                 if (err.code == Constants.EEXIST_ERROR) {
@@ -59,10 +56,8 @@ export class CrossPlatformLock {
     public async unlock(): Promise<void> {
         try {
             // delete lock file
-            const unlinkPromise = promisify(unlink);
-            await unlinkPromise(this.lockFilePath);
-            const closePromise = promisify(close);
-            await closePromise(this.lockFileDescriptor);
+            await fs.unlink(this.lockFilePath);
+            await fs.close(this.lockFileDescriptor);
         } catch(err){
             if(err.code == Constants.ENOENT_ERROR){
                 console.log("Lockfile does not exist");
