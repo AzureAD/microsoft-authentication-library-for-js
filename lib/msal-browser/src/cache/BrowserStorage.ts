@@ -169,7 +169,7 @@ export class BrowserStorage extends CacheManager {
             case CacheSchemaType.TEMPORARY: {
                 const itemCookie = this.getItemCookie(key);
                 if (this.cacheConfig.storeAuthStateInCookie) {
-                    return decodeURIComponent(itemCookie);
+                    return itemCookie;
                 }
                 return value;
             }
