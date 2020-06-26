@@ -39,11 +39,9 @@ The Scopes-based Response Types table below describes the mapping of `msal@1.x.x
 || Account Object in Request Configuration | Empty Scopes Array | Login Scopes Only | Access Token Scopes Only | Access Token and Login Scopes
 | -------- | ------- | ------- | -------- | --------- | -------- |
 | **loginRedirect/Popup** | **None or Matching Account in MSAL Cache** | id_token | id_token |id_token token | id_token token
-| **acquireTokenRedirect/Popup** | **None or Matching Account in MSAL Cache** | Error | id_token | token | id_token token 
-| **acquireTokenSilent** | **None or Matching Account in MSAL Cache** | Error | id_token | token | id_token token
+| **acquireTokenX** | **None or Matching Account in MSAL Cache** | Error | id_token | token | id_token token 
 | **loginRedirect/Popup** | **Doesn't match Account in MSAL Cache**| id_token | id_token | id_token token | id_token token
-| **acquireTokenRedirect/Popup** |  **Doesn't match Account in MSAL Cache** |Error | id_token | id_token token | id_token token
-| **acquireTokenSilent** |  **Doesn't match Account in MSAL Cache** |Error | id_token | id_token token | id_token token
+| **acquireTokenX** |  **Doesn't match Account in MSAL Cache** |Error | id_token | id_token token | id_token token
 
 
 ### Scope-based Response Types Table Disambiguation

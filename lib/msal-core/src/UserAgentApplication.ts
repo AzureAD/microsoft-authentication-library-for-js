@@ -2154,16 +2154,26 @@ export class UserAgentApplication {
      *
      */
     private getTokenType(accountObject: Account, scopes: string[]): string {
-        // Returns response type "token" if request has no login scopes and the account passed matches the current account object
-        if (!ScopeSet.isLoginScopes(scopes, this.clientId) && Account.compareAccounts(accountObject, this.getAccount())) {
+        // Check if account in request matches account in cache
+        const accountsMatch = Account.compareAccounts(accountObject, this.getAccount());
+        // Check if login scopes are included
+        const containsLoginScopes = ScopeSet.isLoginScopes(scopes, this.clientId);
+
+        // response_type is id_token because only login scopes are present (["openid", "profile"].length == 2);
+        if (containsLoginScopes && (scopes.length == 2)) {
+            return ResponseTypes.id_token;
+        }
+
+        // response_type is token because there are no login scopes and accounts match so login is not necessary.
+        if(!containsLoginScopes && accountsMatch) {
             return ResponseTypes.token;
         }
 
         /**
-         * Returns response type "id_token token" if both login scopes and access token scopes are present
-         * Returns response type "id_token" if only login scopes are present
+         * response_type is id_token_token because either both login and resource scopes are present
+         * or because there are resource scopes only but accounts don't match and login is required
          */
-        return (scopes.length > 2) ? ResponseTypes.id_token_token : ResponseTypes.id_token;
+        return ResponseTypes.id_token_token; 
     }
 
     /**
