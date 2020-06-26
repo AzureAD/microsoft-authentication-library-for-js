@@ -39,7 +39,7 @@ msalInstance.acquireTokenSilent(request).then(tokenResponse => {
         return myMSALObj.acquireTokenPopup(request);
     }
 }).catch(error => {
-    console.log(error);
+    handleError(error);
 });
 ```
 
