@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * Error thrown when trying to write MSAL cache to persistence.
+ */
 export class PersistenceError extends Error {
 
     // Short string denoting error

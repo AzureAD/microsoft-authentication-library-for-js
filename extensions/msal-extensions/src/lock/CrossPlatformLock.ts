@@ -26,6 +26,11 @@ export class CrossPlatformLock {
         this.retryDelay = lockOptions ? lockOptions.retryDelay : 100;
     }
 
+    /**
+     * Locks cache from read or writes by creating file with same path and name as
+     * cache file but with .lockfile extension. If another process has already created
+     * the lockfile, will retry again based on configuration settings set by CrossPlatformLockOptions
+     */
     public async lock(): Promise<void> {
         const processId = pid.toString();
         for (let tryCount = 0; tryCount < this.retryNumber; tryCount++)
@@ -33,6 +38,7 @@ export class CrossPlatformLock {
                 console.log("Pid " + pid + " trying to acquire lock");
                 const openPromise = promisify(open);
                 this.lockFileDescriptor = await openPromise(this.lockFilePath, "wx+");
+
                 console.log("Pid " + pid + " acquired lock");
                 const writePromise = promisify(write);
                 await writePromise(this.lockFileDescriptor, processId);
@@ -47,6 +53,9 @@ export class CrossPlatformLock {
             }
     }
 
+    /**
+     * unlocks cache file by deleting .lockfile.
+     */
     public async unlock(): Promise<void> {
         try {
             // delete lock file
