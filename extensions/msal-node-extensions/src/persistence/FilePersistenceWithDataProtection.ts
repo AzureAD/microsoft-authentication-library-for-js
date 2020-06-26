@@ -6,7 +6,7 @@
 import { IPersistence } from "./IPersistence";
 import { FilePersistence } from "./FilePersistence";
 import { PersistenceError } from "../error/PersistenceError";
-import { Dpapi } from "../dpapi/Dpapi";
+import { Dpapi } from "../dpapi-addon/Dpapi";
 import { DataProtectionScope } from "./DataProtectionScope";
 
 /**

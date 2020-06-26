@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { writeFile, readFile, unlink, stat, mkdir, close, open } from "fs";
-import { promisify } from "util";
+import { promises as fs } from "fs"
 import { dirname } from "path";
 import { IPersistence } from "./IPersistence";
 import { Constants } from "../utils/Constants";
@@ -29,45 +28,40 @@ export class FilePersistence implements IPersistence {
     }
 
     public async save(contents: string): Promise<void> {
-        const writeFilePromise = promisify(writeFile);
         try {
-            await writeFilePromise(this.getFilePath(), contents, "utf-8");
+            await fs.writeFile(this.getFilePath(), contents, "utf-8");
         } catch (err) {
             throw PersistenceError.createFileSystemError(err.code, err.message);
         }
     }
 
     public async saveBuffer(contents: Uint8Array): Promise<void> {
-        const writeFilePromise = promisify(writeFile);
         try {
-            await writeFilePromise(this.getFilePath(), contents);
+            await fs.writeFile(this.getFilePath(), contents);
         } catch (err) {
             throw PersistenceError.createFileSystemError(err.code, err.message);
         }
     }
 
     public async load(): Promise<string> {
-        const readFilePromise = promisify(readFile);
         try {
-            return await readFilePromise(this.getFilePath(), "utf-8");
+            return await fs.readFile(this.getFilePath(), "utf-8");
         } catch (err) {
             throw PersistenceError.createFileSystemError(err.code, err.message);
         }
     };
 
     public async loadBuffer(): Promise<Uint8Array> {
-        const readFilePromise = promisify(readFile);
         try {
-            return await readFilePromise(this.getFilePath());
+            return await fs.readFile(this.getFilePath());
         } catch (err) {
             throw PersistenceError.createFileSystemError(err.code, err.message);
         }
     };
 
     public async delete(): Promise<boolean> {
-        const deleteFilePromise = promisify(unlink);
         try {
-            await deleteFilePromise(this.getFilePath());
+            await fs.unlink(this.getFilePath());
             return true;
         } catch (err) {
             if (err.code == Constants.ENOENT_ERROR) {
@@ -88,8 +82,7 @@ export class FilePersistence implements IPersistence {
 
     private async timeLastModified(): Promise<number> {
         try {
-            const statPromise = promisify(stat);
-            const stats = await statPromise(this.filePath);
+            const stats = await fs.stat(this.filePath);
             return stats.mtime.getTime();
         } catch (err) {
             if (err.code == Constants.ENOENT_ERROR) {
@@ -103,15 +96,13 @@ export class FilePersistence implements IPersistence {
     private async createCacheFile(): Promise<void> {
         await this.createFileDirectory();
         // File is created only if it does not exist
-        const closePromise = promisify(close);
-        const openPromise = promisify(open);
-        await closePromise(await openPromise(this.filePath, "a"))
+        const fileHandle = await fs.open(this.filePath, "a");
+        await fileHandle.close();
     }
 
     private async createFileDirectory(): Promise<void> {
         try {
-            const mkdirPromise = promisify(mkdir);
-            await mkdirPromise(dirname(this.filePath), {recursive: true});
+            await fs.mkdir(dirname(this.filePath), {recursive: true});
         } catch (err) {
             if (err.code == Constants.EEXIST_ERROR) {
                 console.log(`Directory ${dirname(this.filePath)} " already exists"`);

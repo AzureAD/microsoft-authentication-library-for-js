@@ -15,7 +15,7 @@ import { PersistenceError } from "../error/PersistenceError";
 export class CrossPlatformLock {
 
     private readonly lockFilePath: string;
-    private lockFileDescriptor: number;
+    private lockFileHandle: fs.FileHandle;
     private readonly retryNumber: number;
     private readonly retryDelay: number;
 
@@ -35,10 +35,10 @@ export class CrossPlatformLock {
         for (let tryCount = 0; tryCount < this.retryNumber; tryCount++)
             try {
                 console.log("Pid " + pid + " trying to acquire lock");
-                this.lockFileDescriptor = await fs.open(this.lockFilePath, "wx+");
+                this.lockFileHandle = await fs.open(this.lockFilePath, "wx+");
 
                 console.log("Pid " + pid + " acquired lock");
-                await fs.write(this.lockFileDescriptor, processId);
+                await fs.write(this.lockFileHandle, processId);
                 break;
             } catch (err) {
                 if (err.code == Constants.EEXIST_ERROR) {
@@ -57,7 +57,7 @@ export class CrossPlatformLock {
         try {
             // delete lock file
             await fs.unlink(this.lockFilePath);
-            await fs.close(this.lockFileDescriptor);
+            await this.lockFileHandle.close();
         } catch(err){
             if(err.code == Constants.ENOENT_ERROR){
                 console.log("Lockfile does not exist");
