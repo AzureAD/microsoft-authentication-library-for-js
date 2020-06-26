@@ -39,35 +39,41 @@ Most APIs from MSAL 1.x have been carried forward to MSAL 2.x without change. So
 - `urlContainsHash`
 - `getCurrentConfiguration`
 - `getLoginInProgress`
-- `getAllAccounts`
+- `getAccount`
 - `getAccountState`
 - `isCallback`
 
-In MSAL 2.x, handling the response from the hash is an asynchronous operation, as MSAL will perform a token exchange as soon as it parses the authorization code from the response. Because of this, when performing redirect calls, MSAL provides the `handleRedirectPromise` function which will return a promise that resolves when the redirect has been fully handled by MSAL.
+In MSAL 2.x, handling the response from the hash is an asynchronous operation, as MSAL will perform a token exchange as soon as it parses the authorization code from the response. Because of this, when performing redirect calls, MSAL provides the `handleRedirectPromise` function which will return a promise that resolves when the redirect has been fully handled by MSAL. When using a redirect method, the page used as the `redirectUri` must implement  `handleRedirectPromise` to ensure the response is handled and tokens are cached when returning from the redirect.
 
 ```javascript
 const myMSALObj = new msal.PublicClientApplication(msalConfig); 
 
 // Register Callbacks for Redirect flow
 myMSALObj.handleRedirectPromise().then((tokenResponse) => {
-    const accountObj = tokenResponse ? tokenResponse.account : myMSALObj.getAccount();
-    if (accountObj) {
-        // Account object was retrieved, continue with app progress
-        console.log('id_token acquired at: ' + new Date().toString());
-    } else if (tokenResponse && tokenResponse.tokenType === "Bearer") {
-        // No account object available, but access token was retrieved
-        console.log('access_token acquired at: ' + new Date().toString());
-    } else if (tokenResponse === null) {
-        // tokenResponse was null, attempt sign in or enter unauthenticated state for app
-        signIn();
+    let accountObj = null;
+    if (tokenResponse !== null) {
+        accountObj = tokenResponse.account;
+        const id_token = tokenResponse.idToken;
+        const access_token = tokenResponse.accessToken;
     } else {
-        console.log("tokenResponse was not null but did not have any tokens: " + tokenResponse);
+        const currentAccounts = myMSALObj.getAllAccounts();
+        if (currentAccounts === null) {
+            // No user signed in
+            return;
+        } else if (currentAccounts.length > 1) {
+            // More than one user signed in, find desired user with getAccountByUsername(username)
+        } else {
+            accountObj = currentAccounts[0];
+        }
     }
+    
+    const username = accountObj.username;
+   
 }).catch((error) => {
     console.log(error);
 });
 
-async function signIn() {
+function signIn() {
     myMSALObj.loginRedirect(loginRequest);
 }
 
@@ -92,8 +98,14 @@ async function signIn(method) {
         console.log(error);
     }
 
-    if (myMSALObj.getAccount()) {
-        showWelcomeMessage(myMSALObj.getAccount());
+    const currentAccounts = myMSALObj.getAllAccounts();
+    if (currentAccounts === null) {
+        // No user signed in
+        return;
+    } else if (currentAccounts.length > 1) {
+        // More than one user signed in, find desired user with getAccountByUsername(username)
+    } else {
+        accountObj = currentAccounts[0];
     }
 }
 

@@ -15,7 +15,7 @@ import {
     AuthorityFactory,
     ClientAuthError,
     Constants,
-    B2cAuthority,
+    TrustedAuthority,
     AccountInfo,
     BaseAuthRequest
 } from '@azure/msal-common';
@@ -45,7 +45,7 @@ export abstract class ClientApplication {
             this.config.cache?.cachePlugin
         );
         this.cryptoProvider = new CryptoProvider();
-        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
     }
 
     /**
@@ -117,6 +117,7 @@ export abstract class ClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!

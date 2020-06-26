@@ -19,8 +19,11 @@ import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { AccountInfo, AuthenticationResult } from "../../src";
 
 describe("RefreshTokenClient unit tests", () => {
-
     beforeEach(() => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+    });
+
+    afterEach(() => {
         sinon.restore();
     });
 
