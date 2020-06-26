@@ -22,7 +22,7 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
 
@@ -146,18 +146,13 @@ export class ResponseHandler {
     generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
         const authorityType = authority.authorityType;
 
-        if (!serverTokenResponse.client_info)
+        if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
-
-        switch (authorityType) {
-            case AuthorityType.B2C:
-                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, "policy", this.cryptoObj);
-            case AuthorityType.Adfs:
-                return AccountEntity.createADFSAccount(authority, idToken);
-            // default to AAD
-            default:
-                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, null, this.cryptoObj);
         }
+
+        return (authorityType === AuthorityType.Adfs)? 
+            AccountEntity.createADFSAccount(authority, idToken): 
+            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
     }
 
     /**
@@ -175,7 +170,11 @@ export class ResponseHandler {
         );
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
+        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+
+        if (StringUtils.isEmpty(env)) {
+            throw ClientAuthError.createInvalidCacheEnvironmentError();
+        }
 
         // IdToken
         const cachedIdToken = IdTokenEntity.createIdTokenEntity(
