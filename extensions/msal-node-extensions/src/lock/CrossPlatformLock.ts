@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { open, close, write, unlink } from "fs";
-import { promisify } from "util";
+import { promises as fs } from "fs"
 import { pid } from "process";
 import { CrossPlatformLockOptions } from "./CrossPlatformLockOptions";
 import { Constants } from "../utils/Constants";
@@ -17,13 +16,13 @@ import { Logger } from "@azure/msal-common";
 export class CrossPlatformLock {
 
     private readonly lockFilePath: string;
-    private lockFileDescriptor: number;
+    private lockFileHandle: fs.FileHandle;
     private readonly retryNumber: number;
     private readonly retryDelay: number;
 
     private logger: Logger;
 
-    constructor(lockFilePath:string, logger: Logger, lockOptions?: CrossPlatformLockOptions) {
+    constructor(lockFilePath: string, logger: Logger, lockOptions?: CrossPlatformLockOptions) {
         this.lockFilePath = lockFilePath;
         this.retryNumber = lockOptions ? lockOptions.retryNumber : 500;
         this.retryDelay = lockOptions ? lockOptions.retryDelay : 100;
@@ -40,12 +39,10 @@ export class CrossPlatformLock {
         for (let tryCount = 0; tryCount < this.retryNumber; tryCount++)
             try {
                 this.logger.info(`Pid ${pid} trying to acquire lock`);
-                const openPromise = promisify(open);
-                this.lockFileDescriptor = await openPromise(this.lockFilePath, "wx+");
+                this.lockFileHandle = await fs.open(this.lockFilePath, "wx+");
 
                 this.logger.info(`Pid ${pid} acquired lock`);
-                const writePromise = promisify(write);
-                await writePromise(this.lockFileDescriptor, processId);
+                await fs.write(this.lockFileHandle, processId);
                 break;
             } catch (err) {
                 if (err.code == Constants.EEXIST_ERROR) {
@@ -63,12 +60,10 @@ export class CrossPlatformLock {
     public async unlock(): Promise<void> {
         try {
             // delete lock file
-            const unlinkPromise = promisify(unlink);
-            await unlinkPromise(this.lockFilePath);
-            const closePromise = promisify(close);
-            await closePromise(this.lockFileDescriptor);
-        } catch(err){
-            if(err.code == Constants.ENOENT_ERROR){
+            await fs.unlink(this.lockFilePath);
+            await this.lockFileHandle.close();
+        } catch (err) {
+            if (err.code == Constants.ENOENT_ERROR) {
                 this.logger.warning("Tried to unlock but Lockfile does not exist");
             } else {
                 throw PersistenceError.createCrossPlatformLockError(err.code, err.message);

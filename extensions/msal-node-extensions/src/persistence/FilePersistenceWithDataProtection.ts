@@ -6,10 +6,16 @@
 import { IPersistence } from "./IPersistence";
 import { FilePersistence } from "./FilePersistence";
 import { PersistenceError } from "../error/PersistenceError";
-import { Dpapi } from "../dpapi/Dpapi";
+import { Dpapi } from "../dpapi-addon/Dpapi";
 import { DataProtectionScope } from "./DataProtectionScope";
 import { Logger, LoggerOptions } from "@azure/msal-common";
 
+/**
+ * Uses CryptProtectData and CryptUnprotectData on Windows to encrypt and decrypt file contents.
+ *
+ * scope: Scope of the data protection. Either local user or the current machine
+ * optionalEntropy: Password or other additional entropy used to encrypt the data
+ */
 export class FilePersistenceWithDataProtection implements IPersistence {
 
     private filePersistence: FilePersistence;

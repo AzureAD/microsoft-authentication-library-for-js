@@ -9,6 +9,12 @@ import { IPersistence } from "./IPersistence";
 import { PersistenceError } from "../error/PersistenceError";
 import { Logger, LoggerOptions } from "@azure/msal-common";
 
+/**
+ * Uses reads and writes passwords to macOS keychain
+ *
+ * serviceName: Identifier used as key for whatever value is stored
+ * accountName: Account under which password should be stored
+ */
 export class KeychainPersistence implements IPersistence {
 
     protected readonly serviceName;

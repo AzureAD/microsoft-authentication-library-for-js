@@ -3,7 +3,4 @@
  * Licensed under the MIT License.
  */
 
-export enum DataProtectionScope {
-    CurrentUser = "CurrentUser",
-    LocalMachine = "LocalMachine",
-}
+void ProtectDataCommon(bool protect, Nan::NAN_METHOD_ARGS_TYPE info);
