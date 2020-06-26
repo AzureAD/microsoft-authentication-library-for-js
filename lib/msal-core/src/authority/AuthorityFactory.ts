@@ -51,9 +51,10 @@ export class AuthorityFactory {
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
-    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, authorityMetadata?: string): Authority|null {
+    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, authorityMetadata?: string): Authority {
         if (StringUtils.isEmpty(authorityUrl)) {
-            return null;
+            // TODO: Throw better error here
+            throw "No Authority Provided";
         }
 
         if (authorityMetadata) {
@@ -61,7 +62,7 @@ export class AuthorityFactory {
             this.saveMetadataFromConfig(authorityUrl, authorityMetadata);
         }
 
-        return new Authority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
+        return new Authority(authorityUrl, validateAuthority, this.getMetadata(authorityUrl));
     }
 
     public static isAdfs(authorityUrl: string): boolean {

@@ -154,10 +154,6 @@ export class WindowUtils {
      * @ignore
      */
     static addHiddenIFrame(iframeId: string, logger: Logger): HTMLIFrameElement {
-        if (typeof iframeId === "undefined") {
-            return null;
-        }
-
         logger.infoPii("Add msal frame to document:" + iframeId);
         let adalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
         if (!adalFrame) {

@@ -41,12 +41,12 @@ export class RequestUtils {
             throw ClientConfigurationError.createEmptyRequestError();
         }
 
-        let scopes: Array<string>|undefined;
+        let scopes: Array<string> = [];
         let extraQueryParameters: StringDict|undefined;
 
         if(request) {
             // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
-            scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
+            scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes || [];
             ScopeSet.validateInputScope(scopes, !isLoginCall, clientId);
 
             // validate prompt parameter
@@ -57,7 +57,6 @@ export class RequestUtils {
 
             // validate claimsRequest
             this.validateClaimsRequest(request.claimsRequest);
-
         }
 
         // validate and generate state and correlationId

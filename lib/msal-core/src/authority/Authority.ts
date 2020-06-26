@@ -25,7 +25,7 @@ export enum AuthorityType {
  * @hidden
  */
 export class Authority {
-    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
+    constructor(authority: string, validateAuthority: boolean, authorityMetadata: ITenantDiscoveryResponse|null) {
         this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
 
@@ -71,11 +71,11 @@ export class Authority {
 
     public set CanonicalAuthority(url: string) {
         this.canonicalAuthority = UrlUtils.CanonicalizeUri(url);
-        this.canonicalAuthorityUrlComponents = null;
+        this.canonicalAuthorityUrlComponents = UrlUtils.GetUrlComponents(this.canonicalAuthority);
     }
 
     private canonicalAuthority: string;
-    private canonicalAuthorityUrlComponents: IUri|null;
+    private canonicalAuthorityUrlComponents: IUri;
 
     public get CanonicalAuthorityUrlComponents(): IUri {
         if (!this.canonicalAuthorityUrlComponents) {

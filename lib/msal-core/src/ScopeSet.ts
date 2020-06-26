@@ -91,20 +91,7 @@ export class ScopeSet {
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
      * @ignore
      */
-    static validateInputScope(scopes: Array<string>|undefined|null, scopesRequired: boolean, clientId: string): void {
-        if (!scopes) {
-            if (scopesRequired) {
-                throw ClientConfigurationError.createScopesRequiredError(scopes);
-            } else {
-                return;
-            }
-        }
-
-        // Check that scopes is an array object (also throws error if scopes == null)
-        if (!Array.isArray(scopes)) {
-            throw ClientConfigurationError.createScopesNonArrayError(scopes);
-        }
-
+    static validateInputScope(scopes: Array<string>, scopesRequired: boolean, clientId: string): void {
         // Check that scopes is not an empty array
         if (scopes.length < 1) {
             throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
@@ -141,13 +128,13 @@ export class ScopeSet {
      * Appends extraScopesToConsent if passed
      * @param {@link AuthenticationParameters}
      */
-    static appendScopes(reqScopes: Array<string>, reqExtraScopesToConsent: Array<string>): Array<string> {
+    static appendScopes(reqScopes: Array<string>|undefined, reqExtraScopesToConsent: Array<string>|undefined): Array<string> {
         if (reqScopes) {
             const convertedExtraScopes = reqExtraScopesToConsent ? this.trimAndConvertArrayToLowerCase([...reqExtraScopesToConsent]) : null;
             const convertedReqScopes = this.trimAndConvertArrayToLowerCase([...reqScopes]);
             return convertedExtraScopes ? [...convertedReqScopes, ...convertedExtraScopes] : convertedReqScopes;
         }
-        return undefined;
+        return [];
     }
 
     // #endregion

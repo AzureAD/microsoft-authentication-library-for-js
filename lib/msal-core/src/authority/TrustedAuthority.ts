@@ -24,7 +24,7 @@ export class TrustedAuthority {
      * @param telemetryManager 
      * @param correlationId 
      */
-    private static async getAliases(telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<any>> {
+    private static async getAliases(telemetryManager: TelemetryManager, correlationId: string): Promise<Array<any>> {
         const client: XhrClient = new XhrClient();
 
         const httpMethod = NetworkRequestType.GET;
@@ -47,7 +47,7 @@ export class TrustedAuthority {
      * @param telemetryManager 
      * @param correlationId 
      */
-    public static async setTrustedAuthoritiesFromNetwork(telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
+    public static async setTrustedAuthoritiesFromNetwork(telemetryManager: TelemetryManager, correlationId: string): Promise<void> {
         const metadata = await this.getAliases(telemetryManager, correlationId);
         metadata.forEach(function(entry: any){
             const authorities: Array<string> = entry.aliases;

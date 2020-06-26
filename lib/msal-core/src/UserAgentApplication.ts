@@ -157,7 +157,7 @@ export class UserAgentApplication {
     private redirectError: AuthError|null;
 
     // Authority Functionality
-    protected authorityInstance: Authority|null;
+    protected authorityInstance: Authority;
 
     /**
      * setter for the authority URL
@@ -182,7 +182,7 @@ export class UserAgentApplication {
      *
      * @returns {@link Authority} authority instance
      */
-    public getAuthorityInstance(): Authority|null {
+    public getAuthorityInstance(): Authority {
         return this.authorityInstance;
     }
 
@@ -218,8 +218,8 @@ export class UserAgentApplication {
 
         this.telemetryManager = this.getTelemetryManagerFromConfig(this.config.system!.telemetry, this.clientId);
 
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.validateAuthority, this.config.auth.knownAuthorities);
-        AuthorityFactory.saveMetadataFromConfig(this.config.auth.authority, this.config.auth.authorityMetadata);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.validateAuthority!, this.config.auth.knownAuthorities!);
+        AuthorityFactory.saveMetadataFromConfig(this.config.auth.authority!, this.config.auth.authorityMetadata!);
 
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
 
@@ -294,7 +294,7 @@ export class UserAgentApplication {
 
         if (interactionType === Constants.interactionTypeRedirect) {
             this.logger.verbose("Interaction type is redirect");
-            if (this.errorReceivedCallback) {
+            if (this.tokenReceivedCallback) {
                 this.logger.verbose("Two callbacks were provided to handleRedirectCallback, calling success callback with response");
                 this.tokenReceivedCallback(response);
             } else if (this.authResponseCallback) {
@@ -319,7 +319,7 @@ export class UserAgentApplication {
             if (this.errorReceivedCallback) {
                 this.logger.verbose("Two callbacks were provided to handleRedirectCallback, calling error callback");
                 this.errorReceivedCallback(authErr, response.accountState);
-            } else {
+            } else if (this.authResponseCallback) {
                 this.logger.verbose("One callback was provided to handleRedirectCallback, calling authResponseCallback with error");
                 this.authResponseCallback(authErr, response);
             }
@@ -377,7 +377,7 @@ export class UserAgentApplication {
         })
             .then((resp) => {
                 this.logger.verbose("Successfully logged in");
-                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId!, apiEvent, true);
                 return resp;
             })
             .catch((error: AuthError) => {
@@ -406,7 +406,7 @@ export class UserAgentApplication {
         })
             .then((resp) => {
                 this.logger.verbose("Successfully acquired token");
-                this.telemetryManager.stopAndFlushApiEvent(request.correlationId, apiEvent, true);
+                this.telemetryManager.stopAndFlushApiEvent(request.correlationId!, apiEvent, true);
                 return resp;
             })
             .catch((error: AuthError) => {
@@ -449,7 +449,7 @@ export class UserAgentApplication {
         }
 
         // Get the account object if a session exists
-        let account: Account;
+        let account: Account|null;
         if (request && request.account && !isLoginCall) {
             account = request.account;
             this.logger.verbose("Account set from request");
@@ -516,17 +516,18 @@ export class UserAgentApplication {
      * Helper function to acquireToken
      *
      */
-    private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
+    private async acquireTokenHelper(account: Account|null, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
         this.logger.verbose("AcquireTokenHelper has been called");
         this.logger.verbose(`Interaction type: ${interactionType}. isLoginCall: ${isLoginCall}`);
 
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
-        const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
-        this.logger.verbosePii(`Serialized scopes: ${scope}`);
+        const scopes = request.scopes ? request.scopes : [this.clientId.toLowerCase()];
+        const scopeString = scopes.join(" ");
+        this.logger.verbosePii(`Serialized scopes: ${scopeString}`);
 
         let serverAuthenticationRequest: ServerRequestParameters;
-        const acquireTokenAuthority: Authority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority!, request.authorityMetadata)! : this.authorityInstance!;
+        const acquireTokenAuthority: Authority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority!, request.authorityMetadata)! : this.authorityInstance;
 
         let popUpWindow: Window|undefined;
 
@@ -607,7 +608,7 @@ export class UserAgentApplication {
                 // popUpWindow will be null for redirects, so we dont need to attempt to monitor the window
                 if (popUpWindow) {
                     try {
-                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system.loadFrameTimeout, urlNavigate, this.logger);
+                        const hash = await WindowUtils.monitorWindowForHash(popUpWindow, this.config.system!.loadFrameTimeout!, urlNavigate, this.logger);
 
                         this.handleAuthenticationResponse(hash);
 
@@ -741,7 +742,7 @@ export class UserAgentApplication {
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
-                request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority!, request.authorityMetadata)! : this.authorityInstance!,
+                request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority!, request.authorityMetadata)! : this.authorityInstance,
                 this.clientId,
                 responseType,
                 this.getRedirectUri(request.redirectUri),
@@ -932,7 +933,11 @@ export class UserAgentApplication {
             WindowUtils.loadFrameSync(urlNavigate, frameName, this.logger)!;
 
         try {
-            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system.loadFrameTimeout, urlNavigate, this.logger, true);
+            if (!iframe.contentWindow) {
+                // TODO throw a better error
+                throw "No contentWindow"
+            }
+            const hash = await WindowUtils.monitorWindowForHash(iframe.contentWindow, this.config.system!.loadFrameTimeout!, urlNavigate, this.logger, true);
 
             if (hash) {
                 this.handleAuthenticationResponse(hash);
@@ -1051,9 +1056,9 @@ export class UserAgentApplication {
         this.account = null;
 
         try {
-            if (!this.authorityInstance!.hasCachedMetadata()) {
+            if (!this.authorityInstance.hasCachedMetadata()) {
                 this.logger.verbose("No cached metadata for authority");
-                await AuthorityFactory.saveMetadataFromNetwork(this.authorityInstance!, this.telemetryManager, requestCorrelationId);
+                await AuthorityFactory.saveMetadataFromNetwork(this.authorityInstance, this.telemetryManager, requestCorrelationId);
             } else {
                 this.logger.verbose("Cached metadata found for authority");
             }
@@ -1146,7 +1151,7 @@ export class UserAgentApplication {
      * Used to call the constructor callback with the token/error
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
-    private processCallBack(hash: string, stateInfo: ResponseStateInfo, parentCallback?: Function): void {
+    private processCallBack(hash: string, stateInfo: ResponseStateInfo, parentCallback: Function|null): void {
         this.logger.info("ProcessCallBack has been called. Processing callback from redirect response");
 
         // get the state info from the hash
@@ -1357,13 +1362,13 @@ export class UserAgentApplication {
      * @param {@link ServerRequestParameters} - Request sent to the STS to obtain an id_token/access_token
      * @param {Account} account - Account for which the scopes were requested
      */
-    private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): AuthResponse {
+    private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account|null): AuthResponse|null {
         this.logger.verbose("GetCachedToken has been called");
-        let accessTokenCacheItem: AccessTokenCacheItem = null;
+        let accessTokenCacheItem: AccessTokenCacheItem|null = null;
         const scopes = serverAuthenticationRequest.scopes;
 
         // filter by clientId and account
-        const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : null);
+        const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : "");
         this.logger.verbose("Getting all cached access tokens");
 
         // No match found after initial filtering
@@ -1405,7 +1410,7 @@ export class UserAgentApplication {
                 }
 
                 this.logger.verbose("Single authority used, setting authorityInstance");
-                serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
+                serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority!);
             }
         }
         // if an authority is passed in the API
@@ -1504,7 +1509,7 @@ export class UserAgentApplication {
     private extractADALIdToken(): any {
         this.logger.verbose("ExtractADALIdToken has been called");
         const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
-        return (!StringUtils.isEmpty(adalIdToken)) ? TokenUtils.extractIdToken(adalIdToken) : null;
+        return (!StringUtils.isEmpty(adalIdToken)) ? TokenUtils.extractIdToken(adalIdToken!) : null;
     }
 
     /**
@@ -1512,7 +1517,7 @@ export class UserAgentApplication {
      * Acquires access token using a hidden iframe.
      * @ignore
      */
-    private renewToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+    private renewToken(requestSignature: string, resolve: Function, reject: Function, account: Account|null, serverAuthenticationRequest: ServerRequestParameters): void {
         this.logger.verbose("RenewToken has been called");
         this.logger.verbosePii(`RenewToken scope and authority: ${requestSignature}`);
 
@@ -1538,7 +1543,7 @@ export class UserAgentApplication {
      * Renews idtoken for app's own backend when clientId is passed as a single scope in the scopes array.
      * @ignore
      */
-    private renewIdToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
+    private renewIdToken(requestSignature: string, resolve: Function, reject: Function, account: Account|null, serverAuthenticationRequest: ServerRequestParameters): void {
         this.logger.info("RenewIdToken has been called");
 
         const frameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, requestSignature);
@@ -1779,7 +1784,7 @@ export class UserAgentApplication {
 
                     // Check with the account in the Cache
                     if (!StringUtils.isEmpty(cachedAccount)) {
-                        acquireTokenAccount = JSON.parse(cachedAccount);
+                        acquireTokenAccount = JSON.parse(cachedAccount!);
                         this.logger.verbose("AcquireToken request account retrieved from cache");
                         if (response.account && acquireTokenAccount && Account.compareAccounts(response.account, acquireTokenAccount)) {
                             response = this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
@@ -2292,7 +2297,7 @@ export class UserAgentApplication {
      * @hidden
      * @ignore
      */
-    private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account, isLoginCall: boolean, loginStartPage?: string) {
+    private updateCacheEntries(serverAuthenticationRequest: ServerRequestParameters, account: Account|null, isLoginCall: boolean, loginStartPage?: string) {
         // Cache Request Originator Page
         if (loginStartPage) {
             this.cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${serverAuthenticationRequest.state}`, loginStartPage, this.inCookie);
