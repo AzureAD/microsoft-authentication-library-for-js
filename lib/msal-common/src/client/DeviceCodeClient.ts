@@ -49,7 +49,7 @@ export class DeviceCodeClient extends BaseClient {
         const queryString = this.createQueryString(request);
         const headers = this.createDefaultLibraryHeaders();
 
-        return this.executePostRequestToDeviceCodeEndpoint(this.defaultAuthority.deviceCodeEndpoint, queryString, headers);
+        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers);
     }
 
     /**
@@ -96,9 +96,7 @@ export class DeviceCodeClient extends BaseClient {
 
         const parameterBuilder: RequestParameterBuilder = new RequestParameterBuilder();
 
-        const scopeSet = new ScopeSet(request.scopes || [],
-            this.config.authOptions.clientId,
-            false);
+        const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
@@ -140,7 +138,7 @@ export class DeviceCodeClient extends BaseClient {
 
                     } else {
                         const response = await this.executePostToTokenEndpoint(
-                            this.defaultAuthority.tokenEndpoint,
+                            this.authority.tokenEndpoint,
                             requestBody,
                             headers);
 
@@ -169,9 +167,7 @@ export class DeviceCodeClient extends BaseClient {
 
         const requestParameters: RequestParameterBuilder = new RequestParameterBuilder();
 
-        const scopeSet = new ScopeSet(request.scopes || [],
-            this.config.authOptions.clientId,
-            false);
+        const scopeSet = new ScopeSet(request.scopes || []);
         requestParameters.addScopes(scopeSet);
         requestParameters.addClientId(this.config.authOptions.clientId);
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);

@@ -43,10 +43,10 @@ export enum TemporaryCacheKeys {
     ACQUIRE_TOKEN_ACCOUNT = "acquireToken.account",
     SESSION_STATE = "session.state",
     REQUEST_STATE = "request.state",
-    NONCE_IDTOKEN = "nonce.idtoken",
+    NONCE_IDTOKEN = "nonce.id_token",
     ORIGIN_URI = "request.origin",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
-}
+};

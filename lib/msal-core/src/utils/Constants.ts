@@ -43,6 +43,8 @@ export class Constants {
     static get renewToken(): string { return "RENEW_TOKEN"; }
     static get unknown(): string { return "UNKNOWN"; }
 
+    static get ADFS(): string { return "adfs"; };
+
     static get homeAccountIdentifier(): string { return "homeAccountIdentifier"; }
 
     static get common(): string { return "common"; }
@@ -100,14 +102,8 @@ export enum ErrorCacheKeys {
     ERROR_DESC = "error.description"
 }
 
-export const AADTrustedHostList =  {
-    "login.windows.net": "login.windows.net",
-    "login.chinacloudapi.cn": "login.chinacloudapi.cn",
-    "login.cloudgovapi.us": "login.cloudgovapi.us",
-    "login.microsoftonline.com": "login.microsoftonline.com",
-    "login.microsoftonline.de": "login.microsoftonline.de",
-    "login.microsoftonline.us": "login.microsoftonline.us"
-};
+export const DEFAULT_AUTHORITY: string = "https://login.microsoftonline.com/common";
+export const AAD_INSTANCE_DISCOVERY_ENDPOINT: string = `${DEFAULT_AUTHORITY}/discovery/instance?api-version=1.1&authorization_endpoint=${DEFAULT_AUTHORITY}/oauth2/v2.0/authorize`;
 
 // default authority
 export const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -135,6 +131,11 @@ export const BlacklistedEQParams = [
 
 export type InteractionType = "redirectInteraction" | "popupInteraction" | "silentInteraction";
 
+export const NetworkRequestType = {
+    GET: "GET",
+    POST: "POST"
+};
+
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
  * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
@@ -160,5 +161,5 @@ export const FramePrefix = {
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-    return "1.3.1";
+    return "1.3.2";
 }

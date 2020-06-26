@@ -5,34 +5,33 @@
 
 import { IUri } from "../IUri";
 import { ITenantDiscoveryResponse } from "./ITenantDiscoveryResponse";
-import { ClientConfigurationErrorMessage } from "../error/ClientConfigurationError";
+import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../error/ClientConfigurationError";
 import { XhrClient, XhrResponse } from "../XHRClient";
 import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
 import HttpEvent from "../telemetry/HttpEvent";
+import { TrustedAuthority } from "./TrustedAuthority";
+import { NetworkRequestType } from "../utils/Constants";
 
 /**
  * @hidden
  */
 export enum AuthorityType {
-    Aad,
-    Adfs,
-    B2C
+    Default,
+    Adfs
 }
 
 /**
  * @hidden
  */
-export abstract class Authority {
-    constructor(authority: string, validateAuthority: boolean, authorityMetadata: ITenantDiscoveryResponse|null) {
+export class Authority {
+    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
         this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
 
         this.validateAsUri();
         this.tenantDiscoveryResponse = authorityMetadata;
     }
-
-    public abstract get AuthorityType(): AuthorityType;
 
     public IsValidationEnabled: boolean;
 
@@ -86,9 +85,7 @@ export abstract class Authority {
         return this.canonicalAuthorityUrlComponents;
     }
 
-    /**
-     * // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-     */
+    // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
     protected get DefaultOpenIdConfigurationEndpoint(): string {
         return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
     }
@@ -119,11 +116,8 @@ export abstract class Authority {
     private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         const client = new XhrClient();
 
-        const httpMethod = "GET";
-        const httpEvent = new HttpEvent(correlationId, "openIdConfigurationEndpoint");
-        httpEvent.url = openIdConfigurationEndpoint;
-        httpEvent.httpMethod = httpMethod;
-        telemetryManager.startEvent(httpEvent);
+        const httpMethod = NetworkRequestType.GET;
+        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, openIdConfigurationEndpoint, "openIdConfigurationEndpoint");
 
         return client.sendRequestAsync(openIdConfigurationEndpoint, httpMethod, /* enableCaching: */ true)
             .then((response: XhrResponse) => {
@@ -149,7 +143,17 @@ export abstract class Authority {
      * If successful, caches the endpoint for later use in OIDC
      */
     public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
-        const openIdConfigurationEndpointResponse = await this.GetOpenIdConfigurationEndpointAsync(telemetryManager, correlationId);
+        if (this.IsValidationEnabled) {
+            const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
+            if (TrustedAuthority.getTrustedHostList().length === 0) {
+                await TrustedAuthority.setTrustedAuthoritiesFromNetwork(telemetryManager, correlationId);
+            }
+
+            if (!TrustedAuthority.IsInTrustedHostList(host)) {
+                throw ClientConfigurationError.createUntrustedAuthorityError(host);
+            }
+        }
+        const openIdConfigurationEndpointResponse = this.GetOpenIdConfigurationEndpoint();
         this.tenantDiscoveryResponse = await this.DiscoverEndpoints(openIdConfigurationEndpointResponse, telemetryManager, correlationId);
 
         return this.tenantDiscoveryResponse;
@@ -166,7 +170,10 @@ export abstract class Authority {
     }
 
     /**
-     * Returns a promise with the TenantDiscoveryEndpoint
+     * Returns a promise which resolves to the OIDC endpoint
+     * Only responds with the endpoint
      */
-    public abstract GetOpenIdConfigurationEndpointAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<string>;
+    public GetOpenIdConfigurationEndpoint(): string {
+        return this.DefaultOpenIdConfigurationEndpoint;
+    }
 }
