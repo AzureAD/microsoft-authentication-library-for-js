@@ -120,7 +120,7 @@ export class BrowserStorage extends CacheManager {
                 const stringVal = value as string;
                 this.windowStorage.setItem(key, stringVal);
                 if (this.cacheConfig.storeAuthStateInCookie) {
-                    this.setItemCookie(encodeURIComponent(key), stringVal);
+                    this.setItemCookie(key, stringVal);
                 }
                 break;
             }
@@ -167,7 +167,7 @@ export class BrowserStorage extends CacheManager {
                 return (JSON.parse(value) as AppMetadataEntity);
             }
             case CacheSchemaType.TEMPORARY: {
-                const itemCookie = this.getItemCookie(encodeURIComponent(key));
+                const itemCookie = this.getItemCookie(key);
                 if (this.cacheConfig.storeAuthStateInCookie) {
                     return decodeURIComponent(itemCookie);
                 }
