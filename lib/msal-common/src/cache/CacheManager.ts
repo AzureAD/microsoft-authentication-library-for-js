@@ -5,7 +5,7 @@
 
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, EnvironmentAliases, APP_META_DATA } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_META_DATA } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -17,6 +17,7 @@ import { AuthError } from "../error/AuthError";
 import { ICacheManager } from "./interface/ICacheManager";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { AccountInfo } from "../account/AccountInfo";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -400,15 +401,15 @@ export abstract class CacheManager implements ICacheManager {
      *
      * @param value
      * @param environment
-     * // TODO: Add Cloud specific aliases based on current cloud
      */
     private matchEnvironment(
         entity: AccountEntity | CredentialEntity,
         environment: string
     ): boolean {
+        const cloudMetadata = TrustedAuthority.getCloudDiscoveryMetadata(environment);
         if (
-            EnvironmentAliases.includes(environment) &&
-            EnvironmentAliases.includes(entity.environment)
+            cloudMetadata &&
+            cloudMetadata.aliases.indexOf(entity.environment) > -1
         ) {
             return true;
         }

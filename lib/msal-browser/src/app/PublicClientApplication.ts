@@ -12,7 +12,7 @@ import {
     Authority,
     AuthorityFactory,
     InteractionRequiredAuthError,
-    B2cAuthority,
+    TrustedAuthority,
     AuthorizationUrlRequest,
     PersistentCacheKeys,
     IdToken,
@@ -100,7 +100,7 @@ export class PublicClientApplication {
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
         // Initialize default authority instance
-        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
         this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(
             this.config.auth.authority,
@@ -582,7 +582,8 @@ export class PublicClientApplication {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
-                knownAuthorities: this.config.auth.knownAuthorities
+                knownAuthorities: this.config.auth.knownAuthorities,
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
