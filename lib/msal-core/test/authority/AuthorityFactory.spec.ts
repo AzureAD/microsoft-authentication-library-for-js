@@ -12,10 +12,14 @@ describe("AuthorityFactory.ts Class", function () {
     })
 
     describe("CreateInstance", () => {
-        it("tests if empty authority url returns null", function () {
-            let authority = AuthorityFactory.CreateInstance("", true);
-    
-            expect(authority).to.be.null;
+        it("tests if empty authority url returns null", function (done) {
+            let authority: Authority;
+            try {
+                authority = AuthorityFactory.CreateInstance("", true);
+            } catch (e) {
+                expect(e).to.equal("No Authority Provided");
+                done();
+            }
         });
 
         it("Creates Authority Instance", function () {
@@ -40,7 +44,7 @@ describe("AuthorityFactory.ts Class", function () {
     describe("saveMetadataFromConfig", () => {
         it("does nothing if json is falsey", () => {
             AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, "");
-            expect(AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority)).to.be.undefined;
+            expect(AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority)).to.be.null;
         });
 
         it("throws if invalid json is provided", done => {

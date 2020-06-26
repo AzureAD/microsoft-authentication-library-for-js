@@ -40,7 +40,7 @@ describe("Authority.ts Class", function () {
                 authority = new Authority("", true);
             }
             catch(e) {
-                expect(e).to.be.equal(ClientConfigurationErrorMessage.invalidAuthorityType)
+                expect(e).to.be.equal("Url required")
             }
         });
     

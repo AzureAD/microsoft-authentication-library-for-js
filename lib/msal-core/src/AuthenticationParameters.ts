@@ -16,7 +16,7 @@ export type AuthenticationParameters = {
     prompt?: string;
     extraQueryParameters?: StringDict;
     claimsRequest?: string;
-    authority?: string|null;
+    authority?: string;
     state?: string;
     correlationId?: string;
     account?: Account|null;

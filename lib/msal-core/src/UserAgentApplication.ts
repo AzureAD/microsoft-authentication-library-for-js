@@ -174,7 +174,7 @@ export class UserAgentApplication {
      * @returns {string} authority
      */
     public get authority(): string {
-        return this.authority;
+        return this.authorityInstance.CanonicalAuthority;
     }
 
     /**
@@ -742,7 +742,7 @@ export class UserAgentApplication {
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
             const serverAuthenticationRequest = new ServerRequestParameters(
-                request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority!, request.authorityMetadata)! : this.authorityInstance,
+                request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority!, request.authorityMetadata) : this.authorityInstance,
                 this.clientId,
                 responseType,
                 this.getRedirectUri(request.redirectUri),
@@ -1080,6 +1080,8 @@ export class UserAgentApplication {
                 this.logger.verbose("EndSessionEndpoint found and urlNavigate set");
                 this.logger.verbosePii(`urlNavigate set to: ${this.authorityInstance.EndSessionEndpoint}`);
             } else {
+                console.log("HERE")
+                console.log(this.authority)
                 urlNavigate = `${this.authority}oauth2/v2.0/logout?${correlationIdParam}${postLogoutQueryParam}`;
                 this.logger.verbose("No endpoint, urlNavigate set to default");
             }

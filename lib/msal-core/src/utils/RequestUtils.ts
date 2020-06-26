@@ -94,10 +94,10 @@ export class RequestUtils {
      * Removes unnecessary or duplicate query parameters from extraQueryParameters
      * @param request
      */
-    static validateEQParameters(extraQueryParameters: StringDict|undefined, claimsRequest: string|undefined) : StringDict|undefined {
+    static validateEQParameters(extraQueryParameters: StringDict|undefined, claimsRequest: string|undefined) : StringDict {
         const eQParams : StringDict = { ...extraQueryParameters};
         if (!eQParams) {
-            return undefined;
+            return {};
         }
         if (claimsRequest) {
             // this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");

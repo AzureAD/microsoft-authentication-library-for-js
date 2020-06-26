@@ -92,9 +92,18 @@ export class ScopeSet {
      * @ignore
      */
     static validateInputScope(scopes: Array<string>, scopesRequired: boolean, clientId: string): void {
+        // Check that scopes is an array object (also throws error if scopes == null)	
+        if (!Array.isArray(scopes)) {	
+            throw ClientConfigurationError.createScopesNonArrayError(scopes);	
+        }
+        
         // Check that scopes is not an empty array
-        if (scopes.length < 1) {
-            throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
+        if (!scopes.length) {	
+            if (scopesRequired) {	
+                throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());	
+            } else {	
+                return;	
+            }	
         }
 
         // Check that clientId is passed as single scope

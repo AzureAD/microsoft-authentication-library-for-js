@@ -25,12 +25,12 @@ export enum AuthorityType {
  * @hidden
  */
 export class Authority {
-    constructor(authority: string, validateAuthority: boolean, authorityMetadata: ITenantDiscoveryResponse|null) {
+    constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse|null) {
         this.IsValidationEnabled = validateAuthority;
         this.CanonicalAuthority = authority;
 
         this.validateAsUri();
-        this.tenantDiscoveryResponse = authorityMetadata;
+        this.tenantDiscoveryResponse = authorityMetadata || null;
     }
 
     public IsValidationEnabled: boolean;

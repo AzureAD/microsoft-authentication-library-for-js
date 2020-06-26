@@ -115,7 +115,7 @@ export class ServerRequestParameters {
         queryParameters = this.addHintParameters(account, queryParameters);
 
         // sanity check for developer passed extraQueryParameters
-        const eQParams: StringDict|null|undefined = request ? request.extraQueryParameters : null;
+        const eQParams: StringDict = request && request.extraQueryParameters ? request.extraQueryParameters : {};
 
         // Populate the extraQueryParameters to be sent to the server
         this.queryParameters = ServerRequestParameters.generateQueryParametersString(queryParameters);
@@ -247,7 +247,7 @@ export class ServerRequestParameters {
      * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
      * @param extraQueryParameters
      */
-    static generateQueryParametersString(queryParameters?: StringDict|null|undefined, silentCall?: boolean): string {
+    static generateQueryParametersString(queryParameters: StringDict, silentCall?: boolean): string {
         let paramsString: string = "";
 
         if (queryParameters) {
@@ -257,7 +257,7 @@ export class ServerRequestParameters {
                     return;
                 }
 
-                if (paramsString == null) {
+                if (StringUtils.isEmpty(paramsString)) {
                     paramsString = `${key}=${encodeURIComponent(queryParameters[key])}`;
                 }
                 else {

@@ -122,11 +122,6 @@ describe("WindowUtils", () => {
     });
 
     describe("addHiddenIFrame", () => {
-        it("returns null if iframeId is undefined", () => {
-            const iframe = WindowUtils.addHiddenIFrame(undefined, null);
-            expect(iframe).to.equals(null);
-        });
-
         it("creates and returns an iframe with expected attributes", () => {
             const logger = new Logger(() => {});
             const iframe = WindowUtils.addHiddenIFrame("testIframe", logger);

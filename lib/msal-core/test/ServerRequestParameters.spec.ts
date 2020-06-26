@@ -149,7 +149,7 @@ describe("ServerRequestParameters.ts Class", function () {
 
         it("properly handles null", () => {
             const extraQueryParamaters = ServerRequestParameters.generateQueryParametersString(null);
-            expect(extraQueryParamaters).to.be.null;
+            expect(extraQueryParamaters).to.be.equal("");
         });
 
     });
@@ -178,7 +178,7 @@ describe("ServerRequestParameters.ts Class", function () {
             serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), null);
 
             expect(serverRequestParameters.queryParameters).to.equal("login_hint=AbeLi%40microsoft.com");
-            expect(serverRequestParameters.extraQueryParameters).to.equal(null);
+            expect(serverRequestParameters.extraQueryParameters).to.equal("");
         });
     });
 });

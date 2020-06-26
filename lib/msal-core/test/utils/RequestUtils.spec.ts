@@ -14,19 +14,19 @@ describe("RequestUtils.ts class", () => {
 
     it("Scopes cannot be null", () => {
 
-        let undefinedScopesError : ClientConfigurationError;
+        let emptyScopesError : ClientConfigurationError;
 
         try {
             const userRequest: AuthenticationParameters = {scopes: null};
             const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
         } catch (e) {
-            undefinedScopesError = e;
+            emptyScopesError = e;
         };
 
-        expect(undefinedScopesError instanceof ClientConfigurationError).to.be.true;
-        expect(undefinedScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-        expect(undefinedScopesError.name).to.equal("ClientConfigurationError");
-        expect(undefinedScopesError.stack).to.include("RequestUtils.spec.ts");
+        expect(emptyScopesError instanceof ClientConfigurationError).to.be.true;
+        expect(emptyScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
+        expect(emptyScopesError.name).to.equal("ClientConfigurationError");
+        expect(emptyScopesError.stack).to.include("RequestUtils.spec.ts");
     });
 
     it("Scopes cannot be empty", () => {
@@ -157,7 +157,7 @@ describe("RequestUtils.ts class", () => {
         const userRequest: AuthenticationParameters = null;
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
 
-        expect(request.scopes).to.be.equal(undefined);
+        expect(request.scopes.length).to.be.equal(0);
         expect(request.prompt).to.be.equal(undefined);
         expect(request.extraQueryParameters).to.be.equal(undefined);
         expect(typeof request.state).to.be.equal("string");

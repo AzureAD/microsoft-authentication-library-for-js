@@ -841,9 +841,9 @@ describe("UserAgentApplication.ts Class", function () {
             } catch (e) {
                 authErr = e;
             }
-            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
+            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
+            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
+            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
             expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();
@@ -1065,60 +1065,6 @@ describe("UserAgentApplication.ts Class", function () {
             }).catch(function(err) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
-            });
-        });
-
-        it("tests getCachedToken when authority is not passed and multiple accessTokens are present in the cache for a set of scopes", function (done) {
-            const tokenRequest : AuthenticationParameters = {
-                scopes: ["S1"],
-                account: account
-            };
-            const params: kv = {  };
-            params[SSOTypes.SID] = account.sid;
-            setUtilUnifiedCacheQPStubs(params);
-
-            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.scopes = "S1 S2";
-            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
-            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-
-            msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                // Won't happen
-                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
-            }).catch(function(err: AuthError) {
-                expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleMatchingTokens.code);
-                expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-                expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-                expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.ts");
-                done();
-            });
-        });
-
-        it("tests getCachedToken without sending authority when no matching accesstoken is found and multiple authorities exist", function (done) {
-            const tokenRequest : AuthenticationParameters = {
-                scopes: ["S3"],
-                account: account
-            };
-            const params: kv = {  };
-            params[SSOTypes.SID] = account.sid;
-            setUtilUnifiedCacheQPStubs(params);
-
-            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.scopes = "S2";
-            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
-            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-
-            msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                // Won't happen
-                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
-            }).catch(function(err: AuthError) {
-                expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.code);
-                expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
-                expect(err.message).to.contain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
-                expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.ts");
-                done();
             });
         });
 
