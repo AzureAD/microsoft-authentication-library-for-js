@@ -37,6 +37,13 @@ export const Constants = {
     NOT_DEFINED: "not_defined"
 };
 
+export const MSER_TELEM_CONSTANTS = {
+    SCHEMA_VERSION: 2,
+    CACHE_HITS: "cacheHits",
+    CATEGORY_SEPARATOR: "|",
+    VALUE_SEPARATOR: ","
+}
+
 /**
  * Request header names
  */
@@ -95,6 +102,8 @@ export enum AADServerParamKeys {
     X_CLIENT_VER = "x-client-VER",
     X_CLIENT_OS = "x-client-OS",
     X_CLIENT_CPU = "x-client-CPU",
+    X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
+    X_CLIENT_LAST_TELEM = "x-client-last-telemetry",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
     DEVICE_CODE = "device_code"
 }
