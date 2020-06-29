@@ -38,7 +38,7 @@ if (argv.p) {
 app.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
-app.use("/dist", express.static(path.join(__dirname, "../../lib/msal-core/dist")));
+app.use("/dist", express.static(path.join(__dirname, "../../../lib/msal-core/dist")));
 
 const sampleName = argv.sample;
 const isSample = sampleFolders.includes(sampleName);

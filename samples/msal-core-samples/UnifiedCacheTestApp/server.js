@@ -15,7 +15,7 @@ var port = 1530; // process.env.PORT || 8080;
 app.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
-app.use("/dist", express.static(path.join(__dirname, "../../lib/msal-core/dist")));
+app.use("/dist", express.static(path.join(__dirname, "../../../lib/msal-core/dist")));
 app.use('/adal', express.static(__dirname + '/adal'));
 
 // Set up our one route to the index.html file.

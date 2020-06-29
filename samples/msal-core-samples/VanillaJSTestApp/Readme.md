@@ -6,9 +6,9 @@ This developer sample is used to run basic use cases for the MSAL library. You c
 ## How to run the sample:
 
 ### Pre-requisites
-- Ensure [all pre-requisites](../../lib/msal-core/README.md#pre-requisites) have been completed to run msal-core.
+- Ensure [all pre-requisites](../../../lib/msal-core/README.md#pre-requisites) have been completed to run msal-core.
 - Install node.js if needed (https://nodejs.org/en/).
-- Build the `msal-core` project with instructions provided in the [`README.md`](../../lib/msal-core/README.md) or using the command `npm run build:package`.
+- Build the `msal-core` project with instructions provided in the [`README.md`](../../../lib/msal-core/README.md) or using the command `npm run build:package`.
 
 ### Configure the application
 - Open `./app/<sample-name>/authConfig.js` in an editor.
