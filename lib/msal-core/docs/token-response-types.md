@@ -24,37 +24,52 @@ In the `msal@1.x.x` context, the `response_type` value that is set in the server
     + `scopes: ['openid']`
     + `scopes: ['profile']`
 
-    Are all functionally equivalent to `scopes: ['openid', 'profile']` from the library's perspective. From this point on, when this document makes a reference to "login scopes", it refers to any combination or permutation of `openid`, `profile` and the value of `client ID`. The term "access token scopes", on the other hand, refers to any resource-related scope set that an access token is being requested for (i.e. 'user.read', 'mail.read', etc.). 
+    Are all functionally equivalent to `scopes: ['openid', 'profile']` from the library's perspective. From this point on, when this document makes a reference to "login scopes", it refers to any combination or permutation of `openid`, `profile` and the value of `client ID`. The term "resource scopes", on the other hand, refers to any resource-related set of scopes that an access token is being requested for (i.e. 'user.read', 'mail.read', etc.). 
 
-+ On a related note, `login` APIs (i.e. `loginPopup` and `loginRedirect`) will append `openid` and `profile` (without duplication) to the scopes array every time they are called, no matter what other scopes are present. This means that `login` APIs can be called with an empty, non-null scopes array in the request configuration object (as opposed to acquireToken APIs which will throw an error with an empty or null `scopes` array in the request).
++ In any case where login scopes are appended, any valid resource scopes present in the array are kept and will eventually be added to the `scopes` parameter in the server request.
 
-+ If any valid access token scopes are present in the scopes array, they will remain in the array and eventually be included in the `scopes` parameter of the server request.
++ ***Important Note: `msal@1.x.x` will append `openid` and `profile` to the `scopes` parameter of every server request URL (regardless of which API is called), whether or not any of these two specific scopes are passed by the developer into the API call. The presence of login scopes in the configuration object has an effect on which `response_type` value is set in the actual server request `msal1.x.x` makes, but it does not make a difference on the value of the `scopes` parameter in said server request.***
 
-***Important Note: `msal@1.x.x` will append `openid` and `profile` to the `scopes` parameter of every server request URL, whether or not any of these two specific scopes are passed by the developer into the API call. The presence of login scopes in the configuration object has an effect on which `response_type` value is set in the actual server request `msal1.x.x` makes, but it does not make a difference on the value of the `scopes` parameter in said server request.***
+The Scopes-based Response Types tables below describes the mapping of `msal@1.x.x` APIs in combination with the user-provided `scopes` to the resulting `response_type` set in the server request.
 
-The Scopes-based Response Types table below describes the mapping of `msal@1.x.x` APIs in combination with the user-provided `scopes` to the resulting `response_type` set in the server request.
+## Scopes-based Response Types Reference
 
-## Scopes-based Response Types
+### Login APIs
 
-|| Account Object in Request Configuration | Empty Scopes Array | Login Scopes Only | Access Token Scopes Only | Access Token and Login Scopes
-| -------- | ------- | ------- | -------- | --------- | -------- |
-| **loginRedirect/Popup** | **None or Matching Account in MSAL Cache** | id_token | id_token |id_token token | id_token token
-| **acquireTokenX** | **None or Matching Account in MSAL Cache** | Error | id_token | token | id_token token 
-| **loginRedirect/Popup** | **Doesn't match Account in MSAL Cache**| id_token | id_token | id_token token | id_token token
-| **acquireTokenX** |  **Doesn't match Account in MSAL Cache** |Error | id_token | id_token token | id_token token
+The following table applies to: `loginPopup`, `loginRedirect` and `ssoSilent`.
+
+| Scopes | Account in MSAL Cache| Account Passed In | Response Type/Result | 
+| -------- | ------- | ------- | -------- | --------- | -------- | -------- |
+| Empty Scopes Array | - | - | id_token |
+| Login Scopes Only | - | - | id_token |
+| Resource Scopes Only | - |  - | id_token |
+| Login and Resource Scopes | - | - | id_token
+
+ In other words, `login` APIs (including `ssoSilent`) wil always set `response_type=id_token` for the server request and, therefore, include an ID Token in the response, regardless of the `scopes` and `account` configuration.
+
+ ### AcquireToken APIs
+
+The following table applies to: `acquireTokenSilent`, `acquireTokenPopup` and `acquireTokenRedirect`.
+
+| Scopes | Account in MSAL Cache| Account Passed In | Response Type/Result | 
+| -------- | ------- | ------- | -------- | --------- | -------- | -------- |
+| Empty Scopes Array | - | - | Empty Scopes Array Error |
+| Login Scopes Only | - | - | id_token |
+| Resource Scopes Only | Yes | Matches account in MSAL Cache | token |
+| Resource Scopes Only | Yes |  Doesn't match account in MSAL Cache | id_token_token |
+| Login and Resource Scopes | - | - | id_token token |
 
 
-### Scope-based Response Types Table Disambiguation
 
-As described in the table above, the `response_type` is determined based on specific combinations of:
+### Scope-based Response Types Tables Disambiguation
 
-1. The UserAgentApplication API/method called (first column)
-2. The presence of the `account` object in the configuration object and whether it matches the `account` object found in the MSAL Cache (second column)
-3. The contents of the `scopes` array in the configuration object (all other columns)
+As described in the tables above, the `response_type` is determined based on specific combinations of:
 
-The values in the first two columns together form the scenario, while the labels of the remaining columns represent the scope configuration. The intersection of a scenario with a scope configuration represents a `response_type` result.
+1. The UserAgentApplication API/method called (`login` vs `acquireToken` APIs)
+2. The presence of the `account` object in the configuration object and whether it matches the `account` object found in the MSAL Cache
+3. The contents of the `scopes` array in the configuration object
 
-The following points provide practical examples and the disamibiguation of what configuration the scopes columns describe. 
+The following points provide practical examples and the disamibiguation of what configuration the scopes labels describe. 
 
 + `Empty Scopes Array`: Passing in an empty scopes array in the request configuration in a specific scenario.
 
@@ -71,7 +86,7 @@ The following points provide practical examples and the disamibiguation of what 
     const request = { scopes: ['profile'] }; // or any combination/permutation of the three
 ```
 
-+ `Access Token Scopes Only:` Passing in a scopes array that contains resource scopes (i.e. 'user.read') but doesn't contain any of the login scopes.
++ `Resource Scopes Only:` Passing in a scopes array that contains resource scopes (i.e. 'user.read') but doesn't contain any of the login scopes.
 
 
 ```js
@@ -80,7 +95,7 @@ The following points provide practical examples and the disamibiguation of what 
     const request = { scopes: ['user.read', 'mail.read'] }; // or any other set of resource scopes to be consented
 ```
 
-+ `Access Token and Login Scopes:` Passing in a scopes array that contains resource scopes (i.e. 'user.read') and any combination of the login scopes.
++ `Resource and Login Scopes:` Passing in a scopes array that contains resource scopes (i.e. 'user.read') and any combination of the login scopes.
 
 
 ```js
