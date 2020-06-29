@@ -448,6 +448,7 @@ export class PublicClientApplication {
             // Handle response from hash string.
             return await silentHandler.handleCodeResponse(hash);
         } catch (e) {
+            this.browserStorage.cleanRequest();
             throw e;
         }
     }
