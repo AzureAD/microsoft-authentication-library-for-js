@@ -22,6 +22,9 @@ import com.microsoft.identity.client.exception.MsalException;
 
 import static com.facebook.react.views.textinput.ReactTextInputManager.TAG;
 
+//import DEFAULT_SCOPES from Constants.java
+import static com.reactlibrary.Constants.DEFAULT_SCOPES;
+
 import java.util.Arrays;
 
 public class MSALModule extends ReactContextBaseJavaModule {
@@ -176,6 +179,49 @@ public class MSALModule extends ReactContextBaseJavaModule {
     }
 
     /**
+     * acquireToken: attempts to obtain a token interactively
+     * Parameters: string scopesValue (string containing scopes separated by a " "), Promise promise (returned to an async function)
+     */
+    @ReactMethod
+    public void acquireToken(String scopesValue, Promise promise) {
+        if (!scopesValue.isEmpty()) {
+            publicClientApplication.acquireToken(getCurrentActivity(), scopesValue.toLowerCase().split(" "), getAuthInteractiveCallback(promise));
+        } else {
+            //the default is User.Read
+            String[] array = {"User.Read"};
+            publicClientApplication.acquireToken(getCurrentActivity(), array, getAuthInteractiveCallback(promise));
+        }
+    }
+
+    /**
+     * getAuthInteractiveCallback is the callback function for acquireToken.
+     * If successful, it will return a map of the IAuthenticationResult.
+     * If there's an error, the exception will be returned.
+     */
+
+    private AuthenticationCallback getAuthInteractiveCallback(final Promise promise) {
+        return new AuthenticationCallback() {
+            @Override
+            public void onCancel() {
+                Log.d(TAG, "User cancelled login (acquireToken).");
+                promise.reject("userCancel", "User cancelled login (acquireToken).");
+            }
+
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                Log.d(TAG, "Acquire token interactively success.");
+                promise.resolve(mapMSALResult(authenticationResult));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                Log.d(TAG, "Error while acquiring token interactively: " + exception.toString());
+                promise.reject(exception);
+            }
+        };
+    }
+
+    /**
      * acquireTokenSilent: attempts to obtain a token silently from the cache
      * Parameters: string scopesValue (string containing scopes separated by a " "), Promise promise (returned to an async function)
      */
@@ -195,7 +241,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * SilentAuthenticationCallback is the callback function for acquireTokenSlient.
+     * getAuthSilentCallback is the callback function for acquireTokenSlient.
      * If successful, it will return a map of the IAuthenticationResult.
      * If there's an error, the exception will be returned.
      */
@@ -204,13 +250,13 @@ public class MSALModule extends ReactContextBaseJavaModule {
         return new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                Log.d(TAG, "Acquire tokens silently success.");
+                Log.d(TAG, "Acquire token silently success.");
                 promise.resolve(mapMSALResult(authenticationResult));
             }
 
             @Override
             public void onError(MsalException exception) {
-                Log.d(TAG, "Error while acquiring tokens silently: " + exception.toString());
+                Log.d(TAG, "Error while acquiring token silently: " + exception.toString());
                 promise.reject(exception);
             }
         };
