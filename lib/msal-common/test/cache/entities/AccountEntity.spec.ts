@@ -8,8 +8,17 @@ import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INet
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
 import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS } from "../../utils/StringConstants";
 import sinon from "sinon";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../../src";
+import { ClientTestUtils } from "../../client/ClientTestUtils";
 
 describe("AccountEntity.ts Unit Tests", () => {
+    beforeEach(() => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
 
     it("Verify an AccountEntity", () => {
         const ac = new AccountEntity();
@@ -17,11 +26,23 @@ describe("AccountEntity.ts Unit Tests", () => {
     });
 
     it("generate an AccountEntityKey", () => {
-        let ac = new AccountEntity();
+        const ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
         expect(ac.generateAccountKey()).to.eql(
             "uid.utid-login.microsoftonline.com-microsoft"
         );
+    });
+
+    it("throws error if account entity is not assigned a type", () => {
+        const ac = new AccountEntity();
+        expect(() => ac.generateType()).to.throw(ClientAuthError);
+        expect(() => ac.generateType()).to.throw(ClientAuthErrorMessage.unexpectedAccountType.desc);
+    });
+
+    it("generate type of the cache", () => {
+        const ac = new AccountEntity();
+        Object.assign(ac, mockAccountEntity);
+        expect(ac.generateType()).to.eql(1003);
     });
 
     it("create an Account", () => {
@@ -93,7 +114,6 @@ describe("AccountEntity.ts Unit Tests", () => {
             TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
             authority,
             idToken,
-            null,
             cryptoInterface
         );
 

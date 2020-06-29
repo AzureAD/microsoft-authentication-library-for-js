@@ -6,8 +6,6 @@
 import {
     Separators,
     CacheAccountType,
-    EnvironmentAliases,
-    PreferredCacheEnvironment,
     CacheType,
 } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
@@ -15,7 +13,9 @@ import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
+import { TrustedAuthority } from "../../authority/TrustedAuthority";
 import { AccountInfo } from "../../account/AccountInfo";
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -84,8 +84,7 @@ export class AccountEntity {
             case CacheAccountType.GENERIC_ACCOUNT_TYPE:
                 return CacheType.GENERIC;
             default: {
-                console.log("Unexpected account type");
-                return null;
+                throw ClientAuthError.createUnexpectedAccountTypeError();
             }
         }
     }
@@ -127,27 +126,22 @@ export class AccountEntity {
         clientInfo: string,
         authority: Authority,
         idToken: IdToken,
-        policy: string,
         crypto: ICrypto
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         account.clientInfo = clientInfo;
-        // TBD: Clarify "policy" addition
         const clientInfoObj = buildClientInfo(clientInfo, crypto);
-        const homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
-        account.homeAccountId =
-            policy !== null
-                ? homeAccountId + Separators.CACHE_KEY_SEPARATOR + policy
-                : homeAccountId;
+        account.homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
 
-        const reqEnvironment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        account.environment = EnvironmentAliases.includes(reqEnvironment)
-            ? PreferredCacheEnvironment
-            : reqEnvironment;
-
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+        if (StringUtils.isEmpty(env)) {
+            throw ClientAuthError.createInvalidCacheEnvironmentError();
+        }
+        
+        account.environment = env;
         account.realm = idToken.claims.tid;
 
         if (idToken) {
@@ -176,8 +170,15 @@ export class AccountEntity {
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
-        account.environment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+
+        if (StringUtils.isEmpty(env)) {
+            throw ClientAuthError.createInvalidCacheEnvironmentError();
+        }
+
+        account.environment = env;
         account.username = idToken.claims.upn;
         // add uniqueName to claims
         // account.name = idToken.claims.uniqueName;

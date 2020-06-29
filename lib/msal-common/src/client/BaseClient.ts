@@ -11,7 +11,7 @@ import { Logger } from "../logger/Logger";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { B2cAuthority } from "../authority/B2cAuthority";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 
 /**
@@ -52,7 +52,7 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
-        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
 
         this.authority = this.config.authOptions.authority;
     }

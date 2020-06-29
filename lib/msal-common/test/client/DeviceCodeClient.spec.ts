@@ -20,7 +20,15 @@ import { ClientTestUtils } from "./ClientTestUtils";
 
 describe("DeviceCodeClient unit tests", async () => {
 
+    before(() => {
+        sinon.restore();
+    });
+
     beforeEach(() => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+    });
+
+    afterEach(() => {
         sinon.restore();
     });
 
