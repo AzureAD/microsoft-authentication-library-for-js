@@ -80,7 +80,6 @@ export class RequestValidator {
         // Remove any query parameters already included in SSO params
         queryParams.forEach((value, key) => {
             if (eQParams[key]) {
-                console.log("Removed param " + key + " from extraQueryParameters since it was already present in library query parameters.");
                 delete eQParams[key];
             }
         });
