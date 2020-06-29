@@ -2,6 +2,8 @@
  * This file contains the string constants used by the test classes.
  */
 
+import { Constants } from "../../src/utils/Constants";
+
 // Test Tokens
 export const TEST_TOKENS = {
     // idTokens referenced from MSFT docs: https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens
@@ -99,6 +101,14 @@ export const TEST_CONFIG = {
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
+
+export const TEST_STATE_VALUES = {
+    USER_STATE: "userState",
+    TEST_TIMESTAMP: 1592846482,
+    DECODED_LIB_STATE: `{"id":"${RANDOM_TEST_GUID}","ts":1592846482}`,
+    ENCODED_LIB_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==`,
+    TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${Constants.RESOURCE_DELIM}userState`
+};
 
 export const TEST_HOST_LIST = [
     "login.windows.net",
