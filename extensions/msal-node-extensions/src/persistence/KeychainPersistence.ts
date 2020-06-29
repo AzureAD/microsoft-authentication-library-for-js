@@ -57,6 +57,7 @@ export class KeychainPersistence implements IPersistence {
 
     public async delete(): Promise<boolean> {
         try {
+            await this.filePersistence.delete();
             return await deletePassword(this.serviceName, this.accountName);
         } catch (err) {
             throw PersistenceError.createKeychainPersistenceError(err.code, err.message);

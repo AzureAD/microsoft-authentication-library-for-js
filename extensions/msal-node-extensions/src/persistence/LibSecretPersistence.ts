@@ -31,7 +31,7 @@ export class LibSecretPersistence implements IPersistence {
         fileLocation: string,
         serviceName: string,
         accountName: string,
-        loggerOptions: LoggerOptions): Promise<LibSecretPersistence> {
+        loggerOptions?: LoggerOptions): Promise<LibSecretPersistence> {
 
         const persistence = new LibSecretPersistence(serviceName, accountName);
         persistence.filePersistence = await FilePersistence.create(fileLocation, loggerOptions);
@@ -58,6 +58,7 @@ export class LibSecretPersistence implements IPersistence {
 
     public async delete(): Promise<boolean> {
         try {
+            await this.filePersistence.delete();
             return await deletePassword(this.serviceName, this.accountName);
         } catch (err) {
             throw PersistenceError.createLibSecretError(err.code, err.message);
