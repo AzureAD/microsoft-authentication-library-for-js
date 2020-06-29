@@ -4,7 +4,7 @@
  * MSALModule.java functions as a wrapper around MSAL for Android's signing in, signing out, and acquiring tokens functionality.
  * It is a proof of concept, focusing on single account mode and AAD.
  */
-
+//hello?
 package com.reactlibrary;
 
 import android.util.Log;
@@ -162,7 +162,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
      * Parameters: Promise promise (resolve will return a boolean true if account was successfully signed out and reject will return the exception)
      */
     @ReactMethod
-    public void signOut(Promise promise) {
+    public void signOut(final Promise promise) {
         publicClientApplication.signOut (new ISingleAccountPublicClientApplication.SignOutCallback() {
             @Override
             public void onSignOut() {
