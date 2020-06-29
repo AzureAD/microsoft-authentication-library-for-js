@@ -15,7 +15,7 @@ export class TrustedAuthority {
      * @param knownAuthorities 
      * @param cloudDiscoveryMetadata
      */
-    public static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, cloudDiscoveryMetadata: string): void {
+    static setTrustedAuthoritiesFromConfig(knownAuthorities: Array<string>, cloudDiscoveryMetadata: string): void {
         if (!this.getTrustedHostList().length){
             if (knownAuthorities.length > 0 && !StringUtils.isEmpty(cloudDiscoveryMetadata)) {
                 throw ClientConfigurationError.createKnownAuthoritiesCloudDiscoveryMetadataError();
