@@ -39,7 +39,7 @@ The Scopes-based Response Types tables below describes the mapping of `msal@1.x.
 The following table applies to: `loginPopup`, `loginRedirect` and `ssoSilent`.
 
 | Scopes | Account in MSAL Cache| Account Passed In | Response Type/Result | 
-| -------- | ------- | ------- | -------- | --------- | -------- | -------- |
+| -------- | ------- | ------- | -------- |
 | Empty Scopes Array | - | - | id_token |
 | Login Scopes Only | - | - | id_token |
 | Resource Scopes Only | - |  - | id_token |
@@ -52,7 +52,7 @@ The following table applies to: `loginPopup`, `loginRedirect` and `ssoSilent`.
 The following table applies to: `acquireTokenSilent`, `acquireTokenPopup` and `acquireTokenRedirect`.
 
 | Scopes | Account in MSAL Cache| Account Passed In | Response Type/Result | 
-| -------- | ------- | ------- | -------- | --------- | -------- | -------- |
+| -------- | ------- | ------- | -------- |
 | Empty Scopes Array | - | - | Empty Scopes Array Error |
 | Login Scopes Only | - | - | id_token |
 | Resource Scopes Only | Yes | Matches account in MSAL Cache | token |
