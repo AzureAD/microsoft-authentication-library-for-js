@@ -7,7 +7,7 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES } from "../utils/StringConstants";
-import { AuthError, ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, IInstanceDiscoveryMetadata } from "@azure/msal-common";
+import { AuthError, ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata } from "@azure/msal-common";
 import { AuthCallback } from "../../src/types/AuthCallback";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
@@ -39,19 +39,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     let pca: PublicClientApplication;
     beforeEach(() => {
+        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
+        const stubbedCloudDiscoveryMetadata: CloudDiscoveryMetadata = {
+            preferred_cache: "login.windows.net",
+            preferred_network: "login.microsoftonline.com",
+            aliases: ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]
+        };
+        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
+        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
+
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
-
-        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
-        const stubbedCloudDiscoveryMetadata: IInstanceDiscoveryMetadata = {
-            preferred_cache: "login.windows.net",
-            preferred_network: "login.microsoftonline.com",
-            aliases: ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]};
-        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
-        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
     });
 
     afterEach(() => {
@@ -63,12 +64,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("Constructor tests", () => {
 
-        it("passes null check", () => {
+        it("passes null check", (done) => {
             expect(pca).to.be.not.null;
             expect(pca instanceof PublicClientApplication).to.be.true;
+            done();
         });
 
-        it("navigates and caches hash if navigateToLoginRequestUri is true", () => {
+        it("navigates and caches hash if navigateToLoginRequestUri is true", (done) => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
             sinon.stub(BrowserUtils, "getCurrentUri").returns("notAUri");
@@ -78,6 +80,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             pca.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            done();
         });
     });
 
@@ -90,10 +93,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await expect(pca.handleRedirectCallback(null)).rejectedWith(BrowserConfigurationAuthError);
             });
 
-            it("does nothing if no hash is detected", () => {
+            it("does nothing if no hash is detected", (done) => {
                 pca.handleRedirectCallback(authCallback);
                 expect(window.localStorage.length).to.be.eq(0);
                 expect(window.sessionStorage.length).to.be.eq(0);
+                done();
             });
 
             it("gets hash from cache and processes response", async () => {
@@ -1078,12 +1082,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("Getters and Setters Unit Tests", () => {
 
-        const pca_alternate_redirUris = new PublicClientApplication({
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
-                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
-            }
+        let pca_alternate_redirUris: PublicClientApplication;
+        beforeEach(() => {
+            pca_alternate_redirUris = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                    postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
+                }
+            });
         });
 
         it("getRedirectUri returns the currently configured redirect uri", () => {
