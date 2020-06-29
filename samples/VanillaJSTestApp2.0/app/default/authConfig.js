@@ -12,7 +12,8 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["User.Read"],
+    redirectUri: "http://localhost:30662/"
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.
@@ -24,9 +25,11 @@ const graphConfig = {
 // Add here scopes for access token to be used at MS Graph API endpoints.
 const tokenRequest = {
     scopes: ["Mail.Read"],
+    redirectUri: "http://localhost:30662/",
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };
 
 const silentRequest = {
-    scopes: ["3fba556e-5d4a-48e3-8e1a-fd57c12cb82e", "User.Read", "Mail.Read"]
+    scopes: ["openid", "profile", "User.Read", "Mail.Read"],
+    redirectUri: "http://localhost:30662/"
 };

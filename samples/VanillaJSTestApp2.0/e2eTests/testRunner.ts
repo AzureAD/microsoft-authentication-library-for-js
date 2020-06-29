@@ -20,8 +20,6 @@ const sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(fu
     return file.name;
 });
 
-// console.log(sampleFolders);
-
 // Clear require cache and create new mocha object to run new set of tests
 function createMochaObject(sampleName: string) {
     // Required to allow mocha to run multiple times
