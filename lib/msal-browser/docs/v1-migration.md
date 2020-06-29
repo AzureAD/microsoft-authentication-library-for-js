@@ -70,7 +70,7 @@ myMSALObj.handleRedirectPromise().then((tokenResponse) => {
     const username = accountObj.username;
    
 }).catch((error) => {
-    console.log(error);
+    handleError(error);
 });
 
 function signIn() {
@@ -79,7 +79,7 @@ function signIn() {
 
 async function getTokenRedirect(request) {
     return await myMSALObj.acquireTokenSilent(request).catch(error => {
-        console.log("silent token acquisition fails. acquiring token using redirect");
+        this.logger.info("silent token acquisition fails. acquiring token using redirect");
         // fallback to interaction when silent call fails
         return myMSALObj.acquireTokenRedirect(request)
     });
@@ -95,7 +95,7 @@ async function signIn(method) {
     try {
         const loginResponse = await myMSALObj.loginPopup(loginRequest);
     } catch (err) {
-        console.log(error);
+        handleError(error);
     }
 
     const currentAccounts = myMSALObj.getAllAccounts();
@@ -111,10 +111,10 @@ async function signIn(method) {
 
 async function getTokenPopup(request) {
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
-        console.log("silent token acquisition fails. acquiring token using popup");
+        this.logger.info("silent token acquisition fails. acquiring token using popup");
         // fallback to interaction when silent call fails
         return await myMSALObj.acquireTokenPopup(request).catch(error => {
-            console.log(error);
+            handleError(error);
         });
     });
 }

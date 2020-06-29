@@ -133,11 +133,27 @@ describe("BrowserStorage() tests", () => {
             expect(window.localStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
         });
 
+        it("setItem() throws error if type passed in is not one of CacheSchemaType types", () => {
+            expect(() => browserSessionStorage.setItem(msalCacheKey, cacheVal, "OTHER_TYPE")).to.throw(BrowserAuthError);
+            expect(() => browserSessionStorage.setItem(msalCacheKey, cacheVal, "OTHER_TYPE")).to.throw(BrowserAuthErrorMessage.invalidCacheType.desc);
+            expect(() => browserLocalStorage.setItem(msalCacheKey, cacheVal, "OTHER_TYPE")).to.throw(BrowserAuthError);
+            expect(() => browserLocalStorage.setItem(msalCacheKey, cacheVal, "OTHER_TYPE")).to.throw(BrowserAuthErrorMessage.invalidCacheType.desc);
+        });
+
         it("getItem()", () => {
             window.sessionStorage.setItem(msalCacheKey, cacheVal);
             window.localStorage.setItem(msalCacheKey, cacheVal);
             expect(browserSessionStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
             expect(browserLocalStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
+        });
+
+        it("getItem() throws error if type passed in is not one of CacheSchemaType types", () => {
+            window.sessionStorage.setItem(msalCacheKey, cacheVal);
+            window.localStorage.setItem(msalCacheKey, cacheVal);
+            expect(() => browserSessionStorage.getItem(msalCacheKey, "OTHER_TYPE")).to.throw(BrowserAuthError);
+            expect(() => browserSessionStorage.getItem(msalCacheKey, "OTHER_TYPE")).to.throw(BrowserAuthErrorMessage.invalidCacheType.desc);
+            expect(() => browserLocalStorage.getItem(msalCacheKey, "OTHER_TYPE")).to.throw(BrowserAuthError);
+            expect(() => browserLocalStorage.getItem(msalCacheKey, "OTHER_TYPE")).to.throw(BrowserAuthErrorMessage.invalidCacheType.desc);
         });
 
         it("removeItem()", () => {
