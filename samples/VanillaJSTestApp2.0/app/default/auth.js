@@ -22,6 +22,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 
 function handleResponse(resp) {
     if (resp !== null) {
+        username = resp.account.username;
         showWelcomeMessage(resp.account);
     } else {
         // need to call getAccount here?
@@ -31,6 +32,7 @@ function handleResponse(resp) {
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
+            username = currentAccounts[0].username;
             showWelcomeMessage(currentAccounts[0]);
         }
     }
@@ -51,6 +53,7 @@ function signOut() {
     const logoutRequest = {
         account: myMSALObj.getAccountByUsername(username)
     };
+
     myMSALObj.logout(logoutRequest);
 }
 
@@ -83,4 +86,3 @@ async function getTokenRedirect(request, account) {
         }
     });
 }
-

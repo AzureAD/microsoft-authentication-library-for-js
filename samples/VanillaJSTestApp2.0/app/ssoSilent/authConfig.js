@@ -12,22 +12,26 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["User.Read"],
+    redirectUri: "http://localhost:30662/"
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft-ppe.com/v1.0/me",
-    graphMailEndpoint: "https://graph.microsoft-ppe.com/v1.0/me/messages"
+    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
+    graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.
 const tokenRequest = {
-    scopes: ["Mail.Read"],
+    scopes: ["Mail.Read", "openid", "profile"],
+    loginHint: "prkanher@microsoft.com",
+    redirectUri: "http://localhost:30662/",
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };
 
 const silentRequest = {
-    scopes: [msalConfig.clientId, "User.Read", "Mail.Read"],
-    loginHint: "IDLAB@msidlab0.ccsctp.net"
+    scopes: ["openid", "profile", "User.Read", "Mail.Read"],
+    redirectUri: "http://localhost:30662/",
+    loginHint: "prkanher@microsoft.com"
 };
