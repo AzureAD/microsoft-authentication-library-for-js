@@ -125,8 +125,7 @@ export class BrowserStorage extends CacheManager {
                 break;
             }
             default: {
-                console.log("Invalid Cache Type");
-                return;
+                throw BrowserAuthError.createInvalidCacheTypeError();
             }
         }
     }
@@ -174,8 +173,7 @@ export class BrowserStorage extends CacheManager {
                 return value;
             }
             default: {
-                console.log("Invalid Cache Type");
-                return {};
+                throw BrowserAuthError.createInvalidCacheTypeError();
             }
         }
     }
