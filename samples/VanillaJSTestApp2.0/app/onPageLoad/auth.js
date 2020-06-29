@@ -22,6 +22,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch((error) => {
 
 function handleResponse(resp) {
     if (resp !== null) {
+        username = resp.account.username;
         showWelcomeMessage(resp.account);
         seeProfileRedirect();
     } else {
@@ -32,6 +33,7 @@ function handleResponse(resp) {
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
+            username = currentAccounts[0].username;
             showWelcomeMessage(currentAccounts[0]);
         }
     }

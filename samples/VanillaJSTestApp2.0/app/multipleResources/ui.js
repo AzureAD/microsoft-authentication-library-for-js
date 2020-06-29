@@ -10,7 +10,6 @@ function showWelcomeMessage(account) {
     // Reconfiguring DOM elements
     cardDiv.style.display = 'initial';
     welcomeDiv.innerHTML = `Welcome ${account.username}`;
-    username = account.username;
     signInButton.nextElementSibling.style.display = 'none';
     signInButton.setAttribute("onclick", "signOut();");
     signInButton.setAttribute('class', "btn btn-success")
