@@ -2,7 +2,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
-import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType } from "@azure/msal-common";
@@ -248,6 +248,59 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("clear()", () => {
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.clear();
+            expect(browserSessionStorage.getKeys()).to.be.empty;
+            expect(document.cookie).to.be.empty;
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.clear();
+            expect(browserLocalStorage.getKeys()).to.be.empty;
+            expect(document.cookie).to.be.empty;
+        });
+
+        it("setItem() with item that contains ==", () => {
+            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            expect(window.sessionStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
+            expect(document.cookie).to.be.eq(`${encodeURIComponent(msalCacheKey)}=${cacheVal}`);
+            browserSessionStorage.clearItemCookie(msalCacheKey);
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            expect(window.localStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
+            expect(document.cookie).to.be.eq(`${encodeURIComponent(msalCacheKey)}=${cacheVal}`);
+            browserLocalStorage.clearItemCookie(msalCacheKey);
+        });
+
+        it("getItem() with item that contains ==", () => {
+            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
+            const getCookieSpy = sinon.spy(BrowserStorage.prototype, "getItemCookie");
+            window.sessionStorage.setItem(msalCacheKey, cacheVal);
+            window.localStorage.setItem(msalCacheKey, cacheVal);
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(browserSessionStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
+            expect(getCookieSpy.returned(cacheVal)).to.be.true;
+            expect(getCookieSpy.calledOnce).to.be.true;
+            expect(browserLocalStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
+            expect(getCookieSpy.returned(cacheVal)).to.be.true;
+            expect(getCookieSpy.calledTwice).to.be.true;
+        });
+
+        it("removeItem() with item that contains ==", () => {
+            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
+            const clearCookieSpy = sinon.spy(BrowserStorage.prototype, "clearItemCookie");
+            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.removeItem(msalCacheKey);
+            expect(window.sessionStorage.getItem(msalCacheKey)).to.be.null;
+            expect(document.cookie).to.be.empty;
+            expect(clearCookieSpy.calledOnce).to.be.true;
+            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.removeItem(msalCacheKey);
+            expect(window.localStorage.getItem(msalCacheKey)).to.be.null;
+            expect(document.cookie).to.be.empty;
+            expect(clearCookieSpy.calledTwice).to.be.true;
+        });
+
+        it("clear() with item that contains ==", () => {
+            msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
             browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
             browserSessionStorage.clear();
             expect(browserSessionStorage.getKeys()).to.be.empty;
