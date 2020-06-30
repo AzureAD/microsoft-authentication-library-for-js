@@ -9,11 +9,11 @@ import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 
-export type AccountCache = { [key: string]: AccountEntity };
-export type IdTokenCache = { [key: string]: IdTokenEntity };
-export type AccessTokenCache = { [key: string]: AccessTokenEntity };
-export type RefreshTokenCache = { [key: string]: RefreshTokenEntity };
-export type AppMetadataCache = { [key: string]: AppMetadataEntity };
+export type AccountCache = Record<string, AccountEntity>
+export type IdTokenCache = Record<string, IdTokenEntity>;
+export type AccessTokenCache = Record<string, AccessTokenEntity>;
+export type RefreshTokenCache = Record<string, RefreshTokenEntity>;
+export type AppMetadataCache = Record<string, AppMetadataEntity>;
 export type CredentialCache = {
     idTokens: IdTokenCache;
     accessTokens: AccessTokenCache;
