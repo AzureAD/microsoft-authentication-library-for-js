@@ -102,10 +102,14 @@ export class PublicClientApplication {
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
-        this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(
-            this.config.auth.authority,
-            this.networkClient
-        );
+        this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.networkClient);
+
+        const { location: { hash } } = window;
+        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
+        if (StringUtils.isEmpty(hash) && StringUtils.isEmpty(cachedHash)) {
+            // There is no hash - assume we are in clean state and clear any current request data.
+            this.browserStorage.cleanRequest();
+        }
     }
 
     // #region Redirect Flow
@@ -156,19 +160,19 @@ export class PublicClientApplication {
      */
     private async handleRedirectResponse(): Promise<AuthenticationResult> {
         // Get current location hash from window or cache.
-        const {location: {hash}} = window;
+        const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
         const currentUrl = BrowserUtils.getCurrentUri();
-        if (loginRequestUrl === currentUrl) {
+        if (loginRequestUrl === currentUrl || !this.config.auth.navigateToLoginRequestUrl) {
             // We don't need to navigate - check for hash and prepare to process
             if (isResponseHash) {
                 BrowserUtils.clearHash();
                 return this.handleHash(hash);
             } else {
                 // Loaded page with no valid hash - pass in the value retrieved from cache, or null/empty string
-                return this.handleHash(`${cachedHash}`);
+                return this.handleHash(cachedHash);
             }
         }
 
@@ -184,39 +188,27 @@ export class PublicClientApplication {
                 // Navigate to target url
                 BrowserUtils.navigateWindow(loginRequestUrl, true);
             }
-            return null;
-        }
-
-        if (!isResponseHash) {
-            // Loaded page with no valid hash - pass in the value retrieved from cache, or null/empty string
-            return this.handleHash(cachedHash);
-        }
-
-        if (!this.config.auth.navigateToLoginRequestUrl) {
-            // We don't need to navigate - check for hash and prepare to process
-            BrowserUtils.clearHash();
-            return this.handleHash(hash);
         }
 
         return null;
     }
 
     /**
-	 * Checks if hash exists and handles in window. Otherwise, cancel any current requests and continue.
+	 * Checks if hash exists and handles in window.
 	 * @param responseHash
 	 * @param interactionHandler
 	 */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
+        // There is no hash - return null.
+        if (StringUtils.isEmpty(responseHash)) {
+            return null;
+        }
+
+        // Hash contains known properties - handle and return in callback
         const currentAuthority = this.browserStorage.getCachedAuthority();
         const authClient = await this.createAuthCodeClient(currentAuthority);
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
-        if (!StringUtils.isEmpty(responseHash)) {
-            // Hash contains known properties - handle and return in callback
-            return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
-        }
-        // There is no hash - assume we are in clean state and clear any current request data.
-        this.browserStorage.cleanRequest();
-        return null;
+        return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
     }
 
     /**
@@ -448,6 +440,7 @@ export class PublicClientApplication {
             // Handle response from hash string.
             return await silentHandler.handleCodeResponse(hash);
         } catch (e) {
+            this.browserStorage.cleanRequest();
             throw e;
         }
     }
