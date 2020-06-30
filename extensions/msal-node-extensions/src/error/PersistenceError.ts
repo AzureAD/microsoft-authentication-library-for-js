@@ -50,7 +50,7 @@ export class PersistenceError extends Error {
     /**
      * Error thrown when trying to encrypt or decrypt data using DPAPI on Windows.
      */
-    static createFilePersistenceWithDPAPIError(errorCode: string,errorMessage: string): PersistenceError {
+    static createFilePersistenceWithDPAPIError(errorCode: string, errorMessage: string): PersistenceError {
         const updatedErrorMessage = `Error accessing DPAPI encrypted file: ${errorCode}- ${errorMessage}`;
         return new PersistenceError("DPAPIEncryptedFileError", updatedErrorMessage);
     }
