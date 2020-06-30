@@ -26,23 +26,34 @@ The `PublicClientApplication` object exposes an API called `acquireTokenSilent` 
 
 1. Check if a token already exists in the token cache for the given `scopes`, `client id`, `authority`, and/or `homeAccountIdentifier`.
 2. If a token exists for the given parameters, then ensure we get a single match and check the expiration.
-3. If the access token is not expired, MSAL will return a response with the given tokens.
+3. If the access token is not expired, MSAL will return a response with the relevant tokens.
 4. If the access token is expired but the refresh token is still valid, MSAL will use the given refresh token to retrieve a new set of tokens, and then return a response.
 5. If the refresh token is expired, MSAL will attempt to retrieve an access tokens silently using a hidden iframe. If this hidden iframe call fails, MSAL will pass on an error from the server as an `InteractionRequiredAuthError`, asking to retrieve an authorization code to retrieve a new set of tokens. You can do this by performing a login or acquireToken API call with the `PublicClientApplication` object. If the session is still active, the server will send a code without any user prompts. Otherwise, the user will be required to enter their credentials.
+
+See [here](./request-response-object.md#silentflowrequest) for more information on what configuration parameters you can set for the `acquireTokenSilent` method.
 
 ### Code Snippets
 
 - Popup
 ```javascript
-var request = {
-    scopes: ["Mail.Read"]
+var username = "test@contoso.com";
+var currentAccount = msalInstance.getAccountByUsername(username);
+var silentRequest = {
+    scopes: ["Mail.Read"],
+    account: currentAccount,
+    forceRefresh: false
 };
 
-const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(async (error) => {
+var request = {
+    scopes: ["Mail.Read"],
+    loginHint: currentAccount.username // For v1 endpoints, use upn from idToken claims
+};
+
+const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch(async (error) => {
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
         return await myMSALObj.acquireTokenPopup(request).catch(error => {
-            console.log(error);
+            handleError(error);
         });
     }
 });
@@ -50,11 +61,20 @@ const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(async
 
 - Redirect
 ```javascript
-var request = {
-    scopes: ["Mail.Read"]
+var username = "test@contoso.com";
+var currentAccount = msalInstance.getAccountByUsername(username);
+var silentRequest = {
+    scopes: ["Mail.Read"],
+    account: currentAccount,
+    forceRefresh: false
 };
 
-const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(error => {
+var request = {
+    scopes: ["Mail.Read"],
+    loginHint: currentAccount.username // For v1 endpoints, use upn from idToken claims
+};
+
+const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch(error => {
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
         return myMSALObj.acquireTokenRedirect(request)

@@ -24,6 +24,10 @@ describe("DeviceCodeClient unit tests", async () => {
         sinon.restore();
     });
 
+    beforeEach(() => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+    });
+
     afterEach(() => {
         sinon.restore();
     });

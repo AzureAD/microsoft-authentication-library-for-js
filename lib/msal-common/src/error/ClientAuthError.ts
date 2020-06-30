@@ -119,6 +119,10 @@ export const ClientAuthErrorMessage = {
         code: "invalid_cache_record",
         desc: "Cache record object was null or undefined."
     },
+    invalidCacheEnvironment: {
+        code: "invalid_cache_environment",
+        desc: "Invalid environment when attempting to create cache entry"
+    },
     noAccountFound: {
         code: "no_account_found",
         desc: "No account found in cache for given key."
@@ -130,6 +134,18 @@ export const ClientAuthErrorMessage = {
     noCryptoObj: {
         code: "no_crypto_object",
         desc: "No crypto object detected. This is required for the following operation: "
+    },
+    invalidCacheType: {
+        code: "invalid_cache_type",
+        desc: "Invalid cache type"
+    },
+    unexpectedAccountType: {
+        code: "unexpected_account_type",
+        desc: "Unexpected account type."
+    },
+    unexpectedCredentialType: {
+        code: "unexpected_credential_type",
+        desc: "Unexpected credential type."
     }
 };
 
@@ -358,6 +374,13 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
+     * Throws error when provided environment is not part of the CloudDiscoveryMetadata object
+     */
+    static createInvalidCacheEnvironmentError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidCacheEnvironment.code, ClientAuthErrorMessage.invalidCacheEnvironment.desc);
+    }
+
+    /**
      * Throws error when account is not found in cache.
      */
     static createNoAccountFoundError(): ClientAuthError {
@@ -377,5 +400,26 @@ export class ClientAuthError extends AuthError {
      */
     static createNoCryptoObjectError(operationName: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noCryptoObj.code, `${ClientAuthErrorMessage.noCryptoObj.desc}${operationName}`);
+    }
+
+    /**
+    * Throws error if cache type is invalid.
+    */
+    static createInvalidCacheTypeError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidCacheType.code, `${ClientAuthErrorMessage.invalidCacheType.desc}`);
+    }
+
+    /**
+    * Throws error if unexpected account type.
+    */
+    static createUnexpectedAccountTypeError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.unexpectedAccountType.code, `${ClientAuthErrorMessage.unexpectedAccountType.desc}`);
+    }
+
+    /**
+    * Throws error if unexpected credential type.
+    */
+    static createUnexpectedCredentialTypeError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.unexpectedCredentialType.code, `${ClientAuthErrorMessage.unexpectedCredentialType.desc}`);
     }
 }

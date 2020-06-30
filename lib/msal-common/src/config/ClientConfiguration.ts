@@ -44,8 +44,7 @@ export type AuthOptions = {
     clientId: string;
     authority?: Authority;
     knownAuthorities?: Array<string>;
-    redirectUri?: string | (() => string);
-    postLogoutRedirectUri?: string | (() => string);
+    cloudDiscoveryMetadata?: string;
 };
 
 /**
@@ -94,8 +93,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
-    redirectUri: "",
-    postLogoutRedirectUri: ""
+    cloudDiscoveryMetadata: ""
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
