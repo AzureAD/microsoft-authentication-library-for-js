@@ -112,8 +112,8 @@ export abstract class ClientApplication {
      *
      * This API expects the user to provide an account object and looks into the cache to retrieve the token if present.
      * There is also an optional "forceRefresh" boolean the user can send, to bypass the cache for access_token and id_token
-     * In case of an expired/unfound "refresh_token", an error is thrown
-     * and the guidance is for the user to call any interactive token acquisition API (eg: acquireTokenByCode()
+     * In case the refresh_token is expired or not found, an error is thrown
+     * and the guidance is for the user to call any interactive token acquisition API (eg: acquireTokenByCode())
      * @param request
      */
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
@@ -127,7 +127,7 @@ export abstract class ClientApplication {
     }
 
     getCacheManager(): TokenCache {
-        return this.tokenCache;;
+        return this.tokenCache;
     }
 
     protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
