@@ -480,8 +480,8 @@ export class PublicClientApplication {
      * @returns {string} redirect URL
      *
      */
-    public getRedirectUri(): string {
-        return this.config.auth.redirectUri ? this.config.auth.redirectUri : BrowserUtils.getCurrentUri();
+    public getRedirectUri(requestRedirectUri?: string): string {
+        return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
     }
 
     /**
@@ -491,7 +491,7 @@ export class PublicClientApplication {
      * @returns {string} post logout redirect URL
      */
     public getPostLogoutRedirectUri(): string {
-        return this.config.auth.postLogoutRedirectUri ? this.config.auth.postLogoutRedirectUri : BrowserUtils.getCurrentUri();
+        return this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
     }
 
     /**
@@ -605,9 +605,7 @@ export class PublicClientApplication {
             ...request
         };
 
-        if (StringUtils.isEmpty(validatedRequest.redirectUri)) {
-            validatedRequest.redirectUri = this.getRedirectUri();
-        }
+        validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
 
         // Check for ADAL SSO
         if (StringUtils.isEmpty(validatedRequest.loginHint)) {
