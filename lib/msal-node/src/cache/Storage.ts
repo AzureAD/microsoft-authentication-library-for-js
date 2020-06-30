@@ -26,9 +26,9 @@ export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.
     private logger: Logger;
 
-    constructor(logger: Logger) {
+    constructor(logger?: Logger) {
         super();
-        this.logger = logger;
+        this.logger = logger!;
     }
 
     private inMemoryCache: InMemoryCache = {

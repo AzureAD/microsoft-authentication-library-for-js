@@ -170,7 +170,14 @@ export abstract class ClientApplication {
     private async createAuthority(authorityString?: string): Promise<Authority> {
         this.logger.verbose("createAuthority called");
 
-        const authority: Authority = authorityString ? AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!) : this.authority;
+        let authority: Authority;
+        if (authorityString) {
+            this.logger.verbose("Authority passed in, creating authority instance");
+            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!);
+        } else {
+            this.logger.verbose("No authority passed in request, defaulting to authority set on application object");
+            authority = this.authority
+        }
 
         if (authority.discoveryComplete()) {
             return authority;
@@ -189,6 +196,7 @@ export abstract class ClientApplication {
             return this._authority;
         }
 
+        this.logger.verbose("No authority set on application object. Defaulting to common authority");
         this._authority = AuthorityFactory.createInstance(
             this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
             this.config.system!.networkClient!
@@ -199,7 +207,6 @@ export abstract class ClientApplication {
 
     getAllAccounts(): AccountInfo[] {
         this.logger.verbose("getAllAccounts called");
-
         return this.storage.getAllAccounts();
     }
 }
