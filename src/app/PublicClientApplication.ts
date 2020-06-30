@@ -102,13 +102,11 @@ export class PublicClientApplication {
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
-        this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(
-            this.config.auth.authority,
-            this.networkClient
-        );
+        this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.networkClient);
 
         const { location: { hash } } = window;
-        if (StringUtils.isEmpty(hash)) {
+        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
+        if (StringUtils.isEmpty(hash) && StringUtils.isEmpty(cachedHash)) {
             // There is no hash - assume we are in clean state and clear any current request data.
             this.browserStorage.cleanRequest();
         }
