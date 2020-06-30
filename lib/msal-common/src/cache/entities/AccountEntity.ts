@@ -84,8 +84,7 @@ export class AccountEntity {
             case CacheAccountType.GENERIC_ACCOUNT_TYPE:
                 return CacheType.GENERIC;
             default: {
-                console.log("Unexpected account type");
-                return null;
+                throw ClientAuthError.createUnexpectedAccountTypeError();
             }
         }
     }
