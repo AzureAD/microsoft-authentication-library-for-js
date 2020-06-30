@@ -62,7 +62,7 @@ export abstract class ClientApplication {
      * @param request
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
-        this.logger.verbose("getAuthCodeUrl called");
+        this.logger.info("getAuthCodeUrl called");
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
@@ -84,7 +84,7 @@ export abstract class ClientApplication {
      * @param request
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("acquireTokenByCode called");
+        this.logger.info("acquireTokenByCode called");
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
@@ -104,7 +104,7 @@ export abstract class ClientApplication {
      * @param request
      */
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("acquireTokenByRefreshToken called");
+        this.logger.info("acquireTokenByRefreshToken called");
         const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
