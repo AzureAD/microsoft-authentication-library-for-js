@@ -29,7 +29,6 @@ describe('Test cross platform lock', () => {
     });
 
     test('locks then unlocks by creating then deleting lockfile', async () => {
-        const lockFilePath = "./test.lockfile";
         const lock = new CrossPlatformLock(lockFilePath, logger);
         await lock.lock();
 
@@ -60,7 +59,7 @@ describe('Test cross platform lock', () => {
         try {
             await lock.lock();
         } catch (error) {
-            expect(error.code).toEqual("CrossPlatformLockError");
+            expect(error.errorCode).toEqual("CrossPlatformLockError");
             return;
         } finally {
             await fd.close();

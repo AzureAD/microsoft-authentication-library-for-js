@@ -35,14 +35,14 @@ export class CrossPlatformLock {
      * the lockfile, will back off and retry based on configuration settings set by CrossPlatformLockOptions
      */
     public async lock(): Promise<void> {
-        for (let tryCount = 0; tryCount < this.retryNumber; tryCount++)
+        for (let tryCount = 0; tryCount < this.retryNumber; tryCount++) {
             try {
                 this.logger.info(`Pid ${pid} trying to acquire lock`);
                 this.lockFileHandle = await fs.open(this.lockFilePath, "wx+");
 
                 this.logger.info(`Pid ${pid} acquired lock`);
                 await this.lockFileHandle.write(pid.toString());
-                break;
+                return;
             } catch (err) {
                 if (err.code == Constants.EEXIST_ERROR) {
                     this.logger.info(err);
@@ -51,6 +51,10 @@ export class CrossPlatformLock {
                     throw PersistenceError.createCrossPlatformLockError(err.code, err.message);
                 }
             }
+        }
+        throw PersistenceError.createCrossPlatformLockError(
+            "Exceeded retry options",
+            "Not able to acquire lock. Exceeded amount of retries set in options");
     }
 
     /**
