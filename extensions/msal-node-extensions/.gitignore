@@ -1,6 +1,10 @@
 # Webstorm
 .idea
 
+# Generated files
+build
+dist
+
 # Logs
 logs
 *.log
