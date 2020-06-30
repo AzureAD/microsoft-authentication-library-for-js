@@ -171,7 +171,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(tokenResponse.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse.accessToken).to.be.eq(testTokenResponse.accessToken);
-                // expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
+                expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
                 expect(window.sessionStorage.length).to.be.eq(4);
             });
 
@@ -272,7 +272,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(tokenResponse.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse.accessToken).to.be.eq(testTokenResponse.accessToken);
-                // expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
+                expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
                 expect(window.sessionStorage.length).to.be.eq(4);
                 expect(window.location.hash).to.be.empty;
             });

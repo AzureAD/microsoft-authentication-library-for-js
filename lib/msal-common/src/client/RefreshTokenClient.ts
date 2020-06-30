@@ -34,7 +34,7 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.generateAuthenticationResult(
+        const tokenResponse = responseHandler.handleServerTokenResponse(
             response.body,
             this.authority
         );
