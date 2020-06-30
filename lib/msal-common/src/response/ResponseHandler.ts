@@ -128,8 +128,8 @@ export class ResponseHandler {
             idTokenClaims: idTokenObj.claims,
             accessToken: serverTokenResponse.access_token,
             fromCache: true,
-            expiresOn: new Date(cacheRecord.accessToken.expiresOn),
-            extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
+            expiresOn: new Date(Number(cacheRecord.accessToken.expiresOn) * 1000),
+            extExpiresOn: new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000),
             familyId: serverTokenResponse.foci || null,
             state: requestStateObj ? requestStateObj.userRequestState : ""
         };
