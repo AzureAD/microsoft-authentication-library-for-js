@@ -53,7 +53,7 @@ function runMochaTests(sampleIndex: number) {
     app.use(morgan('dev'));
 
     // Set the front-end folder to serve public assets.
-    app.use("/lib", express.static(path.join(PARENT_DIR, "../../lib/msal-browser/lib")));
+    app.use("/lib", express.static(path.join(PARENT_DIR, "../../../lib/msal-browser/lib")));
     
     let sampleName = sampleFolders[sampleIndex];
     const mocha = createMochaObject(sampleName);

@@ -49,7 +49,7 @@ async function enterCredentials(page: puppeteer.Page, testName: string): Promise
     await page.click("#idSIButton9");
 }
 
-describe.skip("Browser tests", function () {
+describe("Browser tests", function () {
     this.timeout(0);
     this.retries(1);
 
@@ -81,7 +81,7 @@ describe.skip("Browser tests", function () {
         await browser.close();
     });
 
-    it.skip("Performs loginRedirect and acquires 2 tokens", async () => {
+    it("Performs loginRedirect and acquires 2 tokens", async () => {
         const testName = "multipleResources";
         // Home Page
         await takeScreenshot(page, testName, `samplePageInit`);
@@ -110,6 +110,6 @@ describe.skip("Browser tests", function () {
         await page.waitForSelector("#second-resource-div");
         await takeScreenshot(page, testName, `secondToken`);
         sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(Object.keys(sessionStorage).length).to.be.eq(4);
+        expect(Object.keys(sessionStorage).length).to.be.eq(5);
     });
 });
