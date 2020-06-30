@@ -16,7 +16,7 @@ export type AuthorizationUrlRequest = BaseAuthRequest & {
      * The redirect URI where authentication responses can be received by your application. It
      * must exactly match one of the redirect URIs registered in the Azure portal.
      */
-    redirectUri: string;
+    redirectUri?: string;
 
     /**
      * Scopes for a different resource when the user needs consent upfront
