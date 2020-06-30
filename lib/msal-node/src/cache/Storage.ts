@@ -247,7 +247,8 @@ export class Storage extends CacheManager {
 
         // read all keys
         Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
+            // @ts-ignore
+            Object.keys(cache[key]).forEach(internalKey => {
                 cacheKeys.push(internalKey);
             });
         });
@@ -264,7 +265,8 @@ export class Storage extends CacheManager {
 
         // read all keys
         Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
+            // @ts-ignore
+            Object.keys(cache[key]).forEach(internalKey => {
                 this.removeItem(internalKey);
             });
         });
