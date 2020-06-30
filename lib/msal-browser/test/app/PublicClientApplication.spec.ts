@@ -72,15 +72,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("navigates and caches hash if navigateToLoginRequestUri is true", (done) => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-            sinon.stub(BrowserUtils, "getCurrentUri").returns("notAUri");
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
-                expect(urlNavigate).to.be.eq(TEST_URIS.TEST_REDIR_URI);
+                expect(urlNavigate).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                done();
             });
             pca.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-            done();
         });
     });
 

@@ -19,6 +19,13 @@ export type AuthorizationUrlRequest = BaseAuthRequest & {
     redirectUri: string;
 
     /**
+     * The page that should be returned to after loginRedirect or acquireTokenRedirect. This should only be used
+     * if this is different from the redirectUri and will default to the page that initiates the request.
+     * When the navigateToLoginRequestUrl config option is set to false this parameter will be ignored.
+     */
+    redirectStartPage?: string;
+
+    /**
      * Scopes for a different resource when the user needs consent upfront
      */
     extraScopesToConsent?: Array<string>;
