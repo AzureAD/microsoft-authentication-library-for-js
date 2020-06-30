@@ -25,7 +25,6 @@ function handleResponse(resp) {
     if (resp !== null) {
         username = resp.account.username;
         showWelcomeMessage(resp.account);
-        getTokenRedirect(tokenRequest, resp.account);
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
@@ -36,7 +35,6 @@ function handleResponse(resp) {
         } else if (currentAccounts.length === 1) {
             username = currentAccounts[0].username;
             showWelcomeMessage(currentAccounts[0]);
-            getTokenRedirect(tokenRequest, currentAccounts[0]);
         }
     }
 }
