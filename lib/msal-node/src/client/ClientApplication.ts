@@ -17,7 +17,8 @@ import {
     Constants,
     TrustedAuthority,
     AccountInfo,
-    BaseAuthRequest
+    BaseAuthRequest,
+    Logger
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -32,6 +33,7 @@ export abstract class ClientApplication {
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
     private tokenCache: TokenCache;
+    public logger: Logger;
 
     /**
      * @constructor
@@ -45,6 +47,7 @@ export abstract class ClientApplication {
             this.config.cache?.cachePlugin
         );
         this.cryptoProvider = new CryptoProvider();
+        this.logger = new Logger(this.config.system!.loggerOptions!);
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
     }
 
@@ -59,9 +62,11 @@ export abstract class ClientApplication {
      * @param request
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
+        this.logger.verbose("getAuthCodeUrl called");
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
+        this.logger.verbose("Auth client config built");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
@@ -79,9 +84,11 @@ export abstract class ClientApplication {
      * @param request
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+        this.logger.verbose("acquireTokenByCode called");
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
+        this.logger.verbose("Auth client config built");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
@@ -97,9 +104,11 @@ export abstract class ClientApplication {
      * @param request
      */
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
+        this.logger.verbose("acquireTokenByRefreshToken called");
         const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
+        this.logger.verbose("Auth client config built");
         const refreshTokenClient = new RefreshTokenClient(
             refreshTokenClientConfig
         );
@@ -111,6 +120,7 @@ export abstract class ClientApplication {
     }
 
     protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
+        this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
             authOptions: {
@@ -142,6 +152,8 @@ export abstract class ClientApplication {
      * @param authRequest
      */
     protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
+        this.logger.verbose("initializeRequestScopes called");
+
         return {
             ...authRequest,
             scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
@@ -154,6 +166,8 @@ export abstract class ClientApplication {
      * @param authorityString
      */
     private async createAuthority(authorityString?: string): Promise<Authority> {
+        this.logger.verbose("createAuthority called");
+
         const authority: Authority = authorityString ? AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!) : this.authority;
 
         if (authority.discoveryComplete()) {
@@ -182,6 +196,8 @@ export abstract class ClientApplication {
     }
 
     getAllAccounts(): AccountInfo[] {
+        this.logger.verbose("getAllAccounts called");
+
         return this.storage.getAllAccounts();
     }
 }
