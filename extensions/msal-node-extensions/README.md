@@ -14,15 +14,20 @@ Supported platforms are Windows, Mac and Linux:
 
 ## Building
 
-The extensions contain prebuild binaries. To build from source, you will need Python on you path.
+The extensions contain prebuild binaries. To build from source, you will need Python on you path,
+as [node-gyp](https://github.com/nodejs/node-gyp) is used to build addons for accessing system APIs.
 
+On linux, the library uses `libsecret` so you may need to install it.Depending on your distribution, you will need to run the following command:
+
+- Debian/Ubuntu: `sudo apt-get install libsecret-1-dev`
+- Red Hat-based: `sudo yum install libsecret-devel`
+- Arch Linux: sudo `pacman -S libsecret`
+
+To build msal-node-extensions:
 - Navigate to `lib/msal-common` and run `npm run build` then `npm link`
 - Navigate to `extensions` and run `npm link @azure/msal-common`
-- Run `node-gyp configure`
-- Run `node-gyp build`
+- Run `npm install`
 - Run `npm run build`
-
-On linux, the library uses `libsecret` so you may need to install it.
 
 ## Contributing
 
