@@ -32,18 +32,17 @@ export class CrossPlatformLock {
     /**
      * Locks cache from read or writes by creating file with same path and name as
      * cache file but with .lockfile extension. If another process has already created
-     * the lockfile, will retry again based on configuration settings set by CrossPlatformLockOptions
+     * the lockfile, will back off and retry based on configuration settings set by CrossPlatformLockOptions
      */
     public async lock(): Promise<void> {
-        const processId = pid.toString();
-        for (let tryCount = 0; tryCount < this.retryNumber; tryCount++)
+        for (let tryCount = 0; tryCount < this.retryNumber; tryCount++) {
             try {
                 this.logger.info(`Pid ${pid} trying to acquire lock`);
                 this.lockFileHandle = await fs.open(this.lockFilePath, "wx+");
 
                 this.logger.info(`Pid ${pid} acquired lock`);
-                await fs.write(this.lockFileHandle, processId);
-                break;
+                await this.lockFileHandle.write(pid.toString());
+                return;
             } catch (err) {
                 if (err.code == Constants.EEXIST_ERROR) {
                     this.logger.info(err);
@@ -52,6 +51,10 @@ export class CrossPlatformLock {
                     throw PersistenceError.createCrossPlatformLockError(err.code, err.message);
                 }
             }
+        }
+        throw PersistenceError.createCrossPlatformLockError(
+            "Exceeded retry options",
+            "Not able to acquire lock. Exceeded amount of retries set in options");
     }
 
     /**

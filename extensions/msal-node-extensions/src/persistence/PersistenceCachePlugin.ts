@@ -17,7 +17,7 @@ import { Logger } from "@azure/msal-common";
  * - FilePersistence: Writes and reads from an unencrypted file. Can be used on Windows,
  * macOs, or Linux.
  * - FilePersistenceWithDataProtection: Used on Windows, writes and reads from file encrypted
- * with windows dpapi.
+ * with windows dpapi-addon.
  * - KeychainPersistence: Used on macOs, writes and reads from keychain.
  * - LibSecretPersistence: Used on linux, writes and reads from secret service API. Requires
  * libsecret be installed.
@@ -36,16 +36,16 @@ export class PersistenceCachePlugin {
     constructor(persistence: IPersistence, lockOptions?: CrossPlatformLockOptions) {
         this.persistence = persistence;
 
+        // initialize logger
+        this.logger = persistence.getLogger();
+
         // create file lock
         this.lockFilePath = `${this.persistence.getFilePath()}.lockfile`;
-        this.crossPlatformLock = new CrossPlatformLock(this.lockFilePath, lockOptions);
+        this.crossPlatformLock = new CrossPlatformLock(this.lockFilePath, this.logger, lockOptions);
 
         // initialize default values
         this.lastSync = 0;
         this.currentCache = null;
-
-        // initialize logger
-        this.logger = persistence.getLogger();
     }
 
     /**

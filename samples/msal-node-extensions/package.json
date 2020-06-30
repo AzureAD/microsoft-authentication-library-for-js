@@ -13,6 +13,6 @@
   "dependencies": {
     "@azure/msal-node": "^0.1.0",
     "express": "^4.17.1",
-      "msal-node-extensions": "0.1.0"
+    "msal-node-extensions": "0.1.0"
   }
 }
