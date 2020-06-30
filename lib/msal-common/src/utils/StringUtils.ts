@@ -50,7 +50,7 @@ export class StringUtils {
         let match: Array<string>; // Regex for replacing addition symbol with a space
         const pl = /\+/g;
         const search = /([^&=]+)=([^&]*)/g;
-        const decode = (s: string): string => decodeURIComponent(s.replace(pl, " "));
+        const decode = (s: string): string => decodeURIComponent(decodeURIComponent(s.replace(pl, " ")));
         const obj: {} = {};
         match = search.exec(query);
         while (match) {
