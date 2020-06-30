@@ -18,9 +18,10 @@ export class RedirectHandler extends InteractionHandler {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Set interaction status in the library.
+            const loginStartPage = authCodeRequest.redirectStartPage || window.location.href;
             this.browserStorage.setItem(
                 this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), 
-                BrowserUtils.getCurrentUri(), 
+                loginStartPage, 
                 CacheSchemaType.TEMPORARY
             );
             this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);

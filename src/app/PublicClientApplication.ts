@@ -160,16 +160,12 @@ export class PublicClientApplication {
         const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
-        const currentUrl = BrowserUtils.getCurrentUri();
-        if (loginRequestUrl === currentUrl) {
-            // We don't need to navigate - check for hash and prepare to process
-            if (isResponseHash) {
-                BrowserUtils.clearHash();
-                return this.handleHash(hash);
-            } else {
-                // Loaded page with no valid hash - pass in the value retrieved from cache, or null/empty string
-                return this.handleHash(`${cachedHash}`);
-            }
+
+        const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
+        const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
+        if (loginRequestUrlNormalized === currentUrlNormalized) {
+            BrowserUtils.replaceHash(loginRequestUrl);
+            return isResponseHash ? this.handleHash(hash) : this.handleHash(`${cachedHash}`);
         }
 
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
