@@ -72,5 +72,6 @@ app.get('/redirect', (req, res) => {
 
 msalCacheManager.readFromPersistence().then(() => {
     app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`))
+    console.log("Accounts: \n", msalCacheManager.getAllAccounts());
 });
 

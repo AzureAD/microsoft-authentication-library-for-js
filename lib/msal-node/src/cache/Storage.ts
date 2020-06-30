@@ -240,16 +240,14 @@ export class Storage extends CacheManager {
      */
     getKeys(): string[] {
         // read inMemoryCache
-        const cache = this.getCache();
+        const cache: InMemoryCache= this.getCache() as InMemoryCache;
         let cacheKeys: string[] = [];
 
-        // read all keys
-        Object.keys(cache).forEach(key => {
-            // @ts-ignore
-            Object.keys(cache[key]).forEach(internalKey => {
-                cacheKeys.push(internalKey);
-            });
-        });
+        cacheKeys = Object.keys(cache.accounts) as Array<string>;
+        cacheKeys.push(...Object.keys(cache.idTokens) as Array<string>);
+        cacheKeys.push(...Object.keys(cache.accessTokens) as Array<string>);
+        cacheKeys.push(...Object.keys(cache.refreshTokens) as Array<string>);
+        cacheKeys.push(...Object.keys(cache.appMetadata) as Array<string>);
 
         return cacheKeys;
     }
@@ -259,14 +257,11 @@ export class Storage extends CacheManager {
      */
     clear(): void {
         // read inMemoryCache
-        const cache = this.getCache();
+        const cacheKeys = this.getKeys();
 
-        // read all keys
-        Object.keys(cache).forEach(key => {
-            // @ts-ignore
-            Object.keys(cache[key]).forEach(internalKey => {
-                this.removeItem(internalKey);
-            });
+        // delete each element
+        cacheKeys.forEach(key => {
+            this.removeItem(key);
         });
         this.emitChange();
     }
