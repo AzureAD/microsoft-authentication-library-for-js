@@ -1,3 +1,9 @@
+# 1.3.3
+
+## Enhancements
+
+* Add monitorIframeForHash to ensure silent requests timeout (#1823)
+
 # 1.3.2
 
 ## Bugs
