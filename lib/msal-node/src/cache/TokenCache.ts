@@ -65,11 +65,13 @@ export class TokenCache {
 
         // if cacheSnapshot not null or empty, merge
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-            this.logger.verbose("Cache snapshot not null or empty, merging snapshot with finalState");
+            this.logger.verbose("Cache snapshot not null or empty");
             finalState = this.mergeState(
                 JSON.parse(this.cacheSnapshot),
                 finalState
             );
+        } else {
+            this.logger.verbose("No cache snapshot to merge");
         }
         this.hasChanged = false;
 
@@ -85,11 +87,13 @@ export class TokenCache {
         this.cacheSnapshot = cache;
 
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-            this.logger.verbose("Cache snapshot not null or empty, deserializing, overlaying default, and setting cache");
+            this.logger.verbose("Cache snapshot not null or empty, deserializing JSON");
             const deserializedCache = Deserializer.deserializeAllCache(
                 this.overlayDefaults(JSON.parse(this.cacheSnapshot))
             );
             this.storage.setCache(deserializedCache);
+        } else {
+            this.logger.verbose("No cache snapshot to deserialize");
         }
     }
 
@@ -103,9 +107,11 @@ export class TokenCache {
             let cache = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
             const getMergedState = (stateFromDisk: string) => {
                 if (!StringUtils.isEmpty(stateFromDisk)) {
-                    this.logger.verbose("State from disk not null or empty, merging");
+                    this.logger.verbose("State from disk not null or empty");
                     this.cacheSnapshot = stateFromDisk;
                     cache = this.mergeState(JSON.parse(stateFromDisk), cache);
+                } else {
+                    this.logger.verbose("State from disk is null or empty");
                 }
 
                 return JSON.stringify(cache);
@@ -129,14 +135,17 @@ export class TokenCache {
             this.cacheSnapshot = await this.persistence.readFromStorage();
 
             if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-                this.logger.verbose("Cache snapshot not null or empty, deserializing JSON to in-memory cache, and setting cache");
+                this.logger.verbose("Cache snapshot not null or empty");
                 const cache = this.overlayDefaults(
                     JSON.parse(this.cacheSnapshot)
                 );
+                this.logger.verbose("Deserializing JSON");
                 const deserializedCache = Deserializer.deserializeAllCache(
                     cache
                 );
                 this.storage.setCache(deserializedCache);
+            } else {
+                this.logger.verbose("No cache snapshot to overlay and deserialize");
             }
         } else {
             throw ClientAuthError.createCachePluginError();
@@ -227,6 +236,7 @@ export class TokenCache {
     }
 
     private overlayDefaults(passedInCache: JsonCache): JsonCache {
+        this.logger.verbose("Overlaying defaults");
         return {
             Account: {
                 ...defaultSerializedCache.Account,

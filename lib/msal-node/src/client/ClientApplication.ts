@@ -41,8 +41,8 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
-        this.storage = new Storage();
         this.logger = new Logger(this.config.system!.loggerOptions!);
+        this.storage = new Storage(this.logger);
         this.tokenCache = new TokenCache(
             this.storage,
             this.config.cache?.cachePlugin,
