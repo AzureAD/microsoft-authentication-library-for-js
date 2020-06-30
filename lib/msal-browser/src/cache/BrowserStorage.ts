@@ -213,7 +213,7 @@ export class BrowserStorage extends CacheManager {
         let key: string;
         for (key in this.windowStorage) {
             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
-            if (this.windowStorage.hasOwnProperty(key) && (key.indexOf(Constants.CACHE_PREFIX) !== -1) && (key.indexOf(this.clientId) !== -1)) {
+            if (this.windowStorage.hasOwnProperty(key) && ((key.indexOf(Constants.CACHE_PREFIX) !== -1) || (key.indexOf(this.clientId) !== -1))) {
                 this.removeItem(key);
             }
         }
@@ -226,7 +226,7 @@ export class BrowserStorage extends CacheManager {
      * @param expires
      */
     setItemCookie(cookieName: string, cookieValue: string, expires?: number): void {
-        let cookieStr = `${cookieName}=${cookieValue};path=/;`;
+        let cookieStr = `${encodeURIComponent(cookieName)}=${encodeURIComponent(cookieValue)};path=/;`;
         if (expires) {
             const expireTime = this.getCookieExpirationTime(expires);
             cookieStr += `expires=${expireTime};`;
@@ -240,7 +240,7 @@ export class BrowserStorage extends CacheManager {
      * @param cookieName
      */
     getItemCookie(cookieName: string): string {
-        const name = `${cookieName}=`;
+        const name = `${encodeURIComponent(cookieName)}=`;
         const cookieList = document.cookie.split(";");
         for (let i = 0; i < cookieList.length; i++) {
             let cookie = cookieList[i];
@@ -248,7 +248,7 @@ export class BrowserStorage extends CacheManager {
                 cookie = cookie.substring(1);
             }
             if (cookie.indexOf(name) === 0) {
-                return cookie.substring(name.length, cookie.length);
+                return decodeURIComponent(cookie.substring(name.length, cookie.length));
             }
         }
         return "";

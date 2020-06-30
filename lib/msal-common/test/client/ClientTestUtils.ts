@@ -3,7 +3,7 @@ import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
 import { AuthorityFactory } from "../../src";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 import sinon from "sinon";
-import { IInstanceDiscoveryMetadata } from "../../src/authority/ICloudDiscoveryMetadata";
+import { CloudDiscoveryMetadata } from "../../src/authority/CloudDiscoveryMetadata";
 import { CacheManager } from "../../src/cache/CacheManager";
 
 export class MockStorageClass extends CacheManager {
@@ -107,7 +107,7 @@ export class ClientTestUtils {
 
     static setCloudDiscoveryMetadataStubs(): void {
         sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
-        const stubbedCloudDiscoveryMetadata: ICloudDiscoveryMetadata = {
+        const stubbedCloudDiscoveryMetadata: CloudDiscoveryMetadata = {
             preferred_cache: "login.windows.net",
             preferred_network: "login.microsoftonline.com",
             aliases: ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]};
