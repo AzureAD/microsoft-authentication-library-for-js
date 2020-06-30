@@ -408,7 +408,6 @@ export class PublicClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeRequest({
                     ...silentRequest,
-                    redirectUri: silentRequest.redirectUri,
                     prompt: PromptValue.NONE
                 });
 
@@ -490,8 +489,8 @@ export class PublicClientApplication {
      *
      * @returns {string} post logout redirect URL
      */
-    public getPostLogoutRedirectUri(): string {
-        return this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+    public getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
+        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
     }
 
     /**
@@ -672,7 +671,7 @@ export class PublicClientApplication {
     private generateLogoutRequest(logoutRequest?: EndSessionRequest): EndSessionRequest {
         return {
             ...logoutRequest,
-            postLogoutRedirectUri: (logoutRequest && logoutRequest.postLogoutRedirectUri) || this.getPostLogoutRedirectUri()
+            postLogoutRedirectUri: this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "")
         };
     }
 
