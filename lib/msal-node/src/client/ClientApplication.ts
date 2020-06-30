@@ -42,12 +42,13 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
         this.storage = new Storage();
+        this.logger = new Logger(this.config.system!.loggerOptions!);
         this.tokenCache = new TokenCache(
             this.storage,
-            this.config.cache?.cachePlugin
+            this.config.cache?.cachePlugin,
+            this.logger
         );
         this.cryptoProvider = new CryptoProvider();
-        this.logger = new Logger(this.config.system!.loggerOptions!);
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
     }
 
@@ -116,6 +117,7 @@ export abstract class ClientApplication {
     }
 
     getCacheManager(): TokenCache {
+        this.logger.verbose("getCacheManager called");
         return this.tokenCache;
     }
 
