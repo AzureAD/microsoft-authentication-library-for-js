@@ -339,6 +339,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const authenticationResult = await client.acquireToken(authCodeRequest, idTokenClaims.nonce, testState);
 
             expect(authenticationResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
+            expect((Date.now() + (AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).to.be.true;
             expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).to.be.ok;
 
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
