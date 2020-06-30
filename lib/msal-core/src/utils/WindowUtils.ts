@@ -3,7 +3,7 @@ import { UrlUtils } from "./UrlUtils";
 import { Logger } from "../Logger";
 import { AuthCache } from "../cache/AuthCache";
 import { TemporaryCacheKeys, Constants } from "../utils/Constants";
-import { TimeUtils } from './TimeUtils';
+import { TimeUtils } from "./TimeUtils";
 
 export class WindowUtils {
     /**
@@ -43,8 +43,10 @@ export class WindowUtils {
 
     static monitorIframeForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger): Promise<string> {
         return new Promise((resolve, reject) => {
-            // Polling for iframes can be purely timing based,
-            // since we don't need to accout for interaction.
+            /*
+             * Polling for iframes can be purely timing based,
+             * since we don't need to accout for interaction.
+             */
             const nowMark = TimeUtils.relativeNowMs();
             const timeoutMark = nowMark + timeout;
 
@@ -86,8 +88,10 @@ export class WindowUtils {
      */
     static monitorPopupForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger): Promise<string> {
         return new Promise((resolve, reject) => {
-            // Polling for popups needs to be tick-based,
-            // since a non-trivial amount of time can be spent on interaction (which should not count against the timeout).
+            /*
+             * Polling for popups needs to be tick-based,
+             * since a non-trivial amount of time can be spent on interaction (which should not count against the timeout).
+             */
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
 
