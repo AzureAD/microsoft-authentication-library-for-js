@@ -34,5 +34,4 @@ export type AuthorizationCodeRequest = BaseAuthRequest & {
     code: string;
     codeVerifier?: string;
     correlationId?: string;
-    redirectStartPage?: string;
 };

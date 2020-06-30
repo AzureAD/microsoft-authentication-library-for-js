@@ -166,7 +166,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             });
             const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, new CryptoOps());
             expect(window).to.be.eq(windowObj);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
             expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
