@@ -168,7 +168,7 @@ export class PublicClientApplication {
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
         if (loginRequestUrlNormalized === currentUrlNormalized) {
-            BrowserUtils.replaceHash(loginRequestUrl);
+            this.config.auth.navigateToLoginRequestUrl ? BrowserUtils.replaceHash(loginRequestUrl) : BrowserUtils.clearHash();
             return isResponseHash ? this.handleHash(hash) : this.handleHash(`${cachedHash}`);
         }
 
