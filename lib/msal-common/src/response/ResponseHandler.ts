@@ -98,7 +98,7 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): AuthenticationResult {
+    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): AuthenticationResult {
         // create an idToken object (not entity)
         const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
 
@@ -116,43 +116,9 @@ export class ResponseHandler {
         }
 
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
-        this.cacheStorage.saveCacheRecord(cacheRecord, responseScopes);
+        this.cacheStorage.saveCacheRecord(cacheRecord);
 
-        const authenticationResult: AuthenticationResult = {
-            uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
-            tenantId: idTokenObj.claims.tid,
-            scopes: responseScopes.asArray(),
-            account: cacheRecord.account.getAccountInfo(),
-            idToken: idTokenObj.rawIdToken,
-            idTokenClaims: idTokenObj.claims,
-            accessToken: serverTokenResponse.access_token,
-            fromCache: true,
-            expiresOn: new Date(cacheRecord.accessToken.expiresOn),
-            extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
-            familyId: serverTokenResponse.foci || null,
-            state: requestStateObj ? requestStateObj.userRequestState : ""
-        };
-
-        return authenticationResult;
-    }
-
-    /**
-     * Generate Account
-     * @param serverTokenResponse
-     * @param idToken
-     * @param authority
-     */
-    generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
-        const authorityType = authority.authorityType;
-
-        if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
-            throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
-        }
-
-        return (authorityType === AuthorityType.Adfs)? 
-            AccountEntity.createADFSAccount(authority, idToken): 
-            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
+        return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj ? requestStateObj.userRequestState : null);
     }
 
     /**
@@ -161,7 +127,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject): CacheRecord {
         // Account
         const cachedAccount  = this.generateAccountEntity(
             serverTokenResponse,
@@ -202,7 +168,7 @@ export class ResponseHandler {
             serverTokenResponse.access_token,
             this.clientId,
             idTokenObj.claims.tid,
-            responseScopes.asArray().join(" "),
+            responseScopes.printScopes(),
             tokenExpirationSeconds,
             extendedTokenExpirationSeconds
         );
@@ -217,5 +183,51 @@ export class ResponseHandler {
         );
 
         return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken);
+    }
+
+    /**
+     * Generate Account
+     * @param serverTokenResponse
+     * @param idToken
+     * @param authority
+     */
+    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
+        const authorityType = authority.authorityType;
+
+        if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
+            throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
+        }
+
+        return (authorityType === AuthorityType.Adfs)? 
+            AccountEntity.createADFSAccount(authority, idToken): 
+            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
+    }
+
+    /**
+     * Creates an @AuthenticationResult from @CacheRecord , @IdToken , and a boolean that states whether or not the result is from cache.
+     * 
+     * Optionally takes a state string that is set as-is in the response.
+     * 
+     * @param cacheRecord 
+     * @param idTokenObj 
+     * @param fromTokenCache 
+     * @param stateString 
+     */
+    static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, stateString?: string): AuthenticationResult {
+        const responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target);
+        return {
+            uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
+            tenantId: idTokenObj.claims.tid,
+            scopes: responseScopes.asArray(),
+            account: cacheRecord.account.getAccountInfo(),
+            idToken: idTokenObj.rawIdToken,
+            idTokenClaims: idTokenObj.claims,
+            accessToken: cacheRecord.accessToken.secret,
+            fromCache: fromTokenCache,
+            expiresOn: new Date(Number(cacheRecord.accessToken.expiresOn) * 1000),
+            extExpiresOn: new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000),
+            familyId: cacheRecord.refreshToken.familyId || null,
+            state: stateString || ""
+        };
     }
 }
