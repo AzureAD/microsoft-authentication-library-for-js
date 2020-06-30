@@ -53,7 +53,7 @@ const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
         return await myMSALObj.acquireTokenPopup(request).catch(error => {
-            console.log(error);
+            handleError(error);
         });
     }
 });
