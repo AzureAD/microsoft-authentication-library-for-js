@@ -82,7 +82,7 @@ export abstract class CacheManager implements ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    saveCacheRecord(cacheRecord: CacheRecord, responseScopes?: ScopeSet): void {
+    saveCacheRecord(cacheRecord: CacheRecord): void {
         if (!cacheRecord) {
             throw ClientAuthError.createNullOrUndefinedCacheRecord();
         }
@@ -96,7 +96,7 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (!!cacheRecord.accessToken) {
-            this.saveAccessToken(cacheRecord.accessToken, responseScopes);
+            this.saveAccessToken(cacheRecord.accessToken);
         }
 
         if (!!cacheRecord.refreshToken) {
@@ -134,7 +134,7 @@ export abstract class CacheManager implements ICacheManager {
      * saves access token credential
      * @param credential
      */
-    private saveAccessToken(credential: AccessTokenEntity, responseScopes: ScopeSet): void {
+    private saveAccessToken(credential: AccessTokenEntity): void {
         const currentTokenCache = this.getCredentialsFilteredBy({
             clientId: credential.clientId,
             credentialType: CredentialType.ACCESS_TOKEN,
@@ -142,11 +142,12 @@ export abstract class CacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm
         });
+        const currentScopes = ScopeSet.fromString(credential.target);
         const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache.accessTokens) as AccessTokenEntity[];
         if (currentAccessTokens) {
             currentAccessTokens.forEach((tokenEntity) => {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
-                if (tokenScopeSet.intersectingScopeSets(responseScopes)) {
+                if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
                     this.removeCredential(tokenEntity);
                 }
             });
