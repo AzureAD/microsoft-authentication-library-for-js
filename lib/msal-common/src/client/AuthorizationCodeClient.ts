@@ -22,6 +22,7 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { RequestTelemetry } from "../telemetry/RequestTelemetry";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -130,7 +131,8 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        let headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        headers = RequestTelemetry.addTelemetryHeaders(headers, request.apiId, false);
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }

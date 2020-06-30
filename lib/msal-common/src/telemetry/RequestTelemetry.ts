@@ -4,12 +4,12 @@
  */
 
 import { MSER_TELEM_CONSTANTS, AADServerParamKeys } from "../utils/Constants";
-import { CacheManager } from '../cache/CacheManager';
+import { CacheManager } from "../cache/CacheManager";
 
 export class RequestTelemetry {
 
     // API to add MSER Telemetry to request
-    static currentRequest(apiId: number, forceRefresh: boolean): string {
+    static currentRequest(apiId: number, forceRefresh?: boolean): string {
         const forceRefreshInt = forceRefresh ? 1 : 0;
         const platformFields = ""; // TODO: Determine what we want to include
         return `${MSER_TELEM_CONSTANTS.SCHEMA_VERSION}${MSER_TELEM_CONSTANTS.CATEGORY_SEPARATOR}${apiId}${MSER_TELEM_CONSTANTS.VALUE_SEPARATOR}${forceRefreshInt}${MSER_TELEM_CONSTANTS.CATEGORY_SEPARATOR}${platformFields}`;
@@ -22,7 +22,7 @@ export class RequestTelemetry {
 
     // API to cache token failures for MSER data capture
     static cacheRequestErrors(apiId: number, correlationId: string, error: string, cacheStorage: CacheManager) {
-        
+        return;
     }
 
     static addTelemetryHeaders(headers: Map<string, string>, apiId: number, forceRefresh: boolean): Map<string, string> {

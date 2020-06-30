@@ -40,6 +40,7 @@ import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants"
 import { AuthCallback } from "../types/AuthCallback";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
+import { ApiId } from "../telemetry/ApiId";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -248,7 +249,7 @@ export class PublicClientApplication {
             const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
 
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest, ApiId.acquireTokenRedirect);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(request.authority);
@@ -295,7 +296,7 @@ export class PublicClientApplication {
             const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
 
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest, ApiId.acquireTokenPopup);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(request.authority);
@@ -367,7 +368,7 @@ export class PublicClientApplication {
         });
 
         // Create auth code request and generate PKCE params
-        const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentRequest);
+        const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentRequest, ApiId.ssoSilent);
 
         // Get scopeString for iframe ID
         const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
@@ -413,7 +414,7 @@ export class PublicClientApplication {
                 });
 
                 // Create auth code request and generate PKCE params
-                const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentAuthUrlRequest);
+                const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentAuthUrlRequest, ApiId.acquireTokenSilent);
 
                 // Initialize the client
                 const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(silentRequest.authority);
@@ -679,13 +680,14 @@ export class PublicClientApplication {
         };
     }
 
-    private async generateAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
+    private async generateAuthorizationCodeRequest(request: AuthorizationUrlRequest, apiId?: number): Promise<AuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
         const authCodeRequest: AuthorizationCodeRequest = {
             ...request,
             code: "",
-            codeVerifier: generatedPkceParams.verifier
+            codeVerifier: generatedPkceParams.verifier,
+            apiId: apiId
         };
 
         request.codeChallenge = generatedPkceParams.challenge;

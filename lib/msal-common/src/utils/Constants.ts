@@ -42,7 +42,7 @@ export const MSER_TELEM_CONSTANTS = {
     CACHE_HITS: "cacheHits",
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
-}
+};
 
 /**
  * Request header names
