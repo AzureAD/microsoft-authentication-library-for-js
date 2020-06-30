@@ -10,7 +10,7 @@ import { mockCache } from "../entities/cacheConstants";
 import { CacheRecord } from "../../../src/cache/entities/CacheRecord";
 import { ScopeSet } from "../../../src/request/ScopeSet";
 import { AccountFilter, CredentialFilter } from "../../../src/cache/utils/CacheTypes";
-import { CredentialEntity } from "../../../src";
+import { ClientAuthError, CredentialEntity } from "../../../src";
 
 const cacheJson = require("../cache.json");
 
@@ -48,8 +48,7 @@ class TestStorageManager extends CacheManager {
                 break;
             }
             default: {
-                console.log("Invalid Cache Type");
-                return;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
     }
@@ -78,8 +77,7 @@ class TestStorageManager extends CacheManager {
                 return CacheManager.toObject(new AppMetadataEntity(), store[key]) as AppMetadataEntity;
             }
             default: {
-                console.log("Invalid Cache Type");
-                return;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
     }
@@ -132,8 +130,7 @@ class TestStorageManager extends CacheManager {
                 break;
             }
             default: {
-                console.log("Invalid Cache Type");
-                break;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
 
