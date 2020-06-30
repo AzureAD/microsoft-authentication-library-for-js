@@ -16,7 +16,7 @@ import {
     ClientAuthError,
     Constants,
     TrustedAuthority,
-    BaseAuthRequest
+    BaseAuthRequest,
     SilentFlowRequest,
     SilentFlowClient,
 } from '@azure/msal-common';
