@@ -1077,6 +1077,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             pca.logout();
             const validatedLogoutRequest: EndSessionRequest = {
+                correlationId: RANDOM_TEST_GUID,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
