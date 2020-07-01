@@ -6,6 +6,9 @@ export { Configuration } from "./config/Configuration";
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
 export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } from "./error/BrowserConfigurationAuthError";
 
+// Interfaces
+export { IPublicClientApplication } from "./app/IPublicClientApplication";
+
 // Common Object Formats
 export {
     // Account
