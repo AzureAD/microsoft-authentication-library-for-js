@@ -27,7 +27,6 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSignedIn: false,
       isSharedDevice: false,
       scopesValue: "",
       URLValue: "https://graph.microsoft.com/v1.0/me",
@@ -49,7 +48,6 @@ class App extends Component {
     try{
       var result = await MSAL.getAccount();
       this.setState({
-        isSignedIn: true,
         account: result,
       });
     } catch (message) {
@@ -72,7 +70,6 @@ class App extends Component {
     try{
       var result = await MSAL.signIn(this.state.scopesValue);
       this.setState({
-        isSignedIn: true,
         account: result,
       });
     } catch (error) {
@@ -86,7 +83,6 @@ class App extends Component {
       this.setState({
         account: null,
         graphResult: null,
-        isSignedIn: false
       });
     } catch (exception) {
       console.log(exception)
@@ -131,7 +127,6 @@ class App extends Component {
       await this.getAccount();
       this.setState({
         graphResult: json,
-        isSignedIn: true
       });
     } catch (exception) {
       console.log(exception);
@@ -198,7 +193,7 @@ class App extends Component {
                   <Button 
                   title="Sign In"
                   color ='#2b88d8'
-                  disabled = {this.state.isSignedIn}
+                  disabled = {Boolean(this.state.account)}
                   onPress = {this.startSignIn}
                    />
                 </View>
@@ -207,7 +202,7 @@ class App extends Component {
                   <Button 
                   title="Sign Out"
                   color ='#2b88d8'
-                  disabled = {!this.state.isSignedIn}
+                  disabled = {!Boolean(this.state.account)}
                   onPress = {this.startSignOut} />
                 </View>
               </View>
