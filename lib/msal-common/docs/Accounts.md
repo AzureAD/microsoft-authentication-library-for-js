@@ -1,6 +1,6 @@
 # Accounts in MSAL Javascript
 
-MSAL Javascript libraries (`msal-browser` and `msal-node`) support both single account and multiple accounts scenarios in java script applications. An `account` object is standardized across the libraries:
+MSAL Javascript libraries (`msal-browser` and `msal-node`) support both single account and multiple accounts scenarios in javascript applications. An `account` object is standardized across the libraries:
 
 ```javascript
 export type AccountInfo = {
