@@ -19,5 +19,4 @@ export type SilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
     forceRefresh?: boolean;
     correlationId?: string;
-    redirectUri?: string;
 };
