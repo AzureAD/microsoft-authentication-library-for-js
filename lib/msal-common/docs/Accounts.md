@@ -1,8 +1,6 @@
-# Accounts in MSAL JS
+# Accounts in MSAL Javascript
 
-MSAL JS libraries (`msal-browser` and `msal-node`) support both single account and multiple accounts scenarios in java script applications. An `account` object is standardized across the libraries:
-
-// TODO replace this with typedocs link when available
+MSAL Javascript libraries (`msal-browser` and `msal-node`) support both single account and multiple accounts scenarios in java script applications. An `account` object is standardized across the libraries:
 
 ```javascript
 export type AccountInfo = {
@@ -25,7 +23,7 @@ Sample usage is as below:
 function handleResponse(resp) {
     if (resp !== null) {
         username = resp.account.username;
-        showWelcomeMessage(resp.account);
+        ...
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
@@ -34,8 +32,9 @@ function handleResponse(resp) {
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
+            // Single Account usecase
             username = currentAccounts[0].username;
-            showWelcomeMessage(currentAccounts[0]);
+            ...
         }
     }
 }
@@ -59,5 +58,5 @@ async function getTokenPopup(request, account) {
 ## Notes
 
 * The current msal-browser default [sample](../../samples/msal-browser-samples/VanillaJSTestApp2.0) has a working single account scenario.
-* If you have a multiple accounts scenario, please modify the sample (in `handleResponse()`) to list all cached accounts and choose a specific account
+* If you have a multiple accounts scenario, please modify the [sample](../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/default/auth.js) (in `handleResponse()`) to list all cached accounts and choose a specific account
 * If an application wants to retrieve an account based on the `username`, it needs to save the `username` (from the response of a `loginAPI` for a specific user) prior to using `getAccountByUsername()` API
