@@ -261,17 +261,14 @@ export class Storage extends CacheManager {
     getKeys(): string[] {
         this.logger.verbose("Retrieving all cache keys");
         // read inMemoryCache
-        const cache = this.getCache();
-        let cacheKeys: string[] = [];
-
-        // read all keys
-        Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
-                cacheKeys.push(internalKey);
-            });
-        });
-
-        return cacheKeys;
+        const cache: InMemoryCache= this.getCache() as InMemoryCache;
+        return [
+            ...Object.keys(cache.accounts),
+            ...Object.keys(cache.idTokens),
+            ...Object.keys(cache.accessTokens),
+            ...Object.keys(cache.refreshTokens),
+            ...Object.keys(cache.appMetadata),
+        ];
     }
 
     /**
@@ -280,13 +277,11 @@ export class Storage extends CacheManager {
     clear(): void {
         this.logger.verbose("Clearing cache entries created by MSAL");
         // read inMemoryCache
-        const cache = this.getCache();
+        const cacheKeys = this.getKeys();
 
-        // read all keys
-        Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
-                this.removeItem(internalKey);
-            });
+        // delete each element
+        cacheKeys.forEach(key => {
+            this.removeItem(key);
         });
         this.emitChange();
     }

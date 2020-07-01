@@ -16,8 +16,9 @@ import {
     ClientAuthError,
     Constants,
     TrustedAuthority,
-    AccountInfo,
     BaseAuthRequest,
+    SilentFlowRequest,
+    SilentFlowClient,
     Logger
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
@@ -116,6 +117,25 @@ export abstract class ClientApplication {
         return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
+    /**
+     * Acquires a token silently when a user specifies the account the token is requested for.
+     *
+     * This API expects the user to provide an account object and looks into the cache to retrieve the token if present.
+     * There is also an optional "forceRefresh" boolean the user can send, to bypass the cache for access_token and id_token
+     * In case the refresh_token is expired or not found, an error is thrown
+     * and the guidance is for the user to call any interactive token acquisition API (eg: acquireTokenByCode())
+     * @param request
+     */
+    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        const silentFlowClientConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
+        const silentFlowClient = new SilentFlowClient(
+            silentFlowClientConfig
+        );
+        return silentFlowClient.acquireToken(this.initializeRequestScopes(request) as SilentFlowRequest);
+    }
+
     getCacheManager(): TokenCache {
         this.logger.info("getCacheManager called");
         return this.tokenCache;
@@ -203,10 +223,5 @@ export abstract class ClientApplication {
         );
 
         return this._authority;
-    }
-
-    getAllAccounts(): AccountInfo[] {
-        this.logger.verbose("getAllAccounts called");
-        return this.storage.getAllAccounts();
     }
 }
