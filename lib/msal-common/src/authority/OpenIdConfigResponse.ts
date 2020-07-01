@@ -4,8 +4,11 @@
  */
 
 /**
- * The OpenID Configuration Endpoint Response interface. Used by the authority class to get relevant OAuth endpoints.
+ * Tenant Discovery Response which contains the relevant OAuth endpoints and data needed for authentication and authorization.
  */
-export interface OpenIdConfigResponse {
-    tenant_discovery_endpoint: string;
-}
+export type OpenIdConfigResponse = {
+    authorization_endpoint: string;
+    token_endpoint: string;
+    end_session_endpoint: string;
+    issuer: string;
+};

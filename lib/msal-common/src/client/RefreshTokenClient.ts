@@ -34,7 +34,7 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.generateAuthenticationResult(
+        const tokenResponse = responseHandler.handleServerTokenResponse(
             response.body,
             this.authority
         );
@@ -55,8 +55,6 @@ export class RefreshTokenClient extends BaseClient {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
-
-        parameterBuilder.addRedirectUri(request.redirectUri);
 
         const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);

@@ -167,6 +167,7 @@ export class UrlString {
         const urlString = new UrlString(url);
         const parameters = urlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
         return !!(
+            parameters.code ||
             parameters.error_description ||
             parameters.error ||
             parameters.state

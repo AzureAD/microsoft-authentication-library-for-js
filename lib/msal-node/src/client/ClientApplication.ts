@@ -15,9 +15,10 @@ import {
     AuthorityFactory,
     ClientAuthError,
     Constants,
-    B2cAuthority,
-    AccountInfo,
-    BaseAuthRequest
+    TrustedAuthority,
+    BaseAuthRequest,
+    SilentFlowRequest,
+    SilentFlowClient,
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -45,7 +46,7 @@ export abstract class ClientApplication {
             this.config.cache?.cachePlugin
         );
         this.cryptoProvider = new CryptoProvider();
-        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
     }
 
     /**
@@ -106,6 +107,25 @@ export abstract class ClientApplication {
         return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
+    /**
+     * Acquires a token silently when a user specifies the account the token is requested for.
+     *
+     * This API expects the user to provide an account object and looks into the cache to retrieve the token if present.
+     * There is also an optional "forceRefresh" boolean the user can send, to bypass the cache for access_token and id_token
+     * In case the refresh_token is expired or not found, an error is thrown
+     * and the guidance is for the user to call any interactive token acquisition API (eg: acquireTokenByCode())
+     * @param request
+     */
+    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        const silentFlowClientConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
+        const silentFlowClient = new SilentFlowClient(
+            silentFlowClientConfig
+        );
+        return silentFlowClient.acquireToken(this.initializeRequestScopes(request) as SilentFlowRequest);
+    }
+
     getCacheManager(): TokenCache {
         return this.tokenCache;
     }
@@ -117,6 +137,7 @@ export abstract class ClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!
@@ -178,9 +199,5 @@ export abstract class ClientApplication {
         );
 
         return this._authority;
-    }
-
-    getAllAccounts(): AccountInfo[] {
-        return this.storage.getAllAccounts();
     }
 }

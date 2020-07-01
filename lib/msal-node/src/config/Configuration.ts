@@ -9,7 +9,7 @@ import {
 } from '@azure/msal-common';
 import { NetworkUtils } from '../utils/NetworkUtils';
 import debug from 'debug';
-import { ICachePlugin } from "cache/ICachePlugin";
+import { ICachePlugin } from "../cache/ICachePlugin";
 
 /**
  * - clientId               - Client id of the application.
@@ -20,6 +20,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     knownAuthorities?: Array<string>;
+    cloudDiscoveryMetadata?: string;
 };
 
 /**
@@ -59,6 +60,7 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
     authority: '',
     knownAuthorities: [],
+    cloudDiscoveryMetadata: ""
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};

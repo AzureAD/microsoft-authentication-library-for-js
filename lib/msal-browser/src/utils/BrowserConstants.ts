@@ -33,7 +33,7 @@ export const BrowserConstants = {
 export enum HTTP_REQUEST_TYPE {
     GET = "GET",
     POST = "POST"
-};
+}
 
 /**
  * Temporary cache keys for MSAL, deleted after any request.
@@ -49,4 +49,4 @@ export enum TemporaryCacheKeys {
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
-};
+}
