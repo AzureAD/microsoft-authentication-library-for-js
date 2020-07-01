@@ -56,8 +56,6 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        parameterBuilder.addRedirectUri(request.redirectUri);
-
         const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
         

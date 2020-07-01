@@ -410,7 +410,6 @@ export class PublicClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeRequest({
                     ...silentRequest,
-                    redirectUri: silentRequest.redirectUri,
                     prompt: PromptValue.NONE
                 });
 
@@ -483,20 +482,8 @@ export class PublicClientApplication {
      * @returns {string} redirect URL
      *
      */
-    public getRedirectUri(): string {
-        if (this.config.auth.redirectUri) {
-            if (typeof this.config.auth.redirectUri === "function") {
-                const redirectUri = this.config.auth.redirectUri();
-                if (StringUtils.isEmpty(redirectUri)) {
-                    throw BrowserConfigurationAuthError.createRedirectUriEmptyError();
-                }
-                return redirectUri;
-            }
-
-            return this.config.auth.redirectUri;
-        }
-        // This should never throw unless window.location.href is returning empty.
-        throw BrowserConfigurationAuthError.createRedirectUriEmptyError();
+    public getRedirectUri(requestRedirectUri?: string): string {
+        return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
     }
 
     /**
@@ -505,20 +492,8 @@ export class PublicClientApplication {
      *
      * @returns {string} post logout redirect URL
      */
-    public getPostLogoutRedirectUri(): string {
-        if (this.config.auth.postLogoutRedirectUri) {
-            if (typeof this.config.auth.postLogoutRedirectUri === "function") {
-                const postLogoutUri = this.config.auth.postLogoutRedirectUri();
-                if (StringUtils.isEmpty(postLogoutUri)) {
-                    throw BrowserConfigurationAuthError.createPostLogoutRedirectUriEmptyError();
-                }
-                return postLogoutUri;
-            }
-
-            return this.config.auth.postLogoutRedirectUri;
-        }
-        // This should never throw unless window.location.href is returning empty.
-        throw BrowserConfigurationAuthError.createPostLogoutRedirectUriEmptyError();
+    public getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
+        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
     }
 
     /**
@@ -632,9 +607,7 @@ export class PublicClientApplication {
             ...request
         };
 
-        if (StringUtils.isEmpty(validatedRequest.redirectUri)) {
-            validatedRequest.redirectUri = this.getRedirectUri();
-        }
+        validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
 
         // Check for ADAL SSO
         if (StringUtils.isEmpty(validatedRequest.loginHint)) {
@@ -687,6 +660,7 @@ export class PublicClientApplication {
 
         const authCodeRequest: AuthorizationCodeRequest = {
             ...request,
+            redirectUri: request.redirectUri,
             code: "",
             codeVerifier: generatedPkceParams.verifier
         };
@@ -700,7 +674,7 @@ export class PublicClientApplication {
     private generateLogoutRequest(logoutRequest?: EndSessionRequest): EndSessionRequest {
         return {
             ...logoutRequest,
-            postLogoutRedirectUri: (logoutRequest && logoutRequest.postLogoutRedirectUri) || this.getPostLogoutRedirectUri()
+            postLogoutRedirectUri: this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "")
         };
     }
 

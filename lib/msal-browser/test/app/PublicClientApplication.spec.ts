@@ -1181,14 +1181,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca_alternate_redirUris.getPostLogoutRedirectUri()).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
         });
 
-        it("throws error if redirect uri is null/empty", () => {
-            sinon.stub(BrowserUtils, "getCurrentUri").returns(null);
-            expect(() => pca.getRedirectUri()).to.throw(BrowserConfigurationAuthError.createRedirectUriEmptyError().message);
+        it("defaults to current window if redirect uri is null/empty", () => {
+            const testUrl = "http://localhost:30662";
+            sinon.stub(BrowserUtils, "getCurrentUri").returns(testUrl);
+            expect(pca.getRedirectUri()).to.eq(testUrl);
         });
 
-        it("throws error if post logout redirect uri is null/empty", () => {
-            sinon.stub(BrowserUtils, "getCurrentUri").returns("");
-            expect(() => pca.getPostLogoutRedirectUri()).to.throw(BrowserConfigurationAuthError.createPostLogoutRedirectUriEmptyError().message);
+        it("defaults to current window if post logout redirect uri is null/empty", () => {
+            const testUrl = "http://localhost:30662";
+            sinon.stub(BrowserUtils, "getCurrentUri").returns(testUrl);
+            expect(pca.getPostLogoutRedirectUri()).to.eq(testUrl);
         });
     });
 });
