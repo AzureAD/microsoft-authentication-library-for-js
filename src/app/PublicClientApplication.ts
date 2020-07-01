@@ -35,16 +35,16 @@ import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
+import { IPublicClientApplication } from "./IPublicClientApplication";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
  * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
  */
-export class PublicClientApplication {
+export class PublicClientApplication implements IPublicClientApplication {
 
     // Crypto interface implementation
     private readonly browserCrypto: CryptoOps;
@@ -442,7 +442,7 @@ export class PublicClientApplication {
      * @returns {string} redirect URL
      *
      */
-    public getRedirectUri(requestRedirectUri?: string): string {
+    private getRedirectUri(requestRedirectUri?: string): string {
         return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
     }
 
@@ -452,7 +452,7 @@ export class PublicClientApplication {
      *
      * @returns {string} post logout redirect URL
      */
-    public getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
+    private getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
         return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
     }
 
@@ -462,7 +462,7 @@ export class PublicClientApplication {
      * or null when no state is found
      * @returns {@link IAccount[]} - Array of account objects in cache
      */
-    public getAllAccounts(): AccountInfo[] {
+    getAllAccounts(): AccountInfo[] {
         return this.browserStorage.getAllAccounts();
     }
 
@@ -472,7 +472,7 @@ export class PublicClientApplication {
      * or null when no state is found
      * @returns {@link IAccount} - the account object stored in MSAL
      */
-    public getAccountByUsername(userName: string): AccountInfo {
+    getAccountByUsername(userName: string): AccountInfo {
         const allAccounts = this.getAllAccounts();
         return allAccounts.filter(accountObj => accountObj.username === userName)[0];
     }
