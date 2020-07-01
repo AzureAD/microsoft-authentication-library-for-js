@@ -3,7 +3,7 @@ import { UrlUtils } from "./UrlUtils";
 import { Logger } from "../Logger";
 import { AuthCache } from "../cache/AuthCache";
 import { TemporaryCacheKeys, Constants } from "../utils/Constants";
-import { TimeUtils } from './TimeUtils';
+import { TimeUtils } from "./TimeUtils";
 
 export class WindowUtils {
     /**
@@ -41,10 +41,17 @@ export class WindowUtils {
         return `${prefix}${Constants.resourceDelimiter}${requestSignature}`;
     }
 
+    /**
+     * @hidden
+     * Polls an iframe until it loads a url with a hash
+     * @ignore
+     */
     static monitorIframeForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger): Promise<string> {
         return new Promise((resolve, reject) => {
-            // Polling for iframes can be purely timing based,
-            // since we don't need to accout for interaction.
+            /*
+             * Polling for iframes can be purely timing based,
+             * since we don't need to accout for interaction.
+             */
             const nowMark = TimeUtils.relativeNowMs();
             const timeoutMark = nowMark + timeout;
 
@@ -81,13 +88,15 @@ export class WindowUtils {
 
     /**
      * @hidden
-     * Monitors a window until it loads a url with a hash
+     * Polls a popup until it loads a url with a hash
      * @ignore
      */
     static monitorPopupForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger): Promise<string> {
         return new Promise((resolve, reject) => {
-            // Polling for popups needs to be tick-based,
-            // since a non-trivial amount of time can be spent on interaction (which should not count against the timeout).
+            /*
+             * Polling for popups needs to be tick-based,
+             * since a non-trivial amount of time can be spent on interaction (which should not count against the timeout).
+             */
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
 
@@ -123,12 +132,12 @@ export class WindowUtils {
                 ticks++;
 
                 if (href && UrlUtils.urlContainsHash(href)) {
-                    logger.verbose("monitorWindowForHash found url in hash");
+                    logger.verbose("monitorPopupForHash found url in hash");
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
-                    logger.error("monitorWindowForHash unable to find hash in url, timing out");
-                    logger.errorPii(`monitorWindowForHash polling timed out for url: ${urlNavigate}`);
+                    logger.error("monitorPopupForHash unable to find hash in url, timing out");
+                    logger.errorPii(`monitorPopupForHash polling timed out for url: ${urlNavigate}`);
                     clearInterval(intervalId);
                     reject(ClientAuthError.createTokenRenewalTimeoutError());
                 }
