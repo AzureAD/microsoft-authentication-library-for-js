@@ -9,7 +9,7 @@ import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 
-export type AccountCache = Record<string, AccountEntity>
+export type AccountCache = Record<string, AccountEntity>;
 export type IdTokenCache = Record<string, IdTokenEntity>;
 export type AccessTokenCache = Record<string, AccessTokenEntity>;
 export type RefreshTokenCache = Record<string, RefreshTokenEntity>;
