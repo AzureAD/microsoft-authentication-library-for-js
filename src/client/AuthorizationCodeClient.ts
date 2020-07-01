@@ -161,6 +161,9 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
         parameterBuilder.addClientInfo();
 
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        parameterBuilder.addCorrelationId(correlationId);
+
         return parameterBuilder.createQueryString();
     }
 
