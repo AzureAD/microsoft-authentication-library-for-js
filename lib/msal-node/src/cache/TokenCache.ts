@@ -149,6 +149,7 @@ export class TokenCache {
      * API that retrieves all accounts currently in cache to the user
      */
     getAllAccounts(): AccountInfo[] {
+        this.logger.verbose("getAllAccounts called");
         return this.storage.getAllAccounts();
     }
 
@@ -157,6 +158,7 @@ export class TokenCache {
      * @param account
      */
     removeAccount(account: AccountInfo) {
+        this.logger.verbose("removeAccount called");
         this.storage.removeAccount(
             AccountEntity.generateAccountCacheKey(account)
         );
