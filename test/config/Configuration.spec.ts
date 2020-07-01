@@ -29,10 +29,8 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
         expect(emptyConfig.auth.authority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
-        let redirUriResult: string = emptyConfig.auth.redirectUri instanceof Function ? emptyConfig.auth.redirectUri() : emptyConfig.auth.redirectUri;
-        let postLogoutRediUriResult: string = emptyConfig.auth.postLogoutRedirectUri instanceof Function ? emptyConfig.auth.postLogoutRedirectUri() : emptyConfig.auth.postLogoutRedirectUri;
-        expect(redirUriResult).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-        expect(postLogoutRediUriResult).to.be.eq(TEST_URIS.TEST_REDIR_URI);
+        expect(emptyConfig.auth.redirectUri).to.be.eq("");
+        expect(emptyConfig.auth.postLogoutRedirectUri).to.be.eq("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).to.be.true;
         // Cache config checks
         expect(emptyConfig.cache).to.be.not.null.and.not.undefined
