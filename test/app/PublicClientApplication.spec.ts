@@ -1047,7 +1047,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				nonce: RANDOM_TEST_GUID
 			};
 			const codeRequest: AuthorizationCodeRequest = {
-				...urlRequest,
+                ...urlRequest,
+                redirectUri: urlRequest.redirectUri,
 				code: "",
 				codeVerifier: TEST_CONFIG.TEST_VERIFIER
             };

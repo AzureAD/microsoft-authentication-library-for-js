@@ -47,9 +47,9 @@ export class PkceGenerator {
             const buffer: Uint8Array = new Uint8Array(RANDOM_BYTE_ARR_LENGTH);
             this.cryptoObj.getRandomValues(buffer);
             // verifier as string
-            const pkceCodeVerifierString = this.bufferToCVString(buffer);
+            // const pkceCodeVerifierString = this.bufferToCVString(buffer);
             // encode verifier as base64
-            const pkceCodeVerifierB64: string = this.base64Encode.urlEncode(pkceCodeVerifierString);
+            const pkceCodeVerifierB64: string = this.base64Encode.urlEncodeArr(buffer);
             return pkceCodeVerifierB64;
         } catch (e) {
             throw BrowserAuthError.createPkceNotGeneratedError(e);
