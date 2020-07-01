@@ -37,14 +37,14 @@ export class TokenCache {
     private readonly persistence: ICachePlugin;
     private logger: Logger;
 
-    constructor(storage: Storage, cachePlugin?: ICachePlugin, logger?: Logger) {
+    constructor(storage: Storage, logger: Logger, cachePlugin?: ICachePlugin) {
         this.hasChanged = false;
         this.storage = storage;
         this.storage.registerChangeEmitter(this.handleChangeEvent.bind(this));
         if (cachePlugin) {
             this.persistence = cachePlugin;
         }
-        this.logger = logger!;
+        this.logger = logger;
     }
 
     /**

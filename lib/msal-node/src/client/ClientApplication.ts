@@ -45,8 +45,8 @@ export abstract class ClientApplication {
         this.storage = new Storage(this.logger);
         this.tokenCache = new TokenCache(
             this.storage,
-            this.config.cache?.cachePlugin,
-            this.logger
+            this.logger,
+            this.config.cache?.cachePlugin
         );
         this.cryptoProvider = new CryptoProvider();
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
