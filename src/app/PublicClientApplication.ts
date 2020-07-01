@@ -241,7 +241,7 @@ export class PublicClientApplication {
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
 
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(validRequest.authority);
@@ -288,7 +288,7 @@ export class PublicClientApplication {
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
 
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(validRequest.authority);
@@ -360,7 +360,7 @@ export class PublicClientApplication {
         });
 
         // Create auth code request and generate PKCE params
-        const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentRequest);
+        const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
         // Get scopeString for iframe ID
         const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
@@ -391,7 +391,7 @@ export class PublicClientApplication {
         BrowserUtils.blockReloadInHiddenIframes();
         const silentRequest: SilentFlowRequest = {
             ...request,
-            ...this.initializeRequest(request)
+            ...this.initializeBaseRequest(request)
         };
         try {
             const silentAuthClient = await this.createSilentFlowClient(silentRequest.authority);
@@ -408,7 +408,7 @@ export class PublicClientApplication {
                 });
 
                 // Create auth code request and generate PKCE params
-                const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentAuthUrlRequest);
+                const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
 
                 // Initialize the client
                 const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(silentAuthUrlRequest.authority);
@@ -596,7 +596,7 @@ export class PublicClientApplication {
      * Initializer function for all request APIs
      * @param request 
      */
-    private initializeRequest(request: BaseAuthRequest): BaseAuthRequest {
+    private initializeBaseRequest(request: BaseAuthRequest): BaseAuthRequest {
         const validatedRequest: BaseAuthRequest = {
             ...request
         };
@@ -610,6 +610,17 @@ export class PublicClientApplication {
         return {
             ...validatedRequest,
             ...this.setDefaultScopes(validatedRequest)
+        };
+    }
+
+    /**
+     * Generates a request that will contain the openid and profile scopes.
+     * @param request 
+     */
+    private setDefaultScopes(request: BaseAuthRequest): BaseAuthRequest {
+        return {
+            ...request,
+            scopes: [...((request && request.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
         };
     }
 
@@ -650,7 +661,7 @@ export class PublicClientApplication {
 
         validatedRequest = {
             ...validatedRequest,
-            ...this.initializeRequest(validatedRequest)
+            ...this.initializeBaseRequest(validatedRequest)
         };
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
@@ -659,21 +670,10 @@ export class PublicClientApplication {
     }
 
     /**
-     * Generates a request that will contain the openid and profile scopes.
-     * @param request 
-     */
-    private setDefaultScopes(request: BaseAuthRequest): BaseAuthRequest {
-        return {
-            ...request,
-            scopes: [...((request && request.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
-        };
-    }
-
-    /**
      * Generates an auth code request tied to the url request.
      * @param request 
      */
-    private async generateAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
+    private async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
         const authCodeRequest: AuthorizationCodeRequest = {
