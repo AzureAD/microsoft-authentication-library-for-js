@@ -4,7 +4,7 @@
  * MSALModule.java functions as a wrapper around MSAL for Android's signing in, signing out, and acquiring tokens functionality.
  * It is a proof of concept, focusing on single account mode and AAD.
  */
-//hello?
+
 package com.reactlibrary;
 
 import android.util.Log;
