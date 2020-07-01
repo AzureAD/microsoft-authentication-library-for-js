@@ -45,14 +45,11 @@ void ProtectDataCommon(bool protect, Nan::NAN_METHOD_ARGS_TYPE info)
 	}
 
 	DWORD flags = 0;
-	if (!info[2]->IsNullOrUndefined())
+	v8::String::Utf8Value strData(isolate, info[2]);
+	std::string scope(*strData);
+	if (stricmp(scope.c_str(), "LocalMachine") == 0)
 	{
-		v8::String::Utf8Value strData(isolate, info[2]);
-		std::string scope(*strData);
-		if (stricmp(scope.c_str(), "LocalMachine") == 0)
-		{
-			flags = CRYPTPROTECT_LOCAL_MACHINE;
-		}
+		flags = CRYPTPROTECT_LOCAL_MACHINE;
 	}
 
 	auto buffer = node::Buffer::Data(info[0]);

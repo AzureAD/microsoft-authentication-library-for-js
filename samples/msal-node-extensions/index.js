@@ -5,7 +5,7 @@
 
 const express = require("express");
 const msal = require('@azure/msal-node');
-const extensions = require("msal-node-extensions");
+const extensions = require("@azure/msal-node-extensions");
 const { promises: fs } = require("fs");
 const path = require("path");
 

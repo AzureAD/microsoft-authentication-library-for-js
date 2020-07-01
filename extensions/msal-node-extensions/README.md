@@ -1,7 +1,7 @@
 # Microsoft Authentication Extensions for Node
 The Microsoft Authentication Extensions for Node offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. It gives additional support to the Microsoft Authentication Library for Node (MSAL).
 
-MSAL Node supports an in-memory cache by default and provides the ICacheManager to perform cache serialization. Developers are required to implement their own cache persistance across multiple platforms and Microsoft Authentication Extensions makes this simpler.
+[MSAL Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) supports an in-memory cache by default and provides the ITokenCache interface to perform cache serialization, but does not provide a default way of storing the token cache to disk. Microsoft authentication extensions for node is default implementation for persisting cache to disk across different platforms.
 
 Supported platforms are Windows, Mac and Linux:
 
