@@ -221,7 +221,7 @@ export class PublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
-        return this.acquireTokenRedirect(this.generateLoginRequest(request));
+        return this.acquireTokenRedirect(request);
     }
 
     /**
@@ -271,7 +271,7 @@ export class PublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(this.generateLoginRequest(request));
+        return this.acquireTokenPopup(request);
     }
 
     /**
@@ -631,14 +631,14 @@ export class PublicClientApplication {
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
-        return validatedRequest;
+        return this.setDefaultScopes(validatedRequest);
     }
 
     /**
      * Generates a request that will contain the openid and profile scopes.
      * @param request 
      */
-    private generateLoginRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+    private setDefaultScopes(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
         return {
             ...request,
             scopes: [...((request && request.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
