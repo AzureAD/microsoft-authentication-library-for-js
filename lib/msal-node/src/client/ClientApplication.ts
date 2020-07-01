@@ -67,7 +67,7 @@ export abstract class ClientApplication {
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
-        this.logger.verbose("Auth client config built");
+        this.logger.verbose("Auth client config generated");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
@@ -89,7 +89,7 @@ export abstract class ClientApplication {
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
-        this.logger.verbose("Auth client config built");
+        this.logger.verbose("Auth client config generated");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
@@ -109,7 +109,7 @@ export abstract class ClientApplication {
         const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
-        this.logger.verbose("Auth client config built");
+        this.logger.verbose("Auth client config generated");
         const refreshTokenClient = new RefreshTokenClient(
             refreshTokenClientConfig
         );
@@ -117,7 +117,7 @@ export abstract class ClientApplication {
     }
 
     getCacheManager(): TokenCache {
-        this.logger.verbose("getCacheManager called");
+        this.logger.info("getCacheManager called");
         return this.tokenCache;
     }
 

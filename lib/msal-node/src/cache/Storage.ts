@@ -265,7 +265,7 @@ export class Storage extends CacheManager {
      * Gets all keys in window.
      */
     getKeys(): string[] {
-        this.logger.verbose("Getting keys in window");
+        this.logger.verbose("Retrieving all cache keys");
         // read inMemoryCache
         const cache = this.getCache();
         let cacheKeys: string[] = [];

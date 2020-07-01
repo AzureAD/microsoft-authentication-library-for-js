@@ -52,7 +52,7 @@ export class PublicClientApplication extends ClientApplication {
         const deviceCodeConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
-        this.logger.verbose("Auth client config built");
+        this.logger.verbose("Auth client config generated");
         const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
         return deviceCodeClient.acquireToken(this.initializeRequestScopes(request) as DeviceCodeRequest);
     }
