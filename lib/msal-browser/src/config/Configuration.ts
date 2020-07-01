@@ -15,8 +15,8 @@ export type BrowserAuthOptions = {
     authority?: string;
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
-    redirectUri?: string | (() => string);
-    postLogoutRedirectUri?: string | (() => string);
+    redirectUri?: string;
+    postLogoutRedirectUri?: string;
     navigateToLoginRequestUrl?: boolean;
 };
 
@@ -69,8 +69,8 @@ const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     authority: `${Constants.DEFAULT_AUTHORITY}/`,
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
-    redirectUri: () => BrowserUtils.getCurrentUri(),
-    postLogoutRedirectUri: () => BrowserUtils.getCurrentUri(),
+    redirectUri: "",
+    postLogoutRedirectUri: "",
     navigateToLoginRequestUrl: true
 };
 

@@ -4,16 +4,8 @@
  */
 
 import { Storage } from './Storage';
-import { ClientAuthError, StringUtils } from '@azure/msal-common';
-import {
-    InMemoryCache,
-    JsonCache,
-    SerializedAccountEntity,
-    SerializedAccessTokenEntity,
-    SerializedRefreshTokenEntity,
-    SerializedIdTokenEntity,
-    SerializedAppMetadataEntity
-} from './serializer/SerializerTypes';
+import { ClientAuthError, StringUtils, AccountEntity, AccountInfo, Logger} from '@azure/msal-common';
+import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity } from './serializer/SerializerTypes';
 import { ICachePlugin } from './ICachePlugin';
 import { Deserializer } from './serializer/Deserializer';
 import { Serializer } from './serializer/Serializer';
@@ -35,14 +27,16 @@ export class TokenCache {
     private hasChanged: boolean;
     private cacheSnapshot: string;
     private readonly persistence: ICachePlugin;
+    private logger: Logger;
 
-    constructor(storage: Storage, cachePlugin?: ICachePlugin) {
+    constructor(storage: Storage, logger: Logger, cachePlugin?: ICachePlugin) {
         this.hasChanged = false;
         this.storage = storage;
         this.storage.registerChangeEmitter(this.handleChangeEvent.bind(this));
         if (cachePlugin) {
             this.persistence = cachePlugin;
         }
+        this.logger = logger;
     }
 
     /**
@@ -56,16 +50,20 @@ export class TokenCache {
      * Serializes in memory cache to JSON
      */
     serialize(): string {
+        this.logger.verbose("Serializing in-memory cache");
         let finalState = Serializer.serializeAllCache(
             this.storage.getCache() as InMemoryCache
         );
 
         // if cacheSnapshot not null or empty, merge
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+            this.logger.verbose("Reading cache snapshot from disk");
             finalState = this.mergeState(
                 JSON.parse(this.cacheSnapshot),
                 finalState
             );
+        } else {
+            this.logger.verbose("No cache snapshot to merge");
         }
         this.hasChanged = false;
 
@@ -77,13 +75,17 @@ export class TokenCache {
      * @param cache
      */
     deserialize(cache: string): void {
+        this.logger.verbose("Deserializing JSON to in-memory cache");
         this.cacheSnapshot = cache;
 
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+            this.logger.verbose("Reading cache snapshot from disk");
             const deserializedCache = Deserializer.deserializeAllCache(
                 this.overlayDefaults(JSON.parse(this.cacheSnapshot))
             );
             this.storage.setCache(deserializedCache);
+        } else {
+            this.logger.verbose("No cache snapshot to deserialize");
         }
     }
 
@@ -91,12 +93,17 @@ export class TokenCache {
      * Serializes cache into JSON and calls ICachePlugin.writeToStorage. ICachePlugin must be set on ClientApplication
      */
     async writeToPersistence(): Promise<void> {
+        this.logger.verbose("Writing to persistent cache");
         if (this.persistence) {
+            this.logger.verbose("cachePlugin (persistent cache) not set by the user");
             let cache = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
             const getMergedState = (stateFromDisk: string) => {
                 if (!StringUtils.isEmpty(stateFromDisk)) {
+                    this.logger.verbose("Reading state from disk");
                     this.cacheSnapshot = stateFromDisk;
                     cache = this.mergeState(JSON.parse(stateFromDisk), cache);
+                } else {
+                    this.logger.verbose("No state from disk");
                 }
 
                 return JSON.stringify(cache);
@@ -114,21 +121,47 @@ export class TokenCache {
      * ICachePlugin must be set on ClientApplication.
      */
     async readFromPersistence(): Promise<void> {
+        this.logger.verbose("Reading from persistent cache");
         if (this.persistence) {
+            this.logger.verbose("cachePlugin (persistent cache) not set by the user");
             this.cacheSnapshot = await this.persistence.readFromStorage();
 
             if (!StringUtils.isEmpty(this.cacheSnapshot)) {
+                this.logger.verbose("Reading cache snapshot from disk");
                 const cache = this.overlayDefaults(
                     JSON.parse(this.cacheSnapshot)
                 );
+                this.logger.verbose("Deserializing JSON");
                 const deserializedCache = Deserializer.deserializeAllCache(
                     cache
                 );
                 this.storage.setCache(deserializedCache);
+            } else {
+                this.logger.verbose("No cache snapshot to overlay and deserialize");
             }
         } else {
             throw ClientAuthError.createCachePluginError();
         }
+    }
+
+
+    /**
+     * API that retrieves all accounts currently in cache to the user
+     */
+    getAllAccounts(): AccountInfo[] {
+        this.logger.verbose("getAllAccounts called");
+        return this.storage.getAllAccounts();
+    }
+
+    /**
+     * API to remove a specific account and the relevant data from cache
+     * @param account
+     */
+    removeAccount(account: AccountInfo) {
+        this.logger.verbose("removeAccount called");
+        this.storage.removeAccount(
+            AccountEntity.generateAccountCacheKey(account)
+        );
     }
 
     /**
@@ -144,6 +177,7 @@ export class TokenCache {
      * @param currentState
      */
     private mergeState(oldState: JsonCache, currentState: JsonCache): JsonCache {
+        this.logger.verbose("Merging in-memory cache with cache snapshot");
         let stateAfterRemoval = this.mergeRemovals(oldState, currentState);
         return this.mergeUpdates(stateAfterRemoval, currentState);
     }
@@ -186,6 +220,7 @@ export class TokenCache {
      * @param newState
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
+        this.logger.verbose("Remove updated entries in cache");
         const accounts = oldState.Account != null ? this.mergeRemovalsDict<SerializedAccountEntity>(oldState.Account, newState.Account) : oldState.Account;
         const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsDict<SerializedAccessTokenEntity>(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
         const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsDict<SerializedRefreshTokenEntity>(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
@@ -213,6 +248,7 @@ export class TokenCache {
     }
 
     private overlayDefaults(passedInCache: JsonCache): JsonCache {
+        this.logger.verbose("Overlaying input cache with the default cache");
         return {
             Account: {
                 ...defaultSerializedCache.Account,

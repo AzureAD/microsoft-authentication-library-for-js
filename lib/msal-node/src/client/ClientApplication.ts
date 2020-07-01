@@ -16,8 +16,10 @@ import {
     ClientAuthError,
     Constants,
     TrustedAuthority,
-    AccountInfo,
-    BaseAuthRequest
+    BaseAuthRequest,
+    SilentFlowRequest,
+    SilentFlowClient,
+    Logger
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -32,6 +34,7 @@ export abstract class ClientApplication {
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
     private tokenCache: TokenCache;
+    public logger: Logger;
 
     /**
      * @constructor
@@ -39,9 +42,11 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
-        this.storage = new Storage();
+        this.logger = new Logger(this.config.system!.loggerOptions!);
+        this.storage = new Storage(this.logger);
         this.tokenCache = new TokenCache(
             this.storage,
+            this.logger,
             this.config.cache?.cachePlugin
         );
         this.cryptoProvider = new CryptoProvider();
@@ -59,9 +64,11 @@ export abstract class ClientApplication {
      * @param request
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
+        this.logger.info("getAuthCodeUrl called");
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
+        this.logger.verbose("Auth client config generated");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
@@ -79,9 +86,11 @@ export abstract class ClientApplication {
      * @param request
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+        this.logger.info("acquireTokenByCode called");
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
+        this.logger.verbose("Auth client config generated");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
@@ -97,20 +106,43 @@ export abstract class ClientApplication {
      * @param request
      */
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
+        this.logger.info("acquireTokenByRefreshToken called");
         const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
+        this.logger.verbose("Auth client config generated");
         const refreshTokenClient = new RefreshTokenClient(
             refreshTokenClientConfig
         );
         return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
     }
 
+    /**
+     * Acquires a token silently when a user specifies the account the token is requested for.
+     *
+     * This API expects the user to provide an account object and looks into the cache to retrieve the token if present.
+     * There is also an optional "forceRefresh" boolean the user can send, to bypass the cache for access_token and id_token
+     * In case the refresh_token is expired or not found, an error is thrown
+     * and the guidance is for the user to call any interactive token acquisition API (eg: acquireTokenByCode())
+     * @param request
+     */
+    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        const silentFlowClientConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
+        const silentFlowClient = new SilentFlowClient(
+            silentFlowClientConfig
+        );
+        return silentFlowClient.acquireToken(this.initializeRequestScopes(request) as SilentFlowRequest);
+    }
+
     getCacheManager(): TokenCache {
+        this.logger.info("getCacheManager called");
         return this.tokenCache;
     }
 
     protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
+        this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
             authOptions: {
@@ -142,6 +174,8 @@ export abstract class ClientApplication {
      * @param authRequest
      */
     protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
+        this.logger.verbose("initializeRequestScopes called");
+
         return {
             ...authRequest,
             scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
@@ -154,7 +188,16 @@ export abstract class ClientApplication {
      * @param authorityString
      */
     private async createAuthority(authorityString?: string): Promise<Authority> {
-        const authority: Authority = authorityString ? AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!) : this.authority;
+        this.logger.verbose("createAuthority called");
+
+        let authority: Authority;
+        if (authorityString) {
+            this.logger.verbose("Authority passed in, creating authority instance");
+            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!);
+        } else {
+            this.logger.verbose("No authority passed in request, defaulting to authority set on application object");
+            authority = this.authority
+        }
 
         if (authority.discoveryComplete()) {
             return authority;
@@ -173,15 +216,12 @@ export abstract class ClientApplication {
             return this._authority;
         }
 
+        this.logger.verbose("No authority set on application object. Defaulting to common authority");
         this._authority = AuthorityFactory.createInstance(
             this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
             this.config.system!.networkClient!
         );
 
         return this._authority;
-    }
-
-    getAllAccounts(): AccountInfo[] {
-        return this.storage.getAllAccounts();
     }
 }
