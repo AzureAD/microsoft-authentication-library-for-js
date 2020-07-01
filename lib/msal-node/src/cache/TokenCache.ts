@@ -4,16 +4,8 @@
  */
 
 import { Storage } from './Storage';
-import { ClientAuthError, StringUtils } from '@azure/msal-common';
-import {
-    InMemoryCache,
-    JsonCache,
-    SerializedAccountEntity,
-    SerializedAccessTokenEntity,
-    SerializedRefreshTokenEntity,
-    SerializedIdTokenEntity,
-    SerializedAppMetadataEntity
-} from './serializer/SerializerTypes';
+import { ClientAuthError, StringUtils, AccountEntity, AccountInfo} from '@azure/msal-common';
+import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity } from './serializer/SerializerTypes';
 import { ICachePlugin } from './ICachePlugin';
 import { Deserializer } from './serializer/Deserializer';
 import { Serializer } from './serializer/Serializer';
@@ -129,6 +121,24 @@ export class TokenCache {
         } else {
             throw ClientAuthError.createCachePluginError();
         }
+    }
+
+
+    /**
+     * API that retrieves all accounts currently in cache to the user
+     */
+    getAllAccounts(): AccountInfo[] {
+        return this.storage.getAllAccounts();
+    }
+
+    /**
+     * API to remove a specific account and the relevant data from cache
+     * @param account
+     */
+    removeAccount(account: AccountInfo) {
+        this.storage.removeAccount(
+            AccountEntity.generateAccountCacheKey(account)
+        );
     }
 
     /**
