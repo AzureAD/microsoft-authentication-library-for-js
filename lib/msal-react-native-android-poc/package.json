@@ -1,7 +1,7 @@
 {
-  "name": "MSALModule",
+  "name": "@azuread/msal-react-native-android-poc",
   "title": "MSALModule",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "files": [
     "README.md",
@@ -11,6 +11,10 @@
   "keywords": [
     "react-native"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
   "license": "MIT",
   "licenseFilename": "LICENSE",
   "readmeFilename": "README.md",

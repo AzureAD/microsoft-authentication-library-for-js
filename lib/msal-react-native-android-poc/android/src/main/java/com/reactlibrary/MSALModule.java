@@ -162,7 +162,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
      * Parameters: Promise promise (resolve will return a boolean true if account was successfully signed out and reject will return the exception)
      */
     @ReactMethod
-    public void signOut(Promise promise) {
+    public void signOut(final Promise promise) {
         publicClientApplication.signOut (new ISingleAccountPublicClientApplication.SignOutCallback() {
             @Override
             public void onSignOut() {

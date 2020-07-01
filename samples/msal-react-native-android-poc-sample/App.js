@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import React, { useState, Component } from 'react';
 import {
   SafeAreaView,
@@ -9,7 +14,7 @@ import {
   Button,
 } from 'react-native';
 
-import MSAL from './indexModule.js';
+import MSAL from '@azuread/msal-react-native-android-poc';
 
 import ToolbarAndroid from '@react-native-community/toolbar-android';
 
@@ -27,7 +32,6 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSignedIn: false,
       isSharedDevice: false,
       scopesValue: "",
       URLValue: "https://graph.microsoft.com/v1.0/me",
@@ -49,7 +53,6 @@ class App extends Component {
     try{
       var result = await MSAL.getAccount();
       this.setState({
-        isSignedIn: true,
         account: result,
       });
     } catch (message) {
@@ -72,7 +75,6 @@ class App extends Component {
     try{
       var result = await MSAL.signIn(this.state.scopesValue);
       this.setState({
-        isSignedIn: true,
         account: result,
       });
     } catch (error) {
@@ -86,7 +88,6 @@ class App extends Component {
       this.setState({
         account: null,
         graphResult: null,
-        isSignedIn: false
       });
     } catch (exception) {
       console.log(exception)
@@ -131,7 +132,6 @@ class App extends Component {
       await this.getAccount();
       this.setState({
         graphResult: json,
-        isSignedIn: true
       });
     } catch (exception) {
       console.log(exception);
@@ -181,7 +181,7 @@ class App extends Component {
               <View
               style={styles.viewFormEntry}>
                 <Text style={styles.textSubHeader}> Signed-in User: </Text>
-                <Text style={styles.textPlaceholder}>{this.state.isSignedIn ? this.state.account.username : "Not Signed In"}</Text>
+                <Text style={styles.textPlaceholder}>{this.state.account ? this.state.account.username : "Not Signed In"}</Text>
               </View>
               <View
               style={styles.viewFormEntry}>
@@ -198,7 +198,7 @@ class App extends Component {
                   <Button 
                   title="Sign In"
                   color ='#2b88d8'
-                  disabled = {this.state.isSignedIn}
+                  disabled = {Boolean(this.state.account)}
                   onPress = {this.startSignIn}
                    />
                 </View>
@@ -207,7 +207,7 @@ class App extends Component {
                   <Button 
                   title="Sign Out"
                   color ='#2b88d8'
-                  disabled = {!this.state.isSignedIn}
+                  disabled = {!Boolean(this.state.account)}
                   onPress = {this.startSignOut} />
                 </View>
               </View>
@@ -231,7 +231,7 @@ class App extends Component {
             </View>
            <View
            style={styles.viewResult}>
-             <Text>{this.state.isSignedIn ?  "Welcome, " + this.state.account.username : "Welcome! Please sign in."}</Text>
+             <Text>{this.state.account ?  "Welcome, " + this.state.account.username : "Welcome! Please sign in."}</Text>
            </View>
            <View
            style={styles.viewResult}>
