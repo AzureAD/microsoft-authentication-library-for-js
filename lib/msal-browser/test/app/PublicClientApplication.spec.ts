@@ -7,9 +7,8 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES } from "../utils/StringConstants";
-import { AuthError, ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata } from "@azure/msal-common";
-import { AuthCallback } from "../../src/types/AuthCallback";
-import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
+import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata } from "@azure/msal-common";
+import { BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -22,16 +21,6 @@ import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
-    const authCallback: AuthCallback = (authErr: AuthError, response: AuthenticationResult) => {
-        if (authErr) {
-            expect(authErr instanceof AuthError, `${authErr}`).to.be.true;
-        } else if (response) {
-            console.log(response);
-        } else {
-            console.log("This shouldn't print, check the test");
-        }
-    };
-	
     const cacheConfig = {
         cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
         storeAuthStateInCookie: false
@@ -164,18 +153,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("Redirect Flow Unit tests", () => {
 
-        describe("handleRedirectCallback()", () => {
-
-            it("throws error if callback is not valid", async () => {
-                await expect(pca.handleRedirectCallback(null)).rejectedWith(BrowserConfigurationAuthErrorMessage.invalidCallbackObject.desc);
-                await expect(pca.handleRedirectCallback(null)).rejectedWith(BrowserConfigurationAuthError);
-            });
-
-            it("does nothing if no hash is detected", (done) => {
-                pca.handleRedirectCallback(authCallback);
-                expect(window.localStorage.length).to.be.eq(0);
-                expect(window.sessionStorage.length).to.be.eq(0);
-                done();
+        describe("handleRedirectPromise()", () => {
+            it("does nothing if no hash is detected", (done) => {	
+                pca.handleRedirectPromise().then(() => {
+                    expect(window.localStorage.length).to.be.eq(0);	
+                    expect(window.sessionStorage.length).to.be.eq(0);	
+                    done();
+                });		
             });
 
             it("gets hash from cache and processes response", async () => {
