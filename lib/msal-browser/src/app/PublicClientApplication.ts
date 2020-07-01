@@ -168,8 +168,14 @@ export class PublicClientApplication {
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
         if (loginRequestUrlNormalized === currentUrlNormalized) {
-            this.config.auth.navigateToLoginRequestUrl ? BrowserUtils.replaceHash(loginRequestUrl) : BrowserUtils.clearHash();
-            return isResponseHash ? this.handleHash(hash) : this.handleHash(`${cachedHash}`);
+            if (this.config.auth.navigateToLoginRequestUrl) {
+                // Replace current hash with non-msal hash, if present
+                BrowserUtils.replaceHash(loginRequestUrl);
+            } else {
+                BrowserUtils.clearHash();
+            }
+
+            return this.handleHash(isResponseHash ? hash : cachedHash);
         }
 
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
