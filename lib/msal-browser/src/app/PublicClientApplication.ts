@@ -37,7 +37,6 @@ import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
-import { AuthCallback } from "../types/AuthCallback";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 
@@ -113,36 +112,7 @@ export class PublicClientApplication {
     }
 
     // #region Redirect Flow
-
-    /**
-     * WARNING: This function will be deprecated soon.
-     * Process any redirect-related data and send back the success or error object.
-     * IMPORTANT: Please do not use this function when using the popup APIs, as it may break the response handling
-     * in the main window.
-     *
-     * @param {@link (AuthCallback:type)} authCallback - Callback which contains
-     * an AuthError object, containing error data from either the server
-     * or the library, depending on the origin of the error, or the AuthResponse object
-     * containing data from the server (returned with a null or non-blocking error).
-     */
-    async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
-        console.warn("handleRedirectCallback will be deprecated upon release of msal-browser@v2.0.0. Please transition to using handleRedirectPromise().");
-        // Check whether callback object was passed.
-        if (!authCallback) {
-            throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
-        }
-
-        // Check if we need to navigate, otherwise handle hash
-        try {
-            const tokenResponse = await this.tokenExchangePromise;
-            if (tokenResponse) {
-                authCallback(null, tokenResponse);
-            }
-        } catch (err) {
-            authCallback(err);
-        }
-    }
-
+    
     /**
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
