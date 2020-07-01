@@ -75,7 +75,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("Redirect Flow Unit tests", () => {
 
-        describe("handleRedirectCallback()", () => {
+        describe("handleRedirectPromise()", () => {
+            it("does nothing if no hash is detected", (done) => {	
+                pca.handleRedirectPromise().then(() => {
+                    expect(window.localStorage.length).to.be.eq(0);	
+                    expect(window.sessionStorage.length).to.be.eq(0);	
+                    done();
+                });		
+            });
+
             it("gets hash from cache and processes response", async () => {
                 const b64Encode = new Base64Encode();
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
