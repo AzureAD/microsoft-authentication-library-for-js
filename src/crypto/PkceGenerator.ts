@@ -46,8 +46,6 @@ export class PkceGenerator {
             // Generate random values as utf-8
             const buffer: Uint8Array = new Uint8Array(RANDOM_BYTE_ARR_LENGTH);
             this.cryptoObj.getRandomValues(buffer);
-            // verifier as string
-            // const pkceCodeVerifierString = this.bufferToCVString(buffer);
             // encode verifier as base64
             const pkceCodeVerifierB64: string = this.base64Encode.urlEncodeArr(buffer);
             return pkceCodeVerifierB64;
@@ -69,18 +67,5 @@ export class PkceGenerator {
         } catch (e) {
             throw BrowserAuthError.createPkceNotGeneratedError(e);
         }
-    }
-
-    /**
-     * Generates a character string based on input array.
-     * @param buffer 
-     */
-    private bufferToCVString(buffer: Uint8Array): string {
-        const charArr = [];
-        for (let i = 0; i < buffer.byteLength; i += 1) {
-            const index = buffer[i] % CV_CHARSET.length;
-            charArr.push(CV_CHARSET[index]);
-        }
-        return charArr.join("");
     }
 }
