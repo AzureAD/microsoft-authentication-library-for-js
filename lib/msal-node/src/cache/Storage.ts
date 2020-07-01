@@ -241,15 +241,13 @@ export class Storage extends CacheManager {
     getKeys(): string[] {
         // read inMemoryCache
         const cache: InMemoryCache= this.getCache() as InMemoryCache;
-        let cacheKeys: string[] = [];
-
-        cacheKeys = Object.keys(cache.accounts) as Array<string>;
-        cacheKeys.push(...Object.keys(cache.idTokens) as Array<string>);
-        cacheKeys.push(...Object.keys(cache.accessTokens) as Array<string>);
-        cacheKeys.push(...Object.keys(cache.refreshTokens) as Array<string>);
-        cacheKeys.push(...Object.keys(cache.appMetadata) as Array<string>);
-
-        return cacheKeys;
+        return [
+            ...Object.keys(cache.accounts),
+            ...Object.keys(cache.idTokens),
+            ...Object.keys(cache.accessTokens),
+            ...Object.keys(cache.refreshTokens),
+            ...Object.keys(cache.appMetadata),
+        ];
     }
 
     /**

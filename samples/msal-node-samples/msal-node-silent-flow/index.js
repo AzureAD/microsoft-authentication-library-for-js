@@ -49,7 +49,8 @@ app.get('/', (req, res) => {
 
     // Build silent request
     const silentRequest = {
-        account: accounts[1]
+        account: accounts[1],
+        redirectUri: "http://localhost:3000/redirect",
     };
 
     // get url to sign user in and consent to scopes needed for application
