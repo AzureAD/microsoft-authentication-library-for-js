@@ -1068,40 +1068,4 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
         });
     });
-
-    describe("Getters and Setters Unit Tests", () => {
-
-        let pca_alternate_redirUris: PublicClientApplication;
-        beforeEach(() => {
-            pca_alternate_redirUris = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
-                    postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
-                }
-            });
-        });
-
-        it("getRedirectUri returns the currently configured redirect uri", () => {
-            expect(pca.getRedirectUri()).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-            expect(pca_alternate_redirUris.getRedirectUri()).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-        });
-
-        it("getPostLogoutRedirectUri returns the currently configured post logout redirect uri", () => {
-            expect(pca.getPostLogoutRedirectUri()).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-            expect(pca_alternate_redirUris.getPostLogoutRedirectUri()).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
-        });
-
-        it("defaults to current window if redirect uri is null/empty", () => {
-            const testUrl = "http://localhost:30662";
-            sinon.stub(BrowserUtils, "getCurrentUri").returns(testUrl);
-            expect(pca.getRedirectUri()).to.eq(testUrl);
-        });
-
-        it("defaults to current window if post logout redirect uri is null/empty", () => {
-            const testUrl = "http://localhost:30662";
-            sinon.stub(BrowserUtils, "getCurrentUri").returns(testUrl);
-            expect(pca.getPostLogoutRedirectUri()).to.eq(testUrl);
-        });
-    });
 });
