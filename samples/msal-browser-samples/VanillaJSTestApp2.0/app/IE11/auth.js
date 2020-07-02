@@ -32,6 +32,7 @@ function handleResponse(resp) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
             username = currentAccounts[0].username;
+            console.log(username)
             showWelcomeMessage();
         }
     }
