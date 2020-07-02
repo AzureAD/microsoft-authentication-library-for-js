@@ -786,7 +786,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
                 });
-                sinon.stub(PopupHandler.prototype, "monitorWindowForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
                 sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -871,7 +871,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
                 });
-                sinon.stub(PopupHandler.prototype, "monitorWindowForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
                 sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -971,7 +971,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
-            sinon.stub(SilentHandler.prototype, "monitorFrameForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            sinon.stub(SilentHandler.prototype, "monitorIframeForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             sinon.stub(SilentHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
