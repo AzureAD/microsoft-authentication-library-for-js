@@ -61,6 +61,21 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         BrowserUtils.clearHash()
         expect(window.location.hash).to.be.empty;
     });
+
+    it("replaceHash replaces the current window hash with the hash from the provided url", () => {
+        window.location.hash = "thisIsAHash";
+        const url = "http://localhost/#";
+        const testHash = "replacementHash"
+        BrowserUtils.replaceHash(url + testHash)
+        expect(window.location.hash).to.be.eq(testHash);
+    });
+
+    it("replaceHash clears the current window hash when provided url does not have hash", () => {
+        window.location.hash = "thisIsAHash";
+        const url = "http://localhost/";
+        BrowserUtils.replaceHash(url)
+        expect(window.location.hash).to.be.eq("");
+    });
     
     it("isInIframe() returns false if window parent is not the same as the current window", () => {
         expect(BrowserUtils.isInIframe()).to.be.false;
