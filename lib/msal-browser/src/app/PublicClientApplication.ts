@@ -35,17 +35,16 @@ import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
-import { AuthCallback } from "../types/AuthCallback";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
+import { IPublicClientApplication } from "./IPublicClientApplication";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
  * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
  */
-export class PublicClientApplication {
+export class PublicClientApplication implements IPublicClientApplication {
 
     // Crypto interface implementation
     private readonly browserCrypto: CryptoOps;
@@ -113,36 +112,7 @@ export class PublicClientApplication {
     }
 
     // #region Redirect Flow
-
-    /**
-     * WARNING: This function will be deprecated soon.
-     * Process any redirect-related data and send back the success or error object.
-     * IMPORTANT: Please do not use this function when using the popup APIs, as it may break the response handling
-     * in the main window.
-     *
-     * @param {@link (AuthCallback:type)} authCallback - Callback which contains
-     * an AuthError object, containing error data from either the server
-     * or the library, depending on the origin of the error, or the AuthResponse object
-     * containing data from the server (returned with a null or non-blocking error).
-     */
-    async handleRedirectCallback(authCallback: AuthCallback): Promise<void> {
-        console.warn("handleRedirectCallback will be deprecated upon release of msal-browser@v2.0.0. Please transition to using handleRedirectPromise().");
-        // Check whether callback object was passed.
-        if (!authCallback) {
-            throw BrowserConfigurationAuthError.createInvalidCallbackObjectError(authCallback);
-        }
-
-        // Check if we need to navigate, otherwise handle hash
-        try {
-            const tokenResponse = await this.tokenExchangePromise;
-            if (tokenResponse) {
-                authCallback(null, tokenResponse);
-            }
-        } catch (err) {
-            authCallback(err);
-        }
-    }
-
+    
     /**
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
@@ -472,7 +442,7 @@ export class PublicClientApplication {
      * @returns {string} redirect URL
      *
      */
-    public getRedirectUri(requestRedirectUri?: string): string {
+    private getRedirectUri(requestRedirectUri?: string): string {
         return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
     }
 
@@ -482,7 +452,7 @@ export class PublicClientApplication {
      *
      * @returns {string} post logout redirect URL
      */
-    public getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
+    private getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
         return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
     }
 
@@ -492,7 +462,7 @@ export class PublicClientApplication {
      * or null when no state is found
      * @returns {@link IAccount[]} - Array of account objects in cache
      */
-    public getAllAccounts(): AccountInfo[] {
+    getAllAccounts(): AccountInfo[] {
         return this.browserStorage.getAllAccounts();
     }
 
@@ -502,7 +472,7 @@ export class PublicClientApplication {
      * or null when no state is found
      * @returns {@link IAccount} - the account object stored in MSAL
      */
-    public getAccountByUsername(userName: string): AccountInfo {
+    getAccountByUsername(userName: string): AccountInfo {
         const allAccounts = this.getAllAccounts();
         return allAccounts.filter(accountObj => accountObj.username === userName)[0];
     }
