@@ -41,6 +41,10 @@ export class StringUtils {
         return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
+    static startsWith(str: string, search: string): boolean {
+        return str.substring(0, search.length -1) === search;
+    }
+
     /**
      * Parses string into an object.
      *
