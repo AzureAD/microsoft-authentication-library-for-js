@@ -27,7 +27,8 @@ import {
     ClientConfiguration,
     SilentFlowClient,
     EndSessionRequest,
-    BaseAuthRequest
+    BaseAuthRequest,
+    Logger
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -67,6 +68,9 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Default authority
     private defaultAuthorityPromise: Promise<Authority>;
 
+    // Logger
+    private logger: Logger;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -100,6 +104,9 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         // Initialize the browser storage class.
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
+
+        // Initialize logger
+        this.logger = new Logger(this.config.system.loggerOptions);
 
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
@@ -157,7 +164,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             this.browserStorage.setItem(hashKey, hash, CacheSchemaType.TEMPORARY);
             if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
-                console.warn("Unable to get valid login request url from cache, redirecting to home page");
+                this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
                 BrowserUtils.navigateWindow("/", true);
             } else {
                 // Navigate to target url
