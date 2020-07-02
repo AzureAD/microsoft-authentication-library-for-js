@@ -40,6 +40,8 @@ import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants"
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { PopupRequest } from "../request/PopupRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -193,7 +195,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 *
      * @param {@link (AuthenticationParameters:type)}
      */
-    async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
+    async loginRedirect(request: RedirectRequest): Promise<void> {
         return this.acquireTokenRedirect(request);
     }
 
@@ -207,7 +209,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    async acquireTokenRedirect(request: AuthorizationUrlRequest): Promise<void> {
+    async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
@@ -225,7 +227,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
-            const loginStartPage = validRequest.redirectStartPage || window.location.href;
+            const loginStartPage = request.redirectStartPage || window.location.href;
             this.browserStorage.setItem(
                 this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), 
                 loginStartPage, 
@@ -251,7 +253,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
         return this.acquireTokenPopup(request);
     }
 
@@ -262,7 +264,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async acquireTokenPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
@@ -560,7 +562,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    private preflightInteractiveRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+    private preflightInteractiveRequest(request: RedirectRequest|PopupRequest): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -608,7 +610,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    private initializeAuthorizationRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+    private initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest): AuthorizationUrlRequest {
         let validatedRequest: AuthorizationUrlRequest = {
             ...request
         };
