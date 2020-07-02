@@ -3,20 +3,25 @@
  * Licensed under the MIT License.
  */
 const express = require("express");
+const handlebars = require('express-handlebars');
 const msal = require('@azure/msal-node');
 const { promises: fs } = require("fs");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-// Cache Plugin Configuration
+/**
+ * Cache Plugin configuration
+ */
+const cachePath = "./data/example.cache.json"; // Replace this string with the path to your valid cache file.
+
 const readFromStorage = () => {
-    return fs.readFile("./data/cache.json", "utf-8");
+    return fs.readFile(cachePath, "utf-8");
 };
 
 const writeToStorage = (getMergedState) => {
     return readFromStorage().then(oldFile =>{
         const mergedState = getMergedState(oldFile);
-        return fs.writeFile("./data/cacheAfterWrite.json", mergedState);
+        return fs.writeFile(cachePath, mergedState);
     })
 };
 
@@ -25,7 +30,9 @@ const cachePlugin = {
     writeToStorage
 };
 
-// Public Client Application Configuration
+/**
+ * Public Client Application Configuration
+ */
 const publicClientConfig = {
     auth: {
         clientId: "99cab759-2aab-420b-91d8-5e3d8d4f063b",
@@ -37,7 +44,8 @@ const publicClientConfig = {
     },
 };
 
-// Acquire Token Request Configuration
+/** Request Configuration */
+
 const scopes = ["user.read"];
 
 const authCodeUrlParameters = {
@@ -49,48 +57,39 @@ const pca = new msal.PublicClientApplication(publicClientConfig);
 const msalCacheManager = pca.getCacheManager();
 let accounts;
 
-// Create Express App and Routes
+/**
+ * Express App
+ */
 const app = express();
 
+// Set handlebars view engine
+app.engine(
+    "hbs",
+    handlebars({
+        layoutsDir: __dirname + "/views",
+        extname: "hbs",
+    })
+);
 
+/** 
+ * App Routes
+ */
 app.get('/', (req, res) => {
+    const data = {
+        showSignInButton: true
+    }
 
-    // get Accounts
-    accounts = msalCacheManager.getAllAccounts();
-    console.log("Accounts: ", accounts);
+    res.render("main.hbs", data);
+});
 
-    // Build silent request
-    const silentRequest = {
-        account: accounts[1],
-        scopes: scopes,
-    };
-
-    // Acquire Token Silent Request
-    console.log("Attempting silent token acquisition.");
-    pca.acquireTokenSilent(silentRequest)
+// Initiates Auth Code Grant
+app.get('/login', (req, res) => {
+    pca.getAuthCodeUrl(authCodeUrlParameters)
         .then((response) => {
-            // Successful silent request
-            console.log("\nSuccessful silent token acquisition:\nResponse: \n:", response);
-            res.sendStatus(200);
-            return msalCacheManager.writeToPersistence();
+            console.log(response);
+            res.redirect(response);
         })
-        .catch((error) => {
-            // No access tokens in cache
-            if(error.errorCode === "no_tokens_found") {
-                console.log("No tokens in cache, falling back to auth code.");
-                // get url to sign user in and consent to scopes needed for application
-                pca.getAuthCodeUrl(authCodeUrlParameters)
-                    .then((response) => {
-                        console.log(response);
-                        res.redirect(response);
-                })
-                .catch((error) => console.log(JSON.stringify(error)));
-            } else {
-                // Other errors
-                console.log(error);
-                res.status(500).send(error);
-            }
-        });
+        .catch((error) => console.log(JSON.stringify(error)));
 });
 
 // Second leg of Auth Code grant
@@ -103,12 +102,46 @@ app.get('/redirect', (req, res) => {
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
-        res.sendStatus(200);
+        const templateParams = { showLoginButton: false, showATSButton: true, username: response.account.username};
+        res.render("main.hbs", templateParams);
         return msalCacheManager.writeToPersistence();
     }).catch((error) => {
         console.log(error);
         res.status(500).send(error);
     });
+});
+
+// Initiates Acquire Token Silent flow
+app.get('/silentFlow', (req, res) => {
+    // get Accounts
+    accounts = msalCacheManager.getAllAccounts();
+    console.log("Accounts: ", accounts);
+
+    // Build silent request
+    const silentRequest = {
+        account: accounts[1], // Index must match the account that is trying to acquire token silently
+        scopes: scopes,
+    };
+
+    let templateParams = { showLoginButton: false,
+                           acquiredToken: null,
+                           couldNotAcquireToken: null,
+                           username: null };
+
+    pca.acquireTokenSilent(silentRequest)
+        .then((response) => {
+            // Successful silent request
+            templateParams.acquiredToken = true;
+            templateParams.username = response.account.username;
+            console.log("\nSuccessful silent token acquisition:\nResponse: \n:", response);
+            res.render("main.hbs", templateParams)
+            return msalCacheManager.writeToPersistence();
+        })
+        .catch((error) => {
+            console.log(error);
+            templateParams.couldNotAcquireToken = true;
+            res.render("main.hbs", templateParams)
+        });
 });
 
 msalCacheManager.readFromPersistence().then(() => {
