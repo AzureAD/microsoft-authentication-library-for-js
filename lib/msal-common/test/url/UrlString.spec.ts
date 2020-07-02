@@ -63,6 +63,12 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(urlObj2.urlString).to.not.contain("param2=value2");
     });
 
+    it("removes hash from url provided", () => {
+        const baseUrl = "https://localhost/";
+        const fullUrl = baseUrl + "#thisIsATestHash";
+        expect(UrlString.removeHashFromUrl(fullUrl)).to.eq(baseUrl);
+    });
+
     it("replaceTenantPath correctly replaces common with tenant id", () => {
         let urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT);
         const sampleTenantId = "sample-tenant-id";

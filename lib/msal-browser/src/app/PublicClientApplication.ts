@@ -40,6 +40,8 @@ import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants"
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { PopupRequest } from "../request/PopupRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -135,16 +137,18 @@ export class PublicClientApplication implements IPublicClientApplication {
         const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
-        const currentUrl = BrowserUtils.getCurrentUri();
-        if (loginRequestUrl === currentUrl || !this.config.auth.navigateToLoginRequestUrl) {
-            // We don't need to navigate - check for hash and prepare to process
-            if (isResponseHash) {
-                BrowserUtils.clearHash();
-                return this.handleHash(hash);
+
+        const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
+        const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
+        if (loginRequestUrlNormalized === currentUrlNormalized) {
+            if (this.config.auth.navigateToLoginRequestUrl) {
+                // Replace current hash with non-msal hash, if present
+                BrowserUtils.replaceHash(loginRequestUrl);
             } else {
-                // Loaded page with no valid hash - pass in the value retrieved from cache, or null/empty string
-                return this.handleHash(cachedHash);
+                BrowserUtils.clearHash();
             }
+
+            return this.handleHash(isResponseHash ? hash : cachedHash);
         }
 
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
@@ -191,7 +195,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 *
      * @param {@link (AuthenticationParameters:type)}
      */
-    async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
+    async loginRedirect(request: RedirectRequest): Promise<void> {
         return this.acquireTokenRedirect(request);
     }
 
@@ -205,7 +209,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    async acquireTokenRedirect(request: AuthorizationUrlRequest): Promise<void> {
+    async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
@@ -223,7 +227,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.browserCrypto);
+            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, request.redirectStartPage, this.browserCrypto);
         } catch (e) {
             this.browserStorage.cleanRequest();
             throw e;
@@ -241,7 +245,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
         return this.acquireTokenPopup(request);
     }
 
@@ -252,7 +256,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async acquireTokenPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
@@ -550,7 +554,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    private preflightInteractiveRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+    private preflightInteractiveRequest(request: RedirectRequest|PopupRequest): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -598,7 +602,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    private initializeAuthorizationRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+    private initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest): AuthorizationUrlRequest {
         let validatedRequest: AuthorizationUrlRequest = {
             ...request
         };
