@@ -94,9 +94,4 @@ export type AuthorizationUrlRequest = BaseAuthRequest & {
      *  generated unique value is typically used to mitigate replay attacks.
      */
     nonce?: string;
-
-    /**
-     * Unique GUID set per request to trace a request end-to-end for telemetry purposes
-     */
-    correlationId?: string;
 };
