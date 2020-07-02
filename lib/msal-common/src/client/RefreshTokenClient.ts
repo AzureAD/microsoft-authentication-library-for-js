@@ -63,6 +63,9 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addClientInfo();
 
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        parameterBuilder.addCorrelationId(correlationId);
+
         parameterBuilder.addRefreshToken(request.refreshToken);
 
         return parameterBuilder.createQueryString();

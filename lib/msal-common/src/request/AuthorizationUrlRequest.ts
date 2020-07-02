@@ -10,6 +10,9 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
  * 
+ * - scopes                     - Scopes the application is requesting access to
+ * - authority                  - Url of the authority which the application acquires tokens from
+ * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes
  * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
  * - extraScopesToConsent       - Scopes for a different resource when the user needs consent upfront.
  * - responseMode               - Specifies the method that should be used to send the authentication result to your app. Can be query, form_post, or fragment. If no value is passed in, it defaults to query.
@@ -26,7 +29,6 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - extraQueryParameters       - String to string map of custom query parameters.
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
- * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes
  */
 export type AuthorizationUrlRequest = BaseAuthRequest & {
     redirectUri?: string;
@@ -41,5 +43,4 @@ export type AuthorizationUrlRequest = BaseAuthRequest & {
     extraQueryParameters?: StringDict;
     claims?: string;
     nonce?: string;
-    correlationId?: string;
 };
