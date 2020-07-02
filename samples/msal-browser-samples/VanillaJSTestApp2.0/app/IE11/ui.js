@@ -8,7 +8,7 @@ const profileDiv = document.getElementById("profile-div");
 
 function showWelcomeMessage() {
     // Reconfiguring DOM elements
-    cardDiv.style.display = 'initial';
+    cardDiv.setAttribute('style', 'display:initial');
     welcomeDiv.innerHTML = 'Welcome ' + username;
     signInButton.setAttribute("onclick", "signOut();");
     signInButton.setAttribute('class', "btn btn-success")

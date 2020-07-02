@@ -1,22 +1,17 @@
 // Helper function to call MS Graph API endpoint 
 // using authorization bearer token scheme
 function callMSGraph(endpoint, accessToken, callback) {
-    const headers = new Headers();
     const bearer = "Bearer " + accessToken;
 
-    headers.append("Authorization", bearer);
-
-    const options = {
-        method: "GET",
-        headers: headers
-    };
-
-    console.log('request made to Graph API at: ' + new Date().toString());
-
-    fetch(endpoint, options)
-        .then(function (response) { return response.json() })
-        .then(function (response) { callback(response) })
-        .catch(function (error) { console.log(error) });
+    var xmlHTTP = new XMLHttpRequest();
+    xmlHTTP.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            callback(JSON.parse(this.responseText));
+        }
+    }
+    xmlHTTP.open("GET", endpoint, true);
+    xmlHTTP.setRequestHeader('Authorization', bearer)
+    xmlHTTP.send();
 }
 
 function seeProfileRedirect() {
