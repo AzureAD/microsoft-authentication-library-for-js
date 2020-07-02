@@ -283,7 +283,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         // Show the UI once the url has been created. Get the window handle for the popup.
         const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await interactionHandler.monitorWindowForHash(popupWindow, this.config.system.windowHashTimeout, navigateUrl);
+        const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
         // Handle response from hash string.
         return await interactionHandler.handleCodeResponse(hash);
     }
@@ -405,7 +405,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Get the frame handle for the silent request
             const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest, userRequestScopes);
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const hash = await silentHandler.monitorFrameForHash(msalFrame, this.config.system.iframeHashTimeout, navigateUrl);
+            const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
             // Handle response from hash string.
             return await silentHandler.handleCodeResponse(hash);
         } catch (e) {
