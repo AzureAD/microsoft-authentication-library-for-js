@@ -66,7 +66,7 @@ export type Configuration = {
 // Default auth options for browser
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
-    authority: `${Constants.DEFAULT_AUTHORITY}/`,
+    authority: `${Constants.DEFAULT_AUTHORITY}`,
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
     redirectUri: "",
