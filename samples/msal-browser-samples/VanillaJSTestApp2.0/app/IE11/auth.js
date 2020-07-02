@@ -23,6 +23,11 @@ function handleResponse(resp) {
     if (resp !== null) {
         username = resp.account.username;
         showWelcomeMessage();
+
+        if (resp.accessToken) {
+            callMSGraph(graphConfig.graphMeEndpoint, resp.accessToken, updateUI);
+            profileButton.style.display = 'none';
+        }
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
