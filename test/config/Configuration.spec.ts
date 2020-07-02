@@ -28,7 +28,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
-        expect(emptyConfig.auth.authority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+        expect(emptyConfig.auth.authority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
         expect(emptyConfig.auth.redirectUri).to.be.eq("");
         expect(emptyConfig.auth.postLogoutRedirectUri).to.be.eq("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).to.be.true;
