@@ -1,5 +1,5 @@
 # MSAL React Native Proof of Concept (Android)
-MSAL for React Native is a proof of concept that allows React Native applications to acquire access tokens from the Microsoft identity platform endpoint in order to access secured web APIs. Currently, this library is only available for the Android platform.
+MSAL for React Native is a proof of concept that allows React Native applications to authenticate users with Microsoft work and school accounts (AAD) as well as acquire access tokens from the Microsoft identity platform endpoint in order to access secured web APIs. Currently, this library is only available for the Android platform.
 ## Getting started
 
 ### Installation
@@ -16,11 +16,11 @@ For more information and help, refer to this [MSAL FAQ](https://github.com/Azure
 
 ### Configuring in app
 Follow steps 1 through 3 in the [Using MSAL](https://github.com/AzureAD/microsoft-authentication-library-for-android#using-msal) section of MSAL for Android's README with these modifications/reminders:
-* In step 2, please named the config file `auth_config_single_account.json` and put it in `res/raw`. You can pretty much copy and paste the MSAL configuration generated for you in Azure Portal and refer to the [configuration file documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-configuration).
+* In step 2, please name the config file `auth_config_single_account.json` and put it in `res/raw`. You can pretty much copy and paste the MSAL configuration generated for you in Azure Portal and refer to the [configuration file documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-configuration).
 * In step 3, remember that for `android:path` you want to paste the base64 signature hash you generated in the console and not the url encoded version.
 
 ## Usage
-Import MSAL for React Native as `MSAL` like this:
+Import MSAL for React Native as `MSAL`:
 ```javascript
 import MSAL from '@azuread/msal-react-native-android-poc';
 ```
@@ -35,7 +35,7 @@ try {
 }
 ```
 Most of the methods return a map, and in the case of `signIn`, a map containing the variables of an `IAccount` object is returned.
-We can access the username of the currently signed in user and log it to console (for example) like so:
+We can access the username of the currently signed in user and log it to console (for example):
 ```javascript
 try {
     var account = await MSAL.signIn(scopesValue);
@@ -66,7 +66,7 @@ try {
 ```
 Please see msal-react-native-android-poc-sample in the sample folder for an example app that demonstrates the MSAL methods.
 
-For a complete listing of each method's return value and map keys, see the Methods(put link here) section.
+For a complete listing of each method's return value and map keys, see the Methods(link to Methods) section.
 
 ## What to expect from this library
 Because this library is a proof of concept, it is scoped to specific features and does not implement all the capabilities of an official MSAL for React Native library. 
@@ -92,5 +92,6 @@ Method | Description
 signIn(String scopesValue) | Directs a user to sign in with an AAD account. scopesValue is a String containing scopes separated by spaces (" "). Returns a map with the `authority`, `id`, `tenantId`, `username`, and `idToken` of the account. See the Microsoft docs on [IAccount](https://docs.microsoft.com/en-us/java/api/com.microsoft.identity.client.iaccount?view=azure-java-stable) for more details of the map's keys.
 signOut() | Signs out the account currently signed in. If successful, `true` is returned, and if not, an exception is returned.
 getAccount()| Retrieves the account currently signed in. If no account is signed in, null is returned. Otherwise, a map is returned with the `authority`, `id`, `tenantId`, `username`, and `idToken` of the account. See the Microsoft docs on [IAccount](https://docs.microsoft.com/en-us/java/api/com.microsoft.identity.client.iaccount?view=azure-java-stable) for more details of the map's keys.
+isSharedDevice() | returns a boolean that corresponds to whether the current device is shared or not.
 acquireToken(String scopesValue) | Attempts to obtain an access token interactively. scopesValue is a String containing scopes separated by spaces (" "). Returns a map containing `accessToken`, `authenticationScheme`, `authorizationHeader`, `expiresOn` (string), `scope` (string), `tenantId`, and `account` (map with keys as described in "signIn"). An exception is returned otherwise. See MS docs on [IAuthenticationResult](https://docs.microsoft.com/en-us/java/api/com.microsoft.identity.client.iauthenticationresult?view=azure-java-stable) for more details.
 acquireTokenSilent(String scopesValue) | Attempts to obtain a token silently. scopesValue is a String containing scopes separated by spaces (" "). Returns a map containing `accessToken`, `authenticationScheme`, `authorizationHeader`, `expiresOn` (string), `scope` (string), `tenantId`, and `account` (map with keys as described in "signIn"). An exception is returned otherwise. See MS docs on [IAuthenticationResult](https://docs.microsoft.com/en-us/java/api/com.microsoft.identity.client.iauthenticationresult?view=azure-java-stable) for more details.
