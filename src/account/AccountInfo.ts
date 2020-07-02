@@ -3,6 +3,13 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * @type AccountInfo
+ * - homeAccountId:     
+ * - environment:       
+ * - tenantId:          
+ * - username:          
+ */
 export type AccountInfo = {
     homeAccountId: string;
     environment: string;

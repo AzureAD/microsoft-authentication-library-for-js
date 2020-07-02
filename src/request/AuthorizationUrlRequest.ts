@@ -8,8 +8,7 @@ import { StringDict } from "../utils/MsalTypes";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
- * @type AuthorizationCodeUrlRequest: Request object passed by user to retrieve a Code from the
- * server (first leg of authorization code grant flow)
+ * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
  */
 export type AuthorizationUrlRequest = BaseAuthRequest & {
     /**
