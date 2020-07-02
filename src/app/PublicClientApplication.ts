@@ -110,6 +110,13 @@ export class PublicClientApplication implements IPublicClientApplication {
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
         this.defaultAuthority = null;
+
+        const { location: { hash } } = window;
+        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
+        if (StringUtils.isEmpty(hash) && StringUtils.isEmpty(cachedHash)) {
+            // There is no hash - assume we are in clean state and clear any current request data.
+            this.browserStorage.cleanRequest();
+        }
     }
 
     // #region Redirect Flow
@@ -170,9 +177,8 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 * @param interactionHandler
 	 */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
-        // There is no hash - clean cache and return null.
+        // There is no hash - return null.
         if (StringUtils.isEmpty(responseHash)) {
-            this.browserStorage.cleanRequest();
             return null;
         }
 
