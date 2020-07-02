@@ -6,7 +6,7 @@ const mailButton = document.getElementById("readMail");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
 
-function showWelcomeMessage(account) {
+function showWelcomeMessage() {
     // Reconfiguring DOM elements
     cardDiv.style.display = 'initial';
     welcomeDiv.innerHTML = 'Welcome ' + username;
@@ -15,7 +15,7 @@ function showWelcomeMessage(account) {
     signInButton.innerHTML = "Sign Out";
 }
 
-function updateUI(data, endpoint) {
+function updateUI(data) {
     console.log('Graph API responded at: ' + new Date().toString());
 
     const title = document.createElement('p');
