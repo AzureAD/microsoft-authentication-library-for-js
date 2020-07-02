@@ -81,6 +81,30 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.isEmpty("Non-empty string")).to.be.false;
     });
 
+    it("startsWith returns true if given string starts with given substring", () => {
+        const testString = "This is a test string";
+        const searchString = "This";
+        expect(StringUtils.startsWith(testString, searchString)).to.be.true;
+    });
+
+    it("startsWith returns false if given string does not start with given substring", () => {
+        const testString = "This is a test string";
+        const searchString = "test";
+        expect(StringUtils.startsWith(testString, searchString)).to.be.false;
+    });
+
+    it("endsWith returns true if given string ends with given substring", () => {
+        const testString = "This is a test string";
+        const searchString = "string";
+        expect(StringUtils.endsWith(testString, searchString)).to.be.true;
+    });
+
+    it("endsWith returns false if given string does not end with given substring", () => {
+        const testString = "This is a test string";
+        const searchString = "test";
+        expect(StringUtils.endsWith(testString, searchString)).to.be.false;
+    });
+
 
     it("queryStringToObject correctly deserializes query string into object", () => {
         const serializedObj = "param1=value1&param2=value2&param3=value3";

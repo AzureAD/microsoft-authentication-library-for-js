@@ -42,7 +42,11 @@ export class StringUtils {
     }
 
     static startsWith(str: string, search: string): boolean {
-        return str.substring(0, search.length -1) === search;
+        return str.indexOf(search) === 0;
+    }
+
+    static endsWith(str: string, search: string): boolean {
+        return str.lastIndexOf(search) === (str.length - search.length);
     }
 
     /**
