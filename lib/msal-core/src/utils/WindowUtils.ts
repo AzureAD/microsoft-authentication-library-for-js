@@ -50,7 +50,7 @@ export class WindowUtils {
         return new Promise((resolve, reject) => {
             /*
              * Polling for iframes can be purely timing based,
-             * since we don't need to accout for interaction.
+             * since we don't need to account for interaction.
              */
             const nowMark = TimeUtils.relativeNowMs();
             const timeoutMark = nowMark + timeout;
