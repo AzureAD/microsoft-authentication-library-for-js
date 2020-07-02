@@ -179,4 +179,68 @@ describe("PopupHandler.ts Unit Tests", () => {
             expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
+
+    describe("monitorPopupForHash", () => {
+        it("times out", done => {
+            const popup = {
+                location: {
+                    href: "http://localhost",
+                    hash: ""
+                },
+                close: () => {}
+            };
+
+            // @ts-ignore
+            popupHandler.monitorPopupForHash(popup, 500)
+                .catch(() => {
+                    done();
+                });
+        });
+
+        it("returns hash", done => {
+            const popup = {
+                location: {
+                    href: "http://localhost",
+                    hash: ""
+                },
+                close: () => {}
+            };
+
+            // @ts-ignore
+            popupHandler.monitorPopupForHash(popup, 1000)
+                .then((hash: string) => {
+                    expect(hash).to.equal("#code=hello");
+                    done();
+                });
+
+            setTimeout(() => {
+                popup.location = {
+                    href: "http://localhost/#/code=hello",
+                    hash: "#code=hello"
+                };
+            }, 500);
+        });
+
+        it("closed", done => {
+            const popup = {
+                location: {
+                    href: "http://localhost",
+                    hash: ""
+                },
+                close: () => {},
+                closed: false
+            };
+
+            // @ts-ignore
+            popupHandler.monitorPopupForHash(popup, 1000)
+                .catch((error) => {
+                    expect(error.errorCode).to.equal('user_cancelled');
+                    done();
+                });
+
+            setTimeout(() => {
+                popup.closed = true;
+            }, 500);
+        });
+    });
 });

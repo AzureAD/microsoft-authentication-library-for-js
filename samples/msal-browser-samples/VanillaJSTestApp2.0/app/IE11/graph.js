@@ -22,7 +22,7 @@ function callMSGraph(endpoint, accessToken, callback) {
 function seeProfileRedirect() {
     const currentAcc = myMSALObj.getAccountByUsername(username);
     if (currentAcc) {
-        getTokenRedirect(loginRequest, currentAcc).then(function (response) {
+        getTokenRedirect(request, currentAcc).then(function (response) {
             // Will only execute if token was acquired silently
             callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
             profileButton.style.display = 'none';
