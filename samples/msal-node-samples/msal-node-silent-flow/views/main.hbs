@@ -31,6 +31,7 @@
             <h5 class="card-title">Please sign-in to acquire a token silently</h5>
         {{else if acquiredToken}}
             <h5 class="card-title">Successfully acquired token for {{username}} using silent flow</h5>
+            <button id="call-graph">Call MS Graph</button>
         {{else if couldNotAcquireToken}}
             <h5 class="card-title">Could not acquire token. Check console for more information.</h5>
         {{/if}}
@@ -51,10 +52,29 @@
       </div>
       <div class="col-md-5">
         <div class="tab-content" id="nav-tabContent">
+            <pre id="graph-data"></pre>
         </div>
       </div>
     </div>
     <br>
     <br>
+
+    <script type="text/javascript">
+        const graphData = document.querySelector("#graph-data");
+        const callGraphButton = document.querySelector("#call-graph");
+        if (callGraphButton) {
+            callGraphButton.addEventListener("click", e => {
+                fetch("/me")
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        graphData.innerHTML = JSON.stringify(data, null, 4);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    })
+            })
+        }
+    </script>
   </body>
 </html>

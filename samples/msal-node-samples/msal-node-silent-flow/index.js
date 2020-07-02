@@ -6,6 +6,7 @@ const express = require("express");
 const handlebars = require('express-handlebars');
 const msal = require('@azure/msal-node');
 const { promises: fs } = require("fs");
+const axios = require("axios");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
@@ -133,6 +134,7 @@ app.get('/silentFlow', (req, res) => {
             // Successful silent request
             templateParams.acquiredToken = true;
             templateParams.username = response.account.username;
+            accessToken = response.accessToken;
             console.log("\nSuccessful silent token acquisition:\nResponse: \n:", response);
             res.render("main.hbs", templateParams)
             return msalCacheManager.writeToPersistence();
@@ -143,6 +145,29 @@ app.get('/silentFlow', (req, res) => {
             res.render("main.hbs", templateParams)
         });
 });
+
+// Calls MS Graph with access token
+app.get('/me', (req, res) => {
+    const silentRequest = {
+        account: accounts[1], // Index must match the account that is trying to acquire token silently
+        scopes: scopes,
+    };
+
+    pca.acquireTokenSilent(silentRequest)
+        .then(response => {
+            axios.default.get("https://graph.microsoft.com/v1.0/me", {
+                headers: {
+                    Authorization: `Bearer ${response.accessToken}`
+                }
+            })
+                .then(response => {
+                    res.json(response.data);
+                })
+                .catch(error => {
+                    res.status(500).send(error);
+                })
+        });
+})
 
 msalCacheManager.readFromPersistence().then(() => {
     app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
