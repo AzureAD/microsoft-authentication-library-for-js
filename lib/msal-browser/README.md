@@ -74,7 +74,8 @@ If you have MSAL v1.x currently running in your application, you can follow the 
 2. [Logging in a User](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md)
 3. [Acquiring and Using an Access Token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md)
 4. [Managing Token Lifetimes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/token-lifetimes.md)
-5. [Logging Out a User](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md)
+5. [Managing Accounts](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md)
+6. [Logging Out a User](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md)
 
 ### Advanced Topics
 
@@ -85,7 +86,7 @@ If you have MSAL v1.x currently running in your application, you can follow the 
 
 ## Samples
 
-The [`VanillaJSTestApp2.0` folder](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) contains sample applications for our libraries. You can run any sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>`. 
+The [`VanillaJSTestApp2.0` folder](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) contains sample applications for our libraries. You can run any sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>`.
 
 Here is a complete list of samples for the MSAL.js 2.x library:
 
@@ -143,7 +144,7 @@ MSAL.js 1.x implemented the [Implicit Grant Flow](https://docs.microsoft.com/azu
 
 Our goal is that the library abstracts enough of the protocol away so that you can get plug and play authentication, but it is important to know and understand the implicit flow from a security perspective. The MSAL 1.x client for single-page applications runs in the context of a web browser which cannot manage client secrets securely. It uses the implicit flow, which optimized for single page apps and has one less hop between client and server so tokens are returned directly to the browser. These aspects make it naturally less secure. These security concerns are mitigated per standard practices such as- use of short lived tokens (and so no refresh tokens are returned), the library requiring a registered redirect URI for the app, library matching the request and response with a unique nonce and state parameter. You can read more about the [disadvantages of the implicit flow here](https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-04#section-9.8.6).
 
-The MSAL library will now support the Authorization Code Flow with PKCE for Browser-Based Applications without a backend web server. 
+The MSAL library will now support the Authorization Code Flow with PKCE for Browser-Based Applications without a backend web server.
 We plan to continue support for the implicit flow in the `msal-core` library.
 
 You can learn further details about `@azure/msal-browser` functionality documented in our [docs folder](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs) and find complete [code samples](#samples).

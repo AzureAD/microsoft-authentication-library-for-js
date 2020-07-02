@@ -180,10 +180,9 @@ export class BrowserAuthError extends AuthError {
      * Creates an error thrown when monitorWindowFromHash times out for a given popup.
      * @param urlNavigate 
      */
-    static createMonitorWindowTimeoutError(urlNavigate: string): BrowserAuthError {
-        const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.monitorWindowTimeoutError.desc}`;
+    static createMonitorWindowTimeoutError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.monitorWindowTimeoutError.code,
-            errorMessage);
+            BrowserAuthErrorMessage.monitorWindowTimeoutError.desc);
     }
 
     /**
