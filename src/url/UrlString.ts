@@ -39,7 +39,7 @@ export class UrlString {
             url = url.toLowerCase();
         }
 
-        if (url && !url.endsWith("/")) {
+        if (url && (url.charAt(url.length - 1) !== "/")) {
             url += "/";
         }
 
