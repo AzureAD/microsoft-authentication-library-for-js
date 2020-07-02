@@ -26,7 +26,8 @@ import {
     ResponseMode,
     ClientConfiguration,
     SilentFlowClient,
-    EndSessionRequest
+    EndSessionRequest,
+    BaseAuthRequest
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -191,7 +192,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param {@link (AuthenticationParameters:type)}
      */
     async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
-        return this.acquireTokenRedirect(this.generateLoginRequest(request));
+        return this.acquireTokenRedirect(request);
     }
 
     /**
@@ -207,13 +208,13 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenRedirect(request: AuthorizationUrlRequest): Promise<void> {
         try {
             // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
 
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(request.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(validRequest.authority);
 
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
@@ -241,7 +242,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(this.generateLoginRequest(request));
+        return this.acquireTokenPopup(request);
     }
 
     /**
@@ -254,13 +255,13 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightRequest(request);
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
 
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(request.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(validRequest.authority);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
@@ -323,19 +324,19 @@ export class PublicClientApplication implements IPublicClientApplication {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = this.initializeRequest({
+        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
             ...request,
             prompt: PromptValue.NONE
         });
 
         // Create auth code request and generate PKCE params
-        const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentRequest);
+        const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
         // Get scopeString for iframe ID
         const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
 
         // Initialize the client
-        const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(request.authority);
+        const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(silentRequest.authority);
 
         // Create authorize request url
         const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
@@ -355,10 +356,13 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async acquireTokenSilent(silentRequest: SilentFlowRequest): Promise<AuthenticationResult> {
+    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
-
+        const silentRequest: SilentFlowRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
         try {
             const silentAuthClient = await this.createSilentFlowClient(silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
@@ -368,22 +372,22 @@ export class PublicClientApplication implements IPublicClientApplication {
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeRequest({
+                const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
                     ...silentRequest,
                     prompt: PromptValue.NONE
                 });
 
                 // Create auth code request and generate PKCE params
-                const authCodeRequest: AuthorizationCodeRequest = await this.generateAuthorizationCodeRequest(silentAuthUrlRequest);
+                const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
 
                 // Initialize the client
-                const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(silentRequest.authority);
+                const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(silentAuthUrlRequest.authority);
 
                 // Create authorize request url
                 const navigateUrl = await authClient.getAuthCodeUrl(silentAuthUrlRequest);
 
                 // Get scopeString for iframe ID
-                const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
+                const scopeString = silentAuthUrlRequest.scopes ? silentAuthUrlRequest.scopes.join(" ") : "";
 
                 return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
             }
@@ -424,8 +428,8 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param logoutRequest 
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        const validLogoutRequest = this.generateLogoutRequest(logoutRequest);
-        const authClient = await this.createAuthCodeClient(logoutRequest && logoutRequest.authority);
+        const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+        const authClient = await this.createAuthCodeClient(validLogoutRequest && validLogoutRequest.authority);
         // create logout string and navigate user window to logout. Auth module will clear cache.
         const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
         BrowserUtils.navigateWindow(logoutUri);
@@ -546,7 +550,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    private preflightRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+    private preflightInteractiveRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -555,15 +559,47 @@ export class PublicClientApplication implements IPublicClientApplication {
             throw BrowserAuthError.createInteractionInProgressError();
         }
         
-        return this.initializeRequest(request);
+        return this.initializeAuthorizationRequest(request);
     }
 
     /**
-     * Helper to initialize required request parameters.
+     * Initializer function for all request APIs
+     * @param request 
+     */
+    private initializeBaseRequest(request: BaseAuthRequest): BaseAuthRequest {
+        const validatedRequest: BaseAuthRequest = {
+            ...request
+        };
+
+        if (StringUtils.isEmpty(validatedRequest.authority)) {
+            validatedRequest.authority = this.config.auth.authority;
+        }
+
+        validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+
+        return {
+            ...validatedRequest,
+            ...this.setDefaultScopes(validatedRequest)
+        };
+    }
+
+    /**
+     * Generates a request that will contain the openid and profile scopes.
+     * @param request 
+     */
+    private setDefaultScopes(request: BaseAuthRequest): BaseAuthRequest {
+        return {
+            ...request,
+            scopes: [...((request && request.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
+        };
+    }
+
+    /**
+     * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    private initializeRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
-        const validatedRequest: AuthorizationUrlRequest = {
+    private initializeAuthorizationRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+        let validatedRequest: AuthorizationUrlRequest = {
             ...request
         };
 
@@ -587,17 +623,16 @@ export class PublicClientApplication implements IPublicClientApplication {
             this.browserCrypto
         );
 
-        validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
-
         if (StringUtils.isEmpty(validatedRequest.nonce)) {
             validatedRequest.nonce = this.browserCrypto.createNewGuid();
         }
-
-        if (StringUtils.isEmpty(validatedRequest.authority)) {
-            validatedRequest.authority = this.config.auth.authority;
-        }
         
         validatedRequest.responseMode = ResponseMode.FRAGMENT;
+
+        validatedRequest = {
+            ...validatedRequest,
+            ...this.initializeBaseRequest(validatedRequest)
+        };
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
@@ -605,17 +640,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
-     * Generates a request that will contain the openid and profile scopes.
+     * Generates an auth code request tied to the url request.
      * @param request 
      */
-    private generateLoginRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
-        return {
-            ...request,
-            scopes: [...((request && request.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
-        };
-    }
-
-    private async generateAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
+    private async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
         const authCodeRequest: AuthorizationCodeRequest = {
@@ -631,11 +659,23 @@ export class PublicClientApplication implements IPublicClientApplication {
         return authCodeRequest;
     }
 
-    private generateLogoutRequest(logoutRequest?: EndSessionRequest): EndSessionRequest {
-        return {
-            ...logoutRequest,
-            postLogoutRedirectUri: this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "")
+    /**
+     * Initializer for the logout request.
+     * @param logoutRequest 
+     */
+    private initializeLogoutRequest(logoutRequest?: EndSessionRequest): EndSessionRequest {
+        const validLogoutRequest = {
+            ...logoutRequest
         };
+        if (StringUtils.isEmpty(validLogoutRequest.authority)) {
+            validLogoutRequest.authority = this.config.auth.authority;
+        }
+
+        validLogoutRequest.correlationId = (validLogoutRequest && validLogoutRequest.correlationId) || this.browserCrypto.createNewGuid();
+
+        validLogoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
+        
+        return validLogoutRequest;
     }
 
     // #endregion
