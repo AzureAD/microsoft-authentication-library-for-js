@@ -42,13 +42,14 @@ export class SilentHandler extends InteractionHandler {
         return new Promise((resolve, reject) => {
             /*
              * Polling for iframes can be purely timing based,
-             * since we don't need to accout for interaction.
+             * since we don't need to account for interaction.
              */
             const nowMark = window.performance.now();
             const timeoutMark = nowMark + timeout;
 
             const intervalId = setInterval(() => {
                 if (window.performance.now() > timeoutMark) {
+                    this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
                     reject(BrowserAuthError.createMonitorWindowTimeoutError());
                     return;

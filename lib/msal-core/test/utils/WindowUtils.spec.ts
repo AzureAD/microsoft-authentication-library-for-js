@@ -73,7 +73,7 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorPopupForHash(iframe.contentWindow, 1000, "url", logger)
+            WindowUtils.monitorIframeForHash(iframe.contentWindow, 1000, "url", logger)
                 .then((hash: string) => {
                     expect(hash).to.equal("#access_token=hello");
                     done();
