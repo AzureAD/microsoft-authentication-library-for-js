@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SystemOptions, LoggerOptions, INetworkModule, LogLevel, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
@@ -82,7 +82,7 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
 
 // Default logger options for browser
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
-    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+    loggerCallback: (): void => {},
     piiLoggingEnabled: false
 };
 
