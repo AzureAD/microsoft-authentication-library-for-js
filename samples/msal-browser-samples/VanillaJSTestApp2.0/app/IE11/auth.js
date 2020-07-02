@@ -22,7 +22,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(function (err) {
 function handleResponse(resp) {
     if (resp !== null) {
         username = resp.account.username;
-        showWelcomeMessage(resp.account);
+        showWelcomeMessage();
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
@@ -32,7 +32,7 @@ function handleResponse(resp) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
             username = currentAccounts[0].username;
-            showWelcomeMessage(currentAccounts[0]);
+            showWelcomeMessage();
         }
     }
 }
@@ -51,16 +51,19 @@ function signOut() {
 
 function getTokenRedirect(request, account) {
     request.account = account;
-    myMSALObj.acquireTokenSilent(request).then(function (response) {
-        return response
-    }).catch(function (error) {
-        console.log("silent token acquisition fails.");
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            // fallback to interaction when silent call fails
-            console.log("acquiring token using redirect");
-            myMSALObj.acquireTokenRedirect(request);
-        } else {
-            console.error(error);
-        }
+    return new Promise(function(resolve, reject) { 
+        myMSALObj.acquireTokenSilent(request).then(function (response) {
+            resolve(response)
+        }).catch(function (error) {
+            console.log("silent token acquisition fails.");
+            if (error instanceof msal.InteractionRequiredAuthError) {
+                // fallback to interaction when silent call fails
+                console.log("acquiring token using redirect");
+                myMSALObj.acquireTokenRedirect(request);
+            } else {
+                console.error(error);
+                reject(error);
+            }
+        });
     });
 }
