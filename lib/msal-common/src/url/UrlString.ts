@@ -86,6 +86,10 @@ export class UrlString {
         return this.urlString;
     }
 
+    static removeHashFromUrl(url: string): string {
+        return url.split("#")[0];
+    }
+
     /**
      * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
      * @param href The url

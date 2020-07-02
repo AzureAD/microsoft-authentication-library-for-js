@@ -8,6 +8,8 @@ export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } f
 
 // Interfaces
 export { IPublicClientApplication } from "./app/IPublicClientApplication";
+export { PopupRequest } from "./request/PopupRequest";
+export { RedirectRequest } from "./request/RedirectRequest";
 
 // Common Object Formats
 export {
@@ -25,6 +27,7 @@ export {
     AuthErrorMessage,
     INetworkModule,
     // Logger Object
+    ILoggerCallback,
     Logger,
     LogLevel
 } from "@azure/msal-common";
