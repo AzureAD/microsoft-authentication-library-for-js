@@ -226,16 +226,8 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
-            // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
-            const loginStartPage = request.redirectStartPage || window.location.href;
-            this.browserStorage.setItem(
-                this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), 
-                loginStartPage, 
-                CacheSchemaType.TEMPORARY
-            );
-
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.browserCrypto);
+            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, request.redirectStartPage, this.browserCrypto);
         } catch (e) {
             this.browserStorage.cleanRequest();
             throw e;
