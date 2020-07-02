@@ -1,6 +1,6 @@
 # (Alpha) Microsoft Authentication Library for JavaScript for Node(msal-node) for Node.js based Web apps
 
-| <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/" target="_blank">Library Reference</a> |
+| <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/" target="_blank">Library Reference</a> |
 | --- | --- | --- |
 
 Currently `msal-node` library is under development, Please track the project progress [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/projects/4).
@@ -77,6 +77,24 @@ npm install @azure/msal-node
 
 ##  Usage
 
+### MSAL basics
+- Initialize a Public Client Application
+- Acquire a token (Signin your desktop app)
+- Acquire an access token to access a resource (Microsoft Graph, External resource)
+- Refresh a token when expired
+- Managing Token Lifetimes (should this go to msal-common?)
+- Remove an account
+
+### Advanced Topics
+- Configuration options
+- Request types
+- Response
+- Cache
+  - Cache internals
+  - Serialization to disk
+  - Extension library
+- Scopes
+- CorrelationId
 
 ## Samples
 
