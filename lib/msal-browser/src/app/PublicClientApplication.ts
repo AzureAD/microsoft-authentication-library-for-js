@@ -27,7 +27,8 @@ import {
     ClientConfiguration,
     SilentFlowClient,
     EndSessionRequest,
-    BaseAuthRequest
+    BaseAuthRequest,
+    Logger
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -40,6 +41,8 @@ import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants"
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { PopupRequest } from "../request/PopupRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -63,7 +66,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     private config: Configuration;
 
     // Default authority
-    private defaultAuthorityPromise: Promise<Authority>;
+    private defaultAuthority: Authority;
+
+    // Logger
+    private logger: Logger;
 
     /**
      * @constructor
@@ -99,10 +105,13 @@ export class PublicClientApplication implements IPublicClientApplication {
         // Initialize the browser storage class.
         this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
 
+        // Initialize logger
+        this.logger = new Logger(this.config.system.loggerOptions);
+
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
-        this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.networkClient);
+        this.defaultAuthority = null;
 
         const { location: { hash } } = window;
         const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
@@ -135,16 +144,18 @@ export class PublicClientApplication implements IPublicClientApplication {
         const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
-        const currentUrl = BrowserUtils.getCurrentUri();
-        if (loginRequestUrl === currentUrl || !this.config.auth.navigateToLoginRequestUrl) {
-            // We don't need to navigate - check for hash and prepare to process
-            if (isResponseHash) {
-                BrowserUtils.clearHash();
-                return this.handleHash(hash);
+
+        const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
+        const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
+        if (loginRequestUrlNormalized === currentUrlNormalized) {
+            if (this.config.auth.navigateToLoginRequestUrl) {
+                // Replace current hash with non-msal hash, if present
+                BrowserUtils.replaceHash(loginRequestUrl);
             } else {
-                // Loaded page with no valid hash - pass in the value retrieved from cache, or null/empty string
-                return this.handleHash(cachedHash);
+                BrowserUtils.clearHash();
             }
+
+            return this.handleHash(isResponseHash ? hash : cachedHash);
         }
 
         if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
@@ -153,7 +164,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             this.browserStorage.setItem(hashKey, hash, CacheSchemaType.TEMPORARY);
             if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
-                console.warn("Unable to get valid login request url from cache, redirecting to home page");
+                this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
                 BrowserUtils.navigateWindow("/", true);
             } else {
                 // Navigate to target url
@@ -191,7 +202,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 *
      * @param {@link (AuthenticationParameters:type)}
      */
-    async loginRedirect(request: AuthorizationUrlRequest): Promise<void> {
+    async loginRedirect(request: RedirectRequest): Promise<void> {
         return this.acquireTokenRedirect(request);
     }
 
@@ -205,7 +216,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    async acquireTokenRedirect(request: AuthorizationUrlRequest): Promise<void> {
+    async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
@@ -223,7 +234,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.browserCrypto);
+            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, request.redirectStartPage, this.browserCrypto);
         } catch (e) {
             this.browserStorage.cleanRequest();
             throw e;
@@ -241,7 +252,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async loginPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
         return this.acquireTokenPopup(request);
     }
 
@@ -252,7 +263,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async acquireTokenPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
@@ -437,28 +448,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     // #endregion
 
-    // #region Getters and setters
-
-    /**
-     *
-     * Use to get the redirect uri configured in MSAL or null.
-     * Evaluates redirectUri if its a function, otherwise simply returns its value.
-     * @returns {string} redirect URL
-     *
-     */
-    private getRedirectUri(requestRedirectUri?: string): string {
-        return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
-    }
-
-    /**
-     * Use to get the post logout redirect uri configured in MSAL or null.
-     * Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
-     *
-     * @returns {string} post logout redirect URL
-     */
-    private getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
-        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
-    }
+    // #region Account APIs
 
     /**
      * Returns all accounts that MSAL currently has data for.
@@ -484,6 +474,37 @@ export class PublicClientApplication implements IPublicClientApplication {
     // #endregion
 
     // #region Helpers
+
+    /**
+     *
+     * Use to get the redirect uri configured in MSAL or null.
+     * Evaluates redirectUri if its a function, otherwise simply returns its value.
+     * @returns {string} redirect URL
+     *
+     */
+    private getRedirectUri(requestRedirectUri?: string): string {
+        return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+    }
+
+    /**
+     * Use to get the post logout redirect uri configured in MSAL or null.
+     * Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
+     *
+     * @returns {string} post logout redirect URL
+     */
+    private getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
+        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+    }
+
+    /**
+     * Used to get a discovered version of the default authority.
+     */
+    private async getDiscoveredDefaultAuthority(): Promise<Authority> {
+        if (!this.defaultAuthority) {
+            this.defaultAuthority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient);
+        }
+        return this.defaultAuthority;
+    }
 
     /**
      * Helper to check whether interaction is in progress.
@@ -514,12 +535,13 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
-     * Creates a Client Configuration object with the given authority, or the default authority.
-     * @param authorityUri 
+     * Creates a Client Configuration object with the given request authority, or the default authority.
+     * @param requestAuthority 
      */
-    private async getClientConfiguration(authorityUri?: string): Promise<ClientConfiguration> {
-        const discoveredAuthority = authorityUri ? await AuthorityFactory.createDiscoveredInstance(authorityUri, this.config.system.networkClient) 
-            : await this.defaultAuthorityPromise;
+    private async getClientConfiguration(requestAuthority?: string): Promise<ClientConfiguration> {
+        // If the requestAuthority is passed and is not equivalent to the default configured authority, create new authority and discover endpoints. Return default authority otherwise.
+        const discoveredAuthority = (!StringUtils.isEmpty(requestAuthority) && requestAuthority !== this.config.auth.authority) ? await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient) 
+            : await this.getDiscoveredDefaultAuthority();
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
@@ -550,7 +572,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    private preflightInteractiveRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+    private preflightInteractiveRequest(request: RedirectRequest|PopupRequest): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -598,7 +620,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    private initializeAuthorizationRequest(request: AuthorizationUrlRequest): AuthorizationUrlRequest {
+    private initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest): AuthorizationUrlRequest {
         let validatedRequest: AuthorizationUrlRequest = {
             ...request
         };
