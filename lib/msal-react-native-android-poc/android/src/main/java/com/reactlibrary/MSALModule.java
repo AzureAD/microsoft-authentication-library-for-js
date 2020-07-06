@@ -103,22 +103,44 @@ public class MSALModule extends ReactContextBaseJavaModule {
         };
     }
 
-    /**
+   /**
      * getAccount(): retrieves account currently signed in
-     * Parameters: Promise promise (resolve will return the account as a map if it exists; reject will return null for nonexistent map or error)
+     * Parameters: Promise promise (resolve will return the account as a map if it exists; reject will return exception)
+     * See getAccountCallback for more
      */
     @ReactMethod
     public void getAccount(Promise promise) {
-        //if account is null, either no account is signed in or an error occured
-        IAccount account = loadAccount();
-        if (account == null) {
-            promise.reject("loadaccountnull", "No signed in account, or exception. Check Android log for details.");
-        } else {
-            promise.resolve(mapAccount(account));
-        }
+        publicClientApplication.getCurrentAccountAsync(getAccountCallback(promise));
     }
 
     /**
+     * getAccountCallback will resolve with an account if retrieved and reject with an exception in the case of an error.
+     */
+
+    private ISingleAccountPublicClientApplication.CurrentAccountCallback getAccountCallback(final Promise promise) {
+        return new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+            @Override
+            public void onAccountLoaded(@Nullable IAccount activeAccount) {
+                Log.d(TAG, "Account: " + activeAccount.getUsername());
+                promise.resolve(mapAccount(activeAccount));
+            }
+
+            @Override
+            public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
+                Log.d(TAG, "Previous Account: " + priorAccount.getUsername());
+                Log.d(TAG, "Current Account: " + currentAccount.getUsername());
+                promise.resolve(mapAccount(currentAccount));
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                Log.d(TAG, "Error loading account: " + exception.toString());
+                promise.reject(exception);
+            }
+        };
+    }
+
+     /**
      * loadAccount(): will load a currently signed in account. 
      * Returns an IAccount if an account exists; returns null if no account is signed in or an error occurs
      */
