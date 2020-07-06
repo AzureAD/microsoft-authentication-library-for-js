@@ -57,7 +57,6 @@ export type AuthOptions = {
  *
  * - applicationName              - Name of the consuming apps application
  * - applicationVersion           - Version of the consuming application
- * - telemetryEmitter             - Function where telemetry events are flushed to
  */
 export type TelemetryOptions = {
     applicationName: string;
@@ -90,7 +89,7 @@ export type LoggerOptions = {
 };
 
 /**
- * Use this to configure the library-specific options
+ * Library-specific options
  */
 export type LibraryInfo = {
     sku: string,
