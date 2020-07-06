@@ -1,7 +1,7 @@
 {
   "name": "@azuread/msal-react-native-android-poc",
   "title": "MSALModule",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "main": "index.js",
   "files": [
     "README.md",
