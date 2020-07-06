@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import {
     AUTHENTICATION_RESULT,
@@ -6,35 +7,95 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
+    TEST_URIS,
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, CredentialType } from "../../src/utils/Constants";
-import { ClientTestUtils } from "./ClientTestUtils";
+import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { IdToken } from "../../src/account/IdToken";
-import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { IAccount } from "../../src/account/IAccount";
-import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager } from "../../src";
+import { AccountInfo } from "../../src/account/AccountInfo";
+import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage } from "../../src";
 
 describe("SilentFlowClient unit tests", () => {
+    beforeEach(() => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+    });
+    
     afterEach(() => {
         sinon.restore();
     });
 
     describe("Constructor", async () => {
         it("creates a SilentFlowClient", async () => {
-            sinon
-                .stub(Authority.prototype, <any>"discoverEndpoints")
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config);
             expect(client).to.be.not.null;
             expect(client instanceof SilentFlowClient).to.be.true;
             expect(client instanceof BaseClient).to.be.true;
+        });
+    });
+
+    describe("Error cases", () => {
+        const testAccount: AccountInfo = {
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            environment: "login.windows.net",
+            tenantId: "testTenantId",
+            username: "testname@contoso.com"
+        };
+
+        it("Throws error if request object is null or undefined", async () => {
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config = await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config);
+            await expect(client.acquireToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            await expect(client.acquireToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+        });
+
+        it("Throws error if scopes are not included in request object", async () => {
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config = await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config);
+            await expect(client.acquireToken({
+                scopes: null,
+                account: testAccount
+            })).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+        });
+
+        it("Throws error if scopes are empty in request object", async () => {
+            const tokenRequest: SilentFlowRequest = {
+                scopes: [],
+                account: testAccount
+            };
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config = await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config);
+            await expect(client.acquireToken(tokenRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
+        });
+
+        it("Throws error if it does not find token in cache", async () => {
+            const testScope2 = "scope2";
+            const testAccountEntity: AccountEntity = new AccountEntity();
+            testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
+            testAccountEntity.localAccountId = "testId";
+            testAccountEntity.environment = "login.windows.net";
+            testAccountEntity.realm = "testTenantId";
+            testAccountEntity.username = "username@contoso.com";
+            testAccountEntity.authorityType = "MSSTS";
+            sinon.stub(MockStorageClass.prototype, "getAccount").returns(testAccountEntity);
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const tokenRequest: SilentFlowRequest = {
+                scopes: [testScope2],
+                account: testAccount
+            };
+            const config = await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config);
+            await expect(client.acquireToken(tokenRequest)).to.be.rejectedWith(ClientAuthErrorMessage.noTokensFoundError.desc);
         });
     });
 
@@ -97,7 +158,7 @@ describe("SilentFlowClient unit tests", () => {
 
         const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new SilentFlowClient(config);
-        const testAccount: IAccount = {
+        const testAccount: AccountInfo = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             tenantId: idTokenClaims.tid,
             environment: "login.windows.net",
@@ -107,7 +168,8 @@ describe("SilentFlowClient unit tests", () => {
         const silentFlowRequest: SilentFlowRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             account: testAccount,
-            forceRefresh: true
+            forceRefresh: true,
+            redirectUri: TEST_URIS.TEST_REDIR_URI
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(silentFlowRequest);
@@ -119,7 +181,7 @@ describe("SilentFlowClient unit tests", () => {
         expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT.body.id_token);
         expect(authResult.idTokenClaims).to.deep.eq(idTokenClaims);
         expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
-        expect(authResult.state).to.be.undefined;
+        expect(authResult.state).to.be.empty;
 
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);

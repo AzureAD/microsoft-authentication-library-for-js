@@ -3,30 +3,41 @@
  * Licensed under the MIT License.
  */
 import { AuthorityType } from "./AuthorityType";
-import { TenantDiscoveryResponse } from "./TenantDiscoveryResponse";
+import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
 import { UrlString } from "./../url/UrlString";
 import { IUri } from "./../url/IUri";
 import { ClientAuthError } from "./../error/ClientAuthError";
 import { INetworkModule } from "./../network/INetworkModule";
-import {NetworkResponse} from "..";
+import { NetworkResponse } from "./../network/NetworkManager";
+import { Constants } from "./../utils/Constants";
+import { TrustedAuthority } from "./TrustedAuthority";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
  * endpoint. It will store the pertinent config data in this object for use during token calls.
  */
-export abstract class Authority {
+export class Authority {
 
     // Canonical authority url string
     private _canonicalAuthority: UrlString;
     // Canonicaly authority url components
     private _canonicalAuthorityUrlComponents: IUri;
     // Tenant discovery response retrieved from OpenID Configuration Endpoint
-    private tenantDiscoveryResponse: TenantDiscoveryResponse;
+    private tenantDiscoveryResponse: OpenIdConfigResponse;
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
 
     // See above for AuthorityType
-    public abstract get authorityType(): AuthorityType;
+    public get authorityType(): AuthorityType {
+        const pathSegments = this.canonicalAuthorityUrlComponents.PathSegments;
+
+        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
+            return AuthorityType.Adfs;
+        }
+
+        return AuthorityType.Default;
+    };
 
     /**
      * A URL that is the authority set by the developer
@@ -126,6 +137,9 @@ export abstract class Authority {
      * The default open id configuration endpoint for any canonical authority.
      */
     protected get defaultOpenIdConfigurationEndpoint(): string {
+        if (this.authorityType === AuthorityType.Adfs) {
+            return `${this.canonicalAuthority}.well-known/openid-configuration`;
+        }
         return `${this.canonicalAuthority}v2.0/.well-known/openid-configuration`;
     }
 
@@ -147,20 +161,37 @@ export abstract class Authority {
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
      * @param openIdConfigurationEndpoint
      */
-    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<NetworkResponse<TenantDiscoveryResponse>> {
-        return this.networkInterface.sendGetRequestAsync<TenantDiscoveryResponse>(openIdConfigurationEndpoint);
+    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<NetworkResponse<OpenIdConfigResponse>> {
+        return this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(openIdConfigurationEndpoint);
     }
 
-    /**
-     * Abstract function which will get the OpenID configuration endpoint.
-     */
-    public abstract async getOpenIdConfigurationEndpointAsync(): Promise<string>;
+    // Default AAD Instance Discovery Endpoint
+    private get aadInstanceDiscoveryEndpointUrl(): string {
+        return `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
+    }
+
+    private async validateAndSetPreferredNetwork(): Promise<void> {
+        const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
+        if (TrustedAuthority.getTrustedHostList().length === 0) {
+            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(this._canonicalAuthority, this.networkInterface);
+        }
+
+        if (!TrustedAuthority.IsInTrustedHostList(host)) {
+            throw ClientConfigurationError.createUntrustedAuthorityError();
+        }
+
+        const preferredNetwork = TrustedAuthority.getCloudDiscoveryMetadata(host).preferred_network;
+        if (host !== preferredNetwork) {
+            this.canonicalAuthority = this.canonicalAuthority.replace(host, preferredNetwork);
+        }
+    }
 
     /**
      * Perform endpoint discovery to discover the /authorize, /token and logout endpoints.
      */
     public async resolveEndpointsAsync(): Promise<void> {
-        const openIdConfigEndpoint = await this.getOpenIdConfigurationEndpointAsync();
+        await this.validateAndSetPreferredNetwork();
+        const openIdConfigEndpoint = this.defaultOpenIdConfigurationEndpoint;
         const response = await this.discoverEndpoints(openIdConfigEndpoint);
         this.tenantDiscoveryResponse = response.body;
     }

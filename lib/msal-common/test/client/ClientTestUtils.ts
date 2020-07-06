@@ -1,6 +1,10 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError, CacheManager} from "../../src";
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError} from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
 import { AuthorityFactory } from "../../src";
+import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
+import sinon from "sinon";
+import { CloudDiscoveryMetadata } from "../../src/authority/CloudDiscoveryMetadata";
+import { CacheManager } from "../../src/cache/CacheManager";
 
 export class MockStorageClass extends CacheManager {
     store = {};
@@ -50,7 +54,7 @@ export class ClientTestUtils {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
         });
 
-        let store = {};
+        const store = {};
         return {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -99,5 +103,15 @@ export class ClientTestUtils {
                 cpu: TEST_CONFIG.TEST_CPU,
             },
         };
+    }
+
+    static setCloudDiscoveryMetadataStubs(): void {
+        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
+        const stubbedCloudDiscoveryMetadata: CloudDiscoveryMetadata = {
+            preferred_cache: "login.windows.net",
+            preferred_network: "login.microsoftonline.com",
+            aliases: ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]};
+        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
+        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
     }
 }

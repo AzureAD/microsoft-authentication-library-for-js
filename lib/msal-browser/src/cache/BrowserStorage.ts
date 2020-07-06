@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CacheHelper, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -125,8 +125,7 @@ export class BrowserStorage extends CacheManager {
                 break;
             }
             default: {
-                console.log("Invalid Cache Type");
-                return;
+                throw BrowserAuthError.createInvalidCacheTypeError();
             }
         }
     }
@@ -144,22 +143,22 @@ export class BrowserStorage extends CacheManager {
         switch (type) {
             case CacheSchemaType.ACCOUNT: {
                 const account = new AccountEntity();
-                return (CacheHelper.toObject(account, JSON.parse(value)) as AccountEntity);
+                return (CacheManager.toObject(account, JSON.parse(value)) as AccountEntity);
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
                         const idTokenEntity: IdTokenEntity = new IdTokenEntity();
-                        return (CacheHelper.toObject(idTokenEntity, JSON.parse(value)) as IdTokenEntity);
+                        return (CacheManager.toObject(idTokenEntity, JSON.parse(value)) as IdTokenEntity);
                     }
                     case CredentialType.ACCESS_TOKEN: {
                         const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-                        return (CacheHelper.toObject(accessTokenEntity, JSON.parse(value)) as AccessTokenEntity);
+                        return (CacheManager.toObject(accessTokenEntity, JSON.parse(value)) as AccessTokenEntity);
                     }
                     case CredentialType.REFRESH_TOKEN: {
                         const refreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
-                        return (CacheHelper.toObject(refreshTokenEntity, JSON.parse(value)) as RefreshTokenEntity);
+                        return (CacheManager.toObject(refreshTokenEntity, JSON.parse(value)) as RefreshTokenEntity);
                     }
                 }
             }
@@ -174,8 +173,7 @@ export class BrowserStorage extends CacheManager {
                 return value;
             }
             default: {
-                console.log("Invalid Cache Type");
-                return {};
+                throw BrowserAuthError.createInvalidCacheTypeError();
             }
         }
     }
@@ -215,7 +213,7 @@ export class BrowserStorage extends CacheManager {
         let key: string;
         for (key in this.windowStorage) {
             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
-            if (this.windowStorage.hasOwnProperty(key) && (key.indexOf(Constants.CACHE_PREFIX) !== -1) && (key.indexOf(this.clientId) !== -1)) {
+            if (this.windowStorage.hasOwnProperty(key) && ((key.indexOf(Constants.CACHE_PREFIX) !== -1) || (key.indexOf(this.clientId) !== -1))) {
                 this.removeItem(key);
             }
         }
@@ -228,7 +226,7 @@ export class BrowserStorage extends CacheManager {
      * @param expires
      */
     setItemCookie(cookieName: string, cookieValue: string, expires?: number): void {
-        let cookieStr = `${cookieName}=${cookieValue};path=/;`;
+        let cookieStr = `${encodeURIComponent(cookieName)}=${encodeURIComponent(cookieValue)};path=/;`;
         if (expires) {
             const expireTime = this.getCookieExpirationTime(expires);
             cookieStr += `expires=${expireTime};`;
@@ -242,7 +240,7 @@ export class BrowserStorage extends CacheManager {
      * @param cookieName
      */
     getItemCookie(cookieName: string): string {
-        const name = `${cookieName}=`;
+        const name = `${encodeURIComponent(cookieName)}=`;
         const cookieList = document.cookie.split(";");
         for (let i = 0; i < cookieList.length; i++) {
             let cookie = cookieList[i];
@@ -250,7 +248,7 @@ export class BrowserStorage extends CacheManager {
                 cookie = cookie.substring(1);
             }
             if (cookie.indexOf(name) === 0) {
-                return cookie.substring(name.length, cookie.length);
+                return decodeURIComponent(cookie.substring(name.length, cookie.length));
             }
         }
         return "";
@@ -344,6 +342,17 @@ export class BrowserStorage extends CacheManager {
     }
 
     /**
+     * Gets the cached authority based on the cached state. Returns empty if no cached state found.
+     */
+    getCachedAuthority(): string {
+        const state = this.getItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
+        if (!state) {
+            return null;
+        }
+        return this.getItem(this.generateCacheKey(this.generateAuthorityKey(state)), CacheSchemaType.TEMPORARY) as string;
+    }
+
+    /**
      * Updates account, authority, and state in cache
      * @param serverAuthenticationRequest
      * @param account
@@ -367,11 +376,7 @@ export class BrowserStorage extends CacheManager {
         // check state and remove associated cache items
         this.getKeys().forEach(key => {
             if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
-                const splitKey = key.split(Constants.RESOURCE_DELIM);
-                const keyState = splitKey.length > 1 ? splitKey[splitKey.length-1]: null;
-                if (keyState === state) {
-                    this.removeItem(key);
-                }
+                this.removeItem(key);
             }
         });
 
@@ -379,6 +384,7 @@ export class BrowserStorage extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
     }
 
     cleanRequest(): void {

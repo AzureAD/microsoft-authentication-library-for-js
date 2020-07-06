@@ -29,12 +29,8 @@ class TestClient extends BaseClient {
         return this.networkClient;
     }
 
-    getAccount(){
-        return this.account;
-    }
-
     getDefaultAuthorityInstance(){
-        return this.defaultAuthority;
+        return this.authority;
     }
 
     createDefaultLibraryHeaders(): Map<string, string> {
@@ -47,8 +43,11 @@ class TestClient extends BaseClient {
 }
 
 describe("BaseClient.ts Class Unit Tests", () => {
-
     beforeEach(() => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+    });
+
+    afterEach(() => {
         sinon.restore();
     });
 
@@ -69,7 +68,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
 
-            expect(client.getAccount()).to.be.not.null;
             expect(client.getConfig()).to.be.not.null;
             expect(client.getCryptoUtils()).to.be.not.null;
             expect(client.getDefaultAuthorityInstance()).to.be.not.null;

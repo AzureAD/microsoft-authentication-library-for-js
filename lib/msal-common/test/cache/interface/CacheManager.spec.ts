@@ -3,7 +3,6 @@ import { CacheManager } from "../../../src/cache/CacheManager";
 import { CacheSchemaType, CredentialType } from "../../../src/utils/Constants";
 import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
-import { CacheHelper } from "../../../src/cache/utils/CacheHelper";
 import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity";
@@ -11,6 +10,7 @@ import { mockCache } from "../entities/cacheConstants";
 import { CacheRecord } from "../../../src/cache/entities/CacheRecord";
 import { ScopeSet } from "../../../src/request/ScopeSet";
 import { AccountFilter, CredentialFilter } from "../../../src/cache/utils/CacheTypes";
+import { ClientAuthError, CredentialEntity } from "../../../src";
 
 const cacheJson = require("../cache.json");
 
@@ -24,7 +24,7 @@ class TestStorageManager extends CacheManager {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(
+                const credentialType = CredentialEntity.getCredentialType(
                     key
                 );
                 switch (credentialType) {
@@ -48,8 +48,7 @@ class TestStorageManager extends CacheManager {
                 break;
             }
             default: {
-                console.log("Invalid Cache Type");
-                return;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
     }
@@ -57,31 +56,28 @@ class TestStorageManager extends CacheManager {
         // save the cacheItem
         switch (type) {
             case CacheSchemaType.ACCOUNT: {
-                return CacheHelper.toObject(new AccountEntity(), store[key]) as AccountEntity;
+                return CacheManager.toObject(new AccountEntity(), store[key]) as AccountEntity;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(
-                    key
-                );
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
-                        return CacheHelper.toObject(new IdTokenEntity(), store[key]) as IdTokenEntity;
+                        return CacheManager.toObject(new IdTokenEntity(), store[key]) as IdTokenEntity;
                     }
                     case CredentialType.ACCESS_TOKEN: {
-                        return CacheHelper.toObject(new AccessTokenEntity(), store[key]) as AccessTokenEntity;
+                        return CacheManager.toObject(new AccessTokenEntity(), store[key]) as AccessTokenEntity;
                     }
                     case CredentialType.REFRESH_TOKEN: {
-                        return CacheHelper.toObject(new RefreshTokenEntity(), store[key]) as RefreshTokenEntity;
+                        return CacheManager.toObject(new RefreshTokenEntity(), store[key]) as RefreshTokenEntity;
                     }
                 }
                 break;
             }
             case CacheSchemaType.APP_META_DATA: {
-                return CacheHelper.toObject(new AppMetadataEntity(), store[key]) as AppMetadataEntity;
+                return CacheManager.toObject(new AppMetadataEntity(), store[key]) as AppMetadataEntity;
             }
             default: {
-                console.log("Invalid Cache Type");
-                return;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
     }
@@ -98,7 +94,7 @@ class TestStorageManager extends CacheManager {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(
+                const credentialType = CredentialEntity.getCredentialType(
                     key
                 );
                 switch (credentialType) {
@@ -134,8 +130,7 @@ class TestStorageManager extends CacheManager {
                 break;
             }
             default: {
-                console.log("Invalid Cache Type");
-                break;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
 
@@ -266,9 +261,8 @@ describe("CacheManager.ts test cases", () => {
         credentials = cacheManager.getCredentialsFilteredBy(filterThree);
     });
 
-    it.skip("removeAccount", () => {
+    it("removeAccount", () => {
         const account: AccountEntity = cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft");
-        console.log(account.generateAccountKey);
         cacheManager.removeAccount("uid.utid-login.microsoftonline.com-microsoft");
         expect(store["uid.utid-login.microsoftonline.com-microsoft"]).to.eql(undefined);
     });

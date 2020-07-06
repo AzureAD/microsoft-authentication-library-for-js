@@ -5,15 +5,16 @@
 import {
     CredentialType,
     CacheSchemaType,
-    CacheHelper,
     AccountEntity,
     AccessTokenEntity,
     RefreshTokenEntity,
     IdTokenEntity,
     AppMetadataEntity,
-    CacheManager
+    CacheManager,
+    CredentialEntity,
+    ClientAuthError,
+    Logger
 } from '@azure/msal-common';
-import { CacheOptions } from '../config/Configuration';
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
@@ -23,20 +24,36 @@ import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
  */
 export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;
-    private inMemoryCache: InMemoryCache;
+    private logger: Logger;
 
-    constructor(cacheConfig: CacheOptions) {
+    constructor(logger: Logger) {
         super();
-        this.cacheConfig = cacheConfig;
-        if (this.cacheConfig.cacheLocation! === 'fileCache')
-            this.inMemoryCache = this.cacheConfig.cacheInMemory!;
+        this.logger = logger;
+    }
+
+    private inMemoryCache: InMemoryCache = {
+        accounts: {},
+        accessTokens: {},
+        refreshTokens: {},
+        appMetadata: {},
+        idTokens: {},
+    };
+
+    private changeEmitters: Array<Function> = [];
+
+    registerChangeEmitter(func: () => void): void {
+        this.changeEmitters.push(func);
+    }
+
+    emitChange() {
+        this.changeEmitters.forEach(func => func.call(null));
     }
 
     /**
      * gets the current in memory cache for the client
      */
     getCache(): object {
+        this.logger.verbose("Getting in-memory cache");
         return this.inMemoryCache;
     }
 
@@ -45,7 +62,9 @@ export class Storage extends CacheManager {
      * @param inMemoryCache
      */
     setCache(inMemoryCache: InMemoryCache) {
+        this.logger.verbose("Setting in-memory cache");
         this.inMemoryCache = inMemoryCache;
+        this.emitChange();
     }
 
     /**
@@ -60,6 +79,8 @@ export class Storage extends CacheManager {
         value: string | object,
         type?: string
     ): void {
+        this.logger.verbose(`setItem called for item type: ${type}`);
+        this.logger.verbosePii(`Item key: ${key}`);
         // read inMemoryCache
         const cache = this.getCache() as InMemoryCache;
 
@@ -70,17 +91,20 @@ export class Storage extends CacheManager {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
+                        this.logger.verbose(`Credential type: ${CredentialType.ID_TOKEN}`);
                         cache.idTokens[key] = value as IdTokenEntity;
                         break;
                     }
                     case CredentialType.ACCESS_TOKEN: {
+                        this.logger.verbose(`Credential type: ${CredentialType.ACCESS_TOKEN}`);
                         cache.accessTokens[key] = value as AccessTokenEntity;
                         break;
                     }
                     case CredentialType.REFRESH_TOKEN: {
+                        this.logger.verbose(`Credential type: ${CredentialType.REFRESH_TOKEN}`);
                         cache.refreshTokens[key] = value as RefreshTokenEntity;
                         break;
                     }
@@ -92,13 +116,13 @@ export class Storage extends CacheManager {
                 break;
             }
             default: {
-                console.log('Invalid Cache Type');
-                return;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
 
         // update inMemoryCache
         this.setCache(cache);
+        this.emitChange();
     }
 
     /**
@@ -109,6 +133,8 @@ export class Storage extends CacheManager {
      * @param inMemory
      */
     getItem(key: string, type?: string): string | object {
+        this.logger.verbose(`getItem called for item type: ${type}`);
+        this.logger.verbosePii(`Item key: ${key}`);
         // read inMemoryCache
         const cache = this.getCache() as InMemoryCache;
 
@@ -118,18 +144,21 @@ export class Storage extends CacheManager {
                 return (cache.accounts[key] as AccountEntity) || null;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 let credential = null;
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
+                        this.logger.verbose(`Credential type: ${CredentialType.ID_TOKEN}`);
                         credential = (cache.idTokens[key] as IdTokenEntity) || null;
                         break;
                     }
                     case CredentialType.ACCESS_TOKEN: {
+                        this.logger.verbose(`Credential type: ${CredentialType.ACCESS_TOKEN}`);
                         credential = (cache.accessTokens[key] as AccessTokenEntity) || null;
                         break;
                     }
                     case CredentialType.REFRESH_TOKEN: {
+                        this.logger.verbose(`Credential type: ${CredentialType.REFRESH_TOKEN}`);
                         credential = (cache.refreshTokens[key] as RefreshTokenEntity) || null;
                         break;
                     }
@@ -140,8 +169,7 @@ export class Storage extends CacheManager {
                 return (cache.appMetadata[key] as AppMetadataEntity) || null;
             }
             default: {
-                console.log('Invalid Cache Type');
-                return {};
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
     }
@@ -153,6 +181,8 @@ export class Storage extends CacheManager {
      * @param inMemory
      */
     removeItem(key: string, type?: string): boolean {
+        this.logger.verbose(`removeItem called for item type: ${type}`);
+        this.logger.verbosePii(`Item key: ${key}`);
         // read inMemoryCache
         const cache = this.getCache() as InMemoryCache;
         let result: boolean = false;
@@ -167,9 +197,10 @@ export class Storage extends CacheManager {
                 break;
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CacheHelper.getCredentialType(key);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
+                        this.logger.verbose(`Credential type: ${CredentialType.ID_TOKEN}`);
                         if (!!cache.idTokens[key]) {
                             delete cache.idTokens[key];
                             result = true;
@@ -177,6 +208,7 @@ export class Storage extends CacheManager {
                         break;
                     }
                     case CredentialType.ACCESS_TOKEN: {
+                        this.logger.verbose(`Credential type: ${CredentialType.ACCESS_TOKEN}`);
                         if (!!cache.accessTokens[key]) {
                             delete cache.accessTokens[key];
                             result = true;
@@ -184,6 +216,7 @@ export class Storage extends CacheManager {
                         break;
                     }
                     case CredentialType.REFRESH_TOKEN: {
+                        this.logger.verbose(`Credential type: ${CredentialType.REFRESH_TOKEN}`);
                         if (!!cache.refreshTokens[key]) {
                             delete cache.refreshTokens[key];
                             result = true;
@@ -201,14 +234,14 @@ export class Storage extends CacheManager {
                 break;
             }
             default: {
-                console.log('Invalid Cache Type');
-                break;
+                throw ClientAuthError.createInvalidCacheTypeError();
             }
         }
 
         // write to the cache after removal
         if (result) {
             this.setCache(cache);
+            this.emitChange();
         }
         return result;
     }
@@ -226,33 +259,31 @@ export class Storage extends CacheManager {
      * Gets all keys in window.
      */
     getKeys(): string[] {
+        this.logger.verbose("Retrieving all cache keys");
         // read inMemoryCache
-        const cache = this.getCache();
-        let cacheKeys: string[] = [];
-
-        // read all keys
-        Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
-                cacheKeys.push(internalKey);
-            });
-        });
-
-        return cacheKeys;
+        const cache: InMemoryCache= this.getCache() as InMemoryCache;
+        return [
+            ...Object.keys(cache.accounts),
+            ...Object.keys(cache.idTokens),
+            ...Object.keys(cache.accessTokens),
+            ...Object.keys(cache.refreshTokens),
+            ...Object.keys(cache.appMetadata),
+        ];
     }
 
     /**
      * Clears all cache entries created by MSAL (except tokens).
      */
     clear(): void {
+        this.logger.verbose("Clearing cache entries created by MSAL");
         // read inMemoryCache
-        const cache = this.getCache();
+        const cacheKeys = this.getKeys();
 
-        // read all keys
-        Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
-                this.removeItem(internalKey);
-            });
+        // delete each element
+        cacheKeys.forEach(key => {
+            this.removeItem(key);
         });
+        this.emitChange();
     }
 
     /**

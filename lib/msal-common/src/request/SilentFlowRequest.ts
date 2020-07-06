@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { IAccount } from "../account/IAccount";
+import { AccountInfo } from "../account/AccountInfo";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
@@ -15,7 +15,6 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - correlationId: GUID set by the user to trace the request
  */
 export type SilentFlowRequest = BaseAuthRequest & {
-    account: IAccount;
+    account: AccountInfo;
     forceRefresh?: boolean;
-    correlationId?: string;
 };

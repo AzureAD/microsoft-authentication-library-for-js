@@ -6,8 +6,6 @@
 import {
     Separators,
     CacheAccountType,
-    EnvironmentAliases,
-    PreferredCacheEnvironment,
     CacheType,
 } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
@@ -15,10 +13,30 @@ import { IdToken } from "../../account/IdToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
-import { CacheHelper } from "../utils/CacheHelper";
+import { TrustedAuthority } from "../../authority/TrustedAuthority";
+import { AccountInfo } from "../../account/AccountInfo";
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
- * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs)
+ * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
+ * 
+ * Key : Value Schema
+ * 
+ * Key: <home_account_id>-<environment>-<realm*>
+ * 
+ * Value Schema:
+ * {
+ *      homeAccountId: home account identifier for the auth scheme,
+ *      environment: entity that issued the token, represented as a full host
+ *      realm: Full tenant or organizational identifier that the account belongs to
+ *      localAccountId: Original tenant-specific accountID, usually used for legacy cases
+ *      username: primary username that represents the user, usually corresponds to preferred_username in the v2 endpt
+ *      authorityType: Accounts authority type as a string
+ *      name: Full name for the account, including given name and family name,
+ *      clientInfo: Full base64 encoded client info received from ESTS
+ *      lastModificationTime: last time this entity was modified in the cache
+ *      lastModificationApp: 
+ * }
  */
 export class AccountEntity {
     homeAccountId: string;
@@ -44,7 +62,7 @@ export class AccountEntity {
      * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
      */
     generateAccountKey(): string {
-        return CacheHelper.generateAccountCacheKey({
+        return AccountEntity.generateAccountCacheKey({
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
@@ -66,10 +84,35 @@ export class AccountEntity {
             case CacheAccountType.GENERIC_ACCOUNT_TYPE:
                 return CacheType.GENERIC;
             default: {
-                console.log("Unexpected account type");
-                return null;
+                throw ClientAuthError.createUnexpectedAccountTypeError();
             }
         }
+    }
+
+    /**
+     * Returns the AccountInfo interface for this account.
+     */
+    getAccountInfo(): AccountInfo {
+        return {
+            homeAccountId: this.homeAccountId,
+            environment: this.environment,
+            tenantId: this.realm,
+            username: this.username
+        };
+    }
+
+    /**
+     * Generates account key from interface
+     * @param accountInterface
+     */
+    static generateAccountCacheKey(accountInterface: AccountInfo): string {
+        const accountKey = [
+            accountInterface.homeAccountId,
+            accountInterface.environment || "",
+            accountInterface.tenantId || "",
+        ];
+
+        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**
@@ -83,27 +126,22 @@ export class AccountEntity {
         clientInfo: string,
         authority: Authority,
         idToken: IdToken,
-        policy: string,
         crypto: ICrypto
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         account.clientInfo = clientInfo;
-        // TBD: Clarify "policy" addition
         const clientInfoObj = buildClientInfo(clientInfo, crypto);
-        const homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
-        account.homeAccountId =
-            policy !== null
-                ? homeAccountId + Separators.CACHE_KEY_SEPARATOR + policy
-                : homeAccountId;
+        account.homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
 
-        const reqEnvironment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        account.environment = EnvironmentAliases.includes(reqEnvironment)
-            ? PreferredCacheEnvironment
-            : reqEnvironment;
-
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+        if (StringUtils.isEmpty(env)) {
+            throw ClientAuthError.createInvalidCacheEnvironmentError();
+        }
+        
+        account.environment = env;
         account.realm = idToken.claims.tid;
 
         if (idToken) {
@@ -132,8 +170,15 @@ export class AccountEntity {
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
-        account.environment =
-            authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+
+        if (StringUtils.isEmpty(env)) {
+            throw ClientAuthError.createInvalidCacheEnvironmentError();
+        }
+
+        account.environment = env;
         account.username = idToken.claims.upn;
         // add uniqueName to claims
         // account.name = idToken.claims.uniqueName;
