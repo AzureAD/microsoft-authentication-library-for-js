@@ -42,6 +42,8 @@ export type ClientConfiguration = {
  *
  * - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
  * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
+ * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
+ * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
  */
 export type AuthOptions = {
     clientId: string;

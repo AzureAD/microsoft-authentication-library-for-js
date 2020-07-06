@@ -8,7 +8,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
 /**
  * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)
  *
- * - scopes                  - A space-separated array of scopes for the same resource.
+ * - scopes                  - Array of scopes the application is requesting access to.
  * - authority:              - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. If authority is set on client application object, this will override that value. Overriding the value will cause for authority validation to happen each time. If the same authority will be used for all request, set on the application object instead of the requests.
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - redirectUri             - The redirect URI of your app, where the authority will redirect to after the user inputs credentials and consents. It must exactly match one of the redirect URIs you registered in the portal.

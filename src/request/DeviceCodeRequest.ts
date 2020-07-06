@@ -8,7 +8,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
  * Parameters for Oauth2 device code flow.
- * - scopes                     - A space-separated array of scopes for the same resource.
+ * - scopes                     - Array of scopes the application is requesting access to.
  * - authority:                 - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. If authority is set on client application object, this will override that value. Overriding the value will cause for authority validation to happen each time. If the same authority will be used for all request, set on the application object instead of the requests.
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - deviceCodeCallback         - Callback containing device code response. Message should be shown to end user. End user can then navigate to the verification_uri, input the user_code, and input credentials.
