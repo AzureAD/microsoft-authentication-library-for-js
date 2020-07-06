@@ -1,22 +1,17 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
 
 module.exports = {
     callMSGraph: function(endpoint, accessToken, callback) {
-        const headers = new fetch.Headers();
-        const bearer = `Bearer ${accessToken}`;
-
-        headers.append("Authorization", bearer);
-
         const options = {
-            method: "GET",
-            headers: headers
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
         };
 
         console.log('request made to Graph API at: ' + new Date().toString());
 
-        fetch(endpoint, options)
-            .then(response => response.json())
-            .then(response => callback(response, endpoint))
+        axios.default.get(endpoint, options)
+            .then(response => callback(response.data, endpoint))
             .catch(error => console.log(error));
         },
 
