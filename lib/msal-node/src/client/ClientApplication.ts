@@ -131,7 +131,7 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Gets the cache manager for the application.
+     * Gets the token cache for the application.
      */
     getCacheManager(): TokenCache {
         this.logger.info("getCacheManager called");
