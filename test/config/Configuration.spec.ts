@@ -28,7 +28,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
-        expect(emptyConfig.auth.authority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+        expect(emptyConfig.auth.authority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
         expect(emptyConfig.auth.redirectUri).to.be.eq("");
         expect(emptyConfig.auth.postLogoutRedirectUri).to.be.eq("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).to.be.true;
@@ -50,13 +50,38 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.telemetry).to.be.null;
     });
 
-    it("Tests default logger", () => {
+    it("Tests logger", () => {
         const consoleErrorSpy = sinon.spy(console, "error");
         const consoleInfoSpy = sinon.spy(console, "info");
         const consoleDebugSpy = sinon.spy(console, "debug");
         const consoleWarnSpy = sinon.spy(console, "warn");
         const message = "log message";
-        let emptyConfig: Configuration = buildConfiguration({auth: null});
+        let emptyConfig: Configuration = buildConfiguration({
+            auth: null,
+            system: {
+                loggerOptions: {
+                    loggerCallback: (level, message, containsPii) => {
+                        if (containsPii) {
+                            return;
+                        }
+                        switch (level) {
+                            case LogLevel.Error:
+                                console.error(message);
+                                return;
+                            case LogLevel.Info:
+                                console.info(message);
+                                return;
+                            case LogLevel.Verbose:
+                                console.debug(message);
+                                return;
+                            case LogLevel.Warning:
+                                console.warn(message);
+                                return;
+                        }
+                    }
+                }
+            }
+        });
         emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, true)
         expect(consoleErrorSpy.called).to.be.false;
         emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, false)
