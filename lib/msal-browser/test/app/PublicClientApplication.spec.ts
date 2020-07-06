@@ -61,15 +61,93 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("navigates and caches hash if navigateToLoginRequestUri is true", (done) => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-            sinon.stub(BrowserUtils, "getCurrentUri").returns("notAUri");
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
-                expect(urlNavigate).to.be.eq(TEST_URIS.TEST_REDIR_URI);
+                expect(urlNavigate).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                done();
             });
             pca.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-            done();
+        });
+
+        it("navigates to root and caches hash if navigateToLoginRequestUri is true", (done) => {
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+                expect(noHistory).to.be.true;
+                expect(urlNavigate).to.be.eq("/");
+                done();
+            });
+            pca.handleRedirectPromise();
+            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+        });
+
+        it("navigates to root and caches hash if navigateToLoginRequestUri is true and loginRequestUrl is 'null'", (done) => {
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, "null");
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+                expect(noHistory).to.be.true;
+                expect(urlNavigate).to.be.eq("/");
+                done();
+            });
+            pca.handleRedirectPromise();
+            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+        });
+
+        it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string", (done) => {
+            const loginRequestUrl = window.location.href + "?testQueryString=1";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+                expect(noHistory).to.be.true;
+                expect(urlNavigate).to.be.eq(loginRequestUrl);
+                done();
+            });
+            pca.handleRedirectPromise();
+            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+        });
+
+        it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string and hash", (done) => {
+            const loginRequestUrl = window.location.href + "?testQueryString=1#testHash";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
+                expect(noHistory).to.be.true;
+                expect(urlNavigate).to.be.eq(loginRequestUrl);
+                done();
+            });
+            pca.handleRedirectPromise();
+            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+        });
+
+        it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash", (done) => {
+            const loginRequestUrl = window.location.href + "#testHash";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+            sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
+                expect(window.location.href).to.be.eq(loginRequestUrl);
+                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                done();
+            });
+            pca.handleRedirectPromise();
+        });
+
+        it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    navigateToLoginRequestUrl: false
+                }
+            });
+            const loginRequestUrl = window.location.href + "#testHash";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+            sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
+                expect(window.location.href).to.not.contain("#testHash");
+                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                done();
+            });
+            pca.handleRedirectPromise();
         });
     });
 
@@ -96,7 +174,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     code: "thisIsATestCode",
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                    authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                    authority: `${Constants.DEFAULT_AUTHORITY}`,
                     correlationId: RANDOM_TEST_GUID
                 };
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
@@ -197,7 +275,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     code: "thisIsATestCode",
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                    authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                    authority: `${Constants.DEFAULT_AUTHORITY}`,
                     correlationId: RANDOM_TEST_GUID
                 };
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
@@ -315,7 +393,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				await pca.loginRedirect(emptyRequest);
 				expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY)).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
 				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_STATE_VALUES.TEST_STATE}`), CacheSchemaType.TEMPORARY)).to.be.eq(RANDOM_TEST_GUID);
-				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.AUTHORITY}|${TEST_STATE_VALUES.TEST_STATE}`), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.AUTHORITY}|${TEST_STATE_VALUES.TEST_STATE}`), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
 			});
 
 			it("Caches token request correctly", async () => {
@@ -344,7 +422,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string));
 				expect(cachedRequest.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
 				expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
-				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
 				expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
 			});
 
@@ -405,7 +483,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					state: TEST_STATE_VALUES.TEST_STATE,
                     correlationId: RANDOM_TEST_GUID,
                     nonce: RANDOM_TEST_GUID,
-                    authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                    authority: `${Constants.DEFAULT_AUTHORITY}`,
                     responseMode: ResponseMode.FRAGMENT,
 					codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
 					codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
@@ -451,7 +529,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
 					state: TEST_STATE_VALUES.TEST_STATE,
 					correlationId: RANDOM_TEST_GUID,
-					authority: `${Constants.DEFAULT_AUTHORITY}/`,
+					authority: `${Constants.DEFAULT_AUTHORITY}`,
 					nonce: RANDOM_TEST_GUID,
                     responseMode: ResponseMode.FRAGMENT,
 					codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -510,7 +588,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				await pca.loginRedirect(emptyRequest);
 				expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY)).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
 				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_STATE_VALUES.TEST_STATE}`), CacheSchemaType.TEMPORARY)).to.be.eq(RANDOM_TEST_GUID);
-				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.AUTHORITY}|${TEST_STATE_VALUES.TEST_STATE}`), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+				expect(browserStorage.getItem(browserStorage.generateCacheKey(`${TemporaryCacheKeys.AUTHORITY}|${TEST_STATE_VALUES.TEST_STATE}`), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
 			});
 	
 			it("Caches token request correctly", async () => {
@@ -534,9 +612,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const browserCrypto = new CryptoOps();
 				await pca.acquireTokenRedirect(tokenRequest);
 				const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string));
-				expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
+				expect(cachedRequest.scopes).to.be.deep.eq([testScope, ...TEST_CONFIG.DEFAULT_SCOPES]);
 				expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
-				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+				expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
 				expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
 			});
 
@@ -592,11 +670,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				};
 				await pca.acquireTokenRedirect(emptyRequest);
 				const validatedRequest: AuthorizationUrlRequest = {
-					...emptyRequest,
+                    ...emptyRequest,
+                    scopes: [...emptyRequest.scopes, ...TEST_CONFIG.DEFAULT_SCOPES],
 					loginHint: idTokenClaims.upn,
 					state: TEST_STATE_VALUES.TEST_STATE,
 					correlationId: RANDOM_TEST_GUID,
-					authority: `${Constants.DEFAULT_AUTHORITY}/`,
+					authority: `${Constants.DEFAULT_AUTHORITY}`,
 					nonce: RANDOM_TEST_GUID,
                     responseMode: ResponseMode.FRAGMENT,
 					codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -640,10 +719,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				};
 				await pca.acquireTokenRedirect(loginRequest);
 				const validatedRequest: AuthorizationUrlRequest = {
-					...loginRequest,
+                    ...loginRequest,
+                    scopes: [...loginRequest.scopes, ...TEST_CONFIG.DEFAULT_SCOPES],
 					state: TEST_STATE_VALUES.TEST_STATE,
 					correlationId: RANDOM_TEST_GUID,
-					authority: `${Constants.DEFAULT_AUTHORITY}/`,
+					authority: `${Constants.DEFAULT_AUTHORITY}`,
 					nonce: RANDOM_TEST_GUID,
                     responseMode: ResponseMode.FRAGMENT,
 					codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1027,11 +1107,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				prompt: "none",
 				state: RANDOM_TEST_GUID,
 				correlationId: RANDOM_TEST_GUID,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				authority: `${Constants.DEFAULT_AUTHORITY}`,
 				nonce: RANDOM_TEST_GUID
 			};
 			const codeRequest: AuthorizationCodeRequest = {
-				...urlRequest,
+                ...urlRequest,
+                redirectUri: urlRequest.redirectUri,
 				code: "",
 				codeVerifier: TEST_CONFIG.TEST_VERIFIER
             };
@@ -1058,45 +1139,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             pca.logout();
             const validatedLogoutRequest: EndSessionRequest = {
+                correlationId: RANDOM_TEST_GUID,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
-        });
-    });
-
-    describe("Getters and Setters Unit Tests", () => {
-
-        let pca_alternate_redirUris: PublicClientApplication;
-        beforeEach(() => {
-            pca_alternate_redirUris = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
-                    postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
-                }
-            });
-        });
-
-        it("getRedirectUri returns the currently configured redirect uri", () => {
-            expect(pca.getRedirectUri()).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-            expect(pca_alternate_redirUris.getRedirectUri()).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-        });
-
-        it("getPostLogoutRedirectUri returns the currently configured post logout redirect uri", () => {
-            expect(pca.getPostLogoutRedirectUri()).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-            expect(pca_alternate_redirUris.getPostLogoutRedirectUri()).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
-        });
-
-        it("defaults to current window if redirect uri is null/empty", () => {
-            const testUrl = "http://localhost:30662";
-            sinon.stub(BrowserUtils, "getCurrentUri").returns(testUrl);
-            expect(pca.getRedirectUri()).to.eq(testUrl);
-        });
-
-        it("defaults to current window if post logout redirect uri is null/empty", () => {
-            const testUrl = "http://localhost:30662";
-            sinon.stub(BrowserUtils, "getCurrentUri").returns(testUrl);
-            expect(pca.getPostLogoutRedirectUri()).to.eq(testUrl);
         });
     });
 });

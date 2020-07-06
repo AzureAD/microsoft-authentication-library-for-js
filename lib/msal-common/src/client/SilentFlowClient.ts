@@ -67,9 +67,8 @@ export class SilentFlowClient extends BaseClient {
 
             const refreshTokenClient = new RefreshTokenClient(this.config);
             const refreshTokenRequest: RefreshTokenRequest = {
-                scopes: request.scopes,
-                refreshToken: cachedRefreshToken.secret,
-                authority: request.authority
+                ...request,
+                refreshToken: cachedRefreshToken.secret
             };
 
             return refreshTokenClient.acquireToken(refreshTokenRequest);

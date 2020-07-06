@@ -15,4 +15,9 @@ export type BaseAuthRequest = {
      * on client application object and not request, to avoid resolving authority endpoints multiple times.
      */
     authority?: string;
+
+    /**
+     * Unique GUID set per request to trace a request end-to-end for telemetry purposes
+     */
+    correlationId?: string;
 };
