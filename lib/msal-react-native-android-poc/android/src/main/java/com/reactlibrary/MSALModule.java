@@ -120,13 +120,13 @@ public class MSALModule extends ReactContextBaseJavaModule {
     private ISingleAccountPublicClientApplication.CurrentAccountCallback getAccountCallback(final Promise promise) {
         return new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
             @Override
-            public void onAccountLoaded(@Nullable IAccount activeAccount) {
+            public void onAccountLoaded(IAccount activeAccount) {
                 Log.d(TAG, "Account: " + activeAccount.getUsername());
                 promise.resolve(mapAccount(activeAccount));
             }
 
             @Override
-            public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
+            public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
                 Log.d(TAG, "Previous Account: " + priorAccount.getUsername());
                 Log.d(TAG, "Current Account: " + currentAccount.getUsername());
                 promise.resolve(mapAccount(currentAccount));
