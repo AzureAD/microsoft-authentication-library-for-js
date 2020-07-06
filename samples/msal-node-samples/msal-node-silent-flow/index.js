@@ -3,9 +3,11 @@
  * Licensed under the MIT License.
  */
 const express = require("express");
-const handlebars = require('express-handlebars');
+const exphbs = require('express-handlebars');
 const msal = require('@azure/msal-node');
 const { promises: fs } = require("fs");
+
+const graph = require('./graph');
 
 const SERVER_PORT = process.env.PORT || 3000;
 
@@ -28,6 +30,11 @@ const writeToStorage = (getMergedState) => {
 const cachePlugin = {
     readFromStorage,
     writeToStorage
+};
+
+
+const graphConfig = {
+    graphMeEndpoint: 'https://graph.microsoft.com/v1.0/me'
 };
 
 /**
@@ -63,23 +70,14 @@ let accounts;
 const app = express();
 
 // Set handlebars view engine
-app.engine(
-    "hbs",
-    handlebars({
-        layoutsDir: __dirname + "/views",
-        extname: "hbs",
-    })
-);
+app.engine('.hbs', exphbs({extname: '.hbs'}));
+app.set('view engine', '.hbs');
 
 /** 
  * App Routes
  */
 app.get('/', (req, res) => {
-    const data = {
-        showSignInButton: true
-    }
-
-    res.render("main.hbs", data);
+    res.render("login", { showSignInButton: true});
 });
 
 // Initiates Auth Code Grant
@@ -102,8 +100,8 @@ app.get('/redirect', (req, res) => {
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
-        const templateParams = { showLoginButton: false, showATSButton: true, username: response.account.username};
-        res.render("main.hbs", templateParams);
+        const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
+        res.render("graph", templateParams);
         return msalCacheManager.writeToPersistence();
     }).catch((error) => {
         console.log(error);
@@ -112,7 +110,7 @@ app.get('/redirect', (req, res) => {
 });
 
 // Initiates Acquire Token Silent flow
-app.get('/silentFlow', (req, res) => {
+app.get('/graphCall', (req, res) => {
     // get Accounts
     accounts = msalCacheManager.getAllAccounts();
     console.log("Accounts: ", accounts);
@@ -123,24 +121,28 @@ app.get('/silentFlow', (req, res) => {
         scopes: scopes,
     };
 
-    let templateParams = { showLoginButton: false,
-                           acquiredToken: null,
-                           couldNotAcquireToken: null,
-                           username: null };
-
+    let templateParams = { showLoginButton: false };
+    // Acquire Token Silently to be used in MS Graph call
     pca.acquireTokenSilent(silentRequest)
         .then((response) => {
-            // Successful silent request
-            templateParams.acquiredToken = true;
-            templateParams.username = response.account.username;
             console.log("\nSuccessful silent token acquisition:\nResponse: \n:", response);
-            res.render("main.hbs", templateParams)
-            return msalCacheManager.writeToPersistence();
+            const username = response.account.username;
+            // Call graph after successfully acquiring token
+            graph.callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, (response, endpoint) => {
+                // Successful silent request
+                templateParams = { 
+                    ...templateParams, 
+                    username,
+                    profile: graph.buildGraphProfile(response)
+                };
+                res.render("graph", templateParams)
+                return msalCacheManager.writeToPersistence();
+            });
         })
         .catch((error) => {
             console.log(error);
             templateParams.couldNotAcquireToken = true;
-            res.render("main.hbs", templateParams)
+            res.render("graph", templateParams)
         });
 });
 
