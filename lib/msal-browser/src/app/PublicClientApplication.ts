@@ -66,7 +66,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     private config: Configuration;
 
     // Default authority
-    private defaultAuthorityPromise: Promise<Authority>;
+    private defaultAuthority: Authority;
 
     // Logger
     private logger: Logger;
@@ -111,14 +111,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
-        this.defaultAuthorityPromise = AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.networkClient);
-
-        const { location: { hash } } = window;
-        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
-        if (StringUtils.isEmpty(hash) && StringUtils.isEmpty(cachedHash)) {
-            // There is no hash - assume we are in clean state and clear any current request data.
-            this.browserStorage.cleanRequest();
-        }
+        this.defaultAuthority = null;
     }
 
     // #region Redirect Flow
@@ -181,8 +174,9 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 * @param interactionHandler
 	 */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
-        // There is no hash - return null.
+        // There is no hash - clean cache and return null.
         if (StringUtils.isEmpty(responseHash)) {
+            this.browserStorage.cleanRequest();
             return null;
         }
 
@@ -448,28 +442,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     // #endregion
 
-    // #region Getters and setters
-
-    /**
-     *
-     * Use to get the redirect uri configured in MSAL or null.
-     * Evaluates redirectUri if its a function, otherwise simply returns its value.
-     * @returns {string} redirect URL
-     *
-     */
-    private getRedirectUri(requestRedirectUri?: string): string {
-        return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
-    }
-
-    /**
-     * Use to get the post logout redirect uri configured in MSAL or null.
-     * Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
-     *
-     * @returns {string} post logout redirect URL
-     */
-    private getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
-        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
-    }
+    // #region Account APIs
 
     /**
      * Returns all accounts that MSAL currently has data for.
@@ -495,6 +468,37 @@ export class PublicClientApplication implements IPublicClientApplication {
     // #endregion
 
     // #region Helpers
+
+    /**
+     *
+     * Use to get the redirect uri configured in MSAL or null.
+     * Evaluates redirectUri if its a function, otherwise simply returns its value.
+     * @returns {string} redirect URL
+     *
+     */
+    private getRedirectUri(requestRedirectUri?: string): string {
+        return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+    }
+
+    /**
+     * Use to get the post logout redirect uri configured in MSAL or null.
+     * Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
+     *
+     * @returns {string} post logout redirect URL
+     */
+    private getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
+        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+    }
+
+    /**
+     * Used to get a discovered version of the default authority.
+     */
+    private async getDiscoveredDefaultAuthority(): Promise<Authority> {
+        if (!this.defaultAuthority) {
+            this.defaultAuthority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient);
+        }
+        return this.defaultAuthority;
+    }
 
     /**
      * Helper to check whether interaction is in progress.
@@ -525,12 +529,13 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
-     * Creates a Client Configuration object with the given authority, or the default authority.
-     * @param authorityUri 
+     * Creates a Client Configuration object with the given request authority, or the default authority.
+     * @param requestAuthority 
      */
-    private async getClientConfiguration(authorityUri?: string): Promise<ClientConfiguration> {
-        const discoveredAuthority = authorityUri ? await AuthorityFactory.createDiscoveredInstance(authorityUri, this.config.system.networkClient) 
-            : await this.defaultAuthorityPromise;
+    private async getClientConfiguration(requestAuthority?: string): Promise<ClientConfiguration> {
+        // If the requestAuthority is passed and is not equivalent to the default configured authority, create new authority and discover endpoints. Return default authority otherwise.
+        const discoveredAuthority = (!StringUtils.isEmpty(requestAuthority) && requestAuthority !== this.config.auth.authority) ? await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient) 
+            : await this.getDiscoveredDefaultAuthority();
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
