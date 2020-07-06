@@ -46,7 +46,7 @@ export class StringUtils {
     }
 
     static endsWith(str: string, search: string): boolean {
-        return str.lastIndexOf(search) === (str.length - search.length);
+        return (str.length >= search.length) && (str.lastIndexOf(search) === (str.length - search.length));
     }
 
     /**
