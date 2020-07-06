@@ -12,7 +12,7 @@ const msalConfig = {
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
-const loginRequest = {
+const tokenRequest = {
     scopes: ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };

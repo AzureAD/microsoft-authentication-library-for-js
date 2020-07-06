@@ -229,11 +229,6 @@ describe("Browser tests", function () {
         }); 
 
         it("Test acquireTokenSilent", async () => {
-            await page.click("#getAccessTokenPopup");
-            await page.waitForSelector("#access-token-info");
-            await page.reload();
-
-            await page.waitForSelector("#getAccessTokenSilent");
             await page.click("#getAccessTokenSilent");
             await page.waitForSelector("#access-token-info");
             await takeScreenshot(page, testName, "accessTokenAcquiredSilently");
