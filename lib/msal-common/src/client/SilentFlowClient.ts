@@ -21,6 +21,7 @@ import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { CredentialEntity } from "../cache/entities/CredentialEntity";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ResponseHandler } from "../response/ResponseHandler";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -66,10 +67,8 @@ export class SilentFlowClient extends BaseClient {
 
             const refreshTokenClient = new RefreshTokenClient(this.config);
             const refreshTokenRequest: RefreshTokenRequest = {
-                scopes: request.scopes,
-                redirectUri: request.redirectUri,
-                refreshToken: cachedRefreshToken.secret,
-                authority: request.authority
+                ...request,
+                refreshToken: cachedRefreshToken.secret
             };
 
             return refreshTokenClient.acquireToken(refreshTokenRequest);
@@ -77,22 +76,13 @@ export class SilentFlowClient extends BaseClient {
 
         const cachedIdToken = this.readIdTokenFromCache(homeAccountId, environment, cachedAccount.realm);
         const idTokenObj = new IdToken(cachedIdToken.secret, this.config.cryptoInterface);
-        const cachedScopes = ScopeSet.fromString(cachedAccessToken.target);
 
-        // generate Authentication Result
-        return {
-            uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
-            tenantId: idTokenObj.claims.tid,
-            scopes: cachedScopes.asArray(),
-            account: cachedAccount.getAccountInfo(),
-            idToken: cachedIdToken.secret,
-            idTokenClaims: idTokenObj.claims,
-            accessToken: cachedAccessToken.secret,
-            fromCache: true,
-            expiresOn: new Date(cachedAccessToken.expiresOn),
-            extExpiresOn: new Date(cachedAccessToken.extendedExpiresOn),
-            familyId: null,
-        };
+        return ResponseHandler.generateAuthenticationResult({
+            account: cachedAccount,
+            accessToken: cachedAccessToken,
+            idToken: cachedIdToken,
+            refreshToken: cachedRefreshToken
+        }, idTokenObj, true);
     }
 
     /**

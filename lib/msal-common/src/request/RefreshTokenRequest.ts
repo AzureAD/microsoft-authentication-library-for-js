@@ -15,5 +15,4 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  */
 export type RefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
-    redirectUri?: string;
 };

@@ -146,7 +146,7 @@ export class Authority {
         if (this.IsValidationEnabled) {
             const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
             if (TrustedAuthority.getTrustedHostList().length === 0) {
-                await TrustedAuthority.setTrustedAuthoritiesFromNetwork(telemetryManager, correlationId);
+                await TrustedAuthority.setTrustedAuthoritiesFromNetwork(this.canonicalAuthority, telemetryManager, correlationId);
             }
 
             if (!TrustedAuthority.IsInTrustedHostList(host)) {

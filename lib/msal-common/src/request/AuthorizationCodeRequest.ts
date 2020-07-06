@@ -26,13 +26,12 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  *                          Required if PKCE was used in the authorization code grant request.
  *                          For more information, see the PKCE RFC: https://tools.ietf.org/html/rfc7636
  *
- * correlationId:           Unique GUID set per request to trace a request end-to-end for telemetry purposes
+ * apiId:                   apiId set per request to identify what API was called for telemetry purposes
  *
  */
 export type AuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;
     code: string;
     codeVerifier?: string;
-    correlationId?: string;
     apiId?: number;
 };

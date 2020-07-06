@@ -46,17 +46,17 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Monitors a window until it loads a url with a known hash, or hits a specified timeout.
-     * @param contentWindow - window that is being monitored
+     * @param popupWindow - window that is being monitored
      * @param timeout - milliseconds until timeout
      * @param urlNavigate - url that was navigated to
      */
-    monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string): Promise<string> {
+    monitorPopupForHash(popupWindow: Window, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / BrowserConstants.POLL_INTERVAL_MS;
             let ticks = 0;
 
             const intervalId = setInterval(() => {
-                if (contentWindow.closed) {
+                if (popupWindow.closed) {
                     // Window is closed
                     this.cleanPopup();
                     clearInterval(intervalId);
@@ -71,7 +71,7 @@ export class PopupHandler extends InteractionHandler {
                      * which should be caught and ignored
                      * since we need the interval to keep running while on STS UI.
                      */
-                    href = contentWindow.location.href;
+                    href = popupWindow.location.href;
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
@@ -84,16 +84,16 @@ export class PopupHandler extends InteractionHandler {
 
                 if (UrlString.hashContainsKnownProperties(href)) {
                     // Success case
-                    const contentHash = contentWindow.location.hash;
-                    this.cleanPopup(contentWindow);
+                    const contentHash = popupWindow.location.hash;
+                    this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
                     resolve(contentHash);
                     return;
                 } else if (ticks > maxTicks) {
                     // Timeout error
-                    this.cleanPopup(contentWindow);
+                    this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createMonitorWindowTimeoutError(urlNavigate));
+                    reject(BrowserAuthError.createMonitorWindowTimeoutError());
                     return;
                 }
             }, BrowserConstants.POLL_INTERVAL_MS);

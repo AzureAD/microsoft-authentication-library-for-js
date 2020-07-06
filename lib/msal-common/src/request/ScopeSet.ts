@@ -75,10 +75,9 @@ export class ScopeSet {;
      * @param newScope
      */
     appendScope(newScope: string): void {
-        if (StringUtils.isEmpty(newScope)) {
-            throw ClientAuthError.createAppendEmptyScopeToSetError(newScope);
+        if (!StringUtils.isEmpty(newScope)) {
+            this.scopes.add(newScope.trim().toLowerCase());
         }
-        this.scopes.add(newScope.trim().toLowerCase());
     }
 
     /**
@@ -87,7 +86,7 @@ export class ScopeSet {;
      */
     appendScopes(newScopes: Array<string>): void {
         try {
-            newScopes.forEach(newScope => this.scopes.add(newScope));
+            newScopes.forEach(newScope => this.appendScope(newScope));
         } catch (e) {
             throw ClientAuthError.createAppendScopeSetError(e);
         }

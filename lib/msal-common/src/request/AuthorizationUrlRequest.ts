@@ -16,7 +16,7 @@ export type AuthorizationUrlRequest = BaseAuthRequest & {
      * The redirect URI where authentication responses can be received by your application. It
      * must exactly match one of the redirect URIs registered in the Azure portal.
      */
-    redirectUri: string;
+    redirectUri?: string;
 
     /**
      * Scopes for a different resource when the user needs consent upfront
@@ -94,9 +94,4 @@ export type AuthorizationUrlRequest = BaseAuthRequest & {
      *  generated unique value is typically used to mitigate replay attacks.
      */
     nonce?: string;
-
-    /**
-     * Unique GUID set per request to trace a request end-to-end for telemetry purposes
-     */
-    correlationId?: string;
 };

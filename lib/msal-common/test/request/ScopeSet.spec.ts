@@ -127,19 +127,19 @@ describe("ScopeSet.ts", () => {
         });
 
         it("appendScope() does nothing if given scope is empty, null or undefined", () => {
+            const testScopes = [testScope];
             const setAddSpy = sinon.spy(Set.prototype, "add");
-
-            expect(() => scopes.appendScope("")).to.throw(ClientAuthError);
-            expect(() => scopes.appendScope("")).to.throw(ClientAuthErrorMessage.appendEmptyScopeError.desc);
+            scopes.appendScope("");
             expect(setAddSpy.called).to.be.false;
+            expect(scopes.asArray()).to.be.deep.eq(testScopes);
 
-            expect(() => scopes.appendScope(null)).to.throw(ClientAuthError);
-            expect(() => scopes.appendScope(null)).to.throw(ClientAuthErrorMessage.appendEmptyScopeError.desc);
+            scopes.appendScope(null);
             expect(setAddSpy.called).to.be.false;
+            expect(scopes.asArray()).to.be.deep.eq(testScopes);
 
-            expect(() => scopes.appendScope(undefined)).to.throw(ClientAuthError);
-            expect(() => scopes.appendScope(undefined)).to.throw(ClientAuthErrorMessage.appendEmptyScopeError.desc);
+            scopes.appendScope(undefined);
             expect(setAddSpy.called).to.be.false;
+            expect(scopes.asArray()).to.be.deep.eq(testScopes);
         });
 
         it("appendScopes() throws error if given array is null or undefined", () => {
@@ -163,6 +163,16 @@ describe("ScopeSet.ts", () => {
             expect(scopes.asArray()).to.contain(testScope2);
             expect(scopes.asArray()).to.contain(testScope3);
         });
+
+        it("appendScopes() trims and converts scopes to lower case before adding", () => {
+            const testScope2 = "TestScope2";
+            const expectedTestScope2 = "testscope2";
+            const testScope3 = "     testscope3   ";
+            const expectedTestScope3 = "testscope3";
+            scopes.appendScopes([testScope2, testScope3]);
+            expect(scopes.asArray()).to.contain(expectedTestScope2);
+            expect(scopes.asArray()).to.contain(expectedTestScope3);
+        })
 
         it("appendScopes() does not add duplicate scopes", () => {
             const unchangedScopes = new ScopeSet([testScope, Constants.OFFLINE_ACCESS_SCOPE]);
