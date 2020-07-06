@@ -105,6 +105,12 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.endsWith(testString, searchString)).to.be.false;
     });
 
+    it("endsWith returns false if given string is shorter than substring to search for", () => {
+        const testString = "test";
+        const searchString = "tests";
+        expect(StringUtils.endsWith(testString, searchString)).to.be.false;
+    });
+
 
     it("queryStringToObject correctly deserializes query string into object", () => {
         const serializedObj = "param1=value1&param2=value2&param3=value3";
