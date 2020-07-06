@@ -21,11 +21,11 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * This object allows you to configure important elements of MSAL functionality:
  * - authOptions                - Authentication for application
  * - cryptoInterface            - Implementation of crypto functions
- * - libraryInfo                - Library-specific options
+ * - libraryInfo                - Library metadata
  * - loggerOptions              - Logging for application
  * - networkInterface           - Network implementation
  * - storageInterface           - Storage implementation
- * - systemOptions              - Storage options
+ * - systemOptions              - Additional library options
  */
 export type ClientConfiguration = {
     authOptions: AuthOptions,
