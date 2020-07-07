@@ -39,7 +39,7 @@ export class UrlString {
             url = url.toLowerCase();
         }
 
-        if (url && !url.endsWith("/")) {
+        if (url && !StringUtils.endsWith(url, "/")) {
             url += "/";
         }
 
@@ -84,6 +84,10 @@ export class UrlString {
         regex = new RegExp("(" + name + "=)[^\&]+");
         this._urlString = this.urlString.replace(regex, "");
         return this.urlString;
+    }
+
+    static removeHashFromUrl(url: string): string {
+        return url.split("#")[0];
     }
 
     /**
@@ -167,6 +171,7 @@ export class UrlString {
         const urlString = new UrlString(url);
         const parameters = urlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
         return !!(
+            parameters.code ||
             parameters.error_description ||
             parameters.error ||
             parameters.state

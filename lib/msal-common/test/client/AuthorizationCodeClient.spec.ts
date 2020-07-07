@@ -24,24 +24,22 @@ import {
     TEST_TOKENS,
     TEST_URIS,
     TEST_DATA_CLIENT_INFO,
-    RANDOM_TEST_GUID
+    RANDOM_TEST_GUID,
+    TEST_STATE_VALUES
 } from "../utils/StringConstants";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
-import { B2cAuthority } from "../../src/authority/B2cAuthority";
 
 describe("AuthorizationCodeClient unit tests", () => {
-
     beforeEach(() => {
-        sinon.restore();
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
     });
 
     afterEach(() => {
-        while (B2cAuthority.B2CTrustedHostList.length) {
-            B2cAuthority.B2CTrustedHostList.pop();
-        }
+        const config = null;
+        sinon.restore();
     });
 
     describe("Constructor", () => {
@@ -65,9 +63,9 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authCodeUrlRequest: AuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-				codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
@@ -109,7 +107,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.FORM_POST)}`)
+            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.FORM_POST)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(TEST_CONFIG.STATE)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(TEST_CONFIG.NONCE)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`);
@@ -194,7 +192,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("returns valid server code response", async () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
-            const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${RANDOM_TEST_GUID}`;
+            const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE)}`;
             config.cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
@@ -214,20 +212,47 @@ describe("AuthorizationCodeClient unit tests", () => {
                 }
             };
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
-            const code = client.handleFragmentResponse(testSuccessHash, RANDOM_TEST_GUID);
+            const code = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
+            expect(code).to.be.eq(`thisIsATestCode`);
+        });
+
+        it("returns valid server code response when state is encoded twice", async () => {
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${encodeURIComponent(encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE))}`;
+            config.cryptoInterface.base64Decode = (input: string): string => {
+                switch (input) {
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            };
+            config.cryptoInterface.base64Encode = (input: string): string => {
+                switch (input) {
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    default:
+                        return input;
+                }
+            };
+            const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
+            const code = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
             expect(code).to.be.eq(`thisIsATestCode`);
         });
 
         it("throws server error when error is in hash", async () => {
-            const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${RANDOM_TEST_GUID}`;
+            const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE)}`;
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
             const cacheStorageMock = config.storageInterface as MockStorageClass;
-            expect(() => client.handleFragmentResponse(testErrorHash, RANDOM_TEST_GUID)).to.throw("msal error description");
+            expect(() => client.handleFragmentResponse(testErrorHash, TEST_STATE_VALUES.ENCODED_LIB_STATE)).to.throw("msal error description");
             expect(cacheStorageMock.store).to.be.empty;
 
-            expect(() => client.handleFragmentResponse(testErrorHash, RANDOM_TEST_GUID)).to.throw(ServerError);
+            expect(() => client.handleFragmentResponse(testErrorHash, TEST_STATE_VALUES.ENCODED_LIB_STATE)).to.throw(ServerError);
             expect(cacheStorageMock.store).to.be.empty;
         });
     });
@@ -314,6 +339,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const authenticationResult = await client.acquireToken(authCodeRequest, idTokenClaims.nonce, testState);
 
             expect(authenticationResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
+            expect((Date.now() + (AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).to.be.true;
             expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).to.be.ok;
 
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);

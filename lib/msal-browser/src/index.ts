@@ -6,11 +6,15 @@ export { Configuration } from "./config/Configuration";
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
 export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } from "./error/BrowserConfigurationAuthError";
 
-// AuthCallback type
-export type { AuthCallback } from "./types/AuthCallback";
+// Interfaces
+export { IPublicClientApplication } from "./app/IPublicClientApplication";
+export { PopupRequest } from "./request/PopupRequest";
+export { RedirectRequest } from "./request/RedirectRequest";
 
 // Common Object Formats
 export {
+    // Account
+    AccountInfo,
     // Request
     AuthorizationUrlRequest,
     SilentFlowRequest,
@@ -23,6 +27,7 @@ export {
     AuthErrorMessage,
     INetworkModule,
     // Logger Object
+    ILoggerCallback,
     Logger,
     LogLevel
 } from "@azure/msal-common";

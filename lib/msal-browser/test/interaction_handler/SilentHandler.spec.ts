@@ -195,4 +195,83 @@ describe("SilentHandler.ts Unit Tests", () => {
             expect(authFrame.id).to.be.eq("msalTokenFrame");
         });
     });
+
+    describe("monitorIframeForHash", () => {
+        it("times out", done => {
+            const iframe = {
+                contentWindow: {
+                    // @ts-ignore
+                    location: null // example of scenario that would never otherwise resolve
+                }
+            };
+
+            // @ts-ignore
+            silentHandler.monitorIframeForHash(iframe, 500)
+                .catch(() => {
+                    done();
+                });
+        });
+
+        it("times out when event loop is suspended", function(done) {
+            this.timeout(5000);
+
+            const iframe = {
+                contentWindow: {
+                    location: {
+                        href: "http://localhost",
+                        hash: ""
+                    }
+                }
+            };
+
+            // @ts-ignore
+            silentHandler.monitorIframeForHash(iframe, 2000)
+                .catch(() => {
+                    done();
+                });
+                
+            setTimeout(() => {
+                iframe.contentWindow.location = {
+                    href: "http://localhost/#/code=hello",
+                    hash: "#code=hello"
+                };
+            }, 1600);
+
+            /**
+             * This code mimics the JS event loop being synchonously paused (e.g. tab suspension) midway through polling the iframe.
+             * If the event loop is suspended for longer than the configured timeout,
+             * the polling operation should throw an error for a timeout.
+             */
+            const startPauseDelay = 200;
+            const pauseDuration = 3000;
+            setTimeout(() => {
+                Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pauseDuration);
+            }, startPauseDelay);
+        });
+
+        it("returns hash", done => {
+            const iframe = {
+                contentWindow: {
+                    location: {
+                        href: "http://localhost",
+                        hash: ""
+                    }
+                }
+            };
+
+            // @ts-ignore
+            silentHandler.monitorIframeForHash(iframe, 1000)
+                .then((hash: string) => {
+                    expect(hash).to.equal("#code=hello");
+                    done();
+                });
+
+            setTimeout(() => {
+                iframe.contentWindow.location = {
+                    href: "http://localhost/#code=hello",
+                    hash: "#code=hello"
+                };
+            }, 500);
+        });
+    });
 });
