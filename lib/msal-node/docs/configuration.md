@@ -90,4 +90,4 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `piiLoggingEnabled` | If true, personally identifiable information (PII) is included in logs. | boolean | `false` |
 
 ## Next Steps
-Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](./request.md)
+Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](../../msal-common/docs/request.md)

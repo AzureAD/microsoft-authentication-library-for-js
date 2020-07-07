@@ -62,4 +62,4 @@ const msalConfig = {
 [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/modules/_src_config_configuration_.html#configuration) has more options which are documented [here](./configuration.md).
 
 ## Next Steps
-Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](./request.md)
+Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](../../msal-common/docs/request.md)

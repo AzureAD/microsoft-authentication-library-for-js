@@ -34,7 +34,7 @@ The current alpha version supports the below OAuth grant types:
 
 In the upcoming quarters we plan to add support for:
 
-- Client Credentials flow
+- [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/) (`Coming soon`)
 - Confidential client flow (authorization code flow with client secret)
 
 More details on different grant types supported by Microsoft authentication libraries in general can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows)
@@ -79,19 +79,19 @@ npm install @azure/msal-node
 ##  Usage
 
 ### MSAL basics
-- Initialize a Public Client Application(./docs/initialize-public-client-application.md)
-- [Configuration](./docs/configuration.md)
-- [Request](./docs/request.md)
-- [Response](lib/msal-common/docs/Response.md)
+- Initialize a Public Client Application(https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md)
+- [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md)
+- [Request](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/request.md)
+- [Response](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/response.md)
 
 ## Samples
-There are multiple [samples](samples/msal-node-samples) included in the repository that use MSAL Node to acquire tokens. These samples are currently used for manual testing, and are not meant to be a reference of best practices, therefore use judgement and do not blindly copy this code to any production applications.
+There are multiple [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-node-samples) included in the repository that use MSAL Node to acquire tokens. These samples are currently used for manual testing, and are not meant to be a reference of best practices, therefore use judgement and do not blindly copy this code to any production applications.
 
-- [msal-node-auth-code](samples/msal-node-samples/msal-node-auth-code): Express app using OAuth2.0 authorization code flow.
-- [msal-node-device-code](samples/msal-node-samples/msal-node-device-code): Command line app using OAuth 2.0 device code flow.
-- [msal-node-refresh-token](samples/msal-node-samples/msal-node-refresh-token): Command line app using OAuth 2.0 refresh flow.
-- [msal-node-silent-flow](samples/msal-node-samples/msal-node-silent-flow): Express app using OAuth2.0 authorization code flow and refresh token flow to demonstrate silent retrieval of tokens when already logged in or when the app provides a in-disk cache for Single sign on experience
-- msal-node-extensions (Coming soon): Uses the msal-extensions library to write the MSAL in-memory token cache to a disk.
+- [auth-code](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-node-samples/auth-code): Express app using OAuth2.0 authorization code flow.
+- [device-code](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-node-samples/device-code): Command line app using OAuth 2.0 device code flow.
+- [refresh-token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-node-samples/refresh-token): Command line app using OAuth 2.0 refresh flow.
+- [silent-flow](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-node-samples/silent-flow): Express app using OAuth2.0 authorization code flow and refresh token flow to demonstrate silent retrieval of tokens when already logged in or when the app provides a in-disk cache for Single sign on experience
+- msal-node-extensions (`Coming soon`): Uses the msal-extensions library to write the MSAL in-memory token cache to a disk.
 
 ## Build and Test
 
