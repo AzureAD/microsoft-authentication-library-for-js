@@ -5,7 +5,7 @@
 
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, EnvironmentAliases, APP_META_DATA } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_META_DATA } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -17,6 +17,7 @@ import { AuthError } from "../error/AuthError";
 import { ICacheManager } from "./interface/ICacheManager";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { AccountInfo } from "../account/AccountInfo";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -63,14 +64,14 @@ export abstract class CacheManager implements ICacheManager {
      */
     getAllAccounts(): AccountInfo[] {
         const currentAccounts: AccountCache = this.getAccountsFilteredBy();
-        const accountValues: AccountEntity[] = Object.values(currentAccounts);
+        const accountValues: AccountEntity[] = Object.keys(currentAccounts).map(accountKey => currentAccounts[accountKey]);
         const numAccounts = accountValues.length;
         if (numAccounts < 1) {
             return null;
         } else {
             const allAccounts = accountValues.map<AccountInfo>((value) => {
-                const accountEntity: AccountEntity = new AccountEntity();
-                const accountObj = CacheManager.toObject(accountEntity, value) as AccountEntity;
+                let accountObj: AccountEntity = new AccountEntity();
+                accountObj = CacheManager.toObject(accountObj, value) as AccountEntity;
                 return accountObj.getAccountInfo();
             });
             return allAccounts;
@@ -81,7 +82,7 @@ export abstract class CacheManager implements ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    saveCacheRecord(cacheRecord: CacheRecord, responseScopes?: ScopeSet): void {
+    saveCacheRecord(cacheRecord: CacheRecord): void {
         if (!cacheRecord) {
             throw ClientAuthError.createNullOrUndefinedCacheRecord();
         }
@@ -95,7 +96,7 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (!!cacheRecord.accessToken) {
-            this.saveAccessToken(cacheRecord.accessToken, responseScopes);
+            this.saveAccessToken(cacheRecord.accessToken);
         }
 
         if (!!cacheRecord.refreshToken) {
@@ -133,7 +134,7 @@ export abstract class CacheManager implements ICacheManager {
      * saves access token credential
      * @param credential
      */
-    private saveAccessToken(credential: AccessTokenEntity, responseScopes: ScopeSet): void {
+    private saveAccessToken(credential: AccessTokenEntity): void {
         const currentTokenCache = this.getCredentialsFilteredBy({
             clientId: credential.clientId,
             credentialType: CredentialType.ACCESS_TOKEN,
@@ -141,11 +142,12 @@ export abstract class CacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm
         });
-        const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache.accessTokens) as AccessTokenEntity[];
+        const currentScopes = ScopeSet.fromString(credential.target);
+        const currentAccessTokens: AccessTokenEntity[] = Object.keys(currentTokenCache.accessTokens).map(key => currentTokenCache.accessTokens[key]);
         if (currentAccessTokens) {
             currentAccessTokens.forEach((tokenEntity) => {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
-                if (tokenScopeSet.intersectingScopeSets(responseScopes)) {
+                if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
                     this.removeCredential(tokenEntity);
                 }
             });
@@ -400,15 +402,15 @@ export abstract class CacheManager implements ICacheManager {
      *
      * @param value
      * @param environment
-     * // TODO: Add Cloud specific aliases based on current cloud
      */
     private matchEnvironment(
         entity: AccountEntity | CredentialEntity,
         environment: string
     ): boolean {
+        const cloudMetadata = TrustedAuthority.getCloudDiscoveryMetadata(environment);
         if (
-            EnvironmentAliases.includes(environment) &&
-            EnvironmentAliases.includes(entity.environment)
+            cloudMetadata &&
+            cloudMetadata.aliases.indexOf(entity.environment) > -1
         ) {
             return true;
         }
@@ -476,19 +478,19 @@ export abstract class CacheManager implements ICacheManager {
 }
 
 export class DefaultStorageClass extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
+    setItem(): void {
         const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    getItem(key: string, type?: string): string | object {
+    getItem(): string | object {
         const notImplErr = "Storage interface - getItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    removeItem(key: string, type?: string): boolean {
+    removeItem(): boolean {
         const notImplErr = "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    containsKey(key: string, type?: string): boolean {
+    containsKey(): boolean {
         const notImplErr = "Storage interface - containsKey() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }

@@ -45,7 +45,7 @@ export class RequestUtils {
         ScopeSet.validateInputScope(requestScopes);
 
         // Generate missing login scopes when any login scope is included in request scopes, otherwise set scopes to requestScopes
-        const scopes = ScopeSet.isLoginScopes(requestScopes, clientId) ? ScopeSet.generateLoginScopes(requestScopes, clientId) : requestScopes;
+        const scopes = ScopeSet.isLoginScopes(requestScopes, clientId) ? ScopeSet.generateLoginScopes(requestScopes) : requestScopes;
 
         // validate prompt parameter
         this.validatePromptParameter(request.prompt);
@@ -85,7 +85,7 @@ export class RequestUtils {
         const scopes = ScopeSet.appendScopes(requestScopes, extraScopesToConsent);
 
         // Append openid and profile to scopes by default for login calls
-        const loginScopes = ScopeSet.generateLoginScopes(scopes, clientId);
+        const loginScopes = ScopeSet.generateLoginScopes(scopes);
 
         // validate request
         const userRequest: AuthenticationParameters = RequestUtils.validateRequest({...request, scopes: loginScopes}, clientId, interactionType);

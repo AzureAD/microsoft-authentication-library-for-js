@@ -30,7 +30,7 @@ class TestClient extends BaseClient {
     }
 
     getDefaultAuthorityInstance(){
-        return this.defaultAuthority;
+        return this.authority;
     }
 
     createDefaultLibraryHeaders(): Map<string, string> {
@@ -43,8 +43,11 @@ class TestClient extends BaseClient {
 }
 
 describe("BaseClient.ts Class Unit Tests", () => {
-
     beforeEach(() => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+    });
+
+    afterEach(() => {
         sinon.restore();
     });
 

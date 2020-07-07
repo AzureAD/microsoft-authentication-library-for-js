@@ -35,6 +35,16 @@ export class BrowserUtils {
     }
 
     /**
+     * Replaces current hash with hash from provided url
+     */
+    static replaceHash(url: string): void {
+        const urlParts = url.split("#");
+        urlParts.shift(); // Remove part before the hash
+        
+        window.location.hash = urlParts.length > 0 ? urlParts.join("#") : "";
+    }
+
+    /**
      * Returns boolean of whether the current window is in an iframe or not.
      */
     static isInIframe(): boolean {

@@ -19,10 +19,13 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
  *
  * This object allows you to configure important elements of MSAL functionality:
- * - logger: logging for application
- * - storage: this is where you configure storage implementation.
- * - network: this is where you can configure network implementation.
- * - crypto: implementation of crypto functions
+ * - authOptions                - Authentication for application
+ * - cryptoInterface            - Implementation of crypto functions
+ * - libraryInfo                - Library metadata
+ * - loggerOptions              - Logging for application
+ * - networkInterface           - Network implementation
+ * - storageInterface           - Storage implementation
+ * - systemOptions              - Additional library options
  */
 export type ClientConfiguration = {
     authOptions: AuthOptions,
@@ -35,24 +38,25 @@ export type ClientConfiguration = {
 };
 
 /**
- * @type AuthOptions: Use this to configure the auth options in the Configuration object
+ * Use this to configure the auth options in the Configuration object
  *
- *  - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
- *  - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
+ * - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
+ * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
+ * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
+ * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
  */
 export type AuthOptions = {
     clientId: string;
     authority?: Authority;
     knownAuthorities?: Array<string>;
-    redirectUri?: string | (() => string);
-    postLogoutRedirectUri?: string | (() => string);
+    cloudDiscoveryMetadata?: string;
 };
 
 /**
- * Telemetry Config Options
+ * Use this to configure the telemetry options in the Configuration object
+ *
  * - applicationName              - Name of the consuming apps application
  * - applicationVersion           - Version of the consuming application
- * - telemetryEmitter             - Function where telemetry events are flushed to
  */
 export type TelemetryOptions = {
     applicationName: string;
@@ -61,9 +65,9 @@ export type TelemetryOptions = {
 };
 
 /**
- * Library Specific Options
+ * Use this to configure token renewal and telemetry info in the Configuration object
  *
- * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
+ * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
  * - telemetry                    - Telemetry options for library network requests
  */
 export type SystemOptions = {
@@ -72,7 +76,11 @@ export type SystemOptions = {
 };
 
 /**
- * Logger options to configure the logging that MSAL does.
+ *  Use this to configure the logging that MSAL does, by configuring logger options in the Configuration object
+ * 
+ * - loggerCallback                - Callback for logger
+ * - piiLoggingEnabled             - Sets whether pii logging is enabled
+ * - logLevel                      - Sets the level at which logging happens
  */
 export type LoggerOptions = {
     loggerCallback?: ILoggerCallback,
@@ -81,7 +89,7 @@ export type LoggerOptions = {
 };
 
 /**
- * Telemetry info about library
+ * Library-specific options
  */
 export type LibraryInfo = {
     sku: string,
@@ -94,8 +102,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
-    redirectUri: "",
-    postLogoutRedirectUri: ""
+    cloudDiscoveryMetadata: ""
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {

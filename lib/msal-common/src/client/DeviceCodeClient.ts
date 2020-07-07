@@ -49,7 +49,7 @@ export class DeviceCodeClient extends BaseClient {
         const queryString = this.createQueryString(request);
         const headers = this.createDefaultLibraryHeaders();
 
-        return this.executePostRequestToDeviceCodeEndpoint(this.defaultAuthority.deviceCodeEndpoint, queryString, headers);
+        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers);
     }
 
     /**
@@ -138,7 +138,7 @@ export class DeviceCodeClient extends BaseClient {
 
                     } else {
                         const response = await this.executePostToTokenEndpoint(
-                            this.defaultAuthority.tokenEndpoint,
+                            this.authority.tokenEndpoint,
                             requestBody,
                             headers);
 
@@ -172,6 +172,8 @@ export class DeviceCodeClient extends BaseClient {
         requestParameters.addClientId(this.config.authOptions.clientId);
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
         requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        requestParameters.addCorrelationId(correlationId);
         return requestParameters.createQueryString();
     }
 }

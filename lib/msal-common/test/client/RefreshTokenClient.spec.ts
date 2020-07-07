@@ -6,6 +6,7 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
+    TEST_URIS,
 } from "../utils/StringConstants";
 import {BaseClient} from "../../src/client/BaseClient";
 import {AADServerParamKeys, GrantType, Constants} from "../../src/utils/Constants";
@@ -18,6 +19,9 @@ import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { AccountInfo, AuthenticationResult } from "../../src";
 
 describe("RefreshTokenClient unit tests", () => {
+    beforeEach(() => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+    });
 
     afterEach(() => {
         sinon.restore();
@@ -58,7 +62,8 @@ describe("RefreshTokenClient unit tests", () => {
         const client = new RefreshTokenClient(config);
         const refreshTokenRequest: RefreshTokenRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            refreshToken: TEST_TOKENS.REFRESH_TOKEN
+            refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+            redirectUri: TEST_URIS.TEST_REDIR_URI
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
@@ -76,7 +81,7 @@ describe("RefreshTokenClient unit tests", () => {
         expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT.body.id_token);
         expect(authResult.idTokenClaims).to.deep.eq(idTokenClaims);
         expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
-        expect(authResult.state).to.be.undefined;
+        expect(authResult.state).to.be.empty;
 
         expect(createTokenRequestBodySpy.calledWith(refreshTokenRequest)).to.be.true;
 

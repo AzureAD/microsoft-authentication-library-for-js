@@ -1,5 +1,4 @@
 // App Auth Modules and Configuration
-export { SPAClient } from "./client/SPAClient";
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
@@ -12,7 +11,8 @@ export { IdToken } from "./account/IdToken";
 export { IdTokenClaims } from "./account/IdTokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
-export { B2cAuthority } from "./authority/B2cAuthority";
+export { CloudDiscoveryMetadata } from "./authority/CloudDiscoveryMetadata";
+export { TrustedAuthority } from "./authority/TrustedAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 // Cache
@@ -38,6 +38,7 @@ export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
+export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
@@ -52,3 +53,4 @@ export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaT
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils } from "./utils/ProtocolUtils";
+export { TimeUtils } from "./utils/TimeUtils";
