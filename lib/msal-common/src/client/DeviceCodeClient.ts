@@ -63,11 +63,11 @@ export class DeviceCodeClient extends BaseClient {
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
 
-        const thumbprint = new RequestThumbprint(
-            this.config.authOptions.clientId,
-            request.authority,
-            request.scopes
-        );
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: request.authority,
+            scopes: request.scopes
+        };
 
         const queryString = this.createQueryString(request);
         const headers = this.createDefaultLibraryHeaders();
@@ -96,7 +96,7 @@ export class DeviceCodeClient extends BaseClient {
                 interval,
                 message
             }
-        } = await this.throttlingManager.sendPostRequest<ServerDeviceCodeResponse>(
+        } = await this.networkManager.sendPostRequest<ServerDeviceCodeResponse>(
             thumbprint,
             deviceCodeEndpoint,
             {
@@ -166,11 +166,11 @@ export class DeviceCodeClient extends BaseClient {
                         reject(ClientAuthError.createDeviceCodeExpiredError());
 
                     } else {
-                        const thumbprint = new RequestThumbprint(
-                            this.config.authOptions.clientId,
-                            request.authority,
-                            request.scopes
-                        );
+                        const thumbprint: RequestThumbprint = {
+                            clientId: this.config.authOptions.clientId,
+                            authority: request.authority,
+                            scopes: request.scopes
+                        };
                         const response = await this.executePostToTokenEndpoint(
                             this.authority.tokenEndpoint,
                             requestBody,

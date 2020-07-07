@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NetworkResponse } from "./ThrottlingManager";
+import { NetworkResponse } from "./NetworkManager";
 
 /**
  * Options allowed by network request APIs.
