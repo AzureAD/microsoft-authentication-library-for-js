@@ -86,4 +86,10 @@ export class StringUtils {
             return !StringUtils.isEmpty(entry);
         });
     }
+
+    static jsonParseHelper(json: string) {
+        try {
+            return JSON.parse(json);
+        } catch (e) { }
+    }
 }

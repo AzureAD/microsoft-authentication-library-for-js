@@ -18,6 +18,8 @@ import { NetworkManager } from '../network/NetworkManager';
 import { NetworkResponse } from "../network/ThrottlingManager";
 import { RequestThumbprint } from "../network/RequestThumbprint"
 import { RequestThumbprintValue } from "../network/RequestThumbprintValue";
+import { NetworkResponse } from "../network/NetworkManager";
+import { RequestThumbprint} from "../network/ThrottlingUtils";
 
 
 /**
@@ -50,12 +52,12 @@ export class RefreshTokenClient extends BaseClient {
 
     private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-            
-        const thumbprint = new RequestThumbprint(
-            this.config.authOptions.clientId,
-            request.authority,
-            request.scopes
-        );
+
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: authority.canonicalAuthority,
+            scopes: request.scopes
+        };
 
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
