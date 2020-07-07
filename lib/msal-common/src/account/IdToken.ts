@@ -43,7 +43,7 @@ export class IdToken {
             const base64Decoded = crypto.base64Decode(base64IdTokenPayload);
             return JSON.parse(base64Decoded) as IdTokenClaims;
         } catch (err) {
-            throw ClientAuthError.createIdTokenParsingError(JSON.stringify(err));
+            throw ClientAuthError.createIdTokenParsingError(err);
         }
     }
 }

@@ -26,4 +26,11 @@ export class TimeUtils {
     static now(): number {
         return Math.round(new Date().getTime() / 1000.0);
     }
+
+    /**
+     * Returns the amount of time in milliseconds since the page loaded.
+     */
+    static relativeNowMs(): number {
+        return window.performance.now();
+    }
 }

@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ClientConfiguration,
-    buildClientConfiguration,
-} from "../config/ClientConfiguration";
-import { ICacheStorage } from "../cache/ICacheStorage";
+import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
@@ -15,12 +11,8 @@ import { Logger } from "../logger/Logger";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { B2cAuthority } from "../authority/B2cAuthority";
-import { UnifiedCacheManager } from "../unifiedCache/UnifiedCacheManager";
-import { AccountEntity } from "../unifiedCache/entities/AccountEntity";
-import { IAccount } from "../account/IAccount";
-import { AccountCache } from "../unifiedCache/utils/CacheTypes";
-import { CacheHelper } from "../unifiedCache/utils/CacheHelper";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
+import { CacheManager } from "../cache/CacheManager";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -36,19 +28,13 @@ export abstract class BaseClient {
     protected cryptoUtils: ICrypto;
 
     // Storage Interface
-    protected cacheStorage: ICacheStorage;
+    protected cacheManager: CacheManager;
 
     // Network Interface
     protected networkClient: INetworkModule;
 
-    // Helper API object for serialized cache operations
-    protected unifiedCacheManager: UnifiedCacheManager;
-
-    // Account object
-    protected account: AccountEntity;
-
     // Default authority object
-    protected defaultAuthority: Authority;
+    protected authority: Authority;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
@@ -61,22 +47,14 @@ export abstract class BaseClient {
         this.cryptoUtils = this.config.cryptoInterface;
 
         // Initialize storage interface
-        this.cacheStorage = this.config.storageInterface;
-
-        // Initialize serialized cache manager
-        this.unifiedCacheManager = new UnifiedCacheManager(
-            this.cacheStorage,
-            this.config.systemOptions.storeInMemory
-        );
+        this.cacheManager = this.config.storageInterface;
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
-        B2cAuthority.setKnownAuthorities(
-            this.config.authOptions.knownAuthorities
-        );
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
 
-        this.defaultAuthority = this.config.authOptions.authority;
+        this.authority = this.config.authOptions.authority;
     }
 
     /**
@@ -117,23 +95,5 @@ export abstract class BaseClient {
             body: queryString,
             headers: headers,
         });
-    }
-
-    /**
-     * Get all currently signed in accounts.
-     */
-    public getAllAccounts(): IAccount[] {
-        const currentAccounts: AccountCache = this.unifiedCacheManager.getAllAccounts();
-        const accountValues: AccountEntity[] = Object.values(currentAccounts);
-        const numAccounts = accountValues.length;
-        if (numAccounts < 1) {
-            return null;
-        } else {
-            const allAccounts = accountValues.map<IAccount>((value) => {
-                const accountObj: AccountEntity = JSON.parse(JSON.stringify(value));
-                return CacheHelper.toIAccount(accountObj);
-            });
-            return allAccounts;
-        }
     }
 }

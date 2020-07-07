@@ -42,9 +42,14 @@ describe("TrustedAuthority.ts Class", function () {
     describe("setTrustedAuthoritiesFromNetwork", () => {
         it("Sets TrustedHostList with Authorities known to Microsoft via Instance Discovery Network Call", async () => {
             const countBefore = TrustedAuthority.getTrustedHostList().length;
-            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(stubbedTelemetryManager);
+            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(TEST_CONFIG.validAuthority + "/", stubbedTelemetryManager);
             const countAfter = TrustedAuthority.getTrustedHostList().length;
             expect(countBefore).to.be.lessThan(countAfter);
+        });
+
+        it("Sets TrustedHostList with Custom Domain known to Microsoft via Instance Discovery Network Call", async () => {
+            await TrustedAuthority.setTrustedAuthoritiesFromNetwork("https://login.windows-ppe.net/common/", stubbedTelemetryManager);
+            expect(TrustedAuthority.IsInTrustedHostList("login.windows-ppe.net")).to.be.true;
         });
     });
 });

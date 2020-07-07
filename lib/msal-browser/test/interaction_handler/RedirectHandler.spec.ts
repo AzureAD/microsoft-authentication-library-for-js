@@ -4,7 +4,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, TokenResponse, IAccount, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -14,18 +14,6 @@ import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 
-const clearFunc = (): void => {
-    return;
-};
-
-const removeFunc = (key: string): boolean => {
-    return;
-};
-
-const setFunc = (key: string, value: string): void => {
-    return;
-};
-
 const testPkceCodes = {
     challenge: "TestChallenge",
     verifier: "TestVerifier"
@@ -34,8 +22,6 @@ const testPkceCodes = {
 const testNetworkResult = {
     testParam: "testValue"
 };
-
-const testKeySet = ["testKey1", "testKey2"];
 
 const networkInterface = {
 	sendGetRequestAsync<T>(
@@ -63,8 +49,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
             }
         };
 		const configObj = buildConfiguration(appConfig);
-		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        const authCodeModule = new SPAClient({
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
+        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        const authCodeModule = new AuthorizationCodeClient({
             authOptions: {
 				...configObj.auth,
 				authority: authorityInstance,
@@ -88,26 +75,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     return testPkceCodes;
                 },
             },
-            storageInterface: {
-                getCache: (): object => {
-                    return {};
-                },
-                setCache: (): void => {
-                    // dummy impl;
-                },
-                clear: clearFunc,
-                containsKey: (key: string): boolean => {
-                    return true;
-                },
-                getItem: (key: string): string => {
-                    return "cacheItem";
-                },
-                getKeys: (): string[] => {
-                    return testKeySet;
-                },
-                removeItem: removeFunc,
-                setItem: setFunc,
-            },
+            storageInterface: browserStorage,
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -135,7 +103,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true,
             },
         });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        
         redirectHandler = new RedirectHandler(authCodeModule, browserStorage);
     });
 
@@ -180,8 +148,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
 			};
 			const browserCrypto = new CryptoOps();
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, browserCrypto)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, browserCrypto)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", browserCrypto)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", browserCrypto)).to.throw(BrowserAuthError);
         });
 
         it("navigates browser window to given window location", () => {
@@ -196,10 +164,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl) => {
                 expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             });
-            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, new CryptoOps());
+            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", new CryptoOps());
             expect(window).to.be.eq(windowObj);
-            expect(browserStorage.getItem(TemporaryCacheKeys.ORIGIN_URI)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-            expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
 
@@ -227,7 +194,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 "nonce": "123523"
             };
 
-            const testAccount: IAccount = {
+            const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: idTokenClaims.tid,
@@ -236,6 +203,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             const testTokenResponse: AuthenticationResult = {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
+                fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
@@ -249,16 +217,16 @@ describe("RedirectHandler.ts Unit Tests", () => {
 				scopes: ["scope1", "scope2"],
 				code: ""
 			};
-			browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
-            browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-            browserStorage.setItem(TemporaryCacheKeys.URL_HASH, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-            sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
+			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)), CacheSchemaType.TEMPORARY);
+            browserStorage.setItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
+            browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), TEST_HASHES.TEST_SUCCESS_CODE_HASH, CacheSchemaType.TEMPORARY);
+            sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
             const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, browserCrypto);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
-            expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.null;
-            expect(browserStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.null;
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY)).to.be.null;
         });
     });
 });

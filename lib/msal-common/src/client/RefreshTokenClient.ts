@@ -24,19 +24,19 @@ export class RefreshTokenClient extends BaseClient {
     }
 
     public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
-        const response = await this.executeTokenRequest(request, this.defaultAuthority);
+        const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
-            this.unifiedCacheManager,
+            this.cacheManager,
             this.cryptoUtils,
             this.logger
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = await responseHandler.generateAuthenticationResult(
+        const tokenResponse = responseHandler.handleServerTokenResponse(
             response.body,
-            this.defaultAuthority
+            this.authority
         );
 
         return tokenResponse;
@@ -54,12 +54,18 @@ export class RefreshTokenClient extends BaseClient {
     private createTokenRequestBody(request: RefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
-        const scopeSet = new ScopeSet(request.scopes || [],
-            this.config.authOptions.clientId,
-            false);
-        parameterBuilder.addScopes(scopeSet);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
+
+        const scopeSet = new ScopeSet(request.scopes || []);
+        parameterBuilder.addScopes(scopeSet);
+        
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
+
+        parameterBuilder.addClientInfo();
+
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        parameterBuilder.addCorrelationId(correlationId);
+
         parameterBuilder.addRefreshToken(request.refreshToken);
 
         return parameterBuilder.createQueryString();

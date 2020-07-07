@@ -52,6 +52,10 @@ export const ClientConfigurationErrorMessage = {
         code: "token_request_empty",
         desc: "Token request was empty and not found in cache."
     },
+    logoutRequestEmptyError: {
+        code: "logout_request_empty",
+        desc: "The logout request was null or undefined."
+    },
     invalidCodeChallengeMethod: {
         code: "invalid_code_challenge_method",
         desc: "code_challenge_method passed is invalid. Valid values are \"plain\" and \"S256\"."
@@ -60,13 +64,17 @@ export const ClientConfigurationErrorMessage = {
         code: "pkce_params_missing",
         desc: "Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request"
     },
-    b2cKnownAuthoritiesNotSet: {
-        code: "b2c_known_authorities_not_set",
-        desc: "Must set known authorities when validateAuthority is set to True and using B2C"
+    knownAuthoritiesAndCloudDiscoveryMetadata: {
+        code: "invalid_known_authorities",
+        desc: "knownAuthorities and cloudDiscoveryMetadata cannot both be provided. Please provide cloudDiscoveryMetadata object for AAD, knownAuthorities otherwise."
+    },
+    invalidCloudDiscoveryMetadata: {
+        code: "invalid_cloud_discovery_metadata",
+        desc: "Invalid cloudDiscoveryMetadata provided. Must be a JSON object containing tenant_discovery_endpoint and metadata fields"
     },
     untrustedAuthority: {
         code: "untrusted_authority",
-        desc: "The provided authority is not a trusted authority. If using B2C, please include this authority in the knownAuthorities config parameter."
+        desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
     }
 };
 
@@ -171,6 +179,16 @@ export class ClientConfigurationError extends ClientAuthError {
     /**
      * Throws error when token request is empty and nothing cached in storage.
      */
+    static createEmptyLogoutRequestError(): ClientConfigurationError {
+        return new ClientConfigurationError(
+            ClientConfigurationErrorMessage.logoutRequestEmptyError.code,
+            ClientConfigurationErrorMessage.logoutRequestEmptyError.desc
+        );
+    }
+
+    /**
+     * Throws error when token request is empty and nothing cached in storage.
+     */
     static createEmptyTokenRequestError(): ClientConfigurationError {
         return new ClientConfigurationError(
             ClientConfigurationErrorMessage.tokenRequestEmptyError.code,
@@ -199,11 +217,19 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
-     * Throws an error when the user passes B2C authority and does not set knownAuthorities
+     * Throws an error when the user passes both knownAuthorities and cloudDiscoveryMetadata
      */
-    static createKnownAuthoritiesNotSetError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.code,
-            ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
+    static createKnownAuthoritiesCloudDiscoveryMetadataError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.knownAuthoritiesAndCloudDiscoveryMetadata.code,
+            ClientConfigurationErrorMessage.knownAuthoritiesAndCloudDiscoveryMetadata.desc);
+    }
+
+    /**
+     * Throws an error when the user passes invalid cloudDiscoveryMetadata
+     */
+    static createInvalidCloudDiscoveryMetadataError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCloudDiscoveryMetadata.code,
+            ClientConfigurationErrorMessage.invalidCloudDiscoveryMetadata.desc);
     }
 
     /**
