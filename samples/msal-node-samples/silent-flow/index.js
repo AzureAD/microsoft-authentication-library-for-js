@@ -57,7 +57,7 @@ const scopes = ["user.read"];
 
 const authCodeUrlParameters = {
     scopes: scopes,
-    redirectUri: ["http://localhost:3000/redirect"],
+    redirectUri: "http://localhost:3000/redirect",
 };
 
 const pca = new msal.PublicClientApplication(publicClientConfig);
