@@ -1,7 +1,7 @@
 # (Preview) Microsoft Authentication Library for JavaScript (MSAL.js) Common Package
 [![npm version](https://img.shields.io/npm/v/@azure/msal-common.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-common/)[![npm version](https://img.shields.io/npm/dm/@azure/msal-common.svg)](https://nodei.co/npm/@azure/msal-common/)[![Coverage Status](https://coveralls.io/repos/github/AzureAD/microsoft-authentication-library-for-js/badge.svg?branch=dev)](https://coveralls.io/github/AzureAD/microsoft-authentication-library-for-js?branch=dev)
 
-| <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-core/" target="_blank">Library Reference</a> |
+| <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/" target="_blank">Library Reference</a> |
 | --- | --- | --- |
 
 1. [About](#about)
@@ -29,7 +29,8 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 
 | Date | Release | Announcement | Main features |
 | ------| ------- | ---------| --------- |
-|  | @azure/msal-common v2.0.0-beta | Beta version of the `@azure/msal-common` package |
+| July 13, 2020 (Tentative) | @azure/msal-common v2.0.0 | Full release version of the `@azure/msal-common` |
+| May 11, 2020 | @azure/msal-common v2.0.0-beta | Beta version of the `@azure/msal-common` package |
 | January 17, 2020 | @azure/msal-common v1.0.0-alpha | No release notes yet | Alpha version of the `@azure/msal-common` package with authorization code flow for SPAs working in dev. |
 
 ## Prerequisites and Usage
