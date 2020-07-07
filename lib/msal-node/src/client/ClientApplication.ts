@@ -136,8 +136,8 @@ export abstract class ClientApplication {
         return silentFlowClient.acquireToken(this.initializeRequestScopes(request) as SilentFlowRequest);
     }
 
-    getCacheManager(): TokenCache {
-        this.logger.info("getCacheManager called");
+    getTokenCache(): TokenCache {
+        this.logger.info("getTokenCache called");
         return this.tokenCache;
     }
 
