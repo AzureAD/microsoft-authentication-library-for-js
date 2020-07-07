@@ -133,7 +133,7 @@ app.get('/graphCall', (req, res) => {
                 templateParams = { 
                     ...templateParams, 
                     username,
-                    profile: graph.buildGraphProfile(response)
+                    profile: JSON.stringify(response, null, 4)
                 };
                 res.render("graph", templateParams)
                 return msalCacheManager.writeToPersistence();

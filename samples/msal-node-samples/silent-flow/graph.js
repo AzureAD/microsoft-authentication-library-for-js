@@ -13,15 +13,5 @@ module.exports = {
         axios.default.get(endpoint, options)
             .then(response => callback(response.data, endpoint))
             .catch(error => console.log(error));
-        },
-
-    buildGraphProfile: function(graphResponse) {
-        return {
-            name: graphResponse.displayName,
-            title: graphResponse.jobTitle,
-            mail: graphResponse.mail,
-            phone: graphResponse.businessPhones[0],
-            location: graphResponse.officeLocation
-        }
     }
 };
