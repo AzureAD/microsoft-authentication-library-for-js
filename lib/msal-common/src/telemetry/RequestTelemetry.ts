@@ -14,7 +14,7 @@ export class RequestTelemetry {
         const forceRefreshInt = forceRefresh ? 1 : 0;
         const request = `${apiId}${MSER_TELEM_CONSTANTS.VALUE_SEPARATOR}${forceRefreshInt}`
         const platformFields = ""; // TODO: Determine what we want to include
-        
+
         return [MSER_TELEM_CONSTANTS.SCHEMA_VERSION, request, platformFields].join(MSER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
     }
 
@@ -23,8 +23,8 @@ export class RequestTelemetry {
         let failures: RequestFailures = cacheStorage.getItem(MSER_TELEM_CONSTANTS.FAILURES) as RequestFailures;
 
         const cacheHits = this.getCacheHits(cacheStorage);
-        const failedRequests = failures.requests.join(MSER_TELEM_CONSTANTS.VALUE_SEPARATOR);
-        const errors = failures.errors.join(MSER_TELEM_CONSTANTS.VALUE_SEPARATOR);
+        const failedRequests = failures && failures.requests ? failures.requests.join(MSER_TELEM_CONSTANTS.VALUE_SEPARATOR): "";
+        const errors = failures && failures.errors ? failures.errors.join(MSER_TELEM_CONSTANTS.VALUE_SEPARATOR): "";
         const platformFields = ""; // TODO: Determine what we want to include
 
         return [MSER_TELEM_CONSTANTS.SCHEMA_VERSION, cacheHits, failedRequests, errors, platformFields].join(MSER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
