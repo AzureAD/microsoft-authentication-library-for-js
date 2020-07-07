@@ -61,7 +61,7 @@ const authCodeUrlParameters = {
 };
 
 const pca = new msal.PublicClientApplication(publicClientConfig);
-const msalCacheManager = pca.getCacheManager();
+const msalTokenCache = pca.getTokenCache();
 let accounts;
 
 /**
@@ -73,7 +73,7 @@ const app = express();
 app.engine('.hbs', exphbs({extname: '.hbs'}));
 app.set('view engine', '.hbs');
 
-/** 
+/**
  * App Routes
  */
 app.get('/', (req, res) => {
@@ -102,7 +102,7 @@ app.get('/redirect', (req, res) => {
         console.log("\nResponse: \n:", response);
         const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
         res.render("graph", templateParams);
-        return msalCacheManager.writeToPersistence();
+        return msalTokenCache.writeToPersistence();
     }).catch((error) => {
         console.log(error);
         res.status(500).send(error);
@@ -112,7 +112,7 @@ app.get('/redirect', (req, res) => {
 // Initiates Acquire Token Silent flow
 app.get('/graphCall', (req, res) => {
     // get Accounts
-    accounts = msalCacheManager.getAllAccounts();
+    accounts = msalTokenCache.getAllAccounts();
     console.log("Accounts: ", accounts);
 
     // Build silent request
@@ -130,13 +130,13 @@ app.get('/graphCall', (req, res) => {
             // Call graph after successfully acquiring token
             graph.callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, (response, endpoint) => {
                 // Successful silent request
-                templateParams = { 
-                    ...templateParams, 
+                templateParams = {
+                    ...templateParams,
                     username,
                     profile: JSON.stringify(response, null, 4)
                 };
-                res.render("graph", templateParams)
-                return msalCacheManager.writeToPersistence();
+                res.render("graph", templateParams);
+                return msalTokenCache.writeToPersistence();
             });
         })
         .catch((error) => {
@@ -146,7 +146,7 @@ app.get('/graphCall', (req, res) => {
         });
 });
 
-msalCacheManager.readFromPersistence().then(() => {
+msalTokenCache.readFromPersistence().then(() => {
     app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
 });
 
