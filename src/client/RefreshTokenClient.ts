@@ -13,12 +13,12 @@ import { ScopeSet } from "../request/ScopeSet";
 import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-<<<<<<< HEAD
 import { StringUtils } from "../utils/StringUtils";
-=======
 import { NetworkManager } from '../network/NetworkManager';
-import { RequestThumbprint } from '../cache/entities/RequestThumbprintEntity';
->>>>>>> 74b7d0a4... Add postProcess logic + helpers
+import { NetworkResponse } from "../network/ThrottlingManager";
+import { RequestThumbprint } from "../network/RequestThumbprint"
+import { RequestThumbprintValue } from "../network/RequestThumbprintValue";
+
 
 /**
  * OAuth2.0 refresh token client
@@ -50,22 +50,17 @@ export class RefreshTokenClient extends BaseClient {
 
     private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+            
+        const thumbprint = new RequestThumbprint(
+            this.config.authOptions.clientId,
+            request.authority,
+            request.scopes
+        );
 
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
-        const thumbprint = new RequestThumbprint(/* TODO: fill out */);
-        const queryParams = {
-            body: this.createTokenRequestBody(request),
-            headers: this.createDefaultTokenRequestHeaders()
-        };
-        
-        return this.networkManager.sendPostRequest(
-            thumbprint, 
-            authority.tokenEndpoint, 
-            queryParams,
-            false
-        );
+        return this.networkManager.sendPostRequest(authority.tokenEndpoint, requestBody, headers, thumbprint);
     }
 
     private createTokenRequestBody(request: RefreshTokenRequest): string {

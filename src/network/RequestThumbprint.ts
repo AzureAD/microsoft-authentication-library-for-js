@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { Constants } from "../utils/Constants";
+
 export class RequestThumbprint {
     clientId: string;
     authority: string;
@@ -11,9 +18,7 @@ export class RequestThumbprint {
         this.homeAccountIdentifier = homeAccountIdentifier;
     }
 
-    // base64Encode function
-
-    // base64Decode function
-
-    // generateCacheKey
+    public generateStorageKey(): string {
+        return `${Constants.THROTTLE_PREFIX}.${JSON.stringify(this)}`
+    }
 }

@@ -7,6 +7,8 @@ export const Constants = {
     SKU: "msal.js.common",
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
+    // Prefix for storing throttling entries
+    THROTTLE_PREFIX: "throttle",
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
