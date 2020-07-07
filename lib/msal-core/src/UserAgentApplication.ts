@@ -540,8 +540,8 @@ export class UserAgentApplication {
                 this.logger.verbose("Cached metadata found for authority");
             }
 
-            // On Fulfillment
-            const responseType: string = this.getTokenType(account, request.scopes);
+            // For login calls, automatically set response type to "id_token", otherwise response_type depends on scopes
+            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes);
             const loginStartPage = request.redirectStartPage || window.location.href;
             
             serverAuthenticationRequest = new ServerRequestParameters(
@@ -2230,7 +2230,8 @@ export class UserAgentApplication {
     /**
      * @ignore
      *
-     * Utils function to create the Authentication
+     * Utils function that returns the correct value for the response_type parameter based on the account and scopes passed in.
+     * This method is only used in acquireToken calls as login calls are automatically set to response_type id_token.
      * @param {@link account} account object
      * @param scopes
      *
