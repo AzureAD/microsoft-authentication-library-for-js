@@ -3,58 +3,53 @@
  * Licensed under the MIT License.
  */
 import { Authority } from "./Authority";
-import { AadAuthority } from "./AadAuthority";
-import { B2cAuthority } from "./B2cAuthority";
-import { AuthorityType } from "./AuthorityType";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ClientAuthError } from "./../error/ClientAuthError";
 import { INetworkModule } from "./../network/INetworkModule";
 import { StringUtils } from "./../utils/StringUtils";
-import { UrlString } from "./../url/UrlString";
-import { Constants } from "../utils/Constants";
-import { AdfsAuthority } from "./AdfsAuthority";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 export class AuthorityFactory {
 
     /**
-     * Parse the url and determine the type of authority
+     * Create an authority object of the correct type based on the url
+     * Performs basic authority validation - checks to see if the authority is of a valid type (i.e. aad, b2c, adfs)
+     * 
+     * Also performs endpoint discovery.
+     * 
+     * @param authorityUri
+     * @param networkClient
      */
-    private static detectAuthorityFromUrl(authorityString: string): AuthorityType {
-        const authorityUrl = new UrlString(authorityString);
-        const components = authorityUrl.getUrlComponents();
-        const pathSegments = components.PathSegments;
+    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule): Promise<Authority> {
+        // Initialize authority and perform discovery endpoint check.
+        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient);
 
-        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS)
-            return AuthorityType.Adfs;
-        else if (B2cAuthority.B2CTrustedHostList.length)
-            return AuthorityType.B2C;
+        if (acquireTokenAuthority.discoveryComplete()) {
+            return acquireTokenAuthority;
+        }
 
-        // defaults to Aad
-        return AuthorityType.Aad;
+        try {
+            await acquireTokenAuthority.resolveEndpointsAsync();
+            return acquireTokenAuthority;
+        } catch (e) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+        }
     }
 
     /**
      * Create an authority object of the correct type based on the url
-     * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
+     * Performs basic authority validation - checks to see if the authority is of a valid type (i.e. aad, b2c, adfs)
+     * 
+     * Does not perform endpoint discovery.
+     * 
+     * @param authorityUrl 
+     * @param networkInterface 
      */
-    public static createInstance(authorityUrl: string, networkInterface: INetworkModule): Authority {
+    static createInstance(authorityUrl: string, networkInterface: INetworkModule): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        const type = AuthorityFactory.detectAuthorityFromUrl(authorityUrl);
-
-        // Depending on above detection, create the right type.
-        switch (type) {
-            case AuthorityType.Aad:
-                return new AadAuthority(authorityUrl, networkInterface);
-            case AuthorityType.B2C:
-                return new B2cAuthority(authorityUrl, networkInterface);
-            case AuthorityType.Adfs:
-                return new AdfsAuthority(authorityUrl, networkInterface);
-            default:
-                throw ClientAuthError.createInvalidAuthorityTypeError(`${authorityUrl}`);
-        }
+        return new Authority(authorityUrl, networkInterface);
     }
 }
