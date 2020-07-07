@@ -33,6 +33,15 @@ const publicClientConfig = {
     cache: {
         cachePlugin
     },
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message, containsPii) {
+                console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: msal.LogLevel.Verbose,
+        }
+    }
 };
 const pca = new msal.PublicClientApplication(publicClientConfig);
 const msalCacheManager = pca.getCacheManager();

@@ -23,7 +23,8 @@ export class ScopeSet {;
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);
 
-        this.scopes = new Set<string>(filteredInput);
+        this.scopes = new Set<string>(); // Iterator in constructor not supported by IE11
+        filteredInput.forEach(scope => this.scopes.add(scope));
     }
 
     /**
@@ -111,7 +112,10 @@ export class ScopeSet {;
         if (!otherScopes) {
             throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
         }
-        return new Set<string>([...otherScopes.asArray(), ...Array.from(this.scopes)]);
+        const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
+        otherScopes.scopes.forEach(scope => unionScopes.add(scope));
+        this.scopes.forEach(scope => unionScopes.add(scope));
+        return unionScopes;
     }
 
     /**
@@ -143,7 +147,9 @@ export class ScopeSet {;
      * Returns the scopes as an array of string values
      */
     asArray(): Array<string> {
-        return Array.from(this.scopes);
+        const array: Array<string> = [];
+        this.scopes.forEach(val => array.push(val));
+        return array;
     }
 
     /**

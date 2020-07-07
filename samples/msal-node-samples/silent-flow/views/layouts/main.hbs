@@ -24,35 +24,7 @@
     <h5 class="card-header text-center">MSAL Node.js demonstrating Silent Flow</h5>
     <br>
     <div class="row" style="margin:auto" >
-    <div id="card-div" class="col-md-3">
-    <div class="card text-center">
-      <div class="card-body">
-        {{#if showSignInButton}}
-            <h5 class="card-title">Please sign-in to acquire a token silently</h5>
-        {{else if acquiredToken}}
-            <h5 class="card-title">Successfully acquired token for {{username}} using silent flow</h5>
-        {{else if couldNotAcquireToken}}
-            <h5 class="card-title">Could not acquire token. Check console for more information.</h5>
-        {{/if}}
-        {{#if showATSButton }}
-            <h5 class="card-title">Welcome, {{username}}, you have signed in successfully!</h5>
-            <br>
-            <br>
-            <a class="btn btn-primary" id="seeProfile" href="/silentFlow">Acquire Token Silent</a>
-        {{/if}}
-      </div>
-    </div>
-    </div>
-    <br>
-    <br>
-      <div class="col-md-4">
-        <div class="list-group" id="list-tab" role="tablist">
-        </div>
-      </div>
-      <div class="col-md-5">
-        <div class="tab-content" id="nav-tabContent">
-        </div>
-      </div>
+      {{{body}}}
     </div>
     <br>
     <br>

@@ -1,8 +1,30 @@
+# 2.0.0-beta.4
+## Breaking Changes
+* Updated all APIs to send `openid` and `profile` by default in all requests (#1868)
+
+## Features and Fixes
+* add interface for PublicClientApplication (#1870)
+* Update `monitorIframeForHash` to be purely time-based (#1873)
+* Instantiate Logger instance for PublicClientApplication (#1882)
+* Fix an issue with encoding in cookies and state values (#1852)
+* Fix issue where cache isn't being cleaned correctly (#1856)
+* Fix issue where expiration isn't calculated correctly (#1860)
+* Fix an issue where the crypto APIs were not truly random (#1872)
+* Remove all non-application specific initialization from PublicClientApplication constructor (#1885, #1886)
+* Added support for IE11 (#1883, #1884)
+* Added support for redirection to pages with custom hashes or query params (#1862)
+* Remove deprecated `handleRedirectCallback()` API (#1863)
+* Remove function typings for `redirectUri` and `postLogoutRedirectUri` (#1861).
+* Add support for Instance Discovery, combine all authority classes into a single generic class (#1811)
+
 # 2.0.0-beta.3
-* add `setKnownAuthorities` to constructor call for B2C Authority scenarios (#1646)
+## Breaking Changes
 * `@azure/msal-browser` now follows a unified cache schema similar to other MSAL libraries (#1624, #1655, #1680, #1711, #1762, #1771)
 * Updated browser library to follow common format for request, response, and client configurations (#1682, #1711, #1762, #1770, #1771, #1793)
 * Account interface updated to AccountInfo.ts (#1789)
+
+## Features and Fixes
+* add `setKnownAuthorities` to constructor call for B2C Authority scenarios (#1646)
 * Library state is now sent as a encoded JSON object (#1790)
 * Added a request object for logout APIs, made logout async (#1802)
 
