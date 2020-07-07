@@ -8,7 +8,7 @@ import { FileSystemUtils } from "../util/FileSystemUtils";
 
 describe('Test File Persistence', () => {
 
-    const filePath = ".test-data/test.json";
+    const filePath = "./test.json";
 
     afterEach(async () => {
         await FileSystemUtils.cleanUpFile(filePath);

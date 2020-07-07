@@ -11,7 +11,7 @@ import { mocked } from 'ts-jest/utils';
 jest.mock("../../src/dpapi-addon/Dpapi");
 
 describe('Test File Persistence with data protection', () => {
-    const filePath = "test-data/dpapi-test.json";
+    const filePath = "./dpapi-test.json";
     const dpapiScope = DataProtectionScope.LocalMachine;
 
     afterEach(async () => {

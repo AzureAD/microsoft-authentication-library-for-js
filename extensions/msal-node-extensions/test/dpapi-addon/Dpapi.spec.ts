@@ -35,5 +35,8 @@ if(platform === "win32"){
             expect(decryptedData).toEqual(data);
         });
     });
+} else {
+    // Jest require that a .spec.ts file contain at least one test.
+    test("Empty test", () => {});
 }
 

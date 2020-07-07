@@ -17,14 +17,14 @@ describe('Test cross platform lock', () => {
         piiLoggingEnabled: false
     };
     const logger = new Logger(loggerOptions);
-    const lockFilePath = "./test-data/test.lockfile";
+    const lockFilePath = "./test.lockfile";
 
     afterEach(async () => {
         await FileSystemUtils.cleanUpFile(lockFilePath);
     });
 
     test('export a class', () => {
-        const lock = new CrossPlatformLock("./test.lockfile", logger);
+        const lock = new CrossPlatformLock(lockFilePath, logger);
         expect(lock).toBeInstanceOf(CrossPlatformLock);
     });
 

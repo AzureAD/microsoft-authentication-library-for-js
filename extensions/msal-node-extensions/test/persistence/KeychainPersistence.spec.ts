@@ -10,7 +10,7 @@ import { setPassword, getPassword, deletePassword } from "keytar";
 jest.mock("keytar");
 
 describe('Test KeyChainPersistence', () => {
-    const filePath = "test-data/keychain-test.json";
+    const filePath = "./keychain-test.json";
     const serviceName = "testService";
     const accountName = "accountName";
 
