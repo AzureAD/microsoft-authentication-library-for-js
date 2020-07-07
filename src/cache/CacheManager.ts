@@ -64,7 +64,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     getAllAccounts(): AccountInfo[] {
         const currentAccounts: AccountCache = this.getAccountsFilteredBy();
-        const accountValues: AccountEntity[] = Object.values(currentAccounts);
+        const accountValues: AccountEntity[] = Object.keys(currentAccounts).map(accountKey => currentAccounts[accountKey]);
         const numAccounts = accountValues.length;
         if (numAccounts < 1) {
             return null;
@@ -143,7 +143,7 @@ export abstract class CacheManager implements ICacheManager {
             realm: credential.realm
         });
         const currentScopes = ScopeSet.fromString(credential.target);
-        const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache.accessTokens) as AccessTokenEntity[];
+        const currentAccessTokens: AccessTokenEntity[] = Object.keys(currentTokenCache.accessTokens).map(key => currentTokenCache.accessTokens[key]);
         if (currentAccessTokens) {
             currentAccessTokens.forEach((tokenEntity) => {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
