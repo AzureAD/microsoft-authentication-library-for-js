@@ -8,7 +8,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
- * - scopes                 - Scopes the application is requesting access to.
+ * - scopes                 - Array of scopes the application is requesting access to.
  * - authority              - Url of the authority which the application acquires tokens from.
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - account                - Account entity to lookup the credentials.
