@@ -142,18 +142,13 @@ export class ScopeSet {
     // #endregion
 
     /**
-     * Replaces clientId with openid and profile scopes in the scopes set
-     * for login calls. OIDC required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
+     * Add openid and profile to scopes array
+     * OIDC required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
      * @param scopes
      */
-    static generateLoginScopes(scopes: Array<string>, clientId: string): Array<string> {
+    static generateLoginScopes(scopes: Array<string>): Array<string> {
         const loginScopes = [...scopes];
-        const clientIdIndex: number = loginScopes.indexOf(clientId);
-        
-        if (clientIdIndex >= 0) {
-            // Splice removes clientId from scope set, which will be replaced by openid and profile
-            loginScopes.splice(clientIdIndex, 1);
-        }
+   
         if (loginScopes.indexOf(Constants.openidScope) === -1) {
             loginScopes.push(Constants.openidScope);
         }
