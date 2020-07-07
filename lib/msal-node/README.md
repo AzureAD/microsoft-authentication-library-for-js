@@ -59,7 +59,8 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 
 | Date | Release | Announcement | Main features |
 | ------| ------- | ---------| --------- |
-| July 6th, 2020 (Tentative) | @azure/msal-node v0.0.1-alpha | No release notes yet | Full version of the `@azure/msal-node` package; relies on `@azure/msal-common` v1.0.0 |
+| July 13th, 2020 (Tentative) | @azure/msal-node v1.0.0-alpha.1 | No release notes yet | Full version of the `@azure/msal-node` package; relies on `@azure/msal-common` v1.0.0 |
+| July 6th, 2020  | @azure/msal-node v1.0.0-alpha.0| No release notes yet | Full version of the `@azure/msal-node` package; relies on `@azure/msal-common` v1.0.0-beta.4 |
 
 ## Prerequisites
 
@@ -78,25 +79,10 @@ npm install @azure/msal-node
 ##  Usage
 
 ### MSAL basics
-- Initialize a Public Client Application
-- Acquire a token (Signin your desktop app)
-- Acquire an access token to access a resource (Microsoft Graph, External resource)
-- Refresh a token when expired
-- Managing Token Lifetimes (should this go to msal-common?)
-- Remove an account
-
-### Advanced Topics
-- Configuration options
-- Request types
-    - [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_authorizationcoderequest_.html)
-
+- Initialize a Public Client Application(./docs/initialize-public-client-application.md)
+- [Configuration](./docs/configuration.md)
+- [Request](./docs/request.md)
 - [Response](lib/msal-common/docs/Response.md)
-- Cache [Coming soon]
-  - Cache internals
-  - Serialization to disk
-  - Extension library
-- Scopes
-- CorrelationId
 
 ## Samples
 There are multiple [samples](samples/msal-node-samples) included in the repository that use MSAL Node to acquire tokens. These samples are currently used for manual testing, and are not meant to be a reference of best practices, therefore use judgement and do not blindly copy this code to any production applications.

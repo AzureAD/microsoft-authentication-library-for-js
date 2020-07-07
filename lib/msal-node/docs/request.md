@@ -36,4 +36,3 @@ The application is sent a URL that can be used to generate an `authorization cod
     });
 ```
 
-###
