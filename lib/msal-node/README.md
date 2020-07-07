@@ -1,9 +1,11 @@
 # (Alpha) Microsoft Authentication Library for JavaScript for Node(msal-node) for Node.js based Web apps
 
+[![npm version](https://img.shields.io/npm/v/@azure/msal-node.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-node/)[![npm version](https://img.shields.io/npm/dm/@azure/msal-node.svg)](https://nodei.co/npm/@azure/msal-node/)[![Coverage Status](https://coveralls.io/repos/github/AzureAD/microsoft-authentication-library-for-js/badge.svg?branch=dev)](https://coveralls.io/github/AzureAD/microsoft-authentication-library-for-js?branch=dev)
+
 | <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/" target="_blank">Library Reference</a> |
 | --- | --- | --- |
 
-Currently `msal-node` library is under development, Please track the project progress [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/projects/4).
+Currently `msal-node` library is under development, Please track the project progress [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/projects/4). This documentation is also in progress and will be changing as we release our `alpha` patches.
 
 1. [About](#about)
 2. [FAQ](#faq)
@@ -32,22 +34,23 @@ The current alpha version supports the below OAuth grant types:
 - [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
 - Silent Flow (user convenience flow to acquire a token silently)
 
-In the upcoming quarters we plan to add support for:
+[Coming Soon] In the upcoming quarters we plan to add support for Confidential client flows:
 
-- [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/) (`Coming soon`)
-- Confidential client flow (authorization code flow with client secret)
+- [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with client secret
+- [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/)
+- [On-behalf-of flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
 
 More details on different grant types supported by Microsoft authentication libraries in general can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows)
 
-### App models supported:
+### Scenarios supported:
 
-The app models supported with this library are:
+The scenarios supported with this library are:
 - Destop app that calls web APIs
 - Web app that calls web APIs (upcoming)
 - Web APIs that call web APIs (upcoming)
 - Daemon apps (upcoming)
 
-More details on APP models and the authentication flows that map to each of them can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/authentication-flows-app-scenarios)
+More details on scenarios and the authentication flows that map to each of them can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/authentication-flows-app-scenarios)
 
 ## FAQ
 
@@ -67,7 +70,6 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 Before using `@azure/msal-node` you will need to register your app in the azure portal to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on if applicable. Currently we support the below app registrations for `@azure/msal-node`:
 
 - [Desktop app that calls web APIs: App registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)
-- [Protected web API: App registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-protected-web-api-app-registration)
 
 ## Installation
 
@@ -101,6 +103,9 @@ There are multiple [samples](https://github.com/AzureAD/microsoft-authentication
 - Navigate to `microsoft-authentication-library-for-js/lib/msal-node` and run `npm run build`
 
 ```javascript
+// to link msal-node and msal-common packages
+lerna bootstrap
+
 // Change to the msal-node package directory
 cd lib/msal-common/
 
@@ -112,9 +117,6 @@ cd lib/msal-node/
 
 // To run build only for node package
 npm run build
-
-// to link msal-node and msal-common packages
-lerna bootstrap
 ```
 
 ### Local Development

@@ -16,7 +16,7 @@ The configuration object can be passed into the `PublicClientApplication` constr
 
 ```javascript
 
-// Call back API tp read from the cache in .json format
+// Call back API to read from the cache in .json format
 const readFromStorage = () => {
     return fs.readFile("cache_file_path", "utf-8");
 };
@@ -41,7 +41,6 @@ const msalConfig = {
         authority: "https://login.microsoftonline.com/common",
         knownAuthorities: [],
         cloudDiscoveryMetadata: "",
-        redirectUri: "enter_redirect_uri_here",
     },
     cache: {
         cachePlugin // your implementation of cache plugin
@@ -69,8 +68,6 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}`. | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
 | `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
 | `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See performance.md for more info | string | Empty string `""` |
-| `redirectUri` | URI where the authorization code response is sent back to. Whatever location is specified here must have the MSAL library available to handle the response. | String in URI format | Login request page (`window.location.href` of page which made auth request) |
-`redirectUri` is the same as the original request location, this flag should be set to false. | boolean | `true` |
 
 ### Cache Config Options
 | Option | Description | Format | Default Value |
