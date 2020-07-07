@@ -39,7 +39,9 @@ export const Constants = {
 
 export const MSER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
+    FAILURE_LIMIT: 3,
     CACHE_HITS: "cacheHits",
+    FAILURES: "failures",
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
 };
