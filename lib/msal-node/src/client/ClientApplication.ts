@@ -133,8 +133,8 @@ export abstract class ClientApplication {
     /**
      * Gets the token cache for the application.
      */
-    getCacheManager(): TokenCache {
-        this.logger.info("getCacheManager called");
+    getTokenCache(): TokenCache {
+        this.logger.info("getTokenCache called");
         return this.tokenCache;
     }
 

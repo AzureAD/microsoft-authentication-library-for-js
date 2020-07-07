@@ -44,7 +44,7 @@ const publicClientConfig = {
     }
 };
 const pca = new msal.PublicClientApplication(publicClientConfig);
-const msalCacheManager = pca.getCacheManager();
+const msalTokenCache = pca.getTokenCache();
 
 // Create Express App and Routes
 const app = express();
@@ -72,15 +72,15 @@ app.get('/redirect', (req, res) => {
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
         res.send(200);
-        return msalCacheManager.writeToPersistence();
+        return msalTokenCache.writeToPersistence();
     }).catch((error) => {
         console.log(error);
         res.status(500).send(error);
     });
 });
 
-msalCacheManager.readFromPersistence().then(() => {
+msalTokenCache.readFromPersistence().then(() => {
     app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`))
-    console.log("Accounts: \n", msalCacheManager.getAllAccounts());
+    console.log("Accounts: \n", msalTokenCache.getAllAccounts());
 });
 
