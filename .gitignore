@@ -266,3 +266,4 @@ lib/msal-core/lib-es6
 *.tgz
 *.zip
 samples/**/test/screenshots
+samples/**/data/cache.json
