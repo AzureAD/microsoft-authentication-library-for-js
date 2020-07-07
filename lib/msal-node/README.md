@@ -1,7 +1,7 @@
 # (Alpha) Microsoft Authentication Library for JavaScript for Node(msal-node) for Node.js based Web apps
 
 | <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/" target="_blank">Library Reference</a> |
-| --- | --- | --- | --- |
+| --- | --- | --- |
 
 Currently `msal-node` library is under development, Please track the project progress [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/projects/4).
 
