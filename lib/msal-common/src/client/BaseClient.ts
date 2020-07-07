@@ -5,7 +5,7 @@
 
 import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
 import { INetworkModule } from "../network/INetworkModule";
-import { NetworkManager } from "../network/NetworkManager";
+import { ThrottlingManager, NetworkResponse } from "../network/ThrottlingManager";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
@@ -15,6 +15,7 @@ import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizatio
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -112,6 +113,7 @@ export abstract class BaseClient {
      * @param tokenEndpoint
      * @param queryString
      * @param headers
+     * @param thumbprint
      */
     protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const response = await this.networkClient.sendPostRequestAsync<
