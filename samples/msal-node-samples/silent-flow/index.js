@@ -57,7 +57,7 @@ const scopes = ["user.read"];
 
 const authCodeUrlParameters = {
     scopes: scopes,
-    redirectUri: ["http://localhost:3000/redirect"],
+    redirectUri: "http://localhost:3000/redirect",
 };
 
 const pca = new msal.PublicClientApplication(publicClientConfig);
@@ -133,7 +133,7 @@ app.get('/graphCall', (req, res) => {
                 templateParams = {
                     ...templateParams,
                     username,
-                    profile: graph.buildGraphProfile(response)
+                    profile: JSON.stringify(response, null, 4)
                 };
                 res.render("graph", templateParams);
                 return msalTokenCache.writeToPersistence();
