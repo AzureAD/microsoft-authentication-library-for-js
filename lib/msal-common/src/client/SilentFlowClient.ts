@@ -34,7 +34,7 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    public async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    public async acquireToken(request: SilentFlowRequest, apiId?: number): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -71,7 +71,7 @@ export class SilentFlowClient extends BaseClient {
                 refreshToken: cachedRefreshToken.secret
             };
 
-            return refreshTokenClient.acquireToken(refreshTokenRequest);
+            return refreshTokenClient.acquireToken(refreshTokenRequest, apiId);
         }
 
         const cachedIdToken = this.readIdTokenFromCache(homeAccountId, environment, cachedAccount.realm);

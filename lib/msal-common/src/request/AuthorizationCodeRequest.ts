@@ -20,5 +20,4 @@ export type AuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;
     code: string;
     codeVerifier?: string;
-    apiId?: number;
 };

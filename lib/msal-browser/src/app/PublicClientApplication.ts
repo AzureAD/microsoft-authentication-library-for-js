@@ -185,7 +185,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         const currentAuthority = this.browserStorage.getCachedAuthority();
         const authClient = await this.createAuthCodeClient(currentAuthority);
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
-        return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
+        return interactionHandler.handleCodeResponse(responseHash, ApiId.acquireTokenRedirect, this.browserCrypto);
     }
 
     /**
@@ -217,7 +217,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
 
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest, ApiId.acquireTokenRedirect);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(validRequest.authority);
@@ -264,7 +264,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
 
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest, ApiId.acquireTokenPopup);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(validRequest.authority);
@@ -292,7 +292,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
         // Handle response from hash string.
-        return await interactionHandler.handleCodeResponse(hash);
+        return await interactionHandler.handleCodeResponse(hash, ApiId.acquireTokenPopup);
     }
 
     // #endregion
@@ -336,7 +336,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         });
 
         // Create auth code request and generate PKCE params
-        const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest, ApiId.ssoSilent);
+        const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
         // Get scopeString for iframe ID
         const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
@@ -347,7 +347,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         // Create authorize request url
         const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-        return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
+        return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString, ApiId.ssoSilent);
     }
 
     /**
@@ -372,7 +372,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         try {
             const silentAuthClient = await this.createSilentFlowClient(silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await silentAuthClient.acquireToken(silentRequest);
+            return await silentAuthClient.acquireToken(silentRequest, ApiId.acquireTokenSilent_silentFlow);
         } catch (e) {
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
@@ -384,7 +384,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                 });
 
                 // Create auth code request and generate PKCE params
-                const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest, ApiId.acquireTokenSilent);
+                const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
 
                 // Initialize the client
                 const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(silentAuthUrlRequest.authority);
@@ -395,7 +395,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                 // Get scopeString for iframe ID
                 const scopeString = silentAuthUrlRequest.scopes ? silentAuthUrlRequest.scopes.join(" ") : "";
 
-                return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
+                return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString, ApiId.acquireTokenSilent_authCode);
             }
 
             throw e;
@@ -408,7 +408,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, userRequestScopes: string): Promise<AuthenticationResult> {
+    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, userRequestScopes: string, apiId?: number): Promise<AuthenticationResult> {
         try {
             // Create silent handler
             const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.loadFrameTimeout);
@@ -417,7 +417,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
             // Handle response from hash string.
-            return await silentHandler.handleCodeResponse(hash);
+            return await silentHandler.handleCodeResponse(hash, apiId);
         } catch (e) {
             this.browserStorage.cleanRequest();
             throw e;
@@ -660,15 +660,14 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Generates an auth code request tied to the url request.
      * @param request 
      */
-    private async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest, apiId?: ApiId): Promise<AuthorizationCodeRequest> {
+    private async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
         const authCodeRequest: AuthorizationCodeRequest = {
             ...request,
             redirectUri: request.redirectUri,
             code: "",
-            codeVerifier: generatedPkceParams.verifier,
-            apiId: apiId
+            codeVerifier: generatedPkceParams.verifier
         };
 
         request.codeChallenge = generatedPkceParams.challenge;

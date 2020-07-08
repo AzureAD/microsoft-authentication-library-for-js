@@ -31,7 +31,7 @@ export abstract class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponse(locationHash: string): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, apiId: number): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
@@ -49,7 +49,7 @@ export abstract class InteractionHandler {
         this.authCodeRequest.code = authCode;
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState, apiId);
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }

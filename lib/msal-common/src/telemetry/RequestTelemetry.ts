@@ -59,8 +59,10 @@ export class RequestTelemetry {
     }
 
     static addTelemetryHeaders(headers: Map<string, string>, apiId: number, forceRefresh: boolean, cacheStorage: CacheManager): Map<string, string> {
-        headers.set(AADServerParamKeys.X_CLIENT_CURR_TELEM, RequestTelemetry.currentRequest(apiId, forceRefresh));
-        headers.set(AADServerParamKeys.X_CLIENT_LAST_TELEM, RequestTelemetry.lastFailedRequest(cacheStorage));
+        if (apiId) {
+            headers.set(AADServerParamKeys.X_CLIENT_CURR_TELEM, RequestTelemetry.currentRequest(apiId, forceRefresh));
+            headers.set(AADServerParamKeys.X_CLIENT_LAST_TELEM, RequestTelemetry.lastFailedRequest(cacheStorage));
+        }
 
         return headers;
     }

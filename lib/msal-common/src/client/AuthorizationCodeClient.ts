@@ -53,14 +53,14 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string, apiId?: number): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
         // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
 
-        const response = await this.executeTokenRequest(this.authority, request);
+        const response = await this.executeTokenRequest(this.authority, request, apiId);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -129,10 +129,10 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest, apiId: number): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
         let headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
-        headers = RequestTelemetry.addTelemetryHeaders(headers, request.apiId, false);
+        headers = RequestTelemetry.addTelemetryHeaders(headers, apiId, false, this.cacheManager);
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }
