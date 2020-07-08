@@ -4,10 +4,9 @@
  */
 
 export enum ApiId {
-    loginPopup = 200,
-    loginRedirect = 201,
-    acquireTokenSilent = 202,
-    acquireTokenPopup = 203,
-    acquireTokenRedirect = 204,
-    ssoSilent = 205
+    acquireTokenRedirect = 861,
+    acquireTokenPopup = 862,
+    ssoSilent = 863,
+    acquireTokenSilent_authCode = 864,
+    acquireTokenSilent_silentFlow = 61,
 };
