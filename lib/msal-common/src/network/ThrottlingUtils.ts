@@ -8,6 +8,7 @@ import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationT
 import { Constants, HeaderNames } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { StringUtils } from "../utils/StringUtils";
+import { ServerError } from "../error/ServerError";
 
 export type RequestThumbprint = {
     clientId: string;
@@ -28,7 +29,7 @@ export type RequestThumbprintValue = {
 
 export class ThrottlingUtils {
 
-    static generateThrottlingStorageKey(thumbprint: RequestThumbprint | RequestThumbprintValue): string {
+    static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string {
         return `${Constants.THROTTLE_PREFIX}.${JSON.stringify(thumbprint)}`;
     }
 
@@ -39,13 +40,12 @@ export class ThrottlingUtils {
         if (storageValue) {
             const parsedValue = StringUtils.jsonParseHelper(storageValue);
 
-            if (parsedValue.throttleTime >= Date.now()) {
+            if (parsedValue && parsedValue.throttleTime >= Date.now()) {
                 cacheManager.removeItem(key);
                 return;
             }
-            // TODO: implement this error
-            // ThrottleError extends ServerError and adds a message about how long the request is throttled for
-            // throw new ThrottleError(storageValue.throttleTime, storageValue.error, storageValue.errorDescription, storageValue.subError);
+
+            throw new ServerError(parsedValue.errorCodes, parsedValue.errorDescription, parsedValue.subError);
         }
     }    
 
@@ -59,15 +59,15 @@ export class ThrottlingUtils {
         };
         cacheManager.setItem(
             ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
-            ThrottlingUtils.generateThrottlingStorageKey(thumbprintValue)
+            JSON.stringify(thumbprintValue)
         );
     }
 
-    public static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
+    static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
         return response.status == 429 || response.status >= 500 && response.status < 600;
     }
 
-    public static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
+    static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
         return response.headers.has(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300)
     }
 

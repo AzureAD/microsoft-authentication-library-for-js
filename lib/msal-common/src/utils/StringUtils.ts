@@ -87,9 +87,15 @@ export class StringUtils {
         });
     }
 
-    static jsonParseHelper(json: string) {
+    /**
+     * Attempts to parse a string into JSON
+     * @param str
+     */
+    static jsonParseHelper(str: string) {
         try {
-            return JSON.parse(json);
-        } catch (e) { }
+            return JSON.parse(str);
+        } catch (e) {
+            return null;
+        }
     }
 }
