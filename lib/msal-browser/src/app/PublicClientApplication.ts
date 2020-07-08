@@ -185,8 +185,9 @@ export class PublicClientApplication implements IPublicClientApplication {
         // Hash contains known properties - handle and return in callback
         const currentAuthority = this.browserStorage.getCachedAuthority();
         const authClient = await this.createAuthCodeClient(currentAuthority);
+        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.acquireTokenRedirect);
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
-        return interactionHandler.handleCodeResponse(responseHash, ApiId.acquireTokenRedirect, this.browserCrypto);
+        return interactionHandler.handleCodeResponse(responseHash, telemetryManager, this.browserCrypto);
     }
 
     /**
@@ -213,9 +214,11 @@ export class PublicClientApplication implements IPublicClientApplication {
      * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.acquireTokenRedirect);
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
+            telemetryManager.setCorrelationId(validRequest.correlationId);
 
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
@@ -232,6 +235,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, request.redirectStartPage, this.browserCrypto);
         } catch (e) {
+            telemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest();
             throw e;
         }
@@ -339,7 +343,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             prompt: PromptValue.NONE
         });
 
-        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.ssoSilent, false, silentRequest.correlationID);
+        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.ssoSilent, false, silentRequest.correlationId);
 
         // Create auth code request and generate PKCE params
         const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
@@ -390,7 +394,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                     ...silentRequest,
                     prompt: PromptValue.NONE
                 });
-                telemetryManager = new TelemetryManager(this.browserStorage, ApiId.acquireTokenSilent_authCode, silentAuthUrlRequest.forceRefresh, silentAuthUrlRequest.correlationID);
+                telemetryManager = new TelemetryManager(this.browserStorage, ApiId.acquireTokenSilent_authCode, false, silentAuthUrlRequest.correlationId);
 
                 // Create auth code request and generate PKCE params
                 const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
