@@ -487,7 +487,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      *
      * Use to get the redirect uri configured in MSAL or null.
-     * Evaluates redirectUri if its a function, otherwise simply returns its value.
      * @returns {string} redirect URL
      *
      */
@@ -497,7 +496,6 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     /**
      * Use to get the post logout redirect uri configured in MSAL or null.
-     * Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
      *
      * @returns {string} post logout redirect URL
      */
