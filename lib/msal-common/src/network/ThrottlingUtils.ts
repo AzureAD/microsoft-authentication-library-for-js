@@ -50,17 +50,19 @@ export class ThrottlingUtils {
     }    
 
     static postProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint, response: NetworkResponse<ServerAuthorizationTokenResponse>): void {
-        const thumbprintValue: RequestThumbprintValue = {
-            throttleTime: ThrottlingUtils.calculateThrottleTime(parseInt(response.headers.get(HeaderNames.RETRY_AFTER))),
-            error: response.body.error,
-            errorCodes: response.body.error_codes,
-            errorMessage: response.body.error_description,
-            subError: response.body.suberror
-        };
-        cacheManager.setItem(
-            ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
-            JSON.stringify(thumbprintValue)
-        );
+        if (ThrottlingUtils.checkResponseStatus(response) || ThrottlingUtils.checkResponseForRetryAfter(response)) {
+            const thumbprintValue: RequestThumbprintValue = {
+                throttleTime: ThrottlingUtils.calculateThrottleTime(parseInt(response.headers.get(HeaderNames.RETRY_AFTER))),
+                error: response.body.error,
+                errorCodes: response.body.error_codes,
+                errorMessage: response.body.error_description,
+                subError: response.body.suberror
+            };
+            cacheManager.setItem(
+                ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
+                JSON.stringify(thumbprintValue)
+            );
+        }
     }
 
     static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
