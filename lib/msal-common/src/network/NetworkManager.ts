@@ -23,6 +23,12 @@ export class NetworkManager {
         this.cacheManager = cacheManager;
     }
 
+    /**
+     * Wraps sendPostRequestAsync with necessary preflight and postflight logic
+     * @param thumbprint
+     * @param tokenEndpoint
+     * @param options
+     */
     async sendPostRequest<T>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
         const response = await this.networkClient.sendPostRequestAsync<T>(tokenEndpoint, options);
