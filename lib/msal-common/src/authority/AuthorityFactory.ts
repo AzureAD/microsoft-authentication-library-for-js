@@ -3,15 +3,10 @@
  * Licensed under the MIT License.
  */
 import { Authority } from "./Authority";
-import { AadAuthority } from "./AadAuthority";
-import { B2cAuthority } from "./B2cAuthority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ClientAuthError } from "./../error/ClientAuthError";
 import { INetworkModule } from "./../network/INetworkModule";
 import { StringUtils } from "./../utils/StringUtils";
-import { UrlString } from "./../url/UrlString";
-import { Constants } from "../utils/Constants";
-import { AdfsAuthority } from "./AdfsAuthority";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 export class AuthorityFactory {
 
@@ -21,10 +16,8 @@ export class AuthorityFactory {
      * 
      * Also performs endpoint discovery.
      * 
-     * @param defaultAuthority 
-     * @param networkClient 
-     * @param authorityUri 
-     * @param adfsDisabled 
+     * @param authorityUri
+     * @param networkClient
      */
     static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
@@ -57,25 +50,6 @@ export class AuthorityFactory {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return AuthorityFactory.detectAuthorityFromUrl(authorityUrl, networkInterface);
-    }
-
-    /**
-     * Parse the url and determine the type of authority.
-     * @param authorityString 
-     * @param networkInterface 
-     */
-    private static detectAuthorityFromUrl(authorityString: string, networkInterface: INetworkModule): Authority {
-        const authorityUrl: UrlString = new UrlString(authorityString);
-        const components = authorityUrl.getUrlComponents();
-        const pathSegments = components.PathSegments;
-
-        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
-            return new AdfsAuthority(authorityString, networkInterface);
-        } else if (B2cAuthority.B2CTrustedHostList.length) {
-            return new B2cAuthority(authorityString, networkInterface);
-        }
-        // defaults to Aad
-        return new AadAuthority(authorityString, networkInterface);
+        return new Authority(authorityUrl, networkInterface);
     }
 }

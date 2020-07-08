@@ -172,6 +172,8 @@ export class DeviceCodeClient extends BaseClient {
         requestParameters.addClientId(this.config.authOptions.clientId);
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
         requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        requestParameters.addCorrelationId(correlationId);
         return requestParameters.createQueryString();
     }
 }
