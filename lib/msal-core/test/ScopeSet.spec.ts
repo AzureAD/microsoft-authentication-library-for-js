@@ -232,4 +232,22 @@ describe("ScopeSet.ts", () => {
             expect(ScopeSet.isLoginScopes(["s1"], clientId)).to.eql(false);
         });
     });
+    
+    describe("containsOIDCScopes", () => {
+        it("should return true if scopes array includes openid and profile", () => {
+            expect(ScopeSet.containsOIDCScopes([openid, profile])).to.eql(true);
+        });
+
+        it("should return false if scopes array includes openid but omits profile", () => {
+            expect(ScopeSet.containsOIDCScopes([openid])).to.eql(false);
+        });
+
+        it("should return false if scopes array includes profile but omits openid", () => {
+            expect(ScopeSet.containsOIDCScopes([profile])).to.eql(false);
+        });
+
+        it("should return false if scopes array does not contain openid or profile", () => {
+            expect(ScopeSet.containsOIDCScopes(["s1"])).to.eql(false);
+        });
+    });
 });

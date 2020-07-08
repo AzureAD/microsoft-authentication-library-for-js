@@ -2241,21 +2241,21 @@ export class UserAgentApplication {
     private getTokenType(accountObject: Account, scopes: string[]): string {
         // Check if account in request matches account in cache
         const accountsMatch = Account.compareAccounts(accountObject, this.getAccount());
-        // Check if login scopes are included
-        const containsLoginScopes = ScopeSet.isLoginScopes(scopes, this.clientId);
+        // Check if both 'openid' and 'profile' are contained
+        const containsOIDCScopes = ScopeSet.containsOIDCScopes(scopes);
 
-        // response_type is id_token because only login scopes are present (["openid", "profile"].length == 2);
-        if (containsLoginScopes && (scopes.length == 2)) {
+        // response_type is id_token because only OIDC scopes are present (["openid", "profile"].length == 2);
+        if (containsOIDCScopes && (scopes.length == 2)) {
             return ResponseTypes.id_token;
         }
 
-        // response_type is token because there are no login scopes and accounts match so login is not necessary.
-        if(!containsLoginScopes && accountsMatch) {
+        // response_type is token because there are no OIDC scopes and accounts match so login is not necessary.
+        if(!containsOIDCScopes && accountsMatch) {
             return ResponseTypes.token;
         }
 
         /**
-         * response_type is id_token_token because either both login and resource scopes are present
+         * response_type is id_token_token because either both OIDC and resource scopes are present
          * or because there are resource scopes only but accounts don't match and login is required
          */
         return ResponseTypes.id_token_token; 

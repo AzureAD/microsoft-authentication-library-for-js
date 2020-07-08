@@ -160,7 +160,7 @@ export class ScopeSet {
     }
 
     /**
-     * 
+     * Checks if any of the OIDC scopes or client ID are contained in the scopes array
      */
     static isLoginScopes(scopes: Array<string>, clientId: string): boolean {
         const hasOpenIdScope = scopes.indexOf(Constants.openidScope) > -1;
@@ -168,6 +168,16 @@ export class ScopeSet {
         const hasClientIdScope = scopes.indexOf(clientId) > -1;
 
         return (hasOpenIdScope ||  hasProfileScope || hasClientIdScope);
+    }
+
+    /**
+     * Hard check that both OIDC scopes are included in the scopes array
+     */
+    static containsOIDCScopes(scopes: Array<string>): boolean {
+        const hasOpenIdScope = scopes.indexOf(Constants.openidScope) > -1;
+        const hasProfileScope = scopes.indexOf(Constants.profileScope) > -1;
+        
+        return (hasOpenIdScope && hasProfileScope);
     }
 
 }
