@@ -8,5 +8,6 @@ export enum ApiId {
     acquireTokenPopup = 862,
     ssoSilent = 863,
     acquireTokenSilent_authCode = 864,
-    acquireTokenSilent_silentFlow = 61,
+    handleRedirectPromise = 865,
+    acquireTokenSilent_silentFlow = 61
 };

@@ -185,7 +185,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         // Hash contains known properties - handle and return in callback
         const currentAuthority = this.browserStorage.getCachedAuthority();
         const authClient = await this.createAuthCodeClient(currentAuthority);
-        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.acquireTokenRedirect);
+        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.handleRedirectPromise);
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
         return interactionHandler.handleCodeResponse(responseHash, telemetryManager, this.browserCrypto);
     }
