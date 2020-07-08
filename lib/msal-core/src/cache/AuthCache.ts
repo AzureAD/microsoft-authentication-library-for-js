@@ -139,12 +139,12 @@ export class AuthCache extends BrowserStorage {// Singleton
         let key: string;
         // check state and remove associated cache
         if (stateId && !isTokenRenewalInProgress) {
-            for (key in storage) {
+            Object.keys(storage).forEach(key => {
                 if (key.indexOf(stateId) !== -1) {
                     this.removeItem(key);
                     super.clearItemCookie(key);
                 }
-            }
+            });
         }
         // delete the interaction status cache
         this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
@@ -246,7 +246,8 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param state
      */
     public static generateAcquireTokenAccountKey(accountId: any, state: string): string {
-        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.resourceDelimiter}${accountId}${Constants.resourceDelimiter}${state}`;
+        const stateId = RequestUtils.parseLibraryState(state).id;
+        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.resourceDelimiter}${accountId}${Constants.resourceDelimiter}${stateId}`;
     }
 
     /**
