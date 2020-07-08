@@ -50,3 +50,12 @@ export enum TemporaryCacheKeys {
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
 }
+
+export enum ApiId {
+    acquireTokenRedirect = 861,
+    acquireTokenPopup = 862,
+    ssoSilent = 863,
+    acquireTokenSilent_authCode = 864,
+    handleRedirectPromise = 865,
+    acquireTokenSilent_silentFlow = 61
+};
