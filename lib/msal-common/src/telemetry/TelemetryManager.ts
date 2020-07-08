@@ -14,18 +14,11 @@ export class TelemetryManager {
     private correlationId: string;
     private forceRefresh: boolean;
 
-    constructor(cacheStorage: CacheManager, apiId: number, forceRefresh?: boolean, correlationId?: string) {
+    constructor(cacheStorage: CacheManager, apiId: number, correlationId: string, forceRefresh?: boolean) {
         this.cacheStorage = cacheStorage;
         this.apiId = apiId;
-        this.forceRefresh = forceRefresh || false;
-
-        if (correlationId) {
-            this.correlationId = correlationId;
-        }
-    }
-
-    setCorrelationId(correlationId: string): void {
         this.correlationId = correlationId;
+        this.forceRefresh = forceRefresh || false;
     }
 
     // API to add MSER Telemetry to request

@@ -20,6 +20,7 @@ export class RedirectHandler extends InteractionHandler {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             const loginStartPage = redirectStartPage || window.location.href;
             this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), loginStartPage, CacheSchemaType.TEMPORARY);
+            this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID), authCodeRequest.correlationId, CacheSchemaType.TEMPORARY);
 
             // Set interaction status in the library.
             this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
@@ -63,7 +64,6 @@ export class RedirectHandler extends InteractionHandler {
         const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateCacheKey(cachedNonceKey), CacheSchemaType.TEMPORARY) as string;
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
         this.authCodeRequest.code = authCode;
-        telemetryManager.setCorrelationId(this.authCodeRequest.correlationId);
 
         // Hash was processed successfully - remove from cache
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
