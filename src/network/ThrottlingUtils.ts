@@ -10,6 +10,9 @@ import { CacheManager } from "../cache/CacheManager";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerError } from "../error/ServerError";
 
+/**
+ * Type representing a unique request thumbprint.
+ */
 export type RequestThumbprint = {
     clientId: string;
     authority: string;
@@ -17,6 +20,9 @@ export type RequestThumbprint = {
     homeAccountIdentifier?: string;
 }
 
+/**
+ * Type representing the values associated with a RequestThumbprint.
+ */
 export type RequestThumbprintValue = {
     // Unix-time value representing the expiration of the throttle
     throttleTime: number;
@@ -29,10 +35,19 @@ export type RequestThumbprintValue = {
 
 export class ThrottlingUtils {
 
+    /**
+     * Prepares a RequestThumbprint to be stored as a key.
+     * @param thumbprint
+     */
     static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string {
         return `${Constants.THROTTLE_PREFIX}.${JSON.stringify(thumbprint)}`;
     }
 
+    /**
+     * Performs necessary throttling checks before a network request.
+     * @param cacheManager
+     * @param thumbprint 
+     */
     static preProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
         const storageValue = cacheManager.getItem(key) as string;
@@ -47,8 +62,14 @@ export class ThrottlingUtils {
 
             throw new ServerError(parsedValue.errorCodes, parsedValue.errorDescription, parsedValue.subError);
         }
-    }    
+    }
 
+    /**
+     * Performs necessary throttling checks after a network request.
+     * @param cacheManager
+     * @param thumbprint 
+     * @param response
+     */    
     static postProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint, response: NetworkResponse<ServerAuthorizationTokenResponse>): void {
         if (ThrottlingUtils.checkResponseStatus(response) || ThrottlingUtils.checkResponseForRetryAfter(response)) {
             const thumbprintValue: RequestThumbprintValue = {
@@ -65,14 +86,26 @@ export class ThrottlingUtils {
         }
     }
 
+    /**
+     * Checks a NetworkResponse object's status codes against 429 or 5xx
+     * @param response
+     */
     static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
         return response.status == 429 || response.status >= 500 && response.status < 600;
     }
 
+    /**
+     * Checks a NetworkResponse object's RetryAfter header
+     * @param response
+     */
     static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
         return response.headers.has(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300)
     }
 
+    /**
+     * Calculates the Unix-time value for a throttle to expire given throttleTime in seconds.
+     * @param throttleTime
+     */
     private static calculateThrottleTime(throttleTime: number): number {
         const currentSeconds = Date.now() * 1000;
         return Math.min(
