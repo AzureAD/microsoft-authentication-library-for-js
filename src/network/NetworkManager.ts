@@ -26,15 +26,10 @@ export class NetworkManager {
     async sendPostRequest<T>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
         const response = await this.networkClient.sendPostRequestAsync<T>(tokenEndpoint, options);
-        
-        if (ThrottlingUtils.checkResponseStatus(response)) {
-            // Placeholder for Telemetry hook
-            ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
-        }
-        else if (ThrottlingUtils.checkResponseForRetryAfter(response)) {
-            ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
-        }
-        
+        ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
+
+        // Placeholder for Telemetry hook
+
         return response;
     }
 }
