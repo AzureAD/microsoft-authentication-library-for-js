@@ -107,10 +107,10 @@ export class ThrottlingUtils {
      * @param throttleTime
      */
     private static calculateThrottleTime(throttleTime: number): number {
-        const currentSeconds = Date.now() * 1000;
-        return Math.min(
+        const currentSeconds = Date.now() / 1000;
+        return Math.floor(Math.min(
             currentSeconds + (throttleTime || Constants.DEFAULT_THROTTLE_TIME_SECONDS),
             currentSeconds + Constants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
-        );
+        ) * 1000);
     }
 }
