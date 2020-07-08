@@ -50,31 +50,25 @@ export class ThrottlingUtils {
     }    
 
     static postProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint, response: NetworkResponse<ServerAuthorizationTokenResponse>): void {
-        if (ThrottlingUtils.checkResponseForThrottle(response)) {
-            const thumbprintValue: RequestThumbprintValue = {
-                throttleTime: ThrottlingUtils.calculateThrottleTime(parseInt(response.headers.get(HeaderNames.RETRY_AFTER))),
-                error: response.body.error,
-                errorCodes: response.body.error_codes,
-                errorMessage: response.body.error_description,
-                subError: response.body.suberror
-            };
-            cacheManager.setItem(
-                ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
-                ThrottlingUtils.generateThrottlingStorageKey(thumbprintValue)
-            );
-        }
+        const thumbprintValue: RequestThumbprintValue = {
+            throttleTime: ThrottlingUtils.calculateThrottleTime(parseInt(response.headers.get(HeaderNames.RETRY_AFTER))),
+            error: response.body.error,
+            errorCodes: response.body.error_codes,
+            errorMessage: response.body.error_description,
+            subError: response.body.suberror
+        };
+        cacheManager.setItem(
+            ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
+            ThrottlingUtils.generateThrottlingStorageKey(thumbprintValue)
+        );
     }
 
-    private static checkResponseForThrottle(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
-        if (response.status == 429 || response.status >= 500 && response.status < 600) {
-            return true;
-        }
+    public static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
+        return response.status == 429 || response.status >= 500 && response.status < 600;
+    }
 
-        if (response.headers.has(HeaderNames.RETRY_AFTER) && response.status < 200 && response.status >= 300) {
-            return true;
-        }
-
-        return false;
+    public static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
+        return response.headers.has(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300)
     }
 
     private static calculateThrottleTime(throttleTime: number): number {
