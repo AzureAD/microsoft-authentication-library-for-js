@@ -22,7 +22,7 @@ import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCo
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { RequestTelemetry } from "../telemetry/RequestTelemetry";
+import { TelemetryManager } from "../telemetry/TelemetryManager";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -53,14 +53,14 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string, apiId?: number): Promise<AuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string, telemetryManager?: TelemetryManager): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
         // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
 
-        const response = await this.executeTokenRequest(this.authority, request, apiId);
+        const response = await this.executeTokenRequest(this.authority, request, telemetryManager);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -129,10 +129,10 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest, apiId?: number): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest, telemetryManager?: TelemetryManager): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
         let headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
-        headers = RequestTelemetry.addTelemetryHeaders(headers, apiId, false, this.cacheManager);
+        headers = telemetryManager.addTelemetryHeaders(headers);
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }

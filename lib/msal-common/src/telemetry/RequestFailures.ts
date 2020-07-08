@@ -3,9 +3,8 @@
  * Licensed under the MIT License.
  */
 
- export type RequestFailures = {
-     requests: Array<string|number>;
-     errors: string[];
-     count: number;
- }
- 
+export type RequestFailures = {
+    requests: Array<string|number>;
+    errors: string[];
+    count: number;
+};
