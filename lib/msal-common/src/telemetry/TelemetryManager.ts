@@ -82,9 +82,9 @@ export class TelemetryManager {
      * @param cacheHits
      * @param cacheStorage
      */
-    clearTelemetryCache(): void {
-        this.cacheStorage.removeItem(MSER_TELEM_CONSTANTS.CACHE_HITS);
-        this.cacheStorage.removeItem(MSER_TELEM_CONSTANTS.FAILURES);
+    static clearTelemetryCache(cacheStorage: CacheManager): void {
+        cacheStorage.removeItem(MSER_TELEM_CONSTANTS.CACHE_HITS);
+        cacheStorage.removeItem(MSER_TELEM_CONSTANTS.FAILURES);
     }
 
     incrementCacheHits(): number {
