@@ -38,8 +38,8 @@ export const Constants = {
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
     // Default time to throttle RequestThumbprint in milliseconds
-    DEFAULT_THROTTLE_TIME_MS: 120000,
-    DEFAULT_MAX_THROTTLE_TIME_MS: 3600000
+    DEFAULT_THROTTLE_TIME_SECONDS: 60,
+    DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600
 };
 
 /**

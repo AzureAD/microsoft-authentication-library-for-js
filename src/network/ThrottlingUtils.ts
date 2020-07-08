@@ -74,6 +74,10 @@ export class ThrottlingUtils {
     }
 
     private static calculateThrottleTime(throttleTime: number): number {
-        return Math.min(throttleTime || Date.now() + Constants.DEFAULT_THROTTLE_TIME_MS, Constants.DEFAULT_MAX_THROTTLE_TIME_MS);
+        const currentSeconds = Date.now() * 1000;
+        return Math.min(
+            currentSeconds + (throttleTime || Constants.DEFAULT_THROTTLE_TIME_SECONDS),
+            currentSeconds + Constants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
+        );
     }
 }
