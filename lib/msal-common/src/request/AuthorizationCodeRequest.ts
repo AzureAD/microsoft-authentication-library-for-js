@@ -14,7 +14,6 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - redirectUri             - The redirect URI of your app, where the authority will redirect to after the user inputs credentials and consents. It must exactly match one of the redirect URIs you registered in the portal.
  * - code                    - The authorization_code that the user acquired in the first leg of the flow.
  * - codeVerifier            - The same code_verifier that was used to obtain the authorization_code. Required if PKCE was used in the authorization code grant request.For more information, see the PKCE RFC: https://tools.ietf.org/html/rfc7636
- * - apiId:                  - The id of the API called for telemetry purposes
  */
 export type AuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;

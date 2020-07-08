@@ -129,7 +129,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest, apiId: number): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest, apiId?: number): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
         let headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
         headers = RequestTelemetry.addTelemetryHeaders(headers, apiId, false, this.cacheManager);
