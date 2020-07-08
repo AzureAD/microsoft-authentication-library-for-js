@@ -35,7 +35,7 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    public async acquireToken(request: SilentFlowRequest, telemetryManager?: TelemetryManager): Promise<AuthenticationResult> {
+    public async acquireToken(request: SilentFlowRequest, telemetryManager: TelemetryManager): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();

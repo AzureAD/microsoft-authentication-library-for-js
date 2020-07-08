@@ -24,7 +24,7 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: RefreshTokenRequest, telemetryManager?: TelemetryManager): Promise<AuthenticationResult>{
+    public async acquireToken(request: RefreshTokenRequest, telemetryManager: TelemetryManager): Promise<AuthenticationResult>{
         const response = await this.executeTokenRequest(request, this.authority, telemetryManager);
 
         const responseHandler = new ResponseHandler(
@@ -43,7 +43,7 @@ export class RefreshTokenClient extends BaseClient {
         return tokenResponse;
     }
 
-    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority, telemetryManager?: TelemetryManager)
+    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority, telemetryManager: TelemetryManager)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = this.createTokenRequestBody(request);
