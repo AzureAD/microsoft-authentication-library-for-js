@@ -53,7 +53,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string, telemetryManager?: TelemetryManager): Promise<AuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest, telemetryManager?: TelemetryManager, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
         // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
