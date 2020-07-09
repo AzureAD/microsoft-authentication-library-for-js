@@ -73,7 +73,7 @@ Because this library is a proof of concept, it is scoped to specific features an
 
 This proof of concept is scoped to consider:
 * Compatibility with the Android platform
-* authenticating users with work and school Azure AD accounts (AAD)
+* Authenticating users with work and school Azure AD accounts (AAD)
 * Single-account mode
 
 This proof of concept does not implement:
