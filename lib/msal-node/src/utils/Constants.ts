@@ -45,3 +45,11 @@ export const CACHE = {
 export const Constants = {
     MSAL_SKU: 'msal.js.node',
 };
+
+// Telemetry Constants
+export enum ApiId {
+    acquireTokenSilent = 62,
+    acquireTokenByCode = 871,
+    acquireTokenByRefreshToken = 872,
+    acquireTokenByDeviceCode = 671
+};

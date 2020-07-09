@@ -19,20 +19,21 @@ import {
     BaseAuthRequest,
     SilentFlowRequest,
     SilentFlowClient,
-    Logger
+    Logger,
+    TelemetryManager
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
-import { Constants as NodeConstants } from './../utils/Constants';
+import { Constants as NodeConstants, ApiId } from './../utils/Constants';
 import { TokenCache } from '../cache/TokenCache';
 
 export abstract class ClientApplication {
     private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
-    private storage: Storage;
+    protected storage: Storage;
     private tokenCache: TokenCache;
     protected logger: Logger;
 
@@ -70,7 +71,7 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequestScopes(request) as AuthorizationUrlRequest);
+        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequest(request) as AuthorizationUrlRequest);
     }
 
     /**
@@ -83,14 +84,21 @@ export abstract class ClientApplication {
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByCode called");
-        const authClientConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        this.logger.verbose("Auth client config generated");
-        const authorizationCodeClient = new AuthorizationCodeClient(
-            authClientConfig
-        );
-        return authorizationCodeClient.acquireToken(this.initializeRequestScopes(request) as AuthorizationCodeRequest);
+        const validRequest = this.initializeRequest(request) as AuthorizationCodeRequest;
+        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenByCode, validRequest.correlationId!);
+        try {
+            const authClientConfig = await this.buildOauthClientConfiguration(
+                request.authority
+            );
+            this.logger.verbose("Auth client config generated");
+            const authorizationCodeClient = new AuthorizationCodeClient(
+                authClientConfig
+            );
+            return authorizationCodeClient.acquireToken(validRequest, telemetryManager);
+        } catch (e) {
+            telemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 
     /**
@@ -102,14 +110,21 @@ export abstract class ClientApplication {
      */
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByRefreshToken called");
-        const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        this.logger.verbose("Auth client config generated");
-        const refreshTokenClient = new RefreshTokenClient(
-            refreshTokenClientConfig
-        );
-        return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
+        const validRequest = this.initializeRequest(request) as RefreshTokenRequest;
+        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenByRefreshToken, validRequest.correlationId!);
+        try {
+            const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
+                request.authority
+            );
+            this.logger.verbose("Auth client config generated");
+            const refreshTokenClient = new RefreshTokenClient(
+                refreshTokenClientConfig
+            );
+            return refreshTokenClient.acquireToken(validRequest, telemetryManager);
+        } catch (e) {
+            telemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 
     /**
@@ -121,13 +136,20 @@ export abstract class ClientApplication {
      * and the guidance is for the user to call any interactive token acquisition API (eg: `acquireTokenByCode()`).
      */
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
-        const silentFlowClientConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        const silentFlowClient = new SilentFlowClient(
-            silentFlowClientConfig
-        );
-        return silentFlowClient.acquireToken(this.initializeRequestScopes(request) as SilentFlowRequest);
+        const validRequest = this.initializeRequest(request) as SilentFlowRequest;
+        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenSilent, validRequest.correlationId!);
+        try {
+            const silentFlowClientConfig = await this.buildOauthClientConfiguration(
+                request.authority
+            );
+            const silentFlowClient = new SilentFlowClient(
+                silentFlowClientConfig
+            );
+            return silentFlowClient.acquireToken(validRequest, telemetryManager);
+        } catch (e) {
+            telemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 
     /**
@@ -167,15 +189,16 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Generates a request with the default scopes.
+     * Generates a request with the default scopes & generates a correlationId.
      * @param authRequest
      */
-    protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
+    protected initializeRequest(authRequest: BaseAuthRequest): BaseAuthRequest {
         this.logger.verbose("initializeRequestScopes called");
 
         return {
             ...authRequest,
-            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE],
+            correlationId: authRequest && authRequest.correlationId || this.cryptoProvider.createNewGuid()
         };
     }
 
