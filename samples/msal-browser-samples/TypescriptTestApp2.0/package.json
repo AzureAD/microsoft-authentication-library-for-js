@@ -4,7 +4,7 @@
   "description": "Sample app written in typescript that shows how to use the @azure/msal-browser package",
   "main": "server.js",
   "scripts": {
-    "clean": "npm run clean:build && rm -rf dist",
+    "clean": "npm run clean:build && rimraf dist",
     "clean:build": "rimraf build-tsc build-babel",
     "copy-views": "node utils/copyViews",
     "build:babel": "babel build-tsc --out-dir build-babel --source-maps",
