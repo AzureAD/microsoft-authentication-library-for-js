@@ -50,7 +50,7 @@ class App extends Component {
   }
 
   getAccount = async () => {
-    try{
+    try {
       var result = await MSAL.getAccount();
       this.setState({
         account: result,
