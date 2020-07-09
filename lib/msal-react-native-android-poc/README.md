@@ -77,7 +77,7 @@ This proof of concept is scoped to consider:
 * Single-account mode
 
 This proof of concept does not implement:
-* compatibility with iOS
+* Compatibility with iOS
     * To allow compatibility with iOS, an [Objective-C native module](https://reactnative.dev/docs/native-modules-ios) must be created that wraps the       [MSAL for iOS and macOS](https://github.com/AzureAD/microsoft-authentication-library-for-objc#:~:text=The%20MSAL%20library%20for%20iOS%20and%20macOS%20gives,for%20those%20using%20our%20hosted%20identity%20management%20service.).
 * B2C or AD FS
     * For implementing B2C, refer to the Microsoft docs on using [MSAL for Android with B2C](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-android-b2c). Since the returned value from acquiring tokens is an [`IAuthenticationResult`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identity.client.authenticationresult?view=azure-dotnet), the results of the wrapped B2C methods can be handled in the same manner as the existing AAD methods.
