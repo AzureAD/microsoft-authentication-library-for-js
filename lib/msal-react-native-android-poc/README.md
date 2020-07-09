@@ -72,7 +72,7 @@ For a complete listing of each method's return value and map keys, see the Metho
 Because this library is a proof of concept, it is scoped to specific features and does not implement all the capabilities of an official MSAL for React Native library. 
 
 This proof of concept is scoped to consider:
-* compatibility with the Android platform
+* Compatibility with the Android platform
 * authenticating users with work and school Azure AD accounts (AAD)
 * Single-account mode
 
