@@ -217,7 +217,7 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             // Authority type is required for accounts, return if it is not available (not an account entity)
-            if (!entity.authorityType) {
+            if (!entity || StringUtils.isEmpty(entity.authorityType)) {
                 return;
             }
 
