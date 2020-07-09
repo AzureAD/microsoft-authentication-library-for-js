@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "clean": "npm run clean:build && rm -rf dist",
-    "clean:build": "rm -rf build-tsc build-babel",
+    "clean:build": "rimraf build-tsc build-babel",
     "copy-views": "node utils/copyViews",
     "build:babel": "babel build-tsc --out-dir build-babel --source-maps",
     "build:webpack": "webpack",
