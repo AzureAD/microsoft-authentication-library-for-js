@@ -204,7 +204,6 @@ export abstract class CacheManager implements ICacheManager {
         let entity: AccountEntity;
 
         allCacheKeys.forEach((cacheKey) => {
-            let matches: boolean = true;
             // don't parse any non-account type cache entities
             if (CredentialEntity.getCredentialType(cacheKey) !== Constants.NOT_DEFINED || this.isAppMetadata(cacheKey)) {
                 return;
@@ -217,21 +216,24 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!StringUtils.isEmpty(homeAccountId)) {
-                matches = this.matchHomeAccountId(entity, homeAccountId);
+            // Authority type is required for accounts, return if it is not available (not an account entity)
+            if (!entity.authorityType) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(environment)) {
-                matches = matches && this.matchEnvironment(entity, environment);
+            if (!StringUtils.isEmpty(homeAccountId) && !this.matchHomeAccountId(entity, homeAccountId)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(realm)) {
-                matches = matches && this.matchRealm(entity, realm);
+            if (!StringUtils.isEmpty(environment) && !this.matchEnvironment(entity, environment)) {
+                return;
             }
 
-            if (matches) {
-                matchingAccounts[cacheKey] = entity;
+            if (!StringUtils.isEmpty(realm) && !this.matchRealm(entity, realm)) {
+                return;
             }
+
+            matchingAccounts[cacheKey] = entity;
         });
 
         return matchingAccounts;
@@ -282,7 +284,6 @@ export abstract class CacheManager implements ICacheManager {
         };
 
         allCacheKeys.forEach((cacheKey) => {
-            let matches: boolean = true;
             let entity: CredentialEntity;
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
@@ -297,44 +298,42 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!StringUtils.isEmpty(homeAccountId)) {
-                matches = this.matchHomeAccountId(entity, homeAccountId);
+            if (!StringUtils.isEmpty(homeAccountId) && !this.matchHomeAccountId(entity, homeAccountId)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(environment)) {
-                matches = matches && this.matchEnvironment(entity, environment);
+            if (!StringUtils.isEmpty(environment) && !this.matchEnvironment(entity, environment)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(realm)) {
-                matches = matches && this.matchRealm(entity, realm);
+            if (!StringUtils.isEmpty(realm) && !this.matchRealm(entity, realm)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(credentialType)) {
-                matches = matches && this.matchCredentialType(entity, credentialType);
+            if (!StringUtils.isEmpty(credentialType) && !this.matchCredentialType(entity, credentialType)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(clientId)) {
-                matches = matches && this.matchClientId(entity, clientId);
+            if (!StringUtils.isEmpty(clientId) && !this.matchClientId(entity, clientId)) {
+                return;
             }
 
             // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
             // TODO: Add case for target specific refresh tokens
-            if (!StringUtils.isEmpty(target) && credType === CredentialType.ACCESS_TOKEN) {
-                matches = matches && this.matchTarget(entity, target);
+            if (!StringUtils.isEmpty(target) && credType === CredentialType.ACCESS_TOKEN && !this.matchTarget(entity, target)) {
+                return;
             }
 
-            if (matches) {
-                switch (credType) {
-                    case CredentialType.ID_TOKEN:
-                        matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
-                        break;
-                    case CredentialType.ACCESS_TOKEN:
-                        matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
-                        break;
-                    case CredentialType.REFRESH_TOKEN:
-                        matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
-                        break;
-                }
+            switch (credType) {
+                case CredentialType.ID_TOKEN:
+                    matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
+                    break;
+                case CredentialType.ACCESS_TOKEN:
+                    matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
+                    break;
+                case CredentialType.REFRESH_TOKEN:
+                    matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
+                    break;
             }
         });
 
@@ -395,7 +394,7 @@ export abstract class CacheManager implements ICacheManager {
         entity: AccountEntity | CredentialEntity,
         homeAccountId: string
     ): boolean {
-        return homeAccountId === entity.homeAccountId;
+        return entity.homeAccountId && homeAccountId === entity.homeAccountId;
     }
 
     /**
