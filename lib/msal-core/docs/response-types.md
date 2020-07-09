@@ -52,7 +52,7 @@ Example:
 
 ### Implications
 
-In summary, the server request **configuration object** is what `msal@1.x.x` uses (in the Implicit Flow) to determine the contents of the actual server request **URL** string that makes up the `GET` request sent to the server. In relation to scopes and response types, this has the following implications:
+In summary, the server request **configuration object** is what `msal@1.x.x` uses (in the Implicit Flow) to determine the contents of the actual server request **URL** string that makes up the `GET` request sent to the server. Regarding scopes and response types, this has the following implications:
 
 1. The `scopes` attribute in the server request **configuration object** is used to determine the `response_type` that will be set in the server request **URL**.
 2. All **valid** contents of the `scopes` attribute in the server request **configuration object** will be added to the `scopes` parameter of the final server request **URL**, but the final server request **URL** scopes will have an **extended** version of the configuration scopes by adding login scopes (defined in the following section) if they are not already present in the **configuration object**. 
