@@ -14,8 +14,9 @@
         "esModuleInterop": true,
         "resolveJsonModule": true
     },
-    "files": [
-        "./test/*.ts"
+    "include": [
+        "./e2eTests/*.ts",
+        "./app/test/**/*.ts"
     ],
     "exclude": [
         "node_modules"
