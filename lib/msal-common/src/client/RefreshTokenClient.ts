@@ -13,6 +13,7 @@ import { ScopeSet } from "../request/ScopeSet";
 import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { TelemetryManager } from "../telemetry/TelemetryManager";
 
 /**
  * OAuth2.0 refresh token client
@@ -23,8 +24,8 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
-        const response = await this.executeTokenRequest(request, this.authority);
+    public async acquireToken(request: RefreshTokenRequest, telemetryManager?: TelemetryManager): Promise<AuthenticationResult>{
+        const response = await this.executeTokenRequest(request, this.authority, telemetryManager);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -42,11 +43,15 @@ export class RefreshTokenClient extends BaseClient {
         return tokenResponse;
     }
 
-    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
+    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority, telemetryManager?: TelemetryManager)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        let headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+
+        if (telemetryManager) {
+            headers = telemetryManager.addTelemetryHeaders(headers);
+        }
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }
