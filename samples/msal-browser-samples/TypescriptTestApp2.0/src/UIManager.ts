@@ -22,7 +22,7 @@ export class UIManager {
         UIManager.signInButton.setAttribute('class', "btn btn-success")
         UIManager.signInButton.innerHTML = "Sign Out";
     }
-    
+
     static clearTabs() {
         UIManager.tabList.innerHTML = '';
         UIManager.tabContent.innerHTML = '';
@@ -31,42 +31,54 @@ export class UIManager {
     static updateUI(data: UserInfo | MailInfo, endpoint: string) {
         console.log(`Graph API responded at: ${new Date().toString()}`);
         if (endpoint === GRAPH_CONFIG.GRAPH_ME_ENDPT) {
-            const userInfo = data as UserInfo;
-            const profile = document.createElement("pre");
-            profile.innerHTML = JSON.stringify(userInfo, null, 4);
-            UIManager.clearTabs();
-            UIManager.tabContent.appendChild(profile);
+            UIManager.setProfile(data as UserInfo);
         } else if (endpoint === GRAPH_CONFIG.GRAPH_MAIL_ENDPT) {
-            const mailInfo = data as MailInfo;
-            if (mailInfo.value.length < 1) {
-                alert("Your mailbox is empty!")
-            } else {
-                UIManager.clearTabs();
-                mailInfo.value.map((d: any, i) => {
-                    // Keeping it simple
-                    if (i < 10) {
-                        const listItem = document.createElement("a");
-                        listItem.setAttribute("class", "list-group-item list-group-item-action")
-                        listItem.setAttribute("id", "list" + i + "list")
-                        listItem.setAttribute("data-toggle", "list")
-                        listItem.setAttribute("href", "#list" + i)
-                        listItem.setAttribute("role", "tab")
-                        listItem.setAttribute("aria-controls", `${i}`)
-                        listItem.innerHTML = d.subject;
-                        UIManager.tabList.appendChild(listItem)
-    
-                        const contentItem = document.createElement("div");
-                        contentItem.setAttribute("class", "tab-pane fade")
-                        contentItem.setAttribute("id", "list" + i)
-                        contentItem.setAttribute("role", "tabpanel")
-                        contentItem.setAttribute("aria-labelledby", "list" + i + "list")
-                        if (d.from) {
-                            contentItem.innerHTML = "<strong> from: " + d.from.emailAddress.address + "</strong><br><br>" + d.bodyPreview + "...";
-                            UIManager.tabContent.appendChild(contentItem);
-                        }
-                    }
-                });
-            }
+            UIManager.setMail(data as MailInfo);
+        }
+    }
+
+    static setProfile(data: UserInfo) {
+        const userInfo = data as UserInfo;
+        const profile = document.createElement("pre");
+        profile.innerHTML = JSON.stringify(userInfo, null, 4);
+        UIManager.clearTabs();
+        UIManager.tabContent.appendChild(profile);
+    }
+
+    static setMail(data: MailInfo) {
+        const mailInfo = data as MailInfo;
+        if (mailInfo.value.length < 1) {
+            alert("Your mailbox is empty!")
+        } else {
+            UIManager.clearTabs();
+            mailInfo.value.slice(0, 10).forEach((d: any, i) => {
+                    UIManager.createAndAppendListItem(d, i);
+                    UIManager.createAndAppendContentItem(d, i);
+            });
+        }
+    }
+
+    static createAndAppendListItem(d: any, i: Number) {
+        const listItem = document.createElement("a");
+        listItem.setAttribute("class", "list-group-item list-group-item-action")
+        listItem.setAttribute("id", "list" + i + "list")
+        listItem.setAttribute("data-toggle", "list")
+        listItem.setAttribute("href", "#list" + i)
+        listItem.setAttribute("role", "tab")
+        listItem.setAttribute("aria-controls", `${i}`)
+        listItem.innerHTML = d.subject;
+        UIManager.tabList.appendChild(listItem)
+    }
+
+    static createAndAppendContentItem(d: any, i: Number) {
+        const contentItem = document.createElement("div");
+        contentItem.setAttribute("class", "tab-pane fade")
+        contentItem.setAttribute("id", "list" + i)
+        contentItem.setAttribute("role", "tabpanel")
+        contentItem.setAttribute("aria-labelledby", "list" + i + "list")
+        if (d.from) {
+            contentItem.innerHTML = "<strong> from: " + d.from.emailAddress.address + "</strong><br><br>" + d.bodyPreview + "...";
+            UIManager.tabContent.appendChild(contentItem);
         }
     }
 }
