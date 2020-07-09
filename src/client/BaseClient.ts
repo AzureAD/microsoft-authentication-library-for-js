@@ -9,7 +9,7 @@ import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
-import { NetworkResponse } from "../network/NetworkManager";
+import { NetworkResponse, NetworkManager } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
@@ -33,6 +33,9 @@ export abstract class BaseClient {
     // Network Interface
     protected networkClient: INetworkModule;
 
+    // Network Manager
+    protected networkManager: NetworkManager;
+
     // Default authority object
     protected authority: Authority;
 
@@ -51,6 +54,7 @@ export abstract class BaseClient {
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
+        this.networkManager = new NetworkManager(this.networkClient, this.cacheManager);
 
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
 
@@ -89,7 +93,7 @@ export abstract class BaseClient {
      * @param headers
      */
     protected executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Map<string, string>): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        return this.networkClient.sendPostRequestAsync<
+        return this.networkManager.sendPostRequest<
         ServerAuthorizationTokenResponse
         >(tokenEndpoint, {
             body: queryString,

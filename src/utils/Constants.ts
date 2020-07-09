@@ -37,11 +37,22 @@ export const Constants = {
     NOT_DEFINED: "not_defined"
 };
 
+export const MSER_TELEM_CONSTANTS = {
+    SCHEMA_VERSION: 2,
+    FAILURE_LIMIT: 3,
+    CACHE_HITS: "cacheHits",
+    FAILURES: "failures",
+    CATEGORY_SEPARATOR: "|",
+    VALUE_SEPARATOR: ","
+};
+
 /**
  * Request header names
  */
 export enum HeaderNames {
-    CONTENT_TYPE = "Content-Type"
+    CONTENT_TYPE = "Content-Type",
+    X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
+    X_CLIENT_LAST_TELEM = "x-client-last-telemetry"
 }
 
 /**

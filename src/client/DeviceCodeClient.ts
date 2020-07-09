@@ -72,7 +72,7 @@ export class DeviceCodeClient extends BaseClient {
                 interval,
                 message
             }
-        } = await this.networkClient.sendPostRequestAsync<ServerDeviceCodeResponse>(
+        } = await this.networkManager.sendPostRequest<ServerDeviceCodeResponse>(
             deviceCodeEndpoint,
             {
                 body: queryString,
