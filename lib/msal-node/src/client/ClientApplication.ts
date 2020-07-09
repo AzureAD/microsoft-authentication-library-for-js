@@ -137,7 +137,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
         const validRequest = this.initializeRequest(request) as SilentFlowRequest;
-        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenSilent, validRequest.correlationId!);
+        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenSilent, validRequest.correlationId!, validRequest.forceRefresh);
         try {
             const silentFlowClientConfig = await this.buildOauthClientConfiguration(
                 request.authority
