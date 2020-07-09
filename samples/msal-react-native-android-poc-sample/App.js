@@ -72,7 +72,7 @@ class App extends Component {
   }
 
   startSignIn = async () => {
-    try{
+    try {
       var result = await MSAL.signIn(this.state.scopesValue);
       this.setState({
         account: result,
