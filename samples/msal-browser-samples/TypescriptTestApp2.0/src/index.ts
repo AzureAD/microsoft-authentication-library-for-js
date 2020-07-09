@@ -23,6 +23,10 @@ export function signIn(method: string): void {
     authModule.login(signInType);
 }
 
+export function signOut(): void {
+    authModule.logout();
+}
+
 export async function seeProfile(): Promise<void> {
     const token = isIE ? await authModule.getProfileTokenRedirect() : await authModule.getProfileTokenPopup();
     if (token && token.length > 0) {

@@ -18,7 +18,7 @@ export class UIManager {
         UIManager.cardDiv.style.display = 'initial';
         UIManager.welcomeDiv.innerHTML = `Welcome ${account.username}`;
         (UIManager.signInButton.nextElementSibling as HTMLElement).style.display = 'none';
-        UIManager.signInButton.setAttribute("onclick", "signOut();");
+        UIManager.signInButton.setAttribute("onclick", "App.signOut();");
         UIManager.signInButton.setAttribute('class', "btn btn-success")
         UIManager.signInButton.innerHTML = "Sign Out";
     }

@@ -1,4 +1,4 @@
-import { PublicClientApplication, AuthorizationUrlRequest, SilentFlowRequest, AuthenticationResult, Configuration, LogLevel, AccountInfo, InteractionRequiredAuthError } from "@azure/msal-browser";
+import { PublicClientApplication, AuthorizationUrlRequest, SilentFlowRequest, AuthenticationResult, Configuration, LogLevel, AccountInfo, InteractionRequiredAuthError, EndSessionRequest } from "@azure/msal-browser";
 import { UIManager } from "./UIManager";
 
 const MSAL_CONFIG: Configuration = {
@@ -120,6 +120,14 @@ export class AuthModule {
         } else if (signInType === "loginRedirect") {
             this.myMSALObj.loginRedirect(this.loginRequest);
         }
+    }
+
+    logout(): void {
+        const logOutRequest: EndSessionRequest = {
+            account: this.account
+        };
+
+        this.myMSALObj.logout(logOutRequest);
     }
 
     async getProfileTokenRedirect(): Promise<string> {
