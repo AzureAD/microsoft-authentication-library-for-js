@@ -10,6 +10,8 @@ export class UIManager {
     static mailButton = document.getElementById("readMail");
     static profileButton = document.getElementById("seeProfile");
     static profileDiv = document.getElementById("profile-div");
+    static tabList = document.getElementById("list-tab");
+    static tabContent = document.getElementById("nav-tabContent");
 
     static showWelcomeMessage(account: AccountInfo) {
         // Reconfiguring DOM elements
@@ -20,32 +22,26 @@ export class UIManager {
         UIManager.signInButton.setAttribute('class', "btn btn-success")
         UIManager.signInButton.innerHTML = "Sign Out";
     }
+    
+    static clearTabs() {
+        UIManager.tabList.innerHTML = '';
+        UIManager.tabContent.innerHTML = '';
+    }
 
     static updateUI(data: UserInfo | MailInfo, endpoint: string) {
         console.log(`Graph API responded at: ${new Date().toString()}`);
         if (endpoint === GRAPH_CONFIG.GRAPH_ME_ENDPT) {
             const userInfo = data as UserInfo;
-            const title = document.createElement('p');
-            title.innerHTML = "<strong>Title: </strong>" + userInfo.jobTitle;
-            const email = document.createElement('p');
-            email.innerHTML = "<strong>Mail: </strong>" + userInfo.mail;
-            const phone = document.createElement('p');
-            phone.innerHTML = "<strong>Phone: </strong>" + userInfo.businessPhones[0];
-            const address = document.createElement('p');
-            address.innerHTML = "<strong>Location: </strong>" + userInfo.officeLocation;
-            UIManager.profileDiv.appendChild(title);
-            UIManager.profileDiv.appendChild(email);
-            UIManager.profileDiv.appendChild(phone);
-            UIManager.profileDiv.appendChild(address);
-            UIManager.profileButton.style.display = 'none';
+            const profile = document.createElement("pre");
+            profile.innerHTML = JSON.stringify(userInfo, null, 4);
+            UIManager.clearTabs();
+            UIManager.tabContent.appendChild(profile);
         } else if (endpoint === GRAPH_CONFIG.GRAPH_MAIL_ENDPT) {
             const mailInfo = data as MailInfo;
             if (mailInfo.value.length < 1) {
                 alert("Your mailbox is empty!")
             } else {
-                const tabList = document.getElementById("list-tab");
-                const tabContent = document.getElementById("nav-tabContent");
-    
+                UIManager.clearTabs();
                 mailInfo.value.map((d: any, i) => {
                     // Keeping it simple
                     if (i < 10) {
@@ -57,7 +53,7 @@ export class UIManager {
                         listItem.setAttribute("role", "tab")
                         listItem.setAttribute("aria-controls", `${i}`)
                         listItem.innerHTML = d.subject;
-                        tabList.appendChild(listItem)
+                        UIManager.tabList.appendChild(listItem)
     
                         const contentItem = document.createElement("div");
                         contentItem.setAttribute("class", "tab-pane fade")
@@ -66,12 +62,11 @@ export class UIManager {
                         contentItem.setAttribute("aria-labelledby", "list" + i + "list")
                         if (d.from) {
                             contentItem.innerHTML = "<strong> from: " + d.from.emailAddress.address + "</strong><br><br>" + d.bodyPreview + "...";
-                            tabContent.appendChild(contentItem);
+                            UIManager.tabContent.appendChild(contentItem);
                         }
                     }
                 });
             }
-            UIManager.mailButton.style.display = 'none';
         }
     }
 }
