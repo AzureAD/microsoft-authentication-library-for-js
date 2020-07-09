@@ -39,7 +39,7 @@ We can access the username of the currently signed in user and log it to console
 ```javascript
 try {
     var account = await MSAL.signIn(scopesValue);
-    console.log("Username: " + account.username)
+    console.log("Username: " + account.username);
 } catch (error) {
     console.log(error);
 }
