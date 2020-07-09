@@ -32,9 +32,9 @@ export class TelemetryManager {
 
     // API to add MSER Telemetry for the last failed request
     protected lastFailedRequest(): string {
-        const failures: RequestFailures = this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.FAILURES, CacheSchemaType.TEMPORARY) as RequestFailures;
-
+        const failures = this.getCachedFailures();
         const cacheHits = this.getCacheHits();
+        
         const failedRequests = failures && failures.requests ? failures.requests.join(MSER_TELEM_CONSTANTS.VALUE_SEPARATOR): "";
         const errors = failures && failures.errors ? failures.errors.join(MSER_TELEM_CONSTANTS.VALUE_SEPARATOR): "";
         const platformFields = ""; // TODO: Determine what we want to include
@@ -44,10 +44,8 @@ export class TelemetryManager {
 
     // API to cache token failures for MSER data capture
     cacheFailedRequest(error: AuthError): void {
-        const cachedFailures = this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.FAILURES, CacheSchemaType.TEMPORARY) as string;
-        let failures: RequestFailures;
-        if (cachedFailures) {
-            failures = JSON.parse(cachedFailures);
+        let failures = this.getCachedFailures();
+        if (failures) {
             failures.requests.push(this.apiId, this.correlationId);
             failures.errors.push(error.errorCode);
 
@@ -99,5 +97,10 @@ export class TelemetryManager {
     protected getCacheHits(): number {
         const cacheHits = this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.CACHE_HITS, CacheSchemaType.TEMPORARY) as string;
         return parseInt(cacheHits) || 0;
+    }
+
+    protected getCachedFailures(): RequestFailures {
+        const cachedFailures = this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.FAILURES, CacheSchemaType.TEMPORARY) as string;
+        return cachedFailures? JSON.parse(cachedFailures) as RequestFailures: null;
     }
 }
