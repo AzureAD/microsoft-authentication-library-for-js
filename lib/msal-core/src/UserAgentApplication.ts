@@ -344,7 +344,7 @@ export class UserAgentApplication {
         this.logger.verbose("LoginRedirect has been called");
         
         // Validate request before calling acquireTokenInteractive
-        const request: AuthenticationParameters = RequestUtils.validateLoginRequest(userRequest, this.clientId, Constants.interactionTypeRedirect);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
@@ -358,7 +358,7 @@ export class UserAgentApplication {
         this.logger.verbose("AcquireTokenRedirect has been called");
 
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypeRedirect);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
     }
 
@@ -373,7 +373,7 @@ export class UserAgentApplication {
         this.logger.verbose("LoginPopup has been called");
 
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateLoginRequest(userRequest, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -402,7 +402,7 @@ export class UserAgentApplication {
         this.logger.verbose("AcquireTokenPopup has been called");
 
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -2242,15 +2242,15 @@ export class UserAgentApplication {
         // Check if account in request matches account in cache
         const accountsMatch = Account.compareAccounts(accountObject, this.getAccount());
         // Check if both 'openid' and 'profile' are contained
-        const containsOIDCScopes = ScopeSet.containsOIDCScopes(scopes);
+        const containsOidcScopes = ScopeSet.containsOidcScopes(scopes);
 
         // response_type is id_token because only OIDC scopes are present (["openid", "profile"].length == 2);
-        if (containsOIDCScopes && (scopes.length == 2)) {
+        if (containsOidcScopes && (scopes.length == 2)) {
             return ResponseTypes.id_token;
         }
 
         // response_type is token because there are no OIDC scopes and accounts match so login is not necessary.
-        if(!containsOIDCScopes && accountsMatch) {
+        if(!containsOidcScopes && accountsMatch) {
             return ResponseTypes.token;
         }
 

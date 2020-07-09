@@ -20,100 +20,82 @@ describe("RequestUtils.ts class", () => {
     };
 
     describe("validateRequest", () => {
-        it("should throw emptyRequestError when the request passed in is null", () => {
-            let emptyRequestError: ClientConfigurationError;
 
-            try {
-                const userRequest: AuthenticationParameters = null;
-                const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
-            } catch (e) {
-                emptyRequestError = e;
-            }
-
-            expect(emptyRequestError instanceof ClientConfigurationError).to.be.true;
-            expect(emptyRequestError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyRequestError.code);
-            expect(emptyRequestError.name).to.equal("ClientConfigurationError");
-            expect(emptyRequestError.stack).to.include("RequestUtils.spec.ts");
+        describe("for login calls", () => {
+            afterEach(() => {
+                sinon.restore();
+            });
+    
+            it("should append extra scopes to consent to request scopes after calling validateRequest", () => {
+                const extraScope = "s1";
+                const loginRequest: AuthenticationParameters = { ...scopelessRequest, extraScopesToConsent: [ extraScope ] };
+                const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateRequest(loginRequest, true, clientId, Constants.interactionTypeSilent);
+                expect(validatedLoginRequest.scopes).to.include(extraScope);
+            });
         });
 
-        it("should throw scopesRequiredError if scopes are empty or null", () => {
-            let scopesRequiredError: ClientConfigurationError;
 
-            try {
-                const request: AuthenticationParameters = RequestUtils.validateRequest(scopelessRequest, clientId, Constants.interactionTypeSilent);
-            } catch (e) {
-                scopesRequiredError = e;
-            }
+        describe("for acquire token calls", () => {
+            it("should throw emptyRequestError when the request passed in is null", () => {
+                let emptyRequestError: ClientConfigurationError;
 
-            expect(scopesRequiredError instanceof ClientConfigurationError).to.eq(true);
-            expect(scopesRequiredError.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-            expect(scopesRequiredError.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-        });
+                try {
+                    const userRequest: AuthenticationParameters = null;
+                    const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
+                } catch (e) {
+                    emptyRequestError = e;
+                }
 
-        it("should throw scopesNonArrayError if scopes is not an array object", () => {
-            let scopesNonArrayError: ClientConfigurationError;
-
-            try {
-                // @ts-ignore
-                const userRequest: AuthenticationParameters = { ...scopelessRequest, scopes: {} };
-                const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, clientId, Constants.interactionTypeSilent);
-            } catch (e) {
-                scopesNonArrayError = e;
-            }
-
-            expect(scopesNonArrayError instanceof ClientConfigurationError).to.eq(true);
-            expect(scopesNonArrayError.errorCode).to.equal(ClientConfigurationErrorMessage.nonArrayScopes.code);
-            expect(scopesNonArrayError.message).to.contain(ClientConfigurationErrorMessage.nonArrayScopes.desc);
-        });
-
-        it("should throw emptyScopesArrayError if scopes is an empty array", () => {
-            let emptyScopesArrayError: ClientConfigurationError;
-
-            try {
-                const userRequest: AuthenticationParameters = { ...scopelessRequest, scopes: [] };
-                const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, clientId, Constants.interactionTypeSilent);
-            } catch (e) {
-                emptyScopesArrayError = e;
-            }
-
-            expect(emptyScopesArrayError instanceof ClientConfigurationError).to.eq(true);
-            expect(emptyScopesArrayError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
-            expect(emptyScopesArrayError.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
-        });
-
-    });
-
-    describe("validateLoginRequest", () => {
-        afterEach(() => {
-            sinon.restore();
-        });
-
-        it("should append openid and profile to request scopes if they are not included before calling validateRequest", () => {
-            const loginRequest: AuthenticationParameters = { ...scopelessRequest, scopes: ["s1"] };
-
-            sinon.stub(RequestUtils, "validateRequest").callsFake((loginRequest: AuthenticationParameters, clientId: string, interactionType: InteractionType) : AuthenticationParameters => {
-                expect(loginRequest.scopes).to.include(Constants.openidScope);
-                expect(loginRequest.scopes).to.include(Constants.profileScope);
-                return loginRequest;
+                expect(emptyRequestError instanceof ClientConfigurationError).to.be.true;
+                expect(emptyRequestError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyRequestError.code);
+                expect(emptyRequestError.name).to.equal("ClientConfigurationError");
+                expect(emptyRequestError.stack).to.include("RequestUtils.spec.ts");
             });
 
-            const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateLoginRequest(loginRequest, clientId, Constants.interactionTypeSilent);
-        });
+            it("should throw invalidScopesError if scopes are empty or null", () => {
+                let invalidScopesErrorError: ClientConfigurationError;
 
-        it("should append extra scopes to consent to request scopes after calling validateRequest", () => {
-            const extraScope = "s1";
-            const loginRequest: AuthenticationParameters = { ...scopelessRequest, extraScopesToConsent: [ extraScope ] };
-            const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateLoginRequest(loginRequest, clientId, Constants.interactionTypeSilent);
-            // At this point, scopes should include openid, profile and S1, the extra scope to consent
-            expect(validatedLoginRequest.scopes.length).to.eql(3);
-            expect(validatedLoginRequest.scopes).to.include(extraScope);
-        });
+                try {
+                    const request: AuthenticationParameters = RequestUtils.validateRequest(scopelessRequest, false, clientId, Constants.interactionTypeSilent);
+                } catch (e) {
+                    invalidScopesErrorError = e;
+                }
 
-        it("should only append login scopes once when openid and profile are passed in as extraScopesToAppend", () => {
-            const extraScopes = ["openid", "profile"];
-            const loginRequest: AuthenticationParameters = { ...scopelessRequest, extraScopesToConsent: extraScopes };
-            const validatedLoginRequest: AuthenticationParameters = RequestUtils.validateLoginRequest(loginRequest, clientId, Constants.interactionTypeSilent);
-            expect(validatedLoginRequest.scopes).to.deep.eq(extraScopes);
+                expect(invalidScopesErrorError instanceof ClientConfigurationError).to.eq(true);
+                expect(invalidScopesErrorError.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+                expect(invalidScopesErrorError.message).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            });
+
+            it("should throw scopesNonArrayError if scopes is not an array object", () => {
+                let invalidScopesError: ClientConfigurationError;
+
+                try {
+                    // @ts-ignore
+                    const userRequest: AuthenticationParameters = { ...scopelessRequest, scopes: {} };
+                    const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, clientId, Constants.interactionTypeSilent);
+                } catch (e) {
+                    invalidScopesError = e;
+                }
+
+                expect(invalidScopesError instanceof ClientConfigurationError).to.eq(true);
+                expect(invalidScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+                expect(invalidScopesError.message).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            });
+
+            it("should throw invalidScopesError if scopes is an empty array", () => {
+                let invalidScopesError: ClientConfigurationError;
+
+                try {
+                    const userRequest: AuthenticationParameters = { ...scopelessRequest, scopes: [] };
+                    const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, clientId, Constants.interactionTypeSilent);
+                } catch (e) {
+                    invalidScopesError = e;
+                }
+
+                expect(invalidScopesError instanceof ClientConfigurationError).to.eq(true);
+                expect(invalidScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+                expect(invalidScopesError.message).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            });
         });
     });
 

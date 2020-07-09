@@ -31,17 +31,9 @@ export const ClientConfigurationErrorMessage: Record<string, IClientConfiguratio
         desc: "The object passed for the callback was invalid. " +
           "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
-    scopesRequired: {
-        code: "scopes_required",
-        desc: "Scopes are required to obtain an access token."
-    },
-    emptyScopes: {
-        code: "empty_input_scopes_error",
-        desc: "Scopes cannot be passed as empty array."
-    },
-    nonArrayScopes: {
-        code: "nonarray_input_scopes_error",
-        desc: "Scopes cannot be passed as non-array."
+    invalidScopes: {
+        code: "invalid_scopes",
+        desc: "Invalid scopes given. Scopes must be a non-empty, non-null array."
     },
     invalidPrompt: {
         code: "invalid_prompt_value",
@@ -131,14 +123,9 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.invalidCallbackObject.desc} Given value for callback function: ${callbackObject}`);
     }
 
-    static createEmptyScopesArrayError(scopesValue: string): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopes.code,
-            `${ClientConfigurationErrorMessage.emptyScopes.desc} Given value: ${scopesValue}.`);
-    }
-
-    static createScopesNonArrayError(scopesValue: string): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopes.code,
-            `${ClientConfigurationErrorMessage.nonArrayScopes.desc} Given value: ${scopesValue}.`);
+    static createInvalidScopesError(scopesValue: any): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidScopes.code,
+            `${ClientConfigurationErrorMessage.invalidScopes.desc} Given value: ${scopesValue}.`);
     }
 
     static createClientIdSingleScopeError(scopesValue: string): ClientConfigurationError {

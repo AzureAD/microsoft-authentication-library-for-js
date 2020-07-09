@@ -34,27 +34,34 @@ export class RequestUtils {
      *
      * validates all request parameters and generates a consumable request object
      */
-    static validateRequest(request: AuthenticationParameters, clientId: string, interactionType: InteractionType): AuthenticationParameters {
+    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
         // Throw error if request is empty for acquire * calls
-        if (!request) {
+        if (!isLoginCall && !request) {
             throw ClientConfigurationError.createEmptyRequestError();
         }
 
-        // Check scopes in request are valid
-        const requestScopes = request.scopes;
-        ScopeSet.validateInputScope(requestScopes);
+        let scopes = (request && request.scopes) || [];
+        let extraQueryParameters: StringDict;
 
-        // Generate missing login scopes when any login scope is included in request scopes, otherwise set scopes to requestScopes
-        const scopes = ScopeSet.isLoginScopes(requestScopes, clientId) ? ScopeSet.generateLoginScopes(requestScopes) : requestScopes;
+        if (request) {
+            // Append extra scopes to consent for login calls, otherwise set to request.scopes
+            const requestScopes = isLoginCall ? ScopeSet.appendScopes(scopes, request.extraScopesToConsent) : scopes;
+            
+            // Validate scopes contained in request, throws if invalid
+            ScopeSet.validateInputScope(requestScopes, !isLoginCall);
 
-        // validate prompt parameter
-        this.validatePromptParameter(request.prompt);
+            // Generate missing OIDC scopes when any login scope is included in request scopes, otherwise set scopes to requestScopes
+            scopes = ScopeSet.isLoginScopes(requestScopes, clientId) ? ScopeSet.generateOidcScopes(requestScopes) : requestScopes;
 
-        // validate extraQueryParameters
-        const extraQueryParameters = this.validateEQParameters(request.extraQueryParameters, request.claimsRequest);
+            // validate prompt parameter
+            this.validatePromptParameter(request.prompt);
 
-        // validate claimsRequest
-        this.validateClaimsRequest(request.claimsRequest);
+            // validate extraQueryParameters
+            extraQueryParameters = this.validateEQParameters(request.extraQueryParameters, request.claimsRequest);
+
+            // validate claimsRequest
+            this.validateClaimsRequest(request.claimsRequest);
+        }
 
         // validate and generate state and correlationId
         const state = this.validateAndGenerateState(request && request.state, interactionType);
@@ -69,28 +76,6 @@ export class RequestUtils {
         };
 
         return validatedRequest;
-    }
-
-    /**
-     * 
-     * @param request 
-     * @param clientId 
-     * @param interactionType 
-     */
-    static validateLoginRequest(request: AuthenticationParameters, clientId: string, interactionType: InteractionType): AuthenticationParameters {
-        const requestScopes = (request && request.scopes) || [];
-        const extraScopesToConsent = (request && request.extraScopesToConsent) || [];
-
-        // Append extra scopes to consent to request scopes
-        const scopes = ScopeSet.appendScopes(requestScopes, extraScopesToConsent);
-
-        // Append openid and profile to scopes by default for login calls
-        const loginScopes = ScopeSet.generateLoginScopes(scopes);
-
-        // validate request
-        const userRequest: AuthenticationParameters = RequestUtils.validateRequest({...request, scopes: loginScopes}, clientId, interactionType);
-
-        return userRequest;
     }
 
     /**
