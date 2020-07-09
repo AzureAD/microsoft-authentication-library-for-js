@@ -45,8 +45,18 @@ export enum TemporaryCacheKeys {
     REQUEST_STATE = "request.state",
     NONCE_IDTOKEN = "nonce.id_token",
     ORIGIN_URI = "request.origin",
+    CORRELATION_ID = "request.correlationId",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
 }
+
+export enum ApiId {
+    acquireTokenRedirect = 861,
+    acquireTokenPopup = 862,
+    ssoSilent = 863,
+    acquireTokenSilent_authCode = 864,
+    handleRedirectPromise = 865,
+    acquireTokenSilent_silentFlow = 61
+};
