@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { MSER_TELEM_CONSTANTS, HeaderNames } from "../utils/Constants";
+import { MSER_TELEM_CONSTANTS, HeaderNames, CacheSchemaType } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { RequestFailures } from "./RequestFailures";
 import { AuthError } from "../error/AuthError";
@@ -32,7 +32,7 @@ export class TelemetryManager {
 
     // API to add MSER Telemetry for the last failed request
     protected lastFailedRequest(): string {
-        const failures: RequestFailures = this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.FAILURES) as RequestFailures;
+        const failures: RequestFailures = this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.FAILURES, CacheSchemaType.TEMPORARY) as RequestFailures;
 
         const cacheHits = this.getCacheHits();
         const failedRequests = failures && failures.requests ? failures.requests.join(MSER_TELEM_CONSTANTS.VALUE_SEPARATOR): "";
@@ -44,8 +44,10 @@ export class TelemetryManager {
 
     // API to cache token failures for MSER data capture
     cacheFailedRequest(error: AuthError): void {
-        let failures: RequestFailures = this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.FAILURES) as RequestFailures;
-        if (failures) {
+        const cachedFailures = this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.FAILURES, CacheSchemaType.TEMPORARY) as string;
+        let failures: RequestFailures;
+        if (cachedFailures) {
+            failures = JSON.parse(cachedFailures);
             failures.requests.push(this.apiId, this.correlationId);
             failures.errors.push(error.errorCode);
 
@@ -65,7 +67,7 @@ export class TelemetryManager {
             };
         }
 
-        this.cacheStorage.setItem(MSER_TELEM_CONSTANTS.FAILURES, failures);
+        this.cacheStorage.setItem(MSER_TELEM_CONSTANTS.FAILURES, JSON.stringify(failures), CacheSchemaType.TEMPORARY);
 
         return;
     }
@@ -83,18 +85,19 @@ export class TelemetryManager {
      * @param cacheStorage
      */
     static clearTelemetryCache(cacheStorage: CacheManager): void {
-        cacheStorage.removeItem(MSER_TELEM_CONSTANTS.CACHE_HITS);
-        cacheStorage.removeItem(MSER_TELEM_CONSTANTS.FAILURES);
+        cacheStorage.removeItem(MSER_TELEM_CONSTANTS.CACHE_HITS, CacheSchemaType.TEMPORARY);
+        cacheStorage.removeItem(MSER_TELEM_CONSTANTS.FAILURES, CacheSchemaType.TEMPORARY);
     }
 
     incrementCacheHits(): number {
         let cacheHits = this.getCacheHits();
         cacheHits += 1;
-        this.cacheStorage.setItem(MSER_TELEM_CONSTANTS.CACHE_HITS, `${cacheHits}`);
+        this.cacheStorage.setItem(MSER_TELEM_CONSTANTS.CACHE_HITS, cacheHits.toString(), CacheSchemaType.TEMPORARY);
         return cacheHits;
     }
 
     protected getCacheHits(): number {
-        return parseInt(this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.CACHE_HITS) as string) || 0;
+        const cacheHits = this.cacheStorage.getItem(MSER_TELEM_CONSTANTS.CACHE_HITS, CacheSchemaType.TEMPORARY) as string;
+        return parseInt(cacheHits) || 0;
     }
 }
