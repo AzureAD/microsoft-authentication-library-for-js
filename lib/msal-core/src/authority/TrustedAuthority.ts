@@ -2,7 +2,7 @@ import TelemetryManager from "../telemetry/TelemetryManager";
 import { XhrClient, XhrResponse } from "../XHRClient";
 import HttpEvent from "../telemetry/HttpEvent";
 import { AAD_INSTANCE_DISCOVERY_ENDPOINT, NetworkRequestType } from "../utils/Constants";
-import { UrlUtils } from '../utils/UrlUtils';
+import { UrlUtils } from "../utils/UrlUtils";
 
 export class TrustedAuthority {
     private static TrustedHostList: Array<string> = [];
