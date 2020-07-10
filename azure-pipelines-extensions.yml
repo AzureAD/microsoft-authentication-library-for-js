@@ -12,12 +12,3 @@ jobs:
     steps:
       - template: build/sdl-tasks.yml
       - template: build/npm-build-extensions-steps.yml
-
-pr:
-    branches:
-        - '*'
-    paths:
-        include:
-            - extensions/*
-        exclude:
-            - '*'
