@@ -193,7 +193,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
 			interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
 			expect(tokenResponse).to.deep.eq(testTokenResponse);
-			expect(acquireTokenSpy.calledWith(testAuthCodeRequest, null, null)).to.be.true;
+			expect(acquireTokenSpy.calledWith(testAuthCodeRequest, undefined, null, null)).to.be.true;
         });
     });
 });
