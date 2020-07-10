@@ -5,7 +5,7 @@
 
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, APP_META_DATA } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_META_DATA, SERVER_TELEM_CONSTANTS } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -461,6 +461,14 @@ export abstract class CacheManager implements ICacheManager {
      */
     private isAppMetadata(key: string): boolean {
         return key.indexOf(APP_META_DATA) !== -1;
+    }
+
+    /**
+     * resets Cache Hits and Failures after network call successfully logged by server
+     */
+    clearTelemetryCache(): void {
+        this.removeItem(SERVER_TELEM_CONSTANTS.CACHE_HITS_KEY, CacheSchemaType.TELEMETRY);
+        this.removeItem(SERVER_TELEM_CONSTANTS.LAST_FAILED_REQUEST_KEY, CacheSchemaType.TELEMETRY);
     }
 
     /**

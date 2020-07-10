@@ -37,15 +37,6 @@ export const Constants = {
     NOT_DEFINED: "not_defined"
 };
 
-export const MSER_TELEM_CONSTANTS = {
-    SCHEMA_VERSION: 2,
-    FAILURE_LIMIT: 3,
-    CACHE_HITS: "cacheHits",
-    FAILURES: "failures",
-    CATEGORY_SEPARATOR: "|",
-    VALUE_SEPARATOR: ","
-};
-
 /**
  * Request header names
  */
@@ -236,7 +227,8 @@ export enum CacheSchemaType {
     ACCOUNT = "Account",
     CREDENTIAL = "Credential",
     APP_META_DATA = "AppMetadata",
-    TEMPORARY = "TempCache"
+    TEMPORARY = "TempCache",
+    TELEMETRY = "Telemetry",
 }
 
 /**
@@ -258,3 +250,13 @@ export enum CacheType {
  */
 export const APP_META_DATA = "appmetadata";
 export const ClientInfo = "client_info";
+export const ServerTelemetry = "server-telemetry";
+
+export const SERVER_TELEM_CONSTANTS = {
+    SCHEMA_VERSION: 2,
+    FAILURE_LIMIT: 3,
+    CACHE_HITS_KEY: `${ServerTelemetry}-cacheHits`,
+    LAST_FAILED_REQUEST_KEY: `${ServerTelemetry}-failures`,
+    CATEGORY_SEPARATOR: "|",
+    VALUE_SEPARATOR: ","
+};

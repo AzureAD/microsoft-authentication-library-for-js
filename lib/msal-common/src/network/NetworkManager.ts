@@ -32,7 +32,7 @@ export class NetworkManager {
 
         if (NetworkManager.serverLoggedRequest(response)) {
             // Request was logged by server, clear telemetry cache
-            TelemetryManager.clearTelemetryCache(this.cacheManager);
+            this.cacheManager.clearTelemetryCache();
         }
 
         return response;
