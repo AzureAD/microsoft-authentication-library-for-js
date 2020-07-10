@@ -5,7 +5,6 @@
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { INetworkModule, NetworkRequestOptions } from "./INetworkModule";
 import { CacheManager } from "../cache/CacheManager";
-import { TelemetryManager } from "../telemetry/TelemetryManager";
 
 export type NetworkResponse<T> = {
     headers: Map<string, string>;
