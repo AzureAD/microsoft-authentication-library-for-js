@@ -22,8 +22,8 @@ import com.microsoft.identity.client.exception.MsalException;
 
 import static com.facebook.react.views.textinput.ReactTextInputManager.TAG;
 
-//import DEFAULT_SCOPES from Constants.java
-import static com.reactlibrary.Constants.DEFAULT_SCOPES;
+//import constants from Constants.java
+import static com.reactlibrary.Constants.*;
 
 import java.util.Arrays;
 
@@ -52,7 +52,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
    */
     @Override
     public String getName() {
-        return "MSAL";
+        return MODULE_NAME;
     }
 
     /**
@@ -65,8 +65,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
             publicClientApplication.signIn(getCurrentActivity(), null, scopesValue.toLowerCase().split(" "), getLoginCallback(promise));
         } else {
             //the default is User.Read
-            String[] array = {"User.Read"};
-            publicClientApplication.signIn(getCurrentActivity(), null, array, getLoginCallback(promise));
+            publicClientApplication.signIn(getCurrentActivity(), null, DEFAULT_SCOPES, getLoginCallback(promise));
         }
     }
 
@@ -210,8 +209,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
             publicClientApplication.acquireToken(getCurrentActivity(), scopesValue.toLowerCase().split(" "), getAuthInteractiveCallback(promise));
         } else {
             //the default is User.Read
-            String[] array = {"User.Read"};
-            publicClientApplication.acquireToken(getCurrentActivity(), array, getAuthInteractiveCallback(promise));
+            publicClientApplication.acquireToken(getCurrentActivity(), DEFAULT_SCOPES, getAuthInteractiveCallback(promise));
         }
     }
 
@@ -256,9 +254,7 @@ public class MSALModule extends ReactContextBaseJavaModule {
         } else if (!scopesValue.isEmpty()) {
             publicClientApplication.acquireTokenSilentAsync(scopesValue.toLowerCase().split(" "), account.getAuthority(), getAuthSilentCallback(promise));
         } else {
-            //the default is User.Read
-            String[] array = {"User.Read"};
-            publicClientApplication.acquireTokenSilentAsync(array, account.getAuthority(), getAuthSilentCallback(promise));
+            publicClientApplication.acquireTokenSilentAsync(DEFAULT_SCOPES, account.getAuthority(), getAuthSilentCallback(promise));
         }
     }
 
@@ -293,14 +289,14 @@ public class MSALModule extends ReactContextBaseJavaModule {
     private WritableNativeMap mapMSALResult (IAuthenticationResult result) {
         WritableNativeMap map = new WritableNativeMap();
         //add attributes from account
-        map.putMap("account", mapAccount(result.getAccount()));
+        map.putMap(KEY_ACCOUNT, mapAccount(result.getAccount()));
         //add attributes from result
-        map.putString("accessToken", result.getAccessToken());
-        map.putString("authenticationScheme", result.getAuthenticationScheme());
-        map.putString("authorizationHeader", result.getAuthorizationHeader());
-        map.putString("expiresOn", result.getExpiresOn().toString());
-        map.putString("scope", Arrays.toString(result.getScope()));
-        map.putString("tenantId", result.getTenantId());
+        map.putString(KEY_ACCESS_TOKEN, result.getAccessToken());
+        map.putString(KEY_AUTHENTICATION_SCHEME, result.getAuthenticationScheme());
+        map.putString(KEY_AUTHORIZATION_HEADER, result.getAuthorizationHeader());
+        map.putString(KEY_EXPIRES_ON, result.getExpiresOn().toString());
+        map.putString(KEY_SCOPE, Arrays.toString(result.getScope()));
+        map.putString(KEY_TENANT_ID, result.getTenantId());
         return map;
     }
 
@@ -313,11 +309,11 @@ public class MSALModule extends ReactContextBaseJavaModule {
     private WritableNativeMap mapAccount (IAccount account) {
         WritableNativeMap map = new WritableNativeMap();
         //add attributes from account
-        map.putString("authority", account.getAuthority());
-        map.putString("id", account.getId());
-        map.putString("tenantId", account.getTenantId());
-        map.putString("username", account.getUsername());
-        map.putString("idToken", (String) account.getClaims().get("id_token"));
+        map.putString(KEY_AUTHORITY, account.getAuthority());
+        map.putString(KEY_ID, account.getId());
+        map.putString(KEY_TENANT_ID, account.getTenantId());
+        map.putString(KEY_USERNAME, account.getUsername());
+        map.putString(KEY_ID_TOKEN, (String) account.getClaims().get("id_token"));
 
         return map;
     }
