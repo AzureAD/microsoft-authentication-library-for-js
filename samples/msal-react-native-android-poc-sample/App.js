@@ -51,7 +51,7 @@ class App extends Component {
 
   getAccount = async () => {
     try{
-      var result = await MSAL.getAccount();
+      const result = await MSAL.getAccount();
       this.setState({
         account: result,
       });
@@ -62,7 +62,7 @@ class App extends Component {
 
   isSharedDevice = async () => {
     try {
-      var sharedDevice = MSAL.isSharedDevice();
+      const sharedDevice = MSAL.isSharedDevice();
       this.setState({
         isSharedDevice: sharedDevice
       })
@@ -73,7 +73,7 @@ class App extends Component {
 
   startSignIn = async () => {
     try{
-      var result = await MSAL.signIn(this.state.scopesValue);
+      const result = await MSAL.signIn(this.state.scopesValue);
       this.setState({
         account: result,
       });
@@ -84,7 +84,7 @@ class App extends Component {
 
   startSignOut = async () => {
     try {
-      var result = await MSAL.signOut();
+      const result = await MSAL.signOut();
       this.setState({
         account: null,
         graphResult: null,
@@ -96,9 +96,9 @@ class App extends Component {
 
   startGetGraphDataSilently = async () => {
     try {
-      var result = await MSAL.acquireTokenSilent(this.state.scopesValue);
+      const result = await MSAL.acquireTokenSilent(this.state.scopesValue);
       //api call to MSGraph
-      var response = await fetch (
+      const response = await fetch (
         this.state.URLValue, {
           method: 'GET',
           headers: {
@@ -106,7 +106,7 @@ class App extends Component {
           }
         }
       );
-      var json = await response.json();
+      const json = await response.json();
       this.setState({
         graphResult: json
       });
@@ -117,9 +117,9 @@ class App extends Component {
 
   startGetGraphDataInteractively = async () => {
     try {
-      var result = await MSAL.acquireToken(this.state.scopesValue);
+      const result = await MSAL.acquireToken(this.state.scopesValue);
       //make api call
-      var response = await fetch (
+      const response = await fetch (
         this.state.URLValue, {
           method: 'GET',
           headers: {
@@ -127,7 +127,7 @@ class App extends Component {
           }
         }
       );
-      var json = await response.json();
+      const json = await response.json();
       //update current account and state
       await this.getAccount();
       this.setState({

@@ -37,8 +37,8 @@ try {
 Most of the methods return a map, and in the case of `signIn`, a map containing the variables of an `IAccount` object is returned.
 We can access the username of the currently signed in user and log it to console (for example):
 ```javascript
-try {
-    var account = await MSAL.signIn(scopesValue);
+try 
+    const account = await MSAL.signIn(scopesValue);
     console.log("Username: " + account.username)
 } catch (error) {
     console.log(error);
@@ -47,9 +47,9 @@ try {
 Since a user is now signed in, we can try to acquire an access token silently and make a call to Microsoft Graph API:
 ```javascript
 try {
-    var result = await MSAL.acquireTokenSilent(scopesValue);
+    const result = await MSAL.acquireTokenSilent(scopesValue);
     //api call to MSGraph
-    var response = await fetch (
+    const response = await fetch (
         "https://graph.microsoft.com/v1.0/me", {
              method: 'GET',
              headers: {
