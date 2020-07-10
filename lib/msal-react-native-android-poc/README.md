@@ -4,7 +4,7 @@ MSAL for React Native is a proof of concept that allows React Native application
 
 ### Installation
 
-`$ npm install @azuread/msal-react-native-android-poc@1.0.1`
+`$ npm install @azuread/msal-react-native-android-poc@1.0.3`
 
 ### Register your application in the Azure Portal
 Under Authentication -> Platform configurations, click "Add a platform" and select Android. 
@@ -72,14 +72,14 @@ For a complete listing of each method's return value and map keys, see the Metho
 Because this library is a proof of concept, it is scoped to specific features and does not implement all the capabilities of an official MSAL for React Native library. 
 
 This proof of concept is scoped to consider:
-* compatibility with the Android platform
-* authenticating users with work and school Azure AD accounts (AAD)
+* Compatibility with the Android platform
+* Authenticating users with work and school Azure AD accounts (AAD)
 * Single-account mode
 
 This proof of concept does not implement:
-* compatibility with iOS
+* Compatibility with iOS
     * To allow compatibility with iOS, an [Objective-C native module](https://reactnative.dev/docs/native-modules-ios) must be created that wraps the       [MSAL for iOS and macOS](https://github.com/AzureAD/microsoft-authentication-library-for-objc#:~:text=The%20MSAL%20library%20for%20iOS%20and%20macOS%20gives,for%20those%20using%20our%20hosted%20identity%20management%20service.).
-* B2C or AD FS
+* B2C or ADFS
     * For implementing B2C, refer to the Microsoft docs on using [MSAL for Android with B2C](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-android-b2c). Since the returned value from acquiring tokens is an [`IAuthenticationResult`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identity.client.authenticationresult?view=azure-dotnet), the results of the wrapped B2C methods can be handled in the same manner as the existing AAD methods.
 * Multiple-account mode
     * This could be as simple as adding an instance of [MultipleAccountPublicClientApplication](https://docs.microsoft.com/en-us/java/api/com.microsoft.identity.client.multipleaccountpublicclientapplication?view=azure-java-stable) to the existing native module file and      wrapping its corresponding methods.
@@ -93,6 +93,6 @@ Method | Description
 signIn(String scopesValue) | Directs a user to sign in with an AAD account. scopesValue is a String containing scopes separated by spaces (" "). Returns a map with the `authority`, `id`, `tenantId`, `username`, and `idToken` of the account. See the Microsoft docs on [IAccount](https://docs.microsoft.com/en-us/java/api/com.microsoft.identity.client.iaccount?view=azure-java-stable) for more details of the map's keys.
 signOut() | Signs out the account currently signed in. If successful, `true` is returned, and if not, an exception is returned.
 getAccount()| Retrieves the account currently signed in. If no account is signed in, null is returned. Otherwise, a map is returned with the `authority`, `id`, `tenantId`, `username`, and `idToken` of the account. See the Microsoft docs on [IAccount](https://docs.microsoft.com/en-us/java/api/com.microsoft.identity.client.iaccount?view=azure-java-stable) for more details of the map's keys.
-isSharedDevice() | returns a boolean that corresponds to whether the current device is shared or not.
+isSharedDevice() | Returns a boolean that corresponds to whether the current device is shared or not.
 acquireToken(String scopesValue) | Attempts to obtain an access token interactively. scopesValue is a String containing scopes separated by spaces (" "). Returns a map containing `accessToken`, `authenticationScheme`, `authorizationHeader`, `expiresOn` (string), `scope` (string), `tenantId`, and `account` (map with keys as described in "signIn"). An exception is returned otherwise. See MS docs on [IAuthenticationResult](https://docs.microsoft.com/en-us/java/api/com.microsoft.identity.client.iauthenticationresult?view=azure-java-stable) for more details.
 acquireTokenSilent(String scopesValue) | Attempts to obtain a token silently. scopesValue is a String containing scopes separated by spaces (" "). Returns a map containing `accessToken`, `authenticationScheme`, `authorizationHeader`, `expiresOn` (string), `scope` (string), `tenantId`, and `account` (map with keys as described in "signIn"). An exception is returned otherwise. See MS docs on [IAuthenticationResult](https://docs.microsoft.com/en-us/java/api/com.microsoft.identity.client.iauthenticationresult?view=azure-java-stable) for more details.
