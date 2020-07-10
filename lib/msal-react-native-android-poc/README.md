@@ -6,7 +6,7 @@ MSAL for React Native is a proof of concept that allows React Native application
 
 ### Installation
 
-`$ npm install @azuread/msal-react-native-android-poc@1.0.3`
+`$ npm install @azuread/msal-react-native-android-poc`
 
 ### Register your application in the Azure Portal
 Under Authentication -> Platform configurations, click "Add a platform" and select Android. 
