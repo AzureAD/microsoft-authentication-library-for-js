@@ -201,24 +201,12 @@ export abstract class CacheManager implements ICacheManager {
     ): AccountCache {
         const allCacheKeys = this.getKeys();
         const matchingAccounts: AccountCache = {};
-        let entity: AccountEntity;
 
         allCacheKeys.forEach((cacheKey) => {
-            // don't parse any non-account type cache entities
-            if (CredentialEntity.getCredentialType(cacheKey) !== Constants.NOT_DEFINED || this.isAppMetadata(cacheKey)) {
-                return;
-            }
+            const entity: AccountEntity | null = this.getAccountEntity(cacheKey);
 
-            // Attempt retrieval
-            try {
-                entity = this.getItem(cacheKey, CacheSchemaType.ACCOUNT) as AccountEntity;
-            } catch (e) {
-                return;
-            }
-
-            // Authority type is required for accounts, return if it is not available (not an account entity)
-            if (!entity || StringUtils.isEmpty(entity.authorityType)) {
-                return;
+            if (!entity) {
+                return null;
             }
 
             if (!StringUtils.isEmpty(homeAccountId) && !this.matchHomeAccountId(entity, homeAccountId)) {
@@ -360,24 +348,10 @@ export abstract class CacheManager implements ICacheManager {
     removeAllAccounts(): boolean {
         const allCacheKeys = this.getKeys();
         allCacheKeys.forEach((cacheKey) => {
-            // don't parse any non-account type cache entities
-            if (CredentialEntity.getCredentialType(cacheKey) !== Constants.NOT_DEFINED || this.isAppMetadata(cacheKey)) {
+            const entity: AccountEntity | null = this.getAccountEntity(cacheKey);
+            if (!entity) {
                 return;
             }
-
-            let entity: AccountEntity;
-            // Attempt retrieval
-            try {
-                entity = this.getItem(cacheKey, CacheSchemaType.ACCOUNT) as AccountEntity;
-            } catch (e) {
-                return;
-            }
-
-            // Authority type is required for accounts, return if it is not available (not an account entity)
-            if (!entity || StringUtils.isEmpty(entity.authorityType)) {
-                return;
-            }
-
             this.removeAccount(cacheKey);
         });
 
@@ -500,6 +474,32 @@ export abstract class CacheManager implements ICacheManager {
         const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target);
         const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target);
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
+    }
+
+    /**
+     * Returns a valid AccountEntity if key and object contain correct values, null otherwise.
+     * @param key 
+     */
+    private getAccountEntity(key: string): AccountEntity | null {
+        // don't parse any non-account type cache entities
+        if (CredentialEntity.getCredentialType(key) !== Constants.NOT_DEFINED || this.isAppMetadata(key)) {
+            return null;
+        }
+
+        // Attempt retrieval
+        let entity: AccountEntity;
+        try {
+            entity = this.getItem(key, CacheSchemaType.ACCOUNT) as AccountEntity;
+        } catch (e) {
+            return null;
+        }
+
+        // Authority type is required for accounts, return if it is not available (not an account entity)
+        if (!entity || StringUtils.isEmpty(entity.authorityType)) {
+            return null;
+        }
+
+        return entity;
     }
 
     /**
