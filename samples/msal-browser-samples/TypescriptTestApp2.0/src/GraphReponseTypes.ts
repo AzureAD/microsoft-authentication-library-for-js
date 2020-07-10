@@ -1,4 +1,7 @@
 
+/**
+ * Graph data about the user.
+ */
 export type UserInfo = {
     businessPhones?: Array<string>,
     displayName?: string,
@@ -13,6 +16,10 @@ export type UserInfo = {
     userPrincipalName?: string
 };
 
+
+/**
+ * Mail data from MS Graph
+ */
 export type MailInfo = {
     value?: Array<any>
 };

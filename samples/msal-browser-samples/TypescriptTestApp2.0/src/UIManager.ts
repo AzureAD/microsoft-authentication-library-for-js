@@ -2,6 +2,9 @@ import { AccountInfo } from "@azure/msal-browser";
 import { UserInfo, MailInfo } from "./GraphReponseTypes";
 import { GRAPH_CONFIG } from "./Constants";
 
+/**
+ * Class that handles UI updates for the app.
+ */
 export class UIManager {
     // Select DOM elements to work with
     static welcomeDiv = document.getElementById("WelcomeMessage");

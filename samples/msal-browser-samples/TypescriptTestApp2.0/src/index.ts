@@ -14,19 +14,30 @@ const isIE = msie > 0 || msie11 > 0;
 const authModule: AuthModule = new AuthModule();
 const networkModule: FetchManager = new FetchManager();
 
+// Load auth module when browser window loads. Only required for redirect flows.
 window.addEventListener("load", async () => {
-    authModule.loadPage();
+    authModule.loadAuthModule();
 });
 
+/**
+ * Called when user clicks "Sign in with Redirect" or "Sign in with Popup"
+ * @param method 
+ */
 export function signIn(method: string): void {
     const signInType = isIE ? "loginRedirect" : method;
     authModule.login(signInType);
 }
 
+/**
+ * Called when user clicks "Sign Out"
+ */
 export function signOut(): void {
     authModule.logout();
 }
 
+/**
+ * Called when user clicks "See Profile"
+ */
 export async function seeProfile(): Promise<void> {
     const token = isIE ? await authModule.getProfileTokenRedirect() : await authModule.getProfileTokenPopup();
     if (token && token.length > 0) {
@@ -35,6 +46,9 @@ export async function seeProfile(): Promise<void> {
     }
 }
 
+/**
+ * Called when user clicks "Read Mail"
+ */
 export async function readMail(): Promise<void> {
     const token = isIE ? await authModule.getMailTokenRedirect() : await authModule.getMailTokenPopup();
     if (token && token.length > 0) {
