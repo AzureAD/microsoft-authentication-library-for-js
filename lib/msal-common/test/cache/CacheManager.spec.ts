@@ -1,18 +1,20 @@
 import { expect } from "chai";
-import { CacheManager } from "../../../src/cache/CacheManager";
-import { CacheSchemaType, CredentialType } from "../../../src/utils/Constants";
-import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
-import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
-import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";
-import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity";
-import { mockCache } from "../entities/cacheConstants";
-import { CacheRecord } from "../../../src/cache/entities/CacheRecord";
-import { ScopeSet } from "../../../src/request/ScopeSet";
-import { AccountFilter, CredentialFilter } from "../../../src/cache/utils/CacheTypes";
-import { ClientAuthError, CredentialEntity } from "../../../src";
+import { CacheManager } from "../../src/cache/CacheManager";
+import { CacheSchemaType, CredentialType, Constants } from "../../src/utils/Constants";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
+import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
+import { mockCache } from "./entities/cacheConstants";
+import { CacheRecord } from "../../src/cache/entities/CacheRecord";
+import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
+import sinon from "sinon";
+import { CredentialEntity } from "../../src/cache/entities/CredentialEntity";
+import { ClientAuthError } from "../../src/error/ClientAuthError";
+import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 
-const cacheJson = require("../cache.json");
+const cacheJson = require("./cache.json");
 
 let store = {};
 class TestStorageManager extends CacheManager {
@@ -157,6 +159,10 @@ describe("CacheManager.ts test cases", () => {
         cacheManager = new TestStorageManager();
     });
 
+    afterEach(() => {
+        sinon.restore();
+    });
+
     it("save account", () => {
         let ac = new AccountEntity();
         ac.homeAccountId = "someUid.someUtid";
@@ -192,7 +198,7 @@ describe("CacheManager.ts test cases", () => {
         const atKey = at.generateCredentialKey();
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
-        cacheManager.saveCacheRecord(cacheRecord, new ScopeSet(["scope6", "scope7"]));
+        cacheManager.saveCacheRecord(cacheRecord);
         const accountObj = store[atKey] as AccessTokenEntity;
         expect(store[atKey].homeAccountId).to.eql("someUid.someUtid");
     });
@@ -239,6 +245,29 @@ describe("CacheManager.ts test cases", () => {
         const filterTwo: AccountFilter = { homeAccountId: "Wrong Id" };
         accounts = cacheManager.getAccountsFilteredBy(filterTwo);
         expect(Object.keys(accounts).length).to.eql(0);
+
+        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").callsFake(() => {
+            return {
+                preferred_cache: Constants.DEFAULT_AUTHORITY_HOST, 
+                preferred_network: Constants.DEFAULT_AUTHORITY_HOST, 
+                aliases: [Constants.DEFAULT_AUTHORITY_HOST]}
+        });
+        const filterThree: AccountFilter = { environment: "login.microsoftonline.com" };
+        accounts = cacheManager.getAccountsFilteredBy(filterThree);
+        expect(Object.keys(accounts).length).to.eql(1);
+        sinon.restore();
+
+        const filterFour: AccountFilter = { environment: "Wrong Env" };
+        accounts = cacheManager.getAccountsFilteredBy(filterFour);
+        expect(Object.keys(accounts).length).to.eql(0);
+
+        const filterFive: AccountFilter = { realm: "microsoft" };
+        accounts = cacheManager.getAccountsFilteredBy(filterFive);
+        expect(Object.keys(accounts).length).to.eql(1);
+
+        const filterSix: AccountFilter = { realm: "Wrong Realm" };
+        accounts = cacheManager.getAccountsFilteredBy(filterSix);
+        expect(Object.keys(accounts).length).to.eql(0);
     });
 
     it("getCredentials", () => {
@@ -256,9 +285,108 @@ describe("CacheManager.ts test cases", () => {
         expect(Object.keys(credentials.accessTokens).length).to.eql(0);
         expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
 
-        // filter by target
-        const filterThree = { target: "scope1 scope2 scope3" };
+        // filter by environment
+        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").callsFake(() => {
+            return {
+                preferred_cache: Constants.DEFAULT_AUTHORITY_HOST, 
+                preferred_network: Constants.DEFAULT_AUTHORITY_HOST, 
+                aliases: [Constants.DEFAULT_AUTHORITY_HOST]}
+        });
+        const filterThree: CredentialFilter = { environment: "login.microsoftonline.com" };
         credentials = cacheManager.getCredentialsFilteredBy(filterThree);
+        expect(Object.keys(credentials.idTokens).length).to.eql(1);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(2);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(2);
+        sinon.restore();
+
+        // filter by environment
+        const filterFour: CredentialFilter = { environment: "Wrong Env" };
+        credentials = cacheManager.getCredentialsFilteredBy(filterFour);
+        expect(Object.keys(credentials.idTokens).length).to.eql(0);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(0);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+
+        // filter by realm
+        const filterFive: CredentialFilter = { realm: "microsoft" };
+        credentials = cacheManager.getCredentialsFilteredBy(filterFive);
+        expect(Object.keys(credentials.idTokens).length).to.eql(1);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(2);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+
+        // filter by realm
+        const filterSix: CredentialFilter = { realm: "Wrong Realm" };
+        credentials = cacheManager.getCredentialsFilteredBy(filterSix);
+        expect(Object.keys(credentials.idTokens).length).to.eql(0);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(0);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+
+        // filter by realm
+        const filterSeven: CredentialFilter = { credentialType: "IdToken" };
+        credentials = cacheManager.getCredentialsFilteredBy(filterSeven);
+        expect(Object.keys(credentials.idTokens).length).to.eql(1);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(0);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+
+        // filter by realm
+        const filterEight: CredentialFilter = { credentialType: "Incorrect" };
+        credentials = cacheManager.getCredentialsFilteredBy(filterEight);
+        expect(Object.keys(credentials.idTokens).length).to.eql(0);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(0);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+
+        // filter by realm
+        const filterNine: CredentialFilter = { clientId: "mock_client_id" };
+        credentials = cacheManager.getCredentialsFilteredBy(filterNine);
+        expect(Object.keys(credentials.idTokens).length).to.eql(1);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(2);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(2);
+
+        // filter by realm
+        const filterTen: CredentialFilter = { clientId: "Wrong Client ID" };
+        credentials = cacheManager.getCredentialsFilteredBy(filterTen);
+        expect(Object.keys(credentials.idTokens).length).to.eql(0);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(0);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+
+        // filter by target
+        const filterEleven = { target: "scope1 scope2 scope3" };
+        credentials = cacheManager.getCredentialsFilteredBy(filterEleven);
+        expect(Object.keys(credentials.idTokens).length).to.eql(0);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(1);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+
+        // filter by target
+        const filterTwelve = { target: "wrong target" };
+        credentials = cacheManager.getCredentialsFilteredBy(filterTwelve);
+        expect(Object.keys(credentials.idTokens).length).to.eql(0);
+        expect(Object.keys(credentials.accessTokens).length).to.eql(0);
+        expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+    });
+
+    it("removeAppMetadata", () => {
+        cacheManager.removeAppMetadata();
+        
+        expect(store["appmetadata-login.microsoftonline.com-mock_client_id"]).to.be.undefined;
+    });
+
+    it("removeAllAccounts", () => {
+        let ac = new AccountEntity();
+        ac.homeAccountId = "someUid.someUtid";
+        ac.environment = "login.microsoftonline.com";
+        ac.realm = "microsoft";
+        ac.localAccountId = "object1234";
+        ac.username = "Jane Goodman";
+        ac.authorityType = "MSSTS";
+        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
+
+        const cacheRecord = new CacheRecord();
+        cacheRecord.account = ac;
+        cacheManager.saveCacheRecord(cacheRecord);
+
+        cacheManager.removeAllAccounts();
+
+        // Only app metadata remaining
+        expect(cacheManager.getKeys().length === 1).to.be.true;
     });
 
     it("removeAccount", () => {
