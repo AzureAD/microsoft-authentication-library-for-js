@@ -7,13 +7,13 @@ const express = require("express");
 const msal = require('@azure/msal-node');
 const extensions = require("@azure/msal-node-extensions");
 const { promises: fs } = require("fs");
+const process = require("process");
 const path = require("path");
 
 const SERVER_PORT = process.env.PORT || 3000;
 const cachePath = path.join(__dirname, "./cache.json");
 
-extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataProtectionScope.LocalMachine)
-    .then((filePersistence) => {
+createPersistence().then((filePersistence) => {
 
             const publicClientConfig = {
                 auth: {
@@ -22,11 +22,11 @@ extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataPr
                     redirectUri: "http://localhost:3000/redirect",
                 },
                 cache: {
-                    cachePlugin:  new extensions.PersistenceCachePlugin(filePersistence)
+                    cachePlugin: new extensions.PersistenceCachePlugin(filePersistence)
                 },
             };
             const pca = new msal.PublicClientApplication(publicClientConfig);
-            const msalCacheManager = pca.getCacheManager();
+            const msalCacheManager = pca.getTokenCache();
 
             // Create Express App and Routes
             const app = express();
@@ -65,3 +65,26 @@ extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataPr
             });
         }
     );
+
+/**
+ * Builds persistence based on operating system. Falls back to storing in plain text.
+ */
+async function createPersistence(){
+    // On Windows, uses a DPAPI encrypted file
+    if(process.platform === "win32"){
+        return extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataProtectionScope.LocalMachine)
+    }
+
+    // On Mac, uses keychain.
+    if(process.platform === "darwin"){
+        return extensions.KeychainPersistence.create(cachePath, "serviceName", "accountName");
+    }
+
+    // On Linux, uses  libsecret to store to secret service. Libsecret has to be installed.
+    if(process.platform === "linux"){
+        return extensions.LibSecretPersistence.create(cachePath, "serviceName", "accountName");
+    }
+
+    // fall back to using plain text file. Not recommended for storing secrets.
+    return extensions.FilePersistence.create(cachePath);
+}
