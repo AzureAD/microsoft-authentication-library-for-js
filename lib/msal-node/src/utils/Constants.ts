@@ -46,7 +46,13 @@ export const Constants = {
     MSAL_SKU: 'msal.js.node',
 };
 
-// Telemetry Constants
+/**
+ * API Codes for Telemetry purposes. 
+ * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
+ * 0-99 Silent Flow
+ * 600-699 Device Code Flow
+ * 800-899 Auth Code Flow
+ */
 export enum ApiId {
     acquireTokenSilent = 62,
     acquireTokenByCode = 871,
