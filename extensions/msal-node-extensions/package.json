@@ -4,6 +4,14 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+    "keywords": [
+        "js",
+        "ts",
+        "node",
+        "AAD",
+        "msal",
+        "extensions"
+    ],
   "files": [
     "dist",
     "src"
