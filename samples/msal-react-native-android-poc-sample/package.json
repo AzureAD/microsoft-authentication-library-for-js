@@ -10,7 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@azuread/msal-react-native-android-poc": "^1.0.4",
+    "@azuread/msal-react-native-android-poc": "^1.0.5",
     "@fluentui/react-native": "^0.15.63",
     "@microsoft/microsoft-graph-client": "^2.0.0",
     "@react-native-community/toolbar-android": "0.1.0-rc.2",
