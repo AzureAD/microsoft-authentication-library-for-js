@@ -704,7 +704,7 @@ export class UserAgentApplication {
         this.logger.verbose("AcquireTokenSilent has been called");
 
         // validate the request
-        const request = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypeSilent);
+        const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent);
         const requestSignature = RequestUtils.createRequestSignature(request);
 
