@@ -223,19 +223,32 @@ export class ResponseHandler {
      * @param stateString 
      */
     static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, stateString?: string): AuthenticationResult {
-        const responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target);
+        let accessToken: string;
+        let responseScopes: Array<string>;
+        let expiresOn: Date;
+        let extExpiresOn: Date;
+        let familyId: string = null;
+        if (cacheRecord.accessToken) {
+            accessToken = cacheRecord.accessToken.secret;
+            responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target).asArray();
+            expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
+            extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
+        }
+        if (cacheRecord.refreshToken) {
+            familyId = cacheRecord.refreshToken.familyId || null;
+        }
         return {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
-            scopes: responseScopes.asArray(),
+            scopes: responseScopes,
             account: cacheRecord.account.getAccountInfo(),
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
-            accessToken: cacheRecord.accessToken.secret,
+            accessToken: accessToken,
             fromCache: fromTokenCache,
-            expiresOn: new Date(Number(cacheRecord.accessToken.expiresOn) * 1000),
-            extExpiresOn: new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000),
-            familyId: cacheRecord.refreshToken.familyId || null,
+            expiresOn: expiresOn,
+            extExpiresOn: extExpiresOn,
+            familyId: familyId,
             state: stateString || ""
         };
     }
