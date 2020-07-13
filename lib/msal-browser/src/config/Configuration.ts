@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SystemOptions, LoggerOptions, INetworkModule, LogLevel, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
@@ -14,8 +14,9 @@ export type BrowserAuthOptions = {
     clientId: string;
     authority?: string;
     knownAuthorities?: Array<string>;
-    redirectUri?: string | (() => string);
-    postLogoutRedirectUri?: string | (() => string);
+    cloudDiscoveryMetadata?: string;
+    redirectUri?: string;
+    postLogoutRedirectUri?: string;
     navigateToLoginRequestUrl?: boolean;
 };
 
@@ -65,10 +66,11 @@ export type Configuration = {
 // Default auth options for browser
 const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     clientId: "",
-    authority: `${Constants.DEFAULT_AUTHORITY}/`,
+    authority: `${Constants.DEFAULT_AUTHORITY}`,
     knownAuthorities: [],
-    redirectUri: () => BrowserUtils.getCurrentUri(),
-    postLogoutRedirectUri: () => BrowserUtils.getCurrentUri(),
+    cloudDiscoveryMetadata: "",
+    redirectUri: "",
+    postLogoutRedirectUri: "",
     navigateToLoginRequestUrl: true
 };
 
@@ -80,25 +82,7 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
 
 // Default logger options for browser
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
-    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
-        if (containsPii) {
-            return;
-        }
-        switch (level) {
-            case LogLevel.Error:
-                console.error(message);
-                return;
-            case LogLevel.Info:
-                console.info(message);
-                return;
-            case LogLevel.Verbose:
-                console.debug(message);
-                return;
-            case LogLevel.Warning:
-                console.warn(message);
-                return;
-        }
-    },
+    loggerCallback: (): void => {},
     piiLoggingEnabled: false
 };
 

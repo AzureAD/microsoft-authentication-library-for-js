@@ -11,7 +11,6 @@ import {
     CredentialFilter
 } from "../utils/CacheTypes";
 import { CacheRecord } from "../entities/CacheRecord";
-import { ScopeSet } from "../../request/ScopeSet";
 import { AccountEntity } from "../entities/AccountEntity";
 import { AccountInfo } from "../../account/AccountInfo";
 
@@ -26,7 +25,7 @@ export interface ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    saveCacheRecord(cacheRecord: CacheRecord, responseScopes: ScopeSet): void;
+    saveCacheRecord(cacheRecord: CacheRecord): void;
 
     /**
      * Given account key retrieve an account
