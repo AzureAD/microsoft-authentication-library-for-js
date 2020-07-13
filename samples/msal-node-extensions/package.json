@@ -1,6 +1,6 @@
 {
-  "name": "msal-node-silent-flow",
-  "version": "1.0.0",
+  "name": "msal-node-extensions-sample",
+  "version": "0.1.0",
   "description": "sample app for msal-node",
   "main": "index.js",
   "scripts": {
@@ -11,9 +11,8 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.0-alpha.0",
-    "axios": "^0.19.2",
+    "@azure/msal-node": "^0.1.0",
     "express": "^4.17.1",
-    "express-handlebars": "^4.0.4"
+    "@azure/msal-node-extensions": "0.1.0"
   }
 }
