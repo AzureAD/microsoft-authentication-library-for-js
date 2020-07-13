@@ -52,6 +52,12 @@ export enum TemporaryCacheKeys {
     SCOPES = "scopes"
 }
 
+/**
+ * API Codes for Telemetry purposes. 
+ * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
+ * 0-99 Silent Flow
+ * 800-899 Auth Code Flow
+ */
 export enum ApiId {
     acquireTokenRedirect = 861,
     acquireTokenPopup = 862,
