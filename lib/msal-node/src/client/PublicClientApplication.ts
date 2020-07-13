@@ -46,7 +46,7 @@ export class PublicClientApplication extends ClientApplication {
     public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<string> {
         this.logger.info("acquireTokenByDeviceCode called");
         const validRequest = this.initializeRequest(request) as DeviceCodeRequest;
-        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenByDeviceCode, validRequest.correlationId);
+        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 request.authority
