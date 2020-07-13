@@ -2,7 +2,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
@@ -12,18 +12,26 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
 
-const DEFAULT_POPUP_TIMEOUT_MS = 60000;
-const clearFunc = (): void => {
-    return;
-};
-
-const removeFunc = (key: string): void => {
-    return;
-};
-
-const setFunc = (key: string, value: string): void => {
-    return;
-};
+class TestStorageInterface extends CacheManager {
+    setItem(key: string, value: string | object, type?: string): void {
+        return;
+    }
+    getItem(key: string, type?: string): string | object {
+        return "cacheItem";
+    }
+    removeItem(key: string, type?: string): boolean {
+        return true;
+    }
+    containsKey(key: string, type?: string): boolean {
+        return true;
+    }
+    getKeys(): string[] {
+        return testKeySet;
+    }
+    clear(): void {
+        return;
+    }
+}
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -63,7 +71,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         };
 		const configObj = buildConfiguration(appConfig);
 		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        const authCodeModule = new SPAClient({
+        const authCodeModule = new AuthorizationCodeClient({
             authOptions: {
 				...configObj.auth,
 				authority: authorityInstance,
@@ -87,32 +95,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                     return testPkceCodes;
                 },
             },
-            storageInterface: {
-                getCache: (): InMemoryCache => {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
-                },
-                setCache: (): void => {
-                    // dummy impl;
-                },
-                clear: clearFunc,
-                containsKey: (key: string): boolean => {
-                    return true;
-                },
-                getItem: (key: string): string => {
-                    return "cacheItem";
-                },
-                getKeys: (): string[] => {
-                    return testKeySet;
-                },
-                removeItem: removeFunc,
-                setItem: setFunc,
-            },
+            storageInterface: new TestStorageInterface(),
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -193,7 +176,71 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             const popupWindow = popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
-            expect(browserStorage.getItem(BrowserConstants.INTERACTION_STATUS_KEY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+        });
+    });
+
+    describe("monitorPopupForHash", () => {
+        it("times out", done => {
+            const popup = {
+                location: {
+                    href: "http://localhost",
+                    hash: ""
+                },
+                close: () => {}
+            };
+
+            // @ts-ignore
+            popupHandler.monitorPopupForHash(popup, 500)
+                .catch(() => {
+                    done();
+                });
+        });
+
+        it("returns hash", done => {
+            const popup = {
+                location: {
+                    href: "http://localhost",
+                    hash: ""
+                },
+                close: () => {}
+            };
+
+            // @ts-ignore
+            popupHandler.monitorPopupForHash(popup, 1000)
+                .then((hash: string) => {
+                    expect(hash).to.equal("#code=hello");
+                    done();
+                });
+
+            setTimeout(() => {
+                popup.location = {
+                    href: "http://localhost/#/code=hello",
+                    hash: "#code=hello"
+                };
+            }, 500);
+        });
+
+        it("closed", done => {
+            const popup = {
+                location: {
+                    href: "http://localhost",
+                    hash: ""
+                },
+                close: () => {},
+                closed: false
+            };
+
+            // @ts-ignore
+            popupHandler.monitorPopupForHash(popup, 1000)
+                .catch((error) => {
+                    expect(error.errorCode).to.equal('user_cancelled');
+                    done();
+                });
+
+            setTimeout(() => {
+                popup.closed = true;
+            }, 500);
         });
     });
 });

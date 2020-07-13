@@ -41,6 +41,14 @@ export class StringUtils {
         return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
+    static startsWith(str: string, search: string): boolean {
+        return str.indexOf(search) === 0;
+    }
+
+    static endsWith(str: string, search: string): boolean {
+        return (str.length >= search.length) && (str.lastIndexOf(search) === (str.length - search.length));
+    }
+
     /**
      * Parses string into an object.
      *
@@ -50,7 +58,7 @@ export class StringUtils {
         let match: Array<string>; // Regex for replacing addition symbol with a space
         const pl = /\+/g;
         const search = /([^&=]+)=([^&]*)/g;
-        const decode = (s: string): string => decodeURIComponent(s.replace(pl, " "));
+        const decode = (s: string): string => decodeURIComponent(decodeURIComponent(s.replace(pl, " ")));
         const obj: {} = {};
         match = search.exec(query);
         while (match) {

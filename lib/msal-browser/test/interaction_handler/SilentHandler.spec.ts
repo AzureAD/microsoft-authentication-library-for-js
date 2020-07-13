@@ -2,7 +2,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised"
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, SPAClient, NetworkRequestOptions, LogLevel, InMemoryCache, AuthorityFactory, AuthorizationCodeRequest, Constants } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
@@ -12,17 +12,26 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
-const clearFunc = (): void => {
-    return;
-};
-
-const removeFunc = (key: string): void => {
-    return;
-};
-
-const setFunc = (key: string, value: string): void => {
-    return;
-};
+class TestStorageInterface extends CacheManager {
+    setItem(key: string, value: string | object, type?: string): void {
+        return;
+    }
+    getItem(key: string, type?: string): string | object {
+        return "cacheItem";
+    }
+    removeItem(key: string, type?: string): boolean {
+        return true;
+    }
+    containsKey(key: string, type?: string): boolean {
+        return true;
+    }
+    getKeys(): string[] {
+        return testKeySet;
+    }
+    clear(): void {
+        return;
+    }
+}
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -54,7 +63,7 @@ describe("SilentHandler.ts Unit Tests", () => {
 
     let browserStorage: BrowserStorage;
     let silentHandler: SilentHandler;
-    let authCodeModule: SPAClient;
+    let authCodeModule: AuthorizationCodeClient;
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -63,7 +72,7 @@ describe("SilentHandler.ts Unit Tests", () => {
         };
 		const configObj = buildConfiguration(appConfig);
 		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        authCodeModule = new SPAClient({
+        authCodeModule = new AuthorizationCodeClient({
             authOptions: {
 				...configObj.auth,
 				authority: authorityInstance,
@@ -87,32 +96,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                     return testPkceCodes;
                 },
             },
-            storageInterface: {
-                getCache: (): InMemoryCache => {
-                    return {
-                        accounts: {},
-                        idTokens: {},
-                        accessTokens: {},
-                        refreshTokens: {},
-                        appMetadata: {},
-                    };
-                },
-                setCache: (): void => {
-                    // dummy impl;
-                },
-                clear: clearFunc,
-                containsKey: (key: string): boolean => {
-                    return true;
-                },
-                getItem: (key: string): string => {
-                    return "cacheItem";
-                },
-                getKeys: (): string[] => {
-                    return testKeySet;
-                },
-                removeItem: removeFunc,
-                setItem: setFunc,
-            },
+            storageInterface: new TestStorageInterface(),
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -209,6 +193,85 @@ describe("SilentHandler.ts Unit Tests", () => {
             expect(loadFrameSpy.called).to.be.false;
             expect(authFrame instanceof HTMLIFrameElement).to.be.true;
             expect(authFrame.id).to.be.eq("msalTokenFrame");
+        });
+    });
+
+    describe("monitorIframeForHash", () => {
+        it("times out", done => {
+            const iframe = {
+                contentWindow: {
+                    // @ts-ignore
+                    location: null // example of scenario that would never otherwise resolve
+                }
+            };
+
+            // @ts-ignore
+            silentHandler.monitorIframeForHash(iframe, 500)
+                .catch(() => {
+                    done();
+                });
+        });
+
+        it("times out when event loop is suspended", function(done) {
+            this.timeout(5000);
+
+            const iframe = {
+                contentWindow: {
+                    location: {
+                        href: "http://localhost",
+                        hash: ""
+                    }
+                }
+            };
+
+            // @ts-ignore
+            silentHandler.monitorIframeForHash(iframe, 2000)
+                .catch(() => {
+                    done();
+                });
+                
+            setTimeout(() => {
+                iframe.contentWindow.location = {
+                    href: "http://localhost/#/code=hello",
+                    hash: "#code=hello"
+                };
+            }, 1600);
+
+            /**
+             * This code mimics the JS event loop being synchonously paused (e.g. tab suspension) midway through polling the iframe.
+             * If the event loop is suspended for longer than the configured timeout,
+             * the polling operation should throw an error for a timeout.
+             */
+            const startPauseDelay = 200;
+            const pauseDuration = 3000;
+            setTimeout(() => {
+                Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pauseDuration);
+            }, startPauseDelay);
+        });
+
+        it("returns hash", done => {
+            const iframe = {
+                contentWindow: {
+                    location: {
+                        href: "http://localhost",
+                        hash: ""
+                    }
+                }
+            };
+
+            // @ts-ignore
+            silentHandler.monitorIframeForHash(iframe, 1000)
+                .then((hash: string) => {
+                    expect(hash).to.equal("#code=hello");
+                    done();
+                });
+
+            setTimeout(() => {
+                iframe.contentWindow.location = {
+                    href: "http://localhost/#code=hello",
+                    hash: "#code=hello"
+                };
+            }, 500);
         });
     });
 });

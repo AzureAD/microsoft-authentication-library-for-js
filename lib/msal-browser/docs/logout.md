@@ -30,6 +30,38 @@ const msalConfig = {
 };
 ```
 
+# End Session Request
+
+The logout API also accepts an object for different configuration options:
+```
+{
+    // Account to log out of
+    account?: AccountInfo,
+    // postLogoutRedirectUri, overrides whatever is passed in config
+    postLogoutRedirectUri?: string,
+    // authority to send end session request to
+    authority?: string,
+    // Correlation ID to attach to URL
+    correlationId?: string
+}
+```
+
+## Code Snippet
+
+```javascript
+const currentAccount = getAccountByUsername(username);
+msalInstance.logout({
+    account: currentAccount,
+    postLogoutRedirectUri: "https://contoso.com/loggedOut",
+    authority: "https://loginmicrosoftonline.com/common",
+    correlationId: "insert-id-here"
+});
+```
+
+Important Notes:
+- If no account is passed to the logout API, or no EndSessionRequest object, it will log out of all accounts.
+- If an account is passed to the logout API, MSAL will only clear tokens related to that account.
+
 # Next Steps
 
 Dig into more advanced topics, such as:
