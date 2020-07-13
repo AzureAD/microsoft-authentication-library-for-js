@@ -72,7 +72,7 @@ createPersistence().then((filePersistence) => {
 async function createPersistence(){
     // On Windows, uses a DPAPI encrypted file
     if(process.platform === "win32"){
-        return extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataProtectionScope.LocalMachine)
+        return extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataProtectionScope.LocalMachine);
     }
 
     // On Mac, uses keychain.
