@@ -222,6 +222,8 @@ export class BrowserStorage extends CacheManager {
      * Clears all cache entries created by MSAL (except tokens).
      */
     clear(): void {
+        this.removeAllAccounts();
+        this.removeAppMetadata();
         let key: string;
         for (key in this.windowStorage) {
             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
