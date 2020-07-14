@@ -168,7 +168,7 @@ export class ResponseHandler {
             serverTokenResponse.access_token,
             this.clientId,
             idTokenObj.claims.tid,
-            responseScopes.printScopes(),
+            responseScopes.printScopesLowerCase(),
             tokenExpirationSeconds,
             extendedTokenExpirationSeconds
         );

@@ -78,6 +78,15 @@ export class StringUtils {
     }
 
     /**
+     * Trims entries and converts them to lower case.
+     *
+     * @param arr
+     */
+    static trimArrayEntries(arr: Array<string>): Array<string> {
+        return arr.map(entry => entry.trim());
+    }
+
+    /**
      * Removes empty strings from array
      * @param arr
      */
