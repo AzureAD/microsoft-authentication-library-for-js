@@ -1,3 +1,12 @@
+# 1.3.3
+
+##  Enhancements
+* Add monitorIframeForHash to ensure silent requests timeout. (#1823)
+* Use instance discovery for trusted hosts and combine authority classes. ([#1583](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/1583)
+* Add custom authority lookup. (#1836)
+* Ensure cookies are minimal size and deleted when necessary. (#1829)
+* Logging improvements. (#1777, #1767, #1752)
+
 # 1.3.2
 
 ## Bugs
