@@ -90,20 +90,13 @@ export class ScopeSet {
      * @param {Array<string>} scopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
      * @ignore
      */
-    static validateInputScope(scopes: Array<string>): void {
-        // Check if scopes are empty or null
-        if (!scopes) {
-            throw ClientConfigurationError.createScopesRequiredError(scopes);
-        }
-
-        // Check that scopes is an array object (also throws error if scopes == null)
-        if (!Array.isArray(scopes)) {
-            throw ClientConfigurationError.createScopesNonArrayError(scopes);
-        }
-
-        // Check that scopes is not an empty array
-        if (scopes.length < 1) {
-            throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
+    static validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
+        // Check if scopes are null or undefined
+        if (scopesRequired) {
+            // Throws if scopes are non-array, null, or empty array
+            if (!Array.isArray(scopes) || scopes.length < 1) {
+                throw ClientConfigurationError.createInvalidScopesError(scopes);
+            }
         }
     }
 
@@ -136,7 +129,7 @@ export class ScopeSet {
             const convertedReqScopes = this.trimAndConvertArrayToLowerCase([...reqScopes]);
             return convertedScopesToAppend ? [...convertedReqScopes, ...convertedScopesToAppend] : convertedReqScopes;
         }
-        return null;
+        return [];
     }
 
     // #endregion
@@ -146,28 +139,42 @@ export class ScopeSet {
      * OIDC required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
      * @param scopes
      */
-    static generateLoginScopes(scopes: Array<string>): Array<string> {
-        const loginScopes = [...scopes];
+    static generateOidcScopes(scopes: Array<string>): Array<string> {
+        const oidcExtendedScopes = [...scopes];
    
-        if (loginScopes.indexOf(Constants.openidScope) === -1) {
-            loginScopes.push(Constants.openidScope);
+        if (oidcExtendedScopes.indexOf(Constants.openidScope) === -1) {
+            oidcExtendedScopes.push(Constants.openidScope);
         }
-        if (loginScopes.indexOf(Constants.profileScope) === -1) {
-            loginScopes.push(Constants.profileScope);
+        if (oidcExtendedScopes.indexOf(Constants.profileScope) === -1) {
+            oidcExtendedScopes.push(Constants.profileScope);
         }
         
-        return loginScopes;
+        return oidcExtendedScopes;
     }
 
     /**
-     * 
+     * Checks if any of the OIDC scopes or client ID are contained in the scopes array
      */
     static isLoginScopes(scopes: Array<string>, clientId: string): boolean {
+        if (scopes) {
+            const hasOpenIdScope = scopes.indexOf(Constants.openidScope) > -1;
+            const hasProfileScope = scopes.indexOf(Constants.profileScope) > -1;
+            const hasClientIdScope = scopes.indexOf(clientId) > -1;
+
+            return (hasOpenIdScope ||  hasProfileScope || hasClientIdScope);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Hard check that both OIDC scopes are included in the scopes array
+     */
+    static containsOidcScopes(scopes: Array<string>): boolean {
         const hasOpenIdScope = scopes.indexOf(Constants.openidScope) > -1;
         const hasProfileScope = scopes.indexOf(Constants.profileScope) > -1;
-        const hasClientIdScope = scopes.indexOf(clientId) > -1;
 
-        return (hasOpenIdScope ||  hasProfileScope || hasClientIdScope);
+        return (hasOpenIdScope && hasProfileScope);
     }
 
 }

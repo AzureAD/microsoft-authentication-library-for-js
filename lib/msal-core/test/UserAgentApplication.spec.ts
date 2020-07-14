@@ -841,9 +841,9 @@ describe("UserAgentApplication.ts Class", function () {
             } catch (e) {
                 authErr = e;
             }
-            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
+            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
             expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();
@@ -859,9 +859,28 @@ describe("UserAgentApplication.ts Class", function () {
             } catch (e) {
                 authErr = e;
             }
-            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
-            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
-            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
+            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            expect(authErr.name).to.equal("ClientConfigurationError");
+            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+            done();
+        });
+
+        it("tests if error is thrown when non-array scopes are passed", function (done) {
+            msal.handleRedirectCallback(authCallback);
+            let authErr: AuthError;
+            try {
+                msal.acquireTokenRedirect({
+                // @ts-ignore
+                    scopes: "s1"
+                });
+            } catch (e) {
+                authErr = e;
+            }
+            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
             expect(authErr.name).to.equal("ClientConfigurationError");
             expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
             done();

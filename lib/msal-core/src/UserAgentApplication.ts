@@ -344,7 +344,7 @@ export class UserAgentApplication {
         this.logger.verbose("LoginRedirect has been called");
         
         // Validate request before calling acquireTokenInteractive
-        const request: AuthenticationParameters = RequestUtils.validateLoginRequest(userRequest, this.clientId, Constants.interactionTypeRedirect);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, true, request,  null, null);
     }
 
@@ -358,7 +358,7 @@ export class UserAgentApplication {
         this.logger.verbose("AcquireTokenRedirect has been called");
 
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypeRedirect);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeRedirect);
         this.acquireTokenInteractive(Constants.interactionTypeRedirect, false, request, null, null);
     }
 
@@ -373,7 +373,7 @@ export class UserAgentApplication {
         this.logger.verbose("LoginPopup has been called");
 
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateLoginRequest(userRequest, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.LoginPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -402,7 +402,7 @@ export class UserAgentApplication {
         this.logger.verbose("AcquireTokenPopup has been called");
 
         // validate request
-        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypePopup);
+        const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypePopup);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenPopup);
 
         return new Promise<AuthResponse>((resolve, reject) => {
@@ -540,8 +540,8 @@ export class UserAgentApplication {
                 this.logger.verbose("Cached metadata found for authority");
             }
 
-            // On Fulfillment
-            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
+            // For login calls, automatically set response type to "id_token", otherwise response_type depends on scopes
+            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes);
             const loginStartPage = request.redirectStartPage || window.location.href;
             
             serverAuthenticationRequest = new ServerRequestParameters(
@@ -704,7 +704,7 @@ export class UserAgentApplication {
         this.logger.verbose("AcquireTokenSilent has been called");
 
         // validate the request
-        const request = RequestUtils.validateRequest(userRequest, this.clientId, Constants.interactionTypeSilent);
+        const request = RequestUtils.validateRequest(userRequest, false, this.clientId, Constants.interactionTypeSilent);
         const apiEvent: ApiEvent = this.telemetryManager.createAndStartApiEvent(request.correlationId, API_EVENT_IDENTIFIER.AcquireTokenSilent);
         const requestSignature = RequestUtils.createRequestSignature(request);
 
@@ -737,7 +737,7 @@ export class UserAgentApplication {
             }
 
             // set the response type based on the current cache status / scopes set
-            const responseType = this.getTokenType(account, request.scopes, true);
+            const responseType = this.getTokenType(account, request.scopes);
             this.logger.verbose(`Response type: ${responseType}`);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
@@ -2047,7 +2047,7 @@ export class UserAgentApplication {
 
         // Construct AuthenticationRequest based on response type; set "redirectUri" from the "request" which makes this call from Angular - for this.getRedirectUri()
         const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
-        const responseType = this.getTokenType(accountObject, scopes, true);
+        const responseType = this.getTokenType(accountObject, scopes);
 
         const serverAuthenticationRequest = new ServerRequestParameters(
             newAuthority,
@@ -2230,42 +2230,35 @@ export class UserAgentApplication {
     /**
      * @ignore
      *
-     * Utils function to create the Authentication
+     * Utils function that returns the correct value for the response_type parameter based on the account and scopes passed in.
+     * This method is only used in acquireToken calls as login calls are automatically set to response_type id_token.
      * @param {@link account} account object
      * @param scopes
-     * @param silentCall
      *
-     * @returns {string} token type: id_token or access_token
+     * @returns {string} token type: token, id_token or id_token token
      *
      */
-    private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
-        /*
-         * if account is passed and matches the account object/or set to getAccount() from cache
-         * if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
+    private getTokenType(accountObject: Account, scopes: string[]): string {
+        // Check if account in request matches account in cache
+        const accountsMatch = Account.compareAccounts(accountObject, this.getAccount());
+        // Check if both 'openid' and 'profile' are contained
+        const containsOidcScopes = ScopeSet.containsOidcScopes(scopes);
+
+        // response_type is id_token because only OIDC scopes are present (["openid", "profile"].length == 2);
+        if (containsOidcScopes && (scopes.length == 2)) {
+            return ResponseTypes.id_token;
+        }
+
+        // response_type is token because there are no OIDC scopes and accounts match so login is not necessary.
+        if(!containsOidcScopes && accountsMatch) {
+            return ResponseTypes.token;
+        }
+
+        /**
+         * response_type is id_token_token because either both OIDC and resource scopes are present
+         * or because there are resource scopes only but accounts don't match and login is required
          */
-        let tokenType: string;
-
-        // acquireTokenSilent
-        if (silentCall) {
-            if (Account.compareAccounts(accountObject, this.getAccount())) {
-                tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
-            }
-            else {
-                tokenType  = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
-            }
-            return tokenType;
-        }
-        // all other cases
-        else {
-            if (!Account.compareAccounts(accountObject, this.getAccount())) {
-                tokenType = ResponseTypes.id_token_token;
-            }
-            else {
-                tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
-            }
-            return tokenType;
-        }
-
+        return ResponseTypes.id_token_token; 
     }
 
     /**

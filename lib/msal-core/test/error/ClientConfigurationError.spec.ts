@@ -87,10 +87,10 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
 
-  it("createEmptyScopesArrayError creates a ClientConfigurationError object", () => {
+  it("createInvalidScopesError creates a ClientConfigurationError object", () => {
 
     const scopesValue = "[]";
-    const emptyScopesError = ClientConfigurationError.createEmptyScopesArrayError(scopesValue);
+    const emptyScopesError = ClientConfigurationError.createInvalidScopesError(scopesValue);
     let err: ClientConfigurationError;
 
     try {
@@ -99,50 +99,10 @@ describe("ClientConfigurationError.ts Class", () => {
       err = error;
     }
 
-    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
-    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.emptyScopes.desc);
+    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.invalidScopes.desc);
     expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
-    expect(err.message).to.include(ClientConfigurationErrorMessage.emptyScopes.desc);
-    expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
-  });
-
-  it("createScopesNonArrayError creates a ClientConfigurationError object", () => {
-
-    const scopesValue = "user.read";
-    const nonArrayScopesError = ClientConfigurationError.createScopesNonArrayError(scopesValue);
-    let err: ClientConfigurationError;
-
-    try {
-      throw nonArrayScopesError;
-    } catch (error) {
-      err = error;
-    }
-
-    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.nonArrayScopes.code);
-    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.nonArrayScopes.desc);
-    expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
-    expect(err.message).to.include(ClientConfigurationErrorMessage.nonArrayScopes.desc);
-    expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
-  });
-
-  it("createScopesRequiredError creates a ClientConfigurationError object", () => {
-
-    const scopesValue = "random";
-    const scopesRequiredError = ClientConfigurationError.createScopesRequiredError(scopesValue);
-    let err: ClientConfigurationError;
-
-    try {
-      throw scopesRequiredError;
-    } catch (error) {
-      err = error;
-    }
-
-    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.scopesRequired.desc);
-    expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
-    expect(err.message).to.include(ClientConfigurationErrorMessage.scopesRequired.desc);
+    expect(err.message).to.include(ClientConfigurationErrorMessage.invalidScopes.desc);
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });

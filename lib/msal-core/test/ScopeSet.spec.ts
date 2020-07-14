@@ -84,60 +84,89 @@ describe("ScopeSet.ts", () => {
     });
 
     describe("validateInputScope", () => {
-        it("should not throw any errors when a single scope is passed in scopes array", () => {
-            const scopes = ["s1"];
-            expect(() => ScopeSet.validateInputScope(scopes)).to.not.throw();
-        });
-
-        it("should not throw any errors when multiple scopes are passed in scopes array", () => {
-            const scopes = ["s1", "s2"];
-            expect(() => ScopeSet.validateInputScope(scopes)).to.not.throw();
-        });
-
-        it("should throw createScopesRequiredError if scopes are null", () => {
-            const scopes = null;
-            let clientConfigError;
-
-            try {
-                ScopeSet.validateInputScope(scopes);
-            } catch (e) {
-                clientConfigError = e;
-            }
-
-            expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
-            expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-            expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-        });
-        
-        it("should throw createScopesNonArrayError if scopes is not an array object", () => {
-            const scopes = "s1 s2";
-            let clientConfigError;
-
-            try {
+        describe("login calls", () => {
+            it("should not throw any errors when a single scope is passed in scopes array", () => {
+                const scopes = ["s1"];
+                expect(() => ScopeSet.validateInputScope(scopes, false)).to.not.throw();
+            });
+    
+            it("should not throw any errors when multiple scopes are passed in scopes array", () => {
+                const scopes = ["s1", "s2"];
+                expect(() => ScopeSet.validateInputScope(scopes, false)).to.not.throw();
+            });
+    
+            it("should not throw createScopesRequiredError if scopes are null", () => {
+                expect(() => ScopeSet.validateInputScope(null, false)).to.not.throw();
+            });
+            
+            it("should not throw createScopesNonArrayError if scopes is not an array object", () => {
+                const scopes = "s1 s2";
                 // @ts-ignore
-                ScopeSet.validateInputScope(scopes);
-            } catch (e) {
-                clientConfigError = e;
-            }
-
-            expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
-            expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.nonArrayScopes.code);
-            expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.nonArrayScopes.desc);
+                expect(() => ScopeSet.validateInputScope(scopes, false)).to.not.throw();
+            });
+    
+            it("should not throw createEmptyScopesArrayError if scopes is an empty array", () => {
+                const scopes = [];
+                expect(() => ScopeSet.validateInputScope(scopes, false)).to.not.throw();
+            });
         });
 
-        it("should throw createEmptyScopesArrayError if scopes is an empty array", () => {
-            const scopes = [];
-            let clientConfigError;
-
-            try {
-                ScopeSet.validateInputScope(scopes);
-            } catch (e) {
-                clientConfigError = e;
-            }
-
-            expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
-            expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
-            expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
+        describe("acquire token calls", () => {
+            it("should not throw any errors when a single scope is passed in scopes array", () => {
+                const scopes = ["s1"];
+                expect(() => ScopeSet.validateInputScope(scopes, true)).to.not.throw();
+            });
+    
+            it("should not throw any errors when multiple scopes are passed in scopes array", () => {
+                const scopes = ["s1", "s2"];
+                expect(() => ScopeSet.validateInputScope(scopes, true)).to.not.throw();
+            });
+    
+            it("should throw invalidScopesError if scopes are null", () => {
+                const scopes = null;
+                let clientConfigError;
+    
+                try {
+                    ScopeSet.validateInputScope(scopes, true);
+                } catch (e) {
+                    clientConfigError = e;
+                }
+    
+                expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
+                expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+                expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            });
+            
+            it("should throw invalidScopesError if scopes is not an array object", () => {
+                const scopes = "s1 s2";
+                let clientConfigError;
+    
+                try {
+                    // @ts-ignore
+                    ScopeSet.validateInputScope(scopes, true);
+                } catch (e) {
+                    clientConfigError = e;
+                }
+    
+                expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
+                expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+                expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            });
+    
+            it("should throw invalidScopesError if scopes is an empty array", () => {
+                const scopes = [];
+                let clientConfigError;
+    
+                try {
+                    ScopeSet.validateInputScope(scopes, true);
+                } catch (e) {
+                    clientConfigError = e;
+                }
+    
+                expect(clientConfigError instanceof ClientConfigurationError).to.eq(true);
+                expect(clientConfigError.errorCode).to.equal(ClientConfigurationErrorMessage.invalidScopes.code);
+                expect(clientConfigError.message).to.contain(ClientConfigurationErrorMessage.invalidScopes.desc);
+            });
         });
     });
 
@@ -148,8 +177,8 @@ describe("ScopeSet.ts", () => {
     });
 
     describe("appendScopes", () => {
-        it("should return null if no scopes are passed into the first argument", () => {
-            expect(ScopeSet.appendScopes(null, ["s1"])).to.eql(null);
+        it("should return an empty array if no scopes are passed into the first argument", () => {
+            expect(ScopeSet.appendScopes(null, ["s1"])).to.eql([]);
         });
 
         it("should return extended scopes if scopes and scopesToAppend are passed in", () => {
@@ -169,39 +198,39 @@ describe("ScopeSet.ts", () => {
         });
     });
 
-    describe("generateLoginScopes", () => {
+    describe("generateOidcScopes", () => {
         it("should append openid and profile to scopes when clientId is in scopes array", () => {
-            const loginScopes = ScopeSet.generateLoginScopes([clientId]); 
+            const loginScopes = ScopeSet.generateOidcScopes([clientId]); 
             expect(loginScopes).to.include(openid);
             expect(loginScopes).to.include(profile);
         });
 
         it("should not remove clientId from scopes array", () => {
-            const loginScopes = ScopeSet.generateLoginScopes([clientId]);
+            const loginScopes = ScopeSet.generateOidcScopes([clientId]);
             expect(loginScopes).to.include(clientId);
         });
 
         it('should not append clientId to scopes array if not already present', () => {
-            const loginScopes = ScopeSet.generateLoginScopes([]);
+            const loginScopes = ScopeSet.generateOidcScopes([]);
             expect(loginScopes).to.not.include(clientId);
         });
 
         it("should append openid to scopes if original scopes are login scopes and does not include openid", () => {
-            const loginScopes = ScopeSet.generateLoginScopes([clientId, profile]);
+            const loginScopes = ScopeSet.generateOidcScopes([clientId, profile]);
             expect(loginScopes).to.include(openid);
             expect(loginScopes).to.include(profile);
             expect(loginScopes).to.include(clientId);
         });
         
         it("should append profile to scopes if original scopes are login scopes and does not include profile", () => {
-            const loginScopes = ScopeSet.generateLoginScopes([clientId, openid]);
+            const loginScopes = ScopeSet.generateOidcScopes([clientId, openid]);
             expect(loginScopes).to.include(openid);
             expect(loginScopes).to.include(profile);
             expect(loginScopes).to.include(clientId);
         });
         
         it("should not remove existing access token scopes in original scopes when appending login scopes", () => {
-            const loginScopes = ScopeSet.generateLoginScopes(["S1", clientId], clientId);
+            const loginScopes = ScopeSet.generateOidcScopes(["S1", clientId]);
             expect(loginScopes).to.include("S1");
             expect(loginScopes).to.include(openid);
             expect(loginScopes).to.include(profile);
@@ -230,6 +259,24 @@ describe("ScopeSet.ts", () => {
 
         it("should return false if scopes does not include openid, profile, or clientId", () => {
             expect(ScopeSet.isLoginScopes(["s1"], clientId)).to.eql(false);
+        });
+    });
+    
+    describe("containsOidcScopes", () => {
+        it("should return true if scopes array includes openid and profile", () => {
+            expect(ScopeSet.containsOidcScopes([openid, profile])).to.eql(true);
+        });
+
+        it("should return false if scopes array includes openid but omits profile", () => {
+            expect(ScopeSet.containsOidcScopes([openid])).to.eql(false);
+        });
+
+        it("should return false if scopes array includes profile but omits openid", () => {
+            expect(ScopeSet.containsOidcScopes([profile])).to.eql(false);
+        });
+
+        it("should return false if scopes array does not contain openid or profile", () => {
+            expect(ScopeSet.containsOidcScopes(["s1"])).to.eql(false);
         });
     });
 });
