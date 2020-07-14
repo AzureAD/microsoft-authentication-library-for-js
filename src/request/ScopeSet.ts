@@ -8,8 +8,8 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
- * The ScopeSet class creates a set of scopes. Scopes are case-sensitive, unique values, so the Set object in JS makes
- * the most sense to implement for this class. All scopes are trimmed to ensure uniqueness of strings.
+ * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
+ * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings to ensure uniqueness of strings.
  */
 export class ScopeSet {;
     // Scopes as a Set of strings
