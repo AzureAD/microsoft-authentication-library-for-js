@@ -1207,7 +1207,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 return new Promise<void>(() => {
-                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                     expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
                     expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
                     expect(url).to.include("&state");
@@ -1240,7 +1240,7 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 return new Promise<void>(() => {
                     expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
-                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                     expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
                     expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
                     expect(url).to.include("&state");
@@ -1282,7 +1282,7 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 return new Promise<void>(() => {
                     expect(cacheCallSpy.notCalled).to.be.true;
-                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                     expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
                     expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
                     expect(url).to.include("&state");
@@ -1320,7 +1320,7 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                 return new Promise<void>(() => {
                     expect(cacheCallSpy.notCalled).to.be.true;
-                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                     expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
                     expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
                     expect(url).to.include("&state");
