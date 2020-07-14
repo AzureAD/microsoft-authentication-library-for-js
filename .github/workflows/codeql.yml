@@ -39,6 +39,7 @@ jobs:
     #    uses a compiled language
 
     - run: |
+       npm ci
        npm run build
 
     - name: Perform CodeQL Analysis
