@@ -32,10 +32,10 @@ At a minimum, MSAL Angular will follow the [support schedule of the main Angular
 
 * [Angular Quickstart](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-angular)
 * [B2C Angular SPA](https://github.com/Azure-Samples/active-directory-b2c-javascript-angular-spa)
-* [Angular v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular6-sample-app)
-* [Angular v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular7-sample-app)
-* [Angular v8](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular8-sample-app)
-* [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular9-sample-app)
+* [Angular v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular6-sample-app)
+* [Angular v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular7-sample-app)
+* [Angular v8](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular8-sample-app)
+* [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular9-sample-app)
 
 ## Usage
 
@@ -197,7 +197,7 @@ export function loggerCallback(logLevel, message, piiEnabled) {
                 correlationId: '1234',
                 level: LogLevel.Verbose,
                 piiLoggingEnabled: true,
-            }
+            }),
         }
     })]
 })
