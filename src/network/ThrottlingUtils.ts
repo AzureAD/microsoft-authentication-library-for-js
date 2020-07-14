@@ -106,7 +106,10 @@ export class ThrottlingUtils {
      * Calculates the Unix-time value for a throttle to expire given throttleTime in seconds.
      * @param throttleTime
      */
-    private static calculateThrottleTime(throttleTime: number): number {
+    static calculateThrottleTime(throttleTime: number): number {
+        if(throttleTime <= 0) {
+            throttleTime = null;
+        }
         const currentSeconds = Date.now() / 1000;
         return Math.floor(Math.min(
             currentSeconds + (throttleTime || Constants.DEFAULT_THROTTLE_TIME_SECONDS),
