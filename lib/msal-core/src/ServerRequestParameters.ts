@@ -60,7 +60,7 @@ export class ServerRequestParameters {
 
         // set scope to clientId if null
         this.scopes = scopes ? [ ...scopes] : [clientId];
-        this.scopes = ScopeSet.trimAndConvertArrayToLowerCase(this.scopes);
+        this.scopes = ScopeSet.trimScopes(this.scopes);
 
         // set state (already set at top level)
         this.state = state;
