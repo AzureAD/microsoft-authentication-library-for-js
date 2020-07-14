@@ -49,7 +49,7 @@ export class ScopeSet {
     }
 
     /**
-     * Performs trimeAndConvertToLowerCase on string array
+     * Performs trimAndConvertToLowerCase on string array
      * @param scopes 
      */
     static trimAndConvertArrayToLowerCase(scopes: Array<string>): Array<string> {
@@ -57,7 +57,15 @@ export class ScopeSet {
     }
 
     /**
-     * remove one element from a scope array
+     * Trims each scope in scopes array
+     * @param scopes 
+     */
+    static trimScopes(scopes: Array<string>): Array<string> {
+        return scopes.map(scope => scope.trim());
+    }
+
+    /**
+     * Remove one element from a scope array
      *
      * @param scopes
      * @param scope
