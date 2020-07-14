@@ -10,7 +10,7 @@ import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO
 import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata } from "@azure/msal-common";
 import { BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
-import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
 import { XhrClient } from "../../src/network/XhrClient";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -437,11 +437,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
 					verifier: TEST_CONFIG.TEST_VERIFIER
 				});
-				const loginUrlErr = "loginUrlErr";
-				sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(new BrowserAuthError(loginUrlErr));
-				await expect(pca.loginRedirect(emptyRequest)).to.be.rejectedWith(loginUrlErr);
-				await expect(pca.loginRedirect(emptyRequest)).to.be.rejectedWith(BrowserAuthError);
-				expect(browserStorage.getKeys()).to.be.empty;
+				
+				const testError = {
+                    errorCode: "create_login_url_error",
+                    errorMessage: "Error in creating a login url"
+                }
+                sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(testError);
+                try {
+                    await pca.loginRedirect(emptyRequest);
+                } catch (e) {
+                    // Test that error was cached for telemetry purposes and then thrown
+                    expect(window.sessionStorage).to.be.length(1);
+                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
+                    const failureObj = JSON.parse(failures);
+                    expect(failureObj.requests).to.be.length(2);
+                    expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenRedirect);
+                    expect(failureObj.errors[0]).to.eq(testError.errorCode);
+                    expect(e).to.be.eq(testError);
+                }
 			});
 
 			it("Uses adal token from cache if it is present.", async () => {
@@ -628,12 +641,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
 					challenge: TEST_CONFIG.TEST_CHALLENGE,
 					verifier: TEST_CONFIG.TEST_VERIFIER
-				});
-				const loginUrlErr = "loginUrlErr";
-				sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(new BrowserAuthError(loginUrlErr));
-				await expect(pca.acquireTokenRedirect(emptyRequest)).to.be.rejectedWith(loginUrlErr);
-				await expect(pca.acquireTokenRedirect(emptyRequest)).to.be.rejectedWith(BrowserAuthError);
-				expect(browserStorage.getKeys()).to.be.empty;
+                });
+                
+				const testError = {
+                    errorCode: "create_login_url_error",
+                    errorMessage: "Error in creating a login url"
+                }
+                sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(testError);
+                try {
+                    await pca.acquireTokenRedirect(emptyRequest);
+                } catch (e) {
+                    // Test that error was cached for telemetry purposes and then thrown
+                    expect(window.sessionStorage).to.be.length(1);
+                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
+                    const failureObj = JSON.parse(failures);
+                    expect(failureObj.requests).to.be.length(2);
+                    expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenRedirect);
+                    expect(failureObj.errors[0]).to.eq(testError.errorCode);
+                    expect(e).to.be.eq(testError);
+                }
 			});
 
 			it("Uses adal token from cache if it is present.", async () => {
@@ -798,7 +824,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("catches error and cleans cache before rethrowing", async () => {
-                const testError = "Error in creating a login url";
+                const testError = {
+                    errorCode: "create_login_url_error",
+                    errorMessage: "Error in creating a login url"
+                }
                 sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
 				sinon.stub(PopupHandler.prototype, "initiateAuthRequest").throws(testError);
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -809,8 +838,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 try {
                     const tokenResp = await pca.loginPopup(null);
                 } catch (e) {
-                    expect(window.sessionStorage).to.be.empty;
-                    expect(`${e}`).to.be.eq(testError);
+                    // Test that error was cached for telemetry purposes and then thrown
+                    expect(window.sessionStorage).to.be.length(1);
+                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
+                    const failureObj = JSON.parse(failures);
+                    expect(failureObj.requests).to.be.length(2);
+                    expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenPopup);
+                    expect(failureObj.errors[0]).to.eq(testError.errorCode);
+                    expect(e).to.be.eq(testError);
                 }
             });
         });
@@ -886,7 +921,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("catches error and cleans cache before rethrowing", async () => {
-                const testError = "Error in creating a login url";
+                const testError = {
+                    errorCode: "create_login_url_error",
+                    errorMessage: "Error in creating a login url"
+                }
                 sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
 				sinon.stub(PopupHandler.prototype, "initiateAuthRequest").throws(testError);
 				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -900,8 +938,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         scopes: TEST_CONFIG.DEFAULT_SCOPES
                     });
                 } catch (e) {
-                    expect(window.sessionStorage).to.be.empty;
-                    expect(`${e}`).to.be.eq(testError);
+                    // Test that error was cached for telemetry purposes and then thrown
+                    expect(window.sessionStorage).to.be.length(1);
+                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
+                    const failureObj = JSON.parse(failures);
+                    expect(failureObj.requests).to.be.length(2);
+                    expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenPopup);
+                    expect(failureObj.errors[0]).to.eq(testError.errorCode);
+                    expect(e).to.be.eq(testError);
                 }
             });
         });
@@ -1036,7 +1080,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
-            const testError = "Error in creating a login url";
+            const testError = {
+                errorCode: "create_login_url_error",
+                errorMessage: "Error in creating a login url"
+            }
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
@@ -1050,8 +1097,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount
                 });
             } catch (e) {
-                expect(`${e}`).to.contain(testError);
-                expect(window.sessionStorage).to.be.empty;
+                // Test that error was cached for telemetry purposes and then thrown
+                expect(window.sessionStorage).to.be.length(1);
+                const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
+                const failureObj = JSON.parse(failures);
+                expect(failureObj.requests).to.be.length(2);
+                expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenSilent_silentFlow);
+                expect(failureObj.errors[0]).to.eq(testError.errorCode);
+                expect(e).to.be.eq(testError);
             }
         });
 
