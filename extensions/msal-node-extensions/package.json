@@ -1,9 +1,17 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "0.1.0",
+  "version": "1.0.0-alpha.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+    "keywords": [
+        "js",
+        "ts",
+        "node",
+        "AAD",
+        "msal",
+        "extensions"
+    ],
   "files": [
     "dist",
     "src"
@@ -18,14 +26,17 @@
     "lint": "tsdx lint",
     "prepare": "tsdx build"
   },
-  "peerDependencies": {},
-  "author": "",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
   "module": "dist/test.esm.js",
   "dependencies": {
     "keytar": "6.0.1",
     "bindings": "^1.5.0",
     "nan": "^2.13.2",
-    "@azure/msal-common": "^1.0.0-beta.3"
+    "@azure/msal-common": "^1.0.0-beta.4"
   },
   "devDependencies": {
     "husky": "^4.2.5",
