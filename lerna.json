@@ -8,9 +8,9 @@
         "@azure/msal-browser", 
         "@azure/msal-angular",
         "@azure/msal-node",
-        "vanilla-js-test-app",
-        "vanilla-js-test-app-2.0"
-      ]
+        "vanilla-js-test-app"
+      ],
+      "stream": true
     }
   },
   "packages": [
