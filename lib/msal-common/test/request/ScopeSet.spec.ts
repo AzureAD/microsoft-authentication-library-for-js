@@ -4,7 +4,7 @@ import { TEST_CONFIG } from "../utils/StringConstants";
 import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants, ClientAuthError, ClientAuthErrorMessage } from "../../src";
 import sinon from "sinon";
 
-describe.only("ScopeSet.ts", () => {
+describe("ScopeSet.ts", () => {
 
     describe("Constructor and scope validation", () => {
 
