@@ -55,12 +55,13 @@ export class ThrottlingUtils {
         if (storageValue) {
             const parsedValue = StringUtils.jsonParseHelper(storageValue);
 
-            if (parsedValue && parsedValue.throttleTime >= Date.now()) {
-                cacheManager.removeItem(key);
-                return;
+            if (parsedValue) {
+                if (parsedValue.throttleTime >= Date.now()) {
+                    cacheManager.removeItem(key);
+                    return;
+                }
+                throw new ServerError(parsedValue.errorCodes, parsedValue.errorDescription, parsedValue.subError);
             }
-
-            throw new ServerError(parsedValue.errorCodes, parsedValue.errorDescription, parsedValue.subError);
         }
     }
 
