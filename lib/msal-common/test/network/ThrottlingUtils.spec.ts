@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import { ThrottlingUtils, RequestThumbprint } from "../../src/network/ThrottlingUtils";
@@ -6,7 +11,7 @@ import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthori
 import { MockStorageClass }  from "../client/ClientTestUtils";
 import { ServerError } from "../../src";
 
-describe.only("ThrottlingUtils", () => {
+describe("ThrottlingUtils", () => {
     describe("generateThrottlingStorageKey", () => {
         it("returns a throttling key", () => {
             const thumbprint: RequestThumbprint = {
