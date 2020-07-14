@@ -1,4 +1,4 @@
-# Scopes and Resources
+# Resources and Scopes
 
 > :warning: Before you start here, make sure you understand how to [acquire and use an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md).
 
