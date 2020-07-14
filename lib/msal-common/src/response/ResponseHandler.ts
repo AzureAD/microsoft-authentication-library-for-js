@@ -143,7 +143,7 @@ export class ResponseHandler {
         }
 
         // IdToken
-        let cachedIdToken: IdTokenEntity;
+        let cachedIdToken: IdTokenEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
             cachedIdToken = IdTokenEntity.createIdTokenEntity(
                 this.homeAccountIdentifier,
@@ -155,7 +155,7 @@ export class ResponseHandler {
         }
 
         // AccessToken
-        let cachedAccessToken: AccessTokenEntity;
+        let cachedAccessToken: AccessTokenEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
             const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
 
@@ -180,7 +180,7 @@ export class ResponseHandler {
         }
 
         // refreshToken
-        let cachedRefreshToken: RefreshTokenEntity;
+        let cachedRefreshToken: RefreshTokenEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
             cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
@@ -223,10 +223,10 @@ export class ResponseHandler {
      * @param stateString 
      */
     static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, stateString?: string): AuthenticationResult {
-        let accessToken: string;
-        let responseScopes: Array<string>;
-        let expiresOn: Date;
-        let extExpiresOn: Date;
+        let accessToken: string = "";
+        let responseScopes: Array<string> = [];
+        let expiresOn: Date = null;
+        let extExpiresOn: Date = null;
         let familyId: string = null;
         if (cacheRecord.accessToken) {
             accessToken = cacheRecord.accessToken.secret;
