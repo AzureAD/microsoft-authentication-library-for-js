@@ -17,7 +17,7 @@ export class ScopeSet {;
 
     constructor(inputScopes: Array<string>) {
         // Filter empty string and null/undefined array items
-        const scopeArr = inputScopes ? StringUtils.trimEntries([...inputScopes]) : [];
+        const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [];
         const filteredInput = scopeArr ? StringUtils.removeEmptyStringsFromArray(scopeArr) : [];
 
         // Validate and filter scopes (validate function throws if validation fails)
