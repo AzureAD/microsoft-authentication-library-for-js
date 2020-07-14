@@ -55,7 +55,7 @@ export class PublicClientApplication extends ClientApplication {
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
             return deviceCodeClient.acquireToken(validRequest, telemetryManager);
         } catch (e) {
-            telemetryManager.createFailedRequest(e);
+            telemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }
