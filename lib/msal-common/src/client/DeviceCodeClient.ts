@@ -13,6 +13,7 @@ import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
+import { TelemetryManager } from "../telemetry/TelemetryManager";
 
 /**
  * OAuth2.0 Device code client
@@ -28,13 +29,14 @@ export class DeviceCodeClient extends BaseClient {
      * polls token endpoint to exchange device code for tokens
      * @param request
      */
-    public async acquireToken(request: DeviceCodeRequest): Promise<string> {
+    public async acquireToken(request: DeviceCodeRequest, telemetryManager?: TelemetryManager): Promise<string> {
 
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
         const response: ServerAuthorizationTokenResponse = await this.acquireTokenWithDeviceCode(
             request,
-            deviceCodeResponse);
+            deviceCodeResponse,
+            telemetryManager);
 
         // TODO handle response
         return JSON.stringify(response);
@@ -111,10 +113,15 @@ export class DeviceCodeClient extends BaseClient {
      */
     private async acquireTokenWithDeviceCode(
         request: DeviceCodeRequest,
-        deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
+        deviceCodeResponse: DeviceCodeResponse,
+        telemetryManager: TelemetryManager): Promise<ServerAuthorizationTokenResponse> {
 
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        let headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+
+        if (telemetryManager) {
+            headers = telemetryManager.addTelemetryHeaders(headers);
+        }
 
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
