@@ -8,7 +8,7 @@ import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { RequestUtils } from '../utils/RequestUtils';
+import { RequestUtils } from "../utils/RequestUtils";
 
 /**
  * @hidden
@@ -219,8 +219,10 @@ export class AuthCache extends BrowserStorage {// Singleton
      * Clear all cookies
      */
     public clearMsalCookie(state?: string): void {
-        // If state is truthy, remove values associated with that request.
-        // Otherwise, remove all MSAL cookies.
+        /*
+         * If state is truthy, remove values associated with that request.
+         * Otherwise, remove all MSAL cookies.
+         */
         if (state) {
             this.clearItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, state));
             this.clearItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, state));
@@ -236,7 +238,7 @@ export class AuthCache extends BrowserStorage {// Singleton
                 if (cookieName.indexOf(Constants.cachePrefix) > -1) {
                     super.clearItemCookie(cookieName);
                 }
-            })
+            });
         }
     }
 

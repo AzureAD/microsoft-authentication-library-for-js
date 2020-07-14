@@ -5,7 +5,6 @@
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { INetworkModule, NetworkRequestOptions } from "./INetworkModule";
 import { CacheManager } from "../cache/CacheManager";
-import { TelemetryManager } from "../telemetry/TelemetryManager";
 
 export type NetworkResponse<T> = {
     headers: Map<string, string>;
@@ -32,7 +31,7 @@ export class NetworkManager {
 
         if (NetworkManager.serverLoggedRequest(response)) {
             // Request was logged by server, clear telemetry cache
-            TelemetryManager.clearTelemetryCache(this.cacheManager);
+            this.cacheManager.clearTelemetryCache();
         }
 
         return response;
