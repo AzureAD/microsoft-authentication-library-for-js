@@ -122,8 +122,9 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.queryStringToObject(serializedObj)).to.be.deep.eq(deserializedObj);        
     });
 
-    it("trimAndConvertArrayEntriesToLowerCase() converts entries to lower case and trims them", () => {
-
+    it("trimEntries() correctly trims entries in an array", () => {
+        const arr = ["S1", " S2  ", " S3 "];
+        expect(StringUtils.trimEntries(arr)).to.be.deep.eq(["S1", "S2", "S3"]);         
     });
 
     it("removeEmptyStringsFromArray() removes empty strings from an array", () => {
