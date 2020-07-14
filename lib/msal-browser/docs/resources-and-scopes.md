@@ -2,7 +2,7 @@
 
 > :warning: Before you start here, make sure you understand how to [acquire and use an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md).
 
-Azure Active Directory v2.0 & Microsoft Identity Platform employs a *scope-centric* to access resources. Here, a *resource* refers to any application that can be of recipient of an **Access Token** (such as [MS Graph API](https://docs.microsoft.com/graph/overview) or your own web API), and a *scope* (*aka* "permission") refers to any aspect of a resource that an **Access Token** grants rights.
+Azure Active Directory v2.0 & Microsoft Identity Platform employs a *scope-centric* model to access resources. Here, a *resource* refers to any application that can be of recipient of an **Access Token** (such as [MS Graph API](https://docs.microsoft.com/graph/overview) or your own web API), and a *scope* (*aka* "permission") refers to any aspect of a resource that an **Access Token** grants rights.
 
 **Access Token** requests in **MSAL.js** are meant to be *per-resource-per-scope(s)*. This means that an **Access Token** requested for resource **A** with scope `scp1`:
 
@@ -57,7 +57,7 @@ In Azure AD, The scopes (*permissions*) set directly on the application registra
           msalInstance.acquireTokenSilent(tokenRequest);
      ```
 
-In the code snippet above, the user will prompted for consent once they authenticate and receive an **ID Token** and an **Access Token** with scope `User.Read`. Later, if they request an **Access Token** for `User.Read`, they will not be asked for consent again (in other words, they can acquire a token *silently*). On the other hand, the user did not consented to `Mail.Read` at the authentication stage. As such, they will be asked for consent when requesting an **Access Token** for that scope.
+In the code snippet above, the user will be prompted for consent once they authenticate and receive an **ID Token** and an **Access Token** with scope `User.Read`. Later, if they request an **Access Token** for `User.Read`, they will not be asked for consent again (in other words, they can acquire a token *silently*). On the other hand, the user did not consented to `Mail.Read` at the authentication stage. As such, they will be asked for consent when requesting an **Access Token** for that scope.
 
 Consider a slightly different case:
 
