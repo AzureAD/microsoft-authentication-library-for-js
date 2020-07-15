@@ -6,7 +6,7 @@
 import { DeviceCodeClient, DeviceCodeRequest, TelemetryManager } from '@azure/msal-common';
 import { Configuration } from '../config/Configuration';
 import { ClientApplication } from './ClientApplication';
-import { ApiId } from 'utils/Constants';
+import { ApiId } from '../utils/Constants';
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
