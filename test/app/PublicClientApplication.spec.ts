@@ -7,7 +7,7 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, ProtocolUtils } from "@azure/msal-common";
 import { BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
@@ -1019,7 +1019,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const testTokenResponse: AuthenticationResult = {
                 uniqueId: testIdTokenClaims.oid,
                 tenantId: testIdTokenClaims.tid,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                scopes: ["scope1"],
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
@@ -1027,11 +1027,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount
             };
-            sinon.stub(SilentFlowClient.prototype, "acquireToken").resolves(testTokenResponse);
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const silentATStub = sinon.stub(SilentFlowClient.prototype, "acquireToken").resolves(testTokenResponse);
+            const tokenRequest: SilentFlowRequest = {
+                scopes: ["scope1"],
+                account: testAccount
+            };
+            const expectedTokenRequest: SilentFlowRequest = {
+                ...tokenRequest,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID
+            };
             const tokenResp = await pca.acquireTokenSilent({
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                scopes: ["scope1"],
                 account: testAccount
             });
+            expect(silentATStub.calledWith(expectedTokenRequest)).to.be.true;
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
         });
 
@@ -1086,7 +1097,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const testTokenResponse: AuthenticationResult = {
                 uniqueId: testIdTokenClaims.oid,
                 tenantId: testIdTokenClaims.tid,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
@@ -1100,30 +1111,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				challenge: TEST_CONFIG.TEST_CHALLENGE,
 				verifier: TEST_CONFIG.TEST_VERIFIER
 			});
-			sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-			const urlRequest: AuthorizationUrlRequest = {
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				redirectUri: "",
-				prompt: "none",
-				state: RANDOM_TEST_GUID,
-				correlationId: RANDOM_TEST_GUID,
-				authority: `${Constants.DEFAULT_AUTHORITY}`,
-				nonce: RANDOM_TEST_GUID
-			};
-			const codeRequest: AuthorizationCodeRequest = {
-                ...urlRequest,
-                redirectUri: urlRequest.redirectUri,
-				code: "",
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER
-            };
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            sinon.stub(ProtocolUtils, "setRequestState").returns(RANDOM_TEST_GUID);
             const silentFlowRequest: SilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                scopes: ["User.Read"],
                 account: testAccount
             };
+            const expectedRequest: AuthorizationUrlRequest = {
+                ...silentFlowRequest,
+                scopes: ["User.Read", ...TEST_CONFIG.DEFAULT_SCOPES],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                prompt: "none",
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+				state: RANDOM_TEST_GUID,
+                nonce: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+            };
             const tokenResp = await pca.acquireTokenSilent(silentFlowRequest);
-			
+
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
-            expect(createAcqTokenStub.calledOnce).to.be.true;
+            expect(createAcqTokenStub.calledWith(expectedRequest)).to.be.true;
             expect(silentTokenHelperStub.calledWith(testNavUrl)).to.be.true;
         });
     });
