@@ -23,5 +23,4 @@
 - Update UnifiedCacheManager.ts (#1771)
 - Node cache interface (#1801)
 - SilentFlow node interface (#1809)
-- Extensions (#1830, #1831, #1832, #1833, #1835, #1849)
 - Update TokenCache name (#1901)

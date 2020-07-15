@@ -44,7 +44,7 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 
 | Date | Release | Announcement | Main features |
 | ------| ------- | ---------| --------- |
-| July 13th, 2020 (Tentative) | @azure/msal-browser v2.0.0 | No release notes yet | Full version of the `@azure/msal-browser` package; relies on `@azure/msal-common` v1.0.0 |
+| July 20th, 2020 (Tentative) | @azure/msal-browser v2.0.0 | No release notes yet | Full version of the `@azure/msal-browser` package; relies on `@azure/msal-common` v1.0.0 |
 | May 11, 2020 | @azure/msal-browser v2.0.0-beta | No release notes yet | Beta version of the `@azure/msal-browser` package; relies on `@azure/msal-common` v1.0.0-beta |
 | January 17, 2020 | @azure/msal-browser v2.0.0-alpha | No release notes yet | Alpha version of the `@azure/msal-browser` package with authorization code flow for SPAs working in dev; relies on msal-common v1.0.0-alpha |
 
