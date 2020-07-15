@@ -591,10 +591,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
 
-        return {
-            ...validatedRequest,
-            ...this.setDefaultScopes(validatedRequest)
-        };
+        return validatedRequest;
     }
 
     /**
@@ -650,7 +647,10 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
-        return validatedRequest;
+        return {
+            ...validatedRequest,
+            ...this.setDefaultScopes(validatedRequest)
+        };
     }
 
     /**
