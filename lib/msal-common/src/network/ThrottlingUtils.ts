@@ -79,7 +79,10 @@ export class ThrottlingUtils {
      * @param response
      */
     static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
-        return response.headers.has(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300);
+        if (response.headers) {
+            return response.headers.has(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300);
+        }
+        return false;
     }
 
     /**
