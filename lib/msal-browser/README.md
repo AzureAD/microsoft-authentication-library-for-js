@@ -60,7 +60,10 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 ```javascript
 npm install @azure/msal-browser
 ```
-### Via CDN:
+### Via CDN (with SRI Hash):
+```javascript
+<script src="https://alcdn.msauth.net/browser/2.0.0-beta.0/js/msal-browser.js" integrity="sha384-r7Qxfs6PYHyfoBR6zG62DGzptfLBxnREThAlcJyEfzJ4dq5rqExc1Xj3TPFE/9TH" crossorigin="anonymous"></script>
+```
 
 ## Usage
 
