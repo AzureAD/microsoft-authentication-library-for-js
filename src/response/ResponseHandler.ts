@@ -143,44 +143,53 @@ export class ResponseHandler {
         }
 
         // IdToken
-        const cachedIdToken = IdTokenEntity.createIdTokenEntity(
-            this.homeAccountIdentifier,
-            env,
-            serverTokenResponse.id_token,
-            this.clientId,
-            idTokenObj.claims.tid
-        );
+        let cachedIdToken: IdTokenEntity = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
+            cachedIdToken = IdTokenEntity.createIdTokenEntity(
+                this.homeAccountIdentifier,
+                env,
+                serverTokenResponse.id_token,
+                this.clientId,
+                idTokenObj.claims.tid
+            );
+        }
 
         // AccessToken
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
+        let cachedAccessToken: AccessTokenEntity = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
+            const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
 
-        // Expiration calculation
-        const currentTime = TimeUtils.nowSeconds();
+            // Expiration calculation
+            const currentTime = TimeUtils.nowSeconds();
 
-        // If the request timestamp was sent in the library state, use that timestamp to calculate expiration. Otherwise, use current time.
-        const timestamp = libraryState ? libraryState.ts : currentTime;
-        const tokenExpirationSeconds = timestamp + serverTokenResponse.expires_in;
-        const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
+            // If the request timestamp was sent in the library state, use that timestamp to calculate expiration. Otherwise, use current time.
+            const timestamp = libraryState ? libraryState.ts : currentTime;
+            const tokenExpirationSeconds = timestamp + serverTokenResponse.expires_in;
+            const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
 
-        const cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
-            this.homeAccountIdentifier,
-            env,
-            serverTokenResponse.access_token,
-            this.clientId,
-            idTokenObj.claims.tid,
-            responseScopes.printScopesLowerCase(),
-            tokenExpirationSeconds,
-            extendedTokenExpirationSeconds
-        );
+            cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
+                this.homeAccountIdentifier,
+                env,
+                serverTokenResponse.access_token,
+                this.clientId,
+                idTokenObj.claims.tid,
+                responseScopes.printScopes(),
+                tokenExpirationSeconds,
+                extendedTokenExpirationSeconds
+            );
+        }
 
         // refreshToken
-        const cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
-            this.homeAccountIdentifier,
-            env,
-            serverTokenResponse.refresh_token,
-            this.clientId,
-            serverTokenResponse.foci
-        );
+        let cachedRefreshToken: RefreshTokenEntity = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
+            cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+                this.homeAccountIdentifier,
+                env,
+                serverTokenResponse.refresh_token,
+                this.clientId,
+                serverTokenResponse.foci
+            );
+        }
 
         return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken);
     }
@@ -214,19 +223,32 @@ export class ResponseHandler {
      * @param stateString 
      */
     static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, stateString?: string): AuthenticationResult {
-        const responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target);
+        let accessToken: string = "";
+        let responseScopes: Array<string> = [];
+        let expiresOn: Date = null;
+        let extExpiresOn: Date = null;
+        let familyId: string = null;
+        if (cacheRecord.accessToken) {
+            accessToken = cacheRecord.accessToken.secret;
+            responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target).asArray();
+            expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
+            extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
+        }
+        if (cacheRecord.refreshToken) {
+            familyId = cacheRecord.refreshToken.familyId || null;
+        }
         return {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
-            scopes: responseScopes.asArray(),
+            scopes: responseScopes,
             account: cacheRecord.account.getAccountInfo(),
             idToken: idTokenObj.rawIdToken,
             idTokenClaims: idTokenObj.claims,
-            accessToken: cacheRecord.accessToken.secret,
+            accessToken: accessToken,
             fromCache: fromTokenCache,
-            expiresOn: new Date(Number(cacheRecord.accessToken.expiresOn) * 1000),
-            extExpiresOn: new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000),
-            familyId: cacheRecord.refreshToken.familyId || null,
+            expiresOn: expiresOn,
+            extExpiresOn: extExpiresOn,
+            familyId: familyId,
             state: stateString || ""
         };
     }
