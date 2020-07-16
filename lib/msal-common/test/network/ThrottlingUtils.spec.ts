@@ -5,20 +5,17 @@
 
 import { expect } from "chai";
 import sinon from "sinon";
-import { ThrottlingUtils, RequestThumbprint } from "../../src/network/ThrottlingUtils";
+import { ThrottlingUtils, RequestThumbprint, RequestThumbprintValue } from "../../src/network/ThrottlingUtils";
 import { NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
 import { MockStorageClass }  from "../client/ClientTestUtils";
 import { ServerError } from "../../src";
+import { THUMBPRINT, THUMBPRINT_VALUE } from "../utils/StringConstants";
 
 describe("ThrottlingUtils", () => {
     describe("generateThrottlingStorageKey", () => {
         it("returns a throttling key", () => {
-            const thumbprint: RequestThumbprint = {
-                clientId: "",
-                authority: "",
-                scopes: new Array<string>()
-            };
+            const thumbprint: RequestThumbprint = THUMBPRINT;
             const jsonString = JSON.stringify(thumbprint);
             const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
 
@@ -32,22 +29,12 @@ describe("ThrottlingUtils", () => {
         })
 
         it("checks the cache and throws an error", () => {
-            const thumbprint: RequestThumbprint = {
-                clientId: "",
-                authority: "",
-                scopes: new Array<string>()
-            };
-
-            const str = JSON.stringify({ 
-                throttleTime: 5,
-                errorCodes: "",
-                errorDescription: "",
-                subError: ""
-            });
-
+            const thumbprint: RequestThumbprint = THUMBPRINT;
+            const thumbprintValue: RequestThumbprintValue = THUMBPRINT_VALUE;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getItem").callsFake(() => str);
+            sinon.stub(cache, "getItem").callsFake(() => JSON.stringify(thumbprintValue));
+            sinon.stub(Date, "now").callsFake(() => 1)
 
             try {
                 ThrottlingUtils.preProcess(cache, thumbprint);
@@ -58,17 +45,12 @@ describe("ThrottlingUtils", () => {
         });
 
         it("checks the cache and removes an item", () => {
-            const thumbprint: RequestThumbprint = {
-                clientId: "",
-                authority: "",
-                scopes: new Array<string>()
-            };
-
-            const str = JSON.stringify({ throttleTime: 5 });
+            const thumbprint: RequestThumbprint = THUMBPRINT;
+            const thumbprintValue: RequestThumbprintValue = THUMBPRINT_VALUE;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getItem").callsFake(() => str);
-            sinon.stub(Date, "now").callsFake(() => 1)
+            sinon.stub(cache, "getItem").callsFake(() => JSON.stringify(thumbprintValue));
+            sinon.stub(Date, "now").callsFake(() => 10)
 
             ThrottlingUtils.preProcess(cache, thumbprint);
             sinon.assert.callCount(removeItemStub, 1)
@@ -77,12 +59,7 @@ describe("ThrottlingUtils", () => {
         });
 
         it("checks the cache and does nothing with no match", () => {
-            const thumbprint: RequestThumbprint = {
-                clientId: "",
-                authority: "",
-                scopes: new Array<string>()
-            };
-
+            const thumbprint: RequestThumbprint = THUMBPRINT;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getItem").callsFake(() => "");
@@ -100,12 +77,7 @@ describe("ThrottlingUtils", () => {
         });
 
         it("sets an item in the cache", () => {
-            const thumbprint: RequestThumbprint = {
-                clientId: "",
-                authority: "",
-                scopes: new Array<string>()
-            };
-
+            const thumbprint: RequestThumbprint = THUMBPRINT;
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers: new Map<string, string>(),
                 body: { },
@@ -119,12 +91,7 @@ describe("ThrottlingUtils", () => {
         });
 
         it("does not set an item in the cache", () => {
-            const thumbprint: RequestThumbprint = {
-                clientId: "",
-                authority: "",
-                scopes: new Array<string>()
-            };
-
+            const thumbprint: RequestThumbprint = THUMBPRINT;
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers: new Map<string, string>(),
                 body: { },
