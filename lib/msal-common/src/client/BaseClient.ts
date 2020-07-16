@@ -9,19 +9,17 @@ import { NetworkManager, NetworkResponse } from "../network/NetworkManager";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
-<<<<<<< HEAD
 import { AADServerParamKeys, Constants, HeaderNames, HeaderValues } from "../utils/Constants";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-=======
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
->>>>>>> fb76454f... Fix JSON.parse and add ServerError
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { RequestThumbprint } from '../network/ThrottlingUtils';
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.

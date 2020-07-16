@@ -9,29 +9,8 @@ import { Constants, HeaderNames } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerError } from "../error/ServerError";
-
-/**
- * Type representing a unique request thumbprint.
- */
-export type RequestThumbprint = {
-    clientId: string;
-    authority: string;
-    scopes: Array<string>;
-    homeAccountIdentifier?: string;
-}
-
-/**
- * Type representing the values associated with a RequestThumbprint.
- */
-export type RequestThumbprintValue = {
-    // Unix-time value representing the expiration of the throttle
-    throttleTime: number;
-    // Information provided by the server
-    error?: string;
-    errorCodes?: Array<string>;
-    errorMessage?: string;
-    subError?: string;
-}
+import { RequestThumbprint } from "./RequestThumbprint";
+import { RequestThumbprintValue } from "./RequestThumbprintValue";
 
 export class ThrottlingUtils {
 
@@ -53,14 +32,14 @@ export class ThrottlingUtils {
         const storageValue = cacheManager.getItem(key) as string;
 
         if (storageValue) {
-            const parsedValue = StringUtils.jsonParseHelper(storageValue);
+            const parsedValue = StringUtils.jsonParseHelper<RequestThumbprintValue>(storageValue);
 
             if (parsedValue) {
                 if (parsedValue.throttleTime < Date.now()) {
                     cacheManager.removeItem(key);
                     return;
                 }
-                throw new ServerError(parsedValue.errorCodes, parsedValue.errorDescription, parsedValue.subError);
+                throw new ServerError(parsedValue.errorCodes.join(" "), parsedValue.errorMessage, parsedValue.subError);
             }
         }
     }
@@ -100,7 +79,7 @@ export class ThrottlingUtils {
      * @param response
      */
     static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
-        return response.headers.has(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300)
+        return response.headers.has(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300);
     }
 
     /**

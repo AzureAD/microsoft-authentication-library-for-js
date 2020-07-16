@@ -19,7 +19,7 @@ import { NetworkResponse } from "../network/ThrottlingManager";
 import { RequestThumbprint } from "../network/RequestThumbprint"
 import { RequestThumbprintValue } from "../network/RequestThumbprintValue";
 import { NetworkResponse } from "../network/NetworkManager";
-import { RequestThumbprint} from "../network/ThrottlingUtils";
+import { RequestThumbprint} from "../network/RequestThumbprint";
 
 
 /**

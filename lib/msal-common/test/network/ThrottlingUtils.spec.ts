@@ -5,7 +5,9 @@
 
 import { expect } from "chai";
 import sinon from "sinon";
-import { ThrottlingUtils, RequestThumbprint, RequestThumbprintValue } from "../../src/network/ThrottlingUtils";
+import { ThrottlingUtils } from "../../src/network/ThrottlingUtils";
+import { RequestThumbprint } from "../../src/network/RequestThumbprint";
+import { RequestThumbprintValue } from "../../src/network/RequestThumbprintValue";
 import { NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
 import { MockStorageClass }  from "../client/ClientTestUtils";

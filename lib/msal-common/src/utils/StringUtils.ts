@@ -91,9 +91,9 @@ export class StringUtils {
      * Attempts to parse a string into JSON
      * @param str
      */
-    static jsonParseHelper(str: string) {
+    static jsonParseHelper<T>(str: string): T {
         try {
-            return JSON.parse(str);
+            return JSON.parse(str) as T;
         } catch (e) {
             return null;
         }
