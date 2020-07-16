@@ -62,8 +62,31 @@ npm install @azure/msal-browser
 ```
 ### Via CDN (with SRI Hash):
 ```javascript
+<script src="https://alcdn.msauth.net/browser/2.0.0-beta.4/js/msal-browser.js" integrity="sha384-7sxY2tN3GMVE5jXH2RL9AdbO6s46vUh9lUid4yNCHJMUzDoj+0N4ve6rLOmR88yN" crossorigin="anonymous"></script>
+```
+```javascript
+<script src="https://alcdn.msauth.net/browser/2.0.0-beta.3/js/msal-browser.js" integrity="sha384-iKgpFzdbMAsg695JG+EmHleQe5gRjoAAixuMf0jfM7pCOVuGqhyBuXO1Ai71fixx" crossorigin="anonymous"></script>
+```
+```javascript
+<script src="https://alcdn.msauth.net/browser/2.0.0-beta.2/js/msal-browser.js" integrity="sha384-CEQpk7EG1PVKCHHdoQzDdR5uU7nJ1PLlcdx1s7vi8Ta/Pndhr04imhqCUkZGimOj" crossorigin="anonymous"></script>
+```
+```javascript
 <script src="https://alcdn.msauth.net/browser/2.0.0-beta.0/js/msal-browser.js" integrity="sha384-r7Qxfs6PYHyfoBR6zG62DGzptfLBxnREThAlcJyEfzJ4dq5rqExc1Xj3TPFE/9TH" crossorigin="anonymous"></script>
 ```
+### Via CDN (minified JavaScript with SRI Hash):
+```javascript
+<script src="https://alcdn.msauth.net/browser/2.0.0-beta.4/js/msal-browser.min.js" integrity="sha384-j9+OYwF1QFM1A8/DNvWKqvTw+bc5alOXQ7IA2WvGAcLLLpN/tK9XRTbJtlTiSFJI" crossorigin="anonymous"></script>
+```
+```javascript
+<script src="https://alcdn.msauth.net/browser/2.0.0-beta.3/js/msal-browser.min.js" integrity="sha384-X2nv+6ViZGj+UCfGAbimHAXpBEAi0RA6GWuqCckbMLU5jVr8uDjf6pGUvTkq7wME" crossorigin="anonymous"></script>
+```
+```javascript
+<script src="https://alcdn.msauth.net/browser/2.0.0-beta.2/js/msal-browser.min.js" integrity="sha384-O3n9nwTefR6cSLikBQsCDYke2pWL5YWluwvp0RgGe+VK2eU0+RJC1cmMow5jD1OE" crossorigin="anonymous"></script>
+```
+```javascript
+<script src="https://alcdn.msauth.net/browser/2.0.0-beta.0/js/msal-browser.min.js" integrity="sha384-OV4a42kPPZv7IxRWcyqoLn9Ohs0g1WXejuNceZxAE9usAfLVFBcdre9yqo4I03VN" crossorigin="anonymous"></script>
+```
+
 
 ## Usage
 
