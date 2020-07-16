@@ -1147,7 +1147,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe.only("getAccount tests", () => {
+    describe("getAccount tests", () => {
         // Account 1
         const testAccountInfo1: AccountInfo = {
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1182,7 +1182,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const cacheKey2 = AccountEntity.generateAccountCacheKey(testAccountInfo2);
             window.sessionStorage.setItem(cacheKey2, JSON.stringify(testAccount2));
-        })
+        });
+        
         afterEach(() => {
             window.sessionStorage.clear();
         });
