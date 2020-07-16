@@ -4,9 +4,9 @@
  */
 
 import { INetworkModule, NetworkRequestOptions } from "./INetworkModule";
-import { RequestThumbprint } from "./ThrottlingUtils";
+import { RequestThumbprint } from "./RequestThumbprint";
 import { ThrottlingUtils } from "./ThrottlingUtils";
-import { CacheManager } from '../cache/CacheManager';
+import { CacheManager } from "../cache/CacheManager";
 
 export type NetworkResponse<T> = {
     headers: Record<string, string>;

@@ -28,7 +28,9 @@ export { RefreshTokenEntity } from "./cache/entities/RefreshTokenEntity";
 // Network Interface
 export { INetworkModule } from "./network/INetworkModule";
 export { NetworkManager } from "./network/NetworkManager";
-export { ThrottlingUtils, RequestThumbprint, RequestThumbprintValue } from "./network/ThrottlingUtils";
+export { ThrottlingUtils } from "./network/ThrottlingUtils";
+export { RequestThumbprint } from "./network/RequestThumbprint";
+export { RequestThumbprintValue } from "./network/RequestThumbprintValue";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface

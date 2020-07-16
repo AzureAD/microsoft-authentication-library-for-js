@@ -3,11 +3,7 @@ import { StringUtils } from "../../src/utils/StringUtils";
 import { TEST_TOKENS } from "./StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
-<<<<<<< HEAD
 import { IdToken } from "../../src";
-=======
-import mocha from "mocha";
->>>>>>> e78e3542... Add a few unit tests
 
 describe("StringUtils.ts Class Unit Tests", () => {
     

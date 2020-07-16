@@ -22,7 +22,7 @@ import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorization
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { RequestThumbprint } from '../network/ThrottlingUtils';
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * Oauth2.0 Authorization Code client
