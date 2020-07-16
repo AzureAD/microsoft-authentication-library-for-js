@@ -26,7 +26,7 @@ export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
 export { AccessTokenEntity } from "./cache/entities/AccessTokenEntity";
 export { RefreshTokenEntity } from "./cache/entities/RefreshTokenEntity";
 // Network Interface
-export { INetworkModule } from "./network/INetworkModule";
+export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkManager } from "./network/NetworkManager";
 export { ThrottlingUtils } from "./network/ThrottlingUtils";
 export { RequestThumbprint } from "./network/RequestThumbprint";

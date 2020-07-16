@@ -96,4 +96,16 @@ export class ThrottlingUtils {
             currentSeconds + Constants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
         ) * 1000);
     }
+
+    static removeThrottle(cacheManager: CacheManager, clientId: string, authority: string, scopes: Array<string>, homeAccountIdentifier?: string): boolean {
+        const thumbprint: RequestThumbprint = {
+            clientId,
+            authority,
+            scopes,
+            homeAccountIdentifier
+        };
+
+        const key = this.generateThrottlingStorageKey(thumbprint);
+        return cacheManager.removeItem(key);
+    }
 }
