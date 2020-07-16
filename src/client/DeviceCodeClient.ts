@@ -14,7 +14,7 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
-import { AuthenticationResult } from '../response/AuthenticationResult';
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 /**
  * OAuth2.0 Device code client
