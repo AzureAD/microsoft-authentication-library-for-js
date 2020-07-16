@@ -763,7 +763,7 @@ describe("UserAgentApplication.ts Class", function () {
             }
         });
 
-        it("throws error on loginRedirect if interaction is true", function (done) {
+        it("throws error on acquireTokenRedirect if interaction is true", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
             window.location = oldWindowLocation;
             try {
