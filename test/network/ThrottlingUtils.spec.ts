@@ -3,8 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { expect } from "chai";
+import { expect, assert } from "chai";
 import sinon from "sinon";
+import mocha from "mocha";
 import { ThrottlingUtils } from "../../src/network/ThrottlingUtils";
 import { RequestThumbprint } from "../../src/network/RequestThumbprint";
 import { RequestThumbprintValue } from "../../src/network/RequestThumbprintValue";
@@ -12,7 +13,7 @@ import { NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
 import { MockStorageClass }  from "../client/ClientTestUtils";
 import { ServerError } from "../../src";
-import { THUMBPRINT, THUMBPRINT_VALUE } from "../utils/StringConstants";
+import { THUMBPRINT, THUMBPRINT_VALUE, TEST_CONFIG } from "../utils/StringConstants";
 
 describe("ThrottlingUtils", () => {
     describe("generateThrottlingStorageKey", () => {
@@ -224,6 +225,38 @@ describe("ThrottlingUtils", () => {
 
             // Based on Constants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
             expect(time).to.be.deep.eq(3605000);
+        });
+    });
+
+    describe("removeThrottle", () =>  {
+        after(() => {
+            sinon.restore();
+        });
+
+        it("removes the entry from storage and returns true", () => {
+            const cache = new MockStorageClass();
+            const removeItemStub = sinon.stub(cache, "removeItem").returns(true);
+            const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
+            const authority = TEST_CONFIG.validAuthority;
+            const scopes = TEST_CONFIG.DEFAULT_SCOPES;
+
+            const res = ThrottlingUtils.removeThrottle(cache, clientId, authority, scopes);
+
+            sinon.assert.callCount(removeItemStub, 1);
+            expect(res).to.be.true;
+        })
+
+        it("doesn't find an entry and returns false", () => {
+            const cache = new MockStorageClass();
+            const removeItemStub = sinon.stub(cache, "removeItem").returns(false);
+            const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
+            const authority = TEST_CONFIG.validAuthority;
+            const scopes = TEST_CONFIG.DEFAULT_SCOPES;
+
+            const res = ThrottlingUtils.removeThrottle(cache, clientId, authority, scopes);
+
+            sinon.assert.callCount(removeItemStub, 1);
+            expect(res).to.be.false;
         });
     });
 });
