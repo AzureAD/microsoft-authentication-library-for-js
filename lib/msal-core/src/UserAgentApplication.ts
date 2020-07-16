@@ -322,9 +322,12 @@ export class UserAgentApplication {
             if (this.errorReceivedCallback) {
                 this.logger.verbose("Two callbacks were provided to handleRedirectCallback, calling error callback");
                 this.errorReceivedCallback(authErr, response.accountState);
-            } else {
+            } else if (this.authResponseCallback) {
                 this.logger.verbose("One callback was provided to handleRedirectCallback, calling authResponseCallback with error");
                 this.authResponseCallback(authErr, response);
+            } else {
+                this.logger.verbose("handleRedirectCallback has not been called and no callbacks are registered, throwing error");
+                throw authErr;
             }
         } else if (interactionType === Constants.interactionTypePopup) {
             this.logger.verbose("Interaction type is popup, rejecting");
