@@ -56,7 +56,7 @@ export class ThrottlingUtils {
             const parsedValue = StringUtils.jsonParseHelper(storageValue);
 
             if (parsedValue) {
-                if (parsedValue.throttleTime >= Date.now()) {
+                if (parsedValue.throttleTime < Date.now()) {
                     cacheManager.removeItem(key);
                     return;
                 }
