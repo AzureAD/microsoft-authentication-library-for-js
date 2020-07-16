@@ -45,7 +45,6 @@ describe("ThrottlingUtils", () => {
                 subError: ""
             });
 
-
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getItem").callsFake(() => str);
@@ -129,7 +128,7 @@ describe("ThrottlingUtils", () => {
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers: new Map<string, string>(),
                 body: { },
-                status: 430
+                status: 200
             };
             const cache = new MockStorageClass();
             const setItemStub = sinon.stub(cache, "setItem");

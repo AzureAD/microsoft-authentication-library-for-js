@@ -16,7 +16,7 @@ describe("NetworkManager", () => {
         afterEach(() => {
             sinon.restore();
         });
-        
+
         it("returns a response", async () => {
             const networkInterface = {
                 sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
@@ -42,7 +42,6 @@ describe("NetworkManager", () => {
             const postProcessStub = sinon.stub(ThrottlingUtils, "postProcess");
 
             const res = await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(thumbprint, "tokenEndpoint", options);
-            console.log("RES ", res);
 
             sinon.assert.callCount(networkStub, 1);
             sinon.assert.callCount(preProcessStub, 1);
