@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -64,6 +64,9 @@ export class RedirectHandler extends InteractionHandler {
         const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateCacheKey(cachedNonceKey), CacheSchemaType.TEMPORARY) as string;
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
         this.authCodeRequest.code = authCode;
+
+        // Remove throttle if it exists
+        ThrottlingUtils.removeThrottle(this.browserStorage, this.browserStorage.clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes);
 
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
