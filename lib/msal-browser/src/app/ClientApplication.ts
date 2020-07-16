@@ -5,7 +5,7 @@
 
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserStorage } from "../cache/BrowserStorage";
-import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -194,7 +194,7 @@ export abstract class ClientApplication {
             const currentAuthority = this.browserStorage.getCachedAuthority();
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
-            return await interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
+            return await interactionHandler.handleCodeResponse(responseHash, this.browserCrypto, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest();
@@ -289,6 +289,9 @@ export abstract class ClientApplication {
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
+
+            // Remove throttle if it exists
+            ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
 
             // Handle response from hash string.
             return await interactionHandler.handleCodeResponse(hash);
