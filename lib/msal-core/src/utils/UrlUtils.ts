@@ -115,10 +115,10 @@ export class UrlUtils {
      * @param tenantId The tenant id to replace
      */
     static replaceTenantPath(url: string, tenantId: string): string {
-        url = url.toLowerCase();
-        const urlObject = this.GetUrlComponents(url);
+        const lowerCaseUrl = url.toLowerCase();
+        const urlObject = this.GetUrlComponents(lowerCaseUrl);
         const pathArray = urlObject.PathSegments;
-        if (tenantId && (pathArray.length !== 0 && pathArray[0] === Constants.common)) {
+        if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS))) {
             pathArray[0] = tenantId;
         }
         return this.constructAuthorityUriFromObject(urlObject, pathArray);
