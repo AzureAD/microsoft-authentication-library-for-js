@@ -1,0 +1,4 @@
+# Build folders
+dist/
+build-babel/
+build-tsc/
