@@ -86,18 +86,19 @@ If you have MSAL v1.x currently running in your application, you can follow the 
 
 ## Samples
 
-The [`VanillaJSTestApp2.0` folder](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) contains sample applications for our libraries. You can run any sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>`.
+The [`msal-browser-samples` folder](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples) contains sample applications for our libraries. You can run any VanillaJSTestApp2.0 sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>` in the VanillaJSTestApp2.0 folder. The TypescriptTestApp2.0 sample can be run with `npm start` in its folder.
 
 Here is a complete list of samples for the MSAL.js 2.x library:
 
 | Sample | Description | How to Run |
 | ------ | ----------- | ---------- |
-| [Basic Auth Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/VanillaJSTestApp2.0/app/default) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`@azure/msal-browser` package) with the Microsoft Graph API. | `npm start -- -s default` |
-| [Multiple Resources Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/VanillaJSTestApp2.0/app/multipleResources) | A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect. | `npm start -- -s multipleResources` |
-| [On Page Load Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/VanillaJSTestApp2.0/app/onPageLoad) | A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect. | `npm start -- -s onPageLoad` |
-| [ssoSilent() Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/VanillaJSTestApp2.0/app/ssoSilent) | A vanilla JS sample showing usage of the ssoSilent API, allowing you to sign in a user silently if a context exists on the authentication server. | `npm start -- -s ssoSilent` |
+| [Basic Auth Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default) | A vanilla Javascript sample showing basic usage of the MSAL 2.0 library (`@azure/msal-browser` package) with the Microsoft Graph API. | `npm start -- -s default` |
+| [Multiple Resources Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/multipleResources) | A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect. | `npm start -- -s multipleResources` |
+| [On Page Load Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad) | A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect. | `npm start -- -s onPageLoad` |
+| [ssoSilent() Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ssoSilent) | A vanilla JS sample showing usage of the ssoSilent API, allowing you to sign in a user silently if a context exists on the authentication server. | `npm start -- -s ssoSilent` |
+| [TypeScript Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/TypescriptTestApp2.0) | A TypeScript sample showing usage of the ssoSilent API, allowing you to sign in a user silently if a context exists on the authentication server. | `npm start` |
 
-More instructions to run the samples can be found in the [`README.md` file](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/VanillaJSTestApp2.0/Readme.md) of the VanillaJSTestApp2.0 folder.
+More instructions to run the samples can be found in the [`README.md` file](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/Readme.md) of the VanillaJSTestApp2.0 folder.
 
 ## Build and Test
 
