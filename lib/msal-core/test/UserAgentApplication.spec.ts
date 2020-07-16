@@ -716,7 +716,7 @@ describe("UserAgentApplication.ts Class", function () {
             })
         });
 
-        it("exits login function with error if interaction is true", function (done) {
+        it("calls error callback on loginRedirect if interaction is true", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
             window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
@@ -730,6 +730,51 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal.handleRedirectCallback(checkErrorFromLibrary);
             msal.loginRedirect();
+        });
+
+        it("calls error callback on acquireTokenRedirect if interaction is true", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            window.location = oldWindowLocation;
+            const checkErrorFromLibrary = function (authErr: AuthError) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.name).to.equal("ClientAuthError");
+                expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromLibrary);
+            msal.acquireTokenRedirect({scopes: [ "user.read" ]});
+        });
+
+
+        it("throws error on loginRedirect if interaction is true", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            window.location = oldWindowLocation;
+            try {
+                msal.loginRedirect();
+            } catch(authErr) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                done();
+            }
+        });
+
+        it("throws error on acquireTokenRedirect if interaction is true", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            window.location = oldWindowLocation;
+            try {
+                msal.acquireTokenRedirect({scopes: [ "user.read" ]});
+            } catch(authErr) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                done();
+            }
         });
 
         it("exits login function with error if invalid prompt parameter is passed", function (done) {
