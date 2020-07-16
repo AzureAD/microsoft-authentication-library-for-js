@@ -462,7 +462,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getAccountByUsername(userName: string): AccountInfo {
         const allAccounts = this.getAllAccounts();
-        return allAccounts.filter(accountObj => accountObj.username === userName)[0];
+        return allAccounts ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
     }
 
     // #endregion
