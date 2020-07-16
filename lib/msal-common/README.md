@@ -49,7 +49,7 @@ If you find a security issue with our libraries or services please report it to 
 
 ## License
 
-Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License.
+Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License (the "License");
 
 ## We Value and Adhere to the Microsoft Open Source Code of Conduct
 
