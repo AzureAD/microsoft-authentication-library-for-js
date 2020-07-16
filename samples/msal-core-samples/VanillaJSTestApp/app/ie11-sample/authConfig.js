@@ -7,15 +7,6 @@ var msalConfig = {
     cache: {
         cacheLocation: "localStorage", // This configures where your cache will be stored
         storeAuthStateInCookie: true, // Set this to "true" if you are having issues on IE11 or Edge
-    },
-    system: {
-        telemetry: {
-            applicationName: 'msalVanillaTestApp',
-            applicationVersion: 'test1.0',
-            telemetryEmitter: function(events) {
-                console.log("Telemetry Events", events);
-            }
-        }
     }
 };
 
