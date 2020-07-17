@@ -141,18 +141,18 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
-        if (loginRequestUrlNormalized === currentUrlNormalized) {
-            if (this.config.auth.navigateToLoginRequestUrl) {
-                // Replace current hash with non-msal hash, if present
-                BrowserUtils.replaceHash(loginRequestUrl);
-            } else {
-                BrowserUtils.clearHash();
-            }
-
+        if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
+            // Replace current hash with non-msal hash, if present
+            BrowserUtils.replaceHash(loginRequestUrl);
             return this.handleHash(isResponseHash ? hash : cachedHash);
         }
 
-        if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
+        if (!this.config.auth.navigateToLoginRequestUrl) {
+            BrowserUtils.clearHash();
+            return this.handleHash(isResponseHash ? hash : cachedHash);
+        }
+
+        if (isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
             const hashKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH);
             this.browserStorage.setItem(hashKey, hash, CacheSchemaType.TEMPORARY);
