@@ -8,22 +8,22 @@ steps:
 
     - task: Npm@1
       displayName: 'npm ci'
-      workingDir: '/extensions/msal-node-extensions'
       inputs:
           command: 'custom'
+          workingDir: '/extensions/msal-node-extensions'
           customCommand: 'ci'
           verbose: true
 
     - task: Npm@1
       displayName: 'Build Package'
-      workingDir: '/extensions/msal-node-extensions'
       inputs:
           command: 'custom'
+          workingDir: '/extensions/msal-node-extensions'
           customCommand: 'run build:extensions'
 
     - task: Npm@1
       displayName: 'Unit Tests'
-      workingDir: '/extensions/msal-node-extensions'
       inputs:
           command: 'custom'
+          workingDir: '/extensions/msal-node-extensions'
           customCommand: 'run test'
