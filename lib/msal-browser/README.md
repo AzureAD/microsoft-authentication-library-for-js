@@ -22,8 +22,6 @@
 
 ## About
 
-**Important:** MSAL.js 2.0 with Authorization Code Flow is **not** yet available for B2C tenants (coming soon).
-
 Want to join our Private Preview and test out the lastest changes to the Azure Portal? Fill out [this form]( https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR_XA414hlD9MhfBiqanxI2JUOElQMk1LUjNBWDY4R0w3MFlPR0FIMkxMVC4u).
 
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
