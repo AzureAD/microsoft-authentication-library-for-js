@@ -29,7 +29,7 @@ import {
     EndSessionRequest,
     BaseAuthRequest,
     Logger,
-    TelemetryManager
+    ServerTelemetryManager
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -181,7 +181,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             return null;
         }
         const correlationId = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID), CacheSchemaType.TEMPORARY) as string;
-        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.handleRedirectPromise, correlationId);
+        const telemetryManager = new ServerTelemetryManager(this.browserStorage, ApiId.handleRedirectPromise, correlationId);
 
         try {
             // Hash contains known properties - handle and return in callback
@@ -222,7 +222,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
-        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.acquireTokenRedirect, validRequest.correlationId);
+        const telemetryManager = new ServerTelemetryManager(this.browserStorage, ApiId.acquireTokenRedirect, validRequest.correlationId);
         
         try {
             // Create auth code request and generate PKCE params
@@ -271,7 +271,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
-        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.acquireTokenPopup, validRequest.correlationId);
+        const telemetryManager = new ServerTelemetryManager(this.browserStorage, ApiId.acquireTokenPopup, validRequest.correlationId);
         
         try {
             // Create auth code request and generate PKCE params
@@ -296,7 +296,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Helper which acquires an authorization code with a popup from given url, and exchanges the code for a set of OAuth tokens.
      * @param navigateUrl
      */
-    private async popupTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, telemetryManager: TelemetryManager): Promise<AuthenticationResult> {
+    private async popupTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, telemetryManager: ServerTelemetryManager): Promise<AuthenticationResult> {
         // Create popup interaction handler.
         const interactionHandler = new PopupHandler(authClient, this.browserStorage);
         // Show the UI once the url has been created. Get the window handle for the popup.
@@ -347,7 +347,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             prompt: PromptValue.NONE
         });
 
-        const telemetryManager = new TelemetryManager(this.browserStorage, ApiId.ssoSilent, silentRequest.correlationId);
+        const telemetryManager = new ServerTelemetryManager(this.browserStorage, ApiId.ssoSilent, silentRequest.correlationId);
 
         try {
             // Create auth code request and generate PKCE params
@@ -389,7 +389,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             ...request,
             ...this.initializeBaseRequest(request)
         };
-        let telemetryManager = new TelemetryManager(this.browserStorage, ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId, silentRequest.forceRefresh);
+        let telemetryManager = new ServerTelemetryManager(this.browserStorage, ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId, silentRequest.forceRefresh);
         try {
             const silentAuthClient = await this.createSilentFlowClient(silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
@@ -404,7 +404,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                     ...silentRequest,
                     prompt: PromptValue.NONE
                 });
-                telemetryManager = new TelemetryManager(this.browserStorage, ApiId.acquireTokenSilent_authCode, silentAuthUrlRequest.correlationId);
+                telemetryManager = new ServerTelemetryManager(this.browserStorage, ApiId.acquireTokenSilent_authCode, silentAuthUrlRequest.correlationId);
 
                 try {
                     // Create auth code request and generate PKCE params
@@ -437,7 +437,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, userRequestScopes: string, telemetryManager: TelemetryManager): Promise<AuthenticationResult> {
+    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, userRequestScopes: string, telemetryManager: ServerTelemetryManager): Promise<AuthenticationResult> {
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.loadFrameTimeout);
         // Get the frame handle for the silent request
