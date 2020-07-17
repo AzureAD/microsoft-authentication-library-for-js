@@ -10,7 +10,7 @@ steps:
       displayName: 'npm ci'
       inputs:
           command: 'custom'
-          workingDir: '/extensions/msal-node-extensions'
+          workingDir: '$(Build.SourcesDirectory)/extensions/msal-node-extensions'
           customCommand: 'ci'
           verbose: true
 
