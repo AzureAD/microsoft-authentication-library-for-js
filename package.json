@@ -18,6 +18,7 @@
   "scripts": {
     "postinstall": "node build/postinstall.js",
     "build": "lerna run --concurrency 1 build",
+    "build:extensions": "cd extensions/msal-node-extensions && npm run build",
     "test": "lerna run --concurrency 1 test",
     "test:coverage": "npm run clean:coverage && lerna run test:coverage",
     "test:report": "nyc report | coveralls",

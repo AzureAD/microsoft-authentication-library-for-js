@@ -4,14 +4,14 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
-    "keywords": [
-        "js",
-        "ts",
-        "node",
-        "AAD",
-        "msal",
-        "extensions"
-    ],
+  "keywords": [
+    "js",
+    "ts",
+    "node",
+    "AAD",
+    "msal",
+    "extensions"
+  ],
   "files": [
     "dist",
     "src"
@@ -21,7 +21,9 @@
   },
   "scripts": {
     "start": "tsdx watch",
-    "build": "tsdx build",
+    "build": "npm run build:common && npm run link:common && tsdx build",
+    "build:common": "cd ../../lib/msal-common && npm i && npm run build && npm link",
+    "link:common": "npm link @azure/msal-common",
     "test": "tsdx test",
     "lint": "tsdx lint",
     "prepare": "tsdx build"

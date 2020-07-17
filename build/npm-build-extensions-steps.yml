@@ -1,6 +1,8 @@
 # Steps to build and test npm project
 
 steps:
+    - bash: cd extensions/msal-node-extensions
+      displayName: navigate to extensions directory
     - task: NodeTool@0
       inputs:
           versionSpec: '10.x'
@@ -17,7 +19,7 @@ steps:
       displayName: 'Build Package'
       inputs:
           command: 'custom'
-          customCommand: 'run build'
+          customCommand: 'run build:extensions'
 
     - task: Npm@1
       displayName: 'Unit Tests'
