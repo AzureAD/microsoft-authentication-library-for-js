@@ -22,7 +22,7 @@ import { AccountEntity } from "../cache/entities/AccountEntity";
 import { CredentialEntity } from "../cache/entities/CredentialEntity";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
-import { TelemetryManager } from "../telemetry/TelemetryManager";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -35,7 +35,7 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    public async acquireToken(request: SilentFlowRequest, telemetryManager?: TelemetryManager): Promise<AuthenticationResult> {
+    public async acquireToken(request: SilentFlowRequest, telemetryManager?: ServerTelemetryManager): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();

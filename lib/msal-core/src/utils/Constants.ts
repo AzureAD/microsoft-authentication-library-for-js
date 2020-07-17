@@ -113,6 +113,7 @@ export enum SSOTypes {
     ACCOUNT = "account",
     SID = "sid",
     LOGIN_HINT = "login_hint",
+    ORGANIZATIONS = "organizations",
     ID_TOKEN ="id_token",
     ACCOUNT_ID = "accountIdentifier",
     HOMEACCOUNT_ID = "homeAccountIdentifier"

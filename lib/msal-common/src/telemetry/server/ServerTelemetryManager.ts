@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { SERVER_TELEM_CONSTANTS, HeaderNames, CacheSchemaType } from "../utils/Constants";
-import { CacheManager } from "../cache/CacheManager";
+import { SERVER_TELEM_CONSTANTS, HeaderNames, CacheSchemaType } from "../../utils/Constants";
+import { CacheManager } from "../../cache/CacheManager";
 import { RequestFailures } from "./RequestFailures";
-import { AuthError } from "../error/AuthError";
+import { AuthError } from "../../error/AuthError";
 
-export class TelemetryManager {
+export class ServerTelemetryManager {
     private cacheManager: CacheManager;
     private apiId: number;
     private correlationId: string;
