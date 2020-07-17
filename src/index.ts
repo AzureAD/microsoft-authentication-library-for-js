@@ -10,6 +10,7 @@ export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } f
 export { IPublicClientApplication } from "./app/IPublicClientApplication";
 export { PopupRequest } from "./request/PopupRequest";
 export { RedirectRequest } from "./request/RedirectRequest";
+export { SilentRequest } from "./request/SilentRequest";
 
 // Common Object Formats
 export {
@@ -17,7 +18,6 @@ export {
     AccountInfo,
     // Request
     AuthorizationUrlRequest,
-    SilentFlowRequest,
     EndSessionRequest,
     // Response
     AuthenticationResult,

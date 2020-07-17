@@ -126,8 +126,8 @@ export class PopupHandler extends InteractionHandler {
              */
             const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
             const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-            const left = ((width / 2) - (popUpWidth / 2)) + winLeft;
-            const top = ((height / 2) - (popUpHeight / 2)) + winTop;
+            const left = Math.max(0, ((width / 2) - (popUpWidth / 2)) + winLeft);
+            const top = Math.max(0, ((height / 2) - (popUpHeight / 2)) + winTop);
 
             // open the window
             const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
