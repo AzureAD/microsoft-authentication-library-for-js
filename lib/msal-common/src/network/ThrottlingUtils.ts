@@ -5,7 +5,7 @@
 
 import { NetworkResponse } from "./NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { Constants, HeaderNames } from "../utils/Constants";
+import { HeaderNames, CacheSchemaType, ThrottleConstants } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerError } from "../error/ServerError";
@@ -19,7 +19,7 @@ export class ThrottlingUtils {
      * @param thumbprint
      */
     static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string {
-        return `${Constants.THROTTLE_PREFIX}.${JSON.stringify(thumbprint)}`;
+        return `${ThrottleConstants.THROTTLE_PREFIX}.${JSON.stringify(thumbprint)}`;
     }
 
     /**
@@ -29,14 +29,14 @@ export class ThrottlingUtils {
      */
     static preProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
-        const storageValue = cacheManager.getItem(key) as string;
+        const storageValue = cacheManager.getItem(key, CacheSchemaType.TEMPORARY) as string;
 
         if (storageValue) {
             const parsedValue = StringUtils.jsonParseHelper<RequestThumbprintValue>(storageValue);
 
             if (parsedValue) {
                 if (parsedValue.throttleTime < Date.now()) {
-                    cacheManager.removeItem(key);
+                    cacheManager.removeItem(key, CacheSchemaType.TEMPORARY);
                     return;
                 }
                 throw new ServerError(parsedValue.errorCodes.join(" "), parsedValue.errorMessage, parsedValue.subError);
@@ -61,7 +61,8 @@ export class ThrottlingUtils {
             };
             cacheManager.setItem(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
-                JSON.stringify(thumbprintValue)
+                JSON.stringify(thumbprintValue),
+                CacheSchemaType.TEMPORARY
             );
         }
     }
@@ -95,8 +96,8 @@ export class ThrottlingUtils {
         }
         const currentSeconds = Date.now() / 1000;
         return Math.floor(Math.min(
-            currentSeconds + (throttleTime || Constants.DEFAULT_THROTTLE_TIME_SECONDS),
-            currentSeconds + Constants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
+            currentSeconds + (throttleTime || ThrottleConstants.DEFAULT_THROTTLE_TIME_SECONDS),
+            currentSeconds + ThrottleConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
         ) * 1000);
     }
 
@@ -109,6 +110,6 @@ export class ThrottlingUtils {
         };
 
         const key = this.generateThrottlingStorageKey(thumbprint);
-        return cacheManager.removeItem(key);
+        return cacheManager.removeItem(key, CacheSchemaType.TEMPORARY);
     }
 }
