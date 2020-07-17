@@ -69,12 +69,12 @@ export class StringUtils {
     }
 
     /**
-     * Trims entries and converts them to lower case.
+     * Trims entries in an array.
      *
      * @param arr
      */
-    static trimAndConvertArrayEntriesToLowerCase(arr: Array<string>): Array<string> {
-        return arr.map(entry => entry.trim().toLowerCase());
+    static trimArrayEntries(arr: Array<string>): Array<string> {
+        return arr.map(entry => entry.trim());
     }
 
     /**
