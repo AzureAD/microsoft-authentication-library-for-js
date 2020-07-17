@@ -7,8 +7,6 @@ export const Constants = {
     SKU: "msal.js.common",
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
-    // Prefix for storing throttling entries
-    THROTTLE_PREFIX: "throttle",
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
@@ -37,9 +35,6 @@ export const Constants = {
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
-    // Default time to throttle RequestThumbprint in milliseconds
-    DEFAULT_THROTTLE_TIME_SECONDS: 60,
-    DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600
 };
 
 /**
@@ -279,3 +274,15 @@ export const SERVER_TELEM_CONSTANTS = {
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
 };
+
+/**
+ * Constants related to throttling
+ */
+export const ThrottleConstants = {
+    // Default time to throttle RequestThumbprint in milliseconds
+    DEFAULT_THROTTLE_TIME_SECONDS: 60,
+    // Default maximum time to throttle in milliseconds, overrides what the server sends back
+    DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600,
+    // Prefix for storing throttling entries
+    THROTTLE_PREFIX: "throttle"
+}
