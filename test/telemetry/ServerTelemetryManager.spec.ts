@@ -1,7 +1,7 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
-import { TelemetryManager, CacheManager, CacheSchemaType, AuthError } from "../../src";
+import { ServerTelemetryManager, CacheManager, AuthError } from "../../src";
 
 let store = {};
 class TestCacheManager extends CacheManager {
@@ -39,14 +39,14 @@ const lastTelemetryHeader = "x-client-last-telemetry";
 const cacheHitsKey = "server-telemetry-cacheHits";
 const failuresKey = "server-telemetry-failures";
 
-describe("TelemetryManager.ts", () => {
+describe("ServerTelemetryManager.ts", () => {
     afterEach(() => {
         store = {};
     });
 
     describe("cacheFailedRequest", () => {
         it("Caches error", () => {
-            const telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
 
             const failures = {
@@ -59,7 +59,7 @@ describe("TelemetryManager.ts", () => {
         });
 
         it("Adds error if a previous error already exists in cache", () => {
-            const telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
 
@@ -74,7 +74,7 @@ describe("TelemetryManager.ts", () => {
 
         it("Removes oldest error from cache when limit has been reached", () => {
             // Error 1
-            let telemetryManager = new TelemetryManager(testCacheManager, 11111111, "this-will-be-removed");
+            let telemetryManager = new ServerTelemetryManager(testCacheManager, 11111111, "this-will-be-removed");
             telemetryManager.cacheFailedRequest(new AuthError("thisErrorWillBeRemoved", "thisErrorWillBeRemoved"));
             let failures = {
                 requests: [11111111, "this-will-be-removed"],
@@ -84,7 +84,7 @@ describe("TelemetryManager.ts", () => {
             expect(store[failuresKey]).to.eq(JSON.stringify(failures));
 
             // Error 2
-            telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
             failures = {
                 requests: [11111111, "this-will-be-removed", testApiCode, testCorrelationId],
@@ -94,7 +94,7 @@ describe("TelemetryManager.ts", () => {
             expect(store[failuresKey]).to.eq(JSON.stringify(failures));
 
             // Error 3
-            telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
             failures = {
                 requests: [11111111, "this-will-be-removed", testApiCode, testCorrelationId, testApiCode, testCorrelationId],
@@ -104,7 +104,7 @@ describe("TelemetryManager.ts", () => {
             expect(store[failuresKey]).to.eq(JSON.stringify(failures));
 
             // Error 4 - Removes the first error
-            telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
             failures = {
                 requests: [testApiCode, testCorrelationId, testApiCode, testCorrelationId, testApiCode, testCorrelationId],
@@ -118,7 +118,7 @@ describe("TelemetryManager.ts", () => {
 
     describe("addTelemetryHeaders", () => {
         it("Adds telemetry headers with current request", () => {
-            const telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
             let headers: Map<string, string> = new Map();
 
             headers = telemetryManager.addTelemetryHeaders(headers);
@@ -129,7 +129,7 @@ describe("TelemetryManager.ts", () => {
         });
 
         it("Adds telemetry headers with current request with forceRefresh true", () => {
-            const telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId, true);
+            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId, true);
             let headers: Map<string, string> = new Map();
 
             headers = telemetryManager.addTelemetryHeaders(headers);
@@ -148,7 +148,7 @@ describe("TelemetryManager.ts", () => {
                 count: 1
             }
             store[failuresKey] = JSON.stringify(failures);
-            const telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
             let headers: Map<string, string> = new Map();
 
             headers = telemetryManager.addTelemetryHeaders(headers);
@@ -167,7 +167,7 @@ describe("TelemetryManager.ts", () => {
                 count: 2
             }
             store[failuresKey] = JSON.stringify(failures);
-            const telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
             let headers: Map<string, string> = new Map();
 
             headers = telemetryManager.addTelemetryHeaders(headers);
@@ -180,7 +180,7 @@ describe("TelemetryManager.ts", () => {
 
     it("incrementCacheHits", () => {
         store[cacheHitsKey] = "1";
-        const telemetryManager = new TelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+        const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
         telemetryManager.incrementCacheHits();
         expect(store[cacheHitsKey]).to.eq("2");
     });
