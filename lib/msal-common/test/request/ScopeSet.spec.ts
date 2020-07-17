@@ -16,26 +16,25 @@ describe("ScopeSet.ts", () => {
             expect(() => new ScopeSet([])).to.throw(ClientConfigurationError);
         });
 
-        it("Converts array string values to lower case", () => {
-            const testScope1 = "TestScope1";
-            const lowerCaseScope1 = "testscope1";
-            const testScope2 = "TeStScOpE2";
-            const lowerCaseScope2 = "testscope2";
-            const testScope3 = "TESTSCOPE3";
-            const lowerCaseScope3 = "testscope3";
+        it("Trims array string values", () => {
+            const testScope1 = "    TestScope1";
+            const trimmedTestScope1 = "TestScope1";
+            const testScope2 = "TeStScOpE2   ";
+            const trimmedTestScope2 = "TeStScOpE2";
+            const testScope3 = "   TESTSCOPE3   ";
+            const trimmedTestScope3 = "TESTSCOPE3";
             const scopeSet = new ScopeSet([testScope1, testScope2, testScope3]);
-            expect(scopeSet.asArray()).to.deep.eq([lowerCaseScope1, lowerCaseScope2, lowerCaseScope3]);
+            expect(scopeSet.asArray()).to.deep.eq([trimmedTestScope1, trimmedTestScope2, trimmedTestScope3]);
         });
 
-        it("Removes duplicates from input scope array", () => {
+        it("Removes case-sensitive duplicates from input scope array", () => {
             const testScope1 = "TestScope";
             const testScope2 = "TeStScOpE";
             const testScope3 = "TESTSCOPE";
             const testScope4 = "testscope";
             const testScope5 = "testscope";
-            const lowerCaseScope = "testscope";
             const scopeSet = new ScopeSet([testScope1, testScope2, testScope3, testScope4, testScope5]);
-            expect(scopeSet.asArray()).to.deep.eq([lowerCaseScope]);
+            expect(scopeSet.asArray()).to.deep.eq([testScope1, testScope2, testScope3, testScope4]);
         });
     });
 
@@ -52,26 +51,25 @@ describe("ScopeSet.ts", () => {
             expect(() => ScopeSet.fromString(undefined)).to.throw(ClientConfigurationError);
         });
 
-        it("Trims and converts array string values to lower case", () => {
+        it("Trims array string values", () => {
             const testScope1 = "   TestScope1";
-            const lowerCaseScope1 = "testscope1";
+            const trimmedTestScope1 = "TestScope1";
             const testScope2 = "TeStScOpE2   ";
-            const lowerCaseScope2 = "testscope2";
+            const trimmedTestScope2 = "TeStScOpE2";
             const testScope3 = "   TESTSCOPE3  ";
-            const lowerCaseScope3 = "testscope3";
+            const trimmedTestScope3 = "TESTSCOPE3";
             const scopeSet = ScopeSet.fromString(`${testScope1} ${testScope2} ${testScope3}`);
-            expect(scopeSet.asArray()).to.deep.eq([lowerCaseScope1, lowerCaseScope2, lowerCaseScope3]);
+            expect(scopeSet.asArray()).to.deep.eq([trimmedTestScope1, trimmedTestScope2, trimmedTestScope3]);
         });
 
-        it("Removes duplicates from input scope array", () => {
+        it("Removes case-sensitive duplicates from input scope array", () => {
             const testScope1 = "TestScope";
-            const testScope2 = "TeStScOpE  ";
-            const testScope3 = "  TESTSCOPE ";
+            const testScope2 = "TeStScOpE";
+            const testScope3 = "TESTSCOPE";
             const testScope4 = "testscope";
             const testScope5 = "testscope";
-            const lowerCaseScope = "testscope";
             const scopeSet = ScopeSet.fromString(`${testScope1} ${testScope2} ${testScope3} ${testScope4} ${testScope5}`);
-            expect(scopeSet.asArray()).to.deep.eq([lowerCaseScope]);
+            expect(scopeSet.asArray()).to.deep.eq([testScope1, testScope2, testScope3, testScope4]);
         });
     });
 
@@ -113,10 +111,10 @@ describe("ScopeSet.ts", () => {
             expect(scopes.containsScopeSet(undefined)).to.be.false;
         });
 
-        it("appendScope() adds scope to set after trimming and converting to lower case", () => {
+        it("appendScope() adds scope to set after trimming", () => {
             expect(scopes.asArray()).to.contain(testScope);
             scopes.appendScope("   testScope2   ");
-            expect(scopes.asArray()).to.contain("testscope2");
+            expect(scopes.asArray()).to.contain("testScope2");
         });
 
         it("appendScope() does not add duplicates to ScopeSet", () => {
@@ -164,9 +162,9 @@ describe("ScopeSet.ts", () => {
             expect(scopes.asArray()).to.contain(testScope3);
         });
 
-        it("appendScopes() trims and converts scopes to lower case before adding", () => {
-            const testScope2 = "TestScope2";
-            const expectedTestScope2 = "testscope2";
+        it("appendScopes() trims scopes before adding", () => {
+            const testScope2 = "   TestScope2";
+            const expectedTestScope2 = "TestScope2";
             const testScope3 = "     testscope3   ";
             const expectedTestScope3 = "testscope3";
             scopes.appendScopes([testScope2, testScope3]);
@@ -261,11 +259,17 @@ describe("ScopeSet.ts", () => {
 
         let requiredScopeSet: ScopeSet;
         let nonRequiredScopeSet: ScopeSet;
+        let uppercaseScopeSet: ScopeSet;
+        let lowercaseScopeSet: ScopeSet;
         let testScope: string;
+        let testScope2: string;
         beforeEach(() => {
             testScope = "testscope";
+            testScope2 = "testScope";
             requiredScopeSet = new ScopeSet([testScope]);
             nonRequiredScopeSet = new ScopeSet([testScope]);
+            uppercaseScopeSet = new ScopeSet([testScope2]);
+            lowercaseScopeSet = new ScopeSet([testScope]);
         });
 
         afterEach(() => {
@@ -290,6 +294,11 @@ describe("ScopeSet.ts", () => {
             requiredScopeSet.removeScope(testScope);
             requiredScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
             expect(requiredScopeSet.printScopes()).to.be.eq("");
+        });
+
+        it("printScopesLowerCase() prints space-delimited string of scopes in lowercase", () => {
+            const scopeArr = lowercaseScopeSet.asArray();
+            expect(uppercaseScopeSet.printScopesLowerCase()).to.be.eq(scopeArr.join(" "));
         });
     });
 });
