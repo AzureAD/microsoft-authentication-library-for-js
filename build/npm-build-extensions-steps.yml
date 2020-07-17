@@ -18,12 +18,12 @@ steps:
       displayName: 'Build Package'
       inputs:
           command: 'custom'
-          workingDir: '/extensions/msal-node-extensions'
+          workingDir: '$(Build.SourcesDirectory)/extensions/msal-node-extensions'
           customCommand: 'run build:extensions'
 
     - task: Npm@1
       displayName: 'Unit Tests'
       inputs:
           command: 'custom'
-          workingDir: '/extensions/msal-node-extensions'
+          workingDir: '$(Build.SourcesDirectory)/extensions/msal-node-extensions'
           customCommand: 'run test'
