@@ -1,5 +1,13 @@
 # Common Issues and How to Solve Them
 
+1. [General Notes about acquireTokenSilent](#General-Notes-about-acquireTokenSilent)
+2. [X-Frame Options Deny](#X-Frame-Options-Deny)
+3. [Token Renewal Operation Failed due to timeout](#Token-Renewal-Operation-failed-due-to-timeout)
+4. [Hash does not Contain State](#Hash-does-not-contain-state)
+5. [Silent request was sent but no user signed-in](#Silent-request-was-sent-but-no-user-signed-in)
+6. [Redirect Loops](#Redirect-loops)
+7. [Multiple Accounts](#Multiple-accounts)
+
 ## General Notes about `acquireTokenSilent`
 
 `acquireTokenSilent` uses a hidden iframe to execute token acquisition and renewal. It requires access to the users session cookies set by Azure AD and thus requires that the browser does not block third-party cookies. Currently Safari and Chrome Incognito browsers block these by default. When using these browsers `acquireTokenSilent` can only be used to retrieve valid tokens from local or session storage. If the token needs to be renewed your app will need to call `acquireTokenRedirect` or `acquireTokenPopup`. We recommend updating to the msal-browser library, which uses the Auth Code Flow, if you need to support these browsers.
@@ -135,7 +143,22 @@ msal = new Msal.UserAgentApplication({
 msal = new Msal.UserAgentApplication({
     auth: {
         clientId: your-client-id,
-
+    },
+    cache: {
+       storeAuthStateInCookie: true 
     }
 })
 ```
+
+## Multiple Accounts
+
+Msal.js v1.x does not support multiple concurrent users. If this is a use case your app needs to support please upgrade to the msal-browser library.
+
+Switching users is possible by calling either `loginRedirect` or `loginPopup` and including `prompt: "select_account"` in your request like so:
+```javascript
+request = {
+    scopes: [User.Read],
+    prompt: "select_account"
+}
+```
+Note that when switching users, the previous user's tokens will be cleared from local/session storage but their session may remain active with AAD. It is recommended that you call `logout()` before switching users.
