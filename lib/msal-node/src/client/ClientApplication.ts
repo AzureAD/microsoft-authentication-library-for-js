@@ -20,7 +20,7 @@ import {
     SilentFlowRequest,
     SilentFlowClient,
     Logger,
-    TelemetryManager
+    ServerTelemetryManager
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -85,7 +85,7 @@ export abstract class ClientApplication {
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByCode called");
         const validRequest = this.initializeRequest(request) as AuthorizationCodeRequest;
-        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenByCode, validRequest.correlationId!);
+        const telemetryManager = new ServerTelemetryManager(this.storage, ApiId.acquireTokenByCode, validRequest.correlationId!);
         try {
             const authClientConfig = await this.buildOauthClientConfiguration(
                 request.authority
@@ -111,7 +111,7 @@ export abstract class ClientApplication {
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByRefreshToken called");
         const validRequest = this.initializeRequest(request) as RefreshTokenRequest;
-        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenByRefreshToken, validRequest.correlationId!);
+        const telemetryManager = new ServerTelemetryManager(this.storage, ApiId.acquireTokenByRefreshToken, validRequest.correlationId!);
         try {
             const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
                 request.authority
@@ -137,7 +137,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
         const validRequest = this.initializeRequest(request) as SilentFlowRequest;
-        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenSilent, validRequest.correlationId!, validRequest.forceRefresh);
+        const telemetryManager = new ServerTelemetryManager(this.storage, ApiId.acquireTokenSilent, validRequest.correlationId!, validRequest.forceRefresh);
         try {
             const silentFlowClientConfig = await this.buildOauthClientConfiguration(
                 request.authority

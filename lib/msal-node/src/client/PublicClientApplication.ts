@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeClient, DeviceCodeRequest, TelemetryManager } from '@azure/msal-common';
+import { DeviceCodeClient, DeviceCodeRequest, ServerTelemetryManager } from '@azure/msal-common';
 import { Configuration } from '../config/Configuration';
 import { ClientApplication } from './ClientApplication';
 import { ApiId } from '../utils/Constants';
@@ -46,7 +46,7 @@ export class PublicClientApplication extends ClientApplication {
     public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<string> {
         this.logger.info("acquireTokenByDeviceCode called");
         const validRequest = this.initializeRequest(request) as DeviceCodeRequest;
-        const telemetryManager = new TelemetryManager(this.storage, ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
+        const telemetryManager = new ServerTelemetryManager(this.storage, ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 request.authority
