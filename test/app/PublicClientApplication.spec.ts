@@ -7,8 +7,7 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, ProtocolUtils } from "@azure/msal-common";
-import { BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
+import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -1155,5 +1154,82 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
         });
+    });
+
+    describe("getAccount tests", () => {
+        // Account 1
+        const testAccountInfo1: AccountInfo = {
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "example@microsoft.com"
+        };
+
+        const testAccount1: AccountEntity = new AccountEntity();
+        testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
+        testAccount1.environment = testAccountInfo1.environment;
+        testAccount1.realm = testAccountInfo1.tenantId;
+        testAccount1.username = testAccountInfo1.username;
+        testAccount1.authorityType = "MSSTS";
+        testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+        // Account 2
+        const testAccountInfo2: AccountInfo = {
+            homeAccountId: "different-home-account-id",
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "anotherExample@microsoft.com"
+        };
+
+        const testAccount2: AccountEntity = new AccountEntity();
+        testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
+        testAccount2.environment = testAccountInfo2.environment;
+        testAccount2.realm = testAccountInfo2.tenantId;
+        testAccount2.username = testAccountInfo2.username;
+        testAccount2.authorityType = "MSSTS";
+        testAccount2.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+        beforeEach(() => {
+            const cacheKey1 = AccountEntity.generateAccountCacheKey(testAccountInfo1);
+            window.sessionStorage.setItem(cacheKey1, JSON.stringify(testAccount1));
+
+            const cacheKey2 = AccountEntity.generateAccountCacheKey(testAccountInfo2);
+            window.sessionStorage.setItem(cacheKey2, JSON.stringify(testAccount2));
+        });
+        
+        afterEach(() => {
+            window.sessionStorage.clear();
+        });
+
+        it("getAllAccounts returns all signed in accounts", () => {
+            const account = pca.getAllAccounts();
+            expect(account).to.be.length(2);
+        });
+
+        it("getAllAccounts returns null if no accounts signed in", () => {
+            window.sessionStorage.clear();
+            const account = pca.getAllAccounts();
+            expect(account).to.be.null;
+        });
+
+        it("getAccountByUsername returns account specified", () => {
+            const account = pca.getAccountByUsername("example@microsoft.com");
+            expect(account).to.deep.eq(testAccountInfo1);
+        });
+
+        it("getAccountByUsername returns account specified with case mismatch", () => {
+            const account = pca.getAccountByUsername("Example@Microsoft.com");
+            expect(account).to.deep.eq(testAccountInfo1);
+
+            const account2 = pca.getAccountByUsername("anotherexample@microsoft.com");
+            expect(account2).to.deep.eq(testAccountInfo2);
+        });
+
+        it("getAccountByUsername returns null if account doesn't exist", () => {
+            window.sessionStorage.clear();
+            const account = pca.getAccountByUsername("example@microsoft.com");
+            expect(account).to.be.null;
+        });
+
     });
 });
