@@ -112,10 +112,10 @@ export class SilentFlowClient extends BaseClient {
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: inputRealm,
-            target: scopes.printScopes()
+            target: scopes.printScopesLowerCase()
         };
         const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.values(credentialCache.accessTokens);
+        const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
         if (accessTokens.length > 1) {
             // TODO: Figure out what to throw or return here.
         } else if (accessTokens.length < 1) {

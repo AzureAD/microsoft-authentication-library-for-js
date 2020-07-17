@@ -210,6 +210,8 @@ export class BrowserStorage extends CacheManager {
      * Clears all cache entries created by MSAL (except tokens).
      */
     clear(): void {
+        this.removeAllAccounts();
+        this.removeAppMetadata();
         let key: string;
         for (key in this.windowStorage) {
             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
@@ -307,7 +309,7 @@ export class BrowserStorage extends CacheManager {
             this.validateObjectKey(key);
             return key;
         } catch (e) {
-            if (key.startsWith(`${Constants.CACHE_PREFIX}`) || key.startsWith(PersistentCacheKeys.ADAL_ID_TOKEN)) {
+            if (StringUtils.startsWith(key, Constants.CACHE_PREFIX) || StringUtils.startsWith(key, PersistentCacheKeys.ADAL_ID_TOKEN)) {
                 return key;
             }
             return `${Constants.CACHE_PREFIX}.${this.clientId}.${key}`;

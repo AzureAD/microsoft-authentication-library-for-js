@@ -8,6 +8,7 @@ import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { RequestUtils } from "../utils/RequestUtils";
 
 /**
  * @hidden
@@ -83,9 +84,11 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param value
      * @param enableCookieStorage
      */
-    setItem(key: string, value: string, enableCookieStorage?: boolean, state?: string): void {
+    setItem(key: string, value: string, enableCookieStorage?: boolean): void {
         super.setItem(this.generateCacheKey(key, true), value, enableCookieStorage);
-        if (this.rollbackEnabled) {
+
+        // Values stored in cookies will have rollback disabled to minimize cookie length
+        if (this.rollbackEnabled && !enableCookieStorage) {
             super.setItem(this.generateCacheKey(key, false), value, enableCookieStorage);
         }
     }
@@ -128,16 +131,20 @@ export class AuthCache extends BrowserStorage {// Singleton
     /**
      * Reset all temporary cache items
      */
-    resetTempCacheItems(state: string): void {
+    resetTempCacheItems(state?: string): void {
+        const stateId = state && RequestUtils.parseLibraryState(state).id;
+        const isTokenRenewalInProgress = this.tokenRenewalInProgress(state);
+
         const storage = window[this.cacheLocation];
         let key: string;
         // check state and remove associated cache
-        for (key in storage) {
-            if ((!state || key.indexOf(state) !== -1) && !this.tokenRenewalInProgress(state)) {
-                this.removeItem(key);
-                this.setItemCookie(key, "", -1);
-                this.clearMsalCookie(state);
-            }
+        if (stateId && !isTokenRenewalInProgress) {
+            Object.keys(storage).forEach(key => {
+                if (key.indexOf(stateId) !== -1) {
+                    this.removeItem(key);
+                    super.clearItemCookie(key);
+                }
+            });
         }
         // delete the interaction status cache
         this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
@@ -154,6 +161,13 @@ export class AuthCache extends BrowserStorage {// Singleton
         super.setItemCookie(this.generateCacheKey(cName, true), cValue, expires);
         if (this.rollbackEnabled) {
             super.setItemCookie(this.generateCacheKey(cName, false), cValue, expires);
+        }
+    }
+
+    clearItemCookie(cName: string): void {
+        super.clearItemCookie(this.generateCacheKey(cName, true));
+        if (this.rollbackEnabled) {
+            super.clearItemCookie(this.generateCacheKey(cName, false));
         }
     }
 
@@ -197,7 +211,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param stateValue
      */
     private tokenRenewalInProgress(stateValue: string): boolean {
-        const renewStatus = this.getItem(`${TemporaryCacheKeys.RENEW_STATUS}|${stateValue}`);
+        const renewStatus = this.getItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.RENEW_STATUS, stateValue));
         return !!(renewStatus && renewStatus === Constants.inProgress);
     }
 
@@ -205,10 +219,27 @@ export class AuthCache extends BrowserStorage {// Singleton
      * Clear all cookies
      */
     public clearMsalCookie(state?: string): void {
-        this.clearItemCookie(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${state}`);
-        this.clearItemCookie(`${TemporaryCacheKeys.STATE_LOGIN}|${state}`);
-        this.clearItemCookie(`${TemporaryCacheKeys.LOGIN_REQUEST}|${state}`);
-        this.clearItemCookie(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${state}`);
+        /*
+         * If state is truthy, remove values associated with that request.
+         * Otherwise, remove all MSAL cookies.
+         */
+        if (state) {
+            this.clearItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, state));
+            this.clearItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, state));
+            this.clearItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, state));
+            this.clearItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, state));
+        } else {
+            const cookies = document.cookie.split(";");
+            cookies.forEach(cookieString => {
+                const [
+                    cookieName
+                ] = cookieString.trim().split("=");
+
+                if (cookieName.indexOf(Constants.cachePrefix) > -1) {
+                    super.clearItemCookie(cookieName);
+                }
+            });
+        }
     }
 
     /**
@@ -217,7 +248,8 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param state
      */
     public static generateAcquireTokenAccountKey(accountId: any, state: string): string {
-        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.resourceDelimiter}${accountId}${Constants.resourceDelimiter}${state}`;
+        const stateId = RequestUtils.parseLibraryState(state).id;
+        return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.resourceDelimiter}${accountId}${Constants.resourceDelimiter}${stateId}`;
     }
 
     /**
@@ -225,6 +257,17 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param state
      */
     public static generateAuthorityKey(state: string): string {
-        return `${TemporaryCacheKeys.AUTHORITY}${Constants.resourceDelimiter}${state}`;
+        return AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.AUTHORITY, state);
+    }
+
+    /**
+     * Generates the cache key for temporary cache items, using request state
+     * @param tempCacheKey Cache key prefix
+     * @param state Request state value
+     */
+    public static generateTemporaryCacheKey(tempCacheKey: TemporaryCacheKeys, state: string): string {
+        // Use the state id (a guid), in the interest of shorter key names, which is important for cookies.
+        const stateId = RequestUtils.parseLibraryState(state).id;
+        return `${tempCacheKey}${Constants.resourceDelimiter}${stateId}`;
     }
 }

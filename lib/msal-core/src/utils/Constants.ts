@@ -113,6 +113,7 @@ export enum SSOTypes {
     ACCOUNT = "account",
     SID = "sid",
     LOGIN_HINT = "login_hint",
+    ORGANIZATIONS = "organizations",
     ID_TOKEN ="id_token",
     ACCOUNT_ID = "accountIdentifier",
     HOMEACCOUNT_ID = "homeAccountIdentifier"
@@ -158,5 +159,5 @@ export const FramePrefix = {
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-    return "1.3.2";
+    return "1.3.3";
 }

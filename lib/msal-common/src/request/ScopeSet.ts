@@ -9,21 +9,23 @@ import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
- * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings to ensure uniqueness of strings.
+ * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings in intersection and union functions 
+ * to ensure uniqueness of strings.
  */
-export class ScopeSet {;
+export class ScopeSet {
     // Scopes as a Set of strings
     private scopes: Set<string>;
 
     constructor(inputScopes: Array<string>) {
         // Filter empty string and null/undefined array items
-        const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [];
+        const scopeArr = inputScopes ? StringUtils.trimArrayEntries([...inputScopes]) : [];
         const filteredInput = scopeArr ? StringUtils.removeEmptyStringsFromArray(scopeArr) : [];
 
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);
 
-        this.scopes = new Set<string>(filteredInput);
+        this.scopes = new Set<string>(); // Iterator in constructor not supported by IE11
+        filteredInput.forEach(scope => this.scopes.add(scope));
     }
 
     /**
@@ -76,7 +78,7 @@ export class ScopeSet {;
      */
     appendScope(newScope: string): void {
         if (!StringUtils.isEmpty(newScope)) {
-            this.scopes.add(newScope.trim().toLowerCase());
+            this.scopes.add(newScope.trim());
         }
     }
 
@@ -100,7 +102,7 @@ export class ScopeSet {;
         if (StringUtils.isEmpty(scope)) {
             throw ClientAuthError.createRemoveEmptyScopeFromSetError(scope);
         }
-        this.scopes.delete(scope.trim().toLowerCase());
+        this.scopes.delete(scope.trim());
     }
 
     /**
@@ -111,7 +113,10 @@ export class ScopeSet {;
         if (!otherScopes) {
             throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
         }
-        return new Set<string>([...otherScopes.asArray(), ...Array.from(this.scopes)]);
+        const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
+        otherScopes.scopes.forEach(scope => unionScopes.add(scope));
+        this.scopes.forEach(scope => unionScopes.add(scope));
+        return unionScopes;
     }
 
     /**
@@ -143,7 +148,9 @@ export class ScopeSet {;
      * Returns the scopes as an array of string values
      */
     asArray(): Array<string> {
-        return Array.from(this.scopes);
+        const array: Array<string> = [];
+        this.scopes.forEach(val => array.push(val));
+        return array;
     }
 
     /**
@@ -155,5 +162,12 @@ export class ScopeSet {;
             return scopeArr.join(" ");
         }
         return "";
+    }
+
+    /**
+     * Prints scopes into a space-delimited lower-case string (used for caching)
+     */
+    printScopesLowerCase(): string {
+        return this.printScopes().toLowerCase();
     }
 }

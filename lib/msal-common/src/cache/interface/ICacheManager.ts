@@ -59,6 +59,11 @@ export interface ICacheManager {
     getCredentialsFilteredBy(filter: CredentialFilter): CredentialCache;
 
     /**
+     * Removes all accounts and related tokens from cache.
+     */
+    removeAllAccounts(): boolean;
+
+    /**
      * returns a boolean if the given account is removed
      * @param account
      */

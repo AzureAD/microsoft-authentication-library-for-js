@@ -41,6 +41,14 @@ export class StringUtils {
         return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
+    static startsWith(str: string, search: string): boolean {
+        return str.indexOf(search) === 0;
+    }
+
+    static endsWith(str: string, search: string): boolean {
+        return (str.length >= search.length) && (str.lastIndexOf(search) === (str.length - search.length));
+    }
+
     /**
      * Parses string into an object.
      *
@@ -61,12 +69,12 @@ export class StringUtils {
     }
 
     /**
-     * Trims entries and converts them to lower case.
+     * Trims entries in an array.
      *
      * @param arr
      */
-    static trimAndConvertArrayEntriesToLowerCase(arr: Array<string>): Array<string> {
-        return arr.map(entry => entry.trim().toLowerCase());
+    static trimArrayEntries(arr: Array<string>): Array<string> {
+        return arr.map(entry => entry.trim());
     }
 
     /**

@@ -43,6 +43,7 @@ import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
+import { SilentRequest } from "../request/SilentRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -361,13 +362,14 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
+
         try {
             const silentAuthClient = await this.createSilentFlowClient(silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
@@ -379,6 +381,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
                     ...silentRequest,
+                    redirectUri: request.redirectUri,
                     prompt: PromptValue.NONE
                 });
 
@@ -462,7 +465,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getAccountByUsername(userName: string): AccountInfo {
         const allAccounts = this.getAllAccounts();
-        return allAccounts.filter(accountObj => accountObj.username === userName)[0];
+        return allAccounts ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
     }
 
     // #endregion
@@ -472,7 +475,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      *
      * Use to get the redirect uri configured in MSAL or null.
-     * Evaluates redirectUri if its a function, otherwise simply returns its value.
      * @returns {string} redirect URL
      *
      */
@@ -482,7 +484,6 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     /**
      * Use to get the post logout redirect uri configured in MSAL or null.
-     * Evaluates postLogoutredirectUri if its a function, otherwise simply returns its value.
      *
      * @returns {string} post logout redirect URL
      */
@@ -593,10 +594,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
 
-        return {
-            ...validatedRequest,
-            ...this.setDefaultScopes(validatedRequest)
-        };
+        return validatedRequest;
     }
 
     /**
@@ -652,7 +650,10 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
-        return validatedRequest;
+        return {
+            ...validatedRequest,
+            ...this.setDefaultScopes(validatedRequest)
+        };
     }
 
     /**
