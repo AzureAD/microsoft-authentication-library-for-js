@@ -13,7 +13,7 @@ import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
-import { TelemetryManager } from "../telemetry/TelemetryManager";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 /**
  * OAuth2.0 Device code client
@@ -29,7 +29,7 @@ export class DeviceCodeClient extends BaseClient {
      * polls token endpoint to exchange device code for tokens
      * @param request
      */
-    public async acquireToken(request: DeviceCodeRequest, telemetryManager?: TelemetryManager): Promise<string> {
+    public async acquireToken(request: DeviceCodeRequest, telemetryManager?: ServerTelemetryManager): Promise<string> {
 
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
@@ -114,7 +114,7 @@ export class DeviceCodeClient extends BaseClient {
     private async acquireTokenWithDeviceCode(
         request: DeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse,
-        telemetryManager: TelemetryManager): Promise<ServerAuthorizationTokenResponse> {
+        telemetryManager: ServerTelemetryManager): Promise<ServerAuthorizationTokenResponse> {
 
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
         let headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
