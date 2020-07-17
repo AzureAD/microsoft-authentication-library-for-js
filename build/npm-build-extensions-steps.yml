@@ -19,7 +19,7 @@ steps:
       inputs:
           command: 'custom'
           workingDir: '$(Build.SourcesDirectory)/extensions/msal-node-extensions'
-          customCommand: 'run build:extensions'
+          customCommand: 'run build'
 
     - task: Npm@1
       displayName: 'Unit Tests'
