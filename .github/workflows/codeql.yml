@@ -44,4 +44,3 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
-      languages: go, javascript, csharp, python, cpp, java
