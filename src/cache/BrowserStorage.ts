@@ -23,7 +23,7 @@ export class BrowserStorage extends CacheManager {
     // Window storage object (either local or sessionStorage)
     private windowStorage: Storage;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
-    public clientId: string;
+    private clientId: string;
 
     constructor(clientId: string, cacheConfig: CacheOptions) {
         super();
@@ -426,5 +426,12 @@ export class BrowserStorage extends CacheManager {
         } catch (err) {
             throw BrowserAuthError.createTokenRequestCacheError(err);
         }
+    }
+
+    /**
+     * Gets the clientId
+     */
+    getClientId(): string {
+        return this.clientId;
     }
 }

@@ -66,7 +66,7 @@ export class RedirectHandler extends InteractionHandler {
         this.authCodeRequest.code = authCode;
 
         // Remove throttle if it exists
-        ThrottlingUtils.removeThrottle(this.browserStorage, this.browserStorage.clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes);
+        ThrottlingUtils.removeThrottle(this.browserStorage, this.browserStorage.getClientId(), this.authCodeRequest.authority, this.authCodeRequest.scopes);
 
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
