@@ -13,7 +13,7 @@ import { ScopeSet } from "../request/ScopeSet";
 import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { TelemetryManager } from "../telemetry/TelemetryManager";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 /**
  * OAuth2.0 refresh token client
@@ -24,7 +24,7 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: RefreshTokenRequest, telemetryManager?: TelemetryManager): Promise<AuthenticationResult>{
+    public async acquireToken(request: RefreshTokenRequest, telemetryManager?: ServerTelemetryManager): Promise<AuthenticationResult>{
         const response = await this.executeTokenRequest(request, this.authority, telemetryManager);
 
         const responseHandler = new ResponseHandler(
@@ -43,7 +43,7 @@ export class RefreshTokenClient extends BaseClient {
         return tokenResponse;
     }
 
-    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority, telemetryManager?: TelemetryManager)
+    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority, telemetryManager?: ServerTelemetryManager)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = this.createTokenRequestBody(request);
