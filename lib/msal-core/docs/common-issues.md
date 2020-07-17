@@ -6,6 +6,7 @@
 4. [Hash does not Contain State](#Hash-does-not-contain-state)
 5. [Silent request was sent but no user signed-in](#Silent-request-was-sent-but-no-user-signed-in)
 6. [Redirect Loops](#Redirect-loops)
+7. [Proper usage of redirectUri](#Proper-usage-of-redirectUri)
 7. [Multiple Accounts](#Multiple-accounts)
 
 ## General Notes about `acquireTokenSilent`
@@ -148,6 +149,38 @@ msal = new Msal.UserAgentApplication({
        storeAuthStateInCookie: true 
     }
 })
+```
+
+## Proper Usage of `redirectUri`
+
+`redirectUri` is a parameter you can provide to your msal instance and/or to each individual request to tell the IDP where to redirect back to when authentication is complete. There are a couple things you need to keep in mind when deciding what to set as your `redirectUri`
+
+If no `redirectUri` is explicitly provided, msal will use the current page as the `redirectUri`
+
+**Note:** All `redirectUris` must be registered in the Azure App Portal for your application and must be an exact match, including any hashes or query parameters
+
+### When using a Redirect API
+
+`loginRedirect`, `acquireTokenRedirect`
+
+When using a redirect API to acquire a token, the page at the `redirectUri`, in addition to, the page that ultimately processes the response must initialize msal to complete the login and/or cache the token. Please also ensure this page does not manipulate the hash in the url until **after** msal has successfully processed the response.
+
+- If `navigateToLoginRequestUrl: false` in the msal auth config, the provided `redirectUri` will be the final page and will process the response.
+- If `navigateToLoginRequestUrl: true` (default), the IDP will redirect to the provided `redirectUri` which will then redirect **again** to the page that initiated the request. This final page will now process the response.
+
+**Note:** Only urls that are passed to `redirectUri` need to be registered in the app portal. If `navigateToLoginRequestUrl: true` you do not need to register the requesting url as a `redirectUri` in the app portal, as long as you have specified a different `redirectUri` in the request.
+
+### When using a Popup or Silent API
+
+`loginPopup`, `acquireTokenPopup`, `ssoSilent`, `acquireTokenSilent`
+
+When using a popup or silent API to acquire a token we recommend setting the `redirectUri` to a blank page that does not require authentication and does not initialize msal. This is because the popup window will ask you for your credentials or consent and the parent app will parse the response. Similarly, the hidden iframe in the silent scenario will redirect to the IDP and redirect back to the `redirectUri`. There is no need for the popup or hidden iframe to render your app, in fact it may cause unexpected issues, including but not limited to, degraded performance, popups not closing, token renewal timeouts.
+
+```javascript
+request = {
+    scopes: ["User.Read"],
+    redirectUri: "http://myapp.com/blank.html"
+}
 ```
 
 ## Multiple Accounts
