@@ -545,8 +545,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
             },
             systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
-                telemetry: this.config.system.telemetry
+                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds
             },
             loggerOptions: {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
