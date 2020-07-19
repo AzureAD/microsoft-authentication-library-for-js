@@ -2,7 +2,9 @@
 const msalConfig = {
     auth: {
         clientId: "3fba556e-5d4a-48e3-8e1a-fd57c12cb82e",
-        authority: "https://login.windows-ppe.net/common/"
+        authority: "https://login.windows-ppe.net/common/",
+        navigateToLoginRequestUrl: false,
+        redirectUri: "http://localhost:30662/"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -46,7 +48,7 @@ const graphConfig = {
 
 // Add here scopes for access token to be used at MS Graph API endpoints.
 const tokenRequest = {
-    scopes: ["https://msidlab0.spoppe.com/User.Read"],
+    scopes: ["Mail.Read"],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };
 
