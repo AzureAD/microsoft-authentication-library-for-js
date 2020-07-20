@@ -121,7 +121,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
-     * @returns {Promise<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
+     * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
         return this.handleRedirectResponse();
@@ -197,7 +197,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
 	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
 	 *
-     * @param {@link (AuthenticationParameters:type)}
+     * @param {@link (RedirectRequest:type)}
      */
     async loginRedirect(request: RedirectRequest): Promise<void> {
         return this.acquireTokenRedirect(request);
@@ -209,9 +209,8 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 *
 	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
 	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
-     * @param {@link (AuthenticationParameters:type)}
      *
-     * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
+     * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         try {
@@ -246,7 +245,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Use when initiating the login process via opening a popup window in the user's browser
      *
-     * @param {@link (AuthenticationParameters:type)}
+     * @param {@link (PopupRequest:type)}
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
@@ -256,9 +255,8 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
-     * @param {@link AuthenticationParameters}
+     * @param {@link (PopupRequest:type)}
      *
-     * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
@@ -315,7 +313,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      * you session on the server still exists.
      * @param {@link AuthorizationUrlRequest}
      *
-     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters.
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
@@ -359,7 +356,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * MSAL return's a cached token when available
      * Or it send's a request to the STS to obtain a new token using a refresh token.
      *
-     * @param {@link AuthenticationParameters}
+     * @param {@link (SilentRequest:type)}
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
@@ -436,7 +433,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
-     * @param logoutRequest 
+     * @param {@link (EndSessionRequest:type)} 
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
@@ -454,7 +451,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Returns all accounts that MSAL currently has data for.
      * (the account object is created at the time of successful login)
      * or null when no state is found
-     * @returns {@link IAccount[]} - Array of account objects in cache
+     * @returns {@link AccountInfo[]} - Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
         return this.browserStorage.getAllAccounts();
@@ -464,7 +461,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Returns the signed in account matching username.
      * (the account object is created at the time of successful login)
      * or null when no state is found
-     * @returns {@link IAccount} - the account object stored in MSAL
+     * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByUsername(userName: string): AccountInfo {
         const allAccounts = this.getAllAccounts();
