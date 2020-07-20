@@ -3,6 +3,7 @@ import { StringUtils } from "../../src/utils/StringUtils";
 import { TEST_TOKENS } from "./StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
+import { IdToken } from "../../src";
 
 describe("StringUtils.ts Class Unit Tests", () => {
     
@@ -122,8 +123,9 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.queryStringToObject(serializedObj)).to.be.deep.eq(deserializedObj);        
     });
 
-    it("trimAndConvertArrayEntriesToLowerCase() converts entries to lower case and trims them", () => {
-
+    it("trimArrayEntries() correctly trims entries in an array", () => {
+        const arr = ["S1", " S2  ", " S3 "];
+        expect(StringUtils.trimArrayEntries(arr)).to.be.deep.eq(["S1", "S2", "S3"]);   
     });
 
     it("removeEmptyStringsFromArray() removes empty strings from an array", () => {
