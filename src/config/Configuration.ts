@@ -39,7 +39,6 @@ export type CacheOptions = {
  * - loadFrameTimeout             - maximum time the library should wait for a frame to load
  * - windowHashTimeout            - sets the wait time for hidden iFrame navigation
  * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
- * - telemetry                    - Telemetry options for library network requests
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -55,7 +54,7 @@ export type BrowserSystemOptions = SystemOptions & {
  * This object allows you to configure important elements of MSAL functionality:
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
  * - cache: this is where you configure cache location and whether to store cache in cookies
- * - system: this is where you can configure the network client, logger, token renewal offset, and telemetry
+ * - system: this is where you can configure the network client, logger, token renewal offset
  */
 export type Configuration = {
     auth?: BrowserAuthOptions,
