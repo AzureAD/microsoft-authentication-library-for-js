@@ -460,7 +460,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.loginRedirect(loginRequest);
             });
 
-            it.only("loginRedirect navigates to created login url, with empty request", (done) => {
+            it("loginRedirect navigates to created login url, with empty request", (done) => {
                 sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Window => {
                     expect(navigateUrl.startsWith(testNavUrlNoRequest)).to.be.true;
                     done();
