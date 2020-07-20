@@ -78,8 +78,7 @@ describe("PopupHandler.ts Unit Tests", () => {
 			},
             systemOptions: {
                 tokenRenewalOffsetSeconds:
-                    configObj.system.tokenRenewalOffsetSeconds,
-                telemetry: configObj.system.telemetry,
+                    configObj.system.tokenRenewalOffsetSeconds
             },
             cryptoInterface: {
                 createNewGuid: (): string => {

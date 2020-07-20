@@ -43,6 +43,7 @@ import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
+import { SilentRequest } from "../request/SilentRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -140,18 +141,18 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
-        if (loginRequestUrlNormalized === currentUrlNormalized) {
-            if (this.config.auth.navigateToLoginRequestUrl) {
-                // Replace current hash with non-msal hash, if present
-                BrowserUtils.replaceHash(loginRequestUrl);
-            } else {
-                BrowserUtils.clearHash();
-            }
-
+        if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
+            // Replace current hash with non-msal hash, if present
+            BrowserUtils.replaceHash(loginRequestUrl);
             return this.handleHash(isResponseHash ? hash : cachedHash);
         }
 
-        if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
+        if (!this.config.auth.navigateToLoginRequestUrl) {
+            BrowserUtils.clearHash();
+            return this.handleHash(isResponseHash ? hash : cachedHash);
+        }
+
+        if (isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
             const hashKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH);
             this.browserStorage.setItem(hashKey, hash, CacheSchemaType.TEMPORARY);
@@ -227,8 +228,9 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
+            const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, request.redirectStartPage, this.browserCrypto);
+            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
             this.browserStorage.cleanRequest();
             throw e;
@@ -361,13 +363,14 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
+
         try {
             const silentAuthClient = await this.createSilentFlowClient(silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
@@ -379,6 +382,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
                     ...silentRequest,
+                    redirectUri: request.redirectUri,
                     prompt: PromptValue.NONE
                 });
 
@@ -462,7 +466,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getAccountByUsername(userName: string): AccountInfo {
         const allAccounts = this.getAllAccounts();
-        return allAccounts.filter(accountObj => accountObj.username === userName)[0];
+        return allAccounts ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
     }
 
     // #endregion
@@ -542,8 +546,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
             },
             systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
-                telemetry: this.config.system.telemetry
+                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds
             },
             loggerOptions: {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
@@ -591,10 +594,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
 
-        return {
-            ...validatedRequest,
-            ...this.setDefaultScopes(validatedRequest)
-        };
+        return validatedRequest;
     }
 
     /**
@@ -650,7 +650,10 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
-        return validatedRequest;
+        return {
+            ...validatedRequest,
+            ...this.setDefaultScopes(validatedRequest)
+        };
     }
 
     /**

@@ -15,7 +15,7 @@
         "resolveJsonModule": true
     },
     "files": [
-        "./test/*.ts"
+        "./e2eTests/*.ts"
     ],
     "exclude": [
         "node_modules"
