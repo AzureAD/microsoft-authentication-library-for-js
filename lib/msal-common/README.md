@@ -17,7 +17,7 @@
 
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io). 
 
-The `@azure/msal-common` package described by the code in this folder serves as a common package dependency for the `@azure/msal-browser` package (and in the future, the msal-node package). **It is not meant for production consumption by itself.**
+The `@azure/msal-common` package described by the code in this folder serves as a common package dependency for the `@azure/msal-browser` package (and in the future, the msal-node package). Be aware that this is an internal library, and is subject to frequent change. **It is not meant for production consumption by itself.**
 
 ## FAQ
 
