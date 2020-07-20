@@ -14,22 +14,22 @@ The second idea was a proof of concept MSAL for React Native. [React Native](htt
 
 Before I spoke with my manager again, I wrote up some pros and cons for each project and made loose plans as to how I would implement them. When the time came to decide, I realized that I was way more excited about MSAL for React Native, and I knew it would provide a great challenge for me to tackle during the summer. My manager asked me to write a requirements doc for my project:
 
-**Ultimate Goal of the Project: Create a proof-of-concept MSAL for React Native that implements the Authorization Code Flow with PKCE (Proof Key Code Exchange).**
+**Ultimate Goal of the Project: Create a proof of concept MSAL for React Native that implements the Authorization Code Flow with PKCE (Proof Key Code Exchange).**
 
 **Functional Requirements (and scoping):**
 * The project will provide methods for mobile apps created with React Native to acquire OAuth2.0 access tokens by implementing the Authorization Code Flow with PKCE (mobile app that calls a web API on behalf of an interactive user).
     * The user will be authenticated with a broker (such as Authenticator), using either a redirect or pop-up flow, to get consent and allow SSO.
 * Implementation will be focused on creating a library for Android; with my experience with creating Android apps (and lack of experience with iOS), I can put more time into the quality of the proof of concept and less time learning the nuances of iOS.
 *	The project will be a wrapper of MSAL for Android but will stylistically be derived and will take inspiration from the MSAL JS libraries.
-    *	The "MSAL React Native wrapper for iOS and Android" library by Stash Energy will also be referenced when designing and implementing the proof-of-concept.
-*	The proof-of-concept will allow single-account mode only.
-*	The project will center on AAD and not B2C nor ADFS
-*	A sample Android app will be created to demo the library
-*	Error handling will not be emphasized (unless I have extra time!)
+    *	The "MSAL React Native wrapper for iOS and Android" library by Stash Energy will also be referenced when designing and implementing the proof of concept.
+*	The proof of concept will allow single-account mode only.
+*	The project will center on AAD and not B2C nor ADFS.
+*	A sample Android app will be created to demo the library.
+*	Error handling will not be emphasized (unless I have extra time!).
 
 **Non-Functional Requirements:**
 *	The resulting library will stylistically match that of the existing MSAL JS libraries.
-*	The project will follow good coding practices (being aware of third-party coding practices, and asking for advice when necessary)
+*	The project will follow good coding practices (being aware of third-party coding practices, and asking for advice when necessary).
 *	The amount of code to be implemented on the user's end will be minimized.
     * Users should be able to add their client IDs, Tenant IDs, etc. and then use the libraries without much other configuration.
 *	There will be proper usage documentation for the library as well as the sample app.
@@ -42,11 +42,11 @@ Before I spoke with my manager again, I wrote up some pros and cons for each pro
 We planned this to be a 10 week project, with a timeline as follows:
 
 **Milestones (Broad):** Ten Week Project (5/24-7/31)
-*	Week 1 (5/24-5/29): Write up requirements, scoping, and other planning; spend hackathon time diving into React Native
-*	Week 2 (6/1-6/5): Plan out functional requirements in detail (as well as the milestones for weeks 3 - 9)
-*	Week 3 (6/8 - 6/12): Create demo app framework using React Native; start creating PPT for React Native Brownbag
+*	Week 1 (5/24-5/29): Write up requirements, scoping, and other planning; spend hackathon time diving into React Native.
+*	Week 2 (6/1-6/5): Plan out functional requirements in detail (as well as the milestones for weeks 3 - 9).
+*	Week 3 (6/8 - 6/12): Create demo app framework using React Native; start creating PPT for React Native Brownbag.
 *	Week 4 (6/15 - 6/19): Finalize React Native PPT and present! Start implementing MSAL for React Native Library if haven't done so yet.
-*	Week 5 - 9 (6/22 - 7/24): Code MSAL for React Native! (This will be better planned out in week 3)
+*	Week 5 - 9 (6/22 - 7/24): Code MSAL for React Native! (This will be better planned out in week 3).
 *	Week 10 (7/27 - 7/31): Refine code (linting?) and usage documentation; start finishing blog post detailing my project's functionality and my experience building it; if demos are this week, demo; otherwise, practice demoing.
 
 As Week 1 states, there was a hackathon among the auth client teams on Thursday and Friday. I decided to spend that time to learn the basics of React Native and potentially create a demo app for testing my future library. I watched some LinkedIn Learning videos and spent a ton of time on React Native's and React's official website, since I also needed a refresher of React's basics. I followed tutorials using [Expo CLI](https://docs.expo.io/workflow/expo-cli/), which is great for beginners. After I felt more comfortable, I transitioned to using [React Native CLI](https://reactnative.dev/docs/0.61/getting-started), which was more bare-boned but necessary to use in order to incorporate native modules (more on this to follow). 
