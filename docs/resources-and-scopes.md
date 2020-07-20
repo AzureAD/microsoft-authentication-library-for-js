@@ -6,7 +6,6 @@ Azure Active Directory v2.0 & Microsoft Identity Platform employs a *scope-centr
 **Access Token** requests in **MSAL.js** are meant to be *per-resource-per-scope(s)*. This means that an **Access Token** requested for resource **A** with scope `scp1`:
 
 - cannot be used for accessing resource **A** with scope `scp2`, and,
-This conversation was marked as resolved by tnorling
 - cannot be used for accessing resource **B** of any scope.
 
 The intended recipient of an **Access Token** is represented by the `aud` claim; in case the value for the `aud` claim does not mach the resource [APP ID URI](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-registration), the token should be considered invalid. Likewise, the permissions that an **Access Token** grants is represented by the `scp` claim. See [ Access Token claims](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims) for more information.
