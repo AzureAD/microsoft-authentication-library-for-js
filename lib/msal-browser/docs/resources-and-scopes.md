@@ -15,72 +15,72 @@ The intended recipient of an **Access Token** is represented by the `aud` claim;
 
 When you have to access multiple resources, initiate a separate token request for each:
 
-     ```javascript
-     // "User.Read" stands as shorthand for "graph.microsoft.com/User.Read"
-     const graphToken = await msalInstance.acquireTokenSilent({
-          scopes: [ "User.Read" ]
-     });
-     const customApiToken = await msalInstance.acquireTokenSilent({
-          scopes: [ "api://<myCustomApiClientId>/My.Scope" ]
-     });
-     ```
+ ```javascript
+ // "User.Read" stands as shorthand for "graph.microsoft.com/User.Read"
+ const graphToken = await msalInstance.acquireTokenSilent({
+      scopes: [ "User.Read" ]
+ });
+ const customApiToken = await msalInstance.acquireTokenSilent({
+      scopes: [ "api://<myCustomApiClientId>/My.Scope" ]
+ });
+ ```
 
 Bear in mind that you *can* request multiple scopes for the same resource (e.g. `User.Read`, `User.Write` and `Calendar.Read` for **MS Graph API**).
 
-     ```javascript
-     const graphToken = await msalInstance.acquireTokenSilent({
-          scopes: [ "User.Read", "User.Write", "Calendar.Read"] // all MS Graph API scopes
-     });
-     ```
+ ```javascript
+ const graphToken = await msalInstance.acquireTokenSilent({
+      scopes: [ "User.Read", "User.Write", "Calendar.Read"] // all MS Graph API scopes
+ });
+ ```
 
 In case you *erroneously* pass multiple resources in your token request, the token you will receive will only be issued for the first resource.
 
-     ```javascript
-     // you will only receive a token for MS GRAPH API's "User.Read" scope here
-     const myToken = await msalInstance.acquireTokenSilent({
-          scopes: [ "User.Read", "api://<myCustomApiClientId>/My.Scope" ]
-     });
-     ```
+ ```javascript
+ // you will only receive a token for MS GRAPH API's "User.Read" scope here
+ const myToken = await msalInstance.acquireTokenSilent({
+      scopes: [ "User.Read", "api://<myCustomApiClientId>/My.Scope" ]
+ });
+ ```
 
 ## Dynamic Scopes and Incremental Consent
 
 In **Azure AD**, the scopes (*permissions*) set directly on the application registration are called **static scopes**. Other scopes that are only defined within the code are called **dynamic scopes**. This has implications on the **login** (i.e. *loginPopup*, *loginRedirect*) and **acquireToken** (i.e. *acquireTokenPopup*, *acquireTokenRedirect*, *acquireTokenSilent*) methods of **MSAL.js**. Consider:
 
-     ```javascript
-          const loginRequest = {
-               scopes: [ "openid", "profile", "User.Read" ]
-          };
-          const tokenRequest = {
-               scopes: [ "Mail.Read" ]
-          };
-          // will return an ID Token and an Access Token with scopes: "openid", "profile" and "User.Read"
-          msalInstance.loginPopup(loginRequest);
-          // will fail and fallback to an interactive method prompting a consent screen
-          // after consent, the received token will be issued for "openid", "profile" ,"User.Read" and "Mail.Read" combined
-          msalInstance.acquireTokenSilent(tokenRequest);
-     ```
+ ```javascript
+      const loginRequest = {
+           scopes: [ "openid", "profile", "User.Read" ]
+      };
+      const tokenRequest = {
+           scopes: [ "Mail.Read" ]
+      };
+      // will return an ID Token and an Access Token with scopes: "openid", "profile" and "User.Read"
+      msalInstance.loginPopup(loginRequest);
+      // will fail and fallback to an interactive method prompting a consent screen
+      // after consent, the received token will be issued for "openid", "profile" ,"User.Read" and "Mail.Read" combined
+      msalInstance.acquireTokenSilent(tokenRequest);
+ ```
 
 In the code snippet above, the user will be prompted for consent once they authenticate and receive an **ID Token** and an **Access Token** with scope `User.Read`. Later, if they request an **Access Token** for `User.Read`, they will not be asked for consent again (in other words, they can acquire a token *silently*). On the other hand, the user did not consented to `Mail.Read` at the authentication stage. As such, they will be asked for consent when requesting an **Access Token** for that scope. The token received will contain all the previously consented scopes, hence the term *incremental consent*.
 
 Consider a slightly different case:
 
-     ```javascript
-          const loginRequest = {
-               scopes: [ "openid", "profile", "User.Read", "api://<myCustomApiClientId>/My.Scope" ]
-          };
-          const tokenRequest = {
-               scopes: [ "Mail.Read" ]
-          };
-          const anotherTokenRequest = {
-               scopes: [ "api://<myCustomApiClientId>/My.Scope" ]
-          }
-          // will return an ID Token and an Access Token with scopes: "openid", "profile" and "User.Read"
-          msalInstance.loginPopup(loginRequest);
-          // will fail and fallback to an interactive method prompting a consent screen
-          msalInstance.acquireTokenSilent(tokenRequest);
-          // will succeed and return an Access Token with scopes "openid", "profile", "User.Read" and "api://<myCustomApiClientId>/My.Scope"
-          msalInstance.acquireTokenSilent(anotherTokenRequest);
-     ```
+ ```javascript
+      const loginRequest = {
+           scopes: [ "openid", "profile", "User.Read", "api://<myCustomApiClientId>/My.Scope" ]
+      };
+      const tokenRequest = {
+           scopes: [ "Mail.Read" ]
+      };
+      const anotherTokenRequest = {
+           scopes: [ "api://<myCustomApiClientId>/My.Scope" ]
+      }
+      // will return an ID Token and an Access Token with scopes: "openid", "profile" and "User.Read"
+      msalInstance.loginPopup(loginRequest);
+      // will fail and fallback to an interactive method prompting a consent screen
+      msalInstance.acquireTokenSilent(tokenRequest);
+      // will succeed and return an Access Token with scopes "openid", "profile", "User.Read" and "api://<myCustomApiClientId>/My.Scope"
+      msalInstance.acquireTokenSilent(anotherTokenRequest);
+ ```
 
 In the code snippet above, even though the user consents to both `User.Read` and `api://<myCustomApiClientId>/My.Scope` scopes, they will only receive an **Access Token** for **MS Graph API**, in accordance with *per-resource-per-scope(s)* principle. However, since they already consented to `api://<myCustomApiClientId>/My.Scope`, they can acquire an **Access Token** for that resource/scope *silently* later on.
 
