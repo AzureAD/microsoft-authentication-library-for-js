@@ -121,5 +121,5 @@ From what I’ve observed, being a software engineer at Microsoft requires an am
 
 ## Special Thanks to… 
 
-Daryl, my manager; Thomas, my mentor; Hector, Jo, Jason, Sameera, Prithvi, Santiago, Jake, and Haley, the awesome people of the DevEx JS SDK team; and Shane, my MSAL Android point of contact. You all made my Microsoft experience extra amazing 😊
+Daryl, my manager; Thomas, my mentor; Hector, Jo, Jason, Sameera, Prithvi, Santiago, Jake, and Haley, the awesome engineers/PM of the DevEx JS SDK team; and Shane, my MSAL Android point of contact. You all made my Microsoft experience extra amazing 😊
 
