@@ -1,4 +1,4 @@
-# (Preview) Microsoft Authentication Library for JavaScript (MSAL.js) 2.0 for Browser-Based Single-Page Applications
+# Microsoft Authentication Library for JavaScript (MSAL.js) 2.0 for Browser-Based Single-Page Applications
 [![npm version](https://img.shields.io/npm/v/@azure/msal-browser.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-browser/)[![npm version](https://img.shields.io/npm/dm/@azure/msal-browser.svg)](https://nodei.co/npm/@azure/msal-browser/)[![Coverage Status](https://coveralls.io/repos/github/AzureAD/microsoft-authentication-library-for-js/badge.svg?branch=dev)](https://coveralls.io/github/AzureAD/microsoft-authentication-library-for-js?branch=dev)
 
 | <a href="https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa" target="_blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/" target="_blank">Library Reference</a> |
@@ -40,7 +40,7 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 
 | Date | Release | Announcement | Main features |
 | ------| ------- | ---------| --------- |
-| | @azure/msal-browser v2.1.0 | | Access Token Proof-of-Possession, Broker, Throttling, Client and Server Telemetry | 
+| | @azure/msal-browser v2.1.0 | | Throttling, Client and Server Telemetry, Access Token Proof-of-Possession (Tentative) | 
 | July 20th, 2020 | @azure/msal-browser v2.0.0 | [Release Notes](https://github.com/AzureAD/microsoft-authentication-library-for-js/releases/tag/msal-browser-v2.0.0) | Full version of the `@azure/msal-browser` package; relies on `@azure/msal-common` v1.0.0 |
 | May 11, 2020 | @azure/msal-browser v2.0.0-beta | No release notes | Beta version of the `@azure/msal-browser` package; relies on `@azure/msal-common` v1.0.0-beta |
 | January 17, 2020 | @azure/msal-browser v2.0.0-alpha | No release notes | Alpha version of the `@azure/msal-browser` package with authorization code flow for SPAs working in dev; relies on msal-common v1.0.0-alpha |
