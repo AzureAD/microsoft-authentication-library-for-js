@@ -121,7 +121,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
-     * @returns token response or null. If the return value is null, then no auth redirect was detected.
+     * @returns {Promise<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
         return this.handleRedirectResponse();
@@ -142,12 +142,14 @@ export class PublicClientApplication implements IPublicClientApplication {
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
         if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
+            // We are on the page we need to navigate to - handle hash
             // Replace current hash with non-msal hash, if present
             BrowserUtils.replaceHash(loginRequestUrl);
             return this.handleHash(isResponseHash ? hash : cachedHash);
         }
 
         if (!this.config.auth.navigateToLoginRequestUrl) {
+            // We don't need to navigate - handle hash
             BrowserUtils.clearHash();
             return this.handleHash(isResponseHash ? hash : cachedHash);
         }
