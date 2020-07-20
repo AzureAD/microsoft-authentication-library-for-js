@@ -59,7 +59,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             systemOptions: {
                 tokenRenewalOffsetSeconds:
                     configObj.system.tokenRenewalOffsetSeconds,
-                telemetry: configObj.system.telemetry,
             },
             cryptoInterface: {
                 createNewGuid: (): string => {
