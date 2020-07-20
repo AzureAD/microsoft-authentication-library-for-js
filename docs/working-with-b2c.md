@@ -27,12 +27,17 @@ const msalConfig = {
   }
 }
 
+const apiConfig = {
+  b2cScopes: ["https://<your-tenant>.onmicrosoft.com/<your-api>/<your-scope>"],
+  webApiUri: "<your-api-uri>" // e.g. "https://fabrikamb2chello.azurewebsites.net/hello"
+};
+
 const loginRequest = {
   scopes: [ "openid", "offline_access" ]
 }
 
 const tokenRequest = {
-  scopes: [ "api://<myCustomApiClientId>/My.Scope" ]
+  scopes: apiConfig.b2cScopes // e.g. "https://<your-tenant>.onmicrosoft.com/<your-api>/<your-scope>"
 }
 ```
 
@@ -95,4 +100,4 @@ During application registration, you are prompted to select an **audience**. The
 
 ### B2C and Sign-out Experience
 
-The sign-out clears the user's *single sign-on* state with **Azure AD B2C**, but it might not sign the user out of their **social identity provider** session. If the user selects the same identity provider during a subsequent sign-in, they might re-authenticate without entering their credentials. The assumption for this is that, if a user wants to sign out of the application, it doesn't necessarily mean they want to sign out of their Facebook account.
+The sign-out clears the user's *single sign-on* state with **Azure AD B2C**, but it might not sign the user out of their **social identity provider** session. If the user selects the same identity provider during a subsequent sign-in, they might re-authenticate without entering their credentials. Here the assumption is that, if a user wants to sign out of the application, it doesn't necessarily mean they want to sign out of their social account (*e.g.* Facebook) itself.
