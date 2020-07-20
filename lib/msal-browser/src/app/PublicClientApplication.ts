@@ -141,18 +141,18 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
-        if (loginRequestUrlNormalized === currentUrlNormalized) {
-            if (this.config.auth.navigateToLoginRequestUrl) {
-                // Replace current hash with non-msal hash, if present
-                BrowserUtils.replaceHash(loginRequestUrl);
-            } else {
-                BrowserUtils.clearHash();
-            }
-
+        if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
+            // Replace current hash with non-msal hash, if present
+            BrowserUtils.replaceHash(loginRequestUrl);
             return this.handleHash(isResponseHash ? hash : cachedHash);
         }
 
-        if (this.config.auth.navigateToLoginRequestUrl && isResponseHash && !BrowserUtils.isInIframe()) {
+        if (!this.config.auth.navigateToLoginRequestUrl) {
+            BrowserUtils.clearHash();
+            return this.handleHash(isResponseHash ? hash : cachedHash);
+        }
+
+        if (isResponseHash && !BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
             const hashKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH);
             this.browserStorage.setItem(hashKey, hash, CacheSchemaType.TEMPORARY);
@@ -228,8 +228,9 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
+            const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, request.redirectStartPage, this.browserCrypto);
+            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
             this.browserStorage.cleanRequest();
             throw e;
@@ -545,8 +546,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
             },
             systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
-                telemetry: this.config.system.telemetry
+                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds
             },
             loggerOptions: {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
