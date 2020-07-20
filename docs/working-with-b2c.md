@@ -8,10 +8,10 @@
 
 With B2C:
 
-- You **can** authenticate users with social identities.
-- You **can** authorize users to access your **B2C protected** resources.
-- You **cannot** obtain tokens for Microsoft APIs (e.g. MS Graph API) using [delegated permissions](#b2c-and-delegated-permissions).
-- You **can** obtain tokens for Microsoft APIs using [application permissions](#b2c-and-application-permissions) (management scenarios).
+- Users **can** authenticate with their social identities.
+- Users **can** be authorized to access **B2C protected** resources.
+- Users **cannot** obtain tokens for Microsoft APIs (e.g. MS Graph API) using [delegated permissions](#b2c-and-delegated-permissions).
+- Applications **can** obtain tokens for Microsoft APIs using [application permissions](#b2c-and-application-permissions) (management scenarios).
 
 ## B2C App Configuration
 
@@ -22,7 +22,6 @@ const msalConfig = {
   auth: {
     clientId: "<your-clientID>",
     authority: "https://<your-tenant>.b2clogin.com/<your-tenant>.onmicrosoft.com/<your-policyID>",
-    validateAuthority: true,
     knownAuthorities: ["<your-tenant>.b2clogin.com"] // array of URIs that are known to be valid
   }
 }
@@ -84,7 +83,7 @@ The `login.microsoftonline.com` endpoints can still be used for any behind the s
 
 - To obtain **application permissions**, you'll need perform application authentication (using the **client credentials grant**).
 - To obtain **delegated permissions**, you'll need to perform user authentication with an admin account.
-- Management apps are typically registered as audience **type 1** or sometimes **type 2**, and rarely (discouraged) as **type 3** (see [below](#b2c-and-account/audience-types)).
+- Management apps are typically registered as audience **type 1** or **type 2** (see [below](#b2c-and-account/audience-types)).
 
 ## Other Topics
 
