@@ -6,7 +6,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
@@ -458,6 +458,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
 
                 pca.loginRedirect(loginRequest);
+            });
+
+            it.only("loginRedirect navigates to created login url, with empty request", (done) => {
+                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Window => {
+                    expect(navigateUrl.startsWith(testNavUrlNoRequest)).to.be.true;
+                    done();
+                    return window;
+				});
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+                sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+                sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
+
+                pca.loginRedirect();
             });
 
 			it("Updates cache entries correctly", async () => {
