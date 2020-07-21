@@ -496,11 +496,5 @@ describe("BrowserStorage() tests", () => {
 			const tokenRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, browserCrypto);
 			expect(tokenRequest.authority).to.be.eq(alternateAuthority);
         });
-        
-        it("getClientId returns a clientId", () => {
-            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-            const clientId = browserStorage.getClientId();
-            expect(clientId).to.deep.eq(TEST_CONFIG.MSAL_CLIENT_ID);
-        });
 	});
 });
