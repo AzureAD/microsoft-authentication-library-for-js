@@ -260,9 +260,8 @@ MsalModule.forRoot({
     cache: {
         storeAuthStateInCookie: ieIE
     }
-    framework: {
-        popUp: !isIE
-    }
+}, {
+    popUp: !isIE
 });
 ```
 
