@@ -1,3 +1,12 @@
+# 1.0.0-alpha.2
+- Fix an issue where the `dist` folder was not published (#2013)
+
+# 1.0.0-alpha.1
+
+- Add `response` to device code in `msal-node` (#1947)
+- `msal-node` docs update (#1948)
+- Export `AccountInfo` in `msal-node (#2005)
+
 # 1.0.0-alpha.0
 
 - scaffolding (#1328)
@@ -23,5 +32,4 @@
 - Update UnifiedCacheManager.ts (#1771)
 - Node cache interface (#1801)
 - SilentFlow node interface (#1809)
-- Extensions (#1830, #1831, #1832, #1833, #1835, #1849)
 - Update TokenCache name (#1901)
