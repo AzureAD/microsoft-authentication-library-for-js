@@ -38,7 +38,7 @@ export type ClientConfiguration = {
 };
 
 /**
- * Use this to configure the auth options in the Configuration object
+ * Use this to configure the auth options in the ClientConfiguration object
  *
  * - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
  * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
