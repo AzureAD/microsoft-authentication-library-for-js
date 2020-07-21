@@ -427,11 +427,4 @@ export class BrowserStorage extends CacheManager {
             throw BrowserAuthError.createTokenRequestCacheError(err);
         }
     }
-
-    /**
-     * Gets the clientId
-     */
-    getClientId(): string {
-        return this.clientId;
-    }
 }
