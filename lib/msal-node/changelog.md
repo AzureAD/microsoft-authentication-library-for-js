@@ -1,3 +1,9 @@
+# 1.0.0-alpha.1
+
+- Add `response` to device code in `msal-node` (#1947)
+- `msal-node` docs update (#1948)
+- Export `AccountInfo` in `msal-node (#2005)
+
 # 1.0.0-alpha.0
 
 - scaffolding (#1328)
