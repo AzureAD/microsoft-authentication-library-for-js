@@ -250,13 +250,11 @@ export enum CacheType {
  */
 export const APP_META_DATA = "appmetadata";
 export const ClientInfo = "client_info";
-export const ServerTelemetry = "server-telemetry";
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
     FAILURE_LIMIT: 3,
-    CACHE_HITS_KEY: `${ServerTelemetry}-cacheHits`,
-    LAST_FAILED_REQUEST_KEY: `${ServerTelemetry}-failures`,
+    CACHE_KEY: "server-telemetry",
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
 };
