@@ -14,4 +14,4 @@ We are currently working with the B2C service team to allow for authorization co
 
 # Common Error Handling 
 
-1. If you try to use Auth Code flow and see this error: `access to XMLHttpRequest at 'https://login.microsoftonline.com/common/v2.0/oauth2/token' from origin 'yourApp.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.`, you will need to update your redirect URI to be tagged type 'spa' rather than type 'web'. You can do this in your app manifest or in the azure portal [comming soon]. 
+1. If you try to use Auth Code flow and see this error: `access to XMLHttpRequest at 'https://login.microsoftonline.com/common/v2.0/oauth2/token' from origin 'yourApp.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.`, you will need to update your redirect URI to be tagged type 'spa' rather than type 'web'. You can do this in your app manifest or [in the Azure Portal](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration). 
