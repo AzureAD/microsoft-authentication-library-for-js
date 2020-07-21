@@ -1,3 +1,17 @@
+# 2.0.0
+## Breaking Changes
+* None
+
+## Features and Fixes
+* Fix an issue where logout was not clearing all accounts (#1919)
+* Typescript sample for browser (#1920)
+* Add SilentRequest.ts object (#1964)
+* Fix an issue where popup window position value did not have a floor (#1981)
+* Fix an issue where getAccountByUsername was case-sensitive for the given username (#1982)
+* Fix an issue where `openid` and `profile` were being added to silent requests (#1962)
+* Fix an issue where the hash was not handled if `navigateToLoginRequestUrl`=`false` (#1973)
+* Fix an error that occurs when the request object is not provided to login and the redirectStartPage is expected (#1998)
+
 # 2.0.0-beta.4
 ## Breaking Changes
 * Updated all APIs to send `openid` and `profile` by default in all requests (#1868)
