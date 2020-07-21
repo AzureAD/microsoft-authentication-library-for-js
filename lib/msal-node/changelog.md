@@ -1,3 +1,6 @@
+# 1.0.0-alpha.2
+- Fix an issue where the `dist` folder was not published (#200)
+
 # 1.0.0-alpha.1
 
 - Add `response` to device code in `msal-node` (#1947)
