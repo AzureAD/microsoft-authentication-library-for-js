@@ -1,5 +1,5 @@
 # 1.0.0-alpha.3
-- Fix an issue where the types were not defined correctly in the package.json ()
+- Fix an issue where the types were not defined correctly in the package.json (#2014)
 
 # 1.0.0-alpha.2
 - Fix an issue where the `dist` folder was not published (#2013)
