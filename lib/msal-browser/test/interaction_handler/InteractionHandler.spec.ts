@@ -94,8 +94,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
 				authority: authorityInstance,
 			},
             systemOptions: {
-                tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
-                telemetry: configObj.system.telemetry
+                tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds
             },
             cryptoInterface: {
                 createNewGuid: (): string => {

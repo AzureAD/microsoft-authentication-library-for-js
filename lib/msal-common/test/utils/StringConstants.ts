@@ -245,6 +245,7 @@ export const DEVICE_CODE_EXPIRED_RESPONSE = {
     "expiresIn": 0,
     "interval": 5,
     "message": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
+    "client_info": `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
 };
 
 export const AUTHORIZATION_PENDING_RESPONSE = {

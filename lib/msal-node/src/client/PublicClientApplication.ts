@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeClient, DeviceCodeRequest } from '@azure/msal-common';
+import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult } from '@azure/msal-common';
 import { Configuration } from '../config/Configuration';
 import { ClientApplication } from './ClientApplication';
 
@@ -42,7 +42,7 @@ export class PublicClientApplication extends ClientApplication {
      * Since the client cannot receive incoming requests, it polls the authorization server repeatedly
      * until the end-user completes input of credentials.
      */
-    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<string> {
+    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByDeviceCode called");
         const deviceCodeConfig = await this.buildOauthClientConfiguration(
             request.authority
