@@ -10,6 +10,7 @@ import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
 import { CryptoUtils } from "./CryptoUtils";
 import { ClientConfigurationError } from "./../error/ClientConfigurationError";
+import { DEFAULT_AUTHORITY } from "../Utils/Constants"
 
 /**
  * @hidden
@@ -127,6 +128,17 @@ export class UrlUtils {
     static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
         return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
     }
+    
+     /**
+     * Checks if an authority is common (https://login.microsoftonline.com/common/)
+     * @param url The url
+     * @returns true if authority is common and false otherwise 
+     */
+     static isCommonAuthority(url: string): boolean {
+        const authority =  this.CanonicalizeUri(url);
+        return (authority === DEFAULT_AUTHORITY);
+     }
+
 
     /**
      * Parses out the components from a url string.

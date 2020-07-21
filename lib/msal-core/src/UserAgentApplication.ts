@@ -1384,8 +1384,8 @@ export class UserAgentApplication {
 
         const filteredItems: Array<AccessTokenCacheItem> = [];
 
-        // if no authority passed
-        if (!serverAuthenticationRequest.authority) {
+        // if no authority passed or authority is common
+        if (!serverAuthenticationRequest.authority || UrlUtils.isCommonAuthority(serverAuthenticationRequest.authority)) {
             this.logger.verbose("No authority passed, filtering tokens by scope");
             // filter by scope
             for (let i = 0; i < tokenCacheItems.length; i++) {
