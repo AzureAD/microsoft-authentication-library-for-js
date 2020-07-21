@@ -1,5 +1,5 @@
 # 1.0.0-alpha.2
-- Fix an issue where the `dist` folder was not published (#200)
+- Fix an issue where the `dist` folder was not published (#2013)
 
 # 1.0.0-alpha.1
 
