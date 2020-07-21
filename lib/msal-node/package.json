@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -36,7 +36,8 @@
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "tsdx lint",
-    "lint:fix": "tsdx lint --fix"
+    "lint:fix": "tsdx lint --fix",
+    "prepack": "npm run build"
   },
   "peerDependencies": {},
   "prettier": {
