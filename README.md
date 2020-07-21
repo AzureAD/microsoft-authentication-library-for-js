@@ -29,7 +29,7 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 
 | Date | Release | Announcement | Main features |
 | ------| ------- | ---------| --------- |
-| July 20, 2020 | @azure/msal-common v2.0.0 | Full release version of the `@azure/msal-common` |
+| July 20, 2020 | @azure/msal-common v2.0.0 | [Release Notes](https://github.com/AzureAD/microsoft-authentication-library-for-js/releases/tag/msal-common-v1.0.0) | Full release version of the `@azure/msal-common` |
 | May 11, 2020 | @azure/msal-common v2.0.0-beta | Beta version of the `@azure/msal-common` package |
 | January 17, 2020 | @azure/msal-common v1.0.0-alpha | No release notes yet | Alpha version of the `@azure/msal-common` package with authorization code flow for SPAs working in dev. |
 
