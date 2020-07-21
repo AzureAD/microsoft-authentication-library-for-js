@@ -216,7 +216,7 @@ You should protect your site for XSS. Please check the article here: [https://ww
 
 ### CORS API usage
 
-MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.
+MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the angularConfig.
 
 ```js
 export const protectedResourceMap:[string, string[]][]= [
@@ -229,10 +229,9 @@ export const protectedResourceMap:[string, string[]][]= [
         MsalModule.forRoot({
             auth: {
                 clientId: 'Your client ID',
-            },
-            framework: {
-                protectedResourceMap : protectedResourceMap
             }
+        }, {
+            protectedResourceMap : protectedResourceMap
         })
     ]
 })
