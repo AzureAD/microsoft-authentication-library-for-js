@@ -70,7 +70,7 @@ export class RedirectHandler extends InteractionHandler {
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, telemetryManager, cachedNonce, requestState);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }
