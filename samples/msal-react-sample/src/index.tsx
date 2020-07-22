@@ -12,7 +12,7 @@ import { Configuration } from "@azure/msal-browser";
 const configuration: Configuration = {
     auth: {
         clientId: "05675e30-ff45-4c75-addb-8461cfcf99d2",
-        authority: "https://login.microsoftonline.com/common/"
+        authority: "https://login.microsoftonline.com/common/",
     }
 }
 

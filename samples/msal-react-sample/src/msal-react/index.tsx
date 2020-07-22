@@ -1,82 +1,87 @@
-import React, { useContext, useEffect, useState } from "react";
-import PropTypes from 'prop-types';
+import React, { useContext, useEffect, useState, useMemo, useCallback } from "react";
 
-import { PublicClientApplication, Configuration, AuthenticationParameters, TokenResponse, TokenRenewParameters, Account } from "@azure/msal-browser";
+import { PublicClientApplication, Configuration, AuthenticationParameters, TokenResponse, Account } from "@azure/msal-browser";
+import { MsalContext, IMsalProviderContext } from "./MsalContext";
 
-export const MsalContext = React.createContext<IPublicClientApplication & IProviderState | null>(null);
+// TODO: How do we get the token before executing an API call in pure TypeScript, outside of a React component context?
+// TODO: How do we handle multiple accounts?
+// TODO: How do we raise the `isAuthenticated` and `error` state into the MsalContext, where changes will allow all subscribed components to update?
+// TODO: How do we represent the current state of the authentication process (Authenticated, InProgress, IsError, Unauthenticated)?
+//      This will be important for showing intermediary UI such as loading or error components
 
-export const IPublicClientApplicationPropType = PropTypes.shape({
-    acquireTokenPopup: PropTypes.func.isRequired,
-    acquireTokenRedirect: PropTypes.func.isRequired,
-    acquireTokenSilent: PropTypes.func.isRequired,
-    getAccount: PropTypes.func.isRequired,
-    handleRedirectPromise: PropTypes.func.isRequired,
-    loginPopup: PropTypes.func.isRequired,
-    loginRedirect: PropTypes.func.isRequired,
-    logout: PropTypes.func.isRequired,
-    ssoSilent: PropTypes.func.isRequired
-});
+// Just a friendlier public alias for the context object
+export interface IMsalProps extends IMsalProviderContext {};
 
-// TODO: Move this to msal-browser
-export interface IPublicClientApplication {
-    acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse>;
-    acquireTokenRedirect(request: AuthenticationParameters): void;
-    acquireTokenSilent(silentRequest: TokenRenewParameters): Promise<TokenResponse>;
-    getAccount(): Account;
-    handleRedirectPromise(): Promise<TokenResponse | null>;
-    loginPopup(request: AuthenticationParameters): Promise<TokenResponse>;
-    loginRedirect(request: AuthenticationParameters): void;
-    logout(): void;
-    ssoSilent(request: AuthenticationParameters): Promise<TokenResponse>;
+export enum AuthenticationMethod {
+    REDIRECT,
+    POPUP
 }
 
-export function useHandleRedirect(): [ TokenResponse | null ] {
-    const context = useContext(MsalContext);
+export function useMsal() {
+    return useContext(MsalContext);
+};
+
+export function useHandleRedirect(): TokenResponse | null {
+    const msal = useMsal();
     const [ redirectResponse, setRedirectResponse ] = useState<TokenResponse | null>(null);
 
     useEffect(() => {
-        context?.handleRedirectPromise()
+        msal.handleRedirectPromise()
             .then(response => setRedirectResponse(response));
             // TODO: error handling
-    }, []);
+    }, [msal]);
 
-    return [ redirectResponse ];
+    return redirectResponse;
 }
 
-export const withMsal = () => (C:React.ComponentType) => (props:any) => {
-    return (
-        <MsalConsumer>
-            {msal => (
-                <C
-                    {...props}
-                    msal={msal}
-                />
-            )}
-        </MsalConsumer>
-    )
+// References for HOC pattern:
+//  https://react-typescript-cheatsheet.netlify.app/docs/hoc/intro
+//  https://www.pluralsight.com/guides/higher-order-composition-typescript-react
+export const withMsal = <P extends IMsalProps = IMsalProps>(Component: React.ComponentType<P>) => {
+    const ComponentWithMsal: React.FunctionComponent<P> = (props) => {
+        const msal = useMsal();
+        return <Component {...props} {...msal} />;
+    };
+
+    const componentName = Component.displayName || Component.name || "Component";
+    ComponentWithMsal.displayName = `withMsal(${componentName})`;
+
+    return ComponentWithMsal;
+};
+
+type MsalAuthenticationHook = {
+    isAuthenticated: boolean,
+    error: Error | null,
+    msal: IMsalProps
 }
 
-export function useIsAuthenticated(request: AuthenticationParameters = {}, forceLogin: boolean = false, usePopup: boolean = true): [ boolean, Error | null ] {
-    const context = useContext(MsalContext);
-    const authenticated = !!context?.getAccount();
+// TODO: Should `forceLogin` and `authenticationMethod` be contained in an object so we can add to the parameters without breaking changes to the API?
+export function useMsalAuthentication(request: AuthenticationParameters = {}, forceLogin: boolean = false, authenticationMethod: AuthenticationMethod = AuthenticationMethod.POPUP): MsalAuthenticationHook {
+    const msal = useMsal();
+    const isAuthenticated = !!msal.account;
 
+    // TODO: This state will only exist in this hook, may be safer to move the error state into the MsalContext
     const [ error, setError ] = useState<Error | null>(null);
 
-    async function loginInteractively(): Promise<void> {
-        if (usePopup) {
-            context?.loginPopup(request)
-            .catch((error) => {
-                setError(error);
-            });
-        } else {
-            context?.loginRedirect(request);
-        }
-        
-    }
+    // TODO: This is error prone because it asynchronously sets state, but the component may be unmounted before the process completes
+    //  May be better to move this into the the MsalContext
+    const loginInteractively = useCallback(
+        async (method: AuthenticationMethod): Promise<void> => {
+            if (method === AuthenticationMethod.POPUP) {
+                msal.loginPopup(request)
+                .catch((error) => {
+                    setError(error);
+                });
+            } else {
+                msal.loginRedirect(request);
+            }
+            
+        }    
+    , [msal, request]);
 
     useEffect(() => {
-        if (authenticated) {
-            const account = context?.getAccount();
+        if (isAuthenticated) {
+            const account = msal.account;
             // TODO: Figure out why ssoSilent fails with "iframe_closed_prematurely" error
 
             // context?.ssoSilent({loginHint: account!.userName})
@@ -89,113 +94,112 @@ export function useIsAuthenticated(request: AuthenticationParameters = {}, force
             //             setError(error);
             //         }
             //     });
+        // TODO: What if there is an error? How do errors get cleared?
+        // TODO: What if user cancels the flow?
         } else if (forceLogin) {
-            loginInteractively();
+            loginInteractively(authenticationMethod);
         } 
-    }, []);
+    }, [isAuthenticated, error, loginInteractively]);
 
-    return [ authenticated, error ];
+    return useMemo(() => ({
+        isAuthenticated,
+        error,
+        msal
+    }), [isAuthenticated, error, msal]);
 }
 
-type AuthenticatedComponentPropType = {
-    children?: React.ReactNode,
-    onError?: (error: any) => React.ReactNode,
-    unauthenticatedComponent?: React.ReactNode,
-    forceLogin?: boolean,
-    authenticationParameters?: AuthenticationParameters,
-    usePopup?: boolean
-}
-
-export function AuthenticatedComponent(props: AuthenticatedComponentPropType) {
-    const [ isAuthenticated, error ] = useIsAuthenticated(props.authenticationParameters, props.forceLogin, props.usePopup);
-
-    return (
-        <>
-            {isAuthenticated && props.children}
-            {error && props.onError && props.onError(error)}
-            <UnauthenticatedComponent>
-                {props.unauthenticatedComponent}
-            </UnauthenticatedComponent>
-        </>
-    )
-}
-
-export function UnauthenticatedComponent(props: any) {
-    return (
-        <MsalConsumer>
-            {msal => !msal?.getAccount() && props.children}
-        </MsalConsumer>
-    );
-}
-
-export const MsalConsumer = MsalContext.Consumer;
-
-interface IProviderProps {
+export type MsalProviderProps = {
     configuration: Configuration
 };
 
-interface IProviderState {
-    account: Account
-};
-
 // TODO: Mitigation for double render with React.StrictMode
-export class MsalProvider extends React.Component<IProviderProps, IProviderState> {
-    private instance: PublicClientApplication;
-    private wrappedInstance: IPublicClientApplication;
+export const MsalProvider: React.FunctionComponent<MsalProviderProps> = (props) => {
+    const { configuration, children } = props;
 
-    constructor(props: any) {
-        super(props);
+    const msal = useMemo(() => new PublicClientApplication(configuration), [configuration]);
+    const [account, setAccount] = useState<Account | null>(msal.getAccount());
 
-        this.instance = new PublicClientApplication(props.configuration);
+    
+    const reactMsal = useMemo(() => ({
+        acquireTokenPopup: msal.acquireTokenPopup,
+        acquireTokenRedirect: msal.acquireTokenRedirect,
+        acquireTokenSilent: msal.acquireTokenSilent,
+        getAccount: msal.getAccount,
+        // TODO: How do consumers override this behavior, or add their own callbacks?
+        handleRedirectPromise: async (): Promise<TokenResponse | null> => {
+            const response = await msal.handleRedirectPromise();
+            const account = msal.getAccount();
+            setAccount(account)
+            return response;
+        },
+        loginPopup: async (request: AuthenticationParameters): Promise<TokenResponse> => {
+            const response = await msal.loginPopup(request);
+            const account = msal.getAccount();
+            setAccount(account);
+            return response;
+        },
+        loginRedirect: msal.loginRedirect,
+        logout: async (): Promise<void> => {
+            await msal.logout();
+            const account = msal.getAccount();
+            setAccount(account);
+        },
+        ssoSilent: async (request: AuthenticationParameters): Promise<TokenResponse> =>{
+            const response = await msal.ssoSilent(request);
+            const account = msal.getAccount();
+            setAccount(account);
+            return response;
+        },
+    }), [msal]);
 
-        this.wrappedInstance = {
-            acquireTokenPopup: this.instance.acquireTokenPopup.bind(this.instance),
-            acquireTokenRedirect: this.instance.acquireTokenRedirect.bind(this.instance),
-            acquireTokenSilent: this.instance.acquireTokenSilent.bind(this.instance),
-            getAccount: this.instance.getAccount.bind(this.instance),
-            handleRedirectPromise: async (): Promise<TokenResponse | null> => {
-                const response = await this.instance.handleRedirectPromise.call(this.instance);
-                const account = this.instance.getAccount.call(this.instance);
-                this.setState({
-                    account
-                });
-                return response;
-            },
-            loginPopup: async (request: AuthenticationParameters): Promise<TokenResponse> => {
-                const response = await this.instance.loginPopup.call(this.instance, request);
-                const account = this.instance.getAccount.call(this.instance);
-                this.setState({
-                    account
-                });
-                return response;
-            },
-            loginRedirect: this.instance.loginRedirect.bind(this.instance),
-            logout: this.instance.logout.bind(this.instance),
-            ssoSilent: async (request: AuthenticationParameters): Promise<TokenResponse> =>{
-                const response = await this.instance.ssoSilent.call(this.instance, request);
-                const account = this.instance.getAccount.call(this.instance);
-                this.setState({
-                    account
-                });
-                return response;
-            },
-        }
+    const contextValue = useMemo(() => ({
+        ...reactMsal,
+        account
+    }), [reactMsal, account]);
 
-        this.state = {
-            account: this.instance.getAccount.call(this.instance)
-        };
+    return (
+        <MsalContext.Provider value={contextValue}>
+            {children}
+        </MsalContext.Provider>
+    );
+}
+
+export type MsalAuthenticationProps = {
+    authenticationParameters?: AuthenticationParameters,
+    authenticationMethod?: AuthenticationMethod
+    forceLogin?: boolean,
+}
+
+export const MsalAuthentication: React.FunctionComponent<MsalAuthenticationProps> = (props) => {
+    const { authenticationMethod, authenticationParameters, forceLogin, children } = props;
+    const { msal } = useMsalAuthentication(authenticationParameters, forceLogin, authenticationMethod);
+
+    return <React.Fragment>{getChildrenOrFunction(children, msal)}</React.Fragment>;
+}
+
+export const UnauthenticatedTemplate: React.FunctionComponent = ({ children }) => {
+    const msal = useMsal()
+
+    if (!msal.account) {
+        return <React.Fragment>{getChildrenOrFunction(children, msal)}</React.Fragment>;
     }
+    return null;
+}
 
+export const AuthenticatedTemplate: React.FunctionComponent = ({ children }) => {
+    const msal = useMsal()
 
-    render() {
-
-        return (
-            <MsalContext.Provider value={{
-                ...this.wrappedInstance,
-                ...this.state
-            }}>
-                {this.props.children}
-            </MsalContext.Provider>
-        );
+    if (msal.account) {
+        return <React.Fragment>{getChildrenOrFunction(children, msal)}</React.Fragment>;
     }
+    return null;
+}
+
+type FaaCFunction = (props: IMsalProps) => React.ReactNode;
+
+function getChildrenOrFunction(children: React.ReactNode | FaaCFunction, props: IMsalProps): React.ReactNode {
+    if (typeof children === 'function') {
+        return children(props);
+    }
+    return children;
 }

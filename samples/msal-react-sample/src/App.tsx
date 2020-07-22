@@ -2,15 +2,16 @@ import React from 'react';
 import './App.css';
 
 import {
-    AuthenticatedComponent,
-    MsalConsumer
+    useMsal,
+    AuthenticatedTemplate,
+    UnauthenticatedTemplate
 } from './msal-react';
 
 import {
     Switch,
     Route,
     Link
-  } from "react-router-dom";
+} from "react-router-dom";
 import { HomePage } from './pages/Home';
 import { GetAccessTokenPage } from './pages/AccessToken';
 import { RedirectPage } from './pages/Redirect';
@@ -18,9 +19,34 @@ import { ProtectedRoutePage } from './pages/ProtectedRoute';
 import { UnauthenticatedComponentPage } from './pages/UnauthenticatedComponent';
 import { HigherOrderComponentPage } from "./pages/HigherOrderComponent";
 
-function App() {
-  return (
+// TODO: Should have a demo page that calls the Graph API
+
+const App: React.FunctionComponent = () => (
     <div className="App">
+        <Header />
+        <Switch>
+            <Route path="/higher-order-component" component={HigherOrderComponentPage} />
+            <Route path="/protected-route" component={ProtectedRoutePage} />
+            <Route path="/redirect" component={RedirectPage} />
+            <Route path="/unauthenticated-component" component={UnauthenticatedComponentPage} />
+            <Route path="/get-access-token" component={GetAccessTokenPage} />
+            <Route path="/" component={HomePage} />
+        </Switch>
+    </div>
+);
+
+const Header: React.FunctionComponent = () => {
+    const msal = useMsal();
+
+    const onLoginClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        msal.loginPopup({
+            scopes: [
+                "user.read"
+            ]
+        });
+    }
+
+    return (
         <header>
             <h1>MSAL React Sample App</h1>
             <nav>
@@ -33,60 +59,16 @@ function App() {
                     <li><Link to="/get-access-token">Get Access Token</Link></li>
                 </ul>
                 <div className="nav-buttons">
-                    <MsalConsumer>
-                        {msal => (
-                            <AuthenticatedComponent
-                                unauthenticatedComponent={(
-                                    <button
-                                        onClick={e => {
-                                            e.preventDefault();
-                                            msal?.loginPopup({
-                                                scopes: [
-                                                    "user.read"
-                                                ]
-                                            });
-                                        }}
-                                    >
-                                        Login
-                                    </button>
-                                )}
-                            >
-                                <button
-                                    onClick={e => {
-                                        e.preventDefault();
-                                        msal?.logout();
-                                    }}
-                                >
-                                    Logout
-                                </button>
-                            </AuthenticatedComponent>
-                        )}
-                    </MsalConsumer>
+                    <AuthenticatedTemplate>
+                        <button onClick={msal.logout}>Logout</button>
+                    </AuthenticatedTemplate>
+                    <UnauthenticatedTemplate>
+                        <button onClick={onLoginClick}>Login</button>
+                    </UnauthenticatedTemplate>
                 </div>
             </nav>
         </header>
-        <Switch>
-            <Route path="/higher-order-component">
-                <HigherOrderComponentPage />
-            </Route>
-            <Route path="/protected-route">
-                <ProtectedRoutePage />
-            </Route>
-            <Route path="/redirect">
-                <RedirectPage />
-            </Route>
-            <Route path="/unauthenticated-component">
-                <UnauthenticatedComponentPage />
-            </Route>
-            <Route path="/get-access-token">
-                <GetAccessTokenPage />
-            </Route>
-            <Route path="/">
-                <HomePage />
-            </Route>
-        </Switch>
-    </div>
-  );
-}
+    );
+} 
 
 export default App;

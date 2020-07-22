@@ -1,26 +1,21 @@
 import React from 'react';
-import { MsalConsumer, AuthenticatedComponent } from "../msal-react";
+import { MsalAuthentication, AuthenticatedTemplate, UnauthenticatedTemplate, IMsalProps } from "../msal-react";
 
-export function ProtectedRoutePage() {
-    return (
-        <AuthenticatedComponent
-            onError={error => (
-                <p>{error.errorMessage}</p>
-            )}
-            forceLogin={true}
-            unauthenticatedComponent={
+export const ProtectedRoutePage: React.FunctionComponent = () => (
+    <MsalAuthentication forceLogin={true}>
+        <h2>Protected Route</h2>
+        <React.Fragment>
+            <UnauthenticatedTemplate>
                 <p>Please login before viewing this page.</p>
-            }
-        >
-            <MsalConsumer>
-                {msal => (
-                    <div>
-                        <h2>Protected Route</h2>
+            </UnauthenticatedTemplate>
+            <AuthenticatedTemplate>
+                {({ account }: IMsalProps) => (
+                    <React.Fragment>
                         <p>This page demonstrates a protected route, automatically triggering a login if user has not been authenticated</p>
-                        <h3>{msal?.getAccount() && ("Welcome, " + msal?.getAccount().name)}</h3>
-                    </div>                                           
+                        {account?.name && <h3>Welcome, {account.name}</h3>}
+                    </React.Fragment>
                 )}
-            </MsalConsumer>
-        </AuthenticatedComponent>
-    )
-}
+            </AuthenticatedTemplate>
+        </React.Fragment>
+    </MsalAuthentication>
+);
