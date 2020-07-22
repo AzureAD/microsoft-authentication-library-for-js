@@ -114,7 +114,7 @@ export class ScopeSet {
         }
 
         // Check that scopes is not an empty array
-        if (scopes.length < 1) {
+        if (scopes.length < 1 && scopesRequired) {
             throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
         }
 
