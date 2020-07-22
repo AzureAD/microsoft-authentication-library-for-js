@@ -7,7 +7,7 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryCacheValue } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -554,10 +554,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 } catch (e) {
                     // Test that error was cached for telemetry purposes and then thrown
                     expect(window.sessionStorage).to.be.length(1);
-                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
-                    const failureObj = JSON.parse(failures);
-                    expect(failureObj.requests).to.be.length(2);
-                    expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenRedirect);
+                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry`)
+                    const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                    expect(failureObj.failedRequests).to.be.length(2);
+                    expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenRedirect);
                     expect(failureObj.errors[0]).to.eq(testError.errorCode);
                     expect(e).to.be.eq(testError);
                 }
@@ -759,10 +759,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 } catch (e) {
                     // Test that error was cached for telemetry purposes and then thrown
                     expect(window.sessionStorage).to.be.length(1);
-                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
-                    const failureObj = JSON.parse(failures);
-                    expect(failureObj.requests).to.be.length(2);
-                    expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenRedirect);
+                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry`)
+                    const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                    expect(failureObj.failedRequests).to.be.length(2);
+                    expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenRedirect);
                     expect(failureObj.errors[0]).to.eq(testError.errorCode);
                     expect(e).to.be.eq(testError);
                 }
@@ -946,10 +946,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 } catch (e) {
                     // Test that error was cached for telemetry purposes and then thrown
                     expect(window.sessionStorage).to.be.length(1);
-                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
-                    const failureObj = JSON.parse(failures);
-                    expect(failureObj.requests).to.be.length(2);
-                    expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenPopup);
+                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry`)
+                    const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                    expect(failureObj.failedRequests).to.be.length(2);
+                    expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenPopup);
                     expect(failureObj.errors[0]).to.eq(testError.errorCode);
                     expect(e).to.be.eq(testError);
                 }
@@ -1046,10 +1046,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 } catch (e) {
                     // Test that error was cached for telemetry purposes and then thrown
                     expect(window.sessionStorage).to.be.length(1);
-                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
-                    const failureObj = JSON.parse(failures);
-                    expect(failureObj.requests).to.be.length(2);
-                    expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenPopup);
+                    const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry`)
+                    const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                    expect(failureObj.failedRequests).to.be.length(2);
+                    expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenPopup);
                     expect(failureObj.errors[0]).to.eq(testError.errorCode);
                     expect(e).to.be.eq(testError);
                 }
@@ -1216,10 +1216,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).to.be.length(1);
-                const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry-failures`)
-                const failureObj = JSON.parse(failures);
-                expect(failureObj.requests).to.be.length(2);
-                expect(failureObj.requests[0]).to.eq(ApiId.acquireTokenSilent_silentFlow);
+                const failures = window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.server-telemetry`)
+                const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                expect(failureObj.failedRequests).to.be.length(2);
+                expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenSilent_silentFlow);
                 expect(failureObj.errors[0]).to.eq(testError.errorCode);
                 expect(e).to.be.eq(testError);
             }

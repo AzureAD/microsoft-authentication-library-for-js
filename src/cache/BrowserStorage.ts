@@ -109,24 +109,23 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string | object, type: string): void {
-        const cacheKey = this.generateCacheKey(key);
         // save the cacheItem
         switch (type) {
             case CacheSchemaType.ACCOUNT:
             case CacheSchemaType.CREDENTIAL:
             case CacheSchemaType.APP_META_DATA:
-                this.windowStorage.setItem(cacheKey, JSON.stringify(value));
+                this.windowStorage.setItem(key, JSON.stringify(value));
                 break;
             case CacheSchemaType.TEMPORARY: {
                 const stringVal = value as string;
-                this.windowStorage.setItem(cacheKey, stringVal);
+                this.windowStorage.setItem(key, stringVal);
                 if (this.cacheConfig.storeAuthStateInCookie) {
-                    this.setItemCookie(cacheKey, stringVal);
+                    this.setItemCookie(key, stringVal);
                 }
                 break;
             }
             case CacheSchemaType.TELEMETRY: {
-                this.windowStorage.setItem(cacheKey, JSON.stringify(value));
+                this.windowStorage.setItem(key, JSON.stringify(value));
                 break;
             }
             default: {
@@ -141,8 +140,7 @@ export class BrowserStorage extends CacheManager {
      * @param key
      */
     getItem(key: string, type: string): string | object {
-        const cacheKey = this.generateCacheKey(key);
-        const value = this.windowStorage.getItem(cacheKey);
+        const value = this.windowStorage.getItem(key);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
@@ -152,7 +150,7 @@ export class BrowserStorage extends CacheManager {
                 return (CacheManager.toObject(account, JSON.parse(value)) as AccountEntity);
             }
             case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CredentialEntity.getCredentialType(cacheKey);
+                const credentialType = CredentialEntity.getCredentialType(key);
                 switch (credentialType) {
                     case CredentialType.ID_TOKEN: {
                         const idTokenEntity: IdTokenEntity = new IdTokenEntity();
@@ -172,7 +170,7 @@ export class BrowserStorage extends CacheManager {
                 return (JSON.parse(value) as AppMetadataEntity);
             }
             case CacheSchemaType.TEMPORARY: {
-                const itemCookie = this.getItemCookie(cacheKey);
+                const itemCookie = this.getItemCookie(key);
                 if (this.cacheConfig.storeAuthStateInCookie) {
                     return itemCookie;
                 }
@@ -193,10 +191,9 @@ export class BrowserStorage extends CacheManager {
      * @param key
      */
     removeItem(key: string): boolean {
-        const cacheKey = this.generateCacheKey(key);
-        this.windowStorage.removeItem(cacheKey);
+        this.windowStorage.removeItem(key);
         if (this.cacheConfig.storeAuthStateInCookie) {
-            this.clearItemCookie(cacheKey);
+            this.clearItemCookie(key);
         }
         return true;
     }
@@ -206,8 +203,7 @@ export class BrowserStorage extends CacheManager {
      * @param key
      */
     containsKey(key: string): boolean {
-        const cacheKey = this.generateCacheKey(key);
-        return this.windowStorage.hasOwnProperty(cacheKey);
+        return this.windowStorage.hasOwnProperty(key);
     }
 
     /**
