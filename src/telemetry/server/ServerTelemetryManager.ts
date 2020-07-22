@@ -3,22 +3,26 @@
  * Licensed under the MIT License.
  */
 
-import { SERVER_TELEM_CONSTANTS, HeaderNames, CacheSchemaType } from "../../utils/Constants";
+import { SERVER_TELEM_CONSTANTS, CacheSchemaType, Separators } from "../../utils/Constants";
 import { CacheManager } from "../../cache/CacheManager";
 import { ServerTelemetryCacheValue } from "./ServerTelemetryCacheValue";
 import { AuthError } from "../../error/AuthError";
+import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
 
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
     private apiId: number;
     private correlationId: string;
     private forceRefresh: boolean;
+    private telemetryCacheKey: string;
 
-    constructor(cacheManager: CacheManager, apiId: number, correlationId: string, forceRefresh?: boolean) {
+    constructor(telemetryRequest: ServerTelemetryRequest, cacheManager: CacheManager) {
         this.cacheManager = cacheManager;
-        this.apiId = apiId;
-        this.correlationId = correlationId;
-        this.forceRefresh = forceRefresh || false;
+        this.apiId = telemetryRequest.apiId;
+        this.correlationId = telemetryRequest.correlationId;
+        this.forceRefresh = telemetryRequest.forceRefresh || false;
+
+        this.telemetryCacheKey = SERVER_TELEM_CONSTANTS.CACHE_KEY + Separators.CACHE_KEY_SEPARATOR + telemetryRequest.clientId;
     }
 
     // API to add MSER Telemetry to request
@@ -55,35 +59,32 @@ export class ServerTelemetryManager {
             lastRequests.errors.shift();
         }
 
-        this.cacheManager.setItem(SERVER_TELEM_CONSTANTS.CACHE_KEY, lastRequests, CacheSchemaType.TELEMETRY);
+        this.cacheManager.setItem(this.telemetryCacheKey, lastRequests, CacheSchemaType.TELEMETRY);
 
         return;
-    }
-
-    addTelemetryHeaders(headers: Map<string, string>): Map<string, string> {
-        headers.set(HeaderNames.X_CLIENT_CURR_TELEM, this.generateCurrentRequestHeaderValue());
-        headers.set(HeaderNames.X_CLIENT_LAST_TELEM, this.generateLastRequestHeaderValue());
-
-        return headers;
     }
 
     incrementCacheHits(): number {
         const lastRequests = this.getLastRequests();
         lastRequests.cacheHits += 1;
 
-        this.cacheManager.setItem(SERVER_TELEM_CONSTANTS.CACHE_KEY, lastRequests, CacheSchemaType.TELEMETRY);
+        this.cacheManager.setItem(this.telemetryCacheKey, lastRequests, CacheSchemaType.TELEMETRY);
         return lastRequests.cacheHits;
     }
 
     getLastRequests(): ServerTelemetryCacheValue { 
-        const initialValue: ServerTelemetryCacheValue = { 
+        const initialValue: ServerTelemetryCacheValue = {
             failedRequests: [],
             errors: [],
             errorCount: 0,
             cacheHits: 0            
         };
-        const lastRequests = this.cacheManager.getItem(SERVER_TELEM_CONSTANTS.CACHE_KEY, CacheSchemaType.TELEMETRY) as ServerTelemetryCacheValue;
+        const lastRequests = this.cacheManager.getItem(this.telemetryCacheKey, CacheSchemaType.TELEMETRY) as ServerTelemetryCacheValue;
         
         return lastRequests || initialValue;
+    }
+
+    clearTelemetryCache(): void {
+        this.cacheManager.removeItem(this.telemetryCacheKey);
     }
 }

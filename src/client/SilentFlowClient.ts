@@ -22,7 +22,6 @@ import { AccountEntity } from "../cache/entities/AccountEntity";
 import { CredentialEntity } from "../cache/entities/CredentialEntity";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
-import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -35,7 +34,7 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    public async acquireToken(request: SilentFlowRequest, telemetryManager?: ServerTelemetryManager): Promise<AuthenticationResult> {
+    public async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -72,11 +71,11 @@ export class SilentFlowClient extends BaseClient {
                 refreshToken: cachedRefreshToken.secret
             };
 
-            return refreshTokenClient.acquireToken(refreshTokenRequest, telemetryManager);
+            return refreshTokenClient.acquireToken(refreshTokenRequest);
         }
 
         // Return tokens from cache
-        telemetryManager.incrementCacheHits();
+        this.config.serverTelemetryManager.incrementCacheHits();
         const cachedIdToken = this.readIdTokenFromCache(homeAccountId, environment, cachedAccount.realm);
         const idTokenObj = new IdToken(cachedIdToken.secret, this.config.cryptoInterface);
 
