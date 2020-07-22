@@ -57,3 +57,4 @@ export { TimeUtils } from "./utils/TimeUtils";
 // Telemetry
 export { ServerTelemetryCacheValue } from "./telemetry/server/ServerTelemetryCacheValue";
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
+export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";

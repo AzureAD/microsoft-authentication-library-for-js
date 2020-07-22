@@ -1,8 +1,9 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
-import { ServerTelemetryManager, CacheManager, AuthError } from "../../src";
+import { ServerTelemetryManager, CacheManager, AuthError, ServerTelemetryRequest } from "../../src";
 import { ServerTelemetryCacheValue } from "../../src/telemetry/server/ServerTelemetryCacheValue";
+import { TEST_CONFIG } from "../utils/StringConstants";
 
 let store = {};
 class TestCacheManager extends CacheManager {
@@ -42,9 +43,13 @@ const testCacheManager = new TestCacheManager();
 const testApiCode = 9999999;
 const testError = "interaction_required";
 const testCorrelationId = "this-is-a-test-correlationId";
-const currentTelemetryHeader = "x-client-current-telemetry";
-const lastTelemetryHeader = "x-client-last-telemetry";
-const cacheKey = "server-telemetry";
+const cacheKey = `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`;
+
+const testTelemetryPayload: ServerTelemetryRequest = {
+    apiId: testApiCode,
+    correlationId: testCorrelationId,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+}
 
 describe("ServerTelemetryManager.ts", () => {
     afterEach(() => {
@@ -53,7 +58,7 @@ describe("ServerTelemetryManager.ts", () => {
 
     describe("cacheFailedRequest", () => {
         it("Caches error", () => {
-            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
 
             const failures: ServerTelemetryCacheValue = {
@@ -68,7 +73,7 @@ describe("ServerTelemetryManager.ts", () => {
         });
 
         it("Adds error if a previous error already exists in cache", () => {
-            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
 
@@ -85,10 +90,15 @@ describe("ServerTelemetryManager.ts", () => {
 
         it("Removes oldest error from cache when limit has been reached", () => {
             // Error 1
-            let telemetryManager = new ServerTelemetryManager(testCacheManager, 11111111, "this-will-be-removed");
+            const firstPayload: ServerTelemetryRequest = {
+                apiId: 11111111,
+                correlationId: "this-will-be-removed",
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            }
+            let telemetryManager = new ServerTelemetryManager(firstPayload, testCacheManager);
             telemetryManager.cacheFailedRequest(new AuthError("thisErrorWillBeRemoved", "thisErrorWillBeRemoved"));
             let failures: ServerTelemetryCacheValue = {
-                failedRequests: [11111111, "this-will-be-removed"],
+                failedRequests: [firstPayload.apiId, firstPayload.correlationId],
                 errors: ["thisErrorWillBeRemoved"],
                 errorCount: 1,
                 cacheHits: 0
@@ -97,10 +107,10 @@ describe("ServerTelemetryManager.ts", () => {
             expect(cacheValue).to.deep.eq(failures);
 
             // Error 2
-            telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
             failures = {
-                failedRequests: [11111111, "this-will-be-removed", testApiCode, testCorrelationId],
+                failedRequests: [firstPayload.apiId, firstPayload.correlationId, testApiCode, testCorrelationId],
                 errors: ["thisErrorWillBeRemoved", testError],
                 errorCount: 2,
                 cacheHits: 0
@@ -109,10 +119,10 @@ describe("ServerTelemetryManager.ts", () => {
             expect(cacheValue).to.deep.eq(failures);
 
             // Error 3
-            telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
             failures = {
-                failedRequests: [11111111, "this-will-be-removed", testApiCode, testCorrelationId, testApiCode, testCorrelationId],
+                failedRequests: [firstPayload.apiId, firstPayload.correlationId, testApiCode, testCorrelationId, testApiCode, testCorrelationId],
                 errors: ["thisErrorWillBeRemoved", testError, testError],
                 errorCount: 3,
                 cacheHits: 0
@@ -121,7 +131,7 @@ describe("ServerTelemetryManager.ts", () => {
             expect(cacheValue).to.deep.eq(failures);
 
             // Error 4 - Removes the first error
-            telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+            telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
             failures = {
                 failedRequests: [testApiCode, testCorrelationId, testApiCode, testCorrelationId, testApiCode, testCorrelationId],
@@ -135,27 +145,18 @@ describe("ServerTelemetryManager.ts", () => {
         
     });
 
-    describe("addTelemetryHeaders", () => {
+    describe("generate header values", () => {
         it("Adds telemetry headers with current request", () => {
-            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
-            let headers: Map<string, string> = new Map();
-
-            headers = telemetryManager.addTelemetryHeaders(headers);
-            expect(headers.has(currentTelemetryHeader)).to.be.true;
-            expect(headers.has(lastTelemetryHeader)).to.be.true;
-            expect(headers.get(currentTelemetryHeader)).to.eq(`2|${testApiCode},0|`);
-            expect(headers.get(lastTelemetryHeader)).to.eq(`2|0|||0`);
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
+            const currHeaderVal = telemetryManager.generateCurrentRequestHeaderValue();
+            expect(currHeaderVal).to.eq(`2|${testApiCode},0|`);
         });
 
         it("Adds telemetry headers with current request with forceRefresh true", () => {
-            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId, true);
-            let headers: Map<string, string> = new Map();
-
-            headers = telemetryManager.addTelemetryHeaders(headers);
-            expect(headers.has(currentTelemetryHeader)).to.be.true;
-            expect(headers.has(lastTelemetryHeader)).to.be.true;
-            expect(headers.get(currentTelemetryHeader)).to.eq(`2|${testApiCode},1|`);
-            expect(headers.get(lastTelemetryHeader)).to.eq(`2|0|||0`);
+            const testPayload: ServerTelemetryRequest = {...testTelemetryPayload, forceRefresh: true }
+            const telemetryManager = new ServerTelemetryManager(testPayload, testCacheManager);
+            const currHeaderVal = telemetryManager.generateCurrentRequestHeaderValue();
+            expect(currHeaderVal).to.eq(`2|${testApiCode},1|`);
         });
 
         it("Adds telemetry headers with last failed request", () => {
@@ -167,14 +168,10 @@ describe("ServerTelemetryManager.ts", () => {
                 cacheHits: testCacheHits
             }
             store[cacheKey] = JSON.stringify(failures);
-            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
-            let headers: Map<string, string> = new Map();
 
-            headers = telemetryManager.addTelemetryHeaders(headers);
-            expect(headers.has(currentTelemetryHeader)).to.be.true;
-            expect(headers.has(lastTelemetryHeader)).to.be.true;
-            expect(headers.get(currentTelemetryHeader)).to.eq(`2|${testApiCode},0|`);
-            expect(headers.get(lastTelemetryHeader)).to.eq(`2|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|1`);
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
+            const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
+            expect(lastHeaderVal).to.eq(`2|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|1`);
         });
 
         it("Adds telemetry headers with multiple last failed requests", () => {
@@ -186,14 +183,10 @@ describe("ServerTelemetryManager.ts", () => {
                 cacheHits: testCacheHits
             }
             store[cacheKey] = JSON.stringify(failures);
-            const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
-            let headers: Map<string, string> = new Map();
 
-            headers = telemetryManager.addTelemetryHeaders(headers);
-            expect(headers.has(currentTelemetryHeader)).to.be.true;
-            expect(headers.has(lastTelemetryHeader)).to.be.true;
-            expect(headers.get(currentTelemetryHeader)).to.eq(`2|${testApiCode},0|`);
-            expect(headers.get(lastTelemetryHeader)).to.eq(`2|${testCacheHits}|${testApiCode},${testCorrelationId},${testApiCode},${testCorrelationId}|${testError},${testError}|2`);
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
+            const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
+            expect(lastHeaderVal).to.eq(`2|${testCacheHits}|${testApiCode},${testCorrelationId},${testApiCode},${testCorrelationId}|${testError},${testError}|2`);
         });
     });
 
@@ -205,7 +198,7 @@ describe("ServerTelemetryManager.ts", () => {
             cacheHits: 1
         };
         store[cacheKey] = JSON.stringify(initialCacheValue);
-        const telemetryManager = new ServerTelemetryManager(testCacheManager, testApiCode, testCorrelationId);
+        const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
         telemetryManager.incrementCacheHits();
 
         const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryCacheValue;
