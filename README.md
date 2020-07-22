@@ -24,6 +24,12 @@ A wrapper of the core 1.x library for apps using Angular framework.
 - [Microsoft Authentication Library for AngularJS](lib/msal-angularjs/) :
 A wrapper of the core 1.x library for apps using AngularJS framework.
 
+### Package Structure
+
+We ship a number of different packages which are meant for different platforms. You can see the relationship and different authentication flows implemented by the packages below.
+
+![Package Structure](docs/diagrams/png/PackageStructure.png)
+
 ### Samples
 
 The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libaries. A complete list of samples can be found in the respective package folders or [on our wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples).
