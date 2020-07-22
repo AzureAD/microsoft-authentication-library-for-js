@@ -19,6 +19,12 @@ import { ICachePlugin } from "../cache/ICachePlugin";
 export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
+    clientSecret?: string;
+    clientAssertion?:string;
+    clientCertificate?: {
+        thumbprint: string,
+        privateKey: string,
+    };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
 };
@@ -59,6 +65,12 @@ export type Configuration = {
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: '',
     authority: '',
+    clientSecret: '',
+    clientAssertion: '',
+    clientCertificate: {
+        thumbprint: '',
+        privateKey: '',
+    },
     knownAuthorities: [],
     cloudDiscoveryMetadata: ""
 };

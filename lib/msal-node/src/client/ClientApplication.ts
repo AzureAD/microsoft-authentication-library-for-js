@@ -27,6 +27,7 @@ import { Storage } from '../cache/Storage';
 import { version } from '../../package.json';
 import { Constants as NodeConstants } from './../utils/Constants';
 import { TokenCache } from '../cache/TokenCache';
+import { ClientAssertion } from "../client/ClientAssertion";
 
 export abstract class ClientApplication {
     private config: Configuration;
@@ -35,6 +36,10 @@ export abstract class ClientApplication {
     private storage: Storage;
     private tokenCache: TokenCache;
     protected logger: Logger;
+
+
+    protected clientAssertion: ClientAssertion;
+    protected clientSecret: string;
 
     /**
      * Constructor for the ClientApplication
@@ -46,7 +51,7 @@ export abstract class ClientApplication {
         this.tokenCache = new TokenCache(
             this.storage,
             this.logger,
-            this.config.cache?.cachePlugin
+            this.config.cache!.cachePlugin
         );
         this.cryptoProvider = new CryptoProvider();
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
@@ -141,6 +146,7 @@ export abstract class ClientApplication {
     protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
+
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
@@ -157,6 +163,10 @@ export abstract class ClientApplication {
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,
             storageInterface: this.storage,
+            clientCredentials: {
+                clientSecret: this.clientSecret,
+                clientAssertion: this.clientAssertion ? this.getClientAssertion() : undefined,
+            },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
@@ -164,6 +174,13 @@ export abstract class ClientApplication {
                 os: process.platform || '',
             },
         };
+    }
+
+    private getClientAssertion(): { assertion: string, assertionType: string } {
+        return {
+            assertion: this.clientAssertion.getJwt(this.cryptoProvider, this.config.auth.clientId, this._authority.tokenEndpoint),
+            assertionType: ClientAssertion.ASSERTION_TYPE
+        }
     }
 
     /**
