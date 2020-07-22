@@ -10,7 +10,6 @@ import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
 import { CryptoUtils } from "./CryptoUtils";
 import { ClientConfigurationError } from "./../error/ClientConfigurationError";
-import { DEFAULT_AUTHORITY } from "../Utils/Constants"
 
 /**
  * @hidden
@@ -130,13 +129,14 @@ export class UrlUtils {
     }
     
      /**
-     * Checks if an authority is common (https://login.microsoftonline.com/common/)
+     * Checks if an authority is common (ex. https://a:b/common/)
      * @param url The url
      * @returns true if authority is common and false otherwise 
      */
      static isCommonAuthority(url: string): boolean {
         const authority =  this.CanonicalizeUri(url);
-        return (authority === DEFAULT_AUTHORITY);
+        const pathArray = this.GetUrlComponents(authority).PathSegments;
+        return (pathArray.length !== 0 && pathArray[0] === Constants.common);
      }
 
 
