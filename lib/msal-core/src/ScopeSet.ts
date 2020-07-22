@@ -160,4 +160,36 @@ export class ScopeSet {
 
     // #endregion
 
+    /**
+     * @ignore
+     * Returns true if the scopes array only contains openid and/or profile
+     */
+    static onlyContainsOidcScopes(scopes: Array<string>): boolean {
+        let oidcScopesFound = 0;
+
+        if (scopes.indexOf(Constants.openidScope) > -1) {
+            oidcScopesFound += 1;
+        }
+
+        if (scopes.indexOf(Constants.profileScope) > -1) {
+            oidcScopesFound += 1;
+        }
+
+        const nonOidcScopes = scopes.length - oidcScopesFound;
+
+        return (nonOidcScopes === 0);
+
+    }
+
+    /**
+     * @ignore
+     * Returns true if the clientId is the only scope in the array
+     */
+    static onlyContainsClientId(scopes: Array<String>, clientId: string): boolean {
+        const containsClientId = scopes.indexOf(clientId) > -1;
+        const containsSingleScope = scopes.length === 1;
+
+        return containsClientId && containsSingleScope;
+    }
+
 }

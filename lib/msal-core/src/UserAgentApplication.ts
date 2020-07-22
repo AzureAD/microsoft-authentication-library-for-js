@@ -2267,7 +2267,15 @@ export class UserAgentApplication {
                 tokenType = ResponseTypes.id_token_token;
             }
             else {
-                tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
+                const onlyContainsClientId = ScopeSet.onlyContainsClientId(scopes, this.clientId);
+                const onlyContainsOidcScopes = ScopeSet.onlyContainsOidcScopes(scopes);
+
+                // If clientId is only scope or scopes only contain OIDC scopes (openid and/or profile), return ID Token
+                if(onlyContainsClientId || onlyContainsOidcScopes) {
+                    tokenType = ResponseTypes.id_token;
+                } else {
+                    tokenType = ResponseTypes.token;
+                }
             }
 
             return tokenType;
