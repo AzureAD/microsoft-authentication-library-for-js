@@ -49,7 +49,7 @@ export abstract class InteractionHandler {
         this.authCodeRequest.code = authCode;
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, undefined, cachedNonce, requestState);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }
