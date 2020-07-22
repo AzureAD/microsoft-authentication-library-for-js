@@ -9,7 +9,7 @@
 With B2C:
 
 - Users **can** authenticate with their social identities.
-- Users **can** be authorized to access **B2C protected** resources.
+- Users **can** be authorized to access **B2C protected** resources (but not AAD protected resources).
 - Users **cannot** obtain tokens for Microsoft APIs (e.g. MS Graph API) using [delegated permissions](#b2c-and-delegated-permissions).
 - Applications **can** obtain tokens for Microsoft APIs using [application permissions](#b2c-and-application-permissions) (management scenarios).
 
@@ -67,7 +67,7 @@ A user's B2C authentication cannot be used to authorize to AAD protected apps, o
 
 ### OpenID Connect Permissions
 
-The exception to the rule above comes from a special set of scopes known as **OpenID Connect** (OIDC) permissions, which includes `openid`, `profile`, `email`. These permissions originate from [Azure AD - OpenID Connect compliance](https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc). Another special permission is the `offline_access`, which gives your app access to a resources on behalf of the user for an extended time (using a **Refresh Token**). MSAL.js will supply `openid`, and `profile` by default during `loginPopup()` and `loginRedirect()` requests.
+The exception to the rule above comes from a special set of scopes known as **OpenID Connect** (OIDC) permissions, which includes `openid` and `profile`. Another special permission is the `offline_access`, which gives your app access to a resources on behalf of the user for an extended time (using a **Refresh Token**). MSAL.js will supply `openid`, and `profile` by default during `loginPopup()` and `loginRedirect()` requests.
 
 > :information_source: At the moment, `offline_access` must be added to scopes when requesting a token from B2C endpoint. If you're reasonably certain that the token is valid and available in the cache then you may omit `offline_access` in an `acquireTokenSilent()` call in order to retrieve the **Access Token** from the cache. However, when the token must be renewed you must make sure to include `offline_access`.
 
