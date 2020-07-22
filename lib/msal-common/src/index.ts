@@ -55,4 +55,5 @@ export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
 // Telemetry
+export { ServerTelemetryCacheValue } from "./telemetry/server/ServerTelemetryCacheValue";
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
