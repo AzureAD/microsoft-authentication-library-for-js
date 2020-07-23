@@ -172,11 +172,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("handleCodeResponse()", () => {
 
         it("throws error if given hash is empty", async () => {
-            await expect(redirectHandler.handleCodeResponse("", null)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(redirectHandler.handleCodeResponse("", null)).to.be.rejectedWith(BrowserAuthError);
+            await expect(redirectHandler.handleCodeResponse("")).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
+            await expect(redirectHandler.handleCodeResponse("")).to.be.rejectedWith(BrowserAuthError);
 
-            await expect(redirectHandler.handleCodeResponse(null, null)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(redirectHandler.handleCodeResponse(null, null)).to.be.rejectedWith(BrowserAuthError);
+            await expect(redirectHandler.handleCodeResponse(null)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
+            await expect(redirectHandler.handleCodeResponse(null)).to.be.rejectedWith(BrowserAuthError);
         });
 
         it("successfully handles response", async () => {
@@ -222,7 +222,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
-            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, undefined, browserCrypto);
+            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, browserCrypto);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
             expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.null;
             expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY)).to.be.null;

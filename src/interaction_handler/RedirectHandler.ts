@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, ServerTelemetryManager } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -47,7 +47,7 @@ export class RedirectHandler extends InteractionHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponse(locationHash: string, telemetryManager: ServerTelemetryManager, browserCrypto?: ICrypto): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, browserCrypto?: ICrypto): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
