@@ -117,13 +117,6 @@ export class ScopeSet {
         if (scopes.length < 1 && scopesRequired) {
             throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
         }
-
-        // Check that clientId is passed as single scope
-        if (scopes.indexOf(clientId) > -1) {
-            if (scopes.length > 1) {
-                throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
-            }
-        }
     }
 
     /**
@@ -179,6 +172,17 @@ export class ScopeSet {
 
         return (nonOidcScopes === 0);
 
+    }
+
+       /**
+     * @ignore
+     * Returns true if the scopes array only contains openid and/or profile
+     */
+    static containsAnyOidcScopes(scopes: Array<string>): boolean {
+        const containsOpenIdScope = scopes.indexOf(Constants.openidScope) > -1;
+        const containsProfileScope = scopes.indexOf(Constants.profileScope) > -1;
+
+        return (containsOpenIdScope || containsProfileScope);
     }
 
     /**

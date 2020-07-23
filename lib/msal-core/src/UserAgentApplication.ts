@@ -545,7 +545,7 @@ export class UserAgentApplication {
             }
 
             // On Fulfillment
-            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
+            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes);
 
             const loginStartPage = request.redirectStartPage || window.location.href;
 
@@ -742,7 +742,7 @@ export class UserAgentApplication {
             }
 
             // set the response type based on the current cache status / scopes set
-            const responseType = this.getTokenType(account, request.scopes, true);
+            const responseType = this.getTokenType(account, request.scopes);
             this.logger.verbose(`Response type: ${responseType}`);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
@@ -2052,7 +2052,7 @@ export class UserAgentApplication {
 
         // Construct AuthenticationRequest based on response type; set "redirectUri" from the "request" which makes this call from Angular - for this.getRedirectUri()
         const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
-        const responseType = this.getTokenType(accountObject, scopes, true);
+        const responseType = this.getTokenType(accountObject, scopes);
 
         const serverAuthenticationRequest = new ServerRequestParameters(
             newAuthority,
@@ -2243,44 +2243,42 @@ export class UserAgentApplication {
      * @returns {string} token type: id_token or access_token
      *
      */
-    private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
+    private getTokenType(accountObject: Account, scopes: string[]): string {
         /*
          * if account is passed and matches the account object/or set to getAccount() from cache
          * if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
          */
         let tokenType: string;
-
-        // acquireTokenSilent
-        if (silentCall) {
-            if (Account.compareAccounts(accountObject, this.getAccount())) {
-                tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
-            }
-            else {
-                tokenType  = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
-            }
-
-            return tokenType;
-        }
-        // all other cases
-        else {
-            if (!Account.compareAccounts(accountObject, this.getAccount())) {
-                tokenType = ResponseTypes.id_token_token;
-            }
-            else {
-                const onlyContainsClientId = ScopeSet.onlyContainsClientId(scopes, this.clientId);
-                const onlyContainsOidcScopes = ScopeSet.onlyContainsOidcScopes(scopes);
-
-                // If clientId is only scope or scopes only contain OIDC scopes (openid and/or profile), return ID Token
-                if(onlyContainsClientId || onlyContainsOidcScopes) {
-                    tokenType = ResponseTypes.id_token;
+        const accountsMatch = Account.compareAccounts(accountObject, this.getAccount());
+        const onlyContainsClientId = ScopeSet.onlyContainsClientId(scopes, this.clientId);
+        const onlyContainsOidcScopes = ScopeSet.onlyContainsOidcScopes(scopes);
+    
+        if (accountsMatch) {
+            // OIDC scopes or client ID as only scopes
+            if (onlyContainsClientId || onlyContainsOidcScopes) {
+                tokenType = ResponseTypes.id_token;
+            } else {
+                // Resource scopes contained
+                if (ScopeSet.containsAnyOidcScopes(scopes)) {
+                    // If either of the OIDC scopes are also contained
+                    tokenType = ResponseTypes.id_token_token;
                 } else {
+                    // Only resource scopes
                     tokenType = ResponseTypes.token;
                 }
             }
-
-            return tokenType;
+        }
+        // When accounts don't match 
+        else {
+            if (onlyContainsClientId || onlyContainsOidcScopes) {
+                tokenType = ResponseTypes.id_token;
+            } else {
+                // Interactive calls for access tokens with mismatched accounts should also log the user in by acquiring an id_token
+                tokenType = ResponseTypes.id_token_token;
+            }
         }
 
+        return tokenType;
     }
 
     /**
