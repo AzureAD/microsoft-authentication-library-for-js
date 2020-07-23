@@ -4,9 +4,11 @@
 * [Scopes](#scopes)
     * [Scope Functions](#scope-functions)
     * [Scope Types](#scope-types)
+        * [Resource scopes for Authorization](#resource-scopes-for-authorization)
+        * [OpenID Connect Scopes for Authentication](#openid-connect-scopes-for-authentication)
 * [Scopes Behavior](#scopes-behavior)
     * [Default Scopes in Authorization Requests](#default-scopes-on-authorization-requests)
-    * [Scopes Usage](#scopes-usage)
+    * [Special OIDC Scopes behavior cases](#special-oidc-scopes-behavior-cases)
 ## Scopes
 
 Microsoft identity platform access tokens, which `msal@1.x` acquires in compliance with the OAuth 2.0 protocol specification, are issued to applications as proof of authorization on behalf of a user for a certain resource. The issuing of these tokens is not only specific to an `audience`, or application, but also specific to a set of `scopes` or permissions.
@@ -58,68 +60,29 @@ Like previously mentioned, the Secure Token Service that `msal@1.x` requests acc
 
 **For this reason, whether or not the developer adds the `openid` or `profile` scopes to their request configuration, `msal@1.x` will make sure they are included before sending the request to the STS.**
 
-### Scopes Usage
-
-Consider the case in which an authorization request is made to obtain a token for use with `Microsoft Graph` using, for example, the `acquireTokenPopup` API that `msal@1.x` provides. In order to prompt the user to consent to the `User.Read` permission, `User.Read` must be added as a scope in the Authorization Request Configuration:
-
-```js
-const request = {
-    scopes: ['User.Read'],
-    .
-    .
-    .
-}
-
-const accessToken = msalApp.acquireTokenPopUp(request).then((response) => {
-    return response.accessToken
-} catch (e) {
-    // Error handling
-});
-```
-
-Given all the information provided in the sections above, it should be clear that the finalized server request URL will include a `scopes` parameter that looks something like:
-
-```
-scope=User.Read%20openid%20profile
-```
-
-Remember, while all valid resource scopes provided by the developer in configuration will be included in the scopes parameter, `openid` and `profile` will always be included in the final URL-encoded string before the request is sent.
-
 ### Special OIDC Scopes behavior cases
 
-The following table summarizes how `scopes` configured by the developer may be transformed during `msal@1.x`'s token acquisition flows.
+The following is a list of practical implications and examples of the default scope behavior described in the previous section.
 
-#### Login APIs
+- If the scopes array does not include either `openid` or `profile`, whichever is missing (could be both) will be added to the scopes array by default before the request is sent out.
 
-| Input scopes content | Final scopes included in request URL | Notes |
-| -------------------- | ------------------------------------ | ----- |
-| ClientId string | [openid, profile] |  When the clientID is sent as the ONLY scope it is removed and replaced with `openid` and `profile` |
-| ClientId string with 'openid', 'profile' or both | [clientId, 'openid', 'profile'] | ClientId, not being the only scope, is treated as a resource scope that will be sent to the server, so it is not removed. The `openid` and `profile` scopes are still appended immediately.|
-| Empty or Null Scopes | ['openid', 'profile'] | Empty or null scopes are only supported for `login` APIs because there is no need for scopes other than `openid` and `profile`, which are added by default. |
-| Resource scope(s) only (ex. ['User.Read']) | ['User.Read', 'openid', 'profile'] | Resource scopes are kept, default scopes OIDC are added.<br/><br/>**Note: Login APIs don't return access tokens. These scopes can be consented to in login requests, but an access token will not be issued for them at this point.** |
-| Resource scope(s) and OIDC scopes, ex:<br/> - ['User.Read', 'openid']| ['User.Read', 'openid', 'profile'] | ['User.Read', 'openid', 'profile'] | Same behavior and notes as case above, OIDC scopes are completed. |
-| ClientId and Resource scope(s): <br/> - [clientId, 'User.Read']| [clientId, 'User.Read', 'openid', 'profile'] | [clientId, 'User.Read', 'openid', 'profile'] | ClientId is treated as resource scope, `openid` and `profile` are automatically appended as well.|
+    Examples:
 
-Table summary for Login APIs:
+    ```js
+        { scopes: ['User.Read'] } // becomes { scopes: ['User.Read', 'openid', 'profile'] } before the request is sent
 
-- The `openid` and `profile` OIDC scopes are automatically appended to the `scopes` array in every `login` API call
-- ClientId is only removed when it is the only scope in the configuration, otherwise it is treated as a resource scope and will be sent in the final server request
-- Resource scopes can be included in `login` calls in order to **pre-consent** to said scopes, but that will not result in an access token being requested for them.
+        { scopes: ['User.Read', 'openid'] } // becomes { scopes ['User.Read', 'openid', 'profile']} before the request is sent
 
-#### Acquire Token APIs
+        { scopes: ['User.Read', 'profile'] } // becomes { scopes ['User.Read', 'profile', 'openid']} before the request is sent
+    ```
+- ClientId is removed form the scopes array when it is the only scope in the configuration.If it is not the only scope, it is treated as a resource scope and will be sent in the final server request.
 
-| Input scopes content | Scopes after validation | Final scopes included in request URL | Notes |
-| -------------------- | ----------------------- | ------------------------------------ | ----- |
-| [clientId] | [openid, profile] | [openid, profile] | When the clientID is sent as the ONLY scope, it will immediately be replaced by (translated into) `openid` and `profile` |
-| Empty or Null Scopes | Error thrown in validation | - | Access tokens are issued for specific scopes. Empty or null scopes are **not supported for `acquireToken` API calls**. |
-| Resource scope(s) only, ex: <br/> - ['User.Read'] | ['User.Read'] |  ['User.Read', 'openid', 'profile'] | Resource scopes are kept and sent to the server, `openid` and `profile` are only appended **right before** sending the request to the server. |
-| Resource scope(s) and OIDC scopes, ex:<br/> - ['User.Read', 'openid']| ['User.Read', 'openid', 'profile'] | ['User.Read', 'openid', 'profile'] | Same behavior and notes as case above, OIDC scopes are completed. |
-| ClientId and Resource scope(s): <br/> - [clientId, 'User.Read']| [clientId, 'User.Read', 'openid', 'profile'] | [clientId, 'User.Read', 'openid', 'profile'] | ClientId is treated as resource scope, `openid` and `profile` are automatically appended as well.|
+    Examples:
+    
+    ```js
+        { scopes: ['YOUR_CLIENT_ID'] } // becomes { scopes: ['openid', 'profile'] } before the request is sent (ClientId is spliced out)
 
-Table summary for Acquire Token APIs:
+        { scopes: ['YOUR_CLIENT_ID', 'User.Read'] } // becomes { scopes ['YOUR_CLIENT_ID', 'User.Read', 'openid', 'profile']} before the request is sent (ClientId is treated as resource scope and therefore not spliced out)
 
-
-
-[OIDC Scopes Reference](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes)
-
-| - [clientId, 'openid'] or<br/> - [clientId, 'profile'] or<br/> - [clientId, 'openid', profile']| [clientId, 'openid', 'profile']| [clientId, 'openid', 'profile'] | ClientId, not being the only scope, is treated as a resource scope that will be sent to the server, so it is not removed. The `openid` and `profile` scopes are still appended immediately.|
+        { scopes: ['YOUR_CLIENT_ID', 'openid'] } // becomes { scopes ['YOUR_CLIENT_ID', 'openid', 'profile']} before the request is sent
+    ```
