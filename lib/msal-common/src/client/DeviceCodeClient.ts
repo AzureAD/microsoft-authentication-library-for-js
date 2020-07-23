@@ -13,7 +13,8 @@ import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
-import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 /**
  * OAuth2.0 Device code client
@@ -29,17 +30,29 @@ export class DeviceCodeClient extends BaseClient {
      * polls token endpoint to exchange device code for tokens
      * @param request
      */
-    public async acquireToken(request: DeviceCodeRequest, telemetryManager?: ServerTelemetryManager): Promise<string> {
+    public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult> {
 
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
         const response: ServerAuthorizationTokenResponse = await this.acquireTokenWithDeviceCode(
             request,
-            deviceCodeResponse,
-            telemetryManager);
+            deviceCodeResponse);
 
-        // TODO handle response
-        return JSON.stringify(response);
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId,
+            this.cacheManager,
+            this.cryptoUtils,
+            this.logger
+        );
+
+        // Validate response. This function throws a server error if an error is returned by the server.
+        responseHandler.validateTokenResponse(response);
+        const tokenResponse = responseHandler.handleServerTokenResponse(
+            response,
+            this.authority
+        );
+
+        return tokenResponse;
     }
 
     /**
@@ -113,15 +126,10 @@ export class DeviceCodeClient extends BaseClient {
      */
     private async acquireTokenWithDeviceCode(
         request: DeviceCodeRequest,
-        deviceCodeResponse: DeviceCodeResponse,
-        telemetryManager: ServerTelemetryManager): Promise<ServerAuthorizationTokenResponse> {
+        deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
 
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
-        let headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
-
-        if (telemetryManager) {
-            headers = telemetryManager.addTelemetryHeaders(headers);
-        }
+        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
 
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
@@ -181,6 +189,7 @@ export class DeviceCodeClient extends BaseClient {
         requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         requestParameters.addCorrelationId(correlationId);
+        requestParameters.addClientInfo();
         return requestParameters.createQueryString();
     }
 }

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeClient, DeviceCodeRequest, ServerTelemetryManager } from '@azure/msal-common';
+import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult, ServerTelemetryManager } from '@azure/msal-common';
 import { Configuration } from '../config/Configuration';
 import { ClientApplication } from './ClientApplication';
 import { ApiId } from '../utils/Constants';
@@ -43,7 +43,7 @@ export class PublicClientApplication extends ClientApplication {
      * Since the client cannot receive incoming requests, it polls the authorization server repeatedly
      * until the end-user completes input of credentials.
      */
-    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<string> {
+    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByDeviceCode called");
         const validRequest = this.initializeRequest(request) as DeviceCodeRequest;
         const telemetryManager = new ServerTelemetryManager(this.storage, ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);

@@ -18,8 +18,9 @@ export class RedirectHandler extends InteractionHandler {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
-            const loginStartPage = redirectStartPage || window.location.href;
-            this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), loginStartPage, CacheSchemaType.TEMPORARY);
+            if (redirectStartPage) {
+                this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), redirectStartPage, CacheSchemaType.TEMPORARY);
+            }
 
             // Set interaction status in the library.
             this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
@@ -68,7 +69,7 @@ export class RedirectHandler extends InteractionHandler {
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, undefined, cachedNonce, requestState);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }

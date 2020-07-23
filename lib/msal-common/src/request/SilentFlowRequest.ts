@@ -13,7 +13,6 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - account                - Account entity to lookup the credentials.
  * - forceRefresh           - Forces silent requests to make network calls if true.
- * - redirectUri            - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
  */
 export type SilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;

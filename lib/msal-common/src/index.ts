@@ -3,7 +3,7 @@ export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
-export { AuthOptions, SystemOptions, LoggerOptions, TelemetryOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
+export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { AccountInfo } from "./account/AccountInfo";
@@ -56,3 +56,4 @@ export { ProtocolUtils } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
 // Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
+export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";

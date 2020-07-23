@@ -11,6 +11,7 @@ import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -34,11 +35,12 @@ export type ClientConfiguration = {
     storageInterface?: CacheManager,
     networkInterface?: INetworkModule,
     cryptoInterface?: ICrypto,
-    libraryInfo?: LibraryInfo
+    libraryInfo?: LibraryInfo,
+    serverTelemetryManager?: ServerTelemetryManager
 };
 
 /**
- * Use this to configure the auth options in the Configuration object
+ * Use this to configure the auth options in the ClientConfiguration object
  *
  * - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
  * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
@@ -53,26 +55,12 @@ export type AuthOptions = {
 };
 
 /**
- * Use this to configure the telemetry options in the Configuration object
- *
- * - applicationName              - Name of the consuming apps application
- * - applicationVersion           - Version of the consuming application
- */
-export type TelemetryOptions = {
-    applicationName: string;
-    applicationVersion: string;
-    // TODO, add onlyAddFailureTelemetry option
-};
-
-/**
- * Use this to configure token renewal and telemetry info in the Configuration object
+ * Use this to configure token renewal info in the Configuration object
  *
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
- * - telemetry                    - Telemetry options for library network requests
  */
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
-    telemetry?: TelemetryOptions;
 };
 
 /**
@@ -106,8 +94,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
-    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    telemetry: null
+    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
@@ -170,7 +157,8 @@ export function buildClientConfiguration(
         storageInterface: storageImplementation,
         networkInterface: networkImplementation,
         cryptoInterface: cryptoImplementation,
-        libraryInfo: libraryInfo
+        libraryInfo: libraryInfo,
+        serverTelemetryManager: serverTelemetryManager
     } : ClientConfiguration): ClientConfiguration {
     return {
         authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
@@ -179,6 +167,7 @@ export function buildClientConfiguration(
         storageInterface: storageImplementation || new DefaultStorageClass(),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
-        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo }
+        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
+        serverTelemetryManager: serverTelemetryManager || null
     };
 }
