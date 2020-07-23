@@ -41,7 +41,7 @@ type kv = {
     [key: string]: string;
 };
 
-describe("UserAgentApplication.ts Class", function () {
+describe.only("UserAgentApplication.ts Class", function () {
 
     // Test state params
     sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
@@ -2353,261 +2353,484 @@ describe("UserAgentApplication.ts Class", function () {
 
         describe("Acquire Token APIs", () => {
             describe("with matching accounts", () => {
-                describe("acquireTokenRedirect", () => {
-                    beforeEach(function() {
-                        cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
-                        const config: Configuration = {
-                            auth: {
-                                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                            }
-                        };
-                        msal = new UserAgentApplication(config);
-                        setAuthInstanceStubs();
-                        setTestCacheItems();
+                beforeEach(function() {
+                    cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+                    const config: Configuration = {
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                            redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        }
+                    };
+                    msal = new UserAgentApplication(config);
+                    setAuthInstanceStubs();
+                    setTestCacheItems();
+    
+                    delete window.location;
+                });
         
-                        delete window.location;
-                    });
-            
-                    afterEach(function () {
-                        cacheStorage.clear();
-                        sinon.restore();
-                        window.location = oldWindowLocation;
-                    });
-    
-                    it("should set response_type to id_token when clientId is the only input scope", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(idTokenType);
-                                    expect(url).to.not.include(tokenType)
-                                    expect(url).to.not.include(idTokenTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
-                            }
-                        };
-    
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID ], account});
-                    });
-    
-                    it("should set response_type to id_token when openid and profile are the only scopes", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(idTokenType);
-                                    expect(url).to.not.include(tokenType)
-                                    expect(url).to.not.include(idTokenTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
-                            }
-                        };
-                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: [Constants.openidScope, Constants.profileScope], account});
-                    });
-    
-                    it("should set response_type to id_token when openid is the only scope", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(idTokenType);
-                                    expect(url).to.not.include(tokenType)
-                                    expect(url).to.not.include(idTokenTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
-                            }
-                        };
-                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: [Constants.openidScope], account});
-                    });
-    
-                    it("should set response_type to id_token when profile is the only scope", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(idTokenType);
-                                    expect(url).to.not.include(tokenType)
-                                    expect(url).to.not.include(idTokenTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
-                            }
-                        };
-                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
-                    });
-    
-                    it("should set response_type to id_token when profile is the only scope", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(idTokenType);
-                                    expect(url).to.not.include(tokenType)
-                                    expect(url).to.not.include(idTokenTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
-                            }
-                        };
-                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
-                    });
+                afterEach(function () {
+                    cacheStorage.clear();
+                    sinon.restore();
+                    window.location = oldWindowLocation;
+                });
 
-                    it("should set response_type to id_token token when a resource scope is included along with openid", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(idTokenTokenType);
-                                    expect(url).to.not.include(tokenType)
-                                    expect(url).to.not.include(idTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
+                it("should set response_type to id_token when clientId is the only input scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
                             }
-                        };
-                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: ['S1', Constants.openidScope], account});
-                    });
+                        }
+                    };
 
-                    it("should set response_type to id_token token when a resource scope is included along with profile", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(idTokenTokenType);
-                                    expect(url).to.not.include(tokenType)
-                                    expect(url).to.not.include(idTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID ], account});
+                });
+
+                it("should set response_type to id_token when openid and profile are the only scopes", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
                             }
-                        };
-                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: ['S1', Constants.profileScope], account});
-                    });
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [Constants.openidScope, Constants.profileScope], account});
+                });
 
-                    it("should set response_type to id_token token when a resource scope is included along with both OIDC scopes", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(idTokenTokenType);
-                                    expect(url).to.not.include(tokenType)
-                                    expect(url).to.not.include(idTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
+                it("should set response_type to id_token when openid is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
                             }
-                        };
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [Constants.openidScope], account});
+                });
 
-                        const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: ['S1', ...oidcScopes], account});
-                    });
-
-                    it("should treat clientId as a resource scope when included with OIDC scopes and therefore set response_type to id_token token", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(idTokenTokenType);
-                                    expect(url).to.not.include(tokenType)
-                                    expect(url).to.not.include(idTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
+                it("should set response_type to id_token when profile is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
                             }
-                        };
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
+                });
 
-                        const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, ...oidcScopes], account});
-                    });
-
-                    it("should set response_type to token when only a single resource scope is included", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(tokenType);
-                                    expect(url).to.not.include(idTokenTokenType)
-                                    expect(url).to.not.include(idTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
+                it("should set response_type to id_token when profile is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
                             }
-                        };
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
+                });
 
-                        const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: ['S1'], account});
-                    });
-
-                    it("should set response_type to token when multiple resource scopes are included", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(tokenType);
-                                    expect(url).to.not.include(idTokenTokenType)
-                                    expect(url).to.not.include(idTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
+                it("should set response_type to id_token token when a resource scope is included along with openid", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
                             }
-                        };
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.openidScope], account});
+                });
 
-                        const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: ['S1', 'S2'], account});
-                    });
-                    it("should treat clientId as a resource scope when included with resource scopes and therefore set response_type to token", (done) => {
-                        window.location = {
-                            ...oldWindowLocation,
-                            assign: function (url) {
-                                try {
-                                    expect(url).to.include(tokenType);
-                                    expect(url).to.not.include(idTokenTokenType)
-                                    expect(url).to.not.include(idTokenType);
-                                    done();
-                                } catch (e) {
-                                    console.error(e);
-                                }
+                it("should set response_type to id_token token when a resource scope is included along with profile", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
                             }
-                        };
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.profileScope], account});
+                });
 
-                        const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
-                        sinon.stub(msal, "getAccount").returns(account);
-                        msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, 'S1'], account});
-                    });
+                it("should set response_type to id_token token when a resource scope is included along with both OIDC scopes", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1', ...oidcScopes], account});
+                });
+
+                it("should treat clientId as a resource scope when included with OIDC scopes and therefore set response_type to id_token token", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, ...oidcScopes], account});
+                });
+
+                it("should set response_type to token when only a single resource scope is included", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(tokenType);
+                                expect(url).to.not.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1'], account});
+                });
+
+                it("should set response_type to token when multiple resource scopes are included", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(tokenType);
+                                expect(url).to.not.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1', 'S2'], account});
+                });
+                it("should treat clientId as a resource scope when included with resource scopes and therefore set response_type to token", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(tokenType);
+                                expect(url).to.not.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, 'S1'], account});
                 });
             }); 
-        })
+
+            describe("when accounts don't match", () => {
+                beforeEach(function() {
+                    cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+                    const config: Configuration = {
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                            redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        }
+                    };
+                    msal = new UserAgentApplication(config);
+                    setAuthInstanceStubs();
+                    setTestCacheItems();
+    
+                    delete window.location;
+                });
+        
+                afterEach(function () {
+                    cacheStorage.clear();
+                    sinon.restore();
+                    window.location = oldWindowLocation;
+                });
+
+                it("should set response_type to id_token when clientId is the only input scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID ], account});
+                });
+
+                it("should set response_type to id_token when openid and profile are the only scopes", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: [Constants.openidScope, Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token when openid is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: [Constants.openidScope], account });
+                });
+
+                it("should set response_type to id_token when profile is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token token when a resource scope is included along with openid", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.openidScope], account});
+                });
+
+                it("should set response_type to id_token token when a resource scope is included along with profile", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token token when a resource scope is included along with both OIDC scopes", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: ['S1', ...oidcScopes], account});
+                });
+
+                it("should treat clientId as a resource scope when included with OIDC scopes and therefore set response_type to id_token token", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, ...oidcScopes], account});
+                });
+
+                it("should set response_type to id_token token when only a single resource scope is included because login is required", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.not.include(tokenType);
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: ['S1'], account});
+                });
+
+                it("should set response_type to id_token token when multiple resource scopes are included because login is required", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.not.include(tokenType);
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: ['S1', 'S2'], account});
+                });
+                it("should treat clientId as a resource scope when included with resource scopes and therefore set response_type to id_token token because login is required", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.not.include(tokenType);
+                                expect(url).to.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, 'S1'], account});
+                });
+            }); 
+        });
     });
 });

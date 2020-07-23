@@ -2238,42 +2238,39 @@ export class UserAgentApplication {
      * Utils function to create the Authentication
      * @param {@link account} account object
      * @param scopes
-     * @param silentCall
      *
      * @returns {string} token type: id_token or access_token
      *
      */
     private getTokenType(accountObject: Account, scopes: string[]): string {
-        /*
-         * if account is passed and matches the account object/or set to getAccount() from cache
-         * if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
-         */
         let tokenType: string;
         const accountsMatch = Account.compareAccounts(accountObject, this.getAccount());
         const onlyContainsClientId = ScopeSet.onlyContainsClientId(scopes, this.clientId);
         const onlyContainsOidcScopes = ScopeSet.onlyContainsOidcScopes(scopes);
-    
+        
+        // Check if accounts match
         if (accountsMatch) {
-            // OIDC scopes or client ID as only scopes
+            // OIDC scopes or client ID as only scopes to explicitly request an ID Token
             if (onlyContainsClientId || onlyContainsOidcScopes) {
                 tokenType = ResponseTypes.id_token;
             } else {
-                // Resource scopes contained
+                // Resource scopes contained, access token requested for sure
                 if (ScopeSet.containsAnyOidcScopes(scopes)) {
-                    // If either of the OIDC scopes are also contained
+                    // If either of the OIDC scopes are also contained, also request ID Token
                     tokenType = ResponseTypes.id_token_token;
                 } else {
-                    // Only resource scopes
+                    // Only resource scopes, no need or want for ID Token
                     tokenType = ResponseTypes.token;
                 }
             }
         }
-        // When accounts don't match 
+        // When accounts don't match, could be account switching or user not logged in. Either way, login is required.
         else {
             if (onlyContainsClientId || onlyContainsOidcScopes) {
+                // Supports requesting ID token by sending clientId only or openid/profile/both without other scopes
                 tokenType = ResponseTypes.id_token;
             } else {
-                // Interactive calls for access tokens with mismatched accounts should also log the user in by acquiring an id_token
+                // All access token calls when accounts don't match require login
                 tokenType = ResponseTypes.id_token_token;
             }
         }
