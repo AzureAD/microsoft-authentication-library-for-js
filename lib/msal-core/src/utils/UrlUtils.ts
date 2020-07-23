@@ -139,6 +139,17 @@ export class UrlUtils {
         return (pathArray.length !== 0 && pathArray[0] === Constants.common);
      }
 
+      /**
+     * Checks if an authority is for organizations (ex. https://a:b/organizations/)
+     * @param url The url
+     * @returns true if authority is for  and false otherwise 
+     */
+    static isOrganizationsAuthority(url: string): boolean {
+        const authority =  this.CanonicalizeUri(url);
+        const pathArray = this.GetUrlComponents(authority).PathSegments;
+        return (pathArray.length !== 0 && pathArray[0] === SSOTypes.ORGANIZATIONS);
+     }
+
 
     /**
      * Parses out the components from a url string.
