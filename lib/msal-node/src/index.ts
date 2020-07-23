@@ -18,6 +18,8 @@ export {
     ResponseMode,
     // Response
     AuthenticationResult,
+    // Cache
+    AccountInfo,
     // Error
     AuthError,
     AuthErrorMessage,
