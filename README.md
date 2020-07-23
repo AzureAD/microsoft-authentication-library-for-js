@@ -26,7 +26,7 @@ A wrapper of the core 1.x library for apps using AngularJS framework.
 
 ### Package Structure
 
-We ship a number of different packages which are meant for different platforms. You can see the relationship and different authentication flows implemented by the packages below.
+We ship a number of different packages which are meant for different platforms. You can see the relationship between packages and different authentication flows they implement below.
 
 ![Package Structure](docs/diagrams/png/PackageStructure.png)
 
