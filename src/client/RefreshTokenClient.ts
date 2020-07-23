@@ -68,6 +68,16 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addRefreshToken(request.refreshToken);
 
+        if (this.config.clientCredentials.clientSecret) {
+            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
+        }
+
+        if (this.config.clientCredentials.clientAssertion) {
+            const clientAssertion = this.config.clientCredentials.clientAssertion;
+            parameterBuilder.addClientAssertion(clientAssertion.assertion);
+            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        }
+
         return parameterBuilder.createQueryString();
     }
 }
