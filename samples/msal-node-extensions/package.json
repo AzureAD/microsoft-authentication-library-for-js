@@ -1,6 +1,6 @@
 {
   "name": "msal-node-extensions-sample",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0",
   "description": "sample app for msal-node",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.0-alpha.0",
+    "@azure/msal-node": "^1.0.0-alpha.3",
     "@azure/msal-node-extensions": "1.0.0-alpha.0",
     "express": "^4.17.1"
   }

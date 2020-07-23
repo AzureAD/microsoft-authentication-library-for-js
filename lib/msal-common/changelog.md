@@ -1,3 +1,14 @@
+# 1.0.0
+## Breaking Changes
+- None
+
+## Features and Fixes
+- Fixed an issue where scopes were being made lower case before being sent to the service (#1961)
+- Fix an issue where token values were replaced with undefined if not sent by server (#1946)
+- Fix an issue where cache lookup for accounts was not working correctly (#1919)
+- Removed TelemetryOptions from msal-common since they were unused (#1983)
+- Add a response handler for the device code flow (#1947)
+
 # 1.0.0-beta.4
 ## Breaking Changes
 - None
