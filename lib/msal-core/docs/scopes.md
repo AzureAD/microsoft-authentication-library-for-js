@@ -21,7 +21,7 @@ The main function of the `scopes` configuration, per the [OAuth 2.0 Access Token
 
 #### Special use of scopes in msal@1.x
 
-In addition to the global concept and use of `scopes`, it is important to understand that `msal@1.x` gives scopes a special use that adds to the importance of their configuration. In short, `msal@1.x` allows developers to leverage certain scopes in order to determine the `response_type` for the final request. For more information on the way the scopes configuration determines the `response_type` parameter, please refer to the [Response Types Document](../response-types.md).
+In addition to the global concept and use of `scopes`, it is important to understand that `msal@1.x` gives scopes a special use that adds to the importance of their configuration. In short, `msal@1.x` allows developers to leverage certain scopes in order to determine the `response_type` for the final request. For more information on the way the scopes configuration determines the `response_type` parameter, please refer to the [Response Types Document](/docs/response-types.md).
 
 
 
