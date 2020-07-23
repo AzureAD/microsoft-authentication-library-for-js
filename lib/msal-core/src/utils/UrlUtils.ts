@@ -9,8 +9,6 @@ import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
 import { CryptoUtils } from "./CryptoUtils";
-import { ClientConfigurationError } from "./../error/ClientConfigurationError";
-import { server } from 'sinon';
 
 /**
  * @hidden
