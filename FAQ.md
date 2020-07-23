@@ -5,14 +5,14 @@
 
 1. [What browsers are supported by MSAL.js?](#what-browsers-are-supported-by-msaljs)
 1. [I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?](#i-am-moving-from-msaljs-1x-to-msaljs-to-2x-what-should-i-know)
-1. [Does this library work for iframed applications?](#Does-this-library-work-for-iframed-applications?)
-1. [Will MSAL 2.x support B2C?](#Will-MSAL-2.x-support-B2C?)
+1. [Does this library work for iframed applications?](#does-this-library-work-for-iframed-applications)
+1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
 
 **[Authentication](#Authentication)**
 
-1. [I don't understand the redirect flow. How does the handleRedirectPromise function work?](#I-don't-understand-the-redirect-flow.-How-does-the-handleRedirectPromise-function-work?)
+1. [I don't understand the redirect flow. How does the handleRedirectPromise function work?](#i-dont-understand-the-redirect-flow-how-does-the-handleredirectpromise-function-work)
 1. [How can I support authentication with personal Microsoft accounts only?](#how-can-i-support-authentication-with-personal-microsoft-accounts-only)
-1. [How do I get an authorization code from the library?](#How-do-i-get-an-authorization-code-from-the-library?)
+1. [How do I get an authorization code from the library?](#how-do-i-get-an-authorization-code-from-the-library)
 
 **[Single-Sign-On](#Single-Sign-On)**
 
