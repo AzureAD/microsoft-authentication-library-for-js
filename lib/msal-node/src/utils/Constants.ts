@@ -45,3 +45,18 @@ export const CACHE = {
 export const Constants = {
     MSAL_SKU: 'msal.js.node',
 };
+
+/**
+ * JWT  constants
+ */
+export const JwtConstants = {
+    ALGORITHM: 'alg',
+    RSA_256: 'RS256',
+    X5T: 'x5t', 
+    AUDIENCE: 'aud',
+    EXPIRATION_TIME: 'exp',
+    ISSUER: "iss",
+    SUBJECT: "sub",
+    NOT_BEFORE: "nbf",
+    JWT_ID: "jti",
+} 

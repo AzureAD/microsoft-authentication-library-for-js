@@ -4,9 +4,10 @@
  */
 
 import { sign } from "jsonwebtoken";
-import { TimeUtils } from "@azure/msal-common";
+import { TimeUtils, ClientAuthError } from "@azure/msal-common";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { EncodingUtils } from '../utils/EncodingUtils';
+import { JwtConstants } from "../../src/utils/Constants"
 
 export class ClientAssertion {
 
@@ -50,8 +51,7 @@ export class ClientAssertion {
             return this.jwt;
         }
 
-        //TODO throw proper error
-        throw Error();
+        throw ClientAuthError.createInvalidAssertionError();
     }
 
     // JWT format and required claims specified: https://tools.ietf.org/html/rfc7523#section-3
@@ -63,20 +63,21 @@ export class ClientAssertion {
         this.expirationTime = issuedAt + 600;
 
         const header = {
-            "alg": "RS256",
-            "x5t": EncodingUtils.base64EncodeUrl(this.thumbprint, "hex")
+            [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
+            [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex")
         }
 
         const payload = {
-            "aud": this.jwtAudience,
-            "exp": this.expirationTime,
-            "iss": this.issuer,
-            "sub": this.issuer,
-            "nbf": issuedAt,
-            "jti": cryptoProvider.createNewGuid()
+            [JwtConstants.AUDIENCE]: this.jwtAudience,
+            [JwtConstants.EXPIRATION_TIME]: this.expirationTime,
+            [JwtConstants.ISSUER]: this.issuer,
+            [JwtConstants.SUBJECT]: this.issuer,
+            [JwtConstants.NOT_BEFORE]: issuedAt,
+            [JwtConstants.JWT_ID]: cryptoProvider.createNewGuid()
         }
 
-        return sign(payload, this.privateKey, { header: header });
+        this.jwt = sign(payload, this.privateKey, { header: header });
+        return this.jwt;
     }
 
     private isExpired(): boolean {

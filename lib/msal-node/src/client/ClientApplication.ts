@@ -30,13 +30,12 @@ import { TokenCache } from '../cache/TokenCache';
 import { ClientAssertion } from "../client/ClientAssertion";
 
 export abstract class ClientApplication {
-    private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
     private tokenCache: TokenCache;
     protected logger: Logger;
-
+    protected config: Configuration;
 
     protected clientAssertion: ClientAssertion;
     protected clientSecret: string;

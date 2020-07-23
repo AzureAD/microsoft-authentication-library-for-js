@@ -6,7 +6,7 @@
 import { ClientApplication } from './ClientApplication';
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "../client/ClientAssertion";
-import { StringUtils } from '@azure/msal-common';
+import { StringUtils, ClientAuthError } from '@azure/msal-common';
 
 export class ConfidentialClientApplication extends ClientApplication {
 
@@ -15,8 +15,9 @@ export class ConfidentialClientApplication extends ClientApplication {
      * Constructor for the ConfidentialClientApplication
      *
      * Required attributes in the Configuration object are:
-     * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal
+     * - clientID: the application ID of your application. You can obtain one by registering your application with our application registration portal
      * - authority: the authority URL for your application.
+     * - client credential: Must set either client secret, certificate, or assertion for confidential clients. You can obtain a client secret from the application registration portal.
      *
      * In Azure AD, authority is a URL indicating of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}.
      * If your application supports Accounts in one organizational directory, replace "Enter_the_Tenant_Info_Here" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com).
@@ -31,11 +32,10 @@ export class ConfidentialClientApplication extends ClientApplication {
      */
     constructor(configuration: Configuration) {
         super(configuration);
-        this.setClientCredential(configuration);
+        this.setClientCredential(this.config);
     }
 
     private setClientCredential(configuration: Configuration): void {
-
         if (!StringUtils.isEmpty(configuration.auth!.clientSecret!)) {
             this.clientSecret = configuration.auth.clientSecret!;
             return;
@@ -49,16 +49,13 @@ export class ConfidentialClientApplication extends ClientApplication {
         if (configuration.auth.clientCertificate != null) {
             const certificate = configuration.auth.clientCertificate;
             if (StringUtils.isEmpty(certificate.thumbprint) || StringUtils.isEmpty(certificate.privateKey)) {
-                // TODO Throw proper error
-                throw Error();
+                throw ClientAuthError.createInvalidCredentialError();
             }
 
             this.clientAssertion = ClientAssertion.fromCertificate(certificate.thumbprint, certificate.privateKey);
             return; 
         }
-
-        // TODO Throw proper error
-        throw Error();
+        throw ClientAuthError.createInvalidCredentialError();
     }
 }
 
