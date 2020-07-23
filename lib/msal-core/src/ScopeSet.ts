@@ -196,4 +196,49 @@ export class ScopeSet {
         return containsClientId && containsSingleScope;
     }
 
+    /**
+     * @ignore
+     * Normalizes scopes array before creating URL string by removing clientId if present and
+     * appending openid and/or profile whenever they are missing.
+     * @param scopes Array<string>: Pre-normalized scopes array
+     * @param clientId string: The application's clientId that is searched for in the scopes array
+     */
+    static normalize(scopes: Array<string>, clientId: string): Array<string> {
+        const prunedScopes = this.spliceClientId(scopes, clientId);
+        return this.appendDefaultScopes(prunedScopes);
+    }
+
+    /**
+     * @ignore
+     * Adds missing OIDC scopes to scopes array withot duplication. Since STS requires OIDC scopes for
+     * all implicit flow requests, 'openid' and 'profile' should always be included in the final request
+     */
+    private static appendDefaultScopes(scopes: Array<string>): Array<string> {
+        const extendedScopes = scopes;
+        if (extendedScopes.indexOf(Constants.openidScope) === -1) {
+            extendedScopes.push(Constants.openidScope);
+        }
+
+        if(extendedScopes.indexOf(Constants.profileScope) === -1) {
+            extendedScopes.push(Constants.profileScope);
+        }
+
+        return extendedScopes;
+    }
+
+    /**
+     * @ignore
+     * Removes clientId from scopes array if included
+     * @param scopes Array<string>: Pre-normalized scopes array
+     * @param clientId string: The application's clientId that is searched for in the scopes array
+     */
+    private static spliceClientId(scopes: Array<string>, clientId: string): Array<string> {
+        const clientIdIndex: number = scopes.indexOf(clientId);
+
+        if (clientIdIndex >= 0) {
+            scopes.splice(clientIdIndex, 1);
+        }
+
+        return scopes;
+    }
 }

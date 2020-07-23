@@ -10,6 +10,7 @@ import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
 import { CryptoUtils } from "./CryptoUtils";
 import { ClientConfigurationError } from "./../error/ClientConfigurationError";
+import { server } from 'sinon';
 
 /**
  * @hidden
@@ -39,15 +40,10 @@ export class UrlUtils {
      * @param scopes
      */
     static createNavigationUrlString(serverRequestParams: ServerRequestParameters): Array<string> {
-        const scopes = serverRequestParams.scopes;
+        const scopes = ScopeSet.normalize(serverRequestParams.scopes, serverRequestParams.clientId);
 
-        if (scopes.indexOf(serverRequestParams.clientId) === -1) {
-            scopes.push(serverRequestParams.clientId);
-        }
         const str: Array<string> = [];
         str.push("response_type=" + serverRequestParams.responseType);
-
-        this.translateclientIdUsedInScope(scopes, serverRequestParams.clientId);
         str.push("scope=" + encodeURIComponent(ScopeSet.parseScope(scopes)));
         str.push("client_id=" + encodeURIComponent(serverRequestParams.clientId));
         str.push("redirect_uri=" + encodeURIComponent(serverRequestParams.redirectUri));
@@ -76,23 +72,6 @@ export class UrlUtils {
 
         str.push("client-request-id=" + encodeURIComponent(serverRequestParams.correlationId));
         return str;
-    }
-
-    /**
-     * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
-     * @param scopes
-     */
-    private static translateclientIdUsedInScope(scopes: Array<string>, clientId: string): void {
-        const clientIdIndex: number = scopes.indexOf(clientId);
-        if (clientIdIndex >= 0) {
-            scopes.splice(clientIdIndex, 1);
-            if (scopes.indexOf("openid") === -1) {
-                scopes.push("openid");
-            }
-            if (scopes.indexOf("profile") === -1) {
-                scopes.push("profile");
-            }
-        }
     }
 
     /**
