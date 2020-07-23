@@ -9,14 +9,16 @@ import { CryptoProvider } from "../crypto/CryptoProvider";
 import { EncodingUtils } from '../utils/EncodingUtils';
 import { JwtConstants } from "../../src/utils/Constants"
 
+/**
+ * Client assertion of type jwt-bearer used in confidential client flows
+ */
 export class ClientAssertion {
 
     public static readonly ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
-    private jwt: string;
 
+    private jwt: string;
     private privateKey: string;
     private thumbprint: string;
-
     private expirationTime: number;
     private issuer: string;
     private jwtAudience: string;
