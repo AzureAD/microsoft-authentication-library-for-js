@@ -20,7 +20,8 @@ import {
     SilentFlowRequest,
     SilentFlowClient,
     Logger,
-    ServerTelemetryManager
+    ServerTelemetryManager,
+    ServerTelemetryRequest
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
@@ -85,18 +86,19 @@ export abstract class ClientApplication {
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByCode called");
         const validRequest = this.initializeRequest(request) as AuthorizationCodeRequest;
-        const telemetryManager = new ServerTelemetryManager(this.storage, ApiId.acquireTokenByCode, validRequest.correlationId!);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByCode, validRequest.correlationId!);
         try {
             const authClientConfig = await this.buildOauthClientConfiguration(
-                request.authority
+                request.authority,
+                serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
             const authorizationCodeClient = new AuthorizationCodeClient(
                 authClientConfig
             );
-            return authorizationCodeClient.acquireToken(validRequest, telemetryManager);
+            return authorizationCodeClient.acquireToken(validRequest);
         } catch (e) {
-            telemetryManager.cacheFailedRequest(e);
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }
@@ -111,18 +113,19 @@ export abstract class ClientApplication {
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByRefreshToken called");
         const validRequest = this.initializeRequest(request) as RefreshTokenRequest;
-        const telemetryManager = new ServerTelemetryManager(this.storage, ApiId.acquireTokenByRefreshToken, validRequest.correlationId!);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByRefreshToken, validRequest.correlationId!);
         try {
             const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
-                request.authority
+                request.authority,
+                serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
             const refreshTokenClient = new RefreshTokenClient(
                 refreshTokenClientConfig
             );
-            return refreshTokenClient.acquireToken(validRequest, telemetryManager);
+            return refreshTokenClient.acquireToken(validRequest);
         } catch (e) {
-            telemetryManager.cacheFailedRequest(e);
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }
@@ -137,17 +140,18 @@ export abstract class ClientApplication {
      */
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
         const validRequest = this.initializeRequest(request) as SilentFlowRequest;
-        const telemetryManager = new ServerTelemetryManager(this.storage, ApiId.acquireTokenSilent, validRequest.correlationId!, validRequest.forceRefresh);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent, validRequest.correlationId!, validRequest.forceRefresh);
         try {
             const silentFlowClientConfig = await this.buildOauthClientConfiguration(
-                request.authority
+                request.authority,
+                serverTelemetryManager
             );
             const silentFlowClient = new SilentFlowClient(
                 silentFlowClientConfig
             );
-            return silentFlowClient.acquireToken(validRequest, telemetryManager);
+            return silentFlowClient.acquireToken(validRequest);
         } catch (e) {
-            telemetryManager.cacheFailedRequest(e);
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }
@@ -160,7 +164,7 @@ export abstract class ClientApplication {
         return this.tokenCache;
     }
 
-    protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
+    protected async buildOauthClientConfiguration(authority?: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         return {
@@ -179,6 +183,7 @@ export abstract class ClientApplication {
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,
             storageInterface: this.storage,
+            serverTelemetryManager: serverTelemetryManager,
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
@@ -200,6 +205,17 @@ export abstract class ClientApplication {
             scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE],
             correlationId: authRequest && authRequest.correlationId || this.cryptoProvider.createNewGuid()
         };
+    }
+
+    protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
+        const telemetryPayload: ServerTelemetryRequest = {
+            clientId: this.config.auth.clientId,
+            correlationId: correlationId,
+            apiId: apiId,
+            forceRefresh: forceRefresh || false
+        };
+
+        return new ServerTelemetryManager(telemetryPayload, this.storage);
     }
 
     /**
