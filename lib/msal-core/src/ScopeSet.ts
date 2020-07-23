@@ -204,7 +204,7 @@ export class ScopeSet {
      * @param clientId string: The application's clientId that is searched for in the scopes array
      */
     static normalize(scopes: Array<string>, clientId: string): Array<string> {
-        const prunedScopes = this.spliceClientId(scopes, clientId);
+        const prunedScopes = this.spliceClientIdIfSingleScope(scopes, clientId);
         return this.appendDefaultScopes(prunedScopes);
     }
 
@@ -228,14 +228,15 @@ export class ScopeSet {
 
     /**
      * @ignore
-     * Removes clientId from scopes array if included
+     * Removes clientId from scopes array if included as only scope. If it's not the only scope, it is treated as a resource scope.
      * @param scopes Array<string>: Pre-normalized scopes array
      * @param clientId string: The application's clientId that is searched for in the scopes array
      */
-    private static spliceClientId(scopes: Array<string>, clientId: string): Array<string> {
+    private static spliceClientIdIfSingleScope(scopes: Array<string>, clientId: string): Array<string> {
         const clientIdIndex: number = scopes.indexOf(clientId);
+        const singleScope = scopes.length === 1;
 
-        if (clientIdIndex >= 0) {
+        if (clientIdIndex >= 0 && singleScope) {
             scopes.splice(clientIdIndex, 1);
         }
 
