@@ -38,6 +38,7 @@ import { Constants,
     ServerHashParamKeys,
     InteractionType,
     libraryVersion,
+    ResponseTypes,
     TemporaryCacheKeys,
     PersistentCacheKeys,
     ErrorCacheKeys,
@@ -65,20 +66,6 @@ declare global {
         requestType: string;
     }
 }
-
-/**
- * @hidden
- * @ignore
- * response_type from OpenIDConnect
- * References: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html & https://tools.ietf.org/html/rfc6749#section-4.2.1
- * Since we support only implicit flow in this library, we restrict the response_type support to only 'token' and 'id_token'
- *
- */
-const ResponseTypes = {
-    id_token: "id_token",
-    token: "token",
-    id_token_token: "id_token token"
-};
 
 /**
  * @hidden
@@ -2239,43 +2226,13 @@ export class UserAgentApplication {
      * @param {@link account} account object
      * @param scopes
      *
-     * @returns {string} token type: id_token or access_token
+     * @returns {string} token type: token, id_token or id_token token
      *
      */
     private getTokenType(accountObject: Account, scopes: string[]): string {
-        let tokenType: string;
         const accountsMatch = Account.compareAccounts(accountObject, this.getAccount());
-        const onlyContainsClientId = ScopeSet.onlyContainsClientId(scopes, this.clientId);
-        const onlyContainsOidcScopes = ScopeSet.onlyContainsOidcScopes(scopes);
-        
-        // Check if accounts match
-        if (accountsMatch) {
-            // OIDC scopes or client ID as only scopes to explicitly request an ID Token
-            if (onlyContainsClientId || onlyContainsOidcScopes) {
-                tokenType = ResponseTypes.id_token;
-            } else {
-                // Resource scopes contained, access token requested for sure
-                if (ScopeSet.containsAnyOidcScopes(scopes)) {
-                    // If either of the OIDC scopes are also contained, also request ID Token
-                    tokenType = ResponseTypes.id_token_token;
-                } else {
-                    // Only resource scopes, no need or want for ID Token
-                    tokenType = ResponseTypes.token;
-                }
-            }
-        }
-        // When accounts don't match, could be account switching or user not logged in. Either way, login is required.
-        else {
-            if (onlyContainsClientId || onlyContainsOidcScopes) {
-                // Supports requesting ID token by sending clientId only or openid/profile/both without other scopes
-                tokenType = ResponseTypes.id_token;
-            } else {
-                // All access token calls when accounts don't match require login
-                tokenType = ResponseTypes.id_token_token;
-            }
-        }
-
-        return tokenType;
+        const loginScopesOnly = ScopeSet.onlyContainsClientId(scopes, this.clientId) || ScopeSet.onlyContainsOidcScopes(scopes);
+        return ServerRequestParameters.determineResponseType(accountsMatch, scopes, loginScopesOnly);
     }
 
     /**

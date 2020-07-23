@@ -74,6 +74,19 @@ export enum ServerHashParamKeys {
 
 /**
  * @hidden
+ * @ignore
+ * response_type from OpenIDConnect
+ * References: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html & https://tools.ietf.org/html/rfc6749#section-4.2.1
+ *
+ */
+export const ResponseTypes = {
+    id_token: "id_token",
+    token: "token",
+    id_token_token: "id_token token"
+};
+
+/**
+ * @hidden
  * CacheKeys for MSAL
  */
 export enum TemporaryCacheKeys {
