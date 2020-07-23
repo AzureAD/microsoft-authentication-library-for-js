@@ -1,56 +1,56 @@
 # Table of Contents
 
 ***
-**[Compatibility](#Compatibility)**
+**[Compatibility](#compatibility)**
 
 1. [What browsers are supported by MSAL.js?](#what-browsers-are-supported-by-msaljs)
 1. [I am moving from ADAL.js to MSAL.js. What should I know?](#i-am-moving-from-adaljs-to-msaljs-what-should-i-know)
 1. [I am moving from MSAL-Angular 0.x to MSAL-Angular 1.x. What should I know?](#i-am-moving-from-msal-angular-0x-to-msal-angular-1x-what-should-i-know)
 
-**[Authentication](Authentication)**
+**[Authentication](#authentication)**
 
 1. [I don't understand the redirect flow. How does the handleRedirectCallback function work?](#i-dont-understand-the-redirect-flow-how-does-the-handleredirectcallback-function-work)
 1. [How can I support authentication with personal Microsoft accounts only?](#how-can-i-support-authentication-with-personal-microsoft-accounts-only)
-1. [How do I log in multiple users to my application?](#How-do-I-log-in-multiple-users-to-my-application?)
+1. [How do I log in multiple users to my application?](#how-do-i-log-in-multiple-users-to-my-application)
 
-**[Single Sign-On](#Single-sign-on)**
+**[Single Sign-On](#single-sign-on)**
 
 1. [How to get single sign-on in my application with MSAL.js?](#how-to-get-single-sign-on-in-my-application-with-msaljs)
 1. [How can my application recognize a user after sign-in? How do I correlate users between applications?](#how-can-my-application-recognize-a-user-after-sign-in-how-do-i-correlate-users-between-applications)
 
-**[Configuration](#Configuration)**
+**[Configuration](#configuration)**
 
-1. [How do I decide what to set as my redirectUri?](#How-do-I-decide-what-to-set-as-my-redirectUri?)
+1. [How do I decide what to set as my redirectUri?](#how-do-i-decide-what-to-set-as-my-redirecturi)
 1. [How do I pass custom state parameter value in MSAL.js authentication request? For example: When you want to pass the page the user is on or custom info to your redirect_uri](#how-do-i-pass-custom-state-parameter-value-in-msaljs-authentication-request-for-example-when-you-want-to-pass-the-page-the-user-is-on-or-custom-info-to-your-redirect_uri)
 1. [What is the difference between sessionStorage and localStorage?](#what-is-the-difference-between-sessionstorage-and-localstorage)
 1. [Where is the authority string on Azure AD Portal?](#where-is-the-authority-domain-string-on-azure-ad-portal)
 
-**[Tokens](#Tokens)**
+**[Tokens](#tokens)**
 
 1. [How do I renew tokens with MSAL.js?](#how-do-i-renew-tokens-with-msaljs)
 1. [How can I acquire tokens faster?](#how-can-i-acquire-tokens-faster)
 1. [How long do tokens last? How long are they valid for?](#how-long-do-tokens-last-how-long-are-they-valid-for)
 
-**[Scopes & Resources](#Scopes-&-resources)**
+**[Scopes & Resources](#scopes--resources)**
 
 1. [My application has multiple resources it needs to access to. How should I handle scopes for access tokens?](#my-application-has-multiple-resources-it-needs-to-access-to-how-should-i-handle-scopes-for-access-tokens)
 1. [In the samples, I see scopes passed in loginRequest and tokenRequest objects. What is the difference between passing scopes during login vs. passing scopes during token acquisition?](#in-the-samples-i-see-scopes-passed-in-loginrequest-and-tokenrequest-objects-what-is-the-difference-between-passing-scopes-during-login-vs-passing-scopes-during-token-acquisition)
 1. [I'm seeing scopes openid, profile, email, offline_access in my tokens, even though I haven't requested them. What are they?](#im-seeing-scopes-openid-profile-email-offline_access-and-userread-in-my-tokens-even-though-i-havent-requested-them-what-are-they)
 
-**[Tenancy & Audience](#Tenancy-&-audience)**
+**[Tenancy & Audience](#tenancy--audience)**
 
 1. [What do I need to make my app multi-tenant?](#what-do-i-need-to-make-my-app-multi-tenant)
 1. [How do I provide admin consent for an app that has no user-interaction capability, like a web API?](#how-do-i-provide-admin-consent-for-an-app-that-has-no-user-interaction-capability-like-a-web-api)
 1. [What are the differences between supported audiences and account types?](#what-are-the-differences-between-supported-audiences-and-account-types)
 
-**[B2C](#B2C)**
+**[B2C](#b2c)**
 
 1. [My B2C application has more than one user-flow/policy. How do I work with multiple policies in MSAL.js?](#my-b2c-application-has-more-than-one-user-flowpolicy-how-do-i-work-with-multiple-policies-in-msaljs)
 1. [How can I implement password reset user flow in my B2C application with MSAL.js?](#how-can-i-implement-password-reset-user-flow-in-my-b2c-application-with-msaljs)
 
-**[Common Issues](#Common-issues)**
+**[Common Issues](#common-issues)**
 1. [How to avoid page reloads when acquiring and renewing tokens silently?](#how-to-avoid-page-reloads-when-acquiring-and-renewing-tokens-silently)
-1. [Why is my application stuck in an infinite redirect loop?](#Why-is-my-application-stuck-in-an-infinite-redirect-loop?)
+1. [Why is my application stuck in an infinite redirect loop?](#why-is-my-application-stuck-in-an-infinite-redirect-loop)
 1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core/docs/errors.md)
 
 ***
