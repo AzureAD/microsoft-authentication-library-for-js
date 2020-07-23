@@ -40,7 +40,7 @@ export type ClientConfiguration = {
 };
 
 /**
- * Use this to configure the auth options in the Configuration object
+ * Use this to configure the auth options in the ClientConfiguration object
  *
  * - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
  * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
@@ -55,26 +55,12 @@ export type AuthOptions = {
 };
 
 /**
- * Use this to configure the telemetry options in the Configuration object
- *
- * - applicationName              - Name of the consuming apps application
- * - applicationVersion           - Version of the consuming application
- */
-export type TelemetryOptions = {
-    applicationName: string;
-    applicationVersion: string;
-    // TODO, add onlyAddFailureTelemetry option
-};
-
-/**
- * Use this to configure token renewal and telemetry info in the Configuration object
+ * Use this to configure token renewal info in the Configuration object
  *
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
- * - telemetry                    - Telemetry options for library network requests
  */
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
-    telemetry?: TelemetryOptions;
 };
 
 /**
@@ -119,8 +105,7 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
-    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    telemetry: null
+    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
