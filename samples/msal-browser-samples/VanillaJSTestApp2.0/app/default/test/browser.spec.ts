@@ -51,7 +51,7 @@ describe("Browser tests", function () {
         await browser.close();
     });
 
-    it.only("Performs loginRedirect", async () => {
+    it("Performs loginRedirect", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
