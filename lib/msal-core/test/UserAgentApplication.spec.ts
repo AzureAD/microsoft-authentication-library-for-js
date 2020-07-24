@@ -1167,7 +1167,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
-        it.only("tests getCachedToken when authority is passed and single matching accessToken is found", function (done) {
+        it("tests getCachedToken when authority is passed and single matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["S1"],
