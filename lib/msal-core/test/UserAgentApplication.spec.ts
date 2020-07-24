@@ -1167,37 +1167,18 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
-        it("tests getCachedToken when authority is passed and single matching accessToken is found", function (done) {
+        it("tests getCachedToken when common authority is passed and single matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["S1"],
                 account: account
             };
-            const tokenRequest2 : AuthenticationParameters = {
+            const tokenRequestAlternate : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
                 scopes: ["S1"],
                 account: account
             };
-            const tokenRequest3 : AuthenticationParameters = {
-                authority: TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
-                scopes: ["S1"],
-                account: account
-            };
-            const tokenRequest4 : AuthenticationParameters = {
-                authority: TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
-                scopes: ["S1"],
-                account: account
-            };
-            const tokenRequest5 : AuthenticationParameters = {
-                authority: TEST_URIS.DEFAULT_INSTANCE + "organizations",
-                scopes: ["S1"],
-                account: account
-            };
-            const tokenRequest6 : AuthenticationParameters = {
-                authority: TEST_URIS.ALTERNATE_INSTANCE + "organizations",
-                scopes: ["S1"],
-                account: account
-            };
+           
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
@@ -1220,18 +1201,44 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
 
-            msal.acquireTokenSilent(tokenRequest2).then(function(response) {
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
                 expect(response.accessToken).to.include("accessTokenAlternate");
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                done();
             }).catch(function(err: AuthError) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
-            msal.acquireTokenSilent(tokenRequest3).then(function(response) {
+            
+        });
+
+        it("tests getCachedToken when organizations authority is passed and single matching accessToken is found", function (done) {
+            
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_URIS.DEFAULT_INSTANCE + "organizations",
+                scopes: ["S1"],
+                account: account
+            };
+            const tokenRequestAlternate : AuthenticationParameters = {
+                authority: TEST_URIS.ALTERNATE_INSTANCE + "organizations",
+                scopes: ["S1"],
+                account: account
+            };
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+
+            accessTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            accessTokenValue.accessToken = "accessTokenAlternate";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
@@ -1242,18 +1249,44 @@ describe("UserAgentApplication.ts Class", function () {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
-            msal.acquireTokenSilent(tokenRequest4).then(function(response) {
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
                 expect(response.accessToken).to.include("accessTokenAlternate");
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                done();
             }).catch(function(err: AuthError) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
-            msal.acquireTokenSilent(tokenRequest5).then(function(response) {
+        });
+
+        it("tests getCachedToken when tenant authority is passed and single matching accessToken is found", function (done) {
+            
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
+                scopes: ["S1"],
+                account: account
+            };
+            const tokenRequestAlternate : AuthenticationParameters = {
+                authority: TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
+                scopes: ["S1"],
+                account: account
+            };
+            
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+
+            accessTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            accessTokenValue.accessToken = "accessTokenAlternate";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
@@ -1264,7 +1297,7 @@ describe("UserAgentApplication.ts Class", function () {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
-            msal.acquireTokenSilent(tokenRequest6).then(function(response) {
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
