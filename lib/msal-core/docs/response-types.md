@@ -14,8 +14,8 @@ The listed response types are possible values for the `response_type` parameter 
 | Response Type | Specification that defines it | Expected token type from successful request | Action |
 | ------------- | ----------------------------- | ------------------------------------------- | ------ |
 | `token` |[OAuth 2.0](https://tools.ietf.org/html/rfc6749#section-3.1.1) | Access Token | Authorization |
-| `id_token`| [OpenID Connect]() | ID Token | Authentication |
-|`id_token token`| [OpenID Connect]() | Access Token and ID token | Authorization & Authentication |
+| `id_token`| [OpenID Connect](https://openid.net/specs/openid-connect-core-1_0.html#Authentication) | ID Token | Authentication |
+|`id_token token`| [OpenID Connect](https://openid.net/specs/openid-connect-core-1_0.html#Authentication) | Access Token and ID token | Authorization & Authentication |
 
 **Note: Given that `msal@1.x` uses the OAuth 2.0 Implicit Flow exclusively, which leverages URL fragments for token reception, it is important to be mindful of URL length limitations. In some cases, getting both an access token and ID token in the same URL may cause unexpected or incorrect behavior.**
 
