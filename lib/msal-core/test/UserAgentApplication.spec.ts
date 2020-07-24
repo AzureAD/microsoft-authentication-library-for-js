@@ -242,7 +242,7 @@ describe("UserAgentApplication.ts Class", function () {
             done();
         });
 
-        it("navigates user to redirectURI passed in the  request config", (done) => {
+        it("navigates user to redirectURI passed in the request config", (done) => {
             window.location = {
                 ...oldWindowLocation,
                 assign: function (url) {
@@ -2214,7 +2214,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
                 expect(request.loginHint).to.equal(loginHint);
-                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
+                expect(request.scopes).to.deep.equal(Constants.oidcScopes);
 
                 atsStub.restore();
                 done();
@@ -2230,7 +2230,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
                 expect(request.sid).to.equal(sid);
-                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
+                expect(request.scopes).to.deep.equal(Constants.oidcScopes);
 
                 atsStub.restore();
                 done();

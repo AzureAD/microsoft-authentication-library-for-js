@@ -190,22 +190,7 @@ export class ScopeSet {
      * Returns true if the clientId is the only scope in the array
      */
     static onlyContainsClientId(scopes: Array<String>, clientId: string): boolean {
-        const containsClientId = scopes.indexOf(clientId) > -1;
-        const containsSingleScope = scopes.length === 1;
-
-        return containsClientId && containsSingleScope;
-    }
-
-    /**
-     * @ignore
-     * Normalizes scopes array before creating URL string by removing clientId if present and
-     * appending openid and/or profile whenever they are missing.
-     * @param scopes Array<string>: Pre-normalized scopes array
-     * @param clientId string: The application's clientId that is searched for in the scopes array
-     */
-    static normalize(scopes: Array<string>, clientId: string): Array<string> {
-        const prunedScopes = this.spliceClientIdIfSingleScope(scopes, clientId);
-        return this.appendDefaultScopes(prunedScopes);
+        return (scopes) ? (scopes.indexOf(clientId) > -1 && scopes.length === 1) : false;
     }
 
     /**
@@ -213,7 +198,7 @@ export class ScopeSet {
      * Adds missing OIDC scopes to scopes array withot duplication. Since STS requires OIDC scopes for
      * all implicit flow requests, 'openid' and 'profile' should always be included in the final request
      */
-    private static appendDefaultScopes(scopes: Array<string>): Array<string> {
+    static appendDefaultScopes(scopes: Array<string>): Array<string> {
         const extendedScopes = scopes;
         if (extendedScopes.indexOf(Constants.openidScope) === -1) {
             extendedScopes.push(Constants.openidScope);
@@ -232,14 +217,7 @@ export class ScopeSet {
      * @param scopes Array<string>: Pre-normalized scopes array
      * @param clientId string: The application's clientId that is searched for in the scopes array
      */
-    private static spliceClientIdIfSingleScope(scopes: Array<string>, clientId: string): Array<string> {
-        const clientIdIndex: number = scopes.indexOf(clientId);
-        const singleScope = scopes.length === 1;
-
-        if (clientIdIndex >= 0 && singleScope) {
-            scopes.splice(clientIdIndex, 1);
-        }
-
-        return scopes;
+    static translateClientIdIfSingleScope(scopes: Array<string>, clientId: string): Array<string> {
+        return this.onlyContainsClientId(scopes, clientId) ? Constants.oidcScopes : scopes;
     }
 }

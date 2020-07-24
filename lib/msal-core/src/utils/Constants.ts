@@ -50,6 +50,7 @@ export class Constants {
     static get common(): string { return "common"; }
     static get openidScope(): string { return "openid"; }
     static get profileScope(): string { return "profile"; }
+    static get oidcScopes(): Array<string> { return [this.openidScope, this.profileScope] ;}
 
     static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
     static get interactionTypePopup(): InteractionType { return "popupInteraction"; }

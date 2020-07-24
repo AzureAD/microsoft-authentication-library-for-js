@@ -59,7 +59,7 @@ export class ServerRequestParameters {
         this.nonce = CryptoUtils.createNewGuid();
 
         // set scope to clientId if null
-        this.scopes = scopes ? [ ...scopes] : [clientId];
+        this.scopes = scopes ? [ ...scopes] : Constants.oidcScopes;
         this.scopes = ScopeSet.trimScopes(this.scopes);
 
         // set state (already set at top level)
@@ -284,9 +284,9 @@ export class ServerRequestParameters {
      * @param scopes Array<string>: AuthenticationRequest scopes configuration
      * @param loginScopesOnly boolean: True if the scopes array ONLY contains the clientId or any combination of OIDC scopes, without resource scopes
      */
-    static determineResponseType(accountsMatch: boolean, scopes: Array<string>, loginScopesOnly: boolean) {
+    static determineResponseType(accountsMatch: boolean, scopes: Array<string>) {
         // Supports getting an id_token by sending in clientId as only scope or OIDC scopes as only scopes
-        if (loginScopesOnly) {
+        if (ScopeSet.onlyContainsOidcScopes(scopes)) {
             return ResponseTypes.id_token;
         }
         // If accounts match, check if OIDC scopes are included, otherwise return id_token_token
