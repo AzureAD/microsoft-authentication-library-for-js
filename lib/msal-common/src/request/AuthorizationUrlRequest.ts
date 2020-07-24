@@ -25,6 +25,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  *          consent: will the trigger the OAuth consent dialog after the user signs in, asking the user to grant permissions to the app
  *          select_account: will interrupt single sign-=on providing account selection experience listing all the accounts in session or any remembered accounts or an option to choose to use a different account
  * - loginHint                  - Can be used to pre-fill the username/email address field of the sign-in page for the user, if you know the username/email address ahead of time. Often apps use this parameter during re-authentication, having already extracted the username from a previous sign-in using the preferred_username claim.
+ * - sid                        - Sesssion ID, unique identifier for the session. Available as an optional claim on ID tokens.
  * - domainHint                 - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant.
  * - extraQueryParameters       - String to string map of custom query parameters.
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
@@ -40,6 +41,7 @@ export type AuthorizationUrlRequest = BaseAuthRequest & {
     prompt?: string;
     loginHint?: string;
     domainHint?: string;
+    sid?: string;
     extraQueryParameters?: StringDict;
     claims?: string;
     nonce?: string;
