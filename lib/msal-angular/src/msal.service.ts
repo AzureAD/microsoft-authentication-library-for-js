@@ -16,6 +16,8 @@ import { MSALError } from "./MSALError";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
 import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
 
+const matcher = require("matcher");
+
 const buildMsalConfig = (config: Configuration) : Configuration => {
     return {
         ...config,
@@ -190,8 +192,14 @@ export class MsalService extends UserAgentApplication {
 
         const protectedResourceMap = frameworkProtectedResourceMap && frameworkProtectedResourceMap.size ? frameworkProtectedResourceMap : new Map(this.msalAngularConfig.protectedResourceMap);
 
-        // process all protected resources and send the matched one
-        const keyForEndpoint = Array.from(protectedResourceMap.keys()).find(key => endpoint.indexOf(key) > -1);
+        // Want to look in protected resources. If key of protected resource matches* with endpoint, then attach token
+        // E.g. token is for /me, endpoints is /me/profile, then want to attach token because /me matches
+        
+        // process all protected resources and send the first matched one using wildcard matcher
+        const protectedResourcesArray = Array.from(protectedResourceMap.keys());
+        const keyMatchesEndpointArray = protectedResourcesArray.filter(key => matcher.isMatch(endpoint, `${key}*`));
+        const keyForEndpoint = keyMatchesEndpointArray[0];
+
         if (keyForEndpoint) {
             return protectedResourceMap.get(keyForEndpoint);
         }
