@@ -33,7 +33,7 @@
         "@types/chai": "^4.1.7",
         "@types/mocha": "^5.2.7",
         "chai": "^4.2.0",
-        "electron": "^5.0.7",
+        "electron": "^7.2.4",
         "mocha": "^6.1.4",
         "ts-node": "^8.3.0",
         "tslint": "^5.18.0",
