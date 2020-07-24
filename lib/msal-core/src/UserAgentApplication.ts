@@ -1404,7 +1404,26 @@ export class UserAgentApplication {
             }
             // if more than one cached token is found
             else if (filteredItems.length > 1) {
-                throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
+                //find an exact match for domain
+                const requestDomain = UrlUtils.GetUrlComponents(serverAuthenticationRequest.authority).HostNameAndPort;
+                const filteredAuthorityItems: Array<AccessTokenCacheItem> = [];
+                for (let i = 0; i < filteredItems.length; i++) {
+                    const domain = UrlUtils.GetUrlComponents(filteredItems[i].key.authority).HostNameAndPort;
+                    if (domain === requestDomain) {
+                        filteredAuthorityItems.push(filteredItems[i]);
+                    }
+                }
+                if (filteredAuthorityItems.length === 1) {
+                    accessTokenCacheItem = filteredAuthorityItems[0];
+                    serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
+                }
+                else if (filteredAuthorityItems.length > 1) {
+                    throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
+                }
+                else {
+                    this.logger.verbose("No matching tokens found");
+                    return null;
+                }
             }
             // if no match found, check if there was a single authority used
             else {
