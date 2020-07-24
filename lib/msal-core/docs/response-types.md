@@ -1,5 +1,7 @@
 # Response Types
 
+> :warning: This document only applies to `msal@1.x` which implements the Implicit Flow Grant type. For the Authorization Code Flow Grant type, please use the [msal-browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) library.
+
 ## Definition and Types
 The `msal@1.x` library, in compliance of both the OAuth 2.0 protocol specification as well as the OpenID Connect specification, defines and supports three different `response types`:
 
@@ -27,7 +29,7 @@ The `response_type` attribute presented above cannot be configured directly. How
 2. Whether the account passed into the request configuration matches the account in the MSAL cache
 3. The contents of the `scopes` array in the Authorization Request Configuration object. For more information on `scopes` configuration, please consult the [Scopes](/docs/scopes.md) document.
 
-**Important note: Login APIs will always set `response_type=id_token`. It doesn not matter whether a matching account is passed in or what scopes are configured.** The fact that there is no extra considerations for `login` APIs to determine the `response_type` make it the most important factor.
+**Important note: Login APIs will always set `response_type=id_token`, given that they are designed to perform user login (authentication).
 
 Login APIs include:
 
