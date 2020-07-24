@@ -17,11 +17,11 @@ The listed response types are possible values for the `response_type` parameter 
 | `id_token`| [OpenID Connect](https://openid.net/specs/openid-connect-core-1_0.html#Authentication) | ID Token | Authentication |
 |`id_token token`| [OpenID Connect](https://openid.net/specs/openid-connect-core-1_0.html#Authentication) | Access Token and ID token | Authorization & Authentication |
 
-**Note: Given that `msal@1.x` uses the OAuth 2.0 Implicit Flow exclusively, which leverages URL fragments for token reception, it is important to be mindful of URL length limitations. In some cases, getting both an access token and ID token in the same URL may cause unexpected or incorrect behavior.**
+**Note: Given that `msal@1.x` uses the OAuth 2.0 Implicit Flow exclusively, which leverages URL fragments for token reception, it is important to be mindful of URL length limitations. Browsers like IE impose restrictions on the length of URLs, so getting both an access token and ID token in the same URL may cause unexpected or incorrect behavior.**
 
 ## Response Type configuration and behavior
 
-The `response_type` attribute presented above is not a directly configurable element of an authorization server request in `msal@1.x`. However, it is important to understand the way `msal@1.x` determines which response type is set and, therefore, what kind of token the developer can expect for each scenario. The factors that come into consideration when setting the request's `response_type` parameter are the following:
+The `response_type` attribute presented above cannot be configured directly. However, it is important to understand the way `msal@1.x` determines which response type is set and, therefore, what kind of token the developer can expect for each scenario. The factors that come into consideration when setting the request's `response_type` parameter are the following:
 
 1. The `msal@1.x` API called
 2. Whether the account passed into the request configuration matches the account in the MSAL cache
@@ -61,11 +61,10 @@ Applies to: `acquireTokenRedirect`, `acquireTokenPopup`, `acquireTokenSilent`
 | ClientId as only scope | Any case | `id_token`|
 | OIDC scopes only | Any Case | `id_token`|
 | ClientId with OIDC scopes | Any case | `id_token token` |
+| Resource scope(s) with OIDC scopes (technically the same as above) | Any case | `id_token token` |
 | Resource scope(s) only | Matches cached account object | `token` |
 | Resource scope(s) and ClientId | Matches cached account object | `token` |
-| Resource scope(s) with OIDC scopes | Matches cached account object | `id_token token` |
 | Resource scope(s) only | Doesn't match cached account object | `id_token token` |
-| Resource scope(s) with OIDC scopes | Doesn't match cached account object | `id_token token` |
 
 **Note: As seen in the table above, when ClientId is not the only scope, it is assumed to be a resource scope with no special behavior.**
 
