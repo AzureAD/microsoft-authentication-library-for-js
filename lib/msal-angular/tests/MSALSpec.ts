@@ -406,8 +406,8 @@ describe("Msal Angular Pubic API tests", function () {
         });
 
         it("success with token type id_token", done => {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
             initializeMsal();
 
@@ -426,8 +426,8 @@ describe("Msal Angular Pubic API tests", function () {
         });
 
         it("success with token type access_token", done => {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_NONCE}`);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
             initializeMsal();
 
@@ -446,8 +446,8 @@ describe("Msal Angular Pubic API tests", function () {
         });
 
         it("failure with token type id_token", done => {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_NUM;
             initializeMsal();
 
@@ -482,8 +482,8 @@ describe("Msal Angular Pubic API tests", function () {
         });
 
         it("failure with token type access_token", done => {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_NUM;
             initializeMsal();
 
