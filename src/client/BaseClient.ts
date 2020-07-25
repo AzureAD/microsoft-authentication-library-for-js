@@ -113,6 +113,7 @@ export abstract class BaseClient {
         });
 
         if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
+            // Telemetry data successfully logged by server, clear Telemetry cache
             this.config.serverTelemetryManager.clearTelemetryCache();
         }
 
