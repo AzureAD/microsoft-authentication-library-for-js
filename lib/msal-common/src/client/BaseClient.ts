@@ -9,7 +9,7 @@ import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
-import { NetworkResponse, NetworkManager } from "../network/NetworkManager";
+import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
@@ -34,9 +34,6 @@ export abstract class BaseClient {
     // Network Interface
     protected networkClient: INetworkModule;
 
-    // Network Manager
-    protected networkManager: NetworkManager;
-
     // Server Telemetry Manager
     protected serverTelemetryManager: ServerTelemetryManager;
 
@@ -58,7 +55,6 @@ export abstract class BaseClient {
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
-        this.networkManager = new NetworkManager(this.networkClient, this.cacheManager);
 
         // Set TelemetryManager
         this.serverTelemetryManager = this.config.serverTelemetryManager;
@@ -105,7 +101,7 @@ export abstract class BaseClient {
      * @param headers
      */
     protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Map<string, string>): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const response = await this.networkManager.sendPostRequest<
+        const response = await this.networkClient.sendPostRequestAsync<
         ServerAuthorizationTokenResponse
         >(tokenEndpoint, {
             body: queryString,
@@ -113,6 +109,7 @@ export abstract class BaseClient {
         });
 
         if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
+            // Telemetry data successfully logged by server, clear Telemetry cache
             this.config.serverTelemetryManager.clearTelemetryCache();
         }
 

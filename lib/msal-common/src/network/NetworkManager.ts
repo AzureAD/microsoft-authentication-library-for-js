@@ -2,10 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { INetworkModule, NetworkRequestOptions } from "./INetworkModule";
-import { CacheManager } from "../cache/CacheManager";
-import { CacheSchemaType, SERVER_TELEM_CONSTANTS } from "../utils/Constants";
 
 export type NetworkResponse<T> = {
     headers: Map<string, string>;
@@ -13,36 +9,5 @@ export type NetworkResponse<T> = {
     status: number;
 };
 
-export class NetworkManager {
-    private networkClient: INetworkModule;
-    private cacheManager: CacheManager;
-
-    constructor(networkClient: INetworkModule, cacheManager: CacheManager) {
-        this.networkClient = networkClient;
-        this.cacheManager = cacheManager;
-    }
-
-    /**
-     * Wraps sendPostRequestAsync with necessary preflight and postflight logic
-     * @param tokenEndpoint
-     * @param options
-     */
-    async sendPostRequest<T>(tokenEndpoint: string, options: NetworkRequestOptions): Promise<NetworkResponse<T>> {
-        const response = await this.networkClient.sendPostRequestAsync<T>(tokenEndpoint, options);
-
-        if (NetworkManager.serverLoggedRequest(response)) {
-            // Request was logged by server, clear telemetry cache
-            this.cacheManager.removeItem(SERVER_TELEM_CONSTANTS.CACHE_KEY, CacheSchemaType.TELEMETRY);;
-        }
-
-        return response;
-    }
-
-    /**
-     * Checks a NetworkResponse object's status codes against 429 or 5xx
-     * @param response
-     */
-    static serverLoggedRequest(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
-        return response.status < 500 && response.status !== 429;
-    }
-}
+// TODO placeholder: this will be filled in by the throttling PR
+export class NetworkManager {}
