@@ -264,7 +264,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            await expect(client.acquireToken(null, undefined, "", "")).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+            await expect(client.acquireToken(null, "", "")).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
             expect(config.storageInterface.getKeys()).to.be.empty;
         });
 
@@ -278,7 +278,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 scopes: ["scope"],
                 code: null
             };
-            await expect(client.acquireToken(codeRequest, undefined, "", "")).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+            await expect(client.acquireToken(codeRequest, "", "")).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
             expect(config.storageInterface.getKeys()).to.be.empty;
         });
 
