@@ -58,7 +58,7 @@ export abstract class BaseClient {
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
-        this.networkManager = new NetworkManager(this.networkClient, this.cacheManager);
+        this.networkManager = new NetworkManager(this.networkClient);
 
         // Set TelemetryManager
         this.serverTelemetryManager = this.config.serverTelemetryManager;
