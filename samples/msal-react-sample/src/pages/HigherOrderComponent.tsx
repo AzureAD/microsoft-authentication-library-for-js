@@ -9,7 +9,7 @@ const HigherOrderComponent: React.FunctionComponent<IMsalProps> = (props) => (
         <UnauthenticatedTemplate>
             <p>You are not authenticated.</p>
         </UnauthenticatedTemplate>
-        {props.account?.name && (<h3>Welcome, {props.account.name}</h3>)}
+        {props.accounts[0]?.username && (<h3>Welcome, {props.accounts[0].username}</h3>)}
     </React.Fragment>
 );
 

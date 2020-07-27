@@ -10,14 +10,14 @@ export const GetAccessTokenPage: React.FunctionComponent = () => {
     //  is being set on a component that isn't mounted
     const getTokenClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         const tokenResponse = await msal.acquireTokenSilent({
-            scopes: [ "user.read" ]
+            account: msal.accounts[0],
+            scopes: [ "user.read"]
         });
 
         setAccessToken(tokenResponse?.accessToken);
     }
 
     // TODO: Show error?
-    
     return (
         <React.Fragment>
             <h2>Access Token</h2>

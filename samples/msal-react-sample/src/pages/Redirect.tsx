@@ -1,17 +1,23 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useHandleRedirect, useMsal, UnauthenticatedTemplate, AuthenticatedTemplate } from '../msal-react';
 
 export const RedirectPage: React.FunctionComponent = () => {
-    const redirectResult = useHandleRedirect();
-    const msal = useMsal();
+    const { accounts, loginRedirect, acquireTokenRedirect } = useMsal();
 
-    const onLoginClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        msal.loginRedirect({
-            scopes: [
-                "user.read"
-            ]
-        });
+    // TODO: This calling the handleRedirectPromise() multiple times will throw a state mismatch error
+    const redirectResult = useHandleRedirect();
+
+    const request = {
+        scopes: ["user.read"]
     }
+
+    const onLoginClick = useCallback(() => {
+        loginRedirect(request);
+    }, [loginRedirect]);
+    
+    const onAcquireTokenClick = useCallback(() => {
+        acquireTokenRedirect(request);
+    }, [acquireTokenRedirect]);
 
     return (
         <React.Fragment>
@@ -23,20 +29,19 @@ export const RedirectPage: React.FunctionComponent = () => {
             </UnauthenticatedTemplate>
 
             <AuthenticatedTemplate>
-                <button onClick={msal.logout}>Call acquireTokenRedirect</button>
-            </AuthenticatedTemplate>
+                <button onClick={onAcquireTokenClick}>Call acquireTokenRedirect</button>
 
+                {accounts[0]?.username && (<h3>Welcome, {accounts[0].username}</h3>)}
             
-            {msal.account?.name && <h3>Welcome, {msal.account.name}</h3>}
-            
-            {redirectResult ? (
-                <React.Fragment>
-                    <p>Redirect response:</p>
-                    <pre>{JSON.stringify(redirectResult, null, 4)}</pre>
-                </React.Fragment>
-            ) : (
-                <p>This page is not returning from a redirect operation.</p>
-            )}
+                {redirectResult ? (
+                    <React.Fragment>
+                        <p>Redirect response:</p>
+                        <pre>{JSON.stringify(redirectResult, null, 4)}</pre>
+                    </React.Fragment>
+                ) : (
+                    <p>This page is not returning from a redirect operation.</p>
+                )}
+            </AuthenticatedTemplate>
         </React.Fragment>
     );
 }

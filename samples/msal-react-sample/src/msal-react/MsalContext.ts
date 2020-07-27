@@ -1,21 +1,9 @@
 import React from 'react';
-import { AuthenticationParameters, TokenResponse, TokenRenewParameters, Account,  } from "@azure/msal-browser";
+import { AccountInfo, IPublicClientApplication, RedirectRequest, EndSessionRequest, AuthorizationUrlRequest, SilentRequest } from "@azure/msal-browser";
 
-// TODO: Move this to msal-browser
-export interface IPublicClientApplication {
-    acquireTokenPopup(request: AuthenticationParameters): Promise<TokenResponse>;
-    acquireTokenRedirect(request: AuthenticationParameters): void;
-    acquireTokenSilent(silentRequest: TokenRenewParameters): Promise<TokenResponse>;
-    getAccount(): Account | null;
-    handleRedirectPromise(): Promise<TokenResponse | null>;
-    loginPopup(request: AuthenticationParameters): Promise<TokenResponse>;
-    loginRedirect(request: AuthenticationParameters): void;
-    logout(): void;
-    ssoSilent(request: AuthenticationParameters): Promise<TokenResponse>;
-}
-
-export interface IMsalProviderContext extends IPublicClientApplication {
-    account: Account | null
+export interface IMsalProps extends IPublicClientApplication {
+    accounts: AccountInfo[],
+    isAuthenticated: boolean
 };
 
 const noProviderError = () => {
@@ -24,45 +12,56 @@ const noProviderError = () => {
     }
 }
 
-const defaultMsalContext: IMsalProviderContext = {
+const defaultMsalContext: IMsalProps = {
     // Msal methods
-    acquireTokenPopup: (request: AuthenticationParameters) => {
+    acquireTokenPopup: (request: AuthorizationUrlRequest) => {
         noProviderError();
         return Promise.reject();
     },
-    acquireTokenRedirect: (request: AuthenticationParameters) => {
-        noProviderError();
-    },
-    acquireTokenSilent: (silentRequest: TokenRenewParameters) => {
+    acquireTokenRedirect: (request: RedirectRequest) => {
         noProviderError();
         return Promise.reject();
     },
-    getAccount: () => {
+    acquireTokenSilent: (silentRequest: SilentRequest) => {
         noProviderError();
-        return null;
+        return Promise.reject();
+    },
+    getAllAccounts: () => {
+        noProviderError();
+        return [];
+    },
+    getAccountByUsername: (userName: string) => {
+        noProviderError();
+        // TODO: getAccountByUsername should have a return type of `AccountInfo | null`
+        // Also should prevent possible null reference exception if no account matches the username
+        // https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/src/app/PublicClientApplication.ts#L466
+        return null as unknown as AccountInfo;
     },
     handleRedirectPromise: () => {
         noProviderError();
         return Promise.reject(null);
     },
-    loginPopup: (request: AuthenticationParameters) => {
+    loginPopup: (request: AuthorizationUrlRequest) => {
         noProviderError();
         return Promise.reject();
     },
-    loginRedirect: (request: AuthenticationParameters) => {
+    loginRedirect: (request: RedirectRequest) => {
         noProviderError();
+        return Promise.reject();
     },
-    logout: () => {
+    logout: (logoutRequest?: EndSessionRequest | undefined) => {
         noProviderError();
+        return Promise.reject();
     },
-    ssoSilent: (request: AuthenticationParameters) => {
+    ssoSilent: (request: AuthorizationUrlRequest) => {
         noProviderError();
         return Promise.reject();
     },
 
     // State values
-    account: null
+    accounts: [],
+    isAuthenticated: false
 }
 
-export const MsalContext = React.createContext<IMsalProviderContext>(defaultMsalContext);
+export const MsalContext = React.createContext<IMsalProps>(defaultMsalContext);
 export const MsalConsumer = MsalContext.Consumer;

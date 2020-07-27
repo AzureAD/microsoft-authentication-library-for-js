@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import './App.css';
 
 import {
@@ -36,15 +36,17 @@ const App: React.FunctionComponent = () => (
 );
 
 const Header: React.FunctionComponent = () => {
-    const msal = useMsal();
+    const { loginPopup, logout } = useMsal();
 
-    const onLoginClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        msal.loginPopup({
-            scopes: [
-                "user.read"
-            ]
+    const onLoginClick = useCallback(() => {
+        loginPopup({
+            scopes: ["user.read"]
         });
-    }
+    }, [loginPopup]);
+
+    const onLogoutClick = useCallback(() => {
+        logout();
+    }, [logout]);
 
     return (
         <header>
@@ -60,7 +62,7 @@ const Header: React.FunctionComponent = () => {
                 </ul>
                 <div className="nav-buttons">
                     <AuthenticatedTemplate>
-                        <button onClick={msal.logout}>Logout</button>
+                        <button onClick={onLogoutClick}>Logout</button>
                     </AuthenticatedTemplate>
                     <UnauthenticatedTemplate>
                         <button onClick={onLoginClick}>Login</button>
