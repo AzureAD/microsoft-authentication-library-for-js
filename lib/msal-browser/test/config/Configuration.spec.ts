@@ -47,7 +47,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.windowHashTimeout).to.be.not.null.and.not.undefined;
         expect(emptyConfig.system.windowHashTimeout).to.be.eq(DEFAULT_POPUP_TIMEOUT_MS);
         expect(emptyConfig.system.tokenRenewalOffsetSeconds).to.be.eq(300);
-        expect(emptyConfig.system.telemetry).to.be.null;
     });
 
     it("Tests logger", () => {
@@ -94,8 +93,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(consoleWarnSpy.calledOnce).to.be.true;
     });
 
-    const testAppName = "MSAL.js App";
-    const testAppVersion = "v1.0.0";
     let testProtectedResourceMap = new Map<string, Array<string>>();
     testProtectedResourceMap.set("testResource1", ["resourceUri1"]);
     it("buildConfiguration correctly assigns new values", () => {
@@ -117,10 +114,6 @@ describe("Configuration.ts Class Unit Tests", () => {
                 loggerOptions: {
                     loggerCallback: testLoggerCallback,
                     piiLoggingEnabled: true
-                },
-                telemetry: {
-                    applicationName: testAppName,
-                    applicationVersion: testAppVersion
                 }
             }
         });
@@ -143,9 +136,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system.windowHashTimeout).to.be.eq(TEST_POPUP_TIMEOUT_MS);
         expect(newConfig.system.tokenRenewalOffsetSeconds).to.be.not.null;
         expect(newConfig.system.tokenRenewalOffsetSeconds).to.be.eq(TEST_OFFSET);
-        expect(newConfig.system.telemetry).to.be.not.null;
-        expect(newConfig.system.telemetry.applicationName).to.be.eq(testAppName);
-        expect(newConfig.system.telemetry.applicationVersion).to.be.eq(testAppVersion);
         expect(newConfig.system.loggerOptions).to.be.not.null;
         expect(newConfig.system.loggerOptions.loggerCallback).to.be.not.null;
         expect(newConfig.system.loggerOptions.piiLoggingEnabled).to.be.true;

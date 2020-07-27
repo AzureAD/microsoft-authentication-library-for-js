@@ -5,7 +5,8 @@ const labApiUri = "https://msidlab.com/api"
 export interface ILabApiParams {
     envName?: string,
     userType?: string,
-    b2cProvider?: string
+    b2cProvider?: string,
+    federationProvider?: string
 };
 
 export class LabClient {
@@ -45,14 +46,15 @@ export class LabClient {
         const accessToken = await this.getCurrentToken();
         let queryParams: Array<string> = [];
 
+
         if (apiParams.envName) {
-            queryParams.push(`envname=${apiParams.envName}`);
+            queryParams.push(`azureenvironment=${apiParams.envName}`);
         }
         if (apiParams.userType) {
             queryParams.push(`usertype=${apiParams.userType}`);
         }
-        if (apiParams.b2cProvider) {
-            queryParams.push(`b2cprovider=${apiParams.b2cProvider}`);
+        if (apiParams.federationProvider) {
+            queryParams.push(`federationprovider=${apiParams.federationProvider}`);
         }
 
         if (queryParams.length <= 0) {

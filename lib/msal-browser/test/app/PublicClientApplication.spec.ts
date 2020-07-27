@@ -6,7 +6,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
@@ -262,13 +262,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
             });
 
-            it("processes hash if navigateToLoginRequestUri is false", async () => {
+            it("processes hash if navigateToLoginRequestUri is false and request origin is the same", async () => {
                 const b64Encode = new Base64Encode();
                 window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, TEST_STATE_VALUES.TEST_STATE);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${TEST_STATE_VALUES.TEST_STATE}`, "123523");
+
                 const testTokenReq: AuthorizationCodeRequest = {
                     redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                     code: "thisIsATestCode",
@@ -277,6 +278,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
                     correlationId: RANDOM_TEST_GUID
                 };
+
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
                 const testServerTokenResponse = {
                     headers: null,
@@ -292,6 +294,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
                     }
                 };
+
                 const testIdTokenClaims: IdTokenClaims = {
                     "ver": "2.0",
                     "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
@@ -302,12 +305,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                     "nonce": "123523",
                 };
+
                 const testAccount: AccountInfo = {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: "login.windows.net",
                     tenantId: testIdTokenClaims.tid,
                     username: testIdTokenClaims.preferred_username
                 };
+
                 const testTokenResponse: AuthenticationResult = {
                     uniqueId: testIdTokenClaims.oid,
                     tenantId: testIdTokenClaims.tid,
@@ -319,6 +324,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount
                 };
+
                 sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
@@ -327,6 +333,91 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         navigateToLoginRequestUrl: false
                     }
                 });
+
+                const tokenResponse = await pca.handleRedirectPromise();
+                expect(tokenResponse.uniqueId).to.be.eq(testTokenResponse.uniqueId);
+                expect(tokenResponse.tenantId).to.be.eq(testTokenResponse.tenantId);
+                expect(tokenResponse.scopes).to.be.deep.eq(testTokenResponse.scopes);
+                expect(tokenResponse.idToken).to.be.eq(testTokenResponse.idToken);
+                expect(tokenResponse.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
+                expect(tokenResponse.accessToken).to.be.eq(testTokenResponse.accessToken);
+                expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
+                expect(window.sessionStorage.length).to.be.eq(4);
+                expect(window.location.hash).to.be.empty;
+            });
+
+            it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
+                const b64Encode = new Base64Encode();
+                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`, TEST_STATE_VALUES.TEST_STATE);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${TEST_STATE_VALUES.TEST_STATE}`, "123523");
+
+                const testTokenReq: AuthorizationCodeRequest = {
+                    redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                    code: "thisIsATestCode",
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    authority: `${Constants.DEFAULT_AUTHORITY}`,
+                    correlationId: RANDOM_TEST_GUID
+                };
+
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
+                const testServerTokenResponse = {
+                    headers: null,
+                    status: 200,
+                    body: {
+                        token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                        scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        access_token: TEST_TOKENS.ACCESS_TOKEN,
+                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                        id_token: TEST_TOKENS.IDTOKEN_V2,
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
+                    }
+                };
+
+                const testIdTokenClaims: IdTokenClaims = {
+                    "ver": "2.0",
+                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523",
+                };
+
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: "login.windows.net",
+                    tenantId: testIdTokenClaims.tid,
+                    username: testIdTokenClaims.preferred_username
+                };
+
+                const testTokenResponse: AuthenticationResult = {
+                    uniqueId: testIdTokenClaims.oid,
+                    tenantId: testIdTokenClaims.tid,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    idToken: testServerTokenResponse.body.id_token,
+                    idTokenClaims: testIdTokenClaims,
+                    accessToken: testServerTokenResponse.body.access_token,
+                    fromCache: false,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
+                    account: testAccount
+                };
+
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        navigateToLoginRequestUrl: false
+                    }
+                });
+
                 const tokenResponse = await pca.handleRedirectPromise();
                 expect(tokenResponse.uniqueId).to.be.eq(testTokenResponse.uniqueId);
                 expect(tokenResponse.tenantId).to.be.eq(testTokenResponse.tenantId);
@@ -367,6 +458,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
 
                 pca.loginRedirect(loginRequest);
+            });
+
+            it("loginRedirect navigates to created login url, with empty request", (done) => {
+                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Window => {
+                    expect(navigateUrl.startsWith(testNavUrlNoRequest)).to.be.true;
+                    done();
+                    return window;
+				});
+				sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+					challenge: TEST_CONFIG.TEST_CHALLENGE,
+					verifier: TEST_CONFIG.TEST_VERIFIER
+				});
+                sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+                sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
+
+                pca.loginRedirect();
             });
 
 			it("Updates cache entries correctly", async () => {
