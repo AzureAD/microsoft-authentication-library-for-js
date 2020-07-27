@@ -515,7 +515,7 @@ export class UserAgentApplication {
 
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
-        const requestSignature = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
+        const requestSignature = request.scopes ? request.scopes.join(" ").toLowerCase() : Constants.oidcScopes.join(" ");
         this.logger.verbosePii(`Request signature: ${requestSignature}`);
 
         let serverAuthenticationRequest: ServerRequestParameters;
