@@ -1,58 +1,22 @@
 import * as Mocha from "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import fs from "fs";
-import { LabClient, ILabApiParams } from "../../../e2eTests/LabClient";
+import { ILabApiParams } from "../../../e2eTests/LabClient";
+import { createFolder, setupCredentials, Screenshot, getTokens, getAccountFromCache, accessTokenForScopesExists, removeTokens } from "../../../e2eTests/TestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-let SCREENSHOT_NUM = 0;
 let username = "";
 let accountPwd = "";
 
-// Set App Info
-const clientId = "e3b9ad76-9763-4827-b088-80c7a7888f79";
-const authority = "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/"
-const scopes = ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
-const idTokenCacheKey = "msal." + clientId + ".idtoken"
-const clientInfoCacheKey = "msal." + clientId + ".client.info"
-
-function setupScreenshotDir() {
-    if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
-        fs.mkdirSync(SCREENSHOT_BASE_FOLDER_NAME);
-    }
-}
-
-async function setupCredentials() {
-    const testCreds = new LabClient();
-    const userParams: ILabApiParams = {envName: "azurecloud"};
-    const envResponse = await testCreds.getUserVarsByCloudEnvironment(userParams);
-    const testEnv = envResponse[0];
-    if (testEnv.upn) {
-        username = testEnv.upn;
-    }
-
-    const testPwdSecret = await testCreds.getSecret(testEnv.labName);
-
-    accountPwd = testPwdSecret.value;
-}
-
-async function takeScreenshot(page: puppeteer.Page, testName: string, screenshotName: string): Promise<void> {
-    const screenshotFolderName = `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-    if (!fs.existsSync(`${screenshotFolderName}`)) {
-        fs.mkdirSync(screenshotFolderName);
-    }
-    await page.screenshot({ path: `${screenshotFolderName}/${++SCREENSHOT_NUM}_${screenshotName}.png` });
-}
-
-async function enterCredentials(page: puppeteer.Page, testName: string): Promise<void> {
+async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0116");
-    await takeScreenshot(page, testName, `loginPage`);
+    await screenshot.takeScreenshot(page, `loginPage`);
     await page.type("#i0116", username);
     await page.click("#idSIButton9");
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0118");
-    await takeScreenshot(page, testName, `pwdInputPage`);
+    await screenshot.takeScreenshot(page, `pwdInputPage`);
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
 
@@ -61,32 +25,32 @@ async function enterCredentials(page: puppeteer.Page, testName: string): Promise
     await page.click("#idSIButton9");
 }
 
-async function loginRedirect(page: puppeteer.Page, testName: string): Promise<void> {
+async function loginRedirect(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
     // Home Page
-    await takeScreenshot(page, testName, `samplePageInit`);
+    await screenshot.takeScreenshot(page, `samplePageInit`);
     // Click Sign In
     await page.click("#SignIn");
-    await takeScreenshot(page, testName, `signInClicked`);
+    await screenshot.takeScreenshot(page, `signInClicked`);
     // Click Sign In With Redirect
     await page.click("#loginRedirect");
     await page.waitForSelector("#MSIDLAB4_AzureAD");
-    await takeScreenshot(page, testName, "b2cSignInPage");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
     await page.click("#MSIDLAB4_AzureAD");
 
     // Enter credentials
-    await enterCredentials(page, testName);
+    await enterCredentials(page, screenshot);
     // Wait for return to page
     await page.waitForSelector("#getAccessTokenRedirect");
-    await takeScreenshot(page, testName, `samplePageLoggedIn`);
+    await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
 }
 
-async function loginPopup(page: puppeteer.Page, testName: string): Promise<void> {
+async function loginPopup(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
     // Home Page
-    await takeScreenshot(page, testName, `samplePageInit`);
+    await screenshot.takeScreenshot(page, `samplePageInit`);
     // Click Sign In
     await page.click("#SignIn");
-    await takeScreenshot(page, testName, `signInClicked`);
+    await screenshot.takeScreenshot(page, `signInClicked`);
     // Click Sign In With Popup
     const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once('popup', resolve));
     await page.click("#loginPopup");
@@ -94,39 +58,16 @@ async function loginPopup(page: puppeteer.Page, testName: string): Promise<void>
     const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
 
     await popupPage.waitForSelector("#MSIDLAB4_AzureAD");
-    await takeScreenshot(popupPage, testName, "b2cSignInPage");
+    await screenshot.takeScreenshot(popupPage, "b2cSignInPage");
     // Select Lab Provider
     await popupPage.click("#MSIDLAB4_AzureAD");
 
     // Enter credentials
-    await enterCredentials(popupPage, testName);
+    await enterCredentials(popupPage, screenshot);
     // Wait until popup window closes and see that we are logged in
     await popupWindowClosed;
     await page.waitForSelector("#getAccessTokenPopup");
-    await takeScreenshot(page, testName, `samplePageLoggedIn`);
-}
-
-async function validateAccessTokens(page: puppeteer.Page, localStorage: Storage) {
-    let accessTokensFound = 0
-    let accessTokenMatch: boolean;
-
-    Object.keys(localStorage).forEach(async (key) => {
-        if (key.includes("authority")) {
-            let cacheKey = JSON.parse(key);
-            let cachedScopeList = cacheKey.scopes.split(" ");
-
-            accessTokenMatch = cacheKey.authority === authority.toLowerCase() &&
-                                cacheKey.clientId.toLowerCase() === clientId.toLowerCase() &&
-                                scopes.every(scope => cachedScopeList.includes(scope));
-
-            if (accessTokenMatch) {
-                accessTokensFound += 1;
-                await page.evaluate((key) => window.localStorage.removeItem(key))
-            }
-        }
-    });
-
-    return accessTokensFound;
+    await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
 }
 
 describe("Browser tests", function () {
@@ -135,8 +76,9 @@ describe("Browser tests", function () {
 
     let browser: puppeteer.Browser;
     before(async () => {
-        setupScreenshotDir();
-        setupCredentials();
+        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        const userParams: ILabApiParams = {envName: "azurecloud"};
+        [username, accountPwd] = await setupCredentials(userParams);
         browser = await puppeteer.launch({
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
@@ -153,7 +95,6 @@ describe("Browser tests", function () {
 
     describe("Test Login functions", async () => {  
         beforeEach(async () => {
-            SCREENSHOT_NUM = 0;
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
             await page.goto('http://localhost:30662/');
@@ -165,33 +106,34 @@ describe("Browser tests", function () {
 
         it("Performs loginRedirect", async () => {
             const testName = "redirectBaseCase";
-            await loginRedirect(page, testName);
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            await loginRedirect(page, screenshot);
             
-            const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-
-            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
-            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
+            const tokenStore = await getTokens(page);
+            expect(tokenStore.idTokens).to.be.length(1);
+            expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
         });
         
         it("Performs loginPopup", async () => {
             const testName = "popupBaseCase";
-            await loginPopup(page, testName);
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            await loginPopup(page, screenshot);
             
-            const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
-            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
+            const tokenStore = await getTokens(page);
+            expect(tokenStore.idTokens).to.be.length(1);
+            expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
         });
     });
 
     describe("Test AcquireToken functions", async () => {
         const testName = "acquireTokenBaseCase";
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
         before(async () => {
-            SCREENSHOT_NUM = 0;
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
             await page.goto('http://localhost:30662/');
-            await loginPopup(page, testName);
+            await loginPopup(page, screenshot);
         });
     
         after(async () => {
@@ -199,51 +141,80 @@ describe("Browser tests", function () {
         });
 
         afterEach(async () => {
+            const tokenStore = await getTokens(page);
+            removeTokens(page, tokenStore.accessTokens);
+            removeTokens(page, tokenStore.refreshTokens);
             await page.reload();
         });
 
         it("Test acquireTokenRedirect", async () => {
             await page.click("#getAccessTokenRedirect");
             await page.waitForSelector("#access-token-info");
-            await takeScreenshot(page, testName, "accessTokenAcquiredRedirect");
+            await screenshot.takeScreenshot(page, "accessTokenAcquiredRedirect");
 
-            const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
-            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
-
-            const accessTokensFound = await validateAccessTokens(page, localStorage);
-            expect(accessTokensFound).to.equal(1);
+            const tokenStore = await getTokens(page);
+            expect(tokenStore.idTokens).to.be.length(1);
+            expect(tokenStore.accessTokens).to.be.length(1);
+            expect(tokenStore.refreshTokens).to.be.length(1);
+            expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
+            expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).to.be.true;
         }); 
 
         it("Test acquireTokenPopup", async () => {
             await page.click("#getAccessTokenPopup");
             await page.waitForSelector("#access-token-info");
-            await takeScreenshot(page, testName, "accessTokenAcquiredPopup");
+            await screenshot.takeScreenshot(page, "accessTokenAcquiredPopup");
 
-            const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
-            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
-
-            const accessTokensFound = await validateAccessTokens(page, localStorage);
-            expect(accessTokensFound).to.equal(1);
+            const tokenStore = await getTokens(page);
+            expect(tokenStore.idTokens).to.be.length(1);
+            expect(tokenStore.accessTokens).to.be.length(1);
+            expect(tokenStore.refreshTokens).to.be.length(1);
+            expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
+            expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).to.be.true;
         }); 
 
         it("Test acquireTokenSilent", async () => {
-            await page.click("#getAccessTokenPopup");
-            await page.waitForSelector("#access-token-info");
-            await page.reload();
-
+            // AcquireTokenSilent no refresh token available
             await page.waitForSelector("#getAccessTokenSilent");
             await page.click("#getAccessTokenSilent");
             await page.waitForSelector("#access-token-info");
-            await takeScreenshot(page, testName, "accessTokenAcquiredSilently");
+            await screenshot.takeScreenshot(page, "accessTokenAcquiredSilently");
 
-            const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
-            expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
-            expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
-            
-            const accessTokensFound = await validateAccessTokens(page, localStorage);
-            expect(accessTokensFound).to.equal(1);
+            let tokenStore = await getTokens(page);
+            expect(tokenStore.idTokens).to.be.length(1);
+            expect(tokenStore.accessTokens).to.be.length(1);
+            expect(tokenStore.refreshTokens).to.be.length(1);
+            expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
+            expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).to.be.true;
+
+            // AcquireTokenSilent use refresh token to acquire new accessToken
+            removeTokens(page, tokenStore.accessTokens);
+            page.reload();
+            await page.waitForSelector("#getAccessTokenSilent");
+            await page.click("#getAccessTokenSilent");
+            await page.waitForSelector("#access-token-info");
+            await screenshot.takeScreenshot(page, "accessTokenAcquiredSilently");
+
+            tokenStore = await getTokens(page);
+            expect(tokenStore.idTokens).to.be.length(1);
+            expect(tokenStore.accessTokens).to.be.length(1);
+            expect(tokenStore.refreshTokens).to.be.length(1);
+            expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
+            expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).to.be.true;
+
+            // AcquireTokenSilent from cache
+            page.reload();
+            await page.waitForSelector("#getAccessTokenSilent");
+            await page.click("#getAccessTokenSilent");
+            await page.waitForSelector("#access-token-info");
+            await screenshot.takeScreenshot(page, "accessTokenAcquiredSilently");
+
+            tokenStore = await getTokens(page);
+            expect(tokenStore.idTokens).to.be.length(1);
+            expect(tokenStore.accessTokens).to.be.length(1);
+            expect(tokenStore.refreshTokens).to.be.length(1);
+            expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
+            expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).to.be.true;
         }); 
     });
 });
