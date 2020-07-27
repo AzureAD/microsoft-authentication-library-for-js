@@ -33,7 +33,7 @@
 1. [How long do tokens last? How long are they valid for?](#how-long-do-tokens-last-how-long-are-they-valid-for)
 1. [What are the differences between supported audiences and account types?](#what-are-the-differences-between-supported-audiences-and-account-types)
 
-**[Scopes & Resources](Scopes-&-Resources)**
+**[Scopes & Resources](#Scopes-&-Resources)**
 
 1. [My application has multiple resources it needs to access to. How should I handle scopes for access tokens?](#my-application-has-multiple-resources-it-needs-to-access-to-how-should-i-handle-scopes-for-access-tokens)
 
