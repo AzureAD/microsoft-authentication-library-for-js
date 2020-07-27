@@ -13,11 +13,13 @@ import {
     CacheManager,
     CredentialEntity,
     ClientAuthError,
-    Logger
+    Logger,
+    Constants as CommonConstants,
+    APP_META_DATA
 } from '@azure/msal-common';
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
-import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
+import { InMemoryCache, JsonCache, CacheKVStore, ValidCacheTypes } from "./serializer/SerializerTypes";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -39,6 +41,8 @@ export class Storage extends CacheManager {
         idTokens: {},
     };
 
+    private cacheKVStore: CacheKVStore;
+
     private changeEmitters: Array<Function> = [];
 
     registerChangeEmitter(func: () => void): void {
@@ -52,19 +56,50 @@ export class Storage extends CacheManager {
     /**
      * gets the current in memory cache for the client
      */
-    getCache(): object {
+    getInMemoryCache(): object {
         this.logger.verbose("Getting in-memory cache");
+
+        //TODO: convert the cache key value store to inMemoryCache
+
         return this.inMemoryCache;
+    }
+
+    /**
+     * get the current cache key-value store
+     */
+    getCache(): CacheKVStore {
+        this.logger.verbose("Getting cache key-value store");
+        return this.cacheKVStore;
     }
 
     /**
      * sets the current in memory cache for the client
      * @param inMemoryCache
      */
-    setCache(inMemoryCache: InMemoryCache) {
+    setInMemoryCache(inMemoryCache: InMemoryCache): void{
         this.logger.verbose("Setting in-memory cache");
         this.inMemoryCache = inMemoryCache;
+
+        // convert in memory cache to a flat Key-Value map
+        let cacheKVStore = {
+            ...this.inMemoryCache.accounts,
+            ...this.inMemoryCache.idTokens,
+            ...this.inMemoryCache.accessTokens,
+            ...this.inMemoryCache.refreshTokens,
+            ...this.inMemoryCache.appMetadata
+        }
+        this.setCache(cacheKVStore);
+
         this.emitChange();
+    }
+
+    /**
+     * sets the current cache (key value store)
+     * @param cacheMap
+     */
+    setCache(cacheKVStore: CacheKVStore): void {
+        this.logger.verbose("Setting cache key value store");
+        this.cacheKVStore = cacheKVStore;
     }
 
     /**
@@ -82,7 +117,7 @@ export class Storage extends CacheManager {
         this.logger.verbose(`setItem called for item type: ${type}`);
         this.logger.verbosePii(`Item key: ${key}`);
         // read inMemoryCache
-        const cache = this.getCache() as InMemoryCache;
+        const cache = this.getInMemoryCache() as InMemoryCache;
 
         // save the cacheItem
         switch (type) {
@@ -121,7 +156,7 @@ export class Storage extends CacheManager {
         }
 
         // update inMemoryCache
-        this.setCache(cache);
+        this.setInMemoryCache(cache);
         this.emitChange();
     }
 
@@ -136,7 +171,7 @@ export class Storage extends CacheManager {
         this.logger.verbose(`getItem called for item type: ${type}`);
         this.logger.verbosePii(`Item key: ${key}`);
         // read inMemoryCache
-        const cache = this.getCache() as InMemoryCache;
+        const cache = this.getInMemoryCache() as InMemoryCache;
 
         // save the cacheItem
         switch (type!) {
@@ -184,7 +219,7 @@ export class Storage extends CacheManager {
         this.logger.verbose(`removeItem called for item type: ${type}`);
         this.logger.verbosePii(`Item key: ${key}`);
         // read inMemoryCache
-        const cache = this.getCache() as InMemoryCache;
+        const cache = this.getInMemoryCache() as InMemoryCache;
         let result: boolean = false;
 
         // save the cacheItem
@@ -240,7 +275,7 @@ export class Storage extends CacheManager {
 
         // write to the cache after removal
         if (result) {
-            this.setCache(cache);
+            this.setInMemoryCache(cache);
             this.emitChange();
         }
         return result;
@@ -261,7 +296,7 @@ export class Storage extends CacheManager {
     getKeys(): string[] {
         this.logger.verbose("Retrieving all cache keys");
         // read inMemoryCache
-        const cache: InMemoryCache= this.getCache() as InMemoryCache;
+        const cache: InMemoryCache= this.getInMemoryCache() as InMemoryCache;
         return [
             ...Object.keys(cache.accounts),
             ...Object.keys(cache.idTokens),
@@ -285,6 +320,64 @@ export class Storage extends CacheManager {
         });
         this.emitChange();
     }
+
+    /**
+     * Helper function to generate object type from the key
+     * @param key
+     */
+    getCacheValueType(key: string): ValidCacheTypes {
+
+        // If it is a "Credential"
+        let credentialType = CredentialEntity.getCredentialEntityType(key);
+        if (credentialType != CommonConstants.NOT_DEFINED) {
+            return credentialType;
+        }
+        else if (this.isAppMetadata(key)) {
+            return typeof AppMetadataEntity;
+        }
+        else if (this.isAccount(key)) {
+            return typeof AccountEntity;
+        }
+
+        return CacheSchemaType.UNDEFINED;
+    }
+
+    /**
+     * returns a boolen if a given key refers to "AppMetadata" cache type
+     * @param key
+     */
+    isAppMetadata(key: string) {
+        return key.includes(APP_META_DATA);
+    }
+
+    /**
+     * returns a boolean if a given key refers to an "Account" cache type
+     * @param key
+     */
+    isAccount(key: string) {
+        let cache = this.getCache();
+        let entity = cache[key];
+        console.log("in isAccount, ", entity, typeof entity);
+        if (entity instanceof AccountEntity) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // getItem() -> CacheKVStore -> <key, object> -> object;
+    // optional: For browser since browser stores objects as strings
+    // getCacheValueType() -> returns the type
+    // returns obj as type;
+
+    // setItem() -> set into CacheKVStore
+    // getInMemoryCache() -> upgrade this to map CacheKVStore: InMemoryCache
+    // setInMemoryCache() -> upgrade this to map InMemoryCache: CacheKVStore
+
+    // TODO: Verify instanceOf validity
+    // TODO: isAccount() may need more digging if above does not work
+    // Move helpers to msal-common
+    // Modify getItem, setItem, removeItem
 
     /**
      * Initialize in memory cache from an exisiting cache vault
