@@ -188,7 +188,8 @@ export class ScopeSet {
      * Returns true if the clientId is the only scope in the array
      */
     static onlyContainsClientId(scopes: Array<String>, clientId: string): boolean {
-        return (scopes) ? (scopes.indexOf(clientId) > -1 && scopes.length === 1) : false;
+        // Double negation to force false value returned in case scopes is null
+        return !!scopes && (scopes.indexOf(clientId) > -1 && scopes.length === 1);
     }
 
     /**
