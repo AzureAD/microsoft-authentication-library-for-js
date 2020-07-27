@@ -1,6 +1,7 @@
 # Scope Configuration and Behavior
 
 ## Contents
+* [Quick Reference](#quick-reference)
 * [Scopes](#scopes)
     * [Scope Functions](#scope-functions)
     * [Scope Types](#scope-types)
@@ -9,6 +10,20 @@
 * [Scopes Behavior](#scopes-behavior)
     * [Default Scopes in Authorization Requests](#default-scopes-on-authorization-requests)
     * [Special OIDC Scopes behavior cases](#special-oidc-scopes-behavior-cases)
+
+## Quick Reference
+
+> This section provides a summary of the main points this document addresses, without getting into any details. If you need more clarity or information about the functionality and behavior of Scopes in `msal@1.x`, please read the rest of this document.
+
+The key takeaways of the way `msal@1.x` handles and uses scopes are:
+
+1. The `msal@1.x` library will always append `openid` and `profile` as scopes in every outgoing request.
+2. Setting the value of the application's ClientId as the only scope will result in it being replaced by `openid` and `profile` and an ID Token being returned
+
+If you're interested in learning more about the reasoning and implications around these two specific behaviors, please read on.
+
+
+
 ## Scopes
 
 Microsoft identity platform access tokens, which `msal@1.x` acquires in compliance with the OAuth 2.0 protocol specification, are issued to applications as proof of authorization on behalf of a user for a certain resource. The issuing of these tokens is not only specific to an `audience`, or application, but also specific to a set of `scopes` or permissions.

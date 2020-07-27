@@ -2,6 +2,18 @@
 
 > :warning: This document only applies to `msal@1.x` which implements the Implicit Flow Grant type. For the Authorization Code Flow Grant type, please use the [msal-browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) library.
 
+## Quick Reference
+
+> This section provides a summary of the main points this document addresses, without getting into any details. If you need more clarity or information about the functionality and behavior of Response Types in `msal@1.x`, please read the rest of this document.
+
+The key takeaways of the way `msal@1.x` determines and handles `Response Types` are:
+
+1. `loginRedirect`, `loginPopup` and `ssoSilent` will always return ID tokens and have a `response_type` of `id_token`.
+2. `acquireToken` requests will always return an ID Token if `openid` or `profile` are included in the request scopes.
+3. `acquireToken` requests will always return an access_token if a `resource scope` is requested.
+
+If you're interested in learning more about the reasoning and implications around the way response types are determined and what they are used for, please read the rest of this document.
+
 ## Definition and Types
 The `msal@1.x` library, in compliance of both the OAuth 2.0 protocol specification as well as the OpenID Connect specification, defines and supports three different `response types`:
 
