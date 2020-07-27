@@ -73,7 +73,7 @@ We are currently working with the B2C service team to allow for authorization co
 
 ## I don't understand the redirect flow. How does the `handleRedirectPromise` function work?
 
-The redirect flow can be confusing, as redirecting away from the page means you are creating a whole new instance of the application when you return. This means that calling a redirect method cannot return anything. Rather what happens is, the page is redirected away, you enter your credentials and you are redirected back to your application with the response in the url hash.
+The redirect flow can be confusing, as redirecting away from the page means you are creating a whole new instance of the application when you return. This means that calling a redirect method cannot return anything. Rather, what happens is that the page is redirected away, you enter your credentials, and you are redirected back to your application with the response in the url hash.
 
 If `navigateToRequestUrl` property in MSAL configuration parameters is set to **true**, you will be redirected again to the page you were on when you called `loginRedirect`, unless that page was also set as your `redirectUri`. On the final page your application must call `handleRedirectPromise()` in order to process the hash and cache tokens in local/session storage.
 
