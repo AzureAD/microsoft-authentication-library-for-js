@@ -16,9 +16,9 @@ export type RequestThumbprint = {
 * Response contains a `Retry-After` header *and* does not have a 2xx HTTP status.
 * The request requires user interaction, represented in `msaljs` as `UserInteractionRequiredError`.
 
-Before making a silent call, `msaljs` checks to see if a unique `RequestThumbprint` is currently being throttled, and if so, will not make that call and return an error back to the user. Interactive calls bypass this gate as they are made to alleviate the problem. Additionally, a throttle will be cleared upon a successful interactive response from the server.
+Before making a silent call, `msaljs` checks to see if a unique `RequestThumbprint` is currently being throttled, and if so, will not make that call and return an error back to the user. Interactive calls bypass this gate as they are made to alleviate the problem. Additionally, a throttled `RequestThumbprint` will be cleared upon a successful interactive response from the server.
 
-The default throttling time is 60 seconds, and maximum possible throttling time is 3600 seconds.
+If the server does not provide a time to throttle a `RequestThumbprint`, the default length is 60 seconds. The maximum possible length is 3600 seconds, which `msaljs` will use to override if the server provides something longer.
 
 ```ts
 export const ThrottleConstants = {
