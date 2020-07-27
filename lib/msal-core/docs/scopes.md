@@ -89,6 +89,8 @@ The following is a list of practical implications and examples of the default sc
         { scopes: ['User.Read', 'openid'] } // becomes { scopes ['User.Read', 'openid', 'profile']} before the request is sent
 
         { scopes: ['User.Read', 'profile'] } // becomes { scopes ['User.Read', 'profile', 'openid']} before the request is sent
+
+        { scopes: ['http://contoso.com/scope'] } // becomes { scopes ['http://contoso.com/scope', 'openid', 'profile'] }
     ```
 - ClientId is removed form the scopes array when it is the only scope in the configuration.If it is not the only scope, it is treated as a resource scope and will be sent in the final server request.
 
