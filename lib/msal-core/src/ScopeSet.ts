@@ -158,6 +158,7 @@ export class ScopeSet {
      * Returns true if the scopes array only contains openid and/or profile
      */
     static onlyContainsOidcScopes(scopes: Array<string>): boolean {
+        const scopesCount = scopes.length;
         let oidcScopesFound = 0;
 
         if (scopes.indexOf(Constants.openidScope) > -1) {
@@ -168,10 +169,7 @@ export class ScopeSet {
             oidcScopesFound += 1;
         }
 
-        const nonOidcScopes = scopes.length - oidcScopesFound;
-
-        return (nonOidcScopes === 0);
-
+        return (scopesCount > 0 && scopesCount === oidcScopesFound);
     }
 
        /**
