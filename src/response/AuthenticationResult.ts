@@ -19,9 +19,10 @@ import { AccountInfo } from "../account/AccountInfo";
  * - expiresOn              - Javascript Date object representing relative expiration of access token
  * - extExpiresOn           - Javascript Date object representing extended relative expiration of access token in case of server outage
  * - state                  - Value passed in by user in request
+ * - platformState          - State passed in by platform library
  * - familyId               - Family ID identifier, usually only used for refresh tokens
  */
-export class AuthenticationResult {
+export type AuthenticationResult = {
     uniqueId: string;
     tenantId: string;
     scopes: Array<string>;
@@ -33,5 +34,6 @@ export class AuthenticationResult {
     expiresOn: Date;
     extExpiresOn?: Date;
     state?: string;
+    platformState?: string;
     familyId?: string;
-}
+};
