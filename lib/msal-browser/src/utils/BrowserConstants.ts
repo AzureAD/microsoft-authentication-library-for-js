@@ -50,3 +50,12 @@ export enum TemporaryCacheKeys {
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
 }
+
+/**
+ * Interaction type of the API - used for state and telemetry
+ */
+export enum InteractionType {
+    REDIRECT = "redirect",
+    POPUP = "popup",
+    SILENT = "silent"
+}

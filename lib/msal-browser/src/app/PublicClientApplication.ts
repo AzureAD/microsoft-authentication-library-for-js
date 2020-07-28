@@ -28,7 +28,9 @@ import {
     SilentFlowClient,
     EndSessionRequest,
     BaseAuthRequest,
-    Logger
+    Logger,
+    ServerAuthorizationCodeResponse,
+    RequestStateObject
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -37,13 +39,14 @@ import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, InteractionType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
+import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -132,15 +135,28 @@ export class PublicClientApplication implements IPublicClientApplication {
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
      */
-    private async handleRedirectResponse(): Promise<AuthenticationResult> {
+    private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
         // Get current location hash from window or cache.
         const { location: { hash } } = window;
-        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
         const isResponseHash = UrlString.hashContainsKnownProperties(hash);
-        const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
 
-        const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
+        // Check for interaction type
+        if (isResponseHash) {
+            // Deserialize hash fragment response parameters.
+            const hashUrlString: UrlString = new UrlString(hash);
+            const serverParams: ServerAuthorizationCodeResponse = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+            const requestStateObj: RequestStateObject = ProtocolUtils.parseRequestState(this.browserCrypto, serverParams.state);
+            const platformStateObj: BrowserStateObject = BrowserProtocolUtils.parseBrowserRequestState(this.browserCrypto, requestStateObj.libraryState.platformState);
+            if (StringUtils.isEmpty(platformStateObj.interactionType) || platformStateObj.interactionType !== InteractionType.REDIRECT) {
+                return null;
+            }
+        }
+
+        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
+        const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
+        const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
+
         if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
             // We are on the page we need to navigate to - handle hash
             // Replace current hash with non-msal hash, if present
@@ -215,7 +231,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         try {
             // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
 
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
@@ -262,7 +278,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
 
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
@@ -333,7 +349,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
             ...request,
             prompt: PromptValue.NONE
-        });
+        }, InteractionType.SILENT);
 
         // Create auth code request and generate PKCE params
         const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
@@ -383,7 +399,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                     ...silentRequest,
                     redirectUri: request.redirectUri,
                     prompt: PromptValue.NONE
-                });
+                }, InteractionType.SILENT);
 
                 // Create auth code request and generate PKCE params
                 const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
@@ -566,7 +582,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    private preflightInteractiveRequest(request: RedirectRequest|PopupRequest): AuthorizationUrlRequest {
+    private preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -575,7 +591,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             throw BrowserAuthError.createInteractionInProgressError();
         }
         
-        return this.initializeAuthorizationRequest(request);
+        return this.initializeAuthorizationRequest(request, interactionType);
     }
 
     /**
@@ -611,7 +627,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    private initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest): AuthorizationUrlRequest {
+    private initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         let validatedRequest: AuthorizationUrlRequest = {
             ...request
         };
@@ -632,14 +648,15 @@ export class PublicClientApplication implements IPublicClientApplication {
         }
 
         validatedRequest.state = ProtocolUtils.setRequestState(
+            this.browserCrypto,
             (request && request.state) || "",
-            this.browserCrypto
+            BrowserProtocolUtils.generateBrowserRequestState(this.browserCrypto, interactionType)
         );
 
         if (StringUtils.isEmpty(validatedRequest.nonce)) {
             validatedRequest.nonce = this.browserCrypto.createNewGuid();
         }
-        
+
         validatedRequest.responseMode = ResponseMode.FRAGMENT;
 
         validatedRequest = {
