@@ -58,7 +58,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             done();
         });
 
-        it("navigates and caches hash if navigateToLoginRequestUri is true", (done) => {
+        it("navigates and caches hash if navigateToLoginRequestUri is true and interaction type is redirect", (done) => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
@@ -473,7 +473,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
 
-                pca.loginRedirect();
+                pca.loginRedirect(null);
             });
 
 			it("Updates cache entries correctly", async () => {
