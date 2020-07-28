@@ -23,7 +23,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             },
             base64Decode(input: string): string {
                 switch (input) {
-                    case `eyJpZCI6IiR7UkFORE9NX1RFU1RfR1VJRH0iLCJ0cyI6JHt0ZXN0VGltZVN0YW1wfX0=`:
+                    case encodedLibState:
                         return decodedLibState;
                     default:
                         return input;
@@ -32,7 +32,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             base64Encode(input: string): string {
                 switch (input) {
                     case `${decodedLibState}`:
-                        return "eyJpZCI6IiR7UkFORE9NX1RFU1RfR1VJRH0iLCJ0cyI6JHt0ZXN0VGltZVN0YW1wfX0=";
+                        return encodedLibState;
                     default:
                         return input;
                 }
