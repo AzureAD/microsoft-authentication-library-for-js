@@ -1,4 +1,4 @@
-import { PublicClientApplication, AuthorizationUrlRequest, SilentFlowRequest, AuthenticationResult, Configuration, LogLevel, AccountInfo, InteractionRequiredAuthError, EndSessionRequest, RedirectRequest, PopupRequest } from "@azure/msal-browser";
+import { PublicClientApplication, AuthorizationUrlRequest, SilentRequest, AuthenticationResult, Configuration, LogLevel, AccountInfo, InteractionRequiredAuthError, EndSessionRequest, RedirectRequest, PopupRequest } from "@azure/msal-browser";
 import { UIManager } from "./UIManager";
 
 /**
@@ -51,8 +51,8 @@ export class AuthModule {
     private profileRequest: PopupRequest;
     private mailRedirectRequest: RedirectRequest;
     private mailRequest: PopupRequest;
-    private silentProfileRequest: SilentFlowRequest; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_silentflowrequest_.html
-    private silentMailRequest: SilentFlowRequest;
+    private silentProfileRequest: SilentRequest; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_silentflowrequest_.html
+    private silentMailRequest: SilentRequest;
 
     constructor() {
         this.myMSALObj = new PublicClientApplication(MSAL_CONFIG);
@@ -215,7 +215,7 @@ export class AuthModule {
     /**
      * Gets a token silently, or falls back to interactive popup.
      */
-    private async getTokenPopup(silentRequest: SilentFlowRequest, interactiveRequest: PopupRequest): Promise<string> {
+    private async getTokenPopup(silentRequest: SilentRequest, interactiveRequest: PopupRequest): Promise<string> {
         try {
             const response: AuthenticationResult = await this.myMSALObj.acquireTokenSilent(silentRequest);
             return response.accessToken;
@@ -238,7 +238,7 @@ export class AuthModule {
     /**
      * Gets a token silently, or falls back to interactive redirect.
      */
-    private async getTokenRedirect(silentRequest: SilentFlowRequest, interactiveRequest: RedirectRequest): Promise<string> {
+    private async getTokenRedirect(silentRequest: SilentRequest, interactiveRequest: RedirectRequest): Promise<string> {
         try {
             const response = await this.myMSALObj.acquireTokenSilent(silentRequest);
             return response.accessToken;
