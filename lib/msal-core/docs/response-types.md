@@ -41,7 +41,7 @@ The `response_type` attribute presented above cannot be configured directly. How
 2. Whether the account passed into the request configuration matches the account in the MSAL cache
 3. The contents of the `scopes` array in the Authorization Request Configuration object. For more information on `scopes` configuration, please consult the [Scopes](/docs/scopes.md) document.
 
-**Important note: Login APIs will always set `response_type=id_token`, given that they are designed to perform user login (authentication).
+**Important note: Login APIs will always set `response_type=id_token`, given that they are designed to perform user login (authentication).**
 
 Login APIs include:
 
