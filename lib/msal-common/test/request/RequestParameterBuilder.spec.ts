@@ -35,7 +35,8 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addAuthorizationCode(TEST_TOKENS.AUTHORIZATION_CODE);
         requestParameterBuilder.addDeviceCode(DEVICE_CODE_RESPONSE.deviceCode);
         requestParameterBuilder.addCodeVerifier(TEST_CONFIG.TEST_VERIFIER);
-        requestParameterBuilder.addGrantType(GrantType.DEVICE_CODE_GRANT)
+        requestParameterBuilder.addGrantType(GrantType.DEVICE_CODE_GRANT);
+        requestParameterBuilder.addSid(TEST_CONFIG.SID);
 
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(requestQueryString).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
@@ -55,6 +56,7 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(requestQueryString).to.contain(`${AADServerParamKeys.CODE}=${encodeURIComponent(TEST_TOKENS.AUTHORIZATION_CODE)}`);
         expect(requestQueryString).to.contain(`${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(DEVICE_CODE_RESPONSE.deviceCode)}`);
         expect(requestQueryString).to.contain(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(TEST_CONFIG.TEST_VERIFIER)}`);
+        expect(requestQueryString).to.contain(`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`);
     });
 
     it("addCodeChallengeParams throws invalidCodeChallengeParamsError if codeChallengeMethod empty", () => {
