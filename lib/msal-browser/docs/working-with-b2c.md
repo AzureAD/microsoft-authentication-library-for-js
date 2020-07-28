@@ -2,7 +2,7 @@
 
 > :warning: Before you start here, make sure you understand [how to initialize an app object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md) and [working with resources and scopes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md). We also recommend general familiarity with **Azure AD B2C**. See the [B2C documentation](https://docs.microsoft.com/azure/active-directory-b2c/technical-overview) for more.
 
-**MSAL.js supports** authentication with **social** (Microsoft, Google, Facebook etc.) and **local** (Azure AD work and school) identities using **Azure AD B2C** (*B2C* for short). When developing B2C apps with **MSAL.js**, there are a few important details to keep in mind.
+**MSAL.js supports** authentication with **social** (Microsoft, Google, Facebook etc.), **enterprise** (ADFS, Salesforce etc.) and **local** (stored in the Azure AD B2C directory) identities using **Azure AD B2C** (*B2C* for short). When developing B2C apps with **MSAL.js**, there are a few important details to keep in mind.
 
 ## Quick Facts
 
