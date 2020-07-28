@@ -60,7 +60,7 @@ export class ProtocolUtils {
             ts: TimeUtils.nowSeconds()
         };
 
-        if (platformLibState) {
+        if (!StringUtils.isEmpty(platformLibState)) {
             stateObj.platformState = platformLibState;
         }
 

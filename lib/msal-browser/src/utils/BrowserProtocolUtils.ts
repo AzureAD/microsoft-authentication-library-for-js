@@ -4,11 +4,10 @@
  */
 
 import { InteractionType } from "./BrowserConstants";
-import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ClientAuthError } from "@azure/msal-common";
+import { StringUtils, ClientAuthError, ICrypto } from "@azure/msal-common";
 
 export type BrowserStateObject = {
-    interactionType: string
+    interactionType: InteractionType
 };
 
 export class BrowserProtocolUtils {
@@ -18,7 +17,11 @@ export class BrowserProtocolUtils {
      * @param browserCrypto 
      * @param requestInteractionType 
      */
-    static generateBrowserRequestState(browserCrypto: CryptoOps, requestInteractionType: InteractionType): string {
+    static generateBrowserRequestState(browserCrypto: ICrypto, requestInteractionType: InteractionType): string {
+        if (StringUtils.isEmpty(requestInteractionType)) {
+            return "";
+        }
+
         const stateObj: BrowserStateObject = {
             interactionType: requestInteractionType
         };
@@ -33,7 +36,7 @@ export class BrowserProtocolUtils {
      * @param browserCrypto 
      * @param state 
      */
-    static parseBrowserRequestState(browserCrypto: CryptoOps, state: string): BrowserStateObject {
+    static parseBrowserRequestState(browserCrypto: ICrypto, state: string): BrowserStateObject {
         if (StringUtils.isEmpty(state)) {
             return null;
         }
