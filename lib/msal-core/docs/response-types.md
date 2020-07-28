@@ -73,7 +73,7 @@ Applies to: `acquireTokenRedirect`, `acquireTokenPopup`, `acquireTokenSilent`
 | Input scopes | Account passed in | Response Type Result |
 | ----------------- | ------------ | -------------------- |
 | ClientId as only scope | Any case | `id_token`|
-| OIDC scopes only | Any Case | `id_token`|
+| OIDC scopes only | Any case | `id_token`|
 | ClientId with OIDC scopes | Any case | `id_token token` |
 | Resource scope(s) with OIDC scopes (technically the same as above) | Any case | `id_token token` |
 | Resource scope(s) only | Matches cached account object | `token` |

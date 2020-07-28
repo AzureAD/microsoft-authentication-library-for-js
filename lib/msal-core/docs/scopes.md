@@ -71,7 +71,7 @@ The OIDC scopes that `msal@1.x` pays particular attention to are outlined in the
 
 Understanding how `OIDC scopes` configure the claims included in an authentication response's ID Token is important when using `msal@1.x` to acquire said ID Tokens. However, there is an important note to be made on how the `openid` and `profile` scopes are added by `msal@1.x` to all server requests by default that does not directly relate to the OpenID Connect specification.
 
-Like previously mentioned, the Secure Token Service that `msal@1.x` requests access and ID tokens from also makes use of the `openid` and `profile` scopes. Specifically, the STS expects these two scopes in order to configure and provide the `client_info` parameter in authorization and authentication responses. The `msal@1.x` library depends on the contents of `client_info` in order to successfuly cache tokens and, therefore, provide silent token acquisition as a feature.
+Like previously mentioned, the Secure Token Service that `msal@1.x` requests access and ID tokens from also makes use of the `openid` and `profile` scopes. Specifically, the STS expects these two scopes in order to configure and provide the `client_info` parameter in authorization and authentication responses. The `msal@1.x` library depends on the contents of `client_info` in order to successfully cache tokens and, therefore, provide silent token acquisition as a feature.
 
 **For this reason, whether or not the developer adds the `openid` or `profile` scopes to their request configuration, `msal@1.x` will make sure they are included before sending the request to the STS.**
 
@@ -92,7 +92,7 @@ The following is a list of practical implications and examples of the default sc
 
         { scopes: ['http://contoso.com/scope'] } // becomes { scopes ['http://contoso.com/scope', 'openid', 'profile'] }
     ```
-- ClientId is removed form the scopes array when it is the only scope in the configuration.If it is not the only scope, it is treated as a resource scope and will be sent in the final server request.
+- ClientId is removed from the scopes array when it is the only scope in the configuration. If it is not the only scope, it is treated as a resource scope and will be sent in the final server request.
 
     Examples:
     
