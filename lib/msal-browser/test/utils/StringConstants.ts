@@ -31,8 +31,7 @@ export const TEST_CONFIG = {
     TEST_VERIFIER: "Y5LnOOlAWK0kt370Bjm0ZcrW9Sc2pMXR1slip9TFZXoyUV8Y8lCn0WHXyyQ1QcTnALMbrUAj85dC7WIe6gYqc8o8jsHCezP3xiUNB143A5IfwtSfO6Kb8oy7pNqcT9vN",
     TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
     TOKEN_TYPE_BEARER: "Bearer",
-    DEFAULT_SCOPES: ["openid", "profile"],
-    SID: "session-id"
+    DEFAULT_SCOPES: ["openid", "profile"]
 };
 
 // Test Tokens

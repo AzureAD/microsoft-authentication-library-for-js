@@ -28,6 +28,7 @@ const publicClientConfig = {
     auth: {
         clientId: "99cab759-2aab-420b-91d8-5e3d8d4f063b",
         authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
+        redirectUri: "http://localhost:3000/redirect",
     },
     cache: {
         cachePlugin
@@ -51,7 +52,7 @@ const app = express();
 app.get('/', (req, res) => {
     const authCodeUrlParameters = {
         scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/redirect",
+        redirectUri: ["http://localhost:3000/redirect"],
     };
 
     // get url to sign user in and consent to scopes needed for application

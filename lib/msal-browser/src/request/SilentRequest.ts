@@ -6,7 +6,7 @@
 import { SilentFlowRequest } from "@azure/msal-common";
 
 /**
- * SilentRequest: Request object passed by user to retrieve tokens from the
+ * @type SilentRequest: Request object passed by user to retrieve tokens from the
  * cache, renew an expired token with a refresh token, or retrieve a code (first leg of authorization code grant flow) 
  * in a hidden iframe.
  * 

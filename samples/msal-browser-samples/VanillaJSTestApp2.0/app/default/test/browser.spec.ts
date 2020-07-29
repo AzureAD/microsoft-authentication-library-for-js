@@ -1,21 +1,50 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials, getTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../e2eTests/TestUtils"
+import fs from "fs";
+import { LabClient } from "../../../e2eTests/LabClient";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+let SCREENSHOT_NUM = 0;
 let username = "";
 let accountPwd = "";
 
-async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
+function setupScreenshotDir() {
+    if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
+        fs.mkdirSync(SCREENSHOT_BASE_FOLDER_NAME);
+    }
+}
+
+async function setupCredentials() {
+    const testCreds = new LabClient();
+    const envResponse = await testCreds.getUserVarsByCloudEnvironment("azureppe");
+    const testEnv = envResponse[0];
+    if (testEnv.upn) {
+        username = testEnv.upn;
+    }
+
+    const testPwdSecret = await testCreds.getSecret(testEnv.labName);
+
+    accountPwd = testPwdSecret.value;
+}
+
+async function takeScreenshot(page: puppeteer.Page, testName: string, screenshotName: string): Promise<void> {
+    const screenshotFolderName = `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+    if (!fs.existsSync(`${screenshotFolderName}`)) {
+        fs.mkdirSync(screenshotFolderName);
+    }
+    await page.screenshot({ path: `${screenshotFolderName}/${++SCREENSHOT_NUM}_${screenshotName}.png` });
+}
+
+async function enterCredentials(page: puppeteer.Page, testName: string): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, `loginPage`);
+    await takeScreenshot(page, testName, `loginPage`);
     await page.type("#i0116", username);
     await page.click("#idSIButton9");
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0118");
-    await screenshot.takeScreenshot(page, `pwdInputPage`);
+    await takeScreenshot(page, testName, `pwdInputPage`);
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
 }
@@ -26,8 +55,8 @@ describe("Browser tests", function () {
 
     let browser: puppeteer.Browser;
     before(async () => {
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
-        [username, accountPwd] = await setupCredentials("azureppe");
+        setupScreenshotDir();
+        setupCredentials();
         browser = await puppeteer.launch({
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
@@ -37,6 +66,7 @@ describe("Browser tests", function () {
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     beforeEach(async () => {
+        SCREENSHOT_NUM = 0;
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
         await page.goto('http://localhost:30662/');
@@ -53,54 +83,43 @@ describe("Browser tests", function () {
 
     it("Performs loginRedirect", async () => {
         const testName = "redirectBaseCase";
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
-        await screenshot.takeScreenshot(page, `samplePageInit`);
+        await takeScreenshot(page, testName, `samplePageInit`);
         // Click Sign In
         await page.click("#SignIn");
-        await screenshot.takeScreenshot(page, `signInClicked`);
+        await takeScreenshot(page, testName, `signInClicked`);
         // Click Sign In With Redirect
         await page.click("#loginRedirect");
         // Enter credentials
-        await enterCredentials(page, screenshot);
+        await enterCredentials(page, testName);
         // Wait for return to page
         await page.waitForNavigation({ waitUntil: "networkidle0"});
-        await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
-        let tokenStore = await getTokens(page);
-        expect(tokenStore.idTokens).to.be.length(1);
-        expect(tokenStore.accessTokens).to.be.length(1);
-        expect(tokenStore.refreshTokens).to.be.length(1);
-        expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
-        
-        expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        await takeScreenshot(page, testName, `samplePageLoggedIn`);
+        const sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(Object.keys(sessionStorage).length).to.be.eq(4);
     });
 
     it("Performs loginPopup", async () => {
         const testName = "popupBaseCase";
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
-        await screenshot.takeScreenshot(page, `samplePageInit`);
+        await takeScreenshot(page, testName, `samplePageInit`);
         // Click Sign In
         await page.click("#SignIn");
-        await screenshot.takeScreenshot(page, `signInClicked`);
+        await takeScreenshot(page, testName, `signInClicked`);
         // Click Sign In With Popup
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once('popup', resolve));
         await page.click("#loginPopup");
         const popupPage = await newPopupWindowPromise;
         const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
         // Enter credentials
-        await enterCredentials(popupPage, screenshot);
+        await enterCredentials(popupPage, testName);
         // Wait until popup window closes and see that we are logged in
         await popupWindowClosed;
         // Wait for token acquisition
         await page.waitFor(2000);
         expect(popupPage.isClosed()).to.be.true;
-        await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
-        let tokenStore = await getTokens(page);
-        expect(tokenStore.idTokens).to.be.length(1);
-        expect(tokenStore.accessTokens).to.be.length(1);
-        expect(tokenStore.refreshTokens).to.be.length(1);
-        expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
-        expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        await takeScreenshot(page, testName, `samplePageLoggedIn`);
+        const sessionStorage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(Object.keys(sessionStorage).length).to.be.eq(4);
     });
 });

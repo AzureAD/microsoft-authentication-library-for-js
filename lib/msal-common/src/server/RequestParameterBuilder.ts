@@ -81,14 +81,6 @@ export class RequestParameterBuilder {
     }
 
     /**
-     * add sid
-     * @param sid 
-     */
-    addSid(sid: string): void {
-        this.parameters.set(SSOTypes.SID, encodeURIComponent(sid));
-    }
-
-    /**
      * add claims
      * @param claims
      */
