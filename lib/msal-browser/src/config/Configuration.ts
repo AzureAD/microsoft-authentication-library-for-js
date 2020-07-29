@@ -5,6 +5,7 @@
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
+import { IWindowStorage } from "../cache/IWindowStorage";
 
 // Default timeout for popup windows and iframes in milliseconds
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -40,6 +41,7 @@ export type BrowserAuthOptions = {
 export type CacheOptions = {
     cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
+    customStorage?: IWindowStorage;
 };
 
 /**
@@ -88,7 +90,8 @@ const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
 // Default cache options for browser
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
     cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
-    storeAuthStateInCookie: false
+    storeAuthStateInCookie: false,
+    customStorage: null
 };
 
 // Default logger options for browser

@@ -31,7 +31,7 @@ import {
     Logger
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
@@ -55,13 +55,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     private readonly browserCrypto: CryptoOps;
 
     // Storage interface implementation
-    private readonly browserStorage: BrowserStorage;
+    private readonly browserStorage: BrowserCacheManager;
 
     // Network interface implementation
     private readonly networkClient: INetworkModule;
-
-    // Response promise
-    private readonly tokenExchangePromise: Promise<AuthenticationResult>;
 
     // Input configuration by developer/user
     private config: Configuration;
@@ -104,7 +101,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         this.networkClient = this.config.system.networkClient;
 
         // Initialize the browser storage class.
-        this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
+        this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache);
 
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions);

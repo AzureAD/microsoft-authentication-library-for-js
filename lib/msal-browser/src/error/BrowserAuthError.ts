@@ -60,10 +60,6 @@ export const BrowserAuthErrorMessage = {
         code: "block_iframe_reload",
         desc: "Request was blocked inside an iframe because MSAL detected an authentication response. Please ensure monitorWindowForHash was called."
     },
-    iframeClosedPrematurelyError: {
-        code: "iframe_closed_prematurely",
-        desc: "The iframe being monitored was closed prematurely."
-    },
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
         desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
@@ -200,13 +196,6 @@ export class BrowserAuthError extends AuthError {
     static createBlockReloadInHiddenIframeError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.code,
             BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc);
-    }
-
-    /**
-     * Creates an error thrown when an iframe is found to be closed before the timeout is reached.
-     */
-    static createIframeClosedPrematurelyError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.iframeClosedPrematurelyError.code, BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc);
     }
 
     /**

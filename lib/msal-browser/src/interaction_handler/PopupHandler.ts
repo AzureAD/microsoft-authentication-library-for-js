@@ -6,7 +6,7 @@ import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, CacheSchem
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 /**
  * This class implements the interaction handler base class for browsers. It is written specifically for handling
@@ -16,7 +16,7 @@ export class PopupHandler extends InteractionHandler {
 
     private currentWindow: Window;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         super(authCodeModule, storageImpl);
 
         // Properly sets this reference for the unload event.

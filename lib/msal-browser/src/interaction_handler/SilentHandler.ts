@@ -6,12 +6,12 @@ import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClie
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 export class SilentHandler extends InteractionHandler {
 
     private loadFrameTimeout: number;
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, configuredLoadFrameTimeout: number) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, configuredLoadFrameTimeout: number) {
         super(authCodeModule, storageImpl);
         this.loadFrameTimeout = configuredLoadFrameTimeout;
     }

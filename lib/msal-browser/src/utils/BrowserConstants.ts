@@ -11,6 +11,8 @@ export const BrowserConstants = {
     CACHE_LOCATION_LOCAL: "localStorage",
     // Session storage constant string
     CACHE_LOCATION_SESSION: "sessionStorage",
+    // Custom storage constant string
+    CACHE_LOCATION_CUSTOM: "customStorage",
     // Interaction status key (only used for browsers)
     INTERACTION_STATUS_KEY: "interaction.status",
     // Interaction in progress cache value

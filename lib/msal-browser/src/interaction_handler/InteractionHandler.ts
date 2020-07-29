@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient } from "@azure/msal-common";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 
@@ -13,10 +13,10 @@ import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 export abstract class InteractionHandler {
 
     protected authModule: AuthorizationCodeClient;
-    protected browserStorage: BrowserStorage;
+    protected browserStorage: BrowserCacheManager;
     protected authCodeRequest: AuthorizationCodeRequest;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
     }
