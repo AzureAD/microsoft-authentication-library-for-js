@@ -320,7 +320,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Check that we have some SSO data
-        if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid)) {
+        if (StringUtils.isEmpty(request.loginHint)) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
         }
 
