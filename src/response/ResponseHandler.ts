@@ -249,8 +249,7 @@ export class ResponseHandler {
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
-            state: requestState ? requestState.userRequestState : "",
-            platformState: requestState ? requestState.libraryState.platformState : ""
+            state: requestState ? requestState.userRequestState : ""
         };
     }
 }
