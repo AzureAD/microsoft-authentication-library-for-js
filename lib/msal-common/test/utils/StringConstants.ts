@@ -108,6 +108,7 @@ export const TEST_CONFIG = {
     DEFAULT_GRAPH_SCOPE: ["user.read"],
     LOGIN_HINT: "user@test.com",
     DOMAIN_HINT: "test.com",
+    SID: "session-id",
     CORRELATION_ID: "7821e1d3-ad52-42t9-8666-399gea483401",
     CLAIMS: "claims",
     TEST_SKU: "test.sku",
