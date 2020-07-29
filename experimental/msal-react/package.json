@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.0.1",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -20,6 +20,7 @@
     "build-storybook": "build-storybook"
   },
   "peerDependencies": {
+    "@azure/msal-browser": "^2.0.0",
     "react": ">=16"
   },
   "husky": {
@@ -33,10 +34,11 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "msal-react",
+  "name": "@azure/msal-react",
   "author": "Jason Nutter",
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
+    "@azure/msal-browser": "^2.0.0",
     "@babel/core": "^7.10.5",
     "@storybook/addon-actions": "^5.3.19",
     "@storybook/addon-docs": "^5.3.19",
