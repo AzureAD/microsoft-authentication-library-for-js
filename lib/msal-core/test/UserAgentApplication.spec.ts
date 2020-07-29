@@ -35,6 +35,7 @@ import { RequestUtils } from "../src/utils/RequestUtils";
 import { UrlUtils } from "../src/utils/UrlUtils";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 import { TrustedAuthority } from "../src/authority/TrustedAuthority";
+import { resolve } from "path";
 
 type kv = {
     [key: string]: string;
@@ -1339,7 +1340,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken when authority is passed and no matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                authority: TEST_CONFIG.alternateValidAuthority,
+                authority: TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
                 scopes: ["S1"],
                 account: account
             };
@@ -1347,16 +1348,9 @@ describe("UserAgentApplication.ts Class", function () {
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
-            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
-                return new Promise<void>(() => {
-                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                    expect(url).to.include("&state");
-                    expect(url).to.include("&client_info=1");
-                    done();
-                });
-            });
+            setAuthInstanceStubs();
+            sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+            const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -1366,6 +1360,8 @@ describe("UserAgentApplication.ts Class", function () {
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
                 expect(err).to.be.instanceOf(AuthError);
+                expect(renewTokenSpy.calledOnce).to.be.true;
+                done();
             });
         });
 
