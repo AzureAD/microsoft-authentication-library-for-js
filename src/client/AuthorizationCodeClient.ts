@@ -217,6 +217,10 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addDomainHint(request.domainHint);
         }
 
+        if (request.sid) {
+            parameterBuilder.addSid(request.sid);
+        }
+
         if (request.nonce) {
             parameterBuilder.addNonce(request.nonce);
         }
