@@ -50,3 +50,7 @@ export enum TemporaryCacheKeys {
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
 }
+
+export const DEFAULT_REQUEST = {
+    scopes: ["openid", "profile"]
+};
