@@ -1368,10 +1368,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).to.be.length(2);
         });
 
-        it("getAllAccounts returns null if no accounts signed in", () => {
+        it("getAllAccounts returns empty array if no accounts signed in", () => {
             window.sessionStorage.clear();
-            const account = pca.getAllAccounts();
-            expect(account).to.be.null;
+            const accounts = pca.getAllAccounts();
+            expect(accounts).to.deep.eq([]);
         });
 
         it("getAccountByUsername returns account specified", () => {
