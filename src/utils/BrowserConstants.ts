@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { AuthorizationUrlRequest, Constants } from "@azure/msal-common";
+
 /**
  * Constants
  */
@@ -51,6 +53,6 @@ export enum TemporaryCacheKeys {
     SCOPES = "scopes"
 }
 
-export const DEFAULT_REQUEST = {
-    scopes: ["openid", "profile"]
+export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
+    scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
