@@ -603,7 +603,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     private setDefaultScopes(request: BaseAuthRequest): BaseAuthRequest {
         return {
             ...request,
-            scopes: [...((request && request.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
+            scopes: [...((request && request.scopes) || []), ...DEFAULT_REQUEST.scopes]
         };
     }
 
