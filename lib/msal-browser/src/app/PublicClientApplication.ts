@@ -185,8 +185,9 @@ export class PublicClientApplication implements IPublicClientApplication {
             return null;
         }
 
-        const correlationId = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID), CacheSchemaType.TEMPORARY) as string;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, correlationId);
+        const requestState = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
+        const cachedRequest = this.browserStorage.getCachedRequest(requestState, this.browserCrypto);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
         try {
             // Hash contains known properties - handle and return in callback

@@ -24,7 +24,6 @@ export class RedirectHandler extends InteractionHandler {
 
             // Set interaction status in the library.
             this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
-            this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID), authCodeRequest.correlationId, CacheSchemaType.TEMPORARY);
             this.browserStorage.cacheCodeRequest(authCodeRequest, browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             const isIframedApp = BrowserUtils.isInIframe();
