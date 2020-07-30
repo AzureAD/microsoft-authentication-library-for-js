@@ -5,10 +5,6 @@
 
 import { Separators, CredentialType, CacheType, Constants } from "../../utils/Constants";
 import { ClientAuthError } from "../../error/ClientAuthError";
-import { AccessTokenEntity } from './AccessTokenEntity';
-import { IdTokenEntity } from './IdTokenEntity';
-import { RefreshTokenEntity } from './RefreshTokenEntity';
-import { CredentialEntityType } from '../utils/CacheTypes';
 
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
@@ -108,22 +104,6 @@ export class CredentialEntity {
             return CredentialType.ID_TOKEN;
         } else if (key.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) !== -1) {
             return CredentialType.REFRESH_TOKEN;
-        }
-
-        return Constants.NOT_DEFINED;
-    }
-
-    /**
-     * helper function to return `CredentialEntityType`
-     * @param key
-     */
-    static getCredentialEntityType(key: string): CredentialEntityType {
-        if (key.indexOf(CredentialType.ACCESS_TOKEN.toLowerCase()) !== -1) {
-            return typeof AccessTokenEntity;
-        } else if (key.indexOf(CredentialType.ID_TOKEN.toLowerCase()) !== -1) {
-            return typeof IdTokenEntity;
-        } else if (key.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) !== -1) {
-            return typeof RefreshTokenEntity;
         }
 
         return Constants.NOT_DEFINED;
