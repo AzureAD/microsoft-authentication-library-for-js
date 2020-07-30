@@ -61,7 +61,7 @@ export class ThrottlingUtils {
             };
             cacheManager.setItem(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
-                JSON.stringify(thumbprintValue),
+                thumbprintValue,
                 CacheSchemaType.THROTTLE
             );
         }
