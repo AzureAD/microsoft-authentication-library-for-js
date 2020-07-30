@@ -8,40 +8,8 @@ const { promises: fs } = require("fs");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-const readFromStorage = () => {
-    return fs.readFile("./data/cache.json", "utf-8");
-};
 
-const writeToStorage = (getMergedState) => {
-    return readFromStorage().then(oldFile =>{
-        const mergedState = getMergedState(oldFile);
-        return fs.writeFile("./data/cacheAfterWrite.json", mergedState);
-    })
-};
-
-const cachePlugin = {
-    readFromStorage,
-    writeToStorage
-};
-
-const publicClientConfig = {
-    auth: {
-        clientId: "99cab759-2aab-420b-91d8-5e3d8d4f063b",
-        authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
-    },
-    cache: {
-        cachePlugin
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
-        }
-    }
-};
+const publicClientConfig = require("./config/clientApplication");
 const pca = new msal.PublicClientApplication(publicClientConfig);
 const msalTokenCache = pca.getTokenCache();
 
@@ -51,7 +19,7 @@ const app = express();
 app.get('/', (req, res) => {
     const authCodeUrlParameters = {
         scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/redirect",
+        redirectUri: "http://localhost:3000/redirect"
     };
 
     // get url to sign user in and consent to scopes needed for application
