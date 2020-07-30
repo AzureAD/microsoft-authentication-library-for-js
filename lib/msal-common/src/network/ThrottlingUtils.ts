@@ -29,14 +29,14 @@ export class ThrottlingUtils {
      */
     static preProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
-        const storageValue = cacheManager.getItem(key, CacheSchemaType.TEMPORARY) as string;
+        const storageValue = cacheManager.getItem(key, CacheSchemaType.THROTTLE) as string;
 
         if (storageValue) {
             const parsedValue = StringUtils.jsonParseHelper<RequestThumbprintValue>(storageValue);
 
             if (parsedValue) {
                 if (parsedValue.throttleTime < Date.now()) {
-                    cacheManager.removeItem(key, CacheSchemaType.TEMPORARY);
+                    cacheManager.removeItem(key, CacheSchemaType.THROTTLE);
                     return;
                 }
                 throw new ServerError(parsedValue.errorCodes.join(" "), parsedValue.errorMessage, parsedValue.subError);
@@ -62,7 +62,7 @@ export class ThrottlingUtils {
             cacheManager.setItem(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
                 JSON.stringify(thumbprintValue),
-                CacheSchemaType.TEMPORARY
+                CacheSchemaType.THROTTLE
             );
         }
     }
@@ -110,6 +110,6 @@ export class ThrottlingUtils {
         };
 
         const key = this.generateThrottlingStorageKey(thumbprint);
-        return cacheManager.removeItem(key, CacheSchemaType.TEMPORARY);
+        return cacheManager.removeItem(key, CacheSchemaType.THROTTLE);
     }
 }
