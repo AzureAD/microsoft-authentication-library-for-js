@@ -37,7 +37,7 @@ import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -199,8 +199,8 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 *
      * @param {@link (RedirectRequest:type)}
      */
-    async loginRedirect(request: RedirectRequest): Promise<void> {
-        return this.acquireTokenRedirect(request);
+    async loginRedirect(request?: RedirectRequest): Promise<void> {
+        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
     }
 
     /**
@@ -249,8 +249,8 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(request);
+    async loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
     /**
@@ -603,7 +603,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     private setDefaultScopes(request: BaseAuthRequest): BaseAuthRequest {
         return {
             ...request,
-            scopes: [...((request && request.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
+            scopes: [...((request && request.scopes) || []), ...DEFAULT_REQUEST.scopes]
         };
     }
 
