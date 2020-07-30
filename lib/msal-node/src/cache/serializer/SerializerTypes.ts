@@ -6,7 +6,7 @@
 import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, AccountEntity } from "@azure/msal-common";
 
 export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | string;
-export type CacheKVStore = Record<string, AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | string>;
+export type CacheKVStore = Record<string, ValidCacheType>;
 
 export type JsonCache = {
     Account: Record<string, SerializedAccountEntity>;
