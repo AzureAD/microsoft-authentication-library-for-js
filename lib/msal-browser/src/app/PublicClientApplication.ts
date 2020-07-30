@@ -463,9 +463,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * or null when no state is found
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
-    getAccountByUsername(userName: string): AccountInfo {
+    getAccountByUsername(userName: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
-        return allAccounts ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
+        return allAccounts && allAccounts.length ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
     }
 
     // #endregion
