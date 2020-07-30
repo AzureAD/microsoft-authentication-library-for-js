@@ -59,7 +59,16 @@ export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProp
     const { username, loginHandler, children } = props;
     const { msal } = useMsalAuthentication({ username, loginHandler });
 
-    return (
-        <React.Fragment>{getChildrenOrFunction(children, msal)}</React.Fragment>
-    );
+    const hasAuthenticated = isAuthenticated(msal.instance, username);
+
+    // TODO: What if the user authentiction is InProgress? How will user show a loading state?
+    if (hasAuthenticated) {
+        return (
+            <React.Fragment>
+                {getChildrenOrFunction(children, msal)}
+            </React.Fragment>
+        );
+    }
+
+    return null;
 };
