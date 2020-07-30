@@ -14,8 +14,8 @@ export interface IPublicClientApplication {
     getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
     handleRedirectPromise(): Promise<AuthenticationResult | null>;
-    loginPopup(request: PopupRequest): Promise<AuthenticationResult>;
-    loginRedirect(request: RedirectRequest): Promise<void>;
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
+    loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult>;
 }
