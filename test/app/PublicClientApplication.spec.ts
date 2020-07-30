@@ -1393,5 +1393,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).to.be.null;
         });
 
+        it("getAccountByUsername returns null if passed username is null", () => {
+            window.sessionStorage.clear();
+            const account = pca.getAccountByUsername(null);
+            expect(account).to.be.null;
+        });
     });
 });
