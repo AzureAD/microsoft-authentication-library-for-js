@@ -209,15 +209,9 @@ export class Storage extends CacheManager {
      */
     getKeys(): string[] {
         this.logger.verbose("Retrieving all cache keys");
-        // read inMemoryCache
-        const cache: InMemoryCache= this.getInMemoryCache() as InMemoryCache;
-        return [
-            ...Object.keys(cache.accounts),
-            ...Object.keys(cache.idTokens),
-            ...Object.keys(cache.accessTokens),
-            ...Object.keys(cache.refreshTokens),
-            ...Object.keys(cache.appMetadata),
-        ];
+        // read cache
+        const cache = this.getCache();
+        return [ ...Object.keys(cache)];
     }
 
     /**
