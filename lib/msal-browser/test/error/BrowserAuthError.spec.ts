@@ -19,15 +19,15 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
 
-    it("createNoWindowObjectError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createNoWindowObjectError();
+    it("createNonBrowserEnvironmentError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createNonBrowserEnvironmentError();
 
         expect(err instanceof BrowserAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.noWindowObjectError.code);
-        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.noWindowObjectError.desc);
-        expect(err.message).to.include(BrowserAuthErrorMessage.noWindowObjectError.desc);
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.notInBrowserEnvironment.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.notInBrowserEnvironment.desc);
         expect(err.name).to.equal("BrowserAuthError");
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });

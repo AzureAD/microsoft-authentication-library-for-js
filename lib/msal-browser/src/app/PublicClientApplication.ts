@@ -72,6 +72,9 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Logger
     private logger: Logger;
 
+    // Flag to indicate if in browser environment
+    private isBrowserEnvironment: boolean;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -94,25 +97,31 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
     constructor(configuration: Configuration) {
-        // Set the configuration.
-        this.config = buildConfiguration(configuration);
-
-        // Initialize the crypto class.
-        this.browserCrypto = new CryptoOps();
-
-        // Initialize the network module class.
-        this.networkClient = this.config.system.networkClient;
-
-        // Initialize the browser storage class.
-        this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
-
-        // Initialize logger
-        this.logger = new Logger(this.config.system.loggerOptions);
-
-        // Initialize default authority instance
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
-
-        this.defaultAuthority = null;
+        // If loaded in an environment where window is not available,
+        // set internal flag to false so that further requests fail.
+        // This is to support server-side rendering environments.
+        this.isBrowserEnvironment = typeof window !== "undefined";
+        if (this.isBrowserEnvironment) {
+            // Set the configuration.
+            this.config = buildConfiguration(configuration);
+    
+            // Initialize the crypto class.
+            this.browserCrypto = new CryptoOps();
+    
+            // Initialize the network module class.
+            this.networkClient = this.config.system.networkClient;
+    
+            // Initialize the browser storage class.
+            this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
+    
+            // Initialize logger
+            this.logger = new Logger(this.config.system.loggerOptions);
+    
+            // Initialize default authority instance
+            TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
+    
+            this.defaultAuthority = null;
+        }
     }
 
     // #region Redirect Flow
@@ -124,7 +133,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
-        return this.handleRedirectResponse();
+        return this.isBrowserEnvironment ? this.handleRedirectResponse() : null;
     }
 
     /**
@@ -213,6 +222,8 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        this.preflightBrowserEnvironmentCheck();
+
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
@@ -260,6 +271,8 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck();
+
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
@@ -316,8 +329,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
+        this.preflightBrowserEnvironmentCheck();
 
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid)) {
@@ -363,8 +375,8 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
+        this.preflightBrowserEnvironmentCheck();
+
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
@@ -436,6 +448,8 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param {@link (EndSessionRequest:type)} 
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+        this.preflightBrowserEnvironmentCheck();
+
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const authClient = await this.createAuthCodeClient(validLogoutRequest && validLogoutRequest.authority);
         // create logout string and navigate user window to logout. Auth module will clear cache.
@@ -454,7 +468,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {@link AccountInfo[]} - Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
-        return this.browserStorage.getAllAccounts();
+        return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts() : [];
     }
 
     /**
@@ -465,7 +479,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getAccountByUsername(userName: string): AccountInfo {
         const allAccounts = this.getAllAccounts();
-        return allAccounts ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
+        return allAccounts && allAccounts.length ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
     }
 
     // #endregion
@@ -564,7 +578,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
-     * Helper to validate app environment before making a request.
+     * Helper to validate app environment before making an interactive request.
      */
     private preflightInteractiveRequest(request: RedirectRequest|PopupRequest): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
@@ -576,6 +590,18 @@ export class PublicClientApplication implements IPublicClientApplication {
         }
         
         return this.initializeAuthorizationRequest(request);
+    }
+
+    /**
+     * Helper to validate app environment before making a silent request
+     * @param request 
+     */
+    private preflightBrowserEnvironmentCheck(): void {
+        // Block request if not in browser environment
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+
+        // block the reload if it occurred inside a hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
     }
 
     /**
