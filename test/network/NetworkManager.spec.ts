@@ -54,7 +54,7 @@ describe("NetworkManager", () => {
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockThumbprintValue = THUMBPRINT_VALUE;
             const networkStub = sinon.stub(networkInterface, "sendPostRequestAsync");
-            const getItemStub = sinon.stub(cache, "getItem").returns(JSON.stringify(mockThumbprintValue));
+            const getItemStub = sinon.stub(cache, "getItem").returns(mockThumbprintValue);
             const setItemStub = sinon.stub(cache, "setItem");
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(Date, "now").callsFake(() => 1)
@@ -83,7 +83,7 @@ describe("NetworkManager", () => {
             }
             const mockThumbprintValue = THUMBPRINT_VALUE;
             const networkStub = sinon.stub(networkInterface, "sendPostRequestAsync").returns(Promise.resolve(mockRes));
-            const getItemStub = sinon.stub(cache, "getItem").returns(JSON.stringify(mockThumbprintValue));
+            const getItemStub = sinon.stub(cache, "getItem").returns(mockThumbprintValue);
             const setItemStub = sinon.stub(cache, "setItem");
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(Date, "now").callsFake(() => 10)

@@ -29,18 +29,15 @@ export class ThrottlingUtils {
      */
     static preProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
-        const storageValue = cacheManager.getItem(key, CacheSchemaType.THROTTLE) as string;
+        const value = cacheManager.getItem(key, CacheSchemaType.THROTTLE) as RequestThumbprintValue;
+        // console.log("VALUE:", value);
 
-        if (storageValue) {
-            const parsedValue = StringUtils.jsonParseHelper<RequestThumbprintValue>(storageValue);
-
-            if (parsedValue) {
-                if (parsedValue.throttleTime < Date.now()) {
-                    cacheManager.removeItem(key, CacheSchemaType.THROTTLE);
-                    return;
-                }
-                throw new ServerError(parsedValue.errorCodes.join(" "), parsedValue.errorMessage, parsedValue.subError);
+        if (value) {
+            if (value.throttleTime < Date.now()) {
+                cacheManager.removeItem(key, CacheSchemaType.THROTTLE);
+                return;
             }
+            throw new ServerError(value.errorCodes.join(" "), value.errorMessage, value.subError);
         }
     }
 

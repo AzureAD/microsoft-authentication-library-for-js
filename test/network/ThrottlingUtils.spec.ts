@@ -36,7 +36,7 @@ describe("ThrottlingUtils", () => {
             const thumbprintValue: RequestThumbprintValue = THUMBPRINT_VALUE;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getItem").callsFake(() => JSON.stringify(thumbprintValue));
+            sinon.stub(cache, "getItem").callsFake(() => thumbprintValue);
             sinon.stub(Date, "now").callsFake(() => 1)
 
             try {
@@ -52,7 +52,7 @@ describe("ThrottlingUtils", () => {
             const thumbprintValue: RequestThumbprintValue = THUMBPRINT_VALUE;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getItem").callsFake(() => JSON.stringify(thumbprintValue));
+            sinon.stub(cache, "getItem").callsFake(() => thumbprintValue);
             sinon.stub(Date, "now").callsFake(() => 10)
 
             ThrottlingUtils.preProcess(cache, thumbprint);
@@ -65,7 +65,7 @@ describe("ThrottlingUtils", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getItem").callsFake(() => "");
+            sinon.stub(cache, "getItem").callsFake(() => null);
 
             ThrottlingUtils.preProcess(cache, thumbprint);
             sinon.assert.callCount(removeItemStub, 0)
