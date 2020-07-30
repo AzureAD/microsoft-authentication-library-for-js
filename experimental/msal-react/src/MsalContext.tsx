@@ -1,7 +1,7 @@
-import React from 'react';
+import * as React from 'react';
 import { IPublicClientApplication, AccountInfo } from '@azure/msal-browser';
 
-export type MsalState = {
+type MsalState = {
     accounts: AccountInfo[];
 };
 
@@ -24,6 +24,7 @@ const defaultMsalContext: IMsalContext = {
             return Promise.reject();
         },
         getAllAccounts: () => {
+            debugger;
             return [];
         },
         getAccountByUsername: () => {
