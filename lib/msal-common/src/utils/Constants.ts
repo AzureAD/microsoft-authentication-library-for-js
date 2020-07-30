@@ -227,7 +227,7 @@ export enum CacheSchemaType {
     ID_TOKEN = "IdToken",
     ACCESS_TOKEN = "AccessToken",
     REFRESH_TOKEN = "RefreshToken",
-    APP_META_DATA = "AppMetadata",
+    APP_METADATA = "AppMetadata",
     TEMPORARY = "TempCache",
     UNDEFINED = "Undefined"
 }
@@ -243,11 +243,12 @@ export enum CacheType {
     ACCESS_TOKEN = 2001,
     REFRESH_TOKEN = 2002,
     ID_TOKEN = 2003,
-    APP_META_DATA = 3001
+    APP_METADATA = 3001,
+    UNDEFINED = 9999
 };
 
 /**
  * More Cache related constants
  */
-export const APP_META_DATA = "appmetadata";
+export const APP_METADATA = "appmetadata";
 export const ClientInfo = "client_info";

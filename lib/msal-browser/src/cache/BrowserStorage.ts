@@ -113,7 +113,7 @@ export class BrowserStorage extends CacheManager {
         switch (type) {
             case CacheSchemaType.ACCOUNT:
             case CacheSchemaType.CREDENTIAL:
-            case CacheSchemaType.APP_META_DATA:
+            case CacheSchemaType.APP_METADATA:
                 this.windowStorage.setItem(key, JSON.stringify(value));
                 break;
             case CacheSchemaType.TEMPORARY: {
@@ -162,7 +162,7 @@ export class BrowserStorage extends CacheManager {
                     }
                 }
             }
-            case CacheSchemaType.APP_META_DATA: {
+            case CacheSchemaType.APP_METADATA: {
                 return (JSON.parse(value) as AppMetadataEntity);
             }
             case CacheSchemaType.TEMPORARY: {

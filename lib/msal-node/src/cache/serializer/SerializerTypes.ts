@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity } from "@azure/msal-common";
+import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, AccountEntity } from "@azure/msal-common";
 
-export type CacheKVStore = Record<string, ValidCacheTypes>;
-export type ValidCacheTypes = Account | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | string;
+export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | string;
+export type CacheKVStore = Record<string, AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | string>;
 
 export type JsonCache = {
     Account: Record<string, SerializedAccountEntity>;
