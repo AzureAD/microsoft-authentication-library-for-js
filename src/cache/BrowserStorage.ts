@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity, ServerTelemetryCacheValue } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity, ServerTelemetryCacheValue, RequestThumbprintValue } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -113,7 +113,8 @@ export class BrowserStorage extends CacheManager {
         switch (type) {
             case CacheSchemaType.ACCOUNT:
             case CacheSchemaType.CREDENTIAL:
-            case CacheSchemaType.APP_METADATA:
+            case CacheSchemaType.APP_META_DATA:
+            case CacheSchemaType.THROTTLE:
                 this.windowStorage.setItem(key, JSON.stringify(value));
                 break;
             case CacheSchemaType.TEMPORARY: {
@@ -168,6 +169,9 @@ export class BrowserStorage extends CacheManager {
             }
             case CacheSchemaType.APP_METADATA: {
                 return (JSON.parse(value) as AppMetadataEntity);
+            }
+            case CacheSchemaType.THROTTLE: {
+                return value;
             }
             case CacheSchemaType.TEMPORARY: {
                 const itemCookie = this.getItemCookie(key);
