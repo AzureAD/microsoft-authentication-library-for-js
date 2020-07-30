@@ -439,6 +439,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				await expect(pca.loginRedirect(null)).to.be.rejectedWith(BrowserAuthError);
             });
 
+            it("Uses default request if no request provided", (done) => {
+                sinon.stub(pca, "acquireTokenRedirect").callsFake((request) => {
+                    expect(request.scopes).to.contain("openid");
+                    expect(request.scopes).to.contain("profile");
+                    done();
+                    return null;
+                });
+
+                pca.loginRedirect();
+            });
+
             it("loginRedirect navigates to created login url", (done) => {
                 sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Window => {
                     expect(navigateUrl).to.be.eq(testNavUrl);
@@ -848,6 +859,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 await expect(pca.loginPopup(null)).to.be.rejectedWith(BrowserAuthErrorMessage.interactionInProgress.desc);
                 await expect(pca.loginPopup(null)).to.be.rejectedWith(BrowserAuthError);
+            });
+
+            it("Uses default request if no request provided", (done) => {
+                sinon.stub(pca, "acquireTokenPopup").callsFake((request) => {
+                    expect(request.scopes).to.contain("openid");
+                    expect(request.scopes).to.contain("profile");
+                    done();
+                    return null;
+                });
+
+                pca.loginPopup();
             });
 
             it("resolves the response successfully", async () => {
