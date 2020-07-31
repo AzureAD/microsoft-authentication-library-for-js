@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { AuthorizationUrlRequest, Constants } from "@azure/msal-common";
+
 /**
  * Constants
  */
@@ -65,4 +67,8 @@ export enum ApiId {
     acquireTokenSilent_authCode = 864,
     handleRedirectPromise = 865,
     acquireTokenSilent_silentFlow = 61
+}
+
+export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
+    scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
