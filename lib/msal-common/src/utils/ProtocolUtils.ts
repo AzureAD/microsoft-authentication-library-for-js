@@ -18,7 +18,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 export type LibraryStateObject = {
     id: string,
     ts: number,
-    platformState?: string
+    meta?: Record<string, string>
 };
 
 /**
@@ -39,8 +39,8 @@ export class ProtocolUtils {
      * @param userState 
      * @param randomGuid 
      */
-    static setRequestState(cryptoObj: ICrypto, userState?: string, platformLibState?: string): string {
-        const libraryState = ProtocolUtils.generateLibraryState(cryptoObj, platformLibState);
+    static setRequestState(cryptoObj: ICrypto, userState?: string, meta?: Record<string, string>): string {
+        const libraryState = ProtocolUtils.generateLibraryState(cryptoObj, meta);
         return !StringUtils.isEmpty(userState) ? `${libraryState}${Constants.RESOURCE_DELIM}${userState}` : libraryState;
     }
 
@@ -49,7 +49,7 @@ export class ProtocolUtils {
      * @param randomGuid 
      * @param cryptoObj 
      */
-    static generateLibraryState(cryptoObj: ICrypto, platformLibState?: string): string {
+    static generateLibraryState(cryptoObj: ICrypto, meta?: Record<string, string>): string {
         if (!cryptoObj) {
             throw ClientAuthError.createNoCryptoObjectError("generateLibraryState");
         }
@@ -60,8 +60,8 @@ export class ProtocolUtils {
             ts: TimeUtils.nowSeconds()
         };
 
-        if (!StringUtils.isEmpty(platformLibState)) {
-            stateObj.platformState = platformLibState;
+        if (meta) {
+            stateObj.meta = meta;
         }
 
         const stateString = JSON.stringify(stateObj);

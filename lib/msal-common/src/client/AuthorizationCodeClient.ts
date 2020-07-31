@@ -84,9 +84,10 @@ export class AuthorizationCodeClient extends BaseClient {
         // Handle responses.
         const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger);
 
-        // Deserialize hash fragment response parameters.
+        // Create UrlString object to remove leading # using getHash()
         const hashUrlString = new UrlString(hashFragment);
-        const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+        // Deserialize hash fragment response parameters.
+        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hashUrlString.getHash());
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);

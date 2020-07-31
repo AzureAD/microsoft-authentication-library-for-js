@@ -4,7 +4,7 @@
  */
 
 import { InteractionType } from "./BrowserConstants";
-import { StringUtils, ClientAuthError, ICrypto } from "@azure/msal-common";
+import { StringUtils, ClientAuthError, ICrypto, RequestStateObject, ProtocolUtils } from "@azure/msal-common";
 
 export type BrowserStateObject = {
     interactionType: InteractionType
@@ -32,18 +32,19 @@ export class BrowserProtocolUtils {
     }
 
     /**
-     * Parses the platform state string into the BrowserStateObject.
+     * Extracts the BrowserStateObject from the state string.
      * @param browserCrypto 
      * @param state 
      */
-    static parseBrowserRequestState(browserCrypto: ICrypto, state: string): BrowserStateObject {
+    static extractBrowserRequestState(browserCrypto: ICrypto, state: string): BrowserStateObject {
         if (StringUtils.isEmpty(state)) {
             return null;
         }
 
         try {
-            const platformStateString = browserCrypto.base64Decode(state);
-            return JSON.parse(platformStateString) as BrowserStateObject;
+            const requestStateObj: RequestStateObject = ProtocolUtils.parseRequestState(browserCrypto, state);
+            debugger;
+            return requestStateObj.libraryState.meta as BrowserStateObject;
         } catch (e) {
             throw ClientAuthError.createInvalidStateError(state, e);
         }

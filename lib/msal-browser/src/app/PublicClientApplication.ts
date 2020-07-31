@@ -29,8 +29,7 @@ import {
     EndSessionRequest,
     BaseAuthRequest,
     Logger,
-    ServerAuthorizationCodeResponse,
-    RequestStateObject
+    ServerAuthorizationCodeResponse
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -131,35 +130,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
-     * Gets the response hash for a redirect request
-     * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
-     * @returns {string}
-     */
-    private getRedirectResponseHash(): string {
-        // Get current location hash from window or cache.
-        const { location: { hash } } = window;
-        const isResponseHash = UrlString.hashContainsKnownProperties(hash);
-        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
-
-        const responseHash = isResponseHash ? hash : cachedHash;
-        if (responseHash) {
-            // Deserialize hash fragment response parameters.
-            const serverParams: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(responseHash);
-            const requestStateObj: RequestStateObject = ProtocolUtils.parseRequestState(this.browserCrypto, serverParams.state);
-            const platformStateObj: BrowserStateObject = BrowserProtocolUtils.parseBrowserRequestState(this.browserCrypto, requestStateObj.libraryState.platformState);
-            if (platformStateObj.interactionType !== InteractionType.REDIRECT) {
-                return null;
-            } else {
-                BrowserUtils.clearHash();
-                return responseHash;
-            }
-        }      
-
-        return null;
-    }
-
-    /**
      * Checks if navigateToLoginRequestUrl is set, and:
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
@@ -202,6 +172,34 @@ export class PublicClientApplication implements IPublicClientApplication {
                 BrowserUtils.navigateWindow(loginRequestUrl, true);
             }
         }
+
+        return null;
+    }
+
+    /**
+     * Gets the response hash for a redirect request
+     * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
+     * @returns {string}
+     */
+    private getRedirectResponseHash(): string {
+        // Get current location hash from window or cache.
+        const { location: { hash } } = window;
+        const isResponseHash = UrlString.hashContainsKnownProperties(hash);
+        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
+
+        const responseHash = isResponseHash ? hash : cachedHash;
+        if (responseHash) {
+            // Deserialize hash fragment response parameters.
+            const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(responseHash);
+            const platformStateObj: BrowserStateObject = BrowserProtocolUtils.extractBrowserRequestState(this.browserCrypto, serverParams.state);
+            if (platformStateObj.interactionType !== InteractionType.REDIRECT) {
+                return null;
+            } else {
+                BrowserUtils.clearHash();
+                return responseHash;
+            }
+        }      
 
         return null;
     }
@@ -666,10 +664,14 @@ export class PublicClientApplication implements IPublicClientApplication {
             }
         }
 
+        const browserState: BrowserStateObject = {
+            interactionType: interactionType
+        };
+
         validatedRequest.state = ProtocolUtils.setRequestState(
             this.browserCrypto,
             (request && request.state) || "",
-            BrowserProtocolUtils.generateBrowserRequestState(this.browserCrypto, interactionType)
+            browserState
         );
 
         if (StringUtils.isEmpty(validatedRequest.nonce)) {
