@@ -10,6 +10,17 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 
+/**
+ * Use this to configure the auth options in the Configuration object
+ *
+ * - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
+ * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
+ * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
+ * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
+ * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
+ * - postLogoutRedirectUri      - The redirect URI where the window navigates after a successful logout.
+ * - navigateToLoginRequestUrl  - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
+ */
 export type BrowserAuthOptions = {
     clientId: string;
     authority?: string;
@@ -29,16 +40,17 @@ export type BrowserAuthOptions = {
 export type CacheOptions = {
     cacheLocation?: string;
     storeAuthStateInCookie?: boolean;
-    storeInMemory?: boolean;
 };
 
 /**
  * Library Specific Options
  *
- * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
+ * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
+ * - loggerOptions                - Used to initialize the Logger object (See ClientConfiguration.ts)
+ * - networkClient                - Network interface implementation
+ * - windowHashTimeout            - sets the timeout for waiting for a response hash in a popup
+ * - iframeHashTimeout            - sets the timeout for waiting for a response hash in an iframe
  * - loadFrameTimeout             - maximum time the library should wait for a frame to load
- * - windowHashTimeout            - sets the wait time for hidden iFrame navigation
- * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
