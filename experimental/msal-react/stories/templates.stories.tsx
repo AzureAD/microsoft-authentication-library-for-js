@@ -1,0 +1,59 @@
+import * as React from 'react';
+import { MsalProvider, AuthenticatedTemplate, IMsalContext, UnauthenticatedTemplate } from '../src';
+
+import { msalInstance } from './msalInstance';
+import { useState, useCallback } from 'react';
+
+export default {
+    title: 'MSAL React/Templates',
+};
+
+export const Authenticated = () => (
+    <MsalProvider instance={msalInstance}>
+        <p>This page has content that will only render if you are authenticated.</p>
+        <AuthenticatedTemplate>
+            {(context: IMsalContext) => (
+                <React.Fragment>
+                    <b>Welcome, {context.state.accounts[0].username}!</b>
+                </React.Fragment>
+            )}
+        </AuthenticatedTemplate>
+        <AuthenticatedTemplate>
+            <span> You are authenticated!</span>
+        </AuthenticatedTemplate>
+    </MsalProvider>
+);
+
+export const Uauthenticated = () => (
+    <MsalProvider instance={msalInstance}>
+        <p>This page content that will only render if you are not authenticated.</p>
+        <UnauthenticatedTemplate>
+            <b>You are not authenticated.</b>
+        </UnauthenticatedTemplate>
+        <UnauthenticatedTemplate>
+            {(context: IMsalContext) => (
+                <b> There are currently {context.state.accounts.length} active accounts.</b>
+            )}
+        </UnauthenticatedTemplate>
+    </MsalProvider>
+);
+
+export const SpecificUser = () => {
+    const [username, setUsername] = useState('user@example.com');
+    const [currentUser, setCurrentUser] = useState('user@example.com');
+
+    return (
+        <MsalProvider instance={msalInstance}>
+            <input type="text" onChange={(e) => setUsername(e.target.value)} value={username} />
+            <button onClick={(e) => setCurrentUser(username)}>Check status</button>
+            <p>Authentication status templates can be scoped to a specific username.</p>
+
+            <UnauthenticatedTemplate username={currentUser}>
+                <p>The user <b>{currentUser}</b> is <b>unauthenticated</b>.</p>
+            </UnauthenticatedTemplate>
+            <AuthenticatedTemplate username={currentUser}>
+                <p>The user <b>{currentUser}</b> is <b>authenticated</b>.</p>
+            </AuthenticatedTemplate>
+        </MsalProvider>
+    );
+};
