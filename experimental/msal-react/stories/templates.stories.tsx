@@ -2,7 +2,7 @@ import * as React from 'react';
 import { MsalProvider, AuthenticatedTemplate, IMsalContext, UnauthenticatedTemplate } from '../src';
 
 import { msalInstance } from './msalInstance';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 export default {
     title: 'MSAL React/Templates',
@@ -23,6 +23,7 @@ export const Authenticated = () => (
         </AuthenticatedTemplate>
     </MsalProvider>
 );
+Authenticated.story = { name: 'AuthenticatedTemplate' };
 
 export const Uauthenticated = () => (
     <MsalProvider instance={msalInstance}>
@@ -37,6 +38,7 @@ export const Uauthenticated = () => (
         </UnauthenticatedTemplate>
     </MsalProvider>
 );
+Uauthenticated.story = { name: 'UauthenticatedTemplate' };
 
 export const SpecificUser = () => {
     const [username, setUsername] = useState('user@example.com');
