@@ -25,10 +25,7 @@
     "test:e2e": "lerna run --concurrency 1 test:e2e",
     "clean": "lerna run clean --no-private && lerna clean",
     "clean:coverage": "rimraf ./.nyc_output/*",
-    "beachball:check": "beachball check"
-  },
-  "beachball": {
-    "branch": "origin/dev"
+    "beachball:check": "beachball check --branch dev"
   },
   "dependencies": {
     "@babel/register": "^7.7.0"
