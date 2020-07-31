@@ -14,7 +14,7 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
     - [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
     - [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/) (Coming soon)
 
-- [Microsoft Authentication Library for JavaScript v2.x (Preview)](lib/msal-browser/): A browser-based, framework-agnostic browser library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Authorization Code Flow with PKCE](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
+- [Microsoft Authentication Library for JavaScript v2.x](lib/msal-browser/): A browser-based, framework-agnostic browser library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Authorization Code Flow with PKCE](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 
 - [Microsoft Authentication Library for JavaScript v1.x](lib/msal-core/): A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 
@@ -23,6 +23,12 @@ A wrapper of the core 1.x library for apps using Angular framework.
 
 - [Microsoft Authentication Library for AngularJS](lib/msal-angularjs/) :
 A wrapper of the core 1.x library for apps using AngularJS framework.
+
+### Package Structure
+
+We ship a number of different packages which are meant for different platforms. You can see the relationship between packages and different authentication flows they implement below.
+
+![Package Structure](docs/diagrams/png/PackageStructure.png)
 
 ### Samples
 

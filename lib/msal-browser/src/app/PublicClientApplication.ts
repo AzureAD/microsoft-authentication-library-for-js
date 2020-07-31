@@ -37,7 +37,7 @@ import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -121,7 +121,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
-     * @returns token response or null. If the return value is null, then no auth redirect was detected.
+     * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
         return this.handleRedirectResponse();
@@ -142,12 +142,14 @@ export class PublicClientApplication implements IPublicClientApplication {
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
         if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
+            // We are on the page we need to navigate to - handle hash
             // Replace current hash with non-msal hash, if present
             BrowserUtils.replaceHash(loginRequestUrl);
             return this.handleHash(isResponseHash ? hash : cachedHash);
         }
 
         if (!this.config.auth.navigateToLoginRequestUrl) {
+            // We don't need to navigate - handle hash
             BrowserUtils.clearHash();
             return this.handleHash(isResponseHash ? hash : cachedHash);
         }
@@ -195,10 +197,10 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
 	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
 	 *
-     * @param {@link (AuthenticationParameters:type)}
+     * @param {@link (RedirectRequest:type)}
      */
-    async loginRedirect(request: RedirectRequest): Promise<void> {
-        return this.acquireTokenRedirect(request);
+    async loginRedirect(request?: RedirectRequest): Promise<void> {
+        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
     }
 
     /**
@@ -207,9 +209,8 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 *
 	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
 	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
-     * @param {@link (AuthenticationParameters:type)}
      *
-     * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
+     * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         try {
@@ -228,8 +229,9 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
+            const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, request.redirectStartPage, this.browserCrypto);
+            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
             this.browserStorage.cleanRequest();
             throw e;
@@ -243,19 +245,18 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Use when initiating the login process via opening a popup window in the user's browser
      *
-     * @param {@link (AuthenticationParameters:type)}
+     * @param {@link (PopupRequest:type)}
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(request);
+    async loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
     /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
-     * @param {@link AuthenticationParameters}
+     * @param {@link (PopupRequest:type)}
      *
-     * To acquire only idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
@@ -312,7 +313,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      * you session on the server still exists.
      * @param {@link AuthorizationUrlRequest}
      *
-     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters.
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
@@ -320,7 +320,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Check that we have some SSO data
-        if (StringUtils.isEmpty(request.loginHint)) {
+        if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid)) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
         }
 
@@ -356,7 +356,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * MSAL return's a cached token when available
      * Or it send's a request to the STS to obtain a new token using a refresh token.
      *
-     * @param {@link AuthenticationParameters}
+     * @param {@link (SilentRequest:type)}
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
@@ -433,7 +433,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
-     * @param logoutRequest 
+     * @param {@link (EndSessionRequest:type)} 
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
@@ -451,7 +451,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Returns all accounts that MSAL currently has data for.
      * (the account object is created at the time of successful login)
      * or null when no state is found
-     * @returns {@link IAccount[]} - Array of account objects in cache
+     * @returns {@link AccountInfo[]} - Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
         return this.browserStorage.getAllAccounts();
@@ -461,11 +461,11 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Returns the signed in account matching username.
      * (the account object is created at the time of successful login)
      * or null when no state is found
-     * @returns {@link IAccount} - the account object stored in MSAL
+     * @returns {@link AccountInfo} - the account object stored in MSAL
      */
-    getAccountByUsername(userName: string): AccountInfo {
+    getAccountByUsername(userName: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
-        return allAccounts ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
+        return allAccounts && allAccounts.length ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
     }
 
     // #endregion
@@ -603,7 +603,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     private setDefaultScopes(request: BaseAuthRequest): BaseAuthRequest {
         return {
             ...request,
-            scopes: [...((request && request.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
+            scopes: [...((request && request.scopes) || []), ...DEFAULT_REQUEST.scopes]
         };
     }
 
