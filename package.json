@@ -26,7 +26,8 @@
     "clean": "lerna run clean --no-private && lerna clean",
     "clean:coverage": "rimraf ./.nyc_output/*",
     "beachball:check": "beachball check --branch dev",
-    "beachball:change": "beachball change --branch dev"
+    "beachball:change": "beachball change --branch dev",
+    "beachball:publish": "beachball publish --branch dev"
   },
   "dependencies": {
     "@babel/register": "^7.7.0"
