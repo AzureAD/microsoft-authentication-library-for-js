@@ -65,9 +65,6 @@ export class RedirectHandler extends InteractionHandler {
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
         this.authCodeRequest.code = authCode;
 
-        // Hash was processed successfully - remove from cache
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
-
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
 
