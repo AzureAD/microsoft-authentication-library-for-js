@@ -1,5 +1,5 @@
 import React from 'react';
-import { MsalProvider, MsalConsumer } from '../src';
+import { MsalProvider, MsalConsumer, useMsal } from '../src';
 
 import { msalInstance } from './msalInstance';
 
@@ -7,42 +7,29 @@ export default {
     title: 'MSAL React/Login & Logout',
 };
 
-export const LoginPopup = () => {
-    return (
-        <MsalProvider instance={msalInstance}>
-            <MsalConsumer>
-                {msalContext => (
-                    <div>
-                        {msalContext.state.accounts.length ? (
-                            <div>
-                                <p>
-                                    Account: {msalContext.state.accounts[0].username}
-                                </p>
-                                <button
-                                    onClick={() => {
-                                        msalContext.instance.logout();
-                                    }}
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        ) : (
-                            <div>
-                                <button 
-                                    onClick={() => {
-                                        msalContext.instance.loginPopup({
-                                            scopes: []
-                                        });
-                                    }}
-                                >
-                                    Login
-                                </button>
-                            </div>
-                        )}
+export const LoginPopup = () => (
+    <MsalProvider instance={msalInstance}>
+        <PopupExample />
+    </MsalProvider>
+);
 
-                    </div>
-                )}
-            </MsalConsumer>
-        </MsalProvider>
-    )
+const PopupExample = () => {
+    const { instance, state } = useMsal();
+    const accounts = state.accounts;
+    const isAuthenticated = accounts.length > 0;
+
+    if (isAuthenticated) {
+        return (
+            <React.Fragment>
+                <p>Accounts: {accounts.map(a => a.username).join(', ')}</p>
+                <button onClick={() => instance.logout()}>Logout</button>
+            </React.Fragment>
+        );
+    } else {
+        return (
+            <React.Fragment>
+                <button onClick={() => instance.loginPopup({ scopes: [] })}>Login</button>
+            </React.Fragment>
+        );
+    }
 };
