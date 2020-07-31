@@ -40,7 +40,7 @@ export const Uauthenticated = () => (
 
 export const SpecificUser = () => {
     const [username, setUsername] = useState('user@example.com');
-    const [currentUser, setCurrentUser] = useState('user@example.com');
+    const [currentUser, setCurrentUser] = useState(username);
 
     return (
         <MsalProvider instance={msalInstance}>
