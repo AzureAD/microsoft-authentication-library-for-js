@@ -74,7 +74,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
-                expect(urlNavigate).to.be.eq("/");
+                expect(urlNavigate).to.be.eq("https://localhost:8081/");
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
                 done();
             });
             pca.handleRedirectPromise();
@@ -86,7 +87,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, "null");
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
-                expect(urlNavigate).to.be.eq("/");
+                expect(urlNavigate).to.be.eq("https://localhost:8081/");
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
                 done();
             });
             pca.handleRedirectPromise();
