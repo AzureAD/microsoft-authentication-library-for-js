@@ -30,5 +30,8 @@ export function defaultLoginHandler(
     context: IMsalContext
 ): Promise<AuthenticationResult> {
     const { instance } = context;
-    return instance.loginPopup({ scopes: ['user.read'] });
+    return instance.loginPopup({
+        scopes: ['user.read'],
+        prompt: 'select_account',
+    });
 }

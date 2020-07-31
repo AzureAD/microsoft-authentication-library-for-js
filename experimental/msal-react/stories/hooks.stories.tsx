@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MsalProvider, useMsal, useIsAuthenticated } from '../src';
+import { MsalProvider, useMsal, useIsAuthenticated, UnauthenticatedTemplate, AuthenticatedTemplate, IMsalContext, useMsalAuthentication } from '../src';
 
 import { msalInstance } from './msalInstance';
 import { useState } from 'react';
@@ -68,7 +68,19 @@ const UseIsAuthenticatedExample = () => {
 }
 
 const UseMsalAuthenticationEample = () => {
-
+    useMsalAuthentication();
     
-    return (null);
+    return (
+        <React.Fragment>
+            <p>The <pre style={{display: 'inline'}}>useMsalAuthentication()</pre> hook initiates the authentication process. It accepts optional parameters for a specific "username", or a custom "loginHandler" function which initiates a custom authentication flow using the MSAL API.</p>
+            <UnauthenticatedTemplate>
+                <p><b>Authenticating...</b></p>
+            </UnauthenticatedTemplate>
+            <AuthenticatedTemplate>
+                {(context: IMsalContext) => (
+                    <p><b>Welcome {context.state.accounts[0].username}! You have been authenticated.</b></p>
+                )}
+            </AuthenticatedTemplate>
+        </React.Fragment>
+    );
 }

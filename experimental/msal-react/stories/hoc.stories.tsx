@@ -20,9 +20,9 @@ const WelcomeMessage: React.FunctionComponent<IWithMsalProps> = (props) => {
     const accounts = props.msalContext.state.accounts;
     
     if (accounts.length > 0) {
-        return <span>Welcome! The withMsal() higher-order component can see you are logged in with {accounts.length} accounts.</span>;
+        return <span>Welcome! The <pre style={{display: 'inline'}}>withMsal()</pre> higher-order component can see you are logged in with {accounts.length} accounts.</span>;
     } else {
-        return <span>Welcome! The withMsal() higher-order component has detected you are logged out!</span>;
+        return <span>Welcome! The <pre style={{display: 'inline'}}>withMsal()</pre> higher-order component has detected you are logged out!</span>;
     }
 }
 

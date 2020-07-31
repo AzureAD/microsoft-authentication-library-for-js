@@ -34,9 +34,7 @@ const PopupExample = () => {
                 <p>Accounts: {accounts.map(a => a.username).join(', ')}</p>
                 <button onClick={() => instance.logout()}>Logout</button>
             </AuthenticatedTemplate>
-            <UnauthenticatedTemplate>
-                <button onClick={() => instance.loginPopup({ scopes: [] })}>Login</button>
-            </UnauthenticatedTemplate>
+            <button onClick={() => instance.loginPopup({ scopes: ['user.read'], prompt: 'select_account' })}>Login</button>
         </React.Fragment>
     );
 };
@@ -50,10 +48,10 @@ const LogoutExample = () => {
     return (
         <React.Fragment>
             {accounts.map((account) => (
-                <React.Fragment key={account.homeAccountId}>
+                <div key={account.homeAccountId}>
                     <span>{account.username}</span>
                     <button onClick={() => instance.logout({ account })} style={{ marginLeft: 20 }}>Logout</button>
-                </React.Fragment>
+                </div>
             ))}
         </React.Fragment>
     );

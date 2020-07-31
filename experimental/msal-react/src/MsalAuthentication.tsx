@@ -16,8 +16,9 @@ type MsalAuthenticationResult = {
     msal: IMsalContext;
 };
 
+// TODO: Add optional argument for the `request` object?
 export function useMsalAuthentication(
-    args: IMsalAuthenticationProps
+    args: IMsalAuthenticationProps = {}
 ): MsalAuthenticationResult {
     const { username, loginHandler = defaultLoginHandler } = args;
     const msal = useMsal();
@@ -41,7 +42,10 @@ export function useMsalAuthentication(
         if (!isAuthenticated) {
             login();
         }
-    }, [isAuthenticated, login]);
+        // TODO: the `login` function needs to be added to the deps array.
+        //  Howevever, when it's added it will cause a double login issue because we're not
+        //  currently tracking when an existing login is InProgress
+    }, [isAuthenticated]);
 
     return useMemo(
         () => ({

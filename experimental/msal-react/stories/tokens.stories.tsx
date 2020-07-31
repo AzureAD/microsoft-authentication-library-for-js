@@ -41,16 +41,22 @@ const AcquireTokenSilentExample = () => {
     }, [instance]);
 
     return (
-        <GetTokenButtonList onFetch={getTokenClick} accounts={state.accounts} />
+        <React.Fragment>
+            {state.accounts.map((account) => (
+                <AccountTokenFetcher key={account.homeAccountId} onFetch={getTokenClick} account={account} />
+            ))}
+        </React.Fragment>
+        
     )
 };
 
 const AcquireTokenPopupExample = () => {
     const { instance, state } = useMsal();
 
-    const getTokenClick = useCallback(async (setter: React.Dispatch<React.SetStateAction<string>>) => {
+    const getTokenClick = useCallback(async (setter: React.Dispatch<React.SetStateAction<string>>, account: AccountInfo) => {
         const tokenResponse = await instance.acquireTokenPopup({
-            scopes: []
+            scopes: ['user.read'],
+            loginHint: account.username
         });
 
         if (tokenResponse) {
@@ -59,27 +65,28 @@ const AcquireTokenPopupExample = () => {
     }, [instance]);
 
     return (
-        <GetTokenButtonList onFetch={getTokenClick} accounts={state.accounts} />
+        <React.Fragment>
+            {state.accounts.map((account) => (
+                <AccountTokenFetcher key={account.homeAccountId} onFetch={getTokenClick} account={account} />
+            ))}
+        </React.Fragment>
+        
     )
 };
 
-interface IGetTokenButtonList {
+interface IAccountTokenFetcherProps {
     onFetch: (setter: React.Dispatch<React.SetStateAction<string>>, account: AccountInfo) => void;
-    accounts: AccountInfo[];
+    account: AccountInfo;
 }
 
-const GetTokenButtonList: React.FunctionComponent<IGetTokenButtonList> = ({ onFetch, accounts }) => {
+const AccountTokenFetcher: React.FunctionComponent<IAccountTokenFetcherProps> = ({ onFetch, account }) => {
     const [ accessToken, setAccessToken ] = useState<string | undefined>(undefined);
 
     return (
-        <React.Fragment>
-            {accounts.map((account) => (
-                <div key={account.homeAccountId} style={{marginBottom: 20}}>
-                    <span>{account.username}</span>
-                    <button onClick={() => onFetch(setAccessToken, account)} style={{marginLeft: 20}}>Fetch Token</button>
-                    <div><pre>{JSON.stringify(accessToken, null, 4)}</pre></div>
-                </div>
-            ))}            
-        </React.Fragment>
+        <div style={{marginBottom: 20}}>
+            <span>{account.username}</span>
+            <button onClick={() => onFetch(setAccessToken, account)} style={{marginLeft: 20}}>Fetch Token</button>
+            <div><pre>{JSON.stringify(accessToken, null, 4)}</pre></div>
+        </div>
     );
 }
