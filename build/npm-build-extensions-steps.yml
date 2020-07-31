@@ -15,6 +15,12 @@ steps:
           verbose: true
 
     - task: Npm@1
+      displayName: 'beachball check'
+      inputs:
+        command: 'custom'
+        customCommand: 'run beachball:check'
+
+    - task: Npm@1
       displayName: 'Build Package'
       inputs:
           command: 'custom'
