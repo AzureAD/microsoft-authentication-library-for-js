@@ -8,10 +8,10 @@ type FaaCFunction = (props: IMsalContext) => React.ReactNode;
 
 export function getChildrenOrFunction(
     children: React.ReactNode | FaaCFunction,
-    props: IMsalContext
+    context: IMsalContext
 ): React.ReactNode {
     if (typeof children === 'function') {
-        return children(props);
+        return children(context);
     }
     return children;
 }

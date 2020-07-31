@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { useMsal } from './MsalProvider';
-import { getChildrenOrFunction, isAuthenticated } from './utilities';
+import { getChildrenOrFunction } from './utilities';
+import { useIsAuthenticated } from './useIsAuthenticated';
 
 export interface IMsalTemplateProps {
     username?: string;
@@ -9,12 +10,13 @@ export interface IMsalTemplateProps {
 
 export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
     const { children, username } = props;
-    const msal = useMsal();
+    const context = useMsal();
+    const isAuthenticated = useIsAuthenticated(username);
 
-    if (!isAuthenticated(msal.instance, username)) {
+    if (!isAuthenticated) {
         return (
             <React.Fragment>
-                {getChildrenOrFunction(children, msal)}
+                {getChildrenOrFunction(children, context)}
             </React.Fragment>
         );
     }
@@ -23,12 +25,13 @@ export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps
 
 export const AuthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
     const { children, username } = props;
-    const msal = useMsal();
+    const context = useMsal();
+    const isAuthenticated = useIsAuthenticated(username);
 
-    if (isAuthenticated(msal.instance, username)) {
+    if (isAuthenticated) {
         return (
             <React.Fragment>
-                {getChildrenOrFunction(children, msal)}
+                {getChildrenOrFunction(children, context)}
             </React.Fragment>
         );
     }

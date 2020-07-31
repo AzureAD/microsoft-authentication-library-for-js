@@ -18,3 +18,5 @@ export type { IWithMsalProps } from "./withMsal";
 export { withMsal } from "./withMsal";
 
 export { useHandleRedirect } from "./useHandleRedirect";
+
+export { useIsAuthenticated } from './useIsAuthenticated';

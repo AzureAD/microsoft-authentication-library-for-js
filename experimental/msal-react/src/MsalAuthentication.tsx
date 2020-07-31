@@ -3,11 +3,8 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 
 import { IMsalContext } from './MsalContext';
 import { useMsal } from './MsalProvider';
-import {
-    getChildrenOrFunction,
-    isAuthenticated,
-    defaultLoginHandler,
-} from './utilities';
+import { getChildrenOrFunction, defaultLoginHandler } from './utilities';
+import { useIsAuthenticated } from './useIsAuthenticated';
 
 export interface IMsalAuthenticationProps {
     username?: string;
@@ -24,7 +21,7 @@ export function useMsalAuthentication(
 ): MsalAuthenticationResult {
     const { username, loginHandler = defaultLoginHandler } = args;
     const msal = useMsal();
-    const hasAuthenticated = isAuthenticated(msal.instance, username);
+    const isAuthenticated = useIsAuthenticated(username);
 
     const [error, setError] = useState<Error | null>(null);
 
@@ -41,10 +38,10 @@ export function useMsalAuthentication(
     useEffect(() => {
         // TODO: What if there is an error? How do errors get cleared?
         // TODO: What if user cancels the flow?
-        if (!hasAuthenticated) {
+        if (!isAuthenticated) {
             login();
         }
-    }, [hasAuthenticated, login]);
+    }, [isAuthenticated, login]);
 
     return useMemo(
         () => ({
@@ -58,11 +55,10 @@ export function useMsalAuthentication(
 export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProps> = props => {
     const { username, loginHandler, children } = props;
     const { msal } = useMsalAuthentication({ username, loginHandler });
-
-    const hasAuthenticated = isAuthenticated(msal.instance, username);
+    const isAuthenticated = useIsAuthenticated(username);
 
     // TODO: What if the user authentiction is InProgress? How will user show a loading state?
-    if (hasAuthenticated) {
+    if (isAuthenticated) {
         return (
             <React.Fragment>
                 {getChildrenOrFunction(children, msal)}
