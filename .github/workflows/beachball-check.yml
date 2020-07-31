@@ -18,5 +18,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - run: node build/postinstall.js
     - run: npm ci
     - run: npm run beachball:check
