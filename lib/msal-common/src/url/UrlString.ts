@@ -23,7 +23,7 @@ export class UrlString {
     constructor(url: string) {
         this._urlString = url;
         if (!StringUtils.isEmpty(this._urlString) && StringUtils.isEmpty(this.getHash())) {
-            this._urlString = this.canonicalizeUri(url);
+            this._urlString = UrlString.canonicalizeUri(url);
         } else if (StringUtils.isEmpty(this._urlString)) {
             // Throws error if url is empty
             throw ClientConfigurationError.createUrlEmptyError();
@@ -34,7 +34,7 @@ export class UrlString {
      * Ensure urls are lower case and end with a / character.
      * @param url 
      */
-    private canonicalizeUri(url: string): string {
+    static canonicalizeUri(url: string): string {
         if (url) {
             url = url.toLowerCase();
         }
@@ -87,7 +87,7 @@ export class UrlString {
     }
 
     static removeHashFromUrl(url: string): string {
-        return url.split("#")[0];
+        return UrlString.canonicalizeUri(url.split("#")[0]);
     }
 
     /**

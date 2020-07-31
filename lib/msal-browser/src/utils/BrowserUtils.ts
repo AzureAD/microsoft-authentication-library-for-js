@@ -60,6 +60,12 @@ export class BrowserUtils {
         return window.location.href.split("?")[0].split("#")[0];
     }
 
+    static getHomepage(): string {
+        const currentUrl = new UrlString(window.location.href);
+        const urlComponents = currentUrl.getUrlComponents();
+        return urlComponents.Protocol + "//" + urlComponents.HostNameAndPort + "/";
+    }
+
     /**
      * Returns best compatible network client object. 
      */
