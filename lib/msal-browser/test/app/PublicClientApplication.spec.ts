@@ -131,6 +131,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.handleRedirectPromise();
         });
 
+        it("processes hash if navigateToLoginRequestUri is true and loginRequestUrl contains trailing slash", (done) => {
+            const loginRequestUrl = window.location.href.endsWith('/') ? window.location.href.slice(0, -1) : window.location.href + "/";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+            sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
+                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                done();
+            });
+            pca.handleRedirectPromise();
+        });
+
         it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
             pca = new PublicClientApplication({
                 auth: {

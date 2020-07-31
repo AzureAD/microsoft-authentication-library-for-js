@@ -130,54 +130,62 @@ export class PublicClientApplication implements IPublicClientApplication {
         return this.handleRedirectResponse();
     }
 
+    private getRedirectResponseHash(): string {
+        // Get current location hash from window or cache.
+        const { location: { hash } } = window;
+        const isResponseHash = UrlString.hashContainsKnownProperties(hash);
+        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
+
+        const responseHash = isResponseHash ? hash : cachedHash;
+        if (responseHash) {
+            // Deserialize hash fragment response parameters.
+            const serverParams: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(responseHash);
+            const requestStateObj: RequestStateObject = ProtocolUtils.parseRequestState(this.browserCrypto, serverParams.state);
+            const platformStateObj: BrowserStateObject = BrowserProtocolUtils.parseBrowserRequestState(this.browserCrypto, requestStateObj.libraryState.platformState);
+            if (platformStateObj.interactionType !== InteractionType.REDIRECT) {
+                return null;
+            } else {
+                BrowserUtils.clearHash();
+                return responseHash;
+            }
+        }      
+
+        return null;
+    }
+
     /**
      * Checks if navigateToLoginRequestUrl is set, and:
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
      */
     private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
-        // Get current location hash from window or cache.
-        const { location: { hash } } = window;
-        const isResponseHash = UrlString.hashContainsKnownProperties(hash);
-
-        // Check for interaction type
-        if (isResponseHash) {
-            // Deserialize hash fragment response parameters.
-            const hashUrlString: UrlString = new UrlString(hash);
-            const serverParams: ServerAuthorizationCodeResponse = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
-            const requestStateObj: RequestStateObject = ProtocolUtils.parseRequestState(this.browserCrypto, serverParams.state);
-            const platformStateObj: BrowserStateObject = BrowserProtocolUtils.parseBrowserRequestState(this.browserCrypto, requestStateObj.libraryState.platformState);
-            if (StringUtils.isEmpty(platformStateObj.interactionType) || platformStateObj.interactionType !== InteractionType.REDIRECT) {
-                return null;
-            }
+        const responseHash = this.getRedirectResponseHash();
+        if (!responseHash) {
+            return null;
         }
 
-        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
 
-        if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
+        if (loginRequestUrlNormalized === currentUrlNormalized || !this.config.auth.navigateToLoginRequestUrl) {
             // We are on the page we need to navigate to - handle hash
-            // Replace current hash with non-msal hash, if present
-            BrowserUtils.replaceHash(loginRequestUrl);
-            return this.handleHash(isResponseHash ? hash : cachedHash);
-        }
-
-        if (!this.config.auth.navigateToLoginRequestUrl) {
-            // We don't need to navigate - handle hash
-            BrowserUtils.clearHash();
-            return this.handleHash(isResponseHash ? hash : cachedHash);
-        }
-
-        if (isResponseHash && !BrowserUtils.isInIframe()) {
+            if (this.config.auth.navigateToLoginRequestUrl && loginRequestUrl.indexOf("#") > -1) {
+                // Replace current hash with non-msal hash, if present
+                BrowserUtils.replaceHash(loginRequestUrl);
+            }
+            return this.handleHash(responseHash);
+        } else if (!BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
             const hashKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH);
-            this.browserStorage.setItem(hashKey, hash, CacheSchemaType.TEMPORARY);
-            if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
+            this.browserStorage.setItem(hashKey, responseHash, CacheSchemaType.TEMPORARY);
+            if (!loginRequestUrl || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
+                const homepage = BrowserUtils.getHomepage();
+                this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), homepage, CacheSchemaType.TEMPORARY);
                 this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
-                BrowserUtils.navigateWindow("/", true);
+                BrowserUtils.navigateWindow(homepage, true);
             } else {
                 // Navigate to target url
                 BrowserUtils.navigateWindow(loginRequestUrl, true);
