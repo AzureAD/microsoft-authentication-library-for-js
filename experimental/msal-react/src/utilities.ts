@@ -4,14 +4,14 @@ import {
     AuthenticationResult,
 } from '@azure/msal-browser';
 
-type FaaCFunction = (props: IMsalContext) => React.ReactNode;
+type FaaCFunction = <T>(args: T) => React.ReactNode;
 
-export function getChildrenOrFunction(
+export function getChildrenOrFunction<T>(
     children: React.ReactNode | FaaCFunction,
-    context: IMsalContext
+    args: T
 ): React.ReactNode {
     if (typeof children === 'function') {
-        return children(context);
+        return children(args);
     }
     return children;
 }
