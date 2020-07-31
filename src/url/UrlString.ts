@@ -119,18 +119,6 @@ export class UrlString {
     }
 
     /**
-     * Returns deserialized portion of URL hash
-     */
-    getDeserializedHash<T>(): T {
-        const hash = this.getHash();
-        const deserializedHash: T = StringUtils.queryStringToObject<T>(hash);
-        if (!deserializedHash) {
-            throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));
-        }
-        return deserializedHash;
-    }
-
-    /**
      * Parses out the components from a url string.
      * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
      */
@@ -162,6 +150,17 @@ export class UrlString {
     }
 
     /**
+     * Returns deserialized portion of URL hash
+     */
+    static getDeserializedHash(hash: string): ServerAuthorizationCodeResponse {
+        const deserializedHash: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(hash);
+        if (!deserializedHash) {
+            throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));
+        }
+        return deserializedHash;
+    }
+
+    /**
      * Check if the hash of the URL string contains known properties
      */
     static hashContainsKnownProperties(url: string): boolean {
@@ -169,7 +168,7 @@ export class UrlString {
             return false;
         }
         const urlString = new UrlString(url);
-        const parameters = urlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+        const parameters: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(urlString.getHash());
         return !!(
             parameters.code ||
             parameters.error_description ||
