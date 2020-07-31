@@ -26,7 +26,7 @@ export const Authenticated = () => (
 
 export const Uauthenticated = () => (
     <MsalProvider instance={msalInstance}>
-        <p>This page content that will only render if you are not authenticated.</p>
+        <p>This page has content that will only render if you are unauthenticated.</p>
         <UnauthenticatedTemplate>
             <b>You are not authenticated.</b>
         </UnauthenticatedTemplate>
