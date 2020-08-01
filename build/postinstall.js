@@ -1,6 +1,5 @@
 let exec = require("child_process").exec;
 
-console.log(process.env.BEACHBALL);
 if (parseInt(process.env.BEACHBALL)) {
     // do nothing
 } else if (parseInt(process.env.RUNNING_NODE_CI)) {
