@@ -178,7 +178,7 @@ export abstract class ClientApplication {
     private getClientAssertion(): { assertion: string, assertionType: string } {
         return {
             assertion: this.clientAssertion.getJwt(this.cryptoProvider, this.config.auth.clientId, this._authority.tokenEndpoint),
-            assertionType: ClientAssertion.ASSERTION_TYPE
+            assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
         }
     }
 

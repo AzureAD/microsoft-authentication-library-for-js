@@ -40,10 +40,11 @@ export const CACHE = {
 };
 
 /**
- * Constants for headers
+ * Constants
  */
 export const Constants = {
     MSAL_SKU: 'msal.js.node',
+    JWT_BEARER_ASSERTION_TYPE: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
 };
 
 /**

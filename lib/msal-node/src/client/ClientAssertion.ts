@@ -14,8 +14,6 @@ import { JwtConstants } from "../../src/utils/Constants"
  */
 export class ClientAssertion {
 
-    public static readonly ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
-
     private jwt: string;
     private privateKey: string;
     private thumbprint: string;
