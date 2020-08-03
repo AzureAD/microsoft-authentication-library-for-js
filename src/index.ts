@@ -2,6 +2,7 @@
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
+export { ClientCredentialClient } from "./client/ClientCredentialClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
 export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
@@ -36,6 +37,7 @@ export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
+export { ClientCredentialRequest } from "./request/ClientCredentialRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
