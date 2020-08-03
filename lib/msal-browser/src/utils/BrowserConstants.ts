@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { AuthorizationUrlRequest, Constants } from "@azure/msal-common";
+
 /**
  * Constants
  */
@@ -59,3 +61,7 @@ export enum InteractionType {
     POPUP = "popup",
     SILENT = "silent"
 }
+
+export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
+    scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
+};
