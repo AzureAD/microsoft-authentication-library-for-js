@@ -6,7 +6,7 @@
 import { ClientApplication } from './ClientApplication';
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "../client/ClientAssertion";
-import { StringUtils, ClientAuthError } from '@azure/msal-common';
+import { ClientCredentialRequest, ClientCredentialClient, AuthenticationResult, StringUtils, ClientAuthError } from '@azure/msal-common';
 
 export class ConfidentialClientApplication extends ClientApplication {
 
@@ -34,6 +34,20 @@ export class ConfidentialClientApplication extends ClientApplication {
         super(configuration);
         this.setClientCredential(this.config);
     }
+
+    /**
+     * Acquires tokens from the authority for the application.
+     */
+    public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult> {
+        this.logger.info("acquireTokenByClientCredential called");
+        const clientCredentialConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
+        this.logger.verbose("Auth client config generated");
+        const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
+        return clientCredentialClient.acquireToken(this.initializeRequestScopes(request) as ClientCredentialRequest);
+    }
+
 
     private setClientCredential(configuration: Configuration): void {
         if (!StringUtils.isEmpty(configuration.auth!.clientSecret!)) {
