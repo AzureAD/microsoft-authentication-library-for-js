@@ -112,7 +112,7 @@ export class ResponseHandler {
         // save the response tokens
         let requestStateObj: RequestStateObject = null;
         if (!StringUtils.isEmpty(cachedState)) {
-            requestStateObj = ProtocolUtils.parseRequestState(cachedState, this.cryptoObj); 
+            requestStateObj = ProtocolUtils.parseRequestState(cachedState, this.cryptoObj);
         }
 
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
@@ -203,24 +203,24 @@ export class ResponseHandler {
     private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
         const authorityType = authority.authorityType;
 
-        if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
+        if (StringUtils.isEmpty(serverTokenResponse.client_info) && authorityType !== AuthorityType.Adfs) {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
         }
 
-        return (authorityType === AuthorityType.Adfs)? 
-            AccountEntity.createADFSAccount(authority, idToken): 
+        return (authorityType === AuthorityType.Adfs)?
+            AccountEntity.createADFSAccount(authority, idToken):
             AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
     }
 
     /**
      * Creates an @AuthenticationResult from @CacheRecord , @IdToken , and a boolean that states whether or not the result is from cache.
-     * 
+     *
      * Optionally takes a state string that is set as-is in the response.
-     * 
-     * @param cacheRecord 
-     * @param idTokenObj 
-     * @param fromTokenCache 
-     * @param stateString 
+     *
+     * @param cacheRecord
+     * @param idTokenObj
+     * @param fromTokenCache
+     * @param stateString
      */
     static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, stateString?: string): AuthenticationResult {
         let accessToken: string = "";

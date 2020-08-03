@@ -15,4 +15,5 @@ export type AccountInfo = {
     environment: string;
     tenantId: string;
     username: string;
+    name?: string;
 };
