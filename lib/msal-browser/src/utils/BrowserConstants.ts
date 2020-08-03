@@ -47,7 +47,6 @@ export enum TemporaryCacheKeys {
     REQUEST_STATE = "request.state",
     NONCE_IDTOKEN = "nonce.id_token",
     ORIGIN_URI = "request.origin",
-    CORRELATION_ID = "request.correlationId",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",

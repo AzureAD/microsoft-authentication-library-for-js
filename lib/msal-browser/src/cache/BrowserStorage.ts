@@ -279,7 +279,6 @@ export class BrowserStorage extends CacheManager {
         this.clearItemCookie(this.generateCacheKey(nonceKey));
         this.clearItemCookie(this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE));
         this.clearItemCookie(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
-        this.clearItemCookie(this.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID));
     }
 
     /**
@@ -395,7 +394,6 @@ export class BrowserStorage extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
-        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID));
     }
 
     cleanRequest(): void {
