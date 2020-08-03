@@ -96,6 +96,9 @@ export class ClientTestUtils {
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
             },
+            clientCredentials: {
+                clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
+            },
             libraryInfo: {
                 sku: Constants.SKU,
                 version: TEST_CONFIG.TEST_VERSION,
