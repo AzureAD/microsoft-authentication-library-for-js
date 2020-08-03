@@ -153,7 +153,7 @@ export const ClientAuthErrorMessage = {
     },
     invalidClientCredential: {
         code: "invalid_client_credential",
-        desc: "Client credential (secret, certificate, or assertion) must not be empty when creating a confidential client"
+        desc: "Client credential (secret, certificate, or assertion) must not be empty when creating a confidential client. An application should at most have one credential"
     }
 };
 
