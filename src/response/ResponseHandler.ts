@@ -51,7 +51,7 @@ export class ResponseHandler {
      * @param cryptoObj
      */
     validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
-        if (serverResponseHash.state !== cachedState) {
+        if (decodeURIComponent(serverResponseHash.state) !== decodeURIComponent(cachedState)) {
             throw ClientAuthError.createStateMismatchError();
         }
 
