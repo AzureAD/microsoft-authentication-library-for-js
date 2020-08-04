@@ -2,12 +2,12 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
 import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
-import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
+import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
 import { IdToken } from "../account/IdToken";
@@ -112,13 +112,13 @@ export class ResponseHandler {
         // save the response tokens
         let requestStateObj: RequestStateObject = null;
         if (!StringUtils.isEmpty(cachedState)) {
-            requestStateObj = ProtocolUtils.parseRequestState(cachedState, this.cryptoObj); 
+            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState); 
         }
 
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
         this.cacheStorage.saveCacheRecord(cacheRecord);
 
-        return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj ? requestStateObj.userRequestState : null);
+        return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
     }
 
     /**
@@ -222,7 +222,7 @@ export class ResponseHandler {
      * @param fromTokenCache 
      * @param stateString 
      */
-    static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, stateString?: string): AuthenticationResult {
+    static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, requestState?: RequestStateObject): AuthenticationResult {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date = null;
@@ -249,7 +249,7 @@ export class ResponseHandler {
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
-            state: stateString || ""
+            state: requestState ? requestState.userRequestState : ""
         };
     }
 }
