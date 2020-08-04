@@ -53,6 +53,15 @@ export enum TemporaryCacheKeys {
     SCOPES = "scopes"
 }
 
+/**
+ * Interaction type of the API - used for state and telemetry
+ */
+export enum InteractionType {
+    REDIRECT = "redirect",
+    POPUP = "popup",
+    SILENT = "silent"
+}
+
 export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
