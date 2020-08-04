@@ -55,3 +55,6 @@ export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
+// Telemetry
+export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
+export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";

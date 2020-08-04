@@ -13,6 +13,7 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -33,6 +34,9 @@ export abstract class BaseClient {
     // Network Interface
     protected networkClient: INetworkModule;
 
+    // Server Telemetry Manager
+    protected serverTelemetryManager: ServerTelemetryManager;
+
     // Default authority object
     protected authority: Authority;
 
@@ -52,6 +56,9 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
+        // Set TelemetryManager
+        this.serverTelemetryManager = this.config.serverTelemetryManager;
+
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
 
         this.authority = this.config.authOptions.authority;
@@ -63,6 +70,11 @@ export abstract class BaseClient {
     protected createDefaultTokenRequestHeaders(): Map<string, string> {
         const headers = this.createDefaultLibraryHeaders();
         headers.set(HeaderNames.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
+
+        if (this.serverTelemetryManager) {
+            headers.set(HeaderNames.X_CLIENT_CURR_TELEM, this.serverTelemetryManager.generateCurrentRequestHeaderValue());
+            headers.set(HeaderNames.X_CLIENT_LAST_TELEM, this.serverTelemetryManager.generateLastRequestHeaderValue());
+        }
 
         return headers;
     }
@@ -88,12 +100,19 @@ export abstract class BaseClient {
      * @param queryString
      * @param headers
      */
-    protected executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Map<string, string>): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        return this.networkClient.sendPostRequestAsync<
+    protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Map<string, string>): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+        const response = await this.networkClient.sendPostRequestAsync<
         ServerAuthorizationTokenResponse
         >(tokenEndpoint, {
             body: queryString,
             headers: headers,
         });
+
+        if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
+            // Telemetry data successfully logged by server, clear Telemetry cache
+            this.config.serverTelemetryManager.clearTelemetryCache();
+        }
+
+        return response;
     }
 }
