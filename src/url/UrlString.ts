@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
+import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
@@ -23,7 +23,7 @@ export class UrlString {
     constructor(url: string) {
         this._urlString = url;
         if (!StringUtils.isEmpty(this._urlString) && StringUtils.isEmpty(this.getHash())) {
-            this._urlString = UrlString.canonicalizeUri(url);
+            this._urlString = this.canonicalizeUri(url);
         } else if (StringUtils.isEmpty(this._urlString)) {
             // Throws error if url is empty
             throw ClientConfigurationError.createUrlEmptyError();
@@ -34,7 +34,7 @@ export class UrlString {
      * Ensure urls are lower case and end with a / character.
      * @param url 
      */
-    static canonicalizeUri(url: string): string {
+    private canonicalizeUri(url: string): string {
         if (url) {
             url = url.toLowerCase();
         }
@@ -87,7 +87,7 @@ export class UrlString {
     }
 
     static removeHashFromUrl(url: string): string {
-        return UrlString.canonicalizeUri(url.split("#")[0]);
+        return url.split("#")[0];
     }
 
     /**
@@ -116,6 +116,18 @@ export class UrlString {
             return this.urlString.substring(hashIndex1 + 1);
         }
         return "";
+    }
+
+    /**
+     * Returns deserialized portion of URL hash
+     */
+    getDeserializedHash<T>(): T {
+        const hash = this.getHash();
+        const deserializedHash: T = StringUtils.queryStringToObject<T>(hash);
+        if (!deserializedHash) {
+            throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));
+        }
+        return deserializedHash;
     }
 
     /**
@@ -150,17 +162,6 @@ export class UrlString {
     }
 
     /**
-     * Returns deserialized portion of URL hash
-     */
-    static getDeserializedHash(hash: string): ServerAuthorizationCodeResponse {
-        const deserializedHash: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(hash);
-        if (!deserializedHash) {
-            throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));
-        }
-        return deserializedHash;
-    }
-
-    /**
      * Check if the hash of the URL string contains known properties
      */
     static hashContainsKnownProperties(url: string): boolean {
@@ -168,7 +169,7 @@ export class UrlString {
             return false;
         }
         const urlString = new UrlString(url);
-        const parameters: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(urlString.getHash());
+        const parameters = urlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
         return !!(
             parameters.code ||
             parameters.error_description ||

@@ -7,11 +7,11 @@ import { DeviceCodeResponse, ServerDeviceCodeResponse } from "../response/Device
 import { BaseClient } from "./BaseClient";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
+import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";

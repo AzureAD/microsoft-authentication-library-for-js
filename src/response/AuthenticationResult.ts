@@ -21,7 +21,7 @@ import { AccountInfo } from "../account/AccountInfo";
  * - state                  - Value passed in by user in request
  * - familyId               - Family ID identifier, usually only used for refresh tokens
  */
-export type AuthenticationResult = {
+export class AuthenticationResult {
     uniqueId: string;
     tenantId: string;
     scopes: Array<string>;
@@ -34,4 +34,4 @@ export type AuthenticationResult = {
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;
-};
+}

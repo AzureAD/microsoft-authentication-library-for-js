@@ -41,9 +41,7 @@ export const Constants = {
  * Request header names
  */
 export enum HeaderNames {
-    CONTENT_TYPE = "Content-Type",
-    X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
-    X_CLIENT_LAST_TELEM = "x-client-last-telemetry"
+    CONTENT_TYPE = "Content-Type"
 }
 
 /**
@@ -227,8 +225,7 @@ export enum CacheSchemaType {
     ACCOUNT = "Account",
     CREDENTIAL = "Credential",
     APP_META_DATA = "AppMetadata",
-    TEMPORARY = "TempCache",
-    TELEMETRY = "Telemetry",
+    TEMPORARY = "TempCache"
 }
 
 /**
@@ -250,11 +247,3 @@ export enum CacheType {
  */
 export const APP_META_DATA = "appmetadata";
 export const ClientInfo = "client_info";
-
-export const SERVER_TELEM_CONSTANTS = {
-    SCHEMA_VERSION: 2,
-    FAILURE_LIMIT: 3,
-    CACHE_KEY: "server-telemetry",
-    CATEGORY_SEPARATOR: "|",
-    VALUE_SEPARATOR: ","
-};
