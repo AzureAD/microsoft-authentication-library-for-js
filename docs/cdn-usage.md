@@ -8,6 +8,8 @@ The `@azure/msal-browser` package is available through CDN if you do not wish to
 
 Version | CDN URL | SRI Hash
 --------------- | ------- | ---------------------------
+2.0.1 | https://alcdn.msauth.net/browser/2.0.1/js/msal-browser.js | sha384-knPh00kvaT+k3+4TCD5S2ORDNVc2I3RVbqI/ksbTlpdSBh8ZnyAPxW2kkTSG0+mT
+2.0.0 | https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.js | sha384-BqIcDtzVkr3wRGsSrk+iJJNm9GSdUsP0I2MplbnhPPc+I1l1d+dkKbcnqgNddGWX
 2.0.0-beta.4 | https://alcdn.msauth.net/browser/2.0.0-beta.4/js/msal-browser.js | sha384-7sxY2tN3GMVE5jXH2RL9AdbO6s46vUh9lUid4yNCHJMUzDoj+0N4ve6rLOmR88yN
 2.0.0-beta.3 | https://alcdn.msauth.net/browser/2.0.0-beta.3/js/msal-browser.js | sha384-iKgpFzdbMAsg695JG+EmHleQe5gRjoAAixuMf0jfM7pCOVuGqhyBuXO1Ai71fixx
 2.0.0-beta.2 | https://alcdn.msauth.net/browser/2.0.0-beta.2/js/msal-browser.js | sha384-CEQpk7EG1PVKCHHdoQzDdR5uU7nJ1PLlcdx1s7vi8Ta/Pndhr04imhqCUkZGimOj
@@ -17,6 +19,8 @@ Version | CDN URL | SRI Hash
 
 Version | CDN URL | SRI Hash
 --------------- | ------- | ---------------------------
+2.0.1 | https://alcdn.msauth.net/browser/2.0.1/js/msal-browser.min.js | sha384-fbyYRj8H9iJU/JyncEbzW6WgVOaR5C+PU1dHsRBg2Ag2Q14F4IB8+T8BdknwjRQ8
+2.0.0 | https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js | sha384-n3aacu1eFuIAfS3ZY4WGIZiQG/skqpT+cbeqIwLddpmMWcxWZwYdt+F0PgKyw+m9
 2.0.0-beta.4 | https://alcdn.msauth.net/browser/2.0.0-beta.4/js/msal-browser.min.js | sha384-j9+OYwF1QFM1A8/DNvWKqvTw+bc5alOXQ7IA2WvGAcLLLpN/tK9XRTbJtlTiSFJI
 2.0.0-beta.3 | https://alcdn.msauth.net/browser/2.0.0-beta.3/js/msal-browser.min.js | sha384-X2nv+6ViZGj+UCfGAbimHAXpBEAi0RA6GWuqCckbMLU5jVr8uDjf6pGUvTkq7wME
 2.0.0-beta.2 | https://alcdn.msauth.net/browser/2.0.0-beta.2/js/msal-browser.min.js | sha384-O3n9nwTefR6cSLikBQsCDYke2pWL5YWluwvp0RgGe+VK2eU0+RJC1cmMow5jD1OE
@@ -30,13 +34,13 @@ You can include the `msal-browser.js` or the `msal-browser.min.js` files by addi
 ### Compiled
 
 ```javascript
-<script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.js" integrity="sha384-inserthashhere" crossorigin="anonymous"></script>
+<script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.js" integrity="sha384-BqIcDtzVkr3wRGsSrk+iJJNm9GSdUsP0I2MplbnhPPc+I1l1d+dkKbcnqgNddGWX" crossorigin="anonymous"></script>
 ```
 
 ### Minified
 
 ```javascript
-<script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js" integrity="sha384-inserthashhere" crossorigin="anonymous"></script>
+<script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js" integrity="sha384-n3aacu1eFuIAfS3ZY4WGIZiQG/skqpT+cbeqIwLddpmMWcxWZwYdt+F0PgKyw+m9" crossorigin="anonymous"></script>
 ```
 
 ### Notes
@@ -49,11 +53,11 @@ You can include the `msal-browser.js` or the `msal-browser.min.js` files by addi
 To help ensure reliability, Microsoft provides a second CDN:
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.js" integrity="sha384-inserthashhere" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.js" integrity="sha384-BqIcDtzVkr3wRGsSrk+iJJNm9GSdUsP0I2MplbnhPPc+I1l1d+dkKbcnqgNddGWX" crossorigin="anonymous"></script>
 ```
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js" integrity="sha384-inserthashhere" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js" integrity="sha384-n3aacu1eFuIAfS3ZY4WGIZiQG/skqpT+cbeqIwLddpmMWcxWZwYdt+F0PgKyw+m9" crossorigin="anonymous"></script>
 ```
 
 Below is an example of how to use one CDN as a fallback when the other CDN is not working:
