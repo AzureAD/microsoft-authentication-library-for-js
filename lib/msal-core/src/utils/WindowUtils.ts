@@ -327,8 +327,7 @@ export class WindowUtils {
         // if redirect request is set and there is no hash
         if(redirectCache && !UrlUtils.urlContainsHash(window.location.hash)) {
             const splitCache = redirectCache.split(Constants.resourceDelimiter);
-            splitCache.shift();
-            const state = splitCache.length > 0 ? splitCache.join(Constants.resourceDelimiter): null;
+            const state = splitCache.length > 1 ? splitCache[splitCache.length-1]: null;
             cacheStorage.resetTempCacheItems(state);
         }
     }

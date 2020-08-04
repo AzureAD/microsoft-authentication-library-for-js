@@ -41,7 +41,6 @@ export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
-export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
@@ -54,8 +53,5 @@ export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./err
 export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
-export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
+export { ProtocolUtils } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
-// Telemetry
-export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
-export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";

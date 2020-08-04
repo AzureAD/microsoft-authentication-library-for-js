@@ -168,7 +168,8 @@ describe("SilentFlowClient unit tests", () => {
         const silentFlowRequest: SilentFlowRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             account: testAccount,
-            forceRefresh: true
+            forceRefresh: true,
+            redirectUri: TEST_URIS.TEST_REDIR_URI
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(silentFlowRequest);

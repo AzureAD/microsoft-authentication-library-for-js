@@ -15,7 +15,7 @@ const APP_DIR = PARENT_DIR + `/app`;
 
 // Get all sample folders
 const sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(function(file) {
-    return file.isDirectory() && file.name !== `sample_template` && fs.existsSync(`${APP_DIR}/${file.name}/test`);
+    return file.isDirectory() && file.name !== `sample_template`;
 }).map(function(file) {
     return file.name;
 });

@@ -62,7 +62,8 @@ describe("RefreshTokenClient unit tests", () => {
         const client = new RefreshTokenClient(config);
         const refreshTokenRequest: RefreshTokenRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            refreshToken: TEST_TOKENS.REFRESH_TOKEN
+            refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+            redirectUri: TEST_URIS.TEST_REDIR_URI
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
