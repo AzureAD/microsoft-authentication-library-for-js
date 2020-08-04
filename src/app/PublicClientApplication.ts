@@ -28,7 +28,8 @@ import {
     SilentFlowClient,
     EndSessionRequest,
     BaseAuthRequest,
-    Logger
+    Logger,
+    ServerAuthorizationCodeResponse
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -37,13 +38,14 @@ import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys, DEFAULT_REQUEST } from "../utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
+import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -132,41 +134,72 @@ export class PublicClientApplication implements IPublicClientApplication {
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
      */
-    private async handleRedirectResponse(): Promise<AuthenticationResult> {
-        // Get current location hash from window or cache.
-        const { location: { hash } } = window;
-        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
-        const isResponseHash = UrlString.hashContainsKnownProperties(hash);
+    private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
+        const responseHash = this.getRedirectResponseHash();
+        if (!responseHash) {
+            // Not a recognized server response hash or hash not associated with a redirect request
+            return null;
+        }
+
+        // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
-
-        const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
+        const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
+
         if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
+            if (loginRequestUrl.indexOf("#") > -1) {
+                // Replace current hash with non-msal hash, if present
+                BrowserUtils.replaceHash(loginRequestUrl);
+            }
             // We are on the page we need to navigate to - handle hash
-            // Replace current hash with non-msal hash, if present
-            BrowserUtils.replaceHash(loginRequestUrl);
-            return this.handleHash(isResponseHash ? hash : cachedHash);
-        }
-
-        if (!this.config.auth.navigateToLoginRequestUrl) {
-            // We don't need to navigate - handle hash
-            BrowserUtils.clearHash();
-            return this.handleHash(isResponseHash ? hash : cachedHash);
-        }
-
-        if (isResponseHash && !BrowserUtils.isInIframe()) {
+            return this.handleHash(responseHash);
+        } else if (!this.config.auth.navigateToLoginRequestUrl) {
+            return this.handleHash(responseHash);
+        } else if (!BrowserUtils.isInIframe()) {
             // Returned from authority using redirect - need to perform navigation before processing response
+            // Cache the hash to be retrieved after the next redirect
             const hashKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH);
-            this.browserStorage.setItem(hashKey, hash, CacheSchemaType.TEMPORARY);
-            if (StringUtils.isEmpty(loginRequestUrl) || loginRequestUrl === "null") {
+            this.browserStorage.setItem(hashKey, responseHash, CacheSchemaType.TEMPORARY);
+            if (!loginRequestUrl || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
+                const homepage = BrowserUtils.getHomepage();
+                // Cache the homepage under ORIGIN_URI to ensure cached hash is processed on homepage
+                this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), homepage, CacheSchemaType.TEMPORARY);
                 this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
-                BrowserUtils.navigateWindow("/", true);
+                BrowserUtils.navigateWindow(homepage, true);
             } else {
-                // Navigate to target url
+                // Navigate to page that initiated the redirect request
                 BrowserUtils.navigateWindow(loginRequestUrl, true);
             }
         }
+
+        return null;
+    }
+
+    /**
+     * Gets the response hash for a redirect request
+     * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
+     * @returns {string}
+     */
+    private getRedirectResponseHash(): string {
+        // Get current location hash from window or cache.
+        const { location: { hash } } = window;
+        const isResponseHash = UrlString.hashContainsKnownProperties(hash);
+        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
+
+        const responseHash = isResponseHash ? hash : cachedHash;
+        if (responseHash) {
+            // Deserialize hash fragment response parameters.
+            const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(responseHash);
+            const platformStateObj: BrowserStateObject = BrowserProtocolUtils.extractBrowserRequestState(this.browserCrypto, serverParams.state);
+            if (platformStateObj.interactionType !== InteractionType.REDIRECT) {
+                return null;
+            } else {
+                BrowserUtils.clearHash();
+                return responseHash;
+            }
+        }      
 
         return null;
     }
@@ -215,7 +248,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         try {
             // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
 
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
@@ -262,7 +295,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
 
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
@@ -333,7 +366,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
             ...request,
             prompt: PromptValue.NONE
-        });
+        }, InteractionType.SILENT);
 
         // Create auth code request and generate PKCE params
         const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
@@ -383,7 +416,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                     ...silentRequest,
                     redirectUri: request.redirectUri,
                     prompt: PromptValue.NONE
-                });
+                }, InteractionType.SILENT);
 
                 // Create auth code request and generate PKCE params
                 const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
@@ -566,7 +599,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    private preflightInteractiveRequest(request: RedirectRequest|PopupRequest): AuthorizationUrlRequest {
+    private preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -575,7 +608,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             throw BrowserAuthError.createInteractionInProgressError();
         }
         
-        return this.initializeAuthorizationRequest(request);
+        return this.initializeAuthorizationRequest(request, interactionType);
     }
 
     /**
@@ -611,7 +644,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    private initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest): AuthorizationUrlRequest {
+    private initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         let validatedRequest: AuthorizationUrlRequest = {
             ...request
         };
@@ -631,15 +664,20 @@ export class PublicClientApplication implements IPublicClientApplication {
             }
         }
 
+        const browserState: BrowserStateObject = {
+            interactionType: interactionType
+        };
+
         validatedRequest.state = ProtocolUtils.setRequestState(
+            this.browserCrypto,
             (request && request.state) || "",
-            this.browserCrypto
+            browserState
         );
 
         if (StringUtils.isEmpty(validatedRequest.nonce)) {
             validatedRequest.nonce = this.browserCrypto.createNewGuid();
         }
-        
+
         validatedRequest.responseMode = ResponseMode.FRAGMENT;
 
         validatedRequest = {
