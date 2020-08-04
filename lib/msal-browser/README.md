@@ -63,7 +63,7 @@ See [here](./docs/cdn-usage.md) for more info on how to use this package from th
 ### Compiled
 
 ```javascript
-<script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.js" integrity="sha384-inserthashhere" crossorigin="anonymous"></script>
+<script src="https://alcdn.msauth.net/browser/2.0.1/js/msal-browser.js" integrity="sha384-knPh00kvaT+k3+4TCD5S2ORDNVc2I3RVbqI/ksbTlpdSBh8ZnyAPxW2kkTSG0+mT" crossorigin="anonymous"></script>
 ```
 
 ### Minified
