@@ -175,13 +175,9 @@ export function buildClientConfiguration(
         storageInterface: storageImplementation,
         networkInterface: networkImplementation,
         cryptoInterface: cryptoImplementation,
-<<<<<<< HEAD
         clientCredentials: clientCredentials,
-        libraryInfo: libraryInfo
-=======
         libraryInfo: libraryInfo,
         serverTelemetryManager: serverTelemetryManager
->>>>>>> dev
     } : ClientConfiguration): ClientConfiguration {
     return {
         authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
@@ -190,12 +186,8 @@ export function buildClientConfiguration(
         storageInterface: storageImplementation || new DefaultStorageClass(),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
-<<<<<<< HEAD
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
-        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo }
-=======
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
         serverTelemetryManager: serverTelemetryManager || null
->>>>>>> dev
     };
 }
