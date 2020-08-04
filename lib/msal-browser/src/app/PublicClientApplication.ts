@@ -29,6 +29,8 @@ import {
     EndSessionRequest,
     BaseAuthRequest,
     Logger,
+    ServerTelemetryManager,
+    ServerTelemetryRequest,
     ServerAuthorizationCodeResponse
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
@@ -38,7 +40,7 @@ import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys, DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, ApiId, DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -216,11 +218,21 @@ export class PublicClientApplication implements IPublicClientApplication {
             return null;
         }
 
-        // Hash contains known properties - handle and return in callback
-        const currentAuthority = this.browserStorage.getCachedAuthority();
-        const authClient = await this.createAuthCodeClient(currentAuthority);
-        const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
-        return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
+        const encodedTokenRequest = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string;
+        const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
+
+        try {
+            // Hash contains known properties - handle and return in callback
+            const currentAuthority = this.browserStorage.getCachedAuthority();
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
+            return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            this.browserStorage.cleanRequest();
+            throw e;
+        }
     }
 
     /**
@@ -246,15 +258,16 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        // Preflight request
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
+        
         try {
-            // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
-
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(validRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
 
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
@@ -266,6 +279,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest();
             throw e;
         }
@@ -293,15 +307,16 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        // Preflight request
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
+        
         try {
-            // Preflight request
-            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
-
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(validRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
@@ -309,6 +324,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Acquire token with popup
             return await this.popupTokenHelper(navigateUrl, authCodeRequest, authClient);
         } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest();
             throw e;
         }
@@ -368,19 +384,27 @@ export class PublicClientApplication implements IPublicClientApplication {
             prompt: PromptValue.NONE
         }, InteractionType.SILENT);
 
-        // Create auth code request and generate PKCE params
-        const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.ssoSilent, silentRequest.correlationId);
 
-        // Get scopeString for iframe ID
-        const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
+        try {
+            // Create auth code request and generate PKCE params
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
-        // Initialize the client
-        const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(silentRequest.authority);
+            // Get scopeString for iframe ID
+            const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
 
-        // Create authorize request url
-        const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
+            // Initialize the client
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
 
-        return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
+            // Create authorize request url
+            const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
+
+            return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            this.browserStorage.cleanRequest();
+            throw e;
+        }
     }
 
     /**
@@ -402,12 +426,13 @@ export class PublicClientApplication implements IPublicClientApplication {
             ...request,
             ...this.initializeBaseRequest(request)
         };
-
+        let serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
         try {
-            const silentAuthClient = await this.createSilentFlowClient(silentRequest.authority);
+            const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
             return await silentAuthClient.acquireToken(silentRequest);
         } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
@@ -417,20 +442,27 @@ export class PublicClientApplication implements IPublicClientApplication {
                     redirectUri: request.redirectUri,
                     prompt: PromptValue.NONE
                 }, InteractionType.SILENT);
+                serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_authCode, silentAuthUrlRequest.correlationId);
 
-                // Create auth code request and generate PKCE params
-                const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
+                try {
+                    // Create auth code request and generate PKCE params
+                    const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
 
-                // Initialize the client
-                const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(silentAuthUrlRequest.authority);
+                    // Initialize the client
+                    const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentAuthUrlRequest.authority);
 
-                // Create authorize request url
-                const navigateUrl = await authClient.getAuthCodeUrl(silentAuthUrlRequest);
+                    // Create authorize request url
+                    const navigateUrl = await authClient.getAuthCodeUrl(silentAuthUrlRequest);
 
-                // Get scopeString for iframe ID
-                const scopeString = silentAuthUrlRequest.scopes ? silentAuthUrlRequest.scopes.join(" ") : "";
+                    // Get scopeString for iframe ID
+                    const scopeString = silentAuthUrlRequest.scopes ? silentAuthUrlRequest.scopes.join(" ") : "";
 
-                return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
+                    return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
+                } catch (e) {
+                    serverTelemetryManager.cacheFailedRequest(e);
+                    this.browserStorage.cleanRequest();
+                    throw e;
+                }
             }
 
             throw e;
@@ -444,19 +476,14 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param userRequestScopes
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, userRequestScopes: string): Promise<AuthenticationResult> {
-        try {
-            // Create silent handler
-            const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.loadFrameTimeout);
-            // Get the frame handle for the silent request
-            const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest, userRequestScopes);
-            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
-            // Handle response from hash string.
-            return await silentHandler.handleCodeResponse(hash);
-        } catch (e) {
-            this.browserStorage.cleanRequest();
-            throw e;
-        }
+        // Create silent handler
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.loadFrameTimeout);
+        // Get the frame handle for the silent request
+        const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest, userRequestScopes);
+        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+        const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
+        // Handle response from hash string.
+        return await silentHandler.handleCodeResponse(hash);
     }
 
     // #endregion
@@ -470,7 +497,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        const authClient = await this.createAuthCodeClient(validLogoutRequest && validLogoutRequest.authority);
+        const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
         // create logout string and navigate user window to logout. Auth module will clear cache.
         const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
         BrowserUtils.navigateWindow(logoutUri);
@@ -546,9 +573,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Creates an Authorization Code Client with the given authority, or the default authority.
      * @param authorityUrl 
      */
-    private async createAuthCodeClient(authorityUrl?: string): Promise<AuthorizationCodeClient> {
+    private async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(authorityUrl);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new AuthorizationCodeClient(clientConfig);
     }
 
@@ -556,9 +583,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Creates an Silent Flow Client with the given authority, or the default authority.
      * @param authorityUrl 
      */
-    private async createSilentFlowClient(authorityUrl?: string): Promise<SilentFlowClient> {
+    private async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<SilentFlowClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(authorityUrl);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new SilentFlowClient(clientConfig);
     }
 
@@ -566,7 +593,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Creates a Client Configuration object with the given request authority, or the default authority.
      * @param requestAuthority 
      */
-    private async getClientConfiguration(requestAuthority?: string): Promise<ClientConfiguration> {
+    private async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
         // If the requestAuthority is passed and is not equivalent to the default configured authority, create new authority and discover endpoints. Return default authority otherwise.
         const discoveredAuthority = (!StringUtils.isEmpty(requestAuthority) && requestAuthority !== this.config.auth.authority) ? await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient) 
             : await this.getDiscoveredDefaultAuthority();
@@ -587,6 +614,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,
+            serverTelemetryManager: serverTelemetryManager,
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
                 version: version,
@@ -627,6 +655,17 @@ export class PublicClientApplication implements IPublicClientApplication {
         validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
 
         return validatedRequest;
+    }
+
+    private initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
+        const telemetryPayload: ServerTelemetryRequest = {
+            clientId: this.config.auth.clientId,
+            correlationId: correlationId,
+            apiId: apiId,
+            forceRefresh: forceRefresh || false
+        };
+
+        return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
     }
 
     /**
