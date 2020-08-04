@@ -1,13 +1,3 @@
-// Browser check variables
-// If you support IE, our recommendation is that you sign-in using Redirect APIs
-// If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
-const ua = window.navigator.userAgent;
-const msie = ua.indexOf("MSIE ");
-const msie11 = ua.indexOf("Trident/");
-const msedge = ua.indexOf("Edge/");
-const isIE = msie > 0 || msie11 > 0;
-const isEdge = msedge > 0;
-
 let username = "";
 
 // Create the main myMSALObj instance
@@ -31,7 +21,7 @@ function handleResponse(resp) {
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
-        if (currentAccounts === null) {
+        if (currentAccounts === null || currentAccounts.length < 1) {
             return;
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
