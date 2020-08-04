@@ -28,19 +28,18 @@ MSAL Node enables applications to authenticate users using [Azure AD](https://do
 
 The current alpha version supports the following ways of acquiring tokens:
 
-Public Client: 
-
+#### Public Client: 
 - [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with [PKCE](https://oauth.net/2/pkce/) 
 - [Device Code Grant](https://oauth.net/2/grant-types/device-code/)
 - [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
 - [Silent Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
 
-Confidential Client: 
-- [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/)(https://oauth.net/2/pkce/) 
+#### Confidential Client: 
+- [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with a client credential
 - [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
 - [Silent Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
 
-[Coming Soon] In the upcoming quarters we plan to add support for:
+**[Coming Soon]** In the future we plan to add support for:
 
 - [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/)
 - [On-behalf-of flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
@@ -150,6 +149,3 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 ## We Value and Adhere to the Microsoft Open Source Code of Conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-
-
