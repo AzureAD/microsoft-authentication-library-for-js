@@ -69,7 +69,7 @@ See [here](./docs/cdn-usage.md) for more info on how to use this package from th
 ### Minified
 
 ```javascript
-<script src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js" integrity="sha384-inserthashhere" crossorigin="anonymous"></script>
+<script src="https://alcdn.msauth.net/browser/2.0.1/js/msal-browser.min.js" integrity="sha384-fbyYRj8H9iJU/JyncEbzW6WgVOaR5C+PU1dHsRBg2Ag2Q14F4IB8+T8BdknwjRQ8" crossorigin="anonymous"></script>
 ```
 
 ## Usage
