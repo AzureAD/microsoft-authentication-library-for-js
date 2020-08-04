@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Adding beachball to the build steps",
+  "packageName": "@azure/msal-browser",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-07-31T23:28:35.639Z"
+}
