@@ -115,6 +115,7 @@ export const TEST_CONFIG = {
     TEST_VERSION: "1.0.0",
     TEST_OS: "win32",
     TEST_CPU: "x86",
+    TEST_ASSERTION_TYPE: "jwt_bearer"
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";

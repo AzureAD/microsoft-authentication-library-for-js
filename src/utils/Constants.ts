@@ -98,7 +98,10 @@ export enum AADServerParamKeys {
     X_CLIENT_OS = "x-client-OS",
     X_CLIENT_CPU = "x-client-CPU",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
-    DEVICE_CODE = "device_code"
+    DEVICE_CODE = "device_code",
+    CLIENT_SECRET = "client_secret",
+    CLIENT_ASSERTION = "client_assertion",
+    CLIENT_ASSERTION_TYPE = "client_assertion_type",
 }
 
 /**
