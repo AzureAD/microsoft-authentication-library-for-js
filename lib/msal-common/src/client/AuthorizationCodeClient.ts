@@ -114,12 +114,12 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Get postLogoutRedirectUri.
-        const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ? 
+        const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ?
             `?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(logoutRequest.postLogoutRedirectUri)}` : "";
 
-        const correlationIdParam = logoutRequest.correlationId ? 
+        const correlationIdParam = logoutRequest.correlationId ?
             `&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(logoutRequest.correlationId)}` : "";
-        
+
         // Construct logout URI.
         const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}${correlationIdParam}`;
         return logoutUri;
@@ -158,6 +158,16 @@ export class AuthorizationCodeClient extends BaseClient {
         // add code_verifier if passed
         if (request.codeVerifier) {
             parameterBuilder.addCodeVerifier(request.codeVerifier);
+        }
+
+        if (this.config.clientCredentials.clientSecret) {
+            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
+        }
+
+        if (this.config.clientCredentials.clientAssertion) {
+            const clientAssertion = this.config.clientCredentials.clientAssertion;
+            parameterBuilder.addClientAssertion(clientAssertion.assertion);
+            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
