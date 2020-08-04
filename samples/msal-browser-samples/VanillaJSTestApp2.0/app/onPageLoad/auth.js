@@ -28,7 +28,6 @@ function handleResponse(resp) {
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
-        console.log(currentAccounts);
         if (currentAccounts === null || currentAccounts.length < 1) {
             signIn("loginRedirect");
         } else if (currentAccounts.length > 1) {
