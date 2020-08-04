@@ -1,0 +1,20 @@
+{
+  "name": "@azure/msal-common",
+  "entries": [
+    {
+      "date": "Tue, 04 Aug 2020 00:39:59 GMT",
+      "tag": "@azure/msal-common_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Adding beachball to repo",
+            "author": "prkanher@microsoft.com",
+            "commit": "6ffdf40de40f6f76c854f9ddc6bcb9f03ee954a2",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    }
+  ]
+}
