@@ -321,28 +321,22 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
-            // Acquire token with popup
-            return await this.popupTokenHelper(navigateUrl, authCodeRequest, authClient);
+            // Create popup interaction handler.
+            const interactionHandler = new PopupHandler(authClient, this.browserStorage);
+
+            // Show the UI once the url has been created. Get the window handle for the popup.
+            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
+
+            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+            const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
+
+            // Handle response from hash string.
+            return await interactionHandler.handleCodeResponse(hash);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest();
             throw e;
         }
-    }
-
-    /**
-     * Helper which acquires an authorization code with a popup from given url, and exchanges the code for a set of OAuth tokens.
-     * @param navigateUrl
-     */
-    private async popupTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
-        // Create popup interaction handler.
-        const interactionHandler = new PopupHandler(authClient, this.browserStorage);
-        // Show the UI once the url has been created. Get the window handle for the popup.
-        const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
-        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
-        // Handle response from hash string.
-        return await interactionHandler.handleCodeResponse(hash);
     }
 
     // #endregion
@@ -399,7 +393,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
+            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest();
@@ -457,7 +451,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                     // Get scopeString for iframe ID
                     const scopeString = silentAuthUrlRequest.scopes ? silentAuthUrlRequest.scopes.join(" ") : "";
 
-                    return this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
+                    return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
                 } catch (e) {
                     serverTelemetryManager.cacheFailedRequest(e);
                     this.browserStorage.cleanRequest();
@@ -483,7 +477,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
         // Handle response from hash string.
-        return await silentHandler.handleCodeResponse(hash);
+        return silentHandler.handleCodeResponse(hash);
     }
 
     // #endregion
