@@ -13,25 +13,6 @@ export type BrowserStateObject = {
 export class BrowserProtocolUtils {
 
     /**
-     * Generates the state value used by the platform library
-     * @param browserCrypto 
-     * @param requestInteractionType 
-     */
-    static generateBrowserRequestState(browserCrypto: ICrypto, requestInteractionType: InteractionType): string {
-        if (StringUtils.isEmpty(requestInteractionType)) {
-            return "";
-        }
-
-        const stateObj: BrowserStateObject = {
-            interactionType: requestInteractionType
-        };
-
-        const stateString = JSON.stringify(stateObj);
-
-        return browserCrypto.base64Encode(stateString);
-    }
-
-    /**
      * Extracts the BrowserStateObject from the state string.
      * @param browserCrypto 
      * @param state 
@@ -43,7 +24,6 @@ export class BrowserProtocolUtils {
 
         try {
             const requestStateObj: RequestStateObject = ProtocolUtils.parseRequestState(browserCrypto, state);
-            debugger;
             return requestStateObj.libraryState.meta as BrowserStateObject;
         } catch (e) {
             throw ClientAuthError.createInvalidStateError(state, e);
