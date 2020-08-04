@@ -63,7 +63,7 @@ export class BrowserUtils {
     static getHomepage(): string {
         const currentUrl = new UrlString(window.location.href);
         const urlComponents = currentUrl.getUrlComponents();
-        return urlComponents.Protocol + "//" + urlComponents.HostNameAndPort + "/";
+        return `${urlComponents.Protocol}//${urlComponents.HostNameAndPort}/`;
     }
 
     /**
