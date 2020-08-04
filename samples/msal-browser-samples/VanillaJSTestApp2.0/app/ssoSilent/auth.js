@@ -28,7 +28,7 @@ function handleResponse(resp) {
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
-        if (currentAccounts === null || currentAccounts.length < 1) {
+        if (!currentAccounts || currentAccounts.length < 1) {
             myMSALObj.ssoSilent(silentRequest).then(handleResponse).catch(error => {
                 console.error("Silent Error: " + error);
                 if (error instanceof msal.InteractionRequiredAuthError) {

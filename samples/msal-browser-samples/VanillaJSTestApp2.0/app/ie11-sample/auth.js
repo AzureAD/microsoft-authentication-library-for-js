@@ -21,7 +21,7 @@ function handleResponse(resp) {
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
-        if (currentAccounts === null || currentAccounts.length < 1) {
+        if (!currentAccounts || currentAccounts.length < 1) {
             return;
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
