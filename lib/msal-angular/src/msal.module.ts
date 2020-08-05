@@ -18,7 +18,7 @@ export class MsalModule {
    static forRoot(
        config: Configuration,
        angularConfig: MsalAngularConfiguration = defaultMsalAngularConfiguration
-    ): ModuleWithProviders {
+    ): ModuleWithProviders<MsalModule> {
     return {
       ngModule: MsalModule,
       providers: [
