@@ -48,6 +48,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
+import { BrokerHandler } from "../interaction_handler/BrokerHandler";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -117,6 +118,15 @@ export class PublicClientApplication implements IPublicClientApplication {
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
         this.defaultAuthority = null;
+
+        const brokerHandler = new BrokerHandler(this.config.system.brokerOptions);
+        if (this.config.system.brokerOptions.actAsBroker) {
+            console.log("Acting as Broker");
+            brokerHandler.listenForHandshake();
+        } else if (this.config.system.brokerOptions.allowBrokering) {
+            console.log("Acting as child");
+            brokerHandler.initiateHandshake();
+        }
     }
 
     // #region Redirect Flow
