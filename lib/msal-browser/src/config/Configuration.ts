@@ -4,7 +4,7 @@
  */
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows and iframes in milliseconds
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -43,6 +43,19 @@ export type CacheOptions = {
 };
 
 /**
+ * Broker Options
+ * 
+ */
+export type BrokerOptions = {
+    actAsBroker?: boolean;
+    allowLogout?: boolean;
+    preferredInteractionType?: InteractionType;
+    allowBrokering?: boolean;
+    trustedBrokerDomains?: string[];
+    brokeredRedirectUri?: string;
+};
+
+/**
  * Library Specific Options
  *
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
@@ -54,6 +67,7 @@ export type CacheOptions = {
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
+    brokerOptions?: BrokerOptions;
     networkClient?: INetworkModule;
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
@@ -97,10 +111,21 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     piiLoggingEnabled: false
 };
 
+// Default broker options for browser
+const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
+    actAsBroker: false,
+    allowLogout: false,
+    preferredInteractionType: null,
+    allowBrokering: false,
+    trustedBrokerDomains: [],
+    brokeredRedirectUri: "",
+};
+
 // Default system options for browser
 const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
     ...DEFAULT_SYSTEM_OPTIONS,
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
+    brokerOptions: DEFAULT_BROKER_OPTIONS,
     networkClient: BrowserUtils.getBrowserNetworkClient(),
     windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
     iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,

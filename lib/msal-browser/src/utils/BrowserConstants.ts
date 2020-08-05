@@ -74,7 +74,8 @@ export enum ApiId {
 export enum InteractionType {
     REDIRECT = "redirect",
     POPUP = "popup",
-    SILENT = "silent"
+    SILENT = "silent",
+    NONE = "none"
 }
 
 export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
