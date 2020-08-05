@@ -55,27 +55,6 @@ export class MsalService extends UserAgentApplication {
                 this.setAcquireTokenInProgress(false);
             }
         });
-
-        this.router.events.subscribe(event => {
-            for (var i = 0; i < router.config.length; i++) {
-                if (!router.config[i].canActivate) {
-                    if (this.msalAngularConfig.unprotectedResources) {
-                        if (!this.isEmpty(router.config[i].path) && !this.isUnprotectedResource(router.config[i].path)) {
-                            this.msalAngularConfig.unprotectedResources.push(router.config[i].path);
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    private isUnprotectedResource(url: string): boolean {
-        const frameworkUnprotectedResources = this.msalConfig.framework && this.msalConfig.framework.unprotectedResources;
-        const configUnprotectedResources = this.msalAngularConfig.unprotectedResources || [];
-
-        const unprotectedResources = frameworkUnprotectedResources && frameworkUnprotectedResources.length ? frameworkUnprotectedResources : configUnprotectedResources;
-
-        return unprotectedResources.some(resource => url.indexOf(resource) > -1);
     }
 
     private isEmpty(str: string): boolean {
@@ -176,13 +155,7 @@ export class MsalService extends UserAgentApplication {
 
     public getScopesForEndpoint(endpoint: string) : Array<string> {
         if (this.msalConfig.framework && this.msalConfig.framework.unprotectedResources) {
-            this.getLogger().info("msalConfig.framework.unprotectedResources is deprecated, use msalAngularConfig.unprotectedResources");
-        }
-
-        // if user specified list of unprotectedResources, no need to send token to these endpoints, return null.
-        const isUnprotected = this.isUnprotectedResource(endpoint);
-        if (isUnprotected) {
-            return null;
+            this.getLogger().info("msalConfig.framework.unprotectedResources is deprecated, add protected resources to msalAngularConfig.protectedResourceMap instead");
         }
 
         const frameworkProtectedResourceMap = this.msalConfig.framework && this.msalConfig.framework.protectedResourceMap;
@@ -190,10 +163,11 @@ export class MsalService extends UserAgentApplication {
             this.getLogger().info("msalConfig.framework.protectedResourceMap is deprecated, use msalAngularConfig.protectedResourceMap");
         }
 
-        const protectedResourceMap = frameworkProtectedResourceMap && frameworkProtectedResourceMap.size ? frameworkProtectedResourceMap : new Map(this.msalAngularConfig.protectedResourceMap);
+        if (this.msalAngularConfig && this.msalAngularConfig.unprotectedResources) {
+            this.getLogger().info("msalAngularConfig.unprotectedResources is deprecated, add protected resources to msalAngularConfig.protectedResourceMap instead");
+        }
 
-        // Want to look in protected resources. If key of protected resource matches* with endpoint, then attach token
-        // E.g. token is for /me, endpoints is /me/profile, then want to attach token because /me matches
+        const protectedResourceMap = frameworkProtectedResourceMap && frameworkProtectedResourceMap.size ? frameworkProtectedResourceMap : new Map(this.msalAngularConfig.protectedResourceMap);
         
         // process all protected resources and send the first matched one using wildcard matcher
         const protectedResourcesArray = Array.from(protectedResourceMap.keys());
