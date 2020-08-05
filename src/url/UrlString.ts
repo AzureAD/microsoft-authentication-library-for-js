@@ -145,6 +145,18 @@ export class UrlString {
         return urlComponents;
     }
 
+    static getDomainFromUrl(url: string): string {
+        const regEx = RegExp("^([^:/?#]+://)?([^/?#]*)");
+
+        const match = url.match(regEx);
+
+        if (!match) {
+            throw ClientConfigurationError.createUrlParseError(`Given url string: ${url}`);
+        }
+
+        return match[2];
+    }
+
     static constructAuthorityUriFromObject(urlObject: IUri): UrlString {
         return new UrlString(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + urlObject.PathSegments.join("/"));
     }
