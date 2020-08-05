@@ -6,9 +6,9 @@ Since MSAL Node supports various authorization code grants, there is support for
 
 ### Public APIs
 - [getAuthCodeUrl()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#getauthcodeurl): This API is the first leg of the `authorization code grant` for MSAL Node. The request is of the type [AuthorizationUrlRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_authorizationurlrequest_.html).
-The application is sent a URL that can be used to generate an `authorization code`. This `URL` can be opened in a browser of choice, where the user can input their credential, and will be redirected back to the `redirectUri` (registered during the [app registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)) with an `authorization code`. The `authorization code` can now be redeemed for a `token` with the following step.
+The application is sent a URL that can be used to generate an `authorization code`. This `URL` can be opened in a browser of choice, where the user can input their credential, and will be redirected back to the `redirectUri` (registered during the [app registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)) with an `authorization code`. The `authorization code` can now be redeemed for a `token` with the following step. Not that if authorization code flow is being done for a public client application, [PKCE](https://tools.ietf.org/html/rfc7636) is recommended. 
 
-- [acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbycode): This API is the second leg of the `authorization code grant` for MSAL Node. The request constructed here should be of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_authorizationcoderequest_.html). The application passed the `authorization code` received as a part of the above step and exchanges it for a `token`.
+- [acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbycode): This API is the second leg of the `authorization code grant` for MSAL Node. The request constructed here should be of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_authorizationcoderequest_.html). The application passed the `authorization code` received as a part of the above step and exchanges it for a `token`. Not that if authorization code flow is being done for a public client application, [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
 
 ``` javascript
 
@@ -18,7 +18,7 @@ The application is sent a URL that can be used to generate an `authorization cod
     };
 
     // get url to sign user in and consent to scopes needed for application
-    pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+    cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
         console.log(response);
     }).catch((error) => console.log(JSON.stringify(error)));
 
@@ -29,7 +29,7 @@ The application is sent a URL that can be used to generate an `authorization cod
     };
 
     // acquire a token by exchanging the code
-    pca.acquireTokenByCode(tokenRequest).then((response) => {
+    cca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
     }).catch((error) => {
         console.log(error);
@@ -67,7 +67,7 @@ pca.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
 ## Refresh Token Flow
 
 ### Public APIs
-- [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbyrefreshtoken): This API acquires a token by exchanging the refresh token provided for a new set of tokens. The request is of the type [RefreshTokenRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_refreshtokenrequest_.html). The `refresh token` is never returned to the user in a response, but can be accessed from the user cache. It is recommended that you use acquireTokenSilent() for silent scenarios. When using acquireTokenSilent(), MSAL will handle the caching and refreshing of tokens automatically.
+- [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbyrefreshtoken): This API acquires a token by exchanging the refresh token provided for a new set of tokens. The request is of the type [RefreshTokenRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_refreshtokenrequest_.html). The `refresh token` is never returned to the user in a response, but can be accessed from the user cache. It is recommended that you use acquireTokenSilent() for silent scenarios. When using acquireTokenSilent(), MSAL will handle the caching and refreshing of tokens automatically. 
 
 ``` javascript
 const config = {
@@ -100,7 +100,7 @@ pca.acquireTokenByRefreshToken(refreshTokenRequest).then((response) => {
 /**
  * Cache Plugin configuration
  */
-const cachePath = "./data/example.cache.json"; // Replace this string with the path to your valid cache file.
+const cachePath = "path_to_your_cache_file/msal_cache.json"; // Replace this string with the path to your valid cache file.
 
 const readFromStorage = () => {
     return fs.readFile(cachePath, "utf-8");
@@ -165,11 +165,10 @@ pca.acquireTokenByCode(tokenRequest).then((response) => {
 
 // get Accounts
 accounts = msalCacheManager.getAllAccounts();
-console.log("Accounts: ", accounts);
 
 // Build silent request
 const silentRequest = {
-    account: accounts[1], // Index must match the account that is trying to acquire token silently
+    account: accounts[0], // You would filter accounts to get the account you want to get tokens for 
     scopes: scopes,
 };
 
