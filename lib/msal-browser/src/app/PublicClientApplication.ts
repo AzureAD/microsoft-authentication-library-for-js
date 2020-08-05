@@ -48,7 +48,8 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
-import { BrokerHandler } from "../interaction_handler/BrokerHandler";
+import { BrokerManager } from "../broker/BrokerManager";
+import { BrokerClient } from "../broker/BrokerClient";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
