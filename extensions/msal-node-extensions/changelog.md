@@ -1,3 +1,6 @@
+# 1.0.0-alpha.1
+- Increment @azure/msal-common version to 1.1.0
+
 # 1.0.0-alpha.0
 
 - Extensions 1: Sets directory structure, adds Windows DPAPI Node addon (#1830)
