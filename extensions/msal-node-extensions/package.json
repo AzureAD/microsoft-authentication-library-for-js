@@ -26,7 +26,8 @@
     "link:common": "npm link @azure/msal-common",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "prepare": "tsdx build",
+    "prepack": "npm run build"
   },
   "author": {
     "name": "Microsoft",
