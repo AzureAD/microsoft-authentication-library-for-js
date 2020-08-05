@@ -198,10 +198,9 @@ export class Storage extends CacheManager {
     /**
      * Checks whether key is in cache.
      * @param key
-     * TODO: implement after the lookup implementation
      */
     containsKey(key: string): boolean {
-        return key ? true : false;
+        return this.getKeys().includes(key);
     }
 
     /**
