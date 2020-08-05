@@ -9,6 +9,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.0-alpha.3"
+    "@azure/msal-node": "^1.0.0-alpha.4"
   }
 }

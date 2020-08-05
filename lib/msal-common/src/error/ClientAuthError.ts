@@ -146,6 +146,14 @@ export const ClientAuthErrorMessage = {
     unexpectedCredentialType: {
         code: "unexpected_credential_type",
         desc: "Unexpected credential type."
+    },
+    invalidAssertion: {
+        code: "invalid_assertion",
+        desc: "Client assertion must meet requirements described in https://tools.ietf.org/html/rfc7515"
+    },
+    invalidClientCredential: {
+        code: "invalid_client_credential",
+        desc: "Client credential (secret, certificate, or assertion) must not be empty when creating a confidential client. An application should at most have one credential"
     }
 };
 
@@ -421,5 +429,19 @@ export class ClientAuthError extends AuthError {
     */
     static createUnexpectedCredentialTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.unexpectedCredentialType.code, `${ClientAuthErrorMessage.unexpectedCredentialType.desc}`);
+    }
+    
+    /**
+    * Throws error if client assertion is not valid.
+    */
+    static createInvalidAssertionError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidAssertion.code, `${ClientAuthErrorMessage.invalidAssertion.desc}`);
+    }
+    
+    /**
+    * Throws error if client assertion is not valid.
+    */
+    static createInvalidCredentialError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidClientCredential.code, `${ClientAuthErrorMessage.invalidClientCredential.desc}`);
     }
 }

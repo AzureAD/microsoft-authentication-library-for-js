@@ -1,3 +1,16 @@
+# 1.1.0
+## Breaking Changes
+- None
+
+## Features and Fixes
+- Decode state from URI Encoding before comparing (#2049)
+- getAllAccounts() returns empty array instead of `null` (#2059)
+- Updated the `UrlString.canonicalizeUri()` API to be static (#2078)
+- Add sid to `AuthorizationUrlRequest` and as part of request parameters sent to server (#2030)
+- Enable server telemetry headers to be formatted and sent in every request (#1917)
+- Enable platform level state information to be sent and read through the request state (#2045)
+- Add the confidential client flow (#2023)
+
 # 1.0.0
 ## Breaking Changes
 - None

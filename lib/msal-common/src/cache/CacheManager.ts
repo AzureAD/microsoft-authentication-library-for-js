@@ -67,7 +67,7 @@ export abstract class CacheManager implements ICacheManager {
         const accountValues: AccountEntity[] = Object.keys(currentAccounts).map(accountKey => currentAccounts[accountKey]);
         const numAccounts = accountValues.length;
         if (numAccounts < 1) {
-            return null;
+            return [];
         } else {
             const allAccounts = accountValues.map<AccountInfo>((value) => {
                 let accountObj: AccountEntity = new AccountEntity();

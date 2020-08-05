@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity, ServerTelemetryCacheValue } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -124,6 +124,10 @@ export class BrowserStorage extends CacheManager {
                 }
                 break;
             }
+            case CacheSchemaType.TELEMETRY: {
+                this.windowStorage.setItem(key, JSON.stringify(value));
+                break;
+            }
             default: {
                 throw BrowserAuthError.createInvalidCacheTypeError();
             }
@@ -171,6 +175,9 @@ export class BrowserStorage extends CacheManager {
                     return itemCookie;
                 }
                 return value;
+            }
+            case CacheSchemaType.TELEMETRY: {
+                return JSON.parse(value) as ServerTelemetryCacheValue;
             }
             default: {
                 throw BrowserAuthError.createInvalidCacheTypeError();
