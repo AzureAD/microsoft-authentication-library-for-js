@@ -77,6 +77,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Logger
     private logger: Logger;
 
+    // Broker Objects
+    private embeddedApp: BrokerClient;
+    private broker: BrokerManager;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -119,13 +123,18 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         this.defaultAuthority = null;
 
-        const brokerHandler = new BrokerHandler(this.config.system.brokerOptions);
+        this.initializeBrokering();
+    }
+
+    private initializeBrokering(): void {
         if (this.config.system.brokerOptions.actAsBroker) {
+            this.broker = new BrokerManager(this.config.system.brokerOptions);
             console.log("Acting as Broker");
-            brokerHandler.listenForHandshake();
+            this.broker.listenForHandshake();
         } else if (this.config.system.brokerOptions.allowBrokering) {
+            this.embeddedApp = new BrokerClient(this.config.system.brokerOptions, this.logger);
             console.log("Acting as child");
-            brokerHandler.initiateHandshake();
+            this.embeddedApp.initiateHandshake();
         }
     }
 
