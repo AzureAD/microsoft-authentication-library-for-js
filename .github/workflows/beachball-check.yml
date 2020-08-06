@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository)
     env:
-      BEACHBALL: 1
+      BEACHBALL: 0
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
