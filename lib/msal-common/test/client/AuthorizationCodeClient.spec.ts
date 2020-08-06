@@ -99,6 +99,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 domainHint: TEST_CONFIG.DOMAIN_HINT,
                 claims: TEST_CONFIG.CLAIMS,
                 nonce: TEST_CONFIG.NONCE,
+                sid: TEST_CONFIG.SID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(TEST_CONFIG.alternateValidAuthority);
@@ -115,6 +116,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
             expect(loginUrl).to.contain(`${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(TEST_CONFIG.DOMAIN_HINT)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+            expect(loginUrl).to.contain(`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`);
         });
 
         it("Creates a login URL with scopes from given token request", async () => {
@@ -348,6 +350,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
         });
     });
 

@@ -40,10 +40,11 @@ export const CACHE = {
 };
 
 /**
- * Constants for headers
+ * Constants
  */
 export const Constants = {
     MSAL_SKU: 'msal.js.node',
+    JWT_BEARER_ASSERTION_TYPE: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
 };
 
 /**
@@ -59,3 +60,18 @@ export enum ApiId {
     acquireTokenByRefreshToken = 872,
     acquireTokenByDeviceCode = 671
 };
+
+/**
+ * JWT  constants
+ */
+export const JwtConstants = {
+    ALGORITHM: 'alg',
+    RSA_256: 'RS256',
+    X5T: 'x5t', 
+    AUDIENCE: 'aud',
+    EXPIRATION_TIME: 'exp',
+    ISSUER: "iss",
+    SUBJECT: "sub",
+    NOT_BEFORE: "nbf",
+    JWT_ID: "jti",
+} 

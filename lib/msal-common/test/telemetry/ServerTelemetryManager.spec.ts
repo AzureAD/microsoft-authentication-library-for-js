@@ -1,6 +1,5 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
-import sinon from "sinon";
 import { ServerTelemetryManager, CacheManager, AuthError, ServerTelemetryRequest } from "../../src";
 import { ServerTelemetryCacheValue } from "../../src/telemetry/server/ServerTelemetryCacheValue";
 import { TEST_CONFIG } from "../utils/StringConstants";
@@ -11,8 +10,6 @@ class TestCacheManager extends CacheManager {
         store[key] = JSON.stringify(value) as string;
     }
     getItem(key: string, type?: string): string | object {
-        console.log(key)
-        console.log(store[key])
         const value = store[key]
         if (value) {
             return JSON.parse(value) as ServerTelemetryCacheValue;

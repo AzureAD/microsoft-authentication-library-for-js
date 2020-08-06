@@ -1,10 +1,14 @@
 import { expect } from "chai";
 import { describe, it } from "mocha";
 import { WindowUtils } from "../../src/utils/WindowUtils";
-import { FramePrefix } from "../../src/utils/Constants";
+import { FramePrefix, TemporaryCacheKeys, Constants } from "../../src/utils/Constants";
 import { TEST_CONFIG } from "../TestConstants";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { Logger } from "../../src";
+import { Logger, UrlUtils } from "../../src";
+import { BrowserStorage } from "../../src/cache/BrowserStorage";
+import { RequestUtils } from "../../src/utils/RequestUtils";
+import sinon from "sinon";
+import { AuthCache } from "../../src/cache/AuthCache";
 
 const logger = new Logger(() => {});
 
@@ -209,6 +213,58 @@ describe("WindowUtils", () => {
             const iframe = WindowUtils.addHiddenIFrame("testId", logger);
 
             expect(iframe).to.equals(window.frames["testId"]);
+        });
+    });
+
+    describe("checkIfBackButtonIsPressed", () => {
+        const cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+
+        afterEach(() => {
+            sinon.restore();
+            cacheStorage.clear();
+        });
+
+        it("clears temp cache items if back button pressed, no user state", () => {
+            const requestState = RequestUtils.validateAndGenerateState(null, "redirectInteraction")
+            cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${requestState}`);
+
+            const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");
+            sinon.stub(UrlUtils, "urlContainsHash").returns(false);
+
+            WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
+            expect(resetTempCacheSpy.calledOnce).to.be.true;
+            expect(resetTempCacheSpy.calledWith(requestState)).to.be.true;
+        });
+
+        it("clears temp cache items if back button pressed, user state provided", () => {
+            const requestState = RequestUtils.validateAndGenerateState("testUserState", "redirectInteraction")
+            cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${requestState}`);
+
+            const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");
+            sinon.stub(UrlUtils, "urlContainsHash").returns(false);
+
+            WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
+            expect(resetTempCacheSpy.calledOnce).to.be.true;
+            expect(resetTempCacheSpy.calledWith(requestState)).to.be.true;
+        });
+
+        it("does not clear temp cache if redirect request is not cached", () => {
+            const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");
+            sinon.stub(UrlUtils, "urlContainsHash").returns(false);
+
+            WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
+            expect(resetTempCacheSpy.notCalled).to.be.true;
+        });
+
+        it("does not clear temp cache if hash in the current url", () => {
+            const requestState = RequestUtils.validateAndGenerateState("testUserState", "redirectInteraction");
+            cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${requestState}`);
+
+            const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");
+            sinon.stub(UrlUtils, "urlContainsHash").returns(true);
+
+            WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
+            expect(resetTempCacheSpy.notCalled).to.be.true;
         });
     });
 });

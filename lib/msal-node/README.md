@@ -28,14 +28,19 @@ MSAL Node enables applications to authenticate users using [Azure AD](https://do
 
 The current alpha version supports the following ways of acquiring tokens:
 
-- [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with [PKCE](https://oauth.net/2/pkce/)
+#### Public Client: 
+- [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with [PKCE](https://oauth.net/2/pkce/) 
 - [Device Code Grant](https://oauth.net/2/grant-types/device-code/)
 - [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
 - [Silent Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
 
-[Coming Soon] In the upcoming quarters we plan to add support for:
+#### Confidential Client: 
+- [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with a client credential
+- [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
+- [Silent Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
 
-- [Authorization Code Grant (Confidential Client)](https://oauth.net/2/grant-types/authorization-code/)
+**[Coming Soon]** In the future we plan to add support for:
+
 - [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/)
 - [On-behalf-of flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
 - [Integrated Windows Authentication flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#integrated-windows-authentication)
@@ -47,7 +52,7 @@ More details on different grant types supported by Microsoft authentication libr
 
 The scenarios supported with this library are:
 - Destop app that calls web APIs
-- Web app that calls web APIs (upcoming)
+- Web app that calls web APIs 
 - Web APIs that call web APIs (upcoming)
 - Daemon apps (upcoming)
 
@@ -57,20 +62,11 @@ More details on scenarios and the authentication flows that map to each of them 
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/faq.md).
 
-## Releases
-
-*Expect us to detail our major and minor releases moving forward, while leaving out our patch releases.  Patch release notes can be found in our change log.*
-
-| Date | Release | Announcement | Main features |
-| ------| ------- | ---------| --------- |
-| July 13th, 2020 (Tentative) | @azure/msal-node v1.0.0-alpha.1 | No release notes yet | Full version of the `@azure/msal-node` package; relies on `@azure/msal-common` v1.0.0 |
-| July 6th, 2020  | @azure/msal-node v1.0.0-alpha.0| No release notes yet | Full version of the `@azure/msal-node` package; relies on `@azure/msal-common` v1.0.0-beta.4 |
-
 ## Prerequisites
 
-Before using `@azure/msal-node` you will need to register your app in the azure portal to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on if applicable. Currently we support the below app registrations for `@azure/msal-node`:
+Before using `@azure/msal-node` you will need to register your app in the azure portal:  
 
-- [Desktop app that calls web APIs: App registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)
+- [App registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2)
 
 ## Installation
 
@@ -81,7 +77,9 @@ npm install @azure/msal-node
 ##  Usage
 
 ### MSAL basics
+- [Understand difference in between Public Client and Confidential Clients](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-client-applications)
 - [Initialize a Public Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md)
+- [Initialize a Confidential Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-confidential-client-application.md)
 - [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md)
 - [Request](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/request.md)
 - [Response](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/response.md)
@@ -151,6 +149,4 @@ Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MI
 ## We Value and Adhere to the Microsoft Open Source Code of Conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-
 
