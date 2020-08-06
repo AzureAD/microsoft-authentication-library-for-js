@@ -38,7 +38,7 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 #### Latest compiled and minified JavaScript
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.4/js/msal.js" integrity="sha384-0mP6SqsiJpLA1NSyK5YpIihu4J6ZjsZvczJIvbCJm5U24A6jtFWbFzPJh3/JklKC" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.4/js/msal.js" integrity="sha384-SLUfcZqOuUn4mgjkztK5Q6sZ/m08tFoo6K1sSGPkKN+y+QZZZ4DYFNpLmLcmMoLA" crossorigin="anonymous"></script>
 ```
 ```html
 <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.4/js/msal.min.js" integrity="sha384-pkCsjTAwVvsQv5UEAo+kNmnVMFs/GoqIP/G9J0ZV7rC55j3hcV225SGGQJY8wwtn" crossorigin="anonymous"></script>
@@ -49,7 +49,7 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 To help ensure reliability, Microsoft provides a second CDN:
 
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.4/js/msal.js" integrity="sha384-0mP6SqsiJpLA1NSyK5YpIihu4J6ZjsZvczJIvbCJm5U24A6jtFWbFzPJh3/JklKC" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.4/js/msal.js" integrity="sha384-SLUfcZqOuUn4mgjkztK5Q6sZ/m08tFoo6K1sSGPkKN+y+QZZZ4DYFNpLmLcmMoLA" crossorigin="anonymous"></script>
 ```
 ```html
 <script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.4/js/msal.min.js" integrity="sha384-pkCsjTAwVvsQv5UEAo+kNmnVMFs/GoqIP/G9J0ZV7rC55j3hcV225SGGQJY8wwtn" crossorigin="anonymous"></script>
