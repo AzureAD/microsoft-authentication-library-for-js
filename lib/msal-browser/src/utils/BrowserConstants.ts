@@ -53,6 +53,30 @@ export enum TemporaryCacheKeys {
     SCOPES = "scopes"
 }
 
+/**
+ * API Codes for Telemetry purposes. 
+ * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
+ * 0-99 Silent Flow
+ * 800-899 Auth Code Flow
+ */
+export enum ApiId {
+    acquireTokenRedirect = 861,
+    acquireTokenPopup = 862,
+    ssoSilent = 863,
+    acquireTokenSilent_authCode = 864,
+    handleRedirectPromise = 865,
+    acquireTokenSilent_silentFlow = 61
+}
+
+/*
+ * Interaction type of the API - used for state and telemetry
+ */
+export enum InteractionType {
+    REDIRECT = "redirect",
+    POPUP = "popup",
+    SILENT = "silent"
+}
+
 export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };

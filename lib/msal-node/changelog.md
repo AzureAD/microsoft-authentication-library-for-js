@@ -1,3 +1,6 @@
+# 1.0.0-alpha.4
+- Add confidential client support (#2023)
+
 # 1.0.0-alpha.3
 - Fix an issue where the types were not defined correctly in the package.json (#2014)
 

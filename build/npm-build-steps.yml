@@ -8,6 +8,8 @@ steps:
 
 - task: Npm@1
   displayName: 'npm ci & lerna bootstrap'
+  env:
+    RUNNING_NODE_CI: $(RUNNING_NODE_CI)
   inputs:
     command: 'custom'
     customCommand: 'ci'

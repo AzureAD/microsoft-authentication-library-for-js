@@ -10,16 +10,16 @@ export class EncodingUtils {
      *
      * @param str text
      */
-    static base64Encode(str: string): string {
-        return Buffer.from(str, 'utf8').toString('base64');
+    static base64Encode(str: string, encoding?: BufferEncoding): string {
+        return Buffer.from(str, encoding).toString('base64');
     }
 
     /**
      * encode a URL
      * @param str
      */
-    static base64EncodeUrl(str: string): string {
-        return EncodingUtils.base64Encode(str)
+    static base64EncodeUrl(str: string, encoding?: BufferEncoding): string {
+        return EncodingUtils.base64Encode(str, encoding)
             .replace(/=/g, '')
             .replace(/\+/g, '-')
             .replace(/\//g, '_');
