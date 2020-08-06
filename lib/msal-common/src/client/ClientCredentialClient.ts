@@ -6,7 +6,7 @@
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
-import { NetworkResponse } from "../network/NetworkManager"
+import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
