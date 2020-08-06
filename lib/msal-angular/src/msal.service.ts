@@ -57,10 +57,6 @@ export class MsalService extends UserAgentApplication {
         });
     }
 
-    private isEmpty(str: string): boolean {
-        return (typeof str === "undefined" || !str || 0 === str.length);
-    }
-
     public loginPopup(request?: AuthenticationParameters): Promise<any> {
         return super.loginPopup(request)
             .then((authResponse: AuthResponse) => {
