@@ -11,6 +11,7 @@ import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -37,6 +38,7 @@ export type ClientConfiguration = {
     cryptoInterface?: ICrypto,
     clientCredentials?: ClientCredentials,
     libraryInfo?: LibraryInfo
+    serverTelemetryManager?: ServerTelemetryManager
 };
 
 /**
@@ -174,7 +176,8 @@ export function buildClientConfiguration(
         networkInterface: networkImplementation,
         cryptoInterface: cryptoImplementation,
         clientCredentials: clientCredentials,
-        libraryInfo: libraryInfo
+        libraryInfo: libraryInfo,
+        serverTelemetryManager: serverTelemetryManager
     } : ClientConfiguration): ClientConfiguration {
     return {
         authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
@@ -184,6 +187,7 @@ export function buildClientConfiguration(
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
-        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo }
+        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
+        serverTelemetryManager: serverTelemetryManager || null
     };
 }

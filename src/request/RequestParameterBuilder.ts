@@ -4,10 +4,10 @@
 */
 
 import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo } from "../utils/Constants";
-import { ScopeSet } from "../request/ScopeSet";
+import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
-import { RequestValidator } from "../request/RequestValidator";
+import { RequestValidator } from "./RequestValidator";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 
@@ -78,6 +78,14 @@ export class RequestParameterBuilder {
      */
     addLoginHint(loginHint: string): void {
         this.parameters.set(SSOTypes.LOGIN_HINT, encodeURIComponent(loginHint));
+    }
+
+    /**
+     * add sid
+     * @param sid 
+     */
+    addSid(sid: string): void {
+        this.parameters.set(SSOTypes.SID, encodeURIComponent(sid));
     }
 
     /**

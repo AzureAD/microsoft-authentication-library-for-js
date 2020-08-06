@@ -7,10 +7,10 @@ import { BaseClient } from "./BaseClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
-import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { GrantType, AADServerParamKeys } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
@@ -18,7 +18,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
-import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
+import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
@@ -83,9 +83,11 @@ export class AuthorizationCodeClient extends BaseClient {
     handleFragmentResponse(hashFragment: string, cachedState: string): string {
         // Handle responses.
         const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger);
-        // Deserialize hash fragment response parameters.
+
+        // Create UrlString object to remove leading # using getHash()
         const hashUrlString = new UrlString(hashFragment);
-        const serverParams = hashUrlString.getDeserializedHash<ServerAuthorizationCodeResponse>();
+        // Deserialize hash fragment response parameters.
+        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hashUrlString.getHash());
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);
@@ -225,6 +227,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.domainHint) {
             parameterBuilder.addDomainHint(request.domainHint);
+        }
+
+        if (request.sid) {
+            parameterBuilder.addSid(request.sid);
         }
 
         if (request.nonce) {
