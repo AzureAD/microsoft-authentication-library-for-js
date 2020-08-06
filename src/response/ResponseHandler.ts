@@ -212,13 +212,16 @@ export class ResponseHandler {
     private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
         const authorityType = authority.authorityType;
 
+        // ADFS does not require client_info in the response
+        if(authorityType === AuthorityType.Adfs){
+            return AccountEntity.createADFSAccount(authority, idToken);
+        }
+
         if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
         }
 
-        return (authorityType === AuthorityType.Adfs) ?
-            AccountEntity.createADFSAccount(authority, idToken) :
-            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
+        return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
     }
 
     /**
