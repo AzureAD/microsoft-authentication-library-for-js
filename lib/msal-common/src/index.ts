@@ -31,6 +31,7 @@ export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
 export { ICrypto, PkceCodes } from "./crypto/ICrypto";
+
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
@@ -40,6 +41,7 @@ export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
+export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
@@ -52,5 +54,9 @@ export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./err
 export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
-export { ProtocolUtils } from "./utils/ProtocolUtils";
+export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
+// Telemetry
+export { ServerTelemetryCacheValue } from "./telemetry/server/ServerTelemetryCacheValue";
+export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
+export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";

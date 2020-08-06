@@ -1,7 +1,7 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
-import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
 import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { Authority } from "../../src/authority/Authority";
