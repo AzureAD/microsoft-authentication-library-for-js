@@ -171,7 +171,7 @@ export class MsalService extends UserAgentApplication {
         
         // process all protected resources and send the first matched one using wildcard matcher
         const protectedResourcesArray = Array.from(protectedResourceMap.keys());
-        const keyMatchesEndpointArray = protectedResourcesArray.filter(key => matcher.isMatch(endpoint, `${key}*`));
+        const keyMatchesEndpointArray = protectedResourcesArray.filter(key => matcher.isMatch(endpoint, key));
         const keyForEndpoint = keyMatchesEndpointArray[0];
 
         if (keyForEndpoint) {
