@@ -5,14 +5,15 @@
 
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
-import { Authority, NetworkResponse } from "..";
+import { Authority } from "../authority/Authority";
+import { NetworkResponse } from "../network/NetworkManager"
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
 import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClientCredentialRequest } from '../request/ClientCredentialRequest';
+import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 
 /**
  * OAuth2.0 client credential grant
@@ -38,8 +39,8 @@ export class ClientCredentialClient extends BaseClient {
         const tokenResponse = responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
-            "",
-            "",
+            null,
+            null,
             request.scopes
         );
 
