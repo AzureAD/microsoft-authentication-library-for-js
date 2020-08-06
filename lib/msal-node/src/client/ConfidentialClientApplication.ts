@@ -50,26 +50,35 @@ export class ConfidentialClientApplication extends ClientApplication {
 
 
     private setClientCredential(configuration: Configuration): void {
-        if (!StringUtils.isEmpty(configuration.auth!.clientSecret!)) {
+
+        const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret!);
+        const clientAssertionNotEmpty = !StringUtils.isEmpty(configuration.auth.clientAssertion!);
+        const certificate = configuration.auth.clientCertificate!;
+        const certificateNotEmpty = !StringUtils.isEmpty(certificate.thumbprint) || !StringUtils.isEmpty(certificate.privateKey);
+
+        // Check that at most one credential is set on the application 
+        if (
+            clientSecretNotEmpty && clientAssertionNotEmpty ||
+            clientAssertionNotEmpty && certificateNotEmpty ||
+            clientSecretNotEmpty && certificateNotEmpty) {
+                throw ClientAuthError.createInvalidCredentialError();
+        }
+
+        if (clientSecretNotEmpty) {
             this.clientSecret = configuration.auth.clientSecret!;
             return;
         }
 
-        if (!StringUtils.isEmpty(configuration.auth.clientAssertion!)) {
+        if (clientAssertionNotEmpty) {
             this.clientAssertion = ClientAssertion.fromAssertion(configuration.auth.clientAssertion!);
             return;
         }
 
-        if (configuration.auth.clientCertificate != null) {
-            const certificate = configuration.auth.clientCertificate;
-            if (StringUtils.isEmpty(certificate.thumbprint) || StringUtils.isEmpty(certificate.privateKey)) {
-                throw ClientAuthError.createInvalidCredentialError();
-            }
-
+        if (!certificateNotEmpty) {
+            throw ClientAuthError.createInvalidCredentialError();
+        } else {
             this.clientAssertion = ClientAssertion.fromCertificate(certificate.thumbprint, certificate.privateKey);
-            return; 
         }
-        throw ClientAuthError.createInvalidCredentialError();
     }
 }
 

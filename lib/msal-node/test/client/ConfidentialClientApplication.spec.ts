@@ -1,10 +1,14 @@
 import { ConfidentialClientApplication } from './../../src/client/ConfidentialClientApplication';
-import { Authority, ClientConfiguration, AuthorizationCodeRequest, AuthorityFactory, AuthorizationCodeClient, RefreshTokenRequest, RefreshTokenClient } from '@azure/msal-common';
+import { Authority, ClientConfiguration, AuthorizationCodeRequest, AuthorityFactory, AuthorizationCodeClient, RefreshTokenRequest, RefreshTokenClient, StringUtils } from '@azure/msal-common';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import { Configuration } from "../../src/config/Configuration";
 import { mocked } from 'ts-jest/utils';
 
 jest.mock('@azure/msal-common');
+
+mocked(StringUtils.isEmpty).mockImplementation((str) => {
+    return (typeof str === "undefined" || !str || 0 === str.length);
+});
 
 describe('ConfidentialClientApplication', () => {
     const authority: Authority = {
@@ -37,12 +41,12 @@ describe('ConfidentialClientApplication', () => {
             clientSecret: TEST_CONSTANTS.CLIENT_SECRET
         }
     };
-    
+
     test('exports a class', () => {
         const authApp = new ConfidentialClientApplication(appConfig);
         expect(authApp).toBeInstanceOf(ConfidentialClientApplication);
     });
-    
+
     test('acquireTokenByAuthorizationCode', async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -59,7 +63,7 @@ describe('ConfidentialClientApplication', () => {
             expect.objectContaining(expectedConfig)
         );
     });
-    
+
     test('acquireTokenByRefreshToken', async () => {
         const request: RefreshTokenRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,

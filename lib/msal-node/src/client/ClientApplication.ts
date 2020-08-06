@@ -178,7 +178,7 @@ export abstract class ClientApplication {
     private getClientAssertion(): { assertion: string, assertionType: string } {
         return {
             assertion: this.clientAssertion.getJwt(this.cryptoProvider, this.config.auth.clientId, this._authority.tokenEndpoint),
-            assertionType: ClientAssertion.ASSERTION_TYPE
+            assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
         }
     }
 
@@ -229,7 +229,6 @@ export abstract class ClientApplication {
             return this._authority;
         }
 
-        this.logger.verbose("No authority set on application object. Defaulting to common authority");
         this._authority = AuthorityFactory.createInstance(
             this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
             this.config.system!.networkClient!
