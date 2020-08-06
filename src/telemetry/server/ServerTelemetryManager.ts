@@ -8,7 +8,7 @@ import { CacheManager } from "../../cache/CacheManager";
 import { ServerTelemetryCacheValue } from "./ServerTelemetryCacheValue";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
-import { StringUtils } from '../../utils/StringUtils';
+import { StringUtils } from "../../utils/StringUtils";
 
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
