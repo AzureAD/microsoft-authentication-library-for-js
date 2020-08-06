@@ -1,3 +1,6 @@
+# 1.0.0-alpha.2
+- Fix issue where binding.gyp was not being uploaded to npm
+
 # 1.0.0-alpha.1
 - Increment @azure/msal-common version to 1.1.0
 
