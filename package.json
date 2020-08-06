@@ -25,9 +25,9 @@
     "test:e2e": "lerna run --concurrency 1 test:e2e",
     "clean": "lerna run clean --no-private && lerna clean",
     "clean:coverage": "rimraf ./.nyc_output/*",
-    "beachball:check": "beachball check --branch dev",
-    "beachball:change": "beachball change --branch dev",
-    "beachball:publish": "beachball publish --branch dev -n $NODE_AUTH_TOKEN"
+    "beachball:check": "beachball check --branch origin/dev",
+    "beachball:change": "beachball change --branch origin/dev",
+    "beachball:publish": "beachball publish --branch origin/dev -n $NODE_AUTH_TOKEN"
   },
   "dependencies": {
     "@babel/register": "^7.7.0"
