@@ -6,7 +6,7 @@
 import {
     Separators,
     CacheAccountType,
-    CacheType,
+    CacheValueType,
 } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { IdToken } from "../../account/IdToken";
@@ -19,11 +19,11 @@ import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
- * 
+ *
  * Key : Value Schema
- * 
+ *
  * Key: <home_account_id>-<environment>-<realm*>
- * 
+ *
  * Value Schema:
  * {
  *      homeAccountId: home account identifier for the auth scheme,
@@ -35,7 +35,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      name: Full name for the account, including given name and family name,
  *      clientInfo: Full base64 encoded client info received from ESTS
  *      lastModificationTime: last time this entity was modified in the cache
- *      lastModificationApp: 
+ *      lastModificationApp:
  * }
  */
 export class AccountEntity {
@@ -76,13 +76,13 @@ export class AccountEntity {
     generateType(): number {
         switch (this.authorityType) {
             case CacheAccountType.ADFS_ACCOUNT_TYPE:
-                return CacheType.ADFS;
+                return CacheValueType.ADFS;
             case CacheAccountType.MSAV1_ACCOUNT_TYPE:
-                return CacheType.MSA;
+                return CacheValueType.MSA;
             case CacheAccountType.MSSTS_ACCOUNT_TYPE:
-                return CacheType.MSSTS;
+                return CacheValueType.MSSTS;
             case CacheAccountType.GENERIC_ACCOUNT_TYPE:
-                return CacheType.GENERIC;
+                return CacheValueType.GENERIC;
             default: {
                 throw ClientAuthError.createUnexpectedAccountTypeError();
             }
@@ -140,7 +140,7 @@ export class AccountEntity {
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
-        
+
         account.environment = env;
         account.realm = idToken.claims.tid;
 
@@ -170,7 +170,7 @@ export class AccountEntity {
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
-        
+
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
 

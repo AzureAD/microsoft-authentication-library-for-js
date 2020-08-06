@@ -8,6 +8,7 @@ import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
+import { ServerTelemetryCacheValue } from "../../telemetry/server/ServerTelemetryCacheValue";
 
 export type AccountCache = Record<string, AccountEntity>;
 export type IdTokenCache = Record<string, IdTokenEntity>;
@@ -40,3 +41,15 @@ export type CredentialFilter = {
     realm?: string;
     target?: string;
 };
+
+/**
+ * Valid cache object type
+ */
+export type ValidCacheType =
+    | AccountEntity
+    | IdTokenEntity
+    | AccessTokenEntity
+    | RefreshTokenEntity
+    | AppMetadataEntity
+    | ServerTelemetryCacheValue
+    | string;

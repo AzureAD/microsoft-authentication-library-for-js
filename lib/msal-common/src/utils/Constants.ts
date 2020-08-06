@@ -241,7 +241,7 @@ export enum CacheSchemaType {
 /**
  * Combine all cache types
  */
-export enum CacheType {
+export enum CacheValueType {
     ADFS = 1001,
     MSA = 1002,
     MSSTS = 1003,

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CredentialType, CacheType, Constants } from "../../utils/Constants";
+import { Separators, CredentialType, CacheValueType, Constants } from "../../utils/Constants";
 import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
@@ -82,11 +82,11 @@ export class CredentialEntity {
     generateType(): number {
         switch (this.credentialType) {
             case CredentialType.ID_TOKEN:
-                return CacheType.ID_TOKEN;
+                return CacheValueType.ID_TOKEN;
             case CredentialType.ACCESS_TOKEN:
-                return CacheType.ACCESS_TOKEN;
+                return CacheValueType.ACCESS_TOKEN;
             case CredentialType.REFRESH_TOKEN:
-                return CacheType.REFRESH_TOKEN;
+                return CacheValueType.REFRESH_TOKEN;
             default: {
                 throw ClientAuthError.createUnexpectedCredentialTypeError();
             }

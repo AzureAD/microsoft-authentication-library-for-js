@@ -17,7 +17,7 @@ export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 // Cache
 export { CacheManager } from "./cache/CacheManager";
-export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "./cache/utils/CacheTypes";
+export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType } from "./cache/utils/CacheTypes";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
@@ -51,7 +51,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType } from "./utils/Constants";
+export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheValueType, SERVER_TELEM_CONSTANTS } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";

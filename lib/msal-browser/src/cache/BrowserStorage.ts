@@ -2,7 +2,24 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity, ServerTelemetryCacheValue } from "@azure/msal-common";
+import {
+    Constants,
+    PersistentCacheKeys,
+    StringUtils,
+    AuthorizationCodeRequest,
+    ICrypto,
+    CacheSchemaType,
+    ValidCacheType,
+    AccountEntity,
+    IdTokenEntity,
+    CredentialType,
+    AccessTokenEntity,
+    RefreshTokenEntity,
+    AppMetadataEntity,
+    CacheManager,
+    ServerTelemetryCacheValue,
+    SERVER_TELEM_CONSTANTS,
+} from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -109,80 +126,42 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string | object, type: string): void {
-        // save the cacheItem
-        switch (type) {
-            case CacheSchemaType.ACCOUNT:
-            case CacheSchemaType.CREDENTIAL:
-            case CacheSchemaType.APP_METADATA:
-                this.windowStorage.setItem(key, JSON.stringify(value));
-                break;
-            case CacheSchemaType.TEMPORARY: {
-                const stringVal = value as string;
-                this.windowStorage.setItem(key, stringVal);
-                if (this.cacheConfig.storeAuthStateInCookie) {
-                    this.setItemCookie(key, stringVal);
-                }
-                break;
-            }
-            case CacheSchemaType.TELEMETRY: {
-                this.windowStorage.setItem(key, JSON.stringify(value));
-                break;
-            }
-            default: {
-                throw BrowserAuthError.createInvalidCacheTypeError();
-            }
+
+        let stringifiedValue: string;
+        // throw for invalid cache type
+        if (!(type in CacheSchemaType) || (type === CacheSchemaType.UNDEFINED)) {
+            throw BrowserAuthError.createInvalidCacheTypeError();
         }
+
+        // store cookies if TEMPORARY Cache, else stringify and store
+        if (type === CacheSchemaType.TEMPORARY) {
+            stringifiedValue = value as string;
+            if(this.cacheConfig.storeAuthStateInCookie) {
+                this.setItemCookie(key, stringifiedValue);
+            }
+        } else {
+            stringifiedValue = JSON.stringify(value);
+        }
+
+        // actual window storage
+        this.windowStorage.setItem(key, stringifiedValue);
     }
+
+    // getItem ->
+    // read the value: string
+    // helper function (value, type):
+    //   persistent cache types: CacheManager.toObject(type based entity, JSON.parse(value)) as type based entity
+    //   telemetry/ throttling: JSON.parse(value)
+    //   temporary: cookie check, value as is
 
     /**
      * Gets cache item with given key.
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
      */
-    getItem(key: string, type: string): string | object {
+    getItem(key: string, type: string): ValidCacheType {
         const value = this.windowStorage.getItem(key);
-        if (StringUtils.isEmpty(value)) {
-            return null;
-        }
-        switch (type) {
-            case CacheSchemaType.ACCOUNT: {
-                const account = new AccountEntity();
-                return (CacheManager.toObject(account, JSON.parse(value)) as AccountEntity);
-            }
-            case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CredentialEntity.getCredentialType(key);
-                switch (credentialType) {
-                    case CredentialType.ID_TOKEN: {
-                        const idTokenEntity: IdTokenEntity = new IdTokenEntity();
-                        return (CacheManager.toObject(idTokenEntity, JSON.parse(value)) as IdTokenEntity);
-                    }
-                    case CredentialType.ACCESS_TOKEN: {
-                        const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-                        return (CacheManager.toObject(accessTokenEntity, JSON.parse(value)) as AccessTokenEntity);
-                    }
-                    case CredentialType.REFRESH_TOKEN: {
-                        const refreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
-                        return (CacheManager.toObject(refreshTokenEntity, JSON.parse(value)) as RefreshTokenEntity);
-                    }
-                }
-            }
-            case CacheSchemaType.APP_METADATA: {
-                return (JSON.parse(value) as AppMetadataEntity);
-            }
-            case CacheSchemaType.TEMPORARY: {
-                const itemCookie = this.getItemCookie(key);
-                if (this.cacheConfig.storeAuthStateInCookie) {
-                    return itemCookie;
-                }
-                return value;
-            }
-            case CacheSchemaType.TELEMETRY: {
-                return JSON.parse(value) as ServerTelemetryCacheValue;
-            }
-            default: {
-                throw BrowserAuthError.createInvalidCacheTypeError();
-            }
-        }
+        return this.getItemHelper(key, value);
     }
 
     /**
@@ -425,6 +404,65 @@ export class BrowserStorage extends CacheManager {
             return parsedRequest;
         } catch (err) {
             throw BrowserAuthError.createTokenRequestCacheError(err);
+        }
+    }
+
+    /**
+     * helper to retrieve the value with type from the cache
+     * @param key
+     * @param value
+     */
+    private getItemHelper(key: string, value: string): ValidCacheType {
+
+        // handle null cases
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
+
+        let parsedValue;
+        // handle strings - TEMPORARY Values; check cookies for these
+        try {
+            parsedValue = JSON.parse(value);
+        } catch (e) {
+            const itemCookie = this.getItemCookie(key);
+            if (this.cacheConfig.storeAuthStateInCookie) {
+                return itemCookie;
+            }
+            return value;
+        }
+
+        // Account
+        if (parsedValue.includes("authorityType")) {
+            const accountEntity = new AccountEntity();
+            return CacheManager.toObject(accountEntity, parsedValue) as AccountEntity;
+        }
+        // IdToken
+        else if (parsedValue.includes(CredentialType.ID_TOKEN)) {
+            const idTokenEntity = new IdTokenEntity();
+            return CacheManager.toObject(idTokenEntity, parsedValue) as IdTokenEntity;
+        }
+        // AccessToken
+        else if (parsedValue.includes(CredentialType.ACCESS_TOKEN)) {
+            const accessTokenEntity = new IdTokenEntity();
+            return CacheManager.toObject(accessTokenEntity, parsedValue) as AccessTokenEntity;
+        }
+        // RefreshToken
+        else if (parsedValue.includes(CredentialType.REFRESH_TOKEN)) {
+            const refreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
+            return (CacheManager.toObject(refreshTokenEntity, parsedValue) as RefreshTokenEntity);
+        }
+        // AppMetadata
+        else if (parsedValue.includes(CacheSchemaType.APP_METADATA)) {
+            const appMetadataEntity: AppMetadataEntity = new AppMetadataEntity();
+            return (CacheManager.toObject(appMetadataEntity, parsedValue) as AppMetadataEntity);
+        }
+        // Telemetry
+        else if (key.includes(SERVER_TELEM_CONSTANTS.CACHE_KEY)) {
+            return parsedValue as ServerTelemetryCacheValue;
+        }
+        // fail safe for any
+        else {
+            throw BrowserAuthError.createInvalidCacheTypeError();
         }
     }
 }
