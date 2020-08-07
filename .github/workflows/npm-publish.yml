@@ -5,20 +5,21 @@
 name: npm Publish
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - master
 
 jobs:
   publish-npm:
-    # runs-on: ubuntu-latest
-    # steps:
-    #   - uses: actions/checkout@v2
-    #     with:
-    #       fetch-depth: 0
-    #   - uses: actions/setup-node@v1
-    #     with:
-    #       registry-url: https://registry.npmjs.org/
-    #   - run: npm ci
-    #   - run: npm run beachball:publish
-    #     env:
-    #       NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v1
+        with:
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm run beachball:publish
