@@ -1,3 +1,5 @@
+# Change Log - @azure/msal-common
+
 # 2.0.1
 ## Breaking Changes
 * None
