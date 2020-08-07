@@ -9,7 +9,7 @@ const isIE = msie > 0 || msie11 > 0;
 const isEdge = msedge > 0;
 
 let signInType;
-let username = "";
+let accountId = "";
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
@@ -23,7 +23,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 // Redirect: once login is successful and redirects with tokens, call Graph API
 function handleResponse(resp) {
     if (resp !== null) {
-        username = resp.account.username;
+        accountId = resp.account.homeAccountId;
         showWelcomeMessage(resp.account);
     } else {
         // need to call getAccount here?
@@ -33,7 +33,7 @@ function handleResponse(resp) {
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
-            username = currentAccounts[0].username;
+            accountId = currentAccounts[0].homeAccountId;
             showWelcomeMessage(currentAccounts[0]);
         }
     }
@@ -52,7 +52,7 @@ async function signIn(method) {
 
 function signOut() {
     const logoutRequest = {
-        account: myMSALObj.getAccountByUsername(username)
+        account: myMSALObj.getAccountById(accountId)
     };
     myMSALObj.logout(logoutRequest);
 }
