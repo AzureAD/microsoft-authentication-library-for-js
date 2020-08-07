@@ -33,7 +33,9 @@ const clientId = "6226576d-37e9-49eb-b201-ec1eeb0029b6";
 
 function initializeMsal() {
     TestBed.configureTestingModule({
-        imports: [RouterTestingModule],
+        imports: [RouterTestingModule.withRoutes(
+            [{path: 'graph', redirectTo: ''}]
+        )],
         providers: [
             MsalService,
             {
@@ -58,8 +60,14 @@ function initializeMsal() {
                 useValue: {
                     popUp: false,
                     consentScopes: ["user.read", "mail.send"],
+                    unprotectedResources: [],
                     protectedResourceMap: [
-                        ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
+                        ["https://graph.microsoft.com/v1.0/me", ["user.read"]],
+                        ["https://myapplication.com/user/*", ["customscope.read"]],
+                        ["http://localhost:4200/details", ["details.read"]],
+                        ["https://*.myapplication.com/*", ["mail.read"]],
+                        ["https://api.test.com", ["default.scope1"]],
+                        ["https://*.test.com", ["default.scope2"]]
                     ]
                 } as MsalAngularConfiguration
             },
@@ -379,6 +387,30 @@ describe("Msal Angular Pubic API tests", function () {
             const scopes = authService.getScopesForEndpoint("http://localhost:4200/api");
 
             expect(scopes).toEqual([ clientId ]);
+        });
+
+        it("wildcard", () => {
+            const scopes = authService.getScopesForEndpoint("https://myapplication.com/user/1");
+
+            expect(scopes).toEqual(["customscope.read"]);
+        });
+
+        it("wildcard for own domain", () => {
+            const scopes = authService.getScopesForEndpoint("http://localhost:4200/details");
+
+            expect(scopes).toEqual(["details.read"]);
+        });
+
+        it("multiple wildcards", () => {
+            const scopes = authService.getScopesForEndpoint("https://mail.myapplication.com/me");
+
+            expect(scopes).toEqual(["mail.read"]);
+        });
+
+        it("multiple matching entries", () => {
+            const scopes = authService.getScopesForEndpoint("https://api.test.com");
+
+            expect(scopes).toEqual(["default.scope1"]);
         });
     });
 

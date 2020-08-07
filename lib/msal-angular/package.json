@@ -26,7 +26,11 @@
   "ngPackage": {
     "lib": {
       "entryFile": "public_api.ts"
-    }
+    },
+    "whitelistedNonPeerDependencies": [
+      "minimatch",
+      "path"
+    ]
   },
   "peerDependencies": {
     "@angular/common": ">= 6.0.0",
@@ -74,7 +78,6 @@
     "karma-spec-reporter": "0.0.32",
     "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "^3.0.0",
-    "matcher": "^3.0.0",
     "msal": "^1.3.3",
     "ng-packagr": "^9.0.2",
     "phantomjs-polyfill": "0.0.2",
@@ -108,5 +111,9 @@
     "endToEnd": "cd tests/endToEndTests && npm install && node testRunner.js",
     "prepack": "npm run build"
   },
-  "description": "Microsoft Authentication Library for Angular"
+  "description": "Microsoft Authentication Library for Angular",
+  "dependencies": {
+    "minimatch": "^3.0.4",
+    "path": "^0.12.7"
+  }
 }

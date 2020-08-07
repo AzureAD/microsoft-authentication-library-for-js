@@ -16,7 +16,7 @@ import { MSALError } from "./MSALError";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
 import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
 
-const matcher = require("matcher");
+import { Minimatch } from "minimatch";
 
 const buildMsalConfig = (config: Configuration) : Configuration => {
     return {
@@ -55,10 +55,6 @@ export class MsalService extends UserAgentApplication {
                 this.setAcquireTokenInProgress(false);
             }
         });
-    }
-
-    private isEmpty(str: string): boolean {
-        return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
     public loginPopup(request?: AuthenticationParameters): Promise<any> {
@@ -154,8 +150,8 @@ export class MsalService extends UserAgentApplication {
     }
 
     public getScopesForEndpoint(endpoint: string) : Array<string> {
-        if (this.msalConfig.framework && this.msalConfig.framework.unprotectedResources) {
-            this.getLogger().info("msalConfig.framework.unprotectedResources is deprecated, add protected resources to msalAngularConfig.protectedResourceMap instead");
+        if ((this.msalConfig.framework && this.msalConfig.framework.unprotectedResources) || (this.msalAngularConfig && this.msalAngularConfig.unprotectedResources)) {
+            this.getLogger().info("unprotectedResources is deprecated and ignored. msalAngularConfig.protectedResourceMap now supports glob patterns");
         }
 
         const frameworkProtectedResourceMap = this.msalConfig.framework && this.msalConfig.framework.protectedResourceMap;
@@ -163,20 +159,25 @@ export class MsalService extends UserAgentApplication {
             this.getLogger().info("msalConfig.framework.protectedResourceMap is deprecated, use msalAngularConfig.protectedResourceMap");
         }
 
-        if (this.msalAngularConfig && this.msalAngularConfig.unprotectedResources) {
-            this.getLogger().info("msalAngularConfig.unprotectedResources is deprecated, add protected resources to msalAngularConfig.protectedResourceMap instead");
-        }
-
         const protectedResourceMap = frameworkProtectedResourceMap && frameworkProtectedResourceMap.size ? frameworkProtectedResourceMap : new Map(this.msalAngularConfig.protectedResourceMap);
         
-        // process all protected resources and send the first matched one using wildcard matcher
         const protectedResourcesArray = Array.from(protectedResourceMap.keys());
-        const keyMatchesEndpointArray = protectedResourcesArray.filter(key => matcher.isMatch(endpoint, key));
-        const keyForEndpoint = keyMatchesEndpointArray[0];
-
-        if (keyForEndpoint) {
-            return protectedResourceMap.get(keyForEndpoint);
-        }
+        const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
+            const minimatch = new Minimatch(key);
+            return minimatch.match(endpoint);
+        });
+        
+        // process all protected resources and send the first matched resource
+        if (keyMatchesEndpointArray.length > 0) {
+            if (keyMatchesEndpointArray.length > 1) {
+                this.getLogger().warning("Multiple entries in protectedResourceMap found for resource. Using first entry.");
+                this.getLogger().warningPii(`Multiple entries found for: ${endpoint}`);
+            }
+            const keyForEndpoint = keyMatchesEndpointArray[0];
+            if (keyForEndpoint) {
+                return protectedResourceMap.get(keyForEndpoint);
+            }
+        } 
 
         /*
          * default resource will be clientid if nothing specified
