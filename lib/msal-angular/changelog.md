@@ -1,4 +1,4 @@
-# Changelog
+# Change Log - @azure/msal-angular
 
 ## 1.0.0
 

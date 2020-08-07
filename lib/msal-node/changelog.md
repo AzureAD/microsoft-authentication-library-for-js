@@ -1,3 +1,5 @@
+# Change Log - @azure/msal-node
+
 # 1.0.0-alpha.4
 - Add confidential client support (#2023)
 

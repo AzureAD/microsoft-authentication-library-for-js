@@ -1,3 +1,5 @@
+# Change Log - msal
+
 # 1.3.4
 
 ## Bugs
