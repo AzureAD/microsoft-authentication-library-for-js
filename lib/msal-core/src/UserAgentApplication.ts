@@ -1405,9 +1405,9 @@ export class UserAgentApplication {
             }
             // if more than one cached token is found
             else if (filteredItems.length > 1) {
-                //serverAuthenticationRequest.authority can only be common or organizations if not null
+                // serverAuthenticationRequest.authority can only be common or organizations if not null
                 if (serverAuthenticationRequest.authority) {
-                   //find an exact match for domain
+                    // find an exact match for domain
                     const requestDomain = UrlUtils.GetUrlComponents(serverAuthenticationRequest.authority).HostNameAndPort;
                     const filteredAuthorityItems = filteredItems.filter(filteredItem => {
                         const domain = UrlUtils.GetUrlComponents(filteredItem.key.authority).HostNameAndPort;
@@ -1426,7 +1426,7 @@ export class UserAgentApplication {
                         return null;
                     }  
                 }
-                else { //if not common or organizations authority, throw error
+                else { // if not common or organizations authority, throw error
                     throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
                 } 
             }
