@@ -17,7 +17,8 @@ import { NetworkRequestType } from "../utils/Constants";
  * @hidden
  */
 export enum AuthorityType {
-    Default
+    Default,
+    Adfs
 }
 
 /**
