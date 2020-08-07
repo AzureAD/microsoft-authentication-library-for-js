@@ -1,5 +1,9 @@
 # Change Log - @azure/msal-node
 
+This log was last generated on Fri, 07 Aug 2020 21:19:23 GMT and should not be manually modified.
+
+<!-- Start content -->
+
 # 1.0.0-alpha.4
 - Add confidential client support (#2023)
 

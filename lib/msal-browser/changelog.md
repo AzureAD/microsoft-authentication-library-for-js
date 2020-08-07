@@ -1,5 +1,9 @@
 # Change Log - @azure/msal-common
 
+This log was last generated on Fri, 07 Aug 2020 21:19:23 GMT and should not be manually modified.
+
+<!-- Start content -->
+
 # 2.0.1
 ## Breaking Changes
 * None
