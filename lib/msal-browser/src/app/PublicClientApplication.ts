@@ -476,7 +476,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest, userRequestScopes);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
-        // Handle response from hash string.
+        // Handle response from hash string
         return silentHandler.handleCodeResponse(hash);
     }
 

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Command line app showing how to use a refresh token to acquire new tokens from Azure AD",
   "main": "index.js",
+  "private": true,
   "scripts": {
       "start": "node ./index.js"
   },
