@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Update protectedResources with wildcard, remove unprotectedResources from msal-angular (#2029)",
+  "packageName": "@azure/msal-angular",
+  "email": "joliuac@gmail.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-10T18:46:52.687Z"
+}
