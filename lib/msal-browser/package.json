@@ -10,7 +10,7 @@
         "type": "git",
         "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
     },
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "Microsoft Authentication Library for js",
     "keywords": [
         "implicit",
@@ -73,6 +73,7 @@
         "@typescript-eslint/eslint-plugin-tslint": "^2.4.0",
         "@typescript-eslint/parser": "^2.4.0",
         "babel-plugin-istanbul": "^5.2.0",
+        "beachball": "^1.32.2",
         "chai": "^4.2.0",
         "chai-as-promised": "^7.1.1",
         "dotenv": "^8.2.0",
@@ -97,6 +98,6 @@
         "typescript": "^3.8.3"
     },
     "dependencies": {
-        "@azure/msal-common": "^1.0.0"
+        "@azure/msal-common": "^1.1.0"
     }
 }

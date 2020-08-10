@@ -36,6 +36,20 @@ describe("UrlUtils.ts class", () => {
         });
     });
 
+    it("isCommonAuthority", () => {
+        expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/common/")).to.eq(true);
+        expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/common")).to.eq(true);
+        expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/organizations/")).to.eq(false);
+        expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/123456789/")).to.eq(false);
+    });
+
+    it("isOrganizationsAuthority", () => {
+        expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/organizations/")).to.eq(true);
+        expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/organizations")).to.eq(true);
+        expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/common/")).to.eq(false);
+        expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/123456789/")).to.eq(false);
+    });
+
     it("test getHashFromUrl returns hash from url if hash is single character", () => {
         const hash = UrlUtils.getHashFromUrl(TEST_URL_HASH_SINGLE_CHAR);
 

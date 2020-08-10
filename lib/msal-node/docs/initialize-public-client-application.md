@@ -10,23 +10,18 @@ In this document:
 
 ## Initializing the PublicClientApplication object
 
-In order to use MSAL.js, you need to instantiate a [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html) object.
+In order to use MSAL Node, you need to instantiate a [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html) object.
 
 ```javascript
 import * as msal from "@azure/msal-node";
 
-const publicClientConfig = {
+const clientConfig = {
     auth: {
         clientId: "your_client_id",
         authority: "your_authority",
-        // mandatory only for authorization code flow
-        redirectUri: "your_redirect_uri",
-    },
-    cache: {
-        cachePlugin
-    },
+    }
 };
-const pca = new msal.PublicClientApplication(publicClientConfig);
+const pca = new msal.PublicClientApplication(clientConfig);
 ```
 
 ## Configuration Basics
@@ -40,22 +35,12 @@ const pca = new msal.PublicClientApplication(publicClientConfig);
 
 By default, MSAL is configured with the `common` tenant, which is used for multi-tenant applications and applications allowing personal accounts (not B2C).
 ```javascript
-const msalConfig = {
-    auth: {
-        clientId: 'your_client_id',
-        authority: 'https://login.microsoftonline.com/common/'
-    }
-};
+    authority: 'https://login.microsoftonline.com/common/'
 ```
 
 If your application audience is a single tenant, you must provide an authority with your tenant id like below:
 ```javascript
-const msalConfig = {
-    auth: {
-        clientId: 'your_client_id',
-        authority: 'https://login.microsoftonline.com/{your_tenant_id}'
-    }
-};
+    authority: 'https://login.microsoftonline.com/{your_tenant_id}'
 ```
 
 ## Advanced Configuration

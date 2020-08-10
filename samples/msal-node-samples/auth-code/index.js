@@ -4,33 +4,16 @@
  */
 const express = require("express");
 const msal = require('@azure/msal-node');
-const { promises: fs } = require("fs");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-const readFromStorage = () => {
-    return fs.readFile("./data/cache.json", "utf-8");
-};
-
-const writeToStorage = (getMergedState) => {
-    return readFromStorage().then(oldFile =>{
-        const mergedState = getMergedState(oldFile);
-        return fs.writeFile("./data/cacheAfterWrite.json", mergedState);
-    })
-};
-
-const cachePlugin = {
-    readFromStorage,
-    writeToStorage
-};
-
-const publicClientConfig = {
+// Before running the sample, you will need to replace the values in the config, 
+// including the clientSecret
+const config = {
     auth: {
-        clientId: "99cab759-2aab-420b-91d8-5e3d8d4f063b",
+        clientId: "12d77c73-d09d-406a-ae0d-3d4e576f7d9b",
         authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
-    },
-    cache: {
-        cachePlugin
+        clientSecret: ""
     },
     system: {
         loggerOptions: {
@@ -42,8 +25,9 @@ const publicClientConfig = {
         }
     }
 };
-const pca = new msal.PublicClientApplication(publicClientConfig);
-const msalTokenCache = pca.getTokenCache();
+
+// Create msal application object
+const pca = new msal.ConfidentialClientApplication(config);
 
 // Create Express App and Routes
 const app = express();
@@ -54,9 +38,8 @@ app.get('/', (req, res) => {
         redirectUri: "http://localhost:3000/redirect",
     };
 
-    // get url to sign user in and consent to scopes needed for application
+    // get url to sign user in and consent to scopes needed for applicatio
     pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
-        console.log(response);
         res.redirect(response);
     }).catch((error) => console.log(JSON.stringify(error)));
 });
@@ -64,22 +47,20 @@ app.get('/', (req, res) => {
 app.get('/redirect', (req, res) => {
     const tokenRequest = {
         code: req.query.code,
-        redirectUri: "http://localhost:3000/redirect",
         scopes: ["user.read"],
+        redirectUri: "http://localhost:3000/redirect",
     };
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
-        res.send(200);
-        return msalTokenCache.writeToPersistence();
+        res.sendStatus(200);
     }).catch((error) => {
         console.log(error);
         res.status(500).send(error);
     });
 });
 
+
 msalTokenCache.readFromPersistence().then(() => {
     app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`))
-    console.log("Accounts: \n", msalTokenCache.getAllAccounts());
 });
-
