@@ -2,18 +2,18 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     SKU: "msal.js.common",
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
     // default authority
-    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
+    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
+    DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
     // ADFS String
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
-    AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
+    AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -33,14 +33,17 @@ export const Constants = {
     FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
-    AUTHORIZATION_PENDING: "authorization_pending"
+    AUTHORIZATION_PENDING: "authorization_pending",
+    NOT_DEFINED: "not_defined"
 };
 
 /**
  * Request header names
  */
 export enum HeaderNames {
-    CONTENT_TYPE = "Content-Type"
+    CONTENT_TYPE = "Content-Type",
+    X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
+    X_CLIENT_LAST_TELEM = "x-client-last-telemetry"
 }
 
 /**
@@ -53,18 +56,6 @@ export enum PersistentCacheKeys {
     ERROR = "error",
     ERROR_DESC = "error.description"
 }
-
-/**
- * List of pre-established trusted host URLs.
- */
-export const AADTrustedHostList: string[] = [
-    "login.windows.net",
-    "login.chinacloudapi.cn",
-    "login.cloudgovapi.us",
-    "login.microsoftonline.com",
-    "login.microsoftonline.de",
-    "login.microsoftonline.us"
-];
 
 /**
  * String constants related to AAD Authority
@@ -107,7 +98,10 @@ export enum AADServerParamKeys {
     X_CLIENT_OS = "x-client-OS",
     X_CLIENT_CPU = "x-client-CPU",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
-    DEVICE_CODE = "device_code"
+    DEVICE_CODE = "device_code",
+    CLIENT_SECRET = "client_secret",
+    CLIENT_ASSERTION = "client_assertion",
+    CLIENT_ASSERTION_TYPE = "client_assertion_type",
 }
 
 /**
@@ -139,17 +133,6 @@ export const PromptValue = {
     CONSENT: "consent",
     NONE: "none",
 };
-
-/**
- * // TODO: Have only one Prompr constant
- * Allowed values for prompt
- */
-export enum Prompt {
-    LOGIN = "login",
-    NONE = "none",
-    CONSENT = "consent",
-    SELECT_ACCOUNT = "select_account"
-}
 
 /**
  * SSO Types - generated to populate hints
@@ -235,9 +218,9 @@ export enum Separators {
  * Credentail Type stored in the cache
  */
 export enum CredentialType {
-    ID_TOKEN = "idtoken",
-    ACCESS_TOKEN = "accesstoken",
-    REFRESH_TOKEN = "refreshtoken",
+    ID_TOKEN = "IdToken",
+    ACCESS_TOKEN = "AccessToken",
+    REFRESH_TOKEN = "RefreshToken",
 }
 
 /**
@@ -246,7 +229,9 @@ export enum CredentialType {
 export enum CacheSchemaType {
     ACCOUNT = "Account",
     CREDENTIAL = "Credential",
-    APP_META_DATA = "AppMetadata"
+    APP_META_DATA = "AppMetadata",
+    TEMPORARY = "TempCache",
+    TELEMETRY = "Telemetry",
 }
 
 /**
@@ -264,20 +249,15 @@ export enum CacheType {
 };
 
 /**
- * accountId: <home_account_id>-<environment>
- * credentialId: <credential_type>-<client-id>-<realm>
- */
-export enum CredentialKeyPosition {
-    HOME_ACCOUNT_ID = 0,
-    ENVIRONMENT = 1,
-    CREDENTIAL_TYPE = 2,
-    CLIENT_ID = 3,
-    REALM = 4,
-    TARGET = 5
-};
-
-/**
  * More Cache related constants
  */
 export const APP_META_DATA = "appmetadata";
 export const ClientInfo = "client_info";
+
+export const SERVER_TELEM_CONSTANTS = {
+    SCHEMA_VERSION: 2,
+    FAILURE_LIMIT: 3,
+    CACHE_KEY: "server-telemetry",
+    CATEGORY_SEPARATOR: "|",
+    VALUE_SEPARATOR: ","
+};

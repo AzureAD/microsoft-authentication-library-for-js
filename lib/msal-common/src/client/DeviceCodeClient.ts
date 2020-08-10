@@ -7,12 +7,14 @@ import { DeviceCodeResponse, ServerDeviceCodeResponse } from "../response/Device
 import { BaseClient } from "./BaseClient";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
 
 /**
  * OAuth2.0 Device code client
@@ -28,7 +30,7 @@ export class DeviceCodeClient extends BaseClient {
      * polls token endpoint to exchange device code for tokens
      * @param request
      */
-    public async acquireToken(request: DeviceCodeRequest): Promise<string> {
+    public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult> {
 
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
@@ -36,8 +38,21 @@ export class DeviceCodeClient extends BaseClient {
             request,
             deviceCodeResponse);
 
-        // TODO handle response
-        return JSON.stringify(response);
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId,
+            this.cacheManager,
+            this.cryptoUtils,
+            this.logger
+        );
+
+        // Validate response. This function throws a server error if an error is returned by the server.
+        responseHandler.validateTokenResponse(response);
+        const tokenResponse = responseHandler.handleServerTokenResponse(
+            response,
+            this.authority
+        );
+
+        return tokenResponse;
     }
 
     /**
@@ -49,7 +64,7 @@ export class DeviceCodeClient extends BaseClient {
         const queryString = this.createQueryString(request);
         const headers = this.createDefaultLibraryHeaders();
 
-        return this.executePostRequestToDeviceCodeEndpoint(this.defaultAuthority.deviceCodeEndpoint, queryString, headers);
+        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers);
     }
 
     /**
@@ -96,9 +111,7 @@ export class DeviceCodeClient extends BaseClient {
 
         const parameterBuilder: RequestParameterBuilder = new RequestParameterBuilder();
 
-        const scopeSet = new ScopeSet(request.scopes || [],
-            this.config.authOptions.clientId,
-            false);
+        const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
@@ -140,7 +153,7 @@ export class DeviceCodeClient extends BaseClient {
 
                     } else {
                         const response = await this.executePostToTokenEndpoint(
-                            this.defaultAuthority.tokenEndpoint,
+                            this.authority.tokenEndpoint,
                             requestBody,
                             headers);
 
@@ -169,13 +182,14 @@ export class DeviceCodeClient extends BaseClient {
 
         const requestParameters: RequestParameterBuilder = new RequestParameterBuilder();
 
-        const scopeSet = new ScopeSet(request.scopes || [],
-            this.config.authOptions.clientId,
-            false);
+        const scopeSet = new ScopeSet(request.scopes || []);
         requestParameters.addScopes(scopeSet);
         requestParameters.addClientId(this.config.authOptions.clientId);
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
         requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        requestParameters.addCorrelationId(correlationId);
+        requestParameters.addClientInfo();
         return requestParameters.createQueryString();
     }
 }

@@ -1,16 +1,37 @@
 import { expect } from "chai";
 import { describe, it } from "mocha";
 import { WindowUtils } from "../../src/utils/WindowUtils";
-import { FramePrefix } from "../../src/utils/Constants";
+import { FramePrefix, TemporaryCacheKeys, Constants } from "../../src/utils/Constants";
 import { TEST_CONFIG } from "../TestConstants";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { Logger } from "../../src";
+import { Logger, UrlUtils } from "../../src";
+import { BrowserStorage } from "../../src/cache/BrowserStorage";
+import { RequestUtils } from "../../src/utils/RequestUtils";
+import sinon from "sinon";
+import { AuthCache } from "../../src/cache/AuthCache";
 
 const logger = new Logger(() => {});
 
 describe("WindowUtils", () => {
-    describe("monitorWindowForHash", () => {
-        it("times out (popup)", done => {
+    describe("monitorIframeForHash", () => {
+        it("times out", done => {
+            const iframe = {
+                contentWindow: {
+                    // @ts-ignore
+                    location: null // example of scenario that would never otherwise resolve
+                }
+            };
+
+            // @ts-ignore
+            WindowUtils.monitorIframeForHash(iframe.contentWindow, 500, "http://login.microsoftonline.com", logger)
+                .catch((err: ClientAuthError) => {
+                    done();
+                });
+        });
+
+        it("times out when event loop is suspended", function(done) {
+            this.timeout(5000);
+
             const iframe = {
                 contentWindow: {
                     location: {
@@ -21,25 +42,28 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 500, "url", logger)
-                .catch((err: ClientAuthError) => {
+            WindowUtils.monitorIframeForHash(iframe.contentWindow, 2000, "url", logger)
+                .catch(() => {
                     done();
                 });
-        });
+                
+            setTimeout(() => {
+                iframe.contentWindow.location = {
+                    href: "http://localhost/#/access_token=hello",
+                    hash: "#access_token=hello"
+                };
+            }, 1600);
 
-        it("times out (iframe)", done => {
-            const iframe = {
-                contentWindow: {
-                    // @ts-ignore
-                    location: null // example of scenario that would never otherwise resolve
-                }
-            };
-
-            // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 500, "http://login.microsoftonline.com", logger, true)
-                .catch((err: ClientAuthError) => {
-                    done();
-                });
+            /**
+             * This code mimics the JS event loop being synchonously paused (e.g. tab suspension) midway through polling the iframe.
+             * If the event loop is suspended for longer than the configured timeout,
+             * the polling operation should throw an error for a timeout.
+             */
+            const startPauseDelay = 200;
+            const pauseDuration = 3000;
+            setTimeout(() => {
+                Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pauseDuration);
+            }, startPauseDelay);
         });
 
         it("returns hash", done => {
@@ -53,7 +77,7 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 1000, "url", logger)
+            WindowUtils.monitorIframeForHash(iframe.contentWindow, 1000, "url", logger)
                 .then((hash: string) => {
                     expect(hash).to.equal("#access_token=hello");
                     done();
@@ -66,9 +90,53 @@ describe("WindowUtils", () => {
                 };
             }, 500);
         });
+    });
+
+    describe("monitorPopupForHash", () => {
+        it("times out", done => {
+            const popup = {
+                contentWindow: {
+                    location: {
+                        href: "http://localhost",
+                        hash: ""
+                    }
+                }
+            };
+
+            // @ts-ignore
+            WindowUtils.monitorPopupForHash(popup.contentWindow, 500, "url", logger)
+                .catch((err: ClientAuthError) => {
+                    done();
+                });
+        });
+
+        it("returns hash", done => {
+            const popup = {
+                contentWindow: {
+                    location: {
+                        href: "http://localhost",
+                        hash: ""
+                    }
+                }
+            };
+
+            // @ts-ignore
+            WindowUtils.monitorPopupForHash(popup.contentWindow, 1000, "url", logger)
+                .then((hash: string) => {
+                    expect(hash).to.equal("#access_token=hello");
+                    done();
+                });
+
+            setTimeout(() => {
+                popup.contentWindow.location = {
+                    href: "http://localhost/#/access_token=hello",
+                    hash: "#access_token=hello"
+                };
+            }, 500);
+        });
 
         it("closed", done => {
-            const iframe = {
+            const popup = {
                 contentWindow: {
                     location: {
                         href: "http://localhost",
@@ -79,14 +147,14 @@ describe("WindowUtils", () => {
             };
 
             // @ts-ignore
-            WindowUtils.monitorWindowForHash(iframe.contentWindow, 1000, "url", logger)
+            WindowUtils.monitorPopupForHash(popup.contentWindow, 1000, "url", logger)
                 .catch((error: ClientAuthError) => {
                     expect(error.errorCode).to.equal('user_cancelled');
                     done();
                 });
 
             setTimeout(() => {
-                iframe.contentWindow.closed = true;
+                popup.contentWindow.closed = true;
             }, 500);
         });
     });
@@ -145,6 +213,58 @@ describe("WindowUtils", () => {
             const iframe = WindowUtils.addHiddenIFrame("testId", logger);
 
             expect(iframe).to.equals(window.frames["testId"]);
+        });
+    });
+
+    describe("checkIfBackButtonIsPressed", () => {
+        const cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+
+        afterEach(() => {
+            sinon.restore();
+            cacheStorage.clear();
+        });
+
+        it("clears temp cache items if back button pressed, no user state", () => {
+            const requestState = RequestUtils.validateAndGenerateState(null, "redirectInteraction")
+            cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${requestState}`);
+
+            const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");
+            sinon.stub(UrlUtils, "urlContainsHash").returns(false);
+
+            WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
+            expect(resetTempCacheSpy.calledOnce).to.be.true;
+            expect(resetTempCacheSpy.calledWith(requestState)).to.be.true;
+        });
+
+        it("clears temp cache items if back button pressed, user state provided", () => {
+            const requestState = RequestUtils.validateAndGenerateState("testUserState", "redirectInteraction")
+            cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${requestState}`);
+
+            const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");
+            sinon.stub(UrlUtils, "urlContainsHash").returns(false);
+
+            WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
+            expect(resetTempCacheSpy.calledOnce).to.be.true;
+            expect(resetTempCacheSpy.calledWith(requestState)).to.be.true;
+        });
+
+        it("does not clear temp cache if redirect request is not cached", () => {
+            const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");
+            sinon.stub(UrlUtils, "urlContainsHash").returns(false);
+
+            WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
+            expect(resetTempCacheSpy.notCalled).to.be.true;
+        });
+
+        it("does not clear temp cache if hash in the current url", () => {
+            const requestState = RequestUtils.validateAndGenerateState("testUserState", "redirectInteraction");
+            cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${requestState}`);
+
+            const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");
+            sinon.stub(UrlUtils, "urlContainsHash").returns(true);
+
+            WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
+            expect(resetTempCacheSpy.notCalled).to.be.true;
         });
     });
 });

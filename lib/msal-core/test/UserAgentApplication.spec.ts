@@ -35,6 +35,7 @@ import { RequestUtils } from "../src/utils/RequestUtils";
 import { UrlUtils } from "../src/utils/UrlUtils";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 import { TrustedAuthority } from "../src/authority/TrustedAuthority";
+import { resolve } from "path";
 
 type kv = {
     [key: string]: string;
@@ -716,7 +717,7 @@ describe("UserAgentApplication.ts Class", function () {
             })
         });
 
-        it("exits login function with error if interaction is true", function (done) {
+        it("calls error callback on loginRedirect if interaction is true", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
             window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
@@ -730,6 +731,51 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal.handleRedirectCallback(checkErrorFromLibrary);
             msal.loginRedirect();
+        });
+
+        it("calls error callback on acquireTokenRedirect if interaction is true", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            window.location = oldWindowLocation;
+            const checkErrorFromLibrary = function (authErr: AuthError) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.name).to.equal("ClientAuthError");
+                expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromLibrary);
+            msal.acquireTokenRedirect({scopes: [ "user.read" ]});
+        });
+
+
+        it("throws error on loginRedirect if interaction is true", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            window.location = oldWindowLocation;
+            try {
+                msal.loginRedirect();
+            } catch(authErr) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                done();
+            }
+        });
+
+        it("throws error on acquireTokenRedirect if interaction is true", function (done) {
+            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            window.location = oldWindowLocation;
+            try {
+                msal.acquireTokenRedirect({scopes: [ "user.read" ]});
+            } catch(authErr) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                done();
+            }
         });
 
         it("exits login function with error if invalid prompt parameter is passed", function (done) {
@@ -796,7 +842,7 @@ describe("UserAgentApplication.ts Class", function () {
                     try {
                         const state = UrlUtils.deserializeHash(url).state;
 
-                        expect(cacheStorage.getItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}${Constants.resourceDelimiter}${state}`)).to.be.equal(state);
+                        expect(cacheStorage.getItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${state}`))).to.be.equal(state);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -821,7 +867,7 @@ describe("UserAgentApplication.ts Class", function () {
                         const loginRequestUrl = window.location.href;
                         const state = UrlUtils.deserializeHash(url).state;
 
-                        expect(cacheStorage.getItem(`${TemporaryCacheKeys.LOGIN_REQUEST}${Constants.resourceDelimiter}${state}`)).to.be.equal(loginRequestUrl);
+                        expect(cacheStorage.getItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${state}`))).to.be.equal(loginRequestUrl);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -923,7 +969,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("Calls the error callback if two callbacks are sent", function (done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -941,8 +987,8 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("Calls the token callback if two callbacks are sent", function (done) {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             msal = new UserAgentApplication(config);
@@ -959,8 +1005,8 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("Calls the response callback if single callback is sent", function (done) {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             msal = new UserAgentApplication(config);
@@ -980,8 +1026,8 @@ describe("UserAgentApplication.ts Class", function () {
             const oldWindowOpener = window.opener;
             window.opener = "different_window";
 
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             msal = new UserAgentApplication(config);
@@ -1004,8 +1050,8 @@ describe("UserAgentApplication.ts Class", function () {
             window.opener = "different_window";
             const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup)
 
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             let hashBeforeProcessing = window.location.hash;
@@ -1122,25 +1168,26 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
-        it("tests getCachedToken when authority is passed and single matching accessToken is found", function (done) {
+        it("tests getCachedToken when common authority is passed and single matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["S1"],
                 account: account
             };
-            const tokenRequest2 : AuthenticationParameters = {
+            const tokenRequestAlternate : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
                 scopes: ["S1"],
                 account: account
             };
+           
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
-            accessTokenKey.authority = accessTokenKey.authority + "/";
+            accessTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority + "/";
-            accessTokenValue.accessToken = "accessToken2";
+            accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            accessTokenValue.accessToken = "accessTokenAlternate";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
@@ -1155,12 +1202,108 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
 
-            msal.acquireTokenSilent(tokenRequest2).then(function(response) {
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.include("accessToken2");
+                expect(response.accessToken).to.include("accessTokenAlternate");
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                done();
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+            
+        });
+
+        it("tests getCachedToken when organizations authority is passed and single matching accessToken is found", function (done) {
+            
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_URIS.DEFAULT_INSTANCE + "organizations",
+                scopes: ["S1"],
+                account: account
+            };
+            const tokenRequestAlternate : AuthenticationParameters = {
+                authority: TEST_URIS.ALTERNATE_INSTANCE + "organizations",
+                scopes: ["S1"],
+                account: account
+            };
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+
+            accessTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            accessTokenValue.accessToken = "accessTokenAlternate";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include("accessTokenAlternate");
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                done();
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+        });
+
+        it("tests getCachedToken when tenant authority is passed and single matching accessToken is found", function (done) {
+            
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
+                scopes: ["S1"],
+                account: account
+            };
+            const tokenRequestAlternate : AuthenticationParameters = {
+                authority: TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
+                scopes: ["S1"],
+                account: account
+            };
+            
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+
+            accessTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            accessTokenValue.accessToken = "accessTokenAlternate";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include("accessTokenAlternate");
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err: AuthError) {
@@ -1197,7 +1340,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken when authority is passed and no matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                authority: TEST_CONFIG.alternateValidAuthority,
+                authority: TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
                 scopes: ["S1"],
                 account: account
             };
@@ -1205,16 +1348,9 @@ describe("UserAgentApplication.ts Class", function () {
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
-            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
-                return new Promise<void>(() => {
-                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
-                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                    expect(url).to.include("&state");
-                    expect(url).to.include("&client_info=1");
-                    done();
-                });
-            });
+            setAuthInstanceStubs();
+            sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+            const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -1224,6 +1360,8 @@ describe("UserAgentApplication.ts Class", function () {
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
                 expect(err).to.be.instanceOf(AuthError);
+                expect(renewTokenSpy.calledOnce).to.be.true;
+                done();
             });
         });
 
@@ -1240,7 +1378,7 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 return new Promise<void>(() => {
                     expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
-                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                     expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
                     expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
                     expect(url).to.include("&state");
@@ -1282,7 +1420,7 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 return new Promise<void>(() => {
                     expect(cacheCallSpy.notCalled).to.be.true;
-                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                     expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
                     expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
                     expect(url).to.include("&state");
@@ -1320,7 +1458,7 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                 return new Promise<void>(() => {
                     expect(cacheCallSpy.notCalled).to.be.true;
-                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=s1%20openid%20profile");
+                    expect(url).to.include(TEST_CONFIG.validAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                     expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
                     expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
                     expect(url).to.include("&state");
@@ -1369,8 +1507,8 @@ describe("UserAgentApplication.ts Class", function () {
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             msal = new UserAgentApplication(config);
 
@@ -1406,9 +1544,9 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(window, "parent").returns(window);
 
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             msal = new UserAgentApplication(config);
         });
@@ -1435,9 +1573,9 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(window, "parent").returns(window);
 
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             msal = new UserAgentApplication(config);
         });
@@ -1464,9 +1602,9 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(window, "parent").returns(window);
 
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             msal = new UserAgentApplication(config);
         });
@@ -1484,9 +1622,9 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(window.location, "href").returns(loginStartPage + successHash)
 
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             expect(window.location.href).to.equal(loginUrl);
             expect(window.location.hash).to.equal(successHash);
@@ -1510,9 +1648,9 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(window.location, "href").returns(loginStartPage + successHash)
 
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             expect(window.location.href).to.equal(loginStartPage);
             expect(window.location.hash).to.equal(successHash);
@@ -1539,9 +1677,9 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(window.location, "href").returns(loginStartPage + successHash)
 
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.LOGIN_REQUEST}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, loginStartPage);
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             expect(window.location.href).to.equal(loginUrl + userQueryString);
             expect(window.location.hash).to.equal(successHash);
@@ -1569,15 +1707,15 @@ describe("UserAgentApplication.ts Class", function () {
             sinon.stub(window, "parent").returns(window);
 
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             msal = new UserAgentApplication(config);
         });
 
         it("tests saveTokenForHash in case of error", function(done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -1597,7 +1735,7 @@ describe("UserAgentApplication.ts Class", function () {
         // TEST_SERVER_ERROR_SUBCODE_CANCEL
         it("tests saveTokenForHash in case of non-consentable scopes / return to the application without consenting", function(done) {
             window.location.hash = TEST_SERVER_ERROR_SUBCODE_CANCEL + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -1614,7 +1752,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests if you get the state back in errorReceived callback, if state is a number", function (done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -1627,7 +1765,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests if you get the state back in errorReceived callback, if state is a url", function (done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_URL;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -1656,8 +1794,10 @@ describe("UserAgentApplication.ts Class", function () {
 
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
+
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             msal = new UserAgentApplication(config);
 
@@ -1679,8 +1819,8 @@ describe("UserAgentApplication.ts Class", function () {
 
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
             window.location.hash = successHash;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN,`${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             msal = new UserAgentApplication(config);
 
@@ -1720,7 +1860,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of interaction_required error code", function(done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_INTERACTION_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -1739,7 +1879,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of interaction_required error code and description", function(done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_INTERACTION_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -1760,7 +1900,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of login_required error code", function(done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_LOGIN_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -1779,7 +1919,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of login_required error code and description", function(done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_LOGIN_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -1800,7 +1940,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of consent_required error code", function(done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_CONSENT_REQ_ERROR_HASH1 + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 
@@ -1819,7 +1959,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests saveTokenForHash in case of consent_required error code and description", function(done) {
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_CONSENT_REQ_ERROR_HASH2 + TEST_USER_STATE_NUM;
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
 
             msal = new UserAgentApplication(config);
 

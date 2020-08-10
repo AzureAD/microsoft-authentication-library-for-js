@@ -14,8 +14,8 @@ See [here](./initialization.md#choosing-an-interaction-type) if you are uncertai
 
 MSAL uses a cache to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed. It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the `acquireTokenSilent` method.
 
-It is best practice to attempt an `acquireTokenSilent` call before using the interactive APIs. This allows you to prevent unnecessary user interactions. 
-`acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you.
+It is best practice to attempt an `acquireTokenSilent` call before using the interactive APIs if you have already logged in. This allows you to prevent unnecessary user interactions. 
+`acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you. You should use a `loginXXXXX` or `acquireTokenXXXXX` (interactive) API before this to establish a session with the server.
 
 If the `acquireTokenSilent` call attempts a refresh token call and the refresh token is expired, MSAL will attempt to make a silent request in an iframe for a new authorization code. If your session still exists, you will obtain a new authorization code silently, which will be immediately traded for an access token. 
 
@@ -31,13 +31,15 @@ var request = {
     scopes: ["Mail.Read"]
 };
 
-const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(async (error) => {
+msalInstance.acquireTokenSilent(request).then(tokenResponse => {
+    // Do something with the tokenResponse
+}).catch(async (error) => {
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
-        return await myMSALObj.acquireTokenPopup(request).catch(error => {
-            console.log(error);
-        });
+        return myMSALObj.acquireTokenPopup(request);
     }
+}).catch(error => {
+    handleError(error);
 });
 ```
 
@@ -47,7 +49,9 @@ var request = {
     scopes: ["Mail.Read"]
 };
 
-const tokenResponse = await msalInstance.acquireTokenSilent(request).catch(error => {
+msalInstance.acquireTokenSilent(request).then(tokenResponse => {
+    // Do something with the tokenResponse
+}).catch(error => {
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
         return myMSALObj.acquireTokenRedirect(request)

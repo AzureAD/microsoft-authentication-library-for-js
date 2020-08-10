@@ -66,7 +66,7 @@ export const BrowserAuthErrorMessage = {
     },
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
-        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a login_hint, sid or account object."
+        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
     },
     silentPromptValueError: {
         code: "silent_prompt_value_error",
@@ -76,6 +76,10 @@ export const BrowserAuthErrorMessage = {
         code: "token_request_cache_error",
         desc: "The token request could not be fetched from the cache correctly."
     },
+    invalidCacheType: {
+        code: "invalid_cache_type",
+        desc: "Invalid cache type"
+    }
 };
 
 /**
@@ -176,10 +180,9 @@ export class BrowserAuthError extends AuthError {
      * Creates an error thrown when monitorWindowFromHash times out for a given popup.
      * @param urlNavigate 
      */
-    static createMonitorWindowTimeoutError(urlNavigate: string): BrowserAuthError {
-        const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.monitorWindowTimeoutError.desc}`;
+    static createMonitorWindowTimeoutError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.monitorWindowTimeoutError.code,
-            errorMessage);
+            BrowserAuthErrorMessage.monitorWindowTimeoutError.desc);
     }
 
     /**
@@ -227,5 +230,12 @@ export class BrowserAuthError extends AuthError {
     static createTokenRequestCacheError(errDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.tokenRequestCacheError.code,
             `${BrowserAuthErrorMessage.tokenRequestCacheError.desc} Error Detail: ${errDetail}`);
+    }
+
+    /**
+    * Creates an error thrown if cache type is invalid.
+    */
+    static createInvalidCacheTypeError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.invalidCacheType.code, `${BrowserAuthErrorMessage.invalidCacheType.desc}`);
     }
 }

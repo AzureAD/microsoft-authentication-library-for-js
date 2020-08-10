@@ -9,7 +9,8 @@
     "@babel/preset-typescript": "^7.7.2",
     "@istanbuljs/nyc-config-babel": "^2.1.1",
     "babel-plugin-istanbul": "^5.2.0",
-    "coveralls": "^3.1.0",
+    "beachball": "^1.33.0",
+    "coveralls": "3.0.9",
     "lerna": "^3.20.2",
     "nyc": "^14.1.1",
     "puppeteer": "^2.1.1",
@@ -17,13 +18,16 @@
   },
   "scripts": {
     "postinstall": "node build/postinstall.js",
-    "build": "lerna run build",
-    "test": "lerna run test",
+    "build": "lerna run --concurrency 1 build",
+    "test": "lerna run --concurrency 1 test",
     "test:coverage": "npm run clean:coverage && lerna run test:coverage",
     "test:report": "nyc report | coveralls",
     "test:e2e": "lerna run --concurrency 1 test:e2e",
     "clean": "lerna run clean --no-private && lerna clean",
-    "clean:coverage": "rimraf ./.nyc_output/*"
+    "clean:coverage": "rimraf ./.nyc_output/*",
+    "beachball:check": "beachball check --branch origin/dev",
+    "beachball:change": "beachball change --branch origin/dev",
+    "beachball:publish": "beachball publish --branch origin/dev -n $NODE_AUTH_TOKEN"
   },
   "dependencies": {
     "@babel/register": "^7.7.0"
