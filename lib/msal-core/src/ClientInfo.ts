@@ -55,7 +55,6 @@ export class ClientInfo {
     }
 
     static stripPolicyFromUid(uid: string, authority: string): string {
-        console.log("Strip Policy")
         const uidSegments = uid.split("-");
         const urlSegments = authority.split("/").reverse();
         let policy = ""

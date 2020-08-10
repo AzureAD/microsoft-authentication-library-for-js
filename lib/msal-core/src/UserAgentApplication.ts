@@ -1876,8 +1876,8 @@ export class UserAgentApplication {
                         // Save the token
                         else {
                             this.logger.verbose("Nonce matches, saving idToken to cache");
-                            this.cacheStorage.setItem(PersistentCacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.ID_TOKEN]);
-                            this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, clientInfo.encodeClientInfo());
+                            this.cacheStorage.setItem(PersistentCacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.ID_TOKEN], this.inCookie);
+                            this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, clientInfo.encodeClientInfo(), this.inCookie);
 
                             // Save idToken as access token for app itself
                             this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
