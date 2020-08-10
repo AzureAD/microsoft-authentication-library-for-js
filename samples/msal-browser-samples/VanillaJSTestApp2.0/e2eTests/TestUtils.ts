@@ -23,11 +23,11 @@ export function createFolder(foldername: string) {
     }
 }
 
-export async function setupCredentials(apiParams: ILabApiParams): Promise<[string, string]> {
+export async function setupCredentials(envName: string, usertype?: string, federationprovider?:string): Promise<[string, string]> {
     let username = "";
     let accountPwd = "";
     const testCreds = new LabClient();
-    const envResponse = await testCreds.getUserVarsByCloudEnvironment(apiParams);
+    const envResponse = await testCreds.getUserVarsByCloudEnvironment(envName, usertype, federationprovider);
     const testEnv = envResponse[0];
     if (testEnv.upn) {
         username = testEnv.upn;

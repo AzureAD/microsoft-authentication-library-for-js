@@ -42,25 +42,25 @@ export class LabClient {
         return null;
     }
 
-    async getUserVarsByCloudEnvironment(apiParams: ILabApiParams): Promise<any> {
+    async getUserVarsByCloudEnvironment(envName: string, usertype?: string, federationprovider?:string): Promise<any> {
         const accessToken = await this.getCurrentToken();
-        let queryParams: Array<string> = [];
+        let apiParams: Array<string> = [];
 
 
-        if (apiParams.envName) {
-            queryParams.push(`azureenvironment=${apiParams.envName}`);
+        if (envName) {
+            apiParams.push(`azureenvironment=${envName}`);
         }
-        if (apiParams.userType) {
-            queryParams.push(`usertype=${apiParams.userType}`);
+        if (usertype) {
+            apiParams.push(`usertype=${usertype}`);
         }
-        if (apiParams.federationProvider) {
-            queryParams.push(`federationprovider=${apiParams.federationProvider}`);
+        if (federationprovider) {
+            apiParams.push(`federationprovider=${federationprovider}`);
         }
 
-        if (queryParams.length <= 0) {
+        if (apiParams.length <= 0) {
             throw "Must provide at least one param to getUserVarsByCloudEnvironment";
         }
-        const apiUrl = '/user?' + queryParams.join("&");
+        const apiUrl = '/user?' + apiParams.join("&");
 
         return await this.requestLabApi(apiUrl, accessToken);
     }

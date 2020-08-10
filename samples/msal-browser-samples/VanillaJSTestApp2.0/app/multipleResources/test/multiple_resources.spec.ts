@@ -1,7 +1,6 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { ILabApiParams } from "../../../e2eTests/LabClient";
 import { Screenshot, createFolder, setupCredentials, getTokens, removeTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../e2eTests/TestUtils"
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
@@ -28,8 +27,7 @@ describe("Browser tests", function () {
     let browser: puppeteer.Browser;
     before(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
-        const userParams: ILabApiParams = {envName: "azureppe"};
-        [username, accountPwd] = await setupCredentials(userParams);
+        [username, accountPwd] = await setupCredentials("azureppe");
         browser = await puppeteer.launch({
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
