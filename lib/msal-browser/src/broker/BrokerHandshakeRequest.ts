@@ -3,7 +3,32 @@
  * Licensed under the MIT License.
  */
 
-export type BrokerHandshakeRequest = {
-    embeddedClientId: string;
-    version: string;
-};
+import { BrokerMessage } from "./BrokerMessage";
+import { CacheManager } from "@azure/msal-common";
+
+export class BrokerHandshakeRequest extends BrokerMessage {
+    public embeddedClientId: string;
+    public version: string;
+
+    constructor(embeddedClientId: string, version: string) {
+        super("BrokerHandshakeRequest");
+
+        this.embeddedClientId = embeddedClientId;
+        this.version = version;
+    }
+
+    static validate(message: MessageEvent): BrokerHandshakeRequest | null {
+        // First, validate message type
+        if (message.data && 
+            message.data.messageType === "BrokerHandshakeRequest" &&
+            message.data.embeddedClientId &&
+            message.data.version) {
+                
+            // TODO, verify version compatibility
+
+            return new BrokerHandshakeRequest(message.data.embeddedClientId, message.data.version);
+        }
+
+        return null;
+    }
+}

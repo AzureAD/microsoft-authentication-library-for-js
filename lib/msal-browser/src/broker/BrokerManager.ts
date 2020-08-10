@@ -4,21 +4,32 @@
  */
 
 import { BrokerOptions } from "../config/Configuration";
+import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
+import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
 
 export class BrokerManager {
     private brokerOptions: BrokerOptions;
+    private version: string;
 
-    constructor(brokerOptions: BrokerOptions) {
+    constructor(brokerOptions: BrokerOptions, version: string) {
         this.brokerOptions = brokerOptions;
-        console.log("Broker initiated");
+        this.version = version;
     }
 
     /* eslint-disable */
     listenForHandshake(): void {
         window.addEventListener("message", (message: MessageEvent): void => {
-            console.log(message);
-            // @ts-ignore
-            message.source.postMessage("Received Handshake", message.origin);
+            console.log("Broker handshake request received");
+            // Check that message is a BrokerHandshakeRequest
+            const brokerMessageHandshake = BrokerHandshakeRequest.validate(message);
+            if (brokerMessageHandshake) {
+                console.log("Broker handshake validated: ", brokerMessageHandshake);
+                const brokerHandshakeResponse = new BrokerHandshakeResponse(this.version);
+
+                // @ts-ignore
+                message.source.postMessage(brokerHandshakeResponse, message.origin);
+                console.log("Sending handshake response: ", brokerHandshakeResponse);
+            }
         });
     }
     /* eslint-enable */

@@ -129,11 +129,11 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     private initializeBrokering(): void {
         if (this.config.system.brokerOptions.actAsBroker) {
-            this.broker = new BrokerManager(this.config.system.brokerOptions);
+            this.broker = new BrokerManager(this.config.system.brokerOptions, "2.0.1");
             console.log("Acting as Broker");
             this.broker.listenForHandshake();
         } else if (this.config.system.brokerOptions.allowBrokering) {
-            this.embeddedApp = new BrokerClient(this.config.system.brokerOptions, this.logger);
+            this.embeddedApp = new BrokerClient(this.config.system.brokerOptions, this.logger, this.config.auth.clientId,  "2.0.1");
             console.log("Acting as child");
             this.embeddedApp.initiateHandshake();
         }
