@@ -1,6 +1,7 @@
 import fs from "fs";
 import puppeteer from "puppeteer";
-import { LabClient, ILabApiParams } from "./LabClient";
+import { LabClient } from "./LabClient";
+import { expect } from 'chai';
 
 export class Screenshot {
     private folderName: string;

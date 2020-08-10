@@ -2,13 +2,6 @@ import { ClientSecretCredential, AccessToken } from "@azure/identity";
 import axios from "axios";
 const labApiUri = "https://msidlab.com/api"
 
-export interface ILabApiParams {
-    envName?: string,
-    userType?: string,
-    b2cProvider?: string,
-    federationProvider?: string
-};
-
 export class LabClient {
 
     private credentials: ClientSecretCredential;
