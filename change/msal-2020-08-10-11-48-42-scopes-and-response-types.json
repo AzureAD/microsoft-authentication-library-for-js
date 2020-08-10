@@ -1,8 +1,8 @@
 {
   "type": "minor",
-  "comment": "Enables idToken acquisition in acquireToken API calls through the use of OIDC scopes by redefining the way response_type is determined.",
+  "comment": "Enables idToken acquisition in acquireToken API calls through the use of OIDC scopes by redefining the way response_type is determined. (PR #2022)",
   "packageName": "msal",
-  "email": "hectormgdev@gmail.com",
+  "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch",
   "date": "2020-08-10T18:48:42.205Z"
 }
