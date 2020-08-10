@@ -51,6 +51,7 @@
 **[Common Issues](#common-issues)**
 1. [How to avoid page reloads when acquiring and renewing tokens silently?](#how-to-avoid-page-reloads-when-acquiring-and-renewing-tokens-silently)
 1. [Why is my application stuck in an infinite redirect loop?](#why-is-my-application-stuck-in-an-infinite-redirect-loop)
+1. [I'm using one of your samples on Internet Explorer and I get the error SignIn() is not defined](#im-using-one-of-your-samples-on-internet-explorer-and-i-get-the-error-signin-is-not-defined)
 1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core/docs/errors.md)
 
 ***
@@ -346,25 +347,25 @@ Please see the documentation on [Tenancy in Azure Active Directory](https://docs
 
 ## My B2C application has more than one user-flow/policy. How do I work with multiple policies in MSAL.js?
 
-Unfortunately, MSAL.js does not support multiple B2C policies _out-of-the-box_ at this moment. Nevertheless, you can still utilize the library to workaround this limitation. For instance, review our sample [here](https://github.com/Azure-Samples/active-directory-b2c-javascript-msal-singlepageapp) to see how to implement **sign-up/sign-in** and **password reset** user flows.
+MSAL.js allows you to provide an authority on a per-request basis. To acquire an access token for a different policy than the one you signed in with, simply pass the relevant authority as a part of the request object.
+
+```javascript
+const request = {
+scopes: ["https://b2ctenant.onmicrosoft.com/exampleApi/exampleScope"],
+authority: "https://b2ctenant.b2clogin.com/b2ctenant.onmicrosoft.com/examplePolicy"
+}
+
+msal.acquireTokenPopup(request);
+```
+
+A few additional things to keep in mind regarding multiple policy scenarios:
+
+- MSAL.js 1.x is only able to cache one id_token at a time, which means that obtaining an id_token for a different policy will overwrite the cached id_token from the previous policy.
+- Some policies, such as profile_edit and password_reset, require interaction and cannot be used to renew tokens silently. Obtaining a cached access token via `acquireTokenSilent` is still possible, however, if the token is expired the service will throw an "X-Frame Options DENY" error when MSAL attempts to renew it. When this happens your application must catch this error and fallback to calling an interactive method (`acquireTokenRedirect` or `acquireTokenPopup`)
 
 ## How can I implement password reset user flow in my B2C application with MSAL.js?
 
 Please review our sample [here](https://github.com/Azure-Samples/active-directory-b2c-javascript-msal-singlepageapp) to see how to implement the **password reset** user flow.
-
-## I'm using one of your samples on Internet Explorer and I get the error "SignIn() is not defined"
-
-Our samples use [ES6](http://www.ecma-international.org/ecma-262/6.0/) conventions, in particular **promises**, **arrow functions** and **template literals**. As such, they will **not** work on Internet Explorer out-of-the-box. For **promises**, you need to add a polyfill, i.e.:
-
-```html
-<head>
-   <!-- adding pollyfil for promises on IE11  -->
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-polyfills/0.1.42/polyfill.min.js"> 
-   </script>
-</head>
-```
-
-For **arrow functions** and **template literals**, you need to transpile them to old JavaScript. You can use [this tool](https://babeljs.io/repl) to help with the process.
 
 # Common Issues
 
@@ -534,3 +535,17 @@ msal = new Msal.UserAgentApplication({
     }
 })
 ```
+
+## 
+
+Our samples use [ES6](http://www.ecma-international.org/ecma-262/6.0/) conventions, in particular **promises**, **arrow functions** and **template literals**. As such, they will **not** work on Internet Explorer out-of-the-box. For **promises**, you need to add a polyfill, i.e.:
+
+```html
+<head>
+   <!-- adding pollyfil for promises on IE11  -->
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-polyfills/0.1.42/polyfill.min.js"> 
+   </script>
+</head>
+```
+
+For **arrow functions** and **template literals**, you need to transpile them to old JavaScript. You can use [this tool](https://babeljs.io/repl) to help with the process.
