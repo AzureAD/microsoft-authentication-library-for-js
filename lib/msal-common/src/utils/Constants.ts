@@ -41,7 +41,9 @@ export const Constants = {
  * Request header names
  */
 export enum HeaderNames {
-    CONTENT_TYPE = "Content-Type"
+    CONTENT_TYPE = "Content-Type",
+    X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
+    X_CLIENT_LAST_TELEM = "x-client-last-telemetry"
 }
 
 /**
@@ -96,7 +98,10 @@ export enum AADServerParamKeys {
     X_CLIENT_OS = "x-client-OS",
     X_CLIENT_CPU = "x-client-CPU",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
-    DEVICE_CODE = "device_code"
+    DEVICE_CODE = "device_code",
+    CLIENT_SECRET = "client_secret",
+    CLIENT_ASSERTION = "client_assertion",
+    CLIENT_ASSERTION_TYPE = "client_assertion_type",
 }
 
 /**
@@ -225,7 +230,8 @@ export enum CacheSchemaType {
     ACCOUNT = "Account",
     CREDENTIAL = "Credential",
     APP_META_DATA = "AppMetadata",
-    TEMPORARY = "TempCache"
+    TEMPORARY = "TempCache",
+    TELEMETRY = "Telemetry",
 }
 
 /**
@@ -247,3 +253,11 @@ export enum CacheType {
  */
 export const APP_META_DATA = "appmetadata";
 export const ClientInfo = "client_info";
+
+export const SERVER_TELEM_CONSTANTS = {
+    SCHEMA_VERSION: 2,
+    FAILURE_LIMIT: 3,
+    CACHE_KEY: "server-telemetry",
+    CATEGORY_SEPARATOR: "|",
+    VALUE_SEPARATOR: ","
+};
