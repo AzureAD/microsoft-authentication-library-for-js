@@ -55,7 +55,7 @@ export class SilentHandler extends InteractionHandler {
                     return;
                 }
 
-                let href;
+                let href: string;
                 try {
                     /*
                      * Will throw if cross origin,
@@ -64,6 +64,10 @@ export class SilentHandler extends InteractionHandler {
                      */
                     href = iframe.contentWindow.location.href;
                 } catch (e) {}
+
+                if (StringUtils.isEmpty(href)) {
+                    return;
+                }
 
                 const contentHash = iframe.contentWindow.location.hash;
                 if (UrlString.hashContainsKnownProperties(contentHash)) {
