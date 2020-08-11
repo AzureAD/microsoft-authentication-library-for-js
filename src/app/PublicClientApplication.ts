@@ -138,7 +138,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
         const responseHash = this.getRedirectResponseHash();
-        if (!responseHash) {
+        if (StringUtils.isEmpty(responseHash)) {
             // Not a recognized server response hash or hash not associated with a redirect request
             return null;
         }
@@ -183,14 +183,14 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
      * @returns {string}
      */
-    private getRedirectResponseHash(): string {
+    private getRedirectResponseHash(): string | null {
         // Get current location hash from window or cache.
         const { location: { hash } } = window;
-        const isResponseHash = UrlString.hashContainsKnownProperties(hash);
-        const cachedHash = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
+        const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
+        const cachedHash: string = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY) as string;
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
-        const responseHash = isResponseHash ? hash : cachedHash;
+        const responseHash: string = isResponseHash ? hash : cachedHash;
         if (responseHash) {
             // Deserialize hash fragment response parameters.
             const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(responseHash);
@@ -201,8 +201,9 @@ export class PublicClientApplication implements IPublicClientApplication {
                 BrowserUtils.clearHash();
                 return responseHash;
             }
-        }      
+        }
 
+        this.browserStorage.cleanRequest();
         return null;
     }
 
@@ -212,12 +213,6 @@ export class PublicClientApplication implements IPublicClientApplication {
 	 * @param interactionHandler
 	 */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
-        // There is no hash - clean cache and return null.
-        if (StringUtils.isEmpty(responseHash)) {
-            this.browserStorage.cleanRequest();
-            return null;
-        }
-
         const encodedTokenRequest = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string;
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
@@ -227,7 +222,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const currentAuthority = this.browserStorage.getCachedAuthority();
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
-            return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
+            return await interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest();
