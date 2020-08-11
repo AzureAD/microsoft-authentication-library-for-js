@@ -44,7 +44,7 @@ export const CACHE = {
  */
 export const Constants = {
     MSAL_SKU: 'msal.js.node',
-    JWT_BEARER_ASSERTION_TYPE: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
+    JWT_BEARER_ASSERTION_TYPE: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
 };
 
 /**
