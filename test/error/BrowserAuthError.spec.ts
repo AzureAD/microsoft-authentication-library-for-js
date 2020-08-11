@@ -166,7 +166,7 @@ describe("BrowserAuthError Unit Tests", () => {
     });
 
     it("createMonitorWindowTimeoutError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createMonitorWindowTimeoutError("https://contoso.com/redirect");
+        const err: BrowserAuthError = BrowserAuthError.createMonitorWindowTimeoutError();
 
         expect(err instanceof BrowserAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
