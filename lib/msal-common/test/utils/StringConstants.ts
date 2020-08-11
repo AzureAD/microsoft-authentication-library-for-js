@@ -108,12 +108,14 @@ export const TEST_CONFIG = {
     DEFAULT_GRAPH_SCOPE: ["user.read"],
     LOGIN_HINT: "user@test.com",
     DOMAIN_HINT: "test.com",
+    SID: "session-id",
     CORRELATION_ID: "7821e1d3-ad52-42t9-8666-399gea483401",
     CLAIMS: "claims",
     TEST_SKU: "test.sku",
-    TEST_VERSION: "1.0.0",
+    TEST_VERSION: "1.1.0",
     TEST_OS: "win32",
     TEST_CPU: "x86",
+    TEST_ASSERTION_TYPE: "jwt_bearer"
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
@@ -123,6 +125,7 @@ export const TEST_STATE_VALUES = {
     TEST_TIMESTAMP: 1592846482,
     DECODED_LIB_STATE: `{"id":"${RANDOM_TEST_GUID}","ts":1592846482}`,
     ENCODED_LIB_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==`,
+    URI_ENCODED_LIB_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3D%3D`,
     TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${Constants.RESOURCE_DELIM}userState`
 };
 

@@ -62,8 +62,7 @@ describe("RefreshTokenClient unit tests", () => {
         const client = new RefreshTokenClient(config);
         const refreshTokenRequest: RefreshTokenRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-            redirectUri: TEST_URIS.TEST_REDIR_URI
+            refreshToken: TEST_TOKENS.REFRESH_TOKEN
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
@@ -89,5 +88,6 @@ describe("RefreshTokenClient unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
     });
 });

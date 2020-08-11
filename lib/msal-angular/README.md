@@ -102,7 +102,13 @@ Using MsalInterceptor is optional and you can write your own interceptor if you 
 
 ### 4. Subscribe to event callbacks
 
-MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service.
+MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service and also implement a `handleRedirectCallback`:
+
+```js
+this.authService.handleRedirectCallback((authError, response) => {
+    // do something here
+});
+```
 
 1. Login-related events (`loginPopup`/`loginRedirect`)
 
@@ -216,7 +222,7 @@ You should protect your site for XSS. Please check the article here: [https://ww
 
 ### CORS API usage
 
-MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.
+MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the Angular config.
 
 ```js
 export const protectedResourceMap:[string, string[]][]= [
@@ -229,10 +235,9 @@ export const protectedResourceMap:[string, string[]][]= [
         MsalModule.forRoot({
             auth: {
                 clientId: 'Your client ID',
-            },
-            framework: {
-                protectedResourceMap : protectedResourceMap
             }
+        }, {
+            protectedResourceMap : protectedResourceMap
         })
     ]
 })
@@ -261,9 +266,8 @@ MsalModule.forRoot({
     cache: {
         storeAuthStateInCookie: ieIE
     }
-    framework: {
-        popUp: !isIE
-    }
+}, {
+    popUp: !isIE
 });
 ```
 

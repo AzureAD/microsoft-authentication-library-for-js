@@ -802,6 +802,7 @@ export class UserAgentApplication {
             }
             // else proceed with login
             else {
+                
                 let logMessage;
                 if (userContainedClaims) {
                     logMessage = "Skipped cache lookup since claims were given";
@@ -1384,8 +1385,8 @@ export class UserAgentApplication {
 
         const filteredItems: Array<AccessTokenCacheItem> = [];
 
-        // if no authority passed
-        if (!serverAuthenticationRequest.authority) {
+        // if no authority passed or authority is common/organizations
+        if (!serverAuthenticationRequest.authority || UrlUtils.isCommonAuthority(serverAuthenticationRequest.authority) || UrlUtils.isOrganizationsAuthority(serverAuthenticationRequest.authority)) {
             this.logger.verbose("No authority passed, filtering tokens by scope");
             // filter by scope
             for (let i = 0; i < tokenCacheItems.length; i++) {
@@ -1404,7 +1405,30 @@ export class UserAgentApplication {
             }
             // if more than one cached token is found
             else if (filteredItems.length > 1) {
-                throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
+                // serverAuthenticationRequest.authority can only be common or organizations if not null
+                if (serverAuthenticationRequest.authority) {
+                    // find an exact match for domain
+                    const requestDomain = UrlUtils.GetUrlComponents(serverAuthenticationRequest.authority).HostNameAndPort;
+                    const filteredAuthorityItems = filteredItems.filter(filteredItem => {
+                        const domain = UrlUtils.GetUrlComponents(filteredItem.key.authority).HostNameAndPort;
+                        return domain === requestDomain;
+                    });
+                    
+                    if (filteredAuthorityItems.length === 1) {
+                        accessTokenCacheItem = filteredAuthorityItems[0];
+                        serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
+                    }
+                    else if (filteredAuthorityItems.length > 1) {
+                        throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
+                    }
+                    else {
+                        this.logger.verbose("No matching tokens found");
+                        return null;
+                    }  
+                }
+                else { // if not common or organizations authority, throw error
+                    throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
+                } 
             }
             // if no match found, check if there was a single authority used
             else {

@@ -201,8 +201,9 @@ export class TokenCache {
                 let newValueNotNull = newValue !== null;
                 let newValueIsObject = typeof newValue === 'object';
                 let newValueIsNotArray = !Array.isArray(newValue);
+                let oldStateNotUndefinedOrNull = typeof oldState[newKey] !== 'undefined' && oldState[newKey] !== null;
 
-                if (newValueNotNull && newValueIsObject && newValueIsNotArray) {
+                if (newValueNotNull && newValueIsObject && newValueIsNotArray && oldStateNotUndefinedOrNull) {
                     this.mergeUpdates(oldState[newKey], newValue);
                 } else {
                     oldState[newKey] = newValue;
