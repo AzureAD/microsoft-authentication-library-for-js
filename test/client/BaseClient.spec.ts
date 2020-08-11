@@ -33,11 +33,11 @@ class TestClient extends BaseClient {
         return this.authority;
     }
 
-    createDefaultLibraryHeaders(): Map<string, string> {
+    createDefaultLibraryHeaders(): Record<string, string> {
         return super.createDefaultLibraryHeaders();
     }
 
-    createDefaultTokenRequestHeaders(): Map<string, string> {
+    createDefaultTokenRequestHeaders(): Record<string, string> {
         return super.createDefaultTokenRequestHeaders();
     }
 }
@@ -85,10 +85,10 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const client = new TestClient(config);
             const headers = client.createDefaultLibraryHeaders();
 
-            expect(headers.get(AADServerParamKeys.X_CLIENT_SKU)).to.eq(Constants.SKU);
-            expect(headers.get(AADServerParamKeys.X_CLIENT_VER)).to.eq(TEST_CONFIG.TEST_VERSION);
-            expect(headers.get(AADServerParamKeys.X_CLIENT_OS)).to.eq(TEST_CONFIG.TEST_OS);
-            expect(headers.get(AADServerParamKeys.X_CLIENT_CPU)).to.eq(TEST_CONFIG.TEST_CPU);
+            expect(headers[AADServerParamKeys.X_CLIENT_SKU]).to.eq(Constants.SKU);
+            expect(headers[AADServerParamKeys.X_CLIENT_VER]).to.eq(TEST_CONFIG.TEST_VERSION);
+            expect(headers[AADServerParamKeys.X_CLIENT_OS]).to.eq(TEST_CONFIG.TEST_OS);
+            expect(headers[AADServerParamKeys.X_CLIENT_CPU]).to.eq(TEST_CONFIG.TEST_CPU);
         });
 
         it("Creates default token request headers", async () => {
@@ -98,11 +98,11 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const client = new TestClient(config);
             const headers = client.createDefaultTokenRequestHeaders();
 
-            expect(headers.get(AADServerParamKeys.X_CLIENT_SKU)).to.eq(Constants.SKU);
-            expect(headers.get(AADServerParamKeys.X_CLIENT_VER)).to.eq(TEST_CONFIG.TEST_VERSION);
-            expect(headers.get(AADServerParamKeys.X_CLIENT_OS)).to.eq(TEST_CONFIG.TEST_OS);
-            expect(headers.get(AADServerParamKeys.X_CLIENT_CPU)).to.eq(TEST_CONFIG.TEST_CPU);
-            expect(headers.get(HeaderNames.CONTENT_TYPE)).to.eq(Constants.URL_FORM_CONTENT_TYPE);
+            expect(headers[AADServerParamKeys.X_CLIENT_SKU]).to.eq(Constants.SKU);
+            expect(headers[AADServerParamKeys.X_CLIENT_VER]).to.eq(TEST_CONFIG.TEST_VERSION);
+            expect(headers[AADServerParamKeys.X_CLIENT_OS]).to.eq(TEST_CONFIG.TEST_OS);
+            expect(headers[AADServerParamKeys.X_CLIENT_CPU]).to.eq(TEST_CONFIG.TEST_CPU);
+            expect(headers[HeaderNames.CONTENT_TYPE]).to.eq(Constants.URL_FORM_CONTENT_TYPE);
         });
     });
 });
