@@ -181,12 +181,12 @@ export class UrlString {
     /**
      * Check if the hash of the URL string contains known properties
      */
-    static hashContainsKnownProperties(urlString: string): boolean {
-        if (StringUtils.isEmpty(urlString)) {
+    static hashContainsKnownProperties(hash: string): boolean {
+        if (StringUtils.isEmpty(hash)) {
             return false;
         }
 
-        const parameters: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(urlString);
+        const parameters: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
         return !!(
             parameters.code ||
             parameters.error_description ||
