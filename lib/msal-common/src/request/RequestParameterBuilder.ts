@@ -4,10 +4,10 @@
 */
 
 import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo } from "../utils/Constants";
-import { ScopeSet } from "../request/ScopeSet";
+import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
-import { RequestValidator } from "../request/RequestValidator";
+import { RequestValidator } from "./RequestValidator";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 
@@ -15,7 +15,7 @@ export class RequestParameterBuilder {
 
     private parameters: Map<string, string>;
 
-    constructor(){
+    constructor() {
         this.parameters = new Map<string, string>();
     }
 
@@ -78,6 +78,14 @@ export class RequestParameterBuilder {
      */
     addLoginHint(loginHint: string): void {
         this.parameters.set(SSOTypes.LOGIN_HINT, encodeURIComponent(loginHint));
+    }
+
+    /**
+     * add sid
+     * @param sid 
+     */
+    addSid(sid: string): void {
+        this.parameters.set(SSOTypes.SID, encodeURIComponent(sid));
     }
 
     /**
@@ -190,10 +198,25 @@ export class RequestParameterBuilder {
      * add client_secret
      * @param clientSecret
      */
-    // TODO uncomment when confidential client flow is added.
-    // addClientSecret(clientSecret: string): void {
-    //     params.set(`${AADServerParamKeys.CLIENT_SECRET}`, clientSecret);
-    // }
+    addClientSecret(clientSecret: string): void {
+        this.parameters.set(AADServerParamKeys.CLIENT_SECRET, encodeURIComponent(clientSecret));
+    }
+
+    /**
+     * add clientAssertion for confidential client flows
+     * @param clientAssertion
+     */
+    addClientAssertion(clientAssertion: string): void {
+        this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION, encodeURIComponent(clientAssertion));
+    }
+
+    /**
+     * add clientAssertionType for confidential client flows
+     * @param clientAssertionType
+     */
+    addClientAssertionType(clientAssertionType: string): void {
+        this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION_TYPE, encodeURIComponent(clientAssertionType));
+    }
 
     /**
      * add grant type
