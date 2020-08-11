@@ -1,0 +1,4 @@
+{
+    "branch": "dev",
+    "changehint": "Need to run the following command before merging this PR: npm run beachball:change"
+}

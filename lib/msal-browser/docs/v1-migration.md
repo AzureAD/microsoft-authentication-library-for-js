@@ -6,7 +6,7 @@ If you are coming from [MSAL v1.x](../../msal-common/), you can follow this guid
 
 ## 1. Update application registration
 
-Go to the Azure AD portal for your tenant and review the App Registrations. You can create a [new registration]() for MSAL 2.x or you can [update your existing registration]() for the registration that you are using for MSAL 1.x.
+Go to the Azure AD portal for your tenant and review the App Registrations. You can create a [new registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration#create-the-app-registration) for MSAL 2.x or you can [update your existing registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration#redirect-uri-msaljs-20-with-auth-code-flow) for the registration that you are using for MSAL 1.x.
 
 ## 2. Add the msal-browser package to your project
 
