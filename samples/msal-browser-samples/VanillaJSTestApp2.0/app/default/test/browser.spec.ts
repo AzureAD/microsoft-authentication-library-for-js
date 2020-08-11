@@ -4,6 +4,7 @@ import { expect } from "chai";
 import { Screenshot, createFolder, setupCredentials, getTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../e2eTests/TestUtils"
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+const SAMPLE_HOME_URL = 'http://localhost:30662/';
 let username = "";
 let accountPwd = "";
 
@@ -18,6 +19,16 @@ async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): P
     await screenshot.takeScreenshot(page, `pwdInputPage`);
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
+}
+
+async function goBackToSampleHomepage(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
+    while (page.url() !== SAMPLE_HOME_URL) {
+        await page.waitForNavigation({ waitUntil: "networkidle0"});
+        await page.waitForSelector("#i0116");
+        await screenshot.takeScreenshot(page, `loginPage`);
+        await page.click("#idBtn_Back");
+        await page.waitForNavigation({ waitUntil: "networkidle0"});
+    }
 }
 
 describe("Browser tests", function () {
@@ -39,7 +50,7 @@ describe("Browser tests", function () {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
-        await page.goto('http://localhost:30662/');
+        await page.goto(SAMPLE_HOME_URL);
     });
 
     afterEach(async () => {
@@ -71,8 +82,42 @@ describe("Browser tests", function () {
         expect(tokenStore.accessTokens).to.be.length(1);
         expect(tokenStore.refreshTokens).to.be.length(1);
         expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
-        
         expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(storage.length).to.be.eq(4);
+    });
+
+    it("Hitting browser back button in redirect clears cache", async () => {
+        const testName = "redirectBrowserBackButton";
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        // Home Page
+        await screenshot.takeScreenshot(page, `samplePageInit`);
+        // Click Sign In
+        await page.click("#SignIn");
+        await screenshot.takeScreenshot(page, `signInClicked`);
+        // Click Sign In With Redirect
+        await page.click("#loginRedirect");
+        await page.waitForNavigation({ waitUntil: "networkidle0"});
+        // Click back button
+        await page.goBack();
+        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(storage.length).to.be.eq(0);
+    });
+
+    it("Hitting dialog back button in redirect clears cache", async () => {
+        const testName = "redirectDialogBackButton";
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        // Home Page
+        await screenshot.takeScreenshot(page, `samplePageInit`);
+        // Click Sign In
+        await page.click("#SignIn");
+        await screenshot.takeScreenshot(page, `signInClicked`);
+        // Click Sign In With Redirect
+        await page.click("#loginRedirect");
+        await goBackToSampleHomepage(page, screenshot);
+        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        // Server returns error in the hash, so length = 1 for server telemetry
+        expect(storage.length).to.be.eq(1);
     });
 
     it("Performs loginPopup", async () => {
@@ -102,5 +147,27 @@ describe("Browser tests", function () {
         expect(tokenStore.refreshTokens).to.be.length(1);
         expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
         expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(storage.length).to.be.eq(4);
+    });
+
+    it("Closing popup before login resolves clears cache", async () => {
+        const testName = "popupCloseWindow";
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        // Home Page
+        await screenshot.takeScreenshot(page, `samplePageInit`);
+        // Click Sign In
+        await page.click("#SignIn");
+        await screenshot.takeScreenshot(page, `signInClicked`);
+        // Click Sign In With Popup
+        const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once('popup', resolve));
+        await page.click("#loginPopup");
+        const popupPage = await newPopupWindowPromise;
+        const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+        popupPage.close();
+        // Wait until popup window closes
+        await popupWindowClosed;
+        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(storage.length).to.be.eq(1);
     });
 });
