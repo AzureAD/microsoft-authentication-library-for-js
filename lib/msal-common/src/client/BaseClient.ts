@@ -67,13 +67,13 @@ export abstract class BaseClient {
     /**
      * Creates default headers for requests to token endpoint
      */
-    protected createDefaultTokenRequestHeaders(): Map<string, string> {
+    protected createDefaultTokenRequestHeaders(): Record<string, string> {
         const headers = this.createDefaultLibraryHeaders();
-        headers.set(HeaderNames.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
+        headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
 
         if (this.serverTelemetryManager) {
-            headers.set(HeaderNames.X_CLIENT_CURR_TELEM, this.serverTelemetryManager.generateCurrentRequestHeaderValue());
-            headers.set(HeaderNames.X_CLIENT_LAST_TELEM, this.serverTelemetryManager.generateLastRequestHeaderValue());
+            headers[HeaderNames.X_CLIENT_CURR_TELEM] = this.serverTelemetryManager.generateCurrentRequestHeaderValue();
+            headers[HeaderNames.X_CLIENT_LAST_TELEM] = this.serverTelemetryManager.generateLastRequestHeaderValue();
         }
 
         return headers;
@@ -82,14 +82,14 @@ export abstract class BaseClient {
     /**
      * addLibraryData
      */
-    protected createDefaultLibraryHeaders(): Map<string, string> {
-        const headers = new Map<string, string>();
+    protected createDefaultLibraryHeaders(): Record<string, string> {
+        const headers: Record<string, string> = {};
 
         // client info headers
-        headers.set(`${AADServerParamKeys.X_CLIENT_SKU}`,this.config.libraryInfo.sku);
-        headers.set(`${AADServerParamKeys.X_CLIENT_VER}`, this.config.libraryInfo.version);
-        headers.set(`${AADServerParamKeys.X_CLIENT_OS}`, this.config.libraryInfo.os);
-        headers.set(`${AADServerParamKeys.X_CLIENT_CPU}`, this.config.libraryInfo.cpu);
+        headers[AADServerParamKeys.X_CLIENT_SKU] = this.config.libraryInfo.sku;
+        headers[AADServerParamKeys.X_CLIENT_VER] = this.config.libraryInfo.version;
+        headers[AADServerParamKeys.X_CLIENT_OS] = this.config.libraryInfo.os;
+        headers[AADServerParamKeys.X_CLIENT_CPU] = this.config.libraryInfo.cpu;
 
         return headers;
     }
@@ -100,7 +100,7 @@ export abstract class BaseClient {
      * @param queryString
      * @param headers
      */
-    protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Map<string, string>): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const response = await this.networkClient.sendPostRequestAsync<
         ServerAuthorizationTokenResponse
         >(tokenEndpoint, {
