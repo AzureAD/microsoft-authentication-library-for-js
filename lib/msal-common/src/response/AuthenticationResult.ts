@@ -26,7 +26,7 @@ export type AuthenticationResult = {
     scopes: Array<string>;
     account: AccountInfo;
     idToken: string;
-    idTokenClaims: Object;
+    idTokenClaims: object;
     accessToken: string;
     fromCache: boolean;
     expiresOn: Date;
