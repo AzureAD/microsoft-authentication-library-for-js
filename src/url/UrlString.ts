@@ -141,7 +141,7 @@ export class UrlString {
     }
 
     /**
-     * Parses hash string from given string. Returns empty if no string is given.
+     * Parses hash string from given string. Returns empty string if no hash symbol is found.
      * @param hashString 
      */
     static parseHash(hashString: string): string {
@@ -167,7 +167,9 @@ export class UrlString {
         if (StringUtils.isEmpty(hash)) {
             return {};
         }
+        // Strip the # symbol if present
         const parsedHash = UrlString.parseHash(hash);
+        // If # symbol was not present, above will return empty string, so give original hash value
         const deserializedHash: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(StringUtils.isEmpty(parsedHash) ? hash : parsedHash);
         // Check if deserialization didn't work
         if (!deserializedHash) {
