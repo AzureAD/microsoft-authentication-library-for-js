@@ -65,9 +65,9 @@ export class SilentHandler extends InteractionHandler {
                     href = iframe.contentWindow.location.href;
                 } catch (e) {}
 
-                if (UrlString.hashContainsKnownProperties(href)) {
+                const contentHash = iframe.contentWindow.location.hash;
+                if (UrlString.hashContainsKnownProperties(contentHash)) {
                     // Success case
-                    const contentHash = iframe.contentWindow.location.hash;
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
                     resolve(contentHash);

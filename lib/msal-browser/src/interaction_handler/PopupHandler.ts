@@ -81,10 +81,9 @@ export class PopupHandler extends InteractionHandler {
 
                 // Only run clock when we are on same domain
                 ticks++;
-
-                if (UrlString.hashContainsKnownProperties(href)) {
+                const contentHash = popupWindow.location.hash;
+                if (UrlString.hashContainsKnownProperties(contentHash)) {
                     // Success case
-                    const contentHash = popupWindow.location.hash;
                     this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
                     resolve(contentHash);
