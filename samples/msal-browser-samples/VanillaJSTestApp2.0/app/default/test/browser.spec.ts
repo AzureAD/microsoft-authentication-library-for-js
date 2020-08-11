@@ -22,13 +22,12 @@ async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): P
 }
 
 async function goBackToSampleHomepage(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
-    while (page.url() !== SAMPLE_HOME_URL) {
-        await page.waitForNavigation({ waitUntil: "networkidle0"});
-        await page.waitForSelector("#i0116");
-        await screenshot.takeScreenshot(page, `loginPage`);
-        await page.click("#idBtn_Back");
-        await page.waitForNavigation({ waitUntil: "networkidle0"});
-    }
+    await page.waitForSelector("#i0116");
+    await screenshot.takeScreenshot(page, `loginPage`);
+    await page.click("#idBtn_Back");
+    await page.waitForSelector("#i0116");
+    await screenshot.takeScreenshot(page, `loginPage2`);
+    await page.click("#idBtn_Back");
 }
 
 describe("Browser tests", function () {
@@ -114,7 +113,9 @@ describe("Browser tests", function () {
         await screenshot.takeScreenshot(page, `signInClicked`);
         // Click Sign In With Redirect
         await page.click("#loginRedirect");
+        await page.waitForNavigation({ waitUntil: "networkidle0"});
         await goBackToSampleHomepage(page, screenshot);
+        await page.waitForNavigation({ waitUntil: "networkidle0"});
         const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
         // Server returns error in the hash, so length = 1 for server telemetry
         expect(Object.keys(storage).length).to.be.eq(1);
@@ -138,7 +139,7 @@ describe("Browser tests", function () {
         // Wait until popup window closes and see that we are logged in
         await popupWindowClosed;
         // Wait for token acquisition
-        await page.waitFor(2000);
+        await page.waitFor(1000);
         expect(popupPage.isClosed()).to.be.true;
         await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
         let tokenStore = await getTokens(page);
@@ -163,10 +164,11 @@ describe("Browser tests", function () {
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once('popup', resolve));
         await page.click("#loginPopup");
         const popupPage = await newPopupWindowPromise;
-        const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
-        popupPage.close();
+        await screenshot.takeScreenshot(popupPage, `popupOpened`)
+        await popupPage.close();
+        // Wait for processing
+        await page.waitFor(500);
         // Wait until popup window closes
-        await popupWindowClosed;
         const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
         expect(Object.keys(storage).length).to.be.eq(1);
     });
