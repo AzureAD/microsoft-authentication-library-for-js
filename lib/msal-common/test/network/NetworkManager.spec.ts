@@ -8,7 +8,7 @@ import sinon from "sinon";
 import { ThrottlingUtils } from "../../src/network/ThrottlingUtils";
 import { RequestThumbprint } from "../../src/network/RequestThumbprint";
 import { NetworkManager, NetworkResponse } from "../../src/network/NetworkManager";
-import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { MockStorageClass }  from "../client/ClientTestUtils";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ServerError } from "../../src/error/ServerError";
