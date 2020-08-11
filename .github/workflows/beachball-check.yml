@@ -5,7 +5,8 @@ name: Beachball Check
 
 on:
   pull_request:
-    branches: [ dev ]
+    branches:  
+      - dev
 
 jobs:
   build:
