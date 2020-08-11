@@ -249,8 +249,13 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(request);
+    loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        if (false) { // flag is set to true: Office Add-Ins
+            return this.acquireTokenPopup(request);
+        } else { // flag false: all browsers
+            const popup = PopupHandler.openSizedPopup();
+            return this.acquireTokenPopup(request, popup);
+        }
     }
 
     /**
@@ -259,7 +264,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+    async acquireTokenPopup(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
         try {
             // Preflight request
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request);
@@ -274,7 +279,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Acquire token with popup
-            return await this.popupTokenHelper(navigateUrl, authCodeRequest, authClient);
+            return await this.popupTokenHelper(navigateUrl, authCodeRequest, authClient, popup);
         } catch (e) {
             this.browserStorage.cleanRequest();
             throw e;
@@ -285,11 +290,11 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Helper which acquires an authorization code with a popup from given url, and exchanges the code for a set of OAuth tokens.
      * @param navigateUrl
      */
-    private async popupTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
+    private async popupTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, popup?: Window|null): Promise<AuthenticationResult> {
         // Create popup interaction handler.
         const interactionHandler = new PopupHandler(authClient, this.browserStorage);
         // Show the UI once the url has been created. Get the window handle for the popup.
-        const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
+        const popupWindow = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, popup);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
         // Handle response from hash string.
