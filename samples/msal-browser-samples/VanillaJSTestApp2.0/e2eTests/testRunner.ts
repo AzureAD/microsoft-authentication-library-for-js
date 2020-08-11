@@ -72,10 +72,12 @@ function runMochaTests(sampleIndex: number) {
           // exit with non-zero status if there were failures
         server.close();
         sampleIndex++;
+        if (failures) {
+            process.exit(1);
+        }
         if (sampleIndex < sampleFolders.length) {
             runMochaTests(sampleIndex);
         }
-        process.exitCode = failures ? 1 : 0;
     });
 }
 
