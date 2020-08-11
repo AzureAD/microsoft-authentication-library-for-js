@@ -64,7 +64,7 @@ export class PopupHandler extends InteractionHandler {
                     return;
                 }
 
-                let href;
+                let href: string;
                 try {
                     /*
                      * Will throw if cross origin,
@@ -75,7 +75,7 @@ export class PopupHandler extends InteractionHandler {
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
+                if (StringUtils.isEmpty(href) || href === "about:blank") {
                     return;
                 }
 
