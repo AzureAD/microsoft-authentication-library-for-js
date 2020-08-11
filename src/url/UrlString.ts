@@ -163,11 +163,13 @@ export class UrlString {
      * Returns URL hash as server auth code response object.
      */
     static getDeserializedHash(hash: string): ServerAuthorizationCodeResponse {
+        // Check if given hash is empty
         if (StringUtils.isEmpty(hash)) {
             return {};
         }
         const parsedHash = UrlString.parseHash(hash);
         const deserializedHash: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(StringUtils.isEmpty(parsedHash) ? hash : parsedHash);
+        // Check if deserialization didn't work
         if (!deserializedHash) {
             throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));
         }
