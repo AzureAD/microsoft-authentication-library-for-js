@@ -84,7 +84,7 @@ describe("Browser tests", function () {
         expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
         expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
         const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(storage.length).to.be.eq(4);
+        expect(Object.keys(storage).length).to.be.eq(4);
     });
 
     it("Hitting browser back button in redirect clears cache", async () => {
@@ -101,7 +101,7 @@ describe("Browser tests", function () {
         // Click back button
         await page.goBack();
         const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(storage.length).to.be.eq(0);
+        expect(Object.keys(storage).length).to.be.eq(0);
     });
 
     it("Hitting dialog back button in redirect clears cache", async () => {
@@ -117,7 +117,7 @@ describe("Browser tests", function () {
         await goBackToSampleHomepage(page, screenshot);
         const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
         // Server returns error in the hash, so length = 1 for server telemetry
-        expect(storage.length).to.be.eq(1);
+        expect(Object.keys(storage).length).to.be.eq(1);
     });
 
     it("Performs loginPopup", async () => {
@@ -148,7 +148,7 @@ describe("Browser tests", function () {
         expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
         expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
         const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(storage.length).to.be.eq(4);
+        expect(Object.keys(storage).length).to.be.eq(4);
     });
 
     it("Closing popup before login resolves clears cache", async () => {
@@ -168,6 +168,6 @@ describe("Browser tests", function () {
         // Wait until popup window closes
         await popupWindowClosed;
         const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(storage.length).to.be.eq(1);
+        expect(Object.keys(storage).length).to.be.eq(1);
     });
 });
