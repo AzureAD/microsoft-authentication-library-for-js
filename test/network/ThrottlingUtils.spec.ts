@@ -3,14 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { expect, assert } from "chai";
+import { expect } from "chai";
 import sinon from "sinon";
-import mocha from "mocha";
 import { ThrottlingUtils } from "../../src/network/ThrottlingUtils";
 import { RequestThumbprint } from "../../src/network/RequestThumbprint";
 import { RequestThumbprintValue } from "../../src/network/RequestThumbprintValue";
 import { NetworkResponse } from "../../src/network/NetworkManager";
-import { ServerAuthorizationTokenResponse } from "../../src/server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { MockStorageClass }  from "../client/ClientTestUtils";
 import { ServerError } from "../../src";
 import { THUMBPRINT, THUMBPRINT_VALUE, TEST_CONFIG } from "../utils/StringConstants";

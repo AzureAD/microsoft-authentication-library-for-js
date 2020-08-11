@@ -4,10 +4,9 @@
  */
 
 import { NetworkResponse } from "./NetworkManager";
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { HeaderNames, CacheSchemaType, ThrottleConstants } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
-import { StringUtils } from "../utils/StringUtils";
 import { ServerError } from "../error/ServerError";
 import { RequestThumbprint } from "./RequestThumbprint";
 import { RequestThumbprintValue } from "./RequestThumbprintValue";

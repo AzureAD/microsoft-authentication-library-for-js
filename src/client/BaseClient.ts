@@ -9,16 +9,11 @@ import { NetworkManager, NetworkResponse } from "../network/NetworkManager";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
-import { AADServerParamKeys, Constants, HeaderNames, HeaderValues } from "../utils/Constants";
-import { NetworkResponse } from "../network/NetworkManager";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { RequestThumbprint } from '../network/ThrottlingUtils';
 import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
@@ -65,19 +60,13 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
-        // Set TelemetryManager
-        this.serverTelemetryManager = this.config.serverTelemetryManager;
+        // Set the NetworkManager
         this.networkManager = new NetworkManager(this.networkClient, this.cacheManager);
 
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
-        // Set the NetworkManager
-        this.networkManager = new NetworkManager(
-            this.config.cryptoInterface, 
-            this.config.storageInterface, 
-            this.config.networkInterface
-        );
+        // Set TelemetryManager
+        this.serverTelemetryManager = this.config.serverTelemetryManager;
 
-        B2cAuthority.setKnownAuthorities(this.config.authOptions.knownAuthorities);
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
 
         this.authority = this.config.authOptions.authority;
     }
