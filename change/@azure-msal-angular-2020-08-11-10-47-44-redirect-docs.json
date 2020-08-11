@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Improved documentation of handleRedirectCallback in msal-angular (#1837)",
+  "comment": "Improved documentation of handleRedirectCallback in msal-angular (#2032)",
   "packageName": "@azure/msal-angular",
   "email": "jamckenn@microsoft.com",
   "dependentChangeType": "patch",
