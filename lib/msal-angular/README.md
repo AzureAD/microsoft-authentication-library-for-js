@@ -122,7 +122,13 @@ As of `@azure/msal-angular@1.1.0`, `protectedResourceMap` supports wildcard patt
 
 ### 4. Subscribe to event callbacks
 
-MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service.
+MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service and also implement a `handleRedirectCallback`:
+
+```js
+this.authService.handleRedirectCallback((authError, response) => {
+    // do something here
+});
+```
 
 1. Login-related events (`loginPopup`/`loginRedirect`)
 
