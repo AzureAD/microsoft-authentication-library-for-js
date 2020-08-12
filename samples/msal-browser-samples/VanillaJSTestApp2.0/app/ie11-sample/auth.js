@@ -12,7 +12,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(function (err) {
 function handleResponse(resp) {
     if (resp !== null) {
         accountId = resp.account.homeAccountId;
-        showWelcomeMessage();
+        showWelcomeMessage(resp.account);
 
         if (resp.accessToken) {
             callMSGraph(graphConfig.graphMeEndpoint, resp.accessToken, updateUI);
@@ -27,7 +27,7 @@ function handleResponse(resp) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
             accountId = currentAccounts[0].homeAccountId;
-            showWelcomeMessage();
+            showWelcomeMessage(currentAccounts[0]);
         }
     }
 }
