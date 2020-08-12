@@ -83,16 +83,6 @@ export class ResponseHandler {
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
             throw new ServerError(serverResponse.error, errString);
         }
-
-        // generate homeAccountId
-        if (serverResponse.client_info) {
-            this.clientInfo = buildClientInfo(serverResponse.client_info, this.cryptoObj);
-            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
-            }
-        } else {
-            this.homeAccountIdentifier = "";
-        }
     }
 
     /**
@@ -101,6 +91,16 @@ export class ResponseHandler {
      * @param authority
      */
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string, requestScopes?: string[]): AuthenticationResult {
+        
+        // generate homeAccountId
+        if (serverTokenResponse.client_info) {
+            this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
+            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
+                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
+            }
+        } else {
+            this.homeAccountIdentifier = "";
+        }
 
         let idTokenObj: IdToken = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
