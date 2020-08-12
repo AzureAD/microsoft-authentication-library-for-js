@@ -5,13 +5,14 @@
 
 import { BrokerMessage } from "./BrokerMessage";
 import { CacheManager } from "@azure/msal-common";
+import { BrokerMessageType } from "../utils/BrowserConstants";
 
 export class BrokerHandshakeRequest extends BrokerMessage {
     public embeddedClientId: string;
     public version: string;
 
     constructor(embeddedClientId: string, version: string) {
-        super("BrokerHandshakeRequest");
+        super(BrokerMessageType.HANDSHAKE_REQUEST);
 
         this.embeddedClientId = embeddedClientId;
         this.version = version;
@@ -20,7 +21,7 @@ export class BrokerHandshakeRequest extends BrokerMessage {
     static validate(message: MessageEvent): BrokerHandshakeRequest | null {
         // First, validate message type
         if (message.data && 
-            message.data.messageType === "BrokerHandshakeRequest" &&
+            message.data.messageType === BrokerMessageType.HANDSHAKE_REQUEST &&
             message.data.embeddedClientId &&
             message.data.version) {
                 

@@ -1,12 +1,13 @@
 import { BrokerMessage } from "./BrokerMessage";
 import { ClientAuthError } from "@azure/msal-common";
+import { BrokerMessageType } from "../utils/BrowserConstants";
 
 export class BrokerHandshakeResponse extends BrokerMessage {
     public version: string;
     public readonly brokerOrigin: string;
 
     constructor(version: string, brokerOrigin?: string) {
-        super("BrokerHandshakeResponse");
+        super(BrokerMessageType.HANDSHAKE_RESPONSE);
 
         this.version = version;
         this.brokerOrigin = brokerOrigin;
@@ -15,7 +16,7 @@ export class BrokerHandshakeResponse extends BrokerMessage {
     static validate(message: MessageEvent, trustedBrokerDomains: string[]) {
         // First, validate message type
         message = BrokerMessage.validateMessage(message);
-        if (message && message.data.messageType === "BrokerHandshakeResponse" &&
+        if (message && message.data.messageType === BrokerMessageType.HANDSHAKE_RESPONSE &&
             message.data.version) {
                 
             // TODO, verify version compatibility

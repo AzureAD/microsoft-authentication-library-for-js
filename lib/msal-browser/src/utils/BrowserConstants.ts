@@ -78,6 +78,13 @@ export enum InteractionType {
     NONE = "none"
 }
 
+export enum BrokerMessageType {
+    HANDSHAKE_REQUEST = "BrokerHandshakeRequest",
+    HANDSHAKE_RESPONSE = "BrokerHandshakeResponse",
+    AUTH_REQUEST = "BrokerAuthRequest",
+    AUTH_RESPONSE = "BrokerAuthResponse"
+};
+
 export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
