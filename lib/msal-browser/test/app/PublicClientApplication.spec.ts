@@ -1476,13 +1476,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("getAccountByUsername returns null if account doesn't exist", () => {
-            window.sessionStorage.clear();
-            const account = pca.getAccountByUsername("example@microsoft.com");
+            const account = pca.getAccountByUsername("this-email-doesnt-exist@microsoft.com");
             expect(account).to.be.null;
         });
 
         it("getAccountByUsername returns null if passed username is null", () => {
-            window.sessionStorage.clear();
             const account = pca.getAccountByUsername(null);
             expect(account).to.be.null;
         });
