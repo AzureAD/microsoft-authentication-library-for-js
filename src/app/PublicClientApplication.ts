@@ -292,9 +292,11 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        if (false) { // flag is set to true: Office Add-Ins
+        // delayOpenPopup flag is true. Acquires token without first opening popup.
+        if (this.config.system.delayOpenPopup) {
             return this.acquireTokenPopup(request || DEFAULT_REQUEST);
-        } else { // flag false: all browsers
+        } else {
+            // delayOpenPopup flag it set to false. Opens popup before acquiring token.
             const popup = PopupHandler.openSizedPopup();
             return this.acquireTokenPopup(request || DEFAULT_REQUEST, popup);
         }
