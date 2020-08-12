@@ -17,7 +17,7 @@ export type IdTokenClaims = {
     emails?: string[],
     name?: string,
     nonce?: string,
-    exp?: string,
+    exp?: number,
     home_oid?: string,
     sid?: string,
     cloud_instance_host_name?: string
