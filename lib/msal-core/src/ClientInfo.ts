@@ -42,7 +42,7 @@ export class ClientInfo {
             const clientInfo: ClientInfo = <ClientInfo>JSON.parse(decodedClientInfo);
             if (clientInfo) {
                 if (clientInfo.hasOwnProperty("uid")) {
-                    this.uid = ClientInfo.stripPolicyFromUid(clientInfo.uid, authority);
+                    this.uid = authority ? ClientInfo.stripPolicyFromUid(clientInfo.uid, authority): clientInfo.uid;
                 }
 
                 if (clientInfo.hasOwnProperty("utid")) {

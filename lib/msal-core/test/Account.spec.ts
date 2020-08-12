@@ -3,14 +3,14 @@ import { expect } from "chai";
 import { ClientInfo } from "../src/ClientInfo";
 import { IdToken } from "../src/IdToken";
 import { Account } from "../src/Account";
-import { TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "./TestConstants";
+import { TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "./TestConstants";
 import { CryptoUtils } from "../src/utils/CryptoUtils";
 
 
 describe("Account.ts Class", function() {
 
     const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
-    const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+    const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_CONFIG.validAuthority);
 
 
     it("verifies account object is created", function () {
