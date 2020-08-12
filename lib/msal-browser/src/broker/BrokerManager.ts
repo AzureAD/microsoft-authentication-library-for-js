@@ -8,6 +8,7 @@ import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerAuthRequest } from "./BrokerAuthRequest";
+import { BrokerMessageType } from "../utils/BrowserConstants";
 
 export class BrokerManager {
     private brokerOptions: BrokerOptions;
@@ -23,30 +24,41 @@ export class BrokerManager {
         window.addEventListener("message", (message: MessageEvent): void => {
             console.log("Broker handshake request received");
             // Check that message is a BrokerHandshakeRequest
-            const clientRequestMessage = this.validateMessage(message);
-            if (clientRequestMessage.messageType === "BrokerHandshakeRequest") {
-                console.log("Broker handshake validated: ", clientRequestMessage);
-                const brokerHandshakeResponse = new BrokerHandshakeResponse(this.version);
-
-                // @ts-ignore
-                message.source.postMessage(brokerHandshakeResponse, message.origin);
-                console.log("Sending handshake response: ", brokerHandshakeResponse);
-            } else if (clientRequestMessage.messageType === "BrokerAuthRequest") {
-                // Call relevant acquireToken function here
+            const clientMessage = BrokerMessage.validateMessage(message);
+            if (clientMessage) {
+                switch (clientMessage.data.messageType) {
+                    case BrokerMessageType.HANDSHAKE_REQUEST:
+                        return this.handleHandshake(clientMessage);
+                    case BrokerMessageType.AUTH_REQUEST:
+                        return this.handleAuthRequest(clientMessage);
+                    default:
+                        return;
+                }
             }
         });
     }
     /* eslint-enable */
 
-    private validateMessage(message: MessageEvent): BrokerHandshakeRequest|BrokerAuthRequest {
-        message = BrokerMessage.validateMessage(message);
+    /**
+     * Handle a broker handshake request from a child.
+     * @param clientMessage 
+     */
+    private handleHandshake(clientMessage: MessageEvent): void {
+        const validMessage = BrokerHandshakeRequest.validate(clientMessage);
+        console.log("Broker handshake validated: ", validMessage);
+        const brokerHandshakeResponse = new BrokerHandshakeResponse(this.version);
 
-        if (message && message.data.messageType === "BrokerHandshakeRequest") {
-            return BrokerHandshakeRequest.validate(message);
-        } else if (message && message.data.messageType === "BrokerAuthRequest") {
-            return BrokerAuthRequest.validate(message);
-        } else {
-            return null;
-        }
+        // @ts-ignore
+        clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
+        console.log("Sending handshake response: ", brokerHandshakeResponse);
+    }
+
+    /**
+     * Handle a brokered auth request from the child.
+     * @param clientMessage 
+     */
+    private handleAuthRequest(clientMessage: MessageEvent): void {
+        const validMessage = BrokerAuthRequest.validate(clientMessage);
+        console.log("Broker auth request validated: ", validMessage);
     }
 }

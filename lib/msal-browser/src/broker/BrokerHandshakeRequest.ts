@@ -4,7 +4,6 @@
  */
 
 import { BrokerMessage } from "./BrokerMessage";
-import { CacheManager } from "@azure/msal-common";
 import { BrokerMessageType } from "../utils/BrowserConstants";
 
 export class BrokerHandshakeRequest extends BrokerMessage {

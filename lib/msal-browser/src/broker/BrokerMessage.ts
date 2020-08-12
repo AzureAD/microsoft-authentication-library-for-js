@@ -7,7 +7,7 @@ export abstract class BrokerMessage {
 
     static validateMessage(message: MessageEvent): MessageEvent|null {
         if (message.data && message.data.messageType) {
-            // TODO validate messageType here
+            // TODO: validate messageType here
             return message;
         } else {
             return null;
