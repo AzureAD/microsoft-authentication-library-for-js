@@ -4,19 +4,25 @@
  */
 
 import { BrokerOptions } from "../config/Configuration";
-import { Logger, AuthenticationResult, ClientAuthError } from "@azure/msal-common";
+import { Logger, ClientAuthError, AuthenticationResult } from "@azure/msal-common";
 import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
+import { PopupRequest } from "../request/PopupRequest";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { BrokerAuthRequest } from "./BrokerAuthRequest";
+import { InteractionType } from "../utils/BrowserConstants";
 
 /**
  * Embedded application in a broker scenario.
  */
 export class BrokerClient {
     private brokerOptions: BrokerOptions;
-    private brokeringEnabled: boolean;
     private logger: Logger;
     private clientId: string;
     private version: string;
+    private brokerOrigin: string;
+
+    public brokeringEnabled: boolean;
 
     constructor(brokerOptions: BrokerOptions, logger: Logger, clientId: string, version: string) {
         this.brokerOptions = brokerOptions;
@@ -39,12 +45,27 @@ export class BrokerClient {
         }
 
         try {
-            await this.sendHandshakeRequest();
+            const response = await this.sendHandshakeRequest();
+            this.brokerOrigin = response.brokerOrigin;
         } catch (e) {
             console.error(e);
             this.brokeringEnabled = false;
             throw e;
         }
+    }
+
+    async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult> {
+        return this.sendRequest<AuthenticationResult>(request, InteractionType.POPUP);
+    }
+
+    async sendRedirectRequest(request: RedirectRequest): Promise<void> {
+        return this.sendRequest<void>(request, InteractionType.REDIRECT);
+    }
+
+    private async sendRequest<T>(request: PopupRequest|RedirectRequest, interactionType: InteractionType): Promise<T> {
+        const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request);
+
+        return this.messageBroker<T>(brokerRequest);
     }
 
     private async sendHandshakeRequest(): Promise<BrokerHandshakeResponse> {
@@ -55,19 +76,17 @@ export class BrokerClient {
             }, 2000);
 
             window.addEventListener("message", (message: MessageEvent) => {
-                const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.brokerOptions.trustedBrokerDomains);
-                if (brokerHandshakeResponse) {
-                    clearTimeout(timeoutId);
-
-                    if (this.brokerOptions.trustedBrokerDomains.indexOf(message.origin) < 0) {
-                        console.log("Domain is untrusted: ", message.origin);
-                        reject(new ClientAuthError("untrusted_broker", "The given broker origin is not trusted."));
-                    } else {
+                try {
+                    const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.brokerOptions.trustedBrokerDomains);
+                    if (brokerHandshakeResponse) {
+                        clearTimeout(timeoutId);
                         console.log("Received handshake response: ", brokerHandshakeResponse);
                         resolve(brokerHandshakeResponse);
+                    } else {
+                        console.log("Message is not handshake response: ", message);
                     }
-                } else {
-                    console.log("Message is not handshake response: ", message);
+                } catch (e) {
+                    reject(e);
                 }
             });
 
@@ -77,7 +96,7 @@ export class BrokerClient {
         });
     }
 
-    private async messageBroker<T>(payload: any, origin?: string): Promise<T> {
+    private async messageBroker<T>(payload: any): Promise<T> {
         return new Promise<T>((resolve: any, reject: any) => {
             const timeoutId = setTimeout(() => {
                 reject(new ClientAuthError("message_broker_timeout", "Message broker timed out"));                
@@ -89,7 +108,7 @@ export class BrokerClient {
                 clearTimeout(timeoutId);
                 resolve(message);
             });
-            window.top.postMessage(payload, origin, [messageChannel.port2]);
+            window.top.postMessage(payload, this.brokerOrigin, [messageChannel.port2]);
         });
     }
 }

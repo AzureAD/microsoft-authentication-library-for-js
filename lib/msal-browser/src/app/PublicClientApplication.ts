@@ -131,7 +131,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         if (this.config.system.brokerOptions.actAsBroker) {
             this.broker = new BrokerManager(this.config.system.brokerOptions, "2.0.1");
             console.log("Acting as Broker");
-            this.broker.listenForHandshake();
+            this.broker.listenForMessage();
         } else if (this.config.system.brokerOptions.allowBrokering) {
             this.embeddedApp = new BrokerClient(this.config.system.brokerOptions, this.logger, this.config.auth.clientId,  "2.0.1");
             console.log("Acting as child");
@@ -278,6 +278,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        if (this.embeddedApp && this.embeddedApp.brokeringEnabled) {
+            return this.embeddedApp.sendRedirectRequest(request);
+        }
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
@@ -327,6 +330,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        if (this.embeddedApp && this.embeddedApp.brokeringEnabled) {
+            return this.embeddedApp.sendPopupRequest(request);
+        }
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
