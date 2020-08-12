@@ -121,10 +121,8 @@ describe("UrlString.ts Class Unit Tests", () => {
             "param2": "value2",
             "param3": "value3",
         };
-        const urlWithHash = TEST_URIS.TEST_AUTH_ENDPT + serializedHash;
-        const urlObjWithHash = new UrlString(urlWithHash);
 
-        expect(UrlString.getDeserializedHash(urlObjWithHash.getHash())).to.be.deep.eq(deserializedHash);
+        expect(UrlString.getDeserializedHash(serializedHash)).to.be.deep.eq(deserializedHash);
     });
 
     it("getUrlComponents returns all path components", () => {

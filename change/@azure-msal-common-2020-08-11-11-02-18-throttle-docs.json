@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Added documentation for client-side throttling (#2033)",
+  "packageName": "@azure/msal-common",
+  "email": "jamckenn@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-08-11T18:02:18.394Z"
+}

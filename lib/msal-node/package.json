@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -37,7 +37,9 @@
     "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "tsdx lint",
     "lint:fix": "tsdx lint --fix",
-    "prepack": "npm run build"
+    "build:all": "npm run build:common && npm run build",
+    "build:common": "cd ../msal-common && npm run build",
+    "prepack": "npm run build:all"
   },
   "peerDependencies": {},
   "prettier": {
@@ -76,7 +78,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^1.0.0",
+    "@azure/msal-common": "^1.1.0",
     "axios": "^0.19.2",
     "debug": "^4.1.1",
     "jsonwebtoken": "^8.5.1"
