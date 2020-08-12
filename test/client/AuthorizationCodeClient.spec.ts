@@ -335,7 +335,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 code: TEST_TOKENS.AUTHORIZATION_CODE,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: "{claimsRequest}"
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, idTokenClaims.nonce, testState);
@@ -351,6 +352,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(authCodeRequest.claims)}`);
         });
     });
 
