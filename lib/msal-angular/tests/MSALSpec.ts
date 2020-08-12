@@ -67,7 +67,8 @@ function initializeMsal() {
                         ["http://localhost:4200/details", ["details.read"]],
                         ["https://*.myapplication.com/*", ["mail.read"]],
                         ["https://api.test.com", ["default.scope1"]],
-                        ["https://*.test.com", ["default.scope2"]]
+                        ["https://*.test.com", ["default.scope2"]],
+                        ["http://localhost:3000", ["base.scope"]]
                     ]
                 } as MsalAngularConfiguration
             },
@@ -411,6 +412,12 @@ describe("Msal Angular Pubic API tests", function () {
             const scopes = authService.getScopesForEndpoint("https://api.test.com");
 
             expect(scopes).toEqual(["default.scope1"]);
+        });
+
+        it("base url as protected resource", () => {
+            const scopes = authService.getScopesForEndpoint("http://localhost:3000/api");
+
+            expect(scopes).toEqual(["base.scope"]);
         });
     });
 
