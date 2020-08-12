@@ -16,5 +16,6 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  */
 export type SilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
+    claims?: string;
     forceRefresh?: boolean;
 };
