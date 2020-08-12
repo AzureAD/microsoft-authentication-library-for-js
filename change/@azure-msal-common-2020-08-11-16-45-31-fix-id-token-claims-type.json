@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Change AuthenticationResult.idTokenClaims type from StringDict to generic Object type to allow for non-string valued ID Token Claims. (#2105)",
+  "comment": "Change AuthenticationResult.idTokenClaims type from StringDict to generic Object type to allow for non-string valued ID Token Claims. Also updates exp claim type in IdTokenClaims type from string to number (#2105)",
   "packageName": "@azure/msal-common",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch",
