@@ -21,5 +21,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           registry-url: https://registry.npmjs.org/
+      - run: npm run build:extensions
       - run: npm ci
+      - run: npm run build
       - run: npm run beachball:publish
