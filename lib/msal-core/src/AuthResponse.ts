@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { Account } from "./Account";
 import { IdToken } from "./IdToken";
@@ -16,6 +18,7 @@ export type AuthResponse = {
     expiresOn: Date;
     account: Account;
     accountState: string;
+    fromCache: boolean
 };
 
 export function buildResponseStateOnly(state: string) : AuthResponse {
@@ -29,6 +32,7 @@ export function buildResponseStateOnly(state: string) : AuthResponse {
         scopes: null,
         expiresOn: null,
         account: null,
-        accountState: state
+        accountState: state,
+        fromCache: false
     };
 }

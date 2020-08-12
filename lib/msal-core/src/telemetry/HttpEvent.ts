@@ -13,17 +13,21 @@ export const EVENT_KEYS = {
     REQUEST_ID_HEADER: prependEventNamePrefix("request_id_header"),
     SPE_INFO: prependEventNamePrefix("spe_info"),
     SERVER_ERROR_CODE: prependEventNamePrefix("server_error_code"),
-    SERVER_SUB_ERROR_CODE: prependEventNamePrefix("server_sub_error_code")
+    SERVER_SUB_ERROR_CODE: prependEventNamePrefix("server_sub_error_code"),
+    URL: prependEventNamePrefix("url")
 };
 
 export default class HttpEvent extends TelemetryEvent {
 
-    constructor(correlationId: string) {
-        super(prependEventNamePrefix("http_event"), correlationId);
+    constructor(correlationId: string, eventLabel: string) {
+        super(prependEventNamePrefix("http_event"), correlationId, eventLabel);
     }
 
+    public set url(url: string) {
+        const scrubbedUri = scrubTenantFromUri(url);
+        this.event[EVENT_KEYS.URL] = scrubbedUri && scrubbedUri.toLowerCase();
+    }
 
-    // Believe this should be whole url, not just a path
     public set httpPath(httpPath: string) {
         this.event[EVENT_KEYS.HTTP_PATH] = scrubTenantFromUri(httpPath).toLowerCase();
     }
@@ -56,9 +60,11 @@ export default class HttpEvent extends TelemetryEvent {
         this.event[EVENT_KEYS.REQUEST_ID_HEADER] = requestIdHeader;
     }
 
-    ///  Indicates whether the request was executed on a ring serving SPE traffic.
-    ///  An empty string indicates this occurred on an outer ring, and the string "I"
-    ///  indicates the request occurred on the inner ring
+    /**
+     * Indicates whether the request was executed on a ring serving SPE traffic.
+     * An empty string indicates this occurred on an outer ring, and the string "I"
+     * indicates the request occurred on the inner ring
+     */
     public set speInfo(speInfo: string) {
         this.event[EVENT_KEYS.SPE_INFO] = speInfo;
     }

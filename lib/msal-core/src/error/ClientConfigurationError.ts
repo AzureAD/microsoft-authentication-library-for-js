@@ -1,26 +1,29 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { Constants } from "../utils/Constants";
 import { ClientAuthError } from "./ClientAuthError";
 import { TelemetryOptions } from "../Configuration";
 
-export const ClientConfigurationErrorMessage = {
+interface IClientConfigurationErrorMessage {
+    code: string,
+    desc: string
+};
+
+export const ClientConfigurationErrorMessage: Record<string, IClientConfigurationErrorMessage> = {
     configurationNotSet: {
         code: "no_config_set",
         desc: "Configuration has not been set. Please call the UserAgentApplication constructor with a valid Configuration object."
     },
-    invalidCacheLocation: {
-        code: "invalid_cache_location",
-        desc: "The cache location provided is not valid."
-    },
-    noStorageSupported: {
-        code: "browser_storage_not_supported",
-        desc: "localStorage and sessionStorage are not supported."
+    storageNotSupported: {
+        code: "storage_not_supported",
+        desc: "The value for the cacheLocation is not supported."
     },
     noRedirectCallbacksSet: {
         code: "no_redirect_callbacks",
-        desc: "No redirect callbacks have been set. Please call setRedirectCallbacks() with the appropriate function arguments before continuing. " +
+        desc: "No redirect callbacks have been set. Please call handleRedirectCallback() with the appropriate function arguments before continuing. " +
             "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
     invalidCallbackObject: {
@@ -64,9 +67,17 @@ export const ClientConfigurationErrorMessage = {
         code: "unsupported_authority_validation",
         desc: "The authority validation is not supported for this authority type."
     },
+    untrustedAuthority: {
+        code: "untrusted_authority",
+        desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter or set validateAuthority=false."
+    },
     b2cAuthorityUriInvalidPath: {
         code: "b2c_authority_uri_invalid_path",
         desc: "The given URI for the B2C authority is invalid."
+    },
+    b2cKnownAuthoritiesNotSet: {
+        code: "b2c_known_authorities_not_set",
+        desc: "Must set known authorities when validateAuthority is set to True and using B2C"
     },
     claimsRequestParsingError: {
         code: "claims_request_parsing_error",
@@ -76,9 +87,21 @@ export const ClientConfigurationErrorMessage = {
         code: "empty_request_error",
         desc: "Request object is required."
     },
+    invalidCorrelationIdError: {
+        code: "invalid_guid_sent_as_correlationId",
+        desc: "Please set the correlationId as a valid guid"
+    },
     telemetryConfigError: {
         code: "telemetry_config_error",
         desc: "Telemetry config is not configured with required values"
+    },
+    ssoSilentError: {
+        code: "sso_silent_error",
+        desc: "request must contain either sid or login_hint"
+    },
+    invalidAuthorityMetadataError: {
+        code: "authority_metadata_error",
+        desc: "Invalid authorityMetadata. Must be a JSON object containing authorization_endpoint, end_session_endpoint, and issuer fields."
     }
 };
 
@@ -98,14 +121,9 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.configurationNotSet.desc}`);
     }
 
-    static createInvalidCacheLocationConfigError(givenCacheLocation: string): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCacheLocation.code,
-            `${ClientConfigurationErrorMessage.invalidCacheLocation.desc} Provided value: ${givenCacheLocation}. Possible values are: ${Constants.cacheLocationLocal}, ${Constants.cacheLocationSession}.`);
-    }
-
-    static createNoStorageSupportedError() : ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.noStorageSupported.code,
-            ClientConfigurationErrorMessage.noStorageSupported.desc);
+    static createStorageNotSupportedError(givenCacheLocation: string) : ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.storageNotSupported.code,
+            `${ClientConfigurationErrorMessage.storageNotSupported.desc} Given location: ${givenCacheLocation}`);
     }
 
     static createRedirectCallbacksNotSetError(): ClientConfigurationError {
@@ -152,6 +170,26 @@ export class ClientConfigurationError extends ClientAuthError {
         return new ClientConfigurationError(code, desc);
     }
 
+    static createInvalidCorrelationIdError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidCorrelationIdError.code,
+            ClientConfigurationErrorMessage.invalidCorrelationIdError.desc);
+    }
+
+    static createKnownAuthoritiesNotSetError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.code,
+            ClientConfigurationErrorMessage.b2cKnownAuthoritiesNotSet.desc);
+    }
+
+    static createInvalidAuthorityTypeError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthorityType.code,
+            ClientConfigurationErrorMessage.invalidAuthorityType.desc);
+    }
+
+    static createUntrustedAuthorityError(host: string): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
+            `${ClientConfigurationErrorMessage.untrustedAuthority.desc} Provided Authority: ${host}`);
+    }
+
     static createTelemetryConfigError(config: TelemetryOptions): ClientConfigurationError {
         const { code, desc } = ClientConfigurationErrorMessage.telemetryConfigError;
         const requiredKeys = {
@@ -166,5 +204,14 @@ export class ClientConfigurationError extends ClientAuthError {
             }, []);
 
         return new ClientConfigurationError(code, `${desc} mising values: ${missingKeys.join(",")}`);
+    }
+
+    static createSsoSilentError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.ssoSilentError.code,
+            ClientConfigurationErrorMessage.ssoSilentError.desc);
+    }
+
+    static createInvalidAuthorityMetadataError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthorityMetadataError.code, ClientConfigurationErrorMessage.invalidAuthorityMetadataError.desc);
     }
 }

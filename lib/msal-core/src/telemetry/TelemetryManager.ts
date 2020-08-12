@@ -9,14 +9,14 @@ import {
     TelemetryEmitter
 } from "./TelemetryTypes";
 import DefaultEvent from "./DefaultEvent";
+import { libraryVersion, Constants } from "../utils/Constants";
+import ApiEvent, { API_EVENT_IDENTIFIER } from "./ApiEvent";
+import { Logger } from "../Logger";
+import HttpEvent from "./HttpEvent";
 
 // for use in cache events
 const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
 const MSAL_CACHE_EVENT_NAME = "msal.cache_event";
-
-const createEventKey = (event: TelemetryEvent): string => (
-    `${event.telemetryCorrelationId}-${event.eventId}-${event.eventName}`
-);
 
 export default class TelemetryManager {
 
@@ -27,34 +27,66 @@ export default class TelemetryManager {
     // correlation id to map of eventname to count
     private eventCountByCorrelationId: EventCountByCorrelationId = {};
 
-    //Implement after API EVENT
+    // Implement after API EVENT
     private onlySendFailureTelemetry: boolean = false;
     private telemetryPlatform: TelemetryPlatform;
     private clientId: string;
     private telemetryEmitter: TelemetryEmitter;
+    private logger: Logger;
 
-    constructor(config: TelemetryConfig, telemetryEmitter: TelemetryEmitter) {
+    constructor(config: TelemetryConfig, telemetryEmitter: TelemetryEmitter, logger: Logger) {
         // TODO THROW if bad options
-        this.telemetryPlatform = config.platform;
+        this.telemetryPlatform = {
+            sdk: Constants.libraryName,
+            sdkVersion: libraryVersion(),
+            networkInformation: {
+                // @ts-ignore
+                connectionSpeed: typeof navigator !== "undefined" && navigator.connection && navigator.connection.effectiveType
+            },
+            ...config.platform
+        };
         this.clientId = config.clientId;
         this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
-        // TODO, when i get to wiring this through, think about what it means if
-        // a developer does not implement telem at all, we still instrument, but telemetryEmitter can be
-        // optional?
+        /*
+         * TODO, when i get to wiring this through, think about what it means if
+         * a developer does not implement telem at all, we still instrument, but telemetryEmitter can be
+         * optional?
+         */
         this.telemetryEmitter = telemetryEmitter;
+        this.logger = logger;
+    }
+
+    static getTelemetrymanagerStub(clientId: string, logger: Logger) : TelemetryManager {
+        const applicationName = "UnSetStub";
+        const applicationVersion = "0.0";
+        const telemetryEmitter = () => {};
+        const telemetryPlatform: TelemetryPlatform = {
+            applicationName,
+            applicationVersion
+        };
+        const telemetryManagerConfig: TelemetryConfig = {
+            platform: telemetryPlatform,
+            clientId: clientId
+        };
+
+        return new this(telemetryManagerConfig, telemetryEmitter, logger);
     }
 
     startEvent(event: TelemetryEvent) {
+        this.logger.verbose(`Telemetry Event started: ${event.key}`);
+
         if (!this.telemetryEmitter) {
             return;
         }
-        const eventKey = createEventKey(event);
-        this.inProgressEvents[eventKey] = event;
+
+        event.start();
+        this.inProgressEvents[event.key] = event;
     }
 
     stopEvent(event: TelemetryEvent) {
-        const eventKey = createEventKey(event);
-        if (!this.telemetryEmitter || !this.inProgressEvents[eventKey]) {
+        this.logger.verbose(`Telemetry Event stopped: ${event.key}`);
+
+        if (!this.telemetryEmitter || !this.inProgressEvents[event.key]) {
             return;
         }
         event.stop();
@@ -64,10 +96,11 @@ export default class TelemetryManager {
 
         this.completedEvents[event.telemetryCorrelationId] = [...(completedEvents || []), event];
 
-        delete this.inProgressEvents[eventKey];
+        delete this.inProgressEvents[event.key];
     }
 
     flush(correlationId: string): void {
+        this.logger.verbose(`Flushing telemetry events: ${correlationId}`);
 
         // If there is only unfinished events should this still return them?
         if (!this.telemetryEmitter || !this.completedEvents[correlationId]) {
@@ -103,9 +136,34 @@ export default class TelemetryManager {
         this.telemetryEmitter(eventsWithDefaultEvent.map(e => e.get()));
     }
 
+    createAndStartApiEvent(correlationId: string, apiEventIdentifier: API_EVENT_IDENTIFIER): ApiEvent {
+        const apiEvent = new ApiEvent(correlationId, this.logger.isPiiLoggingEnabled(), apiEventIdentifier);
+        this.startEvent(apiEvent);
+        return apiEvent;
+    }
+
+    stopAndFlushApiEvent(correlationId: string, apiEvent: ApiEvent, wasSuccessful: boolean, errorCode?: string): void {
+        apiEvent.wasSuccessful = wasSuccessful;
+        if (errorCode) {
+            apiEvent.apiErrorCode = errorCode;
+        }
+        this.stopEvent(apiEvent);
+        this.flush(correlationId);
+    }
+
+    createAndStartHttpEvent(correlation: string, httpMethod: string, url: string, eventLabel: string): HttpEvent {
+        const httpEvent = new HttpEvent(correlation, eventLabel);
+        httpEvent.url = url;
+        httpEvent.httpMethod = httpMethod;
+        this.startEvent(httpEvent);
+        return httpEvent;
+    }
+
     private incrementEventCount(event: TelemetryEvent): void {
-        // TODO, name cache event different?
-        // if type is cache event, change name
+        /*
+         * TODO, name cache event different?
+         * if type is cache event, change name
+         */
         const eventName = event.eventName;
         const eventCount = this.eventCountByCorrelationId[event.telemetryCorrelationId];
         if (!eventCount) {

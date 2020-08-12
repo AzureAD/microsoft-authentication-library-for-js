@@ -8,13 +8,24 @@ import { expect } from "chai";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "../../src/telemetry/TelemetryConstants";
 import { hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import sinon from "sinon";
+import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 
 describe("ApiEvent", () => {
+    before(function() {
+        // Ensure TrustedHostList is set
+        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
+    });
+
+    after(function() {
+        sinon.restore();
+    });
+    
     it("constructs and carries exepcted values", () => {
         const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { });
 
-        const event = new ApiEvent(correlationId, logger).get();
+        const event = new ApiEvent(correlationId, logger.isPiiLoggingEnabled()).get();
 
         expect(event["msal.event_name"]).to.eq("msal.api_event");
         expect(event["msal.elapsed_time"]).to.eq(-1);
@@ -24,7 +35,7 @@ describe("ApiEvent", () => {
         const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { });
 
-        const apiEvent = new ApiEvent(correlationId, logger);
+        const apiEvent = new ApiEvent(correlationId, logger.isPiiLoggingEnabled());
 
         const fakeErrorCode = "PIZZA";
         const fakeWasSuccessful = true;
@@ -52,7 +63,7 @@ describe("ApiEvent", () => {
         const correlationId = CryptoUtils.createNewGuid();
         const logger = new Logger(() => { });
 
-        const apiEvent = new ApiEvent(correlationId, logger);
+        const apiEvent = new ApiEvent(correlationId, logger.isPiiLoggingEnabled());
 
         const fakeAuthority = "https://login.microsoftonline.com/Abc-123/I-am-a-tenant/orange";
         const expectedFakeAuthority = "https://login.microsoftonline.com/abc-123/<tenant>/orange";
@@ -70,7 +81,7 @@ describe("ApiEvent", () => {
             piiLoggingEnabled: false //defaults to false
         });
 
-        const apiEvent = new ApiEvent(correlationId, logger);
+        const apiEvent = new ApiEvent(correlationId, logger.isPiiLoggingEnabled());
 
         const fakeTenantId = CryptoUtils.createNewGuid();
         const fakeAccountId = CryptoUtils.createNewGuid();
@@ -93,7 +104,7 @@ describe("ApiEvent", () => {
             piiLoggingEnabled: true
         });
 
-        const apiEvent = new ApiEvent(correlationId, logger);
+        const apiEvent = new ApiEvent(correlationId, logger.isPiiLoggingEnabled());
 
         const fakeTenantId = CryptoUtils.createNewGuid();
         const fakeExpectedTenantId = hashPersonalIdentifier(fakeTenantId);

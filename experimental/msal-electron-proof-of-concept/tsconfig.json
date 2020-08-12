@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "target": "es5",
+        "resolveJsonModule": true,
+        "sourceMap": true,
+        "removeComments": false,
+        "outDir": "dist",
+        "noImplicitReturns": true
+    },
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "node_modules"
+    ],
+    "typedocOptions": {
+        "mode": "modules",
+        "out": "docs"
+    }
+}

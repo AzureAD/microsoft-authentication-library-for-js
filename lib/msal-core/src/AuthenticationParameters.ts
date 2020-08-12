@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { Account } from "./Account";
 import { ClientConfigurationError } from "./error/ClientConfigurationError";
@@ -21,6 +23,10 @@ export type AuthenticationParameters = {
     sid?: string;
     loginHint?: string;
     forceRefresh?: boolean;
+    redirectUri?: string;
+    redirectStartPage?: string;
+    authorityMetadata?: string;
+    onRedirectNavigate?: ((url: string) => void | boolean)
 };
 
 export function validateClaimsRequest(request: AuthenticationParameters) {

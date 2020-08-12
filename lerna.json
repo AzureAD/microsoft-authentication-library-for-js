@@ -1,7 +1,24 @@
 {
-  "lerna": "2.11.0",
+  "lerna": "3.16.4",
+  "command": {
+    "run": {
+      "scope": [
+        "msal", 
+        "@azure/msal-common", 
+        "@azure/msal-browser", 
+        "@azure/msal-angular",
+        "@azure/msal-node",
+        "vanilla-js-test-app",
+        "vanilla-js-test-app-2.0"
+      ],
+      "stream": true
+    }
+  },
   "packages": [
-    "lib/*"
+    "lib/*",
+    "experimental/*",
+    "samples/**/*"
   ],
-  "version": "independent"
+  "version": "independent",
+  "concurrency": 2
 }

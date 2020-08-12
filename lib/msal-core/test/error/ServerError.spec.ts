@@ -24,7 +24,7 @@ describe("ServerError.ts Class", () => {
     expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
     expect(err.message).to.equal(TEST_ERROR_MSG);
     expect(err.name).to.equal("ServerError");
-    expect(err.stack).to.include("ServerError.spec.js");
+    expect(err.stack).to.include("ServerError.spec.ts");
   });
 
   it("createServerUnavailableError creates a ServerError object", () => {
@@ -42,7 +42,7 @@ describe("ServerError.ts Class", () => {
     expect(err.errorMessage).to.equal(ServerErrorMessage.serverUnavailable.desc);
     expect(err.message).to.equal(ServerErrorMessage.serverUnavailable.desc);
     expect(err.name).to.equal("ServerError");
-    expect(err.stack).to.include("ServerError.spec.js");
+    expect(err.stack).to.include("ServerError.spec.ts");
   });
 
   it("createUnknownServerError creates a ServerError object", () => {
@@ -61,7 +61,7 @@ describe("ServerError.ts Class", () => {
     expect(err.errorMessage).to.contain(ERROR_FROM_SERVER);
     expect(err.message).to.equal(ERROR_FROM_SERVER);
     expect(err.name).to.equal("ServerError");
-    expect(err.stack).to.include("ServerError.spec.js");
+    expect(err.stack).to.include("ServerError.spec.ts");
   });
 
 });

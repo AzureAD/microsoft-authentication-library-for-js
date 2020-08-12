@@ -18,6 +18,7 @@ describe("ResponseUtils.ts class", () => {
         expiresOn: null,
         account: null,
         accountState: "",
+        fromCache: false
     };
 
     let idTokenObj: IdToken;

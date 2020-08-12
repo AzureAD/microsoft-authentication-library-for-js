@@ -8,10 +8,13 @@ describe("TelemetryEvent", () =>{
         const eventName = "fakeEvent";
         const telemetryEvent: TelemetryEvent = new TelemetryEvent(
             eventName,
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         expect(telemetryEvent.telemetryCorrelationId).to.eql(correlationId);
         expect(telemetryEvent.eventName).to.eql(eventName);
+        expect(telemetryEvent.displayName).to.eql(`Msal-FakeEvent-${correlationId}`);
+        expect(telemetryEvent.key).to.eq(`${correlationId}_${telemetryEvent.get()["eventId"]}-${eventName}`);
     });
 
     it("stop event and get elapsed time", done => {
@@ -20,8 +23,10 @@ describe("TelemetryEvent", () =>{
         const eventName = "coolEvent";
         const telemetryEvent: TelemetryEvent = new TelemetryEvent(
             eventName,
-            correlationId
+            correlationId,
+            "CoolEvent"
         );
+        telemetryEvent.start();
         setTimeout(() => {
             telemetryEvent.stop();
             const event = telemetryEvent.get();

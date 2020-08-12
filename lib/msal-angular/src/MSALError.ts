@@ -1,16 +1,15 @@
 export class MSALError {
-    private _error: string="";
-    private _errorDesc: string="";
-    private _scopes: string="";
+    private _error: string = "";
+    private _errorDesc: string = "";
+    private _scopes: string = "";
 
 
-    constructor(error: string , errorDesc?: string, scopes?:string)
-    {
+    constructor(error: string , errorDesc?: string, scopes?: string) {
         this._error = error;
-        if(errorDesc) {
+        if (errorDesc) {
             this._errorDesc = errorDesc;
         }
-        if(scopes) {
+        if (scopes) {
             this._scopes = scopes;
         }
     }

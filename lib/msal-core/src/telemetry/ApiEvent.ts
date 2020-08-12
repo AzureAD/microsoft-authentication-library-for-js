@@ -1,7 +1,6 @@
 import TelemetryEvent from "./TelemetryEvent";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
 import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix } from "./TelemetryUtils";
-import { Logger } from "../Logger";
 
 export const EVENT_KEYS = {
     AUTHORITY: prependEventNamePrefix("authority"),
@@ -19,25 +18,39 @@ export enum API_CODE {
     AcquireTokenSilent = 2002,
     AcquireTokenPopup = 2003,
     LoginRedirect = 2004,
-    LoginPopup = 2005
+    LoginPopup = 2005,
+    Logout = 2006
 }
-
 
 export enum API_EVENT_IDENTIFIER {
     AcquireTokenRedirect = "AcquireTokenRedirect",
     AcquireTokenSilent = "AcquireTokenSilent",
     AcquireTokenPopup = "AcquireTokenPopup",
     LoginRedirect = "LoginRedirect",
-    LoginPopup = "LoginPopup"
+    LoginPopup = "LoginPopup",
+    Logout = "Logout"
 }
+
+const mapEventIdentiferToCode = {
+    [API_EVENT_IDENTIFIER.AcquireTokenSilent]: API_CODE.AcquireTokenSilent,
+    [API_EVENT_IDENTIFIER.AcquireTokenPopup]: API_CODE.AcquireTokenPopup,
+    [API_EVENT_IDENTIFIER.AcquireTokenRedirect]: API_CODE.AcquireTokenRedirect,
+    [API_EVENT_IDENTIFIER.LoginPopup]: API_CODE.LoginPopup,
+    [API_EVENT_IDENTIFIER.LoginRedirect]: API_CODE.LoginRedirect,
+    [API_EVENT_IDENTIFIER.Logout]: API_CODE.Logout
+};
 
 export default class ApiEvent extends TelemetryEvent {
 
-    private logger: Logger;
+    private piiEnabled: boolean;
 
-    constructor(correlationId: string, logger: Logger) {
-        super(prependEventNamePrefix("api_event"), correlationId);
-        this.logger = logger;
+    constructor(correlationId: string, piiEnabled: boolean, apiEventIdentifier?: API_EVENT_IDENTIFIER) {
+        super(prependEventNamePrefix("api_event"), correlationId, apiEventIdentifier);
+        if (apiEventIdentifier) {
+            this.apiCode = mapEventIdentiferToCode[apiEventIdentifier];
+            this.apiEventIdentifier = apiEventIdentifier;
+        }
+        this.piiEnabled = piiEnabled;
     }
 
     public set apiEventIdentifier(apiEventIdentifier: string) {
@@ -57,13 +70,13 @@ export default class ApiEvent extends TelemetryEvent {
     }
 
     public set tenantId(tenantId: string) {
-        this.event[EVENT_KEYS.TENANT_ID] = this.logger.isPiiLoggingEnabled() && tenantId ?
+        this.event[EVENT_KEYS.TENANT_ID] = this.piiEnabled && tenantId ?
             hashPersonalIdentifier(tenantId)
             : null;
     }
 
     public set accountId(accountId: string) {
-        this.event[EVENT_KEYS.USER_ID] = this.logger.isPiiLoggingEnabled() && accountId ?
+        this.event[EVENT_KEYS.USER_ID] = this.piiEnabled && accountId ?
             hashPersonalIdentifier(accountId)
             : null;
     }
@@ -77,7 +90,7 @@ export default class ApiEvent extends TelemetryEvent {
     }
 
     public set loginHint(loginHint: string) {
-        this.event[EVENT_KEYS.LOGIN_HINT] = this.logger.isPiiLoggingEnabled() && loginHint ?
+        this.event[EVENT_KEYS.LOGIN_HINT] = this.piiEnabled && loginHint ?
             hashPersonalIdentifier(loginHint)
             : null;
     }

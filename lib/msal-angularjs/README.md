@@ -16,11 +16,19 @@ The msal-angularjs package is available on NPM:
 
 `npm install @azure/msal-angularjs --save`
 
+## Version Support
+
+At a minimum, MSAL AngularJS will follow the [support schedule of the main AngularJS project](https://docs.angularjs.org/misc/version-support-status). We may continue to support certain versions of AngularJS that are no under Active or LTS support from the main AngularJS project on a version-by-version basis, as defined below.
+
+| MSAL AngularJS version | MSAL support status     | Supported AngularJS versions |
+|------------------------|-------------------------|------------------------------|
+| 0.1.x                  | In maintenance          | 1.2, 1.7                     |
+
 ## Usage
 
 #### Prerequisite
 
-Before using MSAL.js, [register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to get your clientID.
+Before using MSAL.js, [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get your clientID.
 
 #### 1. Include a reference to the MSAL module in your app module.
 ```js
@@ -84,7 +92,7 @@ app.controller('homeCtrl', ['$scope', 'msalAuthenticationService', '$location', 
     };
 
     $scope.logout = function () {
-        msalService.logOut();
+        msalService.logout();
     };
 
     $scope.login = function () {
@@ -131,7 +139,7 @@ The userInfo object is defined in the MsalAngular module with the following prop
 
 ```{ isAuthenticated: false, userName: '', loginError: '', idToken: {} }```
 
-The `userInfo.idToken` property provides access to the claims in the ID token received from AAD. The claims can be used by the application for validation, to identify the subject's directory tenant, and so on. The complete list of claims with a brief description of each value is here, [Claims in ID tokens](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-v2-tokens#claims-in-id-tokens).
+The `userInfo.idToken` property provides access to the claims in the ID token received from AAD. The claims can be used by the application for validation, to identify the subject's directory tenant, and so on. The complete list of claims with a brief description of each value is here, [Claims in ID tokens](https://docs.microsoft.com/azure/active-directory/develop/active-directory-v2-tokens#claims-in-id-tokens).
 
 You can use the `userInfor.isAuthenticated` property to alter login/logout UX elements as shown below.
 ```html
@@ -146,7 +154,7 @@ You can use the `userInfor.isAuthenticated` property to alter login/logout UX el
 MSAL AngularJS allows you to pass an Http interceptor (`$httpProvider`). This httpInterceptor will obtain token and attach it to all Http requests to web APIs except the API endpoints listed as `unprotectedResources`.
 
 ```js
-app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider) {
+app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider, $httpProvider) {
    msalProvider.init(
     	{
             clientID: applicationConfig.clientID,
@@ -273,8 +281,8 @@ MSAL will get access tokens using a hidden Iframe for given CORS API endpoints i
 
 ```js
 var endpointsMap = new Map();
-map.set(applicationConfig.apiEndpoint, applicationConfig.apiScope);
-map.set(applicationConfig.graphEndpoint, applicationConfig.graphScopes);
+endpointsMap.set(applicationConfig.apiEndpoint, applicationConfig.apiScope);
+endpointsMap.set(applicationConfig.graphEndpoint, applicationConfig.graphScopes);
 
 app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msalProvider) {
    msalProvider.init(
@@ -283,7 +291,7 @@ app.config(['msalAuthenticationServiceProvider', '$httpProvider', function (msal
         tokenReceivedCallback: function (errorDesc, token, error, tokenType) {
 
         },
-        configOptions: {
+        optionalParams: {
            protectedResourceMap: endpointsMap
         },
     }, $httpProvider);
@@ -349,7 +357,7 @@ This library controls how users sign-in and access services. We recommend you al
 
 ## Security Reporting
 
-If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/en-us/security/dd252948) and subscribing to Security Advisory Alerts.
+If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/security/dd252948) and subscribing to Security Advisory Alerts.
 
 ## License
 

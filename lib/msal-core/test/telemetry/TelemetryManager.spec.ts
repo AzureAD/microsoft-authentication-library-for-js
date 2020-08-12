@@ -3,6 +3,8 @@ import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig, TelemetryPlatform } from "../../src/telemetry/TelemetryTypes";
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { TEST_CONFIG } from "../TestConstants";
+import { Constants, Logger } from "../../src";
 
 const TEST_CLIENT_ID = CryptoUtils.createNewGuid();
 const TEST_PLATFORM: TelemetryPlatform = {
@@ -21,7 +23,8 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            () => console.log
+            () => console.log,
+            new Logger(() => {})
         );
     });
 
@@ -32,7 +35,7 @@ describe("TelemetryManager", () => {
             onlySendFailureTelemetry: false
         };
         const correlationId = CryptoUtils.createNewGuid();
-        const eventHandler = events => {
+        const eventHandler = (events: Array<object>) => {
             expect(events).to.have.length(2);
             expect(events[0]['msal.event_name']).to.eq("fakeEvent");
             expect(events[1]['msal.event_name']).to.eq("msal.default_event");
@@ -42,11 +45,13 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            eventHandler
+            eventHandler,
+            new Logger(() => {})
         );
         const event: TelemetryEvent = new TelemetryEvent(
             "fakeEvent",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event);
 
@@ -63,7 +68,7 @@ describe("TelemetryManager", () => {
             onlySendFailureTelemetry: false
         };
         const correlationId = CryptoUtils.createNewGuid();
-        const eventHandler = events => {
+        const eventHandler = (events: Array<object>) => {
             expect(events).to.have.length(4);
             expect(events[0]['msal.event_name']).to.eq("fakeEvent");
             expect(events[1]['msal.event_name']).to.eq("fakeEvent2");
@@ -74,21 +79,25 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            eventHandler
+            eventHandler,
+            new Logger(() => {})
         );
         const event1: TelemetryEvent = new TelemetryEvent(
             "fakeEvent",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event1);
         const event2: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event2);
         const event3: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event3);
 
@@ -107,7 +116,7 @@ describe("TelemetryManager", () => {
             onlySendFailureTelemetry: false
         };
         const correlationId = CryptoUtils.createNewGuid();
-        const eventHandler = events => {
+        const eventHandler = (events: Array<object>) => {
             expect(events).to.have.length(4);
             expect(events[0]['msal.event_name']).to.eq("fakeEvent");
             expect(events[1]['msal.event_name']).to.eq("fakeEvent2");
@@ -118,21 +127,25 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            eventHandler
+            eventHandler,
+            new Logger(() => {})
         );
         const event1: TelemetryEvent = new TelemetryEvent(
             "fakeEvent",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event1);
         const event2: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event2);
         const event3: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event3);
 
@@ -151,7 +164,7 @@ describe("TelemetryManager", () => {
         };
         const correlationId = CryptoUtils.createNewGuid();
         let calledOnce = false;
-        const eventHandler = events => {
+        const eventHandler = (events: Array<object>) => {
             // if calledOnce is already true we shouldnt ever get back to this callback.
             expect(calledOnce).to.be.false;
             expect(events).to.have.length(4);
@@ -164,21 +177,25 @@ describe("TelemetryManager", () => {
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
             config,
-            eventHandler
+            eventHandler,
+            new Logger(() => {})
         );
         const event1: TelemetryEvent = new TelemetryEvent(
             "fakeEvent",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event1);
         const event2: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event2);
         const event3: TelemetryEvent = new TelemetryEvent(
             "fakeEvent2",
-            correlationId
+            correlationId,
+            "FakeEvent"
         );
         telemetryManager.startEvent(event3);
 
@@ -197,6 +214,13 @@ describe("TelemetryManager", () => {
             }, 200)
         }, 100);
 
+    });
+    it("Gets a stubbed Telemetry Manager", () => {
+        const manager: TelemetryManager = TelemetryManager.getTelemetrymanagerStub(TEST_CONFIG.MSAL_CLIENT_ID, new Logger(() => {}));
+        // @ts-ignore
+        expect(manager.telemetryPlatform.applicationName).to.eq("UnSetStub");
+        // @ts-ignore
+        expect(manager.telemetryPlatform.sdk).to.eq(Constants.libraryName);
     });
     it("if we decide that we want to get orphaned events even if there are no completed, implement that and add test here");
     it("gets the correct event counts of ui, http, cache");

@@ -1,9 +1,11 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { Logger } from "./Logger";
 import { UrlUtils } from "./utils/UrlUtils";
-import { TelemetryEmitter } from "./telemetry/TelemetryTypes"
+import { TelemetryEmitter } from "./telemetry/TelemetryTypes";
 
 /**
  * Cache location options supported by MSAL are:
@@ -19,25 +21,28 @@ const FRAME_TIMEOUT = 6000;
 const OFFSET = 300;
 const NAVIGATE_FRAME_WAIT = 500;
 
-
 /**
  * @type AuthOptions: Use this to configure the auth options in the Configuration object
  *
  *  - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
  *  - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
  *  - validateAuthority           - Used to turn authority validation on/off. When set to true (default), MSAL will compare the application's authority against well-known URLs templates representing well-formed authorities. It is useful when the authority is obtained at run time to prevent MSAL from displaying authentication prompts from malicious pages.
+ *  - authorityMetadata           - OpenID configuration metadata for the configured authority. Must be passed as a JSON string.
+ *  - knownAuthorities            - If validateAuthority is set to True, this will be used to set the Trusted Host list. Defaults to empty array
  *  - redirectUri                 - The redirect URI of the application, this should be same as the value in the application registration portal.Defaults to `window.location.href`.
  *  - postLogoutRedirectUri       - Used to redirect the user to this location after logout. Defaults to `window.location.href`.
  *  - navigateToLoginRequestUrl   - Used to turn off default navigation to start page after login. Default is true. This is used only for redirect flows.
  *
  */
 export type AuthOptions = {
-  clientId: string;
-  authority?: string;
-  validateAuthority?: boolean;
-  redirectUri?: string | (() => string);
-  postLogoutRedirectUri?: string | (() => string);
-  navigateToLoginRequestUrl?: boolean;
+    clientId: string;
+    authority?: string;
+    validateAuthority?: boolean;
+    authorityMetadata?: string;
+    knownAuthorities?: Array<string>;
+    redirectUri?: string | (() => string);
+    postLogoutRedirectUri?: string | (() => string);
+    navigateToLoginRequestUrl?: boolean;
 };
 
 /**
@@ -47,8 +52,8 @@ export type AuthOptions = {
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  */
 export type CacheOptions = {
-  cacheLocation?: CacheLocation;
-  storeAuthStateInCookie?: boolean;
+    cacheLocation?: CacheLocation;
+    storeAuthStateInCookie?: boolean;
 };
 
 /**
@@ -58,10 +63,10 @@ export type CacheOptions = {
  * - telemetryEmitter             - Function where telemetry events are flushed to
  */
 export type TelemetryOptions = {
-  applicationName: string;
-  applicationVersion: string;
-  telemetryEmitter: TelemetryEmitter
- //TODO, add onlyAddFailureTelemetry option
+    applicationName: string;
+    applicationVersion: string;
+    telemetryEmitter: TelemetryEmitter
+    // TODO, add onlyAddFailureTelemetry option
 };
 
 /**
@@ -73,11 +78,11 @@ export type TelemetryOptions = {
  * - navigateFrameWait            - sets the wait time for hidden iFrame navigation
  */
 export type SystemOptions = {
-  logger?: Logger;
-  loadFrameTimeout?: number;
-  tokenRenewalOffsetSeconds?: number;
-  navigateFrameWait?: number;
-  telemetry?: TelemetryOptions
+    logger?: Logger;
+    loadFrameTimeout?: number;
+    tokenRenewalOffsetSeconds?: number;
+    navigateFrameWait?: number;
+    telemetry?: TelemetryOptions
 };
 
 /**
@@ -89,9 +94,9 @@ export type SystemOptions = {
  *
  */
 export type FrameworkOptions = {
-  isAngular?: boolean;
-  unprotectedResources?: Array<string>;
-  protectedResourceMap?: Map<string, Array<string>>;
+    isAngular?: boolean;
+    unprotectedResources?: Array<string>;
+    protectedResourceMap?: Map<string, Array<string>>;
 };
 
 /**
@@ -104,37 +109,39 @@ export type FrameworkOptions = {
  * - framework: this is where you can configure the running mode of angular. More to come here soon.
  */
 export type Configuration = {
-  auth: AuthOptions,
-  cache?: CacheOptions,
-  system?: SystemOptions,
-  framework?: FrameworkOptions
+    auth: AuthOptions,
+    cache?: CacheOptions,
+    system?: SystemOptions,
+    framework?: FrameworkOptions
 };
 
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
-  clientId: "",
-  authority: null,
-  validateAuthority: true,
-  redirectUri: () => UrlUtils.getDefaultRedirectUri(),
-  postLogoutRedirectUri: () => UrlUtils.getDefaultRedirectUri(),
-  navigateToLoginRequestUrl: true
+    clientId: "",
+    authority: null,
+    validateAuthority: true,
+    authorityMetadata: "",
+    knownAuthorities: [],
+    redirectUri: () => UrlUtils.getCurrentUrl(),
+    postLogoutRedirectUri: () => UrlUtils.getCurrentUrl(),
+    navigateToLoginRequestUrl: true
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-  cacheLocation: "sessionStorage",
-  storeAuthStateInCookie: false
+    cacheLocation: "sessionStorage",
+    storeAuthStateInCookie: false
 };
 
 const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
-  logger: new Logger(null),
-  loadFrameTimeout: FRAME_TIMEOUT,
-  tokenRenewalOffsetSeconds: OFFSET,
-  navigateFrameWait: NAVIGATE_FRAME_WAIT
+    logger: new Logger(null),
+    loadFrameTimeout: FRAME_TIMEOUT,
+    tokenRenewalOffsetSeconds: OFFSET,
+    navigateFrameWait: NAVIGATE_FRAME_WAIT
 };
 
 const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
-  isAngular: false,
-  unprotectedResources: new Array<string>(),
-  protectedResourceMap: new Map<string, Array<string>>()
+    isAngular: false,
+    unprotectedResources: new Array<string>(),
+    protectedResourceMap: new Map<string, Array<string>>()
 };
 
 /**
@@ -144,17 +151,18 @@ const DEFAULT_FRAMEWORK_OPTIONS: FrameworkOptions = {
  * @param TCacheOptions
  * @param TSystemOptions
  * @param TFrameworkOptions
+ * @param TAuthorityDataOptions
  *
  * @returns TConfiguration object
  */
 
 export function buildConfiguration({ auth, cache = {}, system = {}, framework = {}}: Configuration): Configuration {
-  const overlayedConfig: Configuration = {
-    auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
-    cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
-    system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
-    framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework }
-  };
-  return overlayedConfig;
+    const overlayedConfig: Configuration = {
+        auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
+        cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
+        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        framework: { ...DEFAULT_FRAMEWORK_OPTIONS, ...framework }
+    };
+    return overlayedConfig;
 }
 

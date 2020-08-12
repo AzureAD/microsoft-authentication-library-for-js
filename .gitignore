@@ -251,11 +251,20 @@ paket-files/
 .idea/
 *.sln.iml
 
+# .DS_Store
+.DS_Store
+.DS_Store?
+
 # MSAL specific ignore files
 node_modules/
+.nyc_output/
 typings/
 lib-commonjs/
 lib-es6/
 lib/msal-core/lib-commonjs
 lib/msal-core/lib-es6
-.vscode
+*.tgz
+*.zip
+samples/**/test/screenshots
+samples/**/data/cache.json
+.env

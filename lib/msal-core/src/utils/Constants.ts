@@ -1,136 +1,138 @@
-import { CacheLocation } from "../Configuration";
-
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 /**
  * @hidden
  * Constants
  */
 export class Constants {
-  static get errorDescription(): string { return "error_description"; }
-  static get error(): string { return "error"; }
+    static get libraryName(): string { return "Msal.js"; } // used in telemetry sdkName
+    static get claims(): string { return "claims"; }
+    static get clientId(): string { return "clientId"; }
 
-  static get scope(): string { return "scope"; }
-  static get clientInfo(): string { return "client_info"; }
-  static get clientId(): string { return "clientId"; }
+    static get adalIdToken(): string { return "adal.idtoken"; }
+    static get cachePrefix(): string { return "msal"; }
+    static get scopes(): string { return "scopes"; }
 
-  static get idToken(): string { return "id_token"; }
-  static get adalIdToken(): string { return "adal.idtoken"; }
-  static get accessToken(): string { return "access_token"; }
-  static get expiresIn(): string { return "expires_in"; }
-  static get sessionState(): string { return "session_state"; }
-  static get claims(): string { return "claims"; }
+    static get no_account(): string { return "NO_ACCOUNT"; }
+    static get upn(): string { return "upn"; }
+    static get domain_hint(): string { return "domain_hint"; }
 
-  static get msalClientInfo(): string { return "msal.client.info"; }
-  static get msalError(): string { return "msal.error"; }
-  static get msalErrorDescription(): string { return "msal.error.description"; }
+    static get prompt_select_account(): string { return "&prompt=select_account"; }
+    static get prompt_none(): string { return "&prompt=none"; }
+    static get prompt(): string { return "prompt"; }
 
-  static get msalSessionState(): string { return "msal.session.state"; }
-  static get tokenKeys(): string { return "msal.token.keys"; }
-  static get accessTokenKey(): string { return "msal.access.token.key"; }
-  static get expirationKey(): string { return "msal.expiration.key"; }
-  static get stateLogin(): string { return "msal.state.login"; }
-  static get stateAcquireToken(): string { return "msal.state.acquireToken"; }
-  static get stateRenew(): string { return "msal.state.renew"; }
-  static get nonceIdToken(): string { return "msal.nonce.idtoken"; }
-  static get userName(): string { return "msal.username"; }
-  static get idTokenKey(): string { return "msal.idtoken"; }
-  static get loginRequest(): string { return "msal.login.request"; }
-  static get loginError(): string { return "msal.login.error"; }
-  static get renewStatus(): string { return "msal.token.renew.status"; }
-  static get urlHash(): string { return "msal.urlHash"; }
-  static get angularLoginRequest(): string { return "msal.angular.login.request"; }
-  static get msal(): string { return "msal"; }
+    static get response_mode_fragment(): string { return "&response_mode=fragment"; }
+    static get resourceDelimiter(): string { return "|"; }
+    static get cacheDelimiter(): string { return "."; }
 
-  static get no_account(): string { return "NO_ACCOUNT"; }
-  static get consumersUtid(): string { return "9188040d-6c67-4c5b-b112-36a304b66dad"; }
-  static get upn(): string { return "upn"; }
+    private static _popUpWidth: number = 483;
+    static get popUpWidth(): number { return this._popUpWidth; }
+    static set popUpWidth(width: number) {
+        this._popUpWidth = width;
+    }
+    private static _popUpHeight: number = 600;
+    static get popUpHeight(): number { return this._popUpHeight; }
+    static set popUpHeight(height: number) {
+        this._popUpHeight = height;
+    }
 
-  static get prompt_select_account(): string { return "&prompt=select_account"; }
-  static get prompt_none(): string { return "&prompt=none"; }
-  static get prompt(): string { return "prompt"; }
+    static get login(): string { return "LOGIN"; }
+    static get renewToken(): string { return "RENEW_TOKEN"; }
+    static get unknown(): string { return "UNKNOWN"; }
 
-  static get response_mode_fragment(): string { return "&response_mode=fragment"; }
-  static get resourceDelimiter(): string { return "|"; }
+    static get ADFS(): string { return "adfs"; };
 
-  static get tokenRenewStatusCancelled(): string { return "Canceled"; }
-  static get tokenRenewStatusCompleted(): string { return "Completed"; }
-  static get tokenRenewStatusInProgress(): string { return "In Progress"; }
+    static get homeAccountIdentifier(): string { return "homeAccountIdentifier"; }
 
-  private static _popUpWidth: number = 483;
-  static get popUpWidth(): number { return this._popUpWidth; }
-  static set popUpWidth(width: number) {
-    this._popUpWidth = width;
-  }
-  private static _popUpHeight: number = 600;
-  static get popUpHeight(): number { return this._popUpHeight; }
-  static set popUpHeight(height: number) {
-    this._popUpHeight = height;
-  }
+    static get common(): string { return "common"; }
+    static get openidScope(): string { return "openid"; }
+    static get profileScope(): string { return "profile"; }
 
-  static get login(): string { return "LOGIN"; }
-  static get renewToken(): string { return "RENEW_TOKEN"; }
-  static get unknown(): string { return "UNKNOWN"; }
-
-  static get homeAccountIdentifier(): string { return "homeAccountIdentifier"; }
-
-  static get common(): string { return "common"; }
-  static get openidScope(): string { return "openid"; }
-  static get profileScope(): string { return "profile"; }
-
-  static get cacheLocationLocal(): CacheLocation { return "localStorage"; }
-  static get cacheLocationSession(): CacheLocation { return "sessionStorage"; }
-
-  static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
-  static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
+    static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
+    static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
+    static get interactionTypeSilent(): InteractionType { return "silentInteraction"; }
+    static get inProgress(): string { return "inProgress"; }
 }
 
 /**
- * @hidden
- * CacheKeys for 'authority' and 'account'
+ * Keys in the hashParams
  */
-export const CacheKeys = {
-    AUTHORITY: "msal.authority",
-    ACQUIRE_TOKEN_ACCOUNT: "msal.acquireTokenAccount"
+export enum ServerHashParamKeys {
+    SCOPE = "scope",
+    STATE = "state",
+    ERROR = "error",
+    ERROR_DESCRIPTION = "error_description",
+    ACCESS_TOKEN = "access_token",
+    ID_TOKEN = "id_token",
+    EXPIRES_IN = "expires_in",
+    SESSION_STATE = "session_state",
+    CLIENT_INFO = "client_info"
 };
 
-export const AADTrustedHostList =  {
-  "login.windows.net": "login.windows.net",
-  "login.chinacloudapi.cn": "login.chinacloudapi.cn",
-  "login.cloudgovapi.us": "login.cloudgovapi.us",
-  "login.microsoftonline.com": "login.microsoftonline.com",
-  "login.microsoftonline.de": "login.microsoftonline.de",
-  "login.microsoftonline.us": "login.microsoftonline.us"
-};
+/**
+ * @hidden
+ * CacheKeys for MSAL
+ */
+export enum TemporaryCacheKeys {
+    AUTHORITY = "authority",
+    ACQUIRE_TOKEN_ACCOUNT = "acquireTokenAccount",
+    SESSION_STATE = "session.state",
+    STATE_LOGIN = "state.login",
+    STATE_ACQ_TOKEN = "state.acquireToken",
+    STATE_RENEW = "state.renew",
+    NONCE_IDTOKEN = "nonce.idtoken",
+    LOGIN_REQUEST = "login.request",
+    RENEW_STATUS = "token.renew.status",
+    URL_HASH = "urlHash",
+    INTERACTION_STATUS = "interaction_status",
+    REDIRECT_REQUEST = "redirect_request"
+}
+
+export enum PersistentCacheKeys {
+    IDTOKEN = "idtoken",
+    CLIENT_INFO = "client.info"
+}
+
+export enum ErrorCacheKeys {
+    LOGIN_ERROR = "login.error",
+    ERROR = "error",
+    ERROR_DESC = "error.description"
+}
+
+export const DEFAULT_AUTHORITY: string = "https://login.microsoftonline.com/common/";
+export const AAD_INSTANCE_DISCOVERY_ENDPOINT: string = `${DEFAULT_AUTHORITY}/discovery/instance?api-version=1.1&authorization_endpoint=`;
 
 /**
  * @hidden
  * SSO Types - generated to populate hints
  */
-export const SSOTypes = {
-    ACCOUNT: "account",
-    SID: "sid",
-    LOGIN_HINT: "login_hint",
-    ID_TOKEN: "id_token",
-    DOMAIN_HINT: "domain_hint",
-    ORGANIZATIONS: "organizations",
-    CONSUMERS: "consumers",
-    ACCOUNT_ID: "accountIdentifier",
-    HOMEACCOUNT_ID: "homeAccountIdentifier",
-    LOGIN_REQ: "login_req",
-    DOMAIN_REQ: "domain_req"
+export enum SSOTypes {
+    ACCOUNT = "account",
+    SID = "sid",
+    LOGIN_HINT = "login_hint",
+    ORGANIZATIONS = "organizations",
+    ID_TOKEN ="id_token",
+    ACCOUNT_ID = "accountIdentifier",
+    HOMEACCOUNT_ID = "homeAccountIdentifier"
 };
 
 /**
  * @hidden
  */
 export const BlacklistedEQParams = [
-  SSOTypes.SID,
-  SSOTypes.LOGIN_HINT
+    SSOTypes.SID,
+    SSOTypes.LOGIN_HINT
 ];
 
-export type InteractionType = "redirectInteraction" | "popupInteraction";
+export type InteractionType = "redirectInteraction" | "popupInteraction" | "silentInteraction";
+
+export const NetworkRequestType = {
+    GET: "GET",
+    POST: "POST"
+};
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
@@ -139,15 +141,23 @@ export type InteractionType = "redirectInteraction" | "popupInteraction";
  * @hidden
  */
 export const PromptState = {
-	LOGIN: "login",
-	SELECT_ACCOUNT: "select_account",
-	CONSENT: "consent",
-	NONE: "none",
+    LOGIN: "login",
+    SELECT_ACCOUNT: "select_account",
+    CONSENT: "consent",
+    NONE: "none"
+};
+
+/**
+ * Frame name prefixes for the hidden iframe created in silent frames
+ */
+export const FramePrefix = {
+    ID_TOKEN_FRAME: "msalIdTokenFrame",
+    TOKEN_FRAME: "msalRenewFrame"
 };
 
 /**
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-  return "1.1.3";
+    return "1.3.4";
 }

@@ -1,97 +1,103 @@
-import {Inject, Injectable} from "@angular/core";
+import { Inject, Injectable } from "@angular/core";
 import {
     ActivatedRoute,
     ActivatedRouteSnapshot, CanActivate, Router,
     RouterStateSnapshot,
 } from "@angular/router";
-import {MSAL_CONFIG, MsalService} from "./msal.service";
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/pairwise';
-import {Location, PlatformLocation} from "@angular/common";
-import {MsalConfig} from "./msal-config";
-import {BroadcastService} from "./broadcast.service";
-import {Constants} from "msal";
-import {MSALError} from "./MSALError";
-import {AuthenticationResult} from "./AuthenticationResult";
+import { MsalService } from "./msal.service";
+import { Location, PlatformLocation } from "@angular/common";
+import { BroadcastService } from "./broadcast.service";
+import { Configuration, AuthError, InteractionRequiredAuthError, UrlUtils, WindowUtils } from "msal";
+import { MsalAngularConfiguration } from "./msal-angular.configuration";
+import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
 
 @Injectable()
 export class MsalGuard implements CanActivate {
 
-    constructor(@Inject(MSAL_CONFIG) private config: MsalConfig, private authService: MsalService, private router: Router, private activatedRoute: ActivatedRoute, private location: Location, private platformLocation: PlatformLocation, private broadcastService: BroadcastService) {
+    constructor(
+        @Inject(MSAL_CONFIG) private msalConfig: Configuration,
+        @Inject(MSAL_CONFIG_ANGULAR) private msalAngularConfig: MsalAngularConfiguration,
+        private authService: MsalService,
+        private router: Router,
+        private activatedRoute: ActivatedRoute,
+        private location: Location,
+        private platformLocation: PlatformLocation,
+        private broadcastService: BroadcastService
+    ) {}
+
+    /**
+     * Builds the absolute url for the destination page
+     * @param path Relative path of requested page
+     * @returns Full destination url
+     */
+    getDestinationUrl(path: string): string {
+        // Absolute base url for the application (default to origin if base element not present)
+        const baseElements = document.getElementsByTagName("base");
+        const baseUrl = this.location.normalize(baseElements.length ? baseElements[0].href : window.location.origin);
+
+        // Path of page (including hash, if using hash routing)
+        const pathUrl = this.location.prepareExternalUrl(path);
+
+        // Hash location strategy
+        if (pathUrl.startsWith("#")) {
+            return `${baseUrl}/${pathUrl}`;
+        }
+
+        // If using path location strategy, pathUrl will include the relative portion of the base path (e.g. /base/page).
+        // Since baseUrl also includes /base, can just concatentate baseUrl + path
+        return `${baseUrl}${path}`;
+    }
+
+    /**
+     * Interactively prompt the user to login
+     * @param url Path of the requested page
+     */
+    async loginInteractively(url: string) {
+        if (this.msalAngularConfig.popUp) {
+            return this.authService.loginPopup({
+                scopes: this.msalAngularConfig.consentScopes,
+                extraQueryParameters: this.msalAngularConfig.extraQueryParameters
+            })
+                .then(() => true)
+                .catch(() => false);
+        }
+
+        const redirectStartPage = this.getDestinationUrl(url);
+
+        this.authService.loginRedirect({
+            redirectStartPage,
+            scopes: this.msalAngularConfig.consentScopes,
+            extraQueryParameters: this.msalAngularConfig.extraQueryParameters
+        });
     }
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
-        this.authService.updateDataFromCache([this.config.clientID]);
-        if (!this.authService._oauthData.isAuthenticated && !this.isObjectEmpty(this.authService._oauthData.idToken)) {
-            if (state.url) {
+        // If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
+        // short-circuit to prevent redirecting or popups.
+        if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
+            this.authService.getLogger().warning("redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication.");
+            return false;
+        }
 
-                if (!this.authService._renewActive && !this.authService.loginInProgress()) {
+        if (!this.authService.getAccount()) {
+            return this.loginInteractively(state.url);
+        }
 
-                    var loginStartPage = this.getBaseUrl() + state.url;
-                    if (loginStartPage !== null) {
-                        this.authService.getCacheStorage().setItem(Constants.angularLoginRequest, loginStartPage);
-                    }
-                    if (this.config.popUp) {
-                        return new Promise((resolve, reject) => {
-                            this.authService.loginPopup(this.config.consentScopes, this.config.extraQueryParameters).then(function (token) {
-                                resolve(true);
-                            }, function (error) {
-                                reject(false);
-                            })
-                        });
-                    }
-                    else {
-                        this.authService.loginRedirect(this.config.consentScopes, this.config.extraQueryParameters);
-                    }
+        return this.authService.acquireTokenSilent({
+            scopes: [this.msalConfig.auth.clientId]
+        })
+            .then(() => true)
+            .catch((error: AuthError) => {
+                if (InteractionRequiredAuthError.isInteractionRequiredError(error.errorCode)) {
+                    this.authService.getLogger().info(`Interaction required error in MSAL Guard, prompting for interaction.`);
+                    return this.loginInteractively(state.url);
                 }
-            }
-        }
-        //token is expired/deleted but userdata still exists in _oauthData object
-        else if (!this.authService._oauthData.isAuthenticated && this.authService._oauthData.userName) {
-            return new Promise((resolve, reject) => {
-                this.authService.acquireTokenSilent([this.config.clientID]).then((token: any) => {
-                    if (token) {
-                        this.authService._oauthData.isAuthenticated = true;
-                        var authenticationResult = new AuthenticationResult(token );
-                        this.broadcastService.broadcast("msal:loginSuccess",  authenticationResult);
-                        resolve (true);
-                    }
-                }, (error: any) => {
-                    var errorParts = error.split('|');
-                    var msalError = new MSALError(errorParts[0], errorParts[1], "");
-                    this.broadcastService.broadcast("msal:loginFailure", msalError);
-                    resolve(false);
-                });
+
+                this.authService.getLogger().error(`Non-interaction error in MSAL Guard: ${error.errorMessage}`);
+                throw error;
             });
-        }
-        else {
-            return true;
-        }
     }
-
-    private getBaseUrl(): String {
-        var currentAbsoluteUrl = window.location.href;
-        var currentRelativeUrl = this.location.path();
-        if (this.isEmpty(currentRelativeUrl)) {
-            if (currentAbsoluteUrl.endsWith("/")) {
-                currentAbsoluteUrl = currentAbsoluteUrl.replace(/\/$/, '');
-            }
-            return currentAbsoluteUrl;
-        }
-        else {
-            var index = currentAbsoluteUrl.indexOf(currentRelativeUrl);
-            return currentAbsoluteUrl.substring(0, index);
-        }
-    }
-
-    isEmpty = function (str: any) {
-        return (typeof str === "undefined" || !str || 0 === str.length);
-    };
-
-    isObjectEmpty(obj: Object) {
-        return Object.keys(obj).length === 0;
-    };
 
 }

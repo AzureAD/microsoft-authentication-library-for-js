@@ -1,3 +1,130 @@
+# Change Log - msal
+
+This log was last generated on Fri, 07 Aug 2020 21:19:23 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+# 1.3.4
+
+## Bugs
+* Fix lowercase scopes issue (#1945)
+* Fix Redirect Error Callback (#1942)
+* Replace /organizations with tenant ID in replaceTenantPath (#1974)
+* Fix cache miss when common authority is provided (#2015)
+* Fix back button behavior (#2081)
+
+# 1.3.3
+
+##  Enhancements
+* Add monitorIframeForHash to ensure silent requests timeout. (#1823)
+* Use instance discovery for trusted hosts and combine authority classes. ([#1583](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/1583)
+* Add custom authority lookup. (#1836)
+* Ensure cookies are minimal size and deleted when necessary. (#1829)
+* Logging improvements. (#1777, #1767, #1752)
+
+# 1.3.2
+
+## Bugs
+* Ensure decoding query parameters doesnt remove plus signs twice. (#1746)
+* Fix popup about:blank errors. (#1667)
+* Fix processing and redirection of acquireTokenRedirect. (#1758)
+
+## Enhancements
+* Remove url from timeout error message, move to errorPii logger. (#1686)
+* Add onRedirectNavigate callback to stop navigatation and get redirect url. (#1691)
+* Allow applications to bypass network request for OpenID configuration. (#1578)
+* Extend acquireTokenSilent Instrumentation. (#1629)
+* Add performance instrumentation to TelemetryManager events. (#1643) 
+
+# 1.3.1
+
+## Bugs
+
+* Prevent adding unnecessary entries into browser history. (#1577)
+* Add aria-hidden to hidden iframes. (#1581)
+* Fix regression for redirect URIs that included query strings. (#1604)
+
+# 1.3.0
+
+## Features
+* Add ssoSilent API (#1166)
+
+## Enhancements
+* Turn library state into encoded string that contains guid and timestamp. (#1395)
+* Fix behavior of `handleRedirectCallback`, and make it no longer required. (#1358)
+* `domain_hint` is no longer supported in silent calls or when `sid` or `login_hint` is passed. (#1299)
+* Update the framename to reflect authority and scopes (#1267)
+* Switch to file-based sourcemaps for msal.js and msal.min.js (#1525)
+* Set sideEffects to false to enable better tree-shaking (#1526)
+* Add TelemetryManager to public APIs (#1399)
+
+## Bugs
+* Ensure responses from redirect requests are always processed. (#1413)
+* Ensure state is decoded before it is processed. (#1456)
+* B2C Authority Fixes. (#1276)
+* Check if request is null in populateQueryParams (#1531)
+* Fix token caching for acquireToken calls (#1516)
+* Unblock popup scrolling for IE11 (#1426)
+
+# 1.2.2
+
+## Features
+* Add `setLogger` function to `UserAgentApplication`. (#1251)
+
+## Enhancements
+* Render hidden iframes synchronously if `navigateFrameWait` is set to `0`. (#1278)
+* Add `redirectStartPage` property to `AuthenticationParameters` to allow apps to indicate which page triggered the redirect. (#1343)
+
+## Bugs
+* Properly remove temporary cache entries. (#1339)
+* Always send back the accessToken and scopes if the response includes them. (#1351)
+* Ensure silent operations timeout if the iframe never returns to the app domain. (#1354)
+* Ensure hidden iframes are properly removed. (#1415)
+
+## Logging / Telemetry
+* Add telemetry for `acquireTokenSilent`. (#1388)
+
+# 1.2.1
+
+## Bugs
+* `urlContainsHash()` is restored as a public API (#1202)
+* `allow-forms` added in sandbox properties for the iframes created by `msal js` to support certain B2C scenarios(#1191)
+
+## Enhancements
+* `isAngular` flag removal from `redirect` use cases(#1193)
+
+# 1.2.0
+
+## Features:
+* Iframes Support added  (#939, #975, #1053, #1075); msal js now added support for authentication in applications embedded in iframes which implies that an application can now call `loginSilent()`, `acquireTokenSilent()` and `acquireTokenPopup()` from iframes.
+* `redirectUri` supported as a request parameter (#1116); This feature in conjunction with iframes support improves performance, by providing the application the capability to avoid a full reload of a SPA on redirect. Please refer to the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/VanillaJSTestApp/index_blankPageRedirectUri.html) in the release [notes](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-JS-1.2.0) for the usage details
+* Multiple Instances (#980, #1010)
+* Cache changes - to support iframes, multiple instances and other enhancements (#983, #1042, #1067)
+* fromCache flag added in response to indicate cache vs network response for a request (#1114)
+* Instance Aware support (#969)
+
+## Bugs
+* `request.correlationId` is now passed to the service (#1083)
+* response_mode explicitly set to fragment for all use cases (#1090)
+* verbose messages and monitoring for timeout errors (#1098, #1113)
+* handle `loginRedirect` set to null (#1047)
+* Fix japanese decoding (#1036, #1054)
+* Fix Unified cache, Redirect and B2C samples (#933, #959, #1027, #973)
+* Change `location.replace` to `location.assign` to support history in redirect APIs (#1002)
+
+## Dev tools
+* linting added (#931, #935, #947)
+* CI/CD pipeline (#924)
+* Removed karma from UT and migrate completely to mocha/chai (#956)
+* Added Code coverage, introduce coveralls (#972, #1105)
+* Fix unit tests for unix environments (#977)
+* Move samples to top level (#987)
+* Added SRI tags to CDN files (#1020, #1024, #1030)
+
+## Documentation
+* Simplify root readme file (#1004)
+* Remove generated doc files from repo, deploy them to Github Pages (#1131)
+
 # 1.1.3
 * Introduction of Azure Pipelines (#912)
 * Removing uuid library that is incompatible with ES6 modules (#878)
@@ -14,7 +141,7 @@
 * Fixed an issue where cacheLocation was no longer accepting string values (#862)
 
 # 1.1.0
-* Core 
+* Core
     * idTokenClaims has been added to the API surface in AuthResponse and Account (#804)
     * Added forceRefresh parameter to request object, which will force acquireTokenSilent to fetch tokens from cache (#823)
     * Added scaffolding for telemetry (#737, #802, #840)
@@ -60,12 +187,12 @@
 
 # 1.0.0-preview.5
 * Error First Callbacks PR #658
-* Claims Request Support PR #664 
-* loginInProgress() as a public function #671 
-* 'state' moved from config to request, returning the user state if passed stripping the GUID #674 #679 #681 
-* cache cleanup of all values (keys cleanup will be done in next release) #675 
-* made loading iFrame timeout in silent calls configurable, 'navigateFrameWait' #676 
-* readme updated with latest code patterns #672 
+* Claims Request Support PR #664
+* loginInProgress() as a public function #671
+* 'state' moved from config to request, returning the user state if passed stripping the GUID #674 #679 #681
+* cache cleanup of all values (keys cleanup will be done in next release) #675
+* made loading iFrame timeout in silent calls configurable, 'navigateFrameWait' #676
+* readme updated with latest code patterns #672
 
 # 1.0.0-preview.4
 Add dist back into npm package as a valid build artifact
@@ -93,7 +220,7 @@ As announced earlier @https://github.com/AzureAD/microsoft-authentication-librar
 ### Release notes:
 
 #### Configuration
-* Initialization of the MSAL JS library – We introduced a ‘Configuration’ object that can be sent through the constructor of UserAgentApplication() class.
+* Initialization of the MSAL JS library – We introduced a 'Configuration' object that can be sent through the constructor of UserAgentApplication() class.
 
 ##### Configuration datatype :
 
@@ -196,17 +323,17 @@ myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErro
 
 #### Request Object
 
-* ‘Request’ object is introduced for all login/accessToken calls, this replaces previous overloading of login/acquireToken calls.
+* 'Request' object is introduced for all login/accessToken calls, this replaces previous overloading of login/acquireToken calls.
 * Users can choose to pass optional parameters to finetune their requests for authentication and authorization.
 * 'User' object is now replaced with 'Account' => the public API getUser() is now getAccount() with more enhanced data.
 
 ###### Request Object datatype
 
 ```javascript
-	export type QPDict = {[key: string]: string};
+    export type QPDict = {[key: string]: string};
 
     // Request type
-	export type AuthenticationParameters = {
+    export type AuthenticationParameters = {
         scopes?: Array<string>;
         extraScopesToConsent?: Array<string>;
         prompt?: string;
@@ -257,23 +384,23 @@ myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErro
 ```
 
 #### Response Object
-* ‘Response’ and 'Error' objects are introduced for server responses and app failures
-    - For ‘Redirect’ usecases, explicit success and failure call backs should be passed to ‘handleRedirectCallbacks()’.
+* 'Response' and 'Error' objects are introduced for server responses and app failures
+    - For 'Redirect' usecases, explicit success and failure call backs should be passed to 'handleRedirectCallbacks()'.
     - For 'Popup' and 'Silent' usecases,  a promise pattern i.e.,' .then and .catch'  can be used.
 
 ###### Response Object datatype
 
 ```javascript
-	export type AuthResponse = {
-		uniqueId: string;
-		tenantId: string;
-		tokenType: string;
-		idToken: IdToken;
-		accessToken: string;
-		scopes: Array<string>;
-		expiresOn: Date;
-		account: Account;
-		accountState: string;
+    export type AuthResponse = {
+        uniqueId: string;
+        tenantId: string;
+        tokenType: string;
+        idToken: IdToken;
+        accessToken: string;
+        scopes: Array<string>;
+        expiresOn: Date;
+        account: Account;
+        accountState: string;
     };
 ```
 
@@ -281,11 +408,11 @@ myMSALObj.handleRedirectCallbacks(acquireTokenRedirectCallBack, acquireTokenErro
 - Note: Error objects are better classified and messaged with this release. Detailed documentation for Error Handling will be added soon.
 
 ```javascript
-	export class AuthError extends Error {
-		errorCode: string;
-		errorMessage: string;
-		...
-	}
+    export class AuthError extends Error {
+        errorCode: string;
+        errorMessage: string;
+        ...
+    }
 ```
 
 ##### Before (<= 0.2.4)
