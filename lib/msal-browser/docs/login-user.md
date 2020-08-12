@@ -79,6 +79,8 @@ const myAccount: AccountInfo = maslInstance.getAccountById(accountId);
 
 **Note:** `getAccountByUsername()` is provided for convenience and should be considered less reliable than `getAccountById()`. When possible use `getAccountById()`.
 
+In B2C scenarios your B2C tenant will need to be configured to return the `emails` claim on `idTokens` in order to use the `getAccountByUsername()` API.
+
 These APIs will return an account object or an array of account objects with the following signature:
 ```javascript
 {
