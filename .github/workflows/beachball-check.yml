@@ -5,10 +5,11 @@ name: Beachball Check
 
 on:
   pull_request:
-    branches: [ dev ]
+    branches:  
+      - dev
 
 jobs:
-  build:
+  beachball-check:
     runs-on: ubuntu-latest
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository)
     env:
