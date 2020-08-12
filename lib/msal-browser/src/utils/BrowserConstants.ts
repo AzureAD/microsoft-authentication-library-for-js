@@ -82,6 +82,7 @@ export enum BrokerMessageType {
     HANDSHAKE_REQUEST = "BrokerHandshakeRequest",
     HANDSHAKE_RESPONSE = "BrokerHandshakeResponse",
     AUTH_REQUEST = "BrokerAuthRequest",
+    REDIRECT_RESPONSE = "BrokerRedirectResponse",
     AUTH_RESPONSE = "BrokerAuthResponse"
 };
 

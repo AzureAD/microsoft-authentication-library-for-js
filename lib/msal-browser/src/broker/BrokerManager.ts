@@ -8,7 +8,8 @@ import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerAuthRequest } from "./BrokerAuthRequest";
-import { BrokerMessageType } from "../utils/BrowserConstants";
+import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
+import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
 
 export class BrokerManager {
     private brokerOptions: BrokerOptions;
@@ -19,7 +20,6 @@ export class BrokerManager {
         this.version = version;
     }
 
-    /* eslint-disable */
     listenForMessage(): void {
         window.addEventListener("message", (message: MessageEvent): void => {
             console.log("Broker handshake request received");
@@ -37,8 +37,8 @@ export class BrokerManager {
             }
         });
     }
-    /* eslint-enable */
 
+    /* eslint-disable */
     /**
      * Handle a broker handshake request from a child.
      * @param clientMessage 
@@ -52,6 +52,7 @@ export class BrokerManager {
         clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
         console.log("Sending handshake response: ", brokerHandshakeResponse);
     }
+    
 
     /**
      * Handle a brokered auth request from the child.
@@ -60,5 +61,14 @@ export class BrokerManager {
     private handleAuthRequest(clientMessage: MessageEvent): void {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
         console.log("Broker auth request validated: ", validMessage);
+        if (validMessage.interactionType === InteractionType.REDIRECT) {
+            const brokerRedirectResp = new BrokerRedirectResponse();
+            // @ts-ignore
+            clientMessage.ports[0].postMessage(brokerRedirectResp);
+            console.log("Sending redirect response: ", brokerRedirectResp);
+
+            // Call loginRedirect
+        }
     }
+    /* eslint-enable */
 }

@@ -278,6 +278,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        // Check for brokered request
         if (this.embeddedApp && this.embeddedApp.brokeringEnabled) {
             return this.embeddedApp.sendRedirectRequest(request);
         }

@@ -11,7 +11,9 @@ import { PopupRequest } from "../request/PopupRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { BrokerAuthRequest } from "./BrokerAuthRequest";
 import { InteractionType } from "../utils/BrowserConstants";
+import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
 
+const DEFAULT_MESSAGE_TIMEOUT = 2000;
 /**
  * Embedded application in a broker scenario.
  */
@@ -55,17 +57,18 @@ export class BrokerClient {
     }
 
     async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult> {
-        return this.sendRequest<AuthenticationResult>(request, InteractionType.POPUP);
+        return this.sendRequest<AuthenticationResult>(request, InteractionType.POPUP, 6000);
     }
 
     async sendRedirectRequest(request: RedirectRequest): Promise<void> {
-        return this.sendRequest<void>(request, InteractionType.REDIRECT);
+        const message = await this.sendRequest<MessageEvent>(request, InteractionType.REDIRECT, 2000);
+        BrokerRedirectResponse.validate(message);
     }
 
-    private async sendRequest<T>(request: PopupRequest|RedirectRequest, interactionType: InteractionType): Promise<T> {
+    private async sendRequest<T>(request: PopupRequest|RedirectRequest, interactionType: InteractionType, timeoutMs: number): Promise<T> {
         const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request);
 
-        return this.messageBroker<T>(brokerRequest);
+        return this.messageBroker<T>(brokerRequest, timeoutMs);
     }
 
     private async sendHandshakeRequest(): Promise<BrokerHandshakeResponse> {
@@ -75,7 +78,7 @@ export class BrokerClient {
                 reject(new ClientAuthError("message_broker_timeout", "Message broker timed out"));
             }, 2000);
 
-            window.addEventListener("message", (message: MessageEvent) => {
+            const onHandshakeResponse = (message: MessageEvent) => {
                 try {
                     const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.brokerOptions.trustedBrokerDomains);
                     if (brokerHandshakeResponse) {
@@ -88,7 +91,10 @@ export class BrokerClient {
                 } catch (e) {
                     reject(e);
                 }
-            });
+                window.removeEventListener("message", onHandshakeResponse);
+            };
+
+            window.addEventListener("message", onHandshakeResponse);
 
             const handshakeRequest = new BrokerHandshakeRequest(this.clientId, this.version);
             window.top.postMessage(handshakeRequest, "*");
@@ -96,15 +102,15 @@ export class BrokerClient {
         });
     }
 
-    private async messageBroker<T>(payload: any): Promise<T> {
+    private async messageBroker<T>(payload: any, timeoutMs: number = DEFAULT_MESSAGE_TIMEOUT): Promise<T> {
         return new Promise<T>((resolve: any, reject: any) => {
             const timeoutId = setTimeout(() => {
                 reject(new ClientAuthError("message_broker_timeout", "Message broker timed out"));                
-            }, 2000);
+            }, timeoutMs);
 
             const messageChannel = new MessageChannel();
             messageChannel.port1.onmessage = ((message: MessageEvent): void => {
-                console.log(`in messageBroker<T> w/ origin: ${message}`);
+                console.log("in messageBroker<T> w/ origin: ", message);
                 clearTimeout(timeoutId);
                 resolve(message);
             });
