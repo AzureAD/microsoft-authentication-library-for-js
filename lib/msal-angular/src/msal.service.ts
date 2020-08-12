@@ -164,7 +164,7 @@ export class MsalService extends UserAgentApplication {
         const protectedResourcesArray = Array.from(protectedResourceMap.keys());
         const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
             const minimatch = new Minimatch(key);
-            return minimatch.match(endpoint);
+            return minimatch.match(endpoint) || endpoint.indexOf(key) > -1;
         });
         
         // process all protected resources and send the first matched resource
@@ -200,4 +200,3 @@ export class MsalService extends UserAgentApplication {
         return null;
     }
 }
-
