@@ -514,8 +514,12 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByUsername(userName: string): AccountInfo|null {
+        if (StringUtils.isEmpty(userName)) {
+            return null;
+        }
+
         const allAccounts = this.getAllAccounts();
-        return allAccounts && allAccounts.length ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
+        return allAccounts && allAccounts.length ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] || null : null;
     }
 
     /**
@@ -525,8 +529,12 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountById(homeAccountId: string): AccountInfo|null {
+        if (StringUtils.isEmpty(homeAccountId)) {
+            return null;
+        }
+
         const allAccounts = this.getAllAccounts();
-        return allAccounts && allAccounts.length ? allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] : null;
+        return allAccounts && allAccounts.length ? allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null : null;
     }
 
     // #endregion
