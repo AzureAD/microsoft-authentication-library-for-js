@@ -2,7 +2,7 @@ import * as Mocha from "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
 import fs from "fs";
-import { LabClient } from "../../../e2eTests/LabClient";
+import { LabClient, ILabApiParams } from "../../../e2eTests/LabClient";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let SCREENSHOT_NUM = 0;
@@ -17,7 +17,8 @@ function setupScreenshotDir() {
 
 async function setupCredentials() {
     const testCreds = new LabClient();
-    const envResponse = await testCreds.getUserVarsByCloudEnvironment("azurecloud");
+    const userParams: ILabApiParams = {envName: "azurecloud"};
+    const envResponse = await testCreds.getUserVarsByCloudEnvironment(userParams);
     const testEnv = envResponse[0];
     if (testEnv.upn) {
         username = testEnv.upn;

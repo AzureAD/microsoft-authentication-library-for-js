@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update Migration Guide (#2111)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.l.norling@gmail.com",
+  "dependentChangeType": "none",
+  "date": "2020-08-11T19:57:41.650Z"
+}
