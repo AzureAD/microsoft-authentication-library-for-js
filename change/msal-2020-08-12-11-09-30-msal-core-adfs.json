@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "ADFS 2019 Support (#1668)",
+  "packageName": "msal",
+  "email": "thomas.l.norling@gmail.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-12T18:09:30.073Z"
+}
