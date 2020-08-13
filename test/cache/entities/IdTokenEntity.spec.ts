@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
-import { mockIdTokenEntity } from "./cacheConstants";
+import { mockIdTokenEntity, mockAccessTokenEntity_1 } from "./cacheConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { CacheType } from "../../../src/utils/Constants";
 
@@ -28,5 +28,13 @@ describe("IdTokenEntity.ts Unit Tests", () => {
         const idT = new IdTokenEntity();
         Object.assign(idT, mockIdTokenEntity);
         expect(idT.generateType()).to.eql(CacheType.ID_TOKEN);
+    });
+
+    it("verify if an object is an id token entity", () => {
+        expect(IdTokenEntity.isIdTokenEntity(mockIdTokenEntity)).to.eql(true);
+    });
+
+    it("verify if an object is not an id token entity", () => {
+        expect(IdTokenEntity.isIdTokenEntity(mockAccessTokenEntity_1)).to.eql(false);
     });
 });
