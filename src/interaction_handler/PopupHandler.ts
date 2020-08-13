@@ -157,7 +157,7 @@ export class PopupHandler extends InteractionHandler {
         const left = Math.max(0, ((width / 2) - (BrowserConstants.POPUP_WIDTH / 2)) + winLeft);
         const top = Math.max(0, ((height / 2) - (BrowserConstants.POPUP_HEIGHT / 2)) + winTop);
 
-        return window.open(urlNavigate, Constants.LIBRARY_NAME, "width=" + BrowserConstants.POPUP_WIDTH + ", height=" + BrowserConstants.POPUP_HEIGHT + ", top=" + top + ", left=" + left)
+        return window.open(urlNavigate, Constants.LIBRARY_NAME, "width=" + BrowserConstants.POPUP_WIDTH + ", height=" + BrowserConstants.POPUP_HEIGHT + ", top=" + top + ", left=" + left);
     }
 
     /**
