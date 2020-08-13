@@ -33,34 +33,23 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(request: ClientCredentialRequest): Promise<AuthenticationResult> {
 
         this.scopeSet = new ScopeSet(request.scopes || []);
+
+        if (request.skipCache) {
+            return await this.executeTokenRequest(request, this.authority);
+        }
+
         const cachedAuthenticationResult = this.getCachedAuthenticationResult(request);
         if (cachedAuthenticationResult != null) {
             return cachedAuthenticationResult;
         } else {
-            const response = await this.executeTokenRequest(request, this.authority);
-            const responseHandler = new ResponseHandler(
-                this.config.authOptions.clientId,
-                this.cacheManager,
-                this.cryptoUtils,
-                this.logger
-            );
-
-            responseHandler.validateTokenResponse(response.body);
-            const tokenResponse = responseHandler.handleServerTokenResponse(
-                response.body,
-                this.authority,
-                null,
-                null,
-                request.scopes
-            );
-
-            return tokenResponse;
+            return await this.executeTokenRequest(request, this.authority);
         }
     }
 
     private getCachedAuthenticationResult(request: ClientCredentialRequest): AuthenticationResult {
         const cachedAccessToken = this.readAccessTokenFromCache(request);
-        if (!cachedAccessToken || TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+        if (!cachedAccessToken || 
+            TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             return null;
         }
         return ResponseHandler.generateAuthenticationResult({
@@ -74,9 +63,6 @@ export class ClientCredentialClient extends BaseClient {
         );
     }
 
-    /**
-     * fetches accessToken from cache if present
-     */
     private readAccessTokenFromCache(request: ClientCredentialRequest): AccessTokenEntity {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: "",
@@ -95,12 +81,30 @@ export class ClientCredentialClient extends BaseClient {
     }
 
     private async executeTokenRequest(request: ClientCredentialRequest, authority: Authority)
-        : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+        : Promise<AuthenticationResult> {
 
         const requestBody = this.createTokenRequestBody(request);
         const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
+        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
+
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId,
+            this.cacheManager,
+            this.cryptoUtils,
+            this.logger
+        );
+
+        responseHandler.validateTokenResponse(response.body);
+        const tokenResponse = responseHandler.handleServerTokenResponse(
+            response.body,
+            this.authority,
+            null,
+            null,
+            request.scopes
+        );
+
+        return tokenResponse;
     }
 
     private createTokenRequestBody(request: ClientCredentialRequest): string {
