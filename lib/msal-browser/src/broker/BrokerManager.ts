@@ -10,19 +10,22 @@ import { BrokerMessage } from "./BrokerMessage";
 import { BrokerAuthRequest } from "./BrokerAuthRequest";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
+import { Logger } from "@azure/msal-common";
 
 export class BrokerManager {
     private brokerOptions: BrokerOptions;
     private version: string;
+    private logger: Logger;
 
-    constructor(brokerOptions: BrokerOptions, version: string) {
+    constructor(brokerOptions: BrokerOptions, logger: Logger, version: string) {
         this.brokerOptions = brokerOptions;
+        this.logger = logger;
         this.version = version;
     }
 
     listenForMessage(): void {
         window.addEventListener("message", (message: MessageEvent): void => {
-            console.log("Broker handshake request received");
+            this.logger.verbose("Broker handshake request received");
             // Check that message is a BrokerHandshakeRequest
             const clientMessage = BrokerMessage.validateMessage(message);
             if (clientMessage) {

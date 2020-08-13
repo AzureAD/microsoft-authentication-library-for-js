@@ -33,7 +33,7 @@ export class BrokerClient {
         this.version = version;
 
         if (!this.brokerOptions.trustedBrokerDomains || this.brokerOptions.trustedBrokerDomains.length < 1) {
-            console.log("Application was identified as an embedded app in a broker scenario, but no trusted broker domains were provided.");
+            this.logger.info("Application was identified as an embedded app in a broker scenario, but no trusted broker domains were provided.");
             this.brokeringEnabled = false;
         } else {
             this.brokeringEnabled = true;
@@ -42,7 +42,7 @@ export class BrokerClient {
 
     async initiateHandshake(): Promise<void> {
         if (!this.brokeringEnabled) {
-            console.log("Brokering is not enabled, handshake was not performed.");
+            this.logger.verbose("Brokering is not enabled, handshake was not performed.");
             return;
         }
 
@@ -50,7 +50,7 @@ export class BrokerClient {
             const response = await this.sendHandshakeRequest();
             this.brokerOrigin = response.brokerOrigin;
         } catch (e) {
-            console.error(e);
+            this.logger.error(e);
             this.brokeringEnabled = false;
             throw e;
         }
@@ -74,7 +74,7 @@ export class BrokerClient {
     private async sendHandshakeRequest(): Promise<BrokerHandshakeResponse> {
         return new Promise<BrokerHandshakeResponse>((resolve: any, reject: any) => {
             const timeoutId = setTimeout(() => {
-                console.log("Broker handshake timed out");
+                this.logger.warning("Broker handshake timed out");
                 reject(new ClientAuthError("message_broker_timeout", "Message broker timed out"));
             }, 2000);
 
@@ -84,6 +84,7 @@ export class BrokerClient {
                     if (brokerHandshakeResponse) {
                         clearTimeout(timeoutId);
                         console.log("Received handshake response: ", brokerHandshakeResponse);
+                        this.logger.info(`Received handshake response: ${JSON.stringify(brokerHandshakeResponse)}`);
                         resolve(brokerHandshakeResponse);
                     } else {
                         console.log("Message is not handshake response: ", message);
@@ -98,19 +99,20 @@ export class BrokerClient {
 
             const handshakeRequest = new BrokerHandshakeRequest(this.clientId, this.version);
             window.top.postMessage(handshakeRequest, "*");
-            console.log("Sending handshake request: ", handshakeRequest);
+            this.logger.verbose(`Sending handshake request: ${handshakeRequest}`);
         });
     }
 
     private async messageBroker<T>(payload: any, timeoutMs: number = DEFAULT_MESSAGE_TIMEOUT): Promise<T> {
         return new Promise<T>((resolve: any, reject: any) => {
             const timeoutId = setTimeout(() => {
+                // TODO: Make this a BrowserAuthError
                 reject(new ClientAuthError("message_broker_timeout", "Message broker timed out"));                
             }, timeoutMs);
 
             const messageChannel = new MessageChannel();
             messageChannel.port1.onmessage = ((message: MessageEvent): void => {
-                console.log("in messageBroker<T> w/ origin: ", message);
+                this.logger.verbose(`in messageBroker<T> w/ origin: ${message}`);
                 clearTimeout(timeoutId);
                 resolve(message);
             });
