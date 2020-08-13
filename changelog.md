@@ -1,3 +1,19 @@
+# Change Log - @azure/msal-common
+
+This log was last generated on Thu, 13 Aug 2020 02:20:48 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+## 1.1.1
+
+Thu, 13 Aug 2020 02:20:48 GMT
+
+### Patches
+
+- knownAuthorities enhancements (#2106) (thomas.l.norling@gmail.com)
+- Update typing of IdTokenClaims (#2105) (hemoral@microsoft.com)
+- Fix hash parsing issue from #2118 and back button cache clearing (#2129) (prkanher@microsoft.com)
+
 # 1.1.0
 ## Breaking Changes
 - None
