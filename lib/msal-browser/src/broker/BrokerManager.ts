@@ -6,29 +6,32 @@
 import { BrokerOptions } from "../config/Configuration";
 import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
+import { Logger } from "@azure/msal-common";
 
 export class BrokerManager {
     private brokerOptions: BrokerOptions;
     private version: string;
+    private logger: Logger;
 
-    constructor(brokerOptions: BrokerOptions, version: string) {
+    constructor(brokerOptions: BrokerOptions, logger: Logger, version: string) {
         this.brokerOptions = brokerOptions;
+        this.logger = logger;
         this.version = version;
     }
 
     /* eslint-disable */
     listenForHandshake(): void {
         window.addEventListener("message", (message: MessageEvent): void => {
-            console.log("Broker handshake request received");
+            this.logger.verbose("Broker handshake request received");
             // Check that message is a BrokerHandshakeRequest
             const brokerMessageHandshake = BrokerHandshakeRequest.validate(message);
             if (brokerMessageHandshake) {
-                console.log("Broker handshake validated: ", brokerMessageHandshake);
+                this.logger.verbose(`Broker handshake validated: ${JSON.stringify(brokerMessageHandshake)}`);
                 const brokerHandshakeResponse = new BrokerHandshakeResponse(this.version);
 
                 // @ts-ignore
                 message.source.postMessage(brokerHandshakeResponse, message.origin);
-                console.log("Sending handshake response: ", brokerHandshakeResponse);
+                this.logger.info(`Sending handshake response: ${JSON.stringify(brokerHandshakeResponse)}`);
             }
         });
     }
