@@ -78,7 +78,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^1.1.0",
+    "@azure/msal-common": "^1.1.1",
     "axios": "^0.19.2",
     "debug": "^4.1.1",
     "jsonwebtoken": "^8.5.1"
