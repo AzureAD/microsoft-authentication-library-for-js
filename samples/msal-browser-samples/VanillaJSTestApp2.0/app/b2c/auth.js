@@ -46,16 +46,14 @@ function signOut() {
 }
 
 function getAccessTokenPopup() {
-    request = tokenRequest
-    request.account = myMSALObj.getAccountById(accountId);
+    request = tokenRequest;
     myMSALObj.acquireTokenPopup(request).then(handleResponse).catch(error => {
         console.log(error);
     });
 }
 
 function getAccessTokenRedirect() {
-    request = tokenRequest
-    request.account = myMSALObj.getAccountById(accountId);
+    request = tokenRequest;
     myMSALObj.acquireTokenRedirect(request);
 }
 
