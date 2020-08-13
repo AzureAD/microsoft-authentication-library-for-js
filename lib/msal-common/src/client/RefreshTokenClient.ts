@@ -7,8 +7,8 @@ import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { Authority, NetworkResponse } from "..";
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
 import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
@@ -46,7 +46,7 @@ export class RefreshTokenClient extends BaseClient {
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }
@@ -67,6 +67,16 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addCorrelationId(correlationId);
 
         parameterBuilder.addRefreshToken(request.refreshToken);
+
+        if (this.config.clientCredentials.clientSecret) {
+            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
+        }
+
+        if (this.config.clientCredentials.clientAssertion) {
+            const clientAssertion = this.config.clientCredentials.clientAssertion;
+            parameterBuilder.addClientAssertion(clientAssertion.assertion);
+            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        }
 
         return parameterBuilder.createQueryString();
     }

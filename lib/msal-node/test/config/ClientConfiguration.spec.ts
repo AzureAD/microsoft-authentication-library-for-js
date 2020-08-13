@@ -115,8 +115,8 @@ describe('ClientConfiguration tests', () => {
             cache: {},
         };
 
-        const testNetworkOptions = {
-            headers: new Map(),
+        const testNetworkOptions: NetworkRequestOptions = {
+            headers: {},
             body: '',
         };
 
