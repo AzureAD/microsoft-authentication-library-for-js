@@ -47,6 +47,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.windowHashTimeout).to.be.not.null.and.not.undefined;
         expect(emptyConfig.system.windowHashTimeout).to.be.eq(DEFAULT_POPUP_TIMEOUT_MS);
         expect(emptyConfig.system.tokenRenewalOffsetSeconds).to.be.eq(300);
+        expect(emptyConfig.system.delayOpenPopup).to.be.false;
     });
 
     it("Tests logger", () => {
@@ -114,7 +115,8 @@ describe("Configuration.ts Class Unit Tests", () => {
                 loggerOptions: {
                     loggerCallback: testLoggerCallback,
                     piiLoggingEnabled: true
-                }
+                },
+                delayOpenPopup: true
             }
         });
         // Auth config checks
@@ -139,5 +141,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system.loggerOptions).to.be.not.null;
         expect(newConfig.system.loggerOptions.loggerCallback).to.be.not.null;
         expect(newConfig.system.loggerOptions.piiLoggingEnabled).to.be.true;
+        expect(newConfig.system.delayOpenPopup).to.be.true;
     });
 });

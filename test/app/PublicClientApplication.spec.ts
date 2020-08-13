@@ -893,6 +893,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("Popup Flow Unit tests", () => {
 
         describe("loginPopup", () => {
+            beforeEach(() => {
+                sinon.stub(window, "open").returns(window);
+            });
+
+            afterEach(() => {
+                sinon.restore();
+            });
 
             it("throws error if interaction is in progress", async () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -905,6 +912,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(request.scopes).to.contain("openid");
                     expect(request.scopes).to.contain("profile");
                     done();
+                    return null;
+                });
+
+                pca.loginPopup();
+            });
+
+            it("opens popup window by default", () => {
+                sinon.stub(pca, "acquireTokenPopup").callsFake((request, popup) => {
+                    expect(popup).to.exist;
+                    expect(popup.location.href).to.exist;
+                    expect(popup.location.href).to.eql(TEST_URIS.TEST_REDIR_URI);
+                    return null;
+                });
+
+                pca.loginPopup();
+            });
+
+            it("delays opening popup if configured", () => {
+                pca = new PublicClientApplication({
+                    system: {
+                        delayOpenPopup: true
+                    }
+                });
+                
+                sinon.stub(pca, "acquireTokenPopup").callsFake((request, popup) => {
+                    expect(popup).to.be.undefined;
                     return null;
                 });
 
