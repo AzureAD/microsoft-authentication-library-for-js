@@ -24,4 +24,4 @@ jobs:
       - run: npm run build:extensions
       - run: npm ci
       - run: npm run build
-      - run: npm run beachball:publish
+      - run: npm run beachball:publish -- -y
