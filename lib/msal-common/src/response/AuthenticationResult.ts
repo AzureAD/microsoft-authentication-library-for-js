@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict } from "../utils/MsalTypes";
 import { AccountInfo } from "../account/AccountInfo";
 
 /**
@@ -21,17 +20,17 @@ import { AccountInfo } from "../account/AccountInfo";
  * - state                  - Value passed in by user in request
  * - familyId               - Family ID identifier, usually only used for refresh tokens
  */
-export class AuthenticationResult {
+export type AuthenticationResult = {
     uniqueId: string;
     tenantId: string;
     scopes: Array<string>;
     account: AccountInfo;
     idToken: string;
-    idTokenClaims: StringDict;
+    idTokenClaims: object;
     accessToken: string;
     fromCache: boolean;
     expiresOn: Date;
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;
-}
+};

@@ -3,6 +3,7 @@
   "title": "MSALModule",
   "version": "1.0.5",
   "main": "index.js",
+  "private": true,
   "files": [
     "README.md",
     "android",

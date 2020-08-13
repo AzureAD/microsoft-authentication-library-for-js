@@ -1,3 +1,25 @@
+# Change Log - @azure/msal-common
+
+This log was last generated on Fri, 07 Aug 2020 21:19:23 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+# 2.0.1
+## Breaking Changes
+* None
+
+## Features and Fixes
+* Make request object optional for login APIs in PublicClientApplication (#2061)
+* Fix `getAccountByUsername()` API signatures to return null (#2059)
+* (#2078) Fix issues with `handleRedirectPromise()` where:
+    * state mismatches occur if `handleRedirectPromise()` is called multiple times.
+    * `currentUrl` and `loginRequestUrl` being evaluated as not equal if one has a trailing slash and the other does not
+    * When `loginRequestUrl` is not in the cache, msal redirects to the homepage but would not process the hash
+* Add `sid` from `AuthorizationUrlRequest` to SSO check in `ssoSilent()` (#2030)
+* Add interaction type to platform state and check before processing hash (#2045)
+* Implements telemetry error calculation and caching for server telemetry information in browser scenarios (#1918)
+* Fix promise handling in PublicClientApplication (#2091)
+
 # 2.0.0
 ## Breaking Changes
 * None
