@@ -172,3 +172,13 @@ Checks that changefiles have been generated for relevant changed packages. Used 
 - `npm run beachball:publish`
 
 Bumps versions and publishes all packages that have relevant changefiles. If the changefiles types are set to `None`, no version bump or publish is done. Run on push to the `master` branch.
+
+- Notes
+   - Ensure you have the correct email set in your local git config.
+      You can use the following command to see your current email:
+      
+      `git config --global user.email`
+
+      You can update this by adding a string value with your new email: 
+      
+      `git config --global user.email "YOUR.EMAIL@HERE.com"`
