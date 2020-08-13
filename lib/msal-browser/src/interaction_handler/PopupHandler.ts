@@ -64,7 +64,7 @@ export class PopupHandler extends InteractionHandler {
                     return;
                 }
 
-                let href;
+                let href: string;
                 try {
                     /*
                      * Will throw if cross origin,
@@ -75,16 +75,15 @@ export class PopupHandler extends InteractionHandler {
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
+                if (StringUtils.isEmpty(href) || href === "about:blank") {
                     return;
                 }
 
                 // Only run clock when we are on same domain
                 ticks++;
-
-                if (UrlString.hashContainsKnownProperties(href)) {
+                const contentHash = popupWindow.location.hash;
+                if (UrlString.hashContainsKnownProperties(contentHash)) {
                     // Success case
-                    const contentHash = popupWindow.location.hash;
                     this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
                     resolve(contentHash);

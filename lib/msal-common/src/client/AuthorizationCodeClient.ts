@@ -132,7 +132,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }
