@@ -20,6 +20,8 @@ export type CredentialCache = {
     refreshTokens: RefreshTokenCache;
 };
 
+export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | string;
+
 /**
  * Account:	<home_account_id>-<environment>-<realm*>
  */
