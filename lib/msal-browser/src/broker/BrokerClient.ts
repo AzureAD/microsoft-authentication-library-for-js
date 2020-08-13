@@ -83,11 +83,10 @@ export class BrokerClient {
                     const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.brokerOptions.trustedBrokerDomains);
                     if (brokerHandshakeResponse) {
                         clearTimeout(timeoutId);
-                        console.log("Received handshake response: ", brokerHandshakeResponse);
                         this.logger.info(`Received handshake response: ${JSON.stringify(brokerHandshakeResponse)}`);
                         resolve(brokerHandshakeResponse);
                     } else {
-                        console.log("Message is not handshake response: ", message);
+                        this.logger.warning(`Message is not handshake response: ${message}`);
                     }
                 } catch (e) {
                     reject(e);

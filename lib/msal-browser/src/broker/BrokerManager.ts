@@ -48,12 +48,12 @@ export class BrokerManager {
      */
     private handleHandshake(clientMessage: MessageEvent): void {
         const validMessage = BrokerHandshakeRequest.validate(clientMessage);
-        console.log("Broker handshake validated: ", validMessage);
+        this.logger.verbose(`Broker handshake validated: ${validMessage}`);
         const brokerHandshakeResponse = new BrokerHandshakeResponse(this.version);
 
         // @ts-ignore
         clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
-        console.log("Sending handshake response: ", brokerHandshakeResponse);
+        this.logger.info(`Sending handshake response: ${brokerHandshakeResponse}`);
     }
     
 
@@ -63,12 +63,12 @@ export class BrokerManager {
      */
     private handleAuthRequest(clientMessage: MessageEvent): void {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
-        console.log("Broker auth request validated: ", validMessage);
+        this.logger.verbose(`Broker auth request validated: ${validMessage}`);
         if (validMessage.interactionType === InteractionType.REDIRECT) {
             const brokerRedirectResp = new BrokerRedirectResponse();
             // @ts-ignore
             clientMessage.ports[0].postMessage(brokerRedirectResp);
-            console.log("Sending redirect response: ", brokerRedirectResp);
+            this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
 
             // Call loginRedirect
         }
