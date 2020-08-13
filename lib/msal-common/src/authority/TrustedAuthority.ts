@@ -75,10 +75,11 @@ export class TrustedAuthority {
      */
     public static createCloudDiscoveryMetadataFromKnownAuthorities(knownAuthorities: Array<string>): void {
         knownAuthorities.forEach(authority => {
-            this.TrustedHostList[authority.toLowerCase()] = {
-                preferred_cache: authority.toLowerCase(),
-                preferred_network: authority.toLowerCase(),
-                aliases: [authority.toLowerCase()]
+            const authorityDomain = UrlString.getDomainFromUrl(authority).toLowerCase();
+            this.TrustedHostList[authorityDomain] = {
+                preferred_cache: authorityDomain,
+                preferred_network: authorityDomain,
+                aliases: [authorityDomain]
             };
         });
     }
