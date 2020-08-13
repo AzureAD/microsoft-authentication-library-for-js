@@ -1,8 +1,16 @@
-# Change Log - @azure/msal-common
+# Change Log - @azure/msal-browser
 
-This log was last generated on Fri, 07 Aug 2020 21:19:23 GMT and should not be manually modified.
+This log was last generated on Thu, 13 Aug 2020 02:20:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.2
+
+Thu, 13 Aug 2020 02:20:48 GMT
+
+### Patches
+
+- Fix hash parsing issue from #2118 and back button cache clearing (#2129) (prkanher@microsoft.com)
 
 # 2.0.1
 ## Breaking Changes

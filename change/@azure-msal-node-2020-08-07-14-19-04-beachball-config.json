@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "updating files for automated release steps",
-  "packageName": "@azure/msal-node",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-08-07T21:19:04.562Z"
-}
