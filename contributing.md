@@ -148,3 +148,37 @@ not send out notifications when you add commits.
 [on GitHub]: https://github.com/AzureAD/microsoft-authentication-library-for-js
 [issue tracker]: https://github.com/AzureAD/microsoft-authentication-library-for-js/issues
 [bypass the pre-commit]: https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---no-verify
+
+### RELEASE
+
+Releases are managed using the [beachball](https://microsoft.github.io/beachball/) package. In short, `beachball` will enforce that every PR to a release branch includes a changefile that will describe the feature as a changelog item. During publish, the package will compile changes for all relevant packages and perform a release to `npm`.
+
+There are a few scripts added to the `package.json` to support this:
+
+- `npm run beachball:change`
+
+Generates a changefile based on the dev branch. This should be run on your PR before merging to dev. When this command is run, the type of change needs to be selected:
+
+![Select Change Type](./docs/images/beachball-changetype.png)
+
+`beachball` will then ask for the changelog message. Please enter a short description of the change as well as the PR number in parentheses at the end of the message. This does not need to be a verbose message.
+
+![Enter changelog message](./docs/images/beachball-changemessage.png)
+
+- `npm run beachball:check`
+
+Checks that changefiles have been generated for relevant changed packages. Used by the CI tool on PRs, can also be used locally.
+
+- `npm run beachball:publish`
+
+Bumps versions and publishes all packages that have relevant changefiles. If the changefiles types are set to `None`, no version bump or publish is done. Run on push to the `master` branch.
+
+- Notes
+   - Ensure you have the correct email set in your local git config.
+      You can use the following command to see your current email:
+      
+      `git config --global user.email`
+
+      You can update this by adding a string value with your new email: 
+      
+      `git config --global user.email "YOUR.EMAIL@HERE.com"`

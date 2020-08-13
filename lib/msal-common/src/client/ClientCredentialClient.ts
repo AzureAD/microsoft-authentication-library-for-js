@@ -14,20 +14,80 @@ import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
+import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
+import { CredentialType } from "../utils/Constants";
+import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
+import { TimeUtils } from '../utils/TimeUtils';
 
 /**
  * OAuth2.0 client credential grant
  */
 export class ClientCredentialClient extends BaseClient {
 
+    private scopeSet: ScopeSet;
+
     constructor(configuration: ClientConfiguration) {
         super(configuration);
     }
 
-    public async acquireToken(request: ClientCredentialRequest): Promise<AuthenticationResult>{
-        const response = await this.executeTokenRequest(request, this.authority);
-        // TODO delete this
-        console.log(response.body);
+    public async acquireToken(request: ClientCredentialRequest): Promise<AuthenticationResult> {
+
+        this.scopeSet = new ScopeSet(request.scopes || []);
+
+        if (request.skipCache) {
+            return await this.executeTokenRequest(request, this.authority);
+        }
+
+        const cachedAuthenticationResult = this.getCachedAuthenticationResult(request);
+        if (cachedAuthenticationResult != null) {
+            return cachedAuthenticationResult;
+        } else {
+            return await this.executeTokenRequest(request, this.authority);
+        }
+    }
+
+    private getCachedAuthenticationResult(request: ClientCredentialRequest): AuthenticationResult {
+        const cachedAccessToken = this.readAccessTokenFromCache(request);
+        if (!cachedAccessToken || 
+            TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+            return null;
+        }
+        return ResponseHandler.generateAuthenticationResult({
+            account: null,
+            accessToken: cachedAccessToken,
+            idToken: null,
+            refreshToken: null
+        },
+            null,
+            true
+        );
+    }
+
+    private readAccessTokenFromCache(request: ClientCredentialRequest): AccessTokenEntity {
+        const accessTokenFilter: CredentialFilter = {
+            homeAccountId: "",
+            environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
+            credentialType: CredentialType.ACCESS_TOKEN,
+            clientId: this.config.authOptions.clientId,
+            realm: this.authority.tenant,
+            target: this.scopeSet.printScopesLowerCase()
+        };
+        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
+        const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
+        if (accessTokens.length < 1) {
+            return null;
+        }
+        return accessTokens[0] as AccessTokenEntity;
+    }
+
+    private async executeTokenRequest(request: ClientCredentialRequest, authority: Authority)
+        : Promise<AuthenticationResult> {
+
+        const requestBody = this.createTokenRequestBody(request);
+        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+
+        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
+
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -47,23 +107,13 @@ export class ClientCredentialClient extends BaseClient {
         return tokenResponse;
     }
 
-    private async executeTokenRequest(request: ClientCredentialRequest, authority: Authority)
-        : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-
-        const requestBody = this.createTokenRequestBody(request);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
-
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
-    }
-
     private createTokenRequestBody(request: ClientCredentialRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        parameterBuilder.addScopes(scopeSet);
-        
+        parameterBuilder.addScopes(this.scopeSet);
+
         parameterBuilder.addGrantType(GrantType.CLIENT_CREDENTIALS_GRANT);
 
         parameterBuilder.addClientInfo();

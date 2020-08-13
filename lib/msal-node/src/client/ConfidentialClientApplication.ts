@@ -52,7 +52,7 @@ export class ConfidentialClientApplication extends ClientApplication {
         );
         this.logger.verbose("Auth client config generated");
         const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
-        return clientCredentialClient.acquireToken(this.initializeRequestScopes(request) as ClientCredentialRequest);
+        return clientCredentialClient.acquireToken(request);
     }
 
     /**
@@ -100,4 +100,3 @@ export class ConfidentialClientApplication extends ClientApplication {
         }
     }
 }
-

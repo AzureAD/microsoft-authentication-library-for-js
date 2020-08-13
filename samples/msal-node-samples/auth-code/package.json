@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "sample app for msal-node",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "start": "node index.js",
     "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
