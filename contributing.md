@@ -151,7 +151,7 @@ not send out notifications when you add commits.
 
 ### RELEASE
 
-Releases are managed using [beachball](https://microsoft.github.io/beachball/) package. In short, `beachball` will enforce every PR to a release branch to include a changefile that will describe the feature as a changelog item. During publish, the package will compile changes for all relevant packages and perform a release to npm.
+Releases are managed using the [beachball](https://microsoft.github.io/beachball/) package. In short, `beachball` will enforce that every PR to a release branch includes a changefile that will describe the feature as a changelog item. During publish, the package will compile changes for all relevant packages and perform a release to `npm`.
 
 There are a few scripts added to the `package.json` to support this:
 
