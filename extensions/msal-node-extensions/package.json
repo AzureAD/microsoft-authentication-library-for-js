@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -14,7 +14,8 @@
   ],
   "files": [
     "dist",
-    "src"
+    "src",
+    "binding.gyp"
   ],
   "engines": {
     "node": ">=10"

@@ -22,11 +22,13 @@ export class UrlString {
     
     constructor(url: string) {
         this._urlString = url;
-        if (!StringUtils.isEmpty(this._urlString) && StringUtils.isEmpty(this.getHash())) {
-            this._urlString = UrlString.canonicalizeUri(url);
-        } else if (StringUtils.isEmpty(this._urlString)) {
+        if (StringUtils.isEmpty(this._urlString)) {
             // Throws error if url is empty
             throw ClientConfigurationError.createUrlEmptyError();
+        }
+
+        if (StringUtils.isEmpty(this.getHash())) {
+            this._urlString = UrlString.canonicalizeUri(url);
         }
     }
 
@@ -108,14 +110,7 @@ export class UrlString {
      * Returns the anchor part(#) of the URL
      */
     getHash(): string {
-        const hashIndex1 = this.urlString.indexOf("#");
-        const hashIndex2 = this.urlString.indexOf("#/");
-        if (hashIndex2 > -1) {
-            return this.urlString.substring(hashIndex2 + 2);
-        } else if (hashIndex1 > -1) {
-            return this.urlString.substring(hashIndex1 + 1);
-        }
-        return "";
+        return UrlString.parseHash(this.urlString);
     }
 
     /**
@@ -145,15 +140,50 @@ export class UrlString {
         return urlComponents;
     }
 
+    static getDomainFromUrl(url: string): string {
+        const regEx = RegExp("^([^:/?#]+://)?([^/?#]*)");
+
+        const match = url.match(regEx);
+
+        if (!match) {
+            throw ClientConfigurationError.createUrlParseError(`Given url string: ${url}`);
+        }
+
+        return match[2];
+    }
+    
+    /**
+     * Parses hash string from given string. Returns empty string if no hash symbol is found.
+     * @param hashString 
+     */
+    static parseHash(hashString: string): string {
+        const hashIndex1 = hashString.indexOf("#");
+        const hashIndex2 = hashString.indexOf("#/");
+        if (hashIndex2 > -1) {
+            return hashString.substring(hashIndex2 + 2);
+        } else if (hashIndex1 > -1) {
+            return hashString.substring(hashIndex1 + 1);
+        }
+        return "";
+    }
+
     static constructAuthorityUriFromObject(urlObject: IUri): UrlString {
         return new UrlString(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + urlObject.PathSegments.join("/"));
     }
 
     /**
-     * Returns deserialized portion of URL hash
+     * Returns URL hash as server auth code response object.
      */
     static getDeserializedHash(hash: string): ServerAuthorizationCodeResponse {
-        const deserializedHash: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(hash);
+        // Check if given hash is empty
+        if (StringUtils.isEmpty(hash)) {
+            return {};
+        }
+        // Strip the # symbol if present
+        const parsedHash = UrlString.parseHash(hash);
+        // If # symbol was not present, above will return empty string, so give original hash value
+        const deserializedHash: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(StringUtils.isEmpty(parsedHash) ? hash : parsedHash);
+        // Check if deserialization didn't work
         if (!deserializedHash) {
             throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));
         }
@@ -163,12 +193,12 @@ export class UrlString {
     /**
      * Check if the hash of the URL string contains known properties
      */
-    static hashContainsKnownProperties(url: string): boolean {
-        if (StringUtils.isEmpty(url)) {
+    static hashContainsKnownProperties(hash: string): boolean {
+        if (StringUtils.isEmpty(hash)) {
             return false;
         }
-        const urlString = new UrlString(url);
-        const parameters: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(urlString.getHash());
+
+        const parameters: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
         return !!(
             parameters.code ||
             parameters.error_description ||
