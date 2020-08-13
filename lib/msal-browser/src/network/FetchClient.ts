@@ -22,7 +22,7 @@ export class FetchClient implements INetworkModule {
             headers: this.getFetchHeaders(options)
         });
         return {
-            headers: this.getHeaderMap(response.headers),
+            headers: this.getHeaderDict(response.headers),
             body: await response.json() as T,
             status: response.status
         };
@@ -42,7 +42,7 @@ export class FetchClient implements INetworkModule {
             body: reqBody
         });
         return {
-            headers: this.getHeaderMap(response.headers),
+            headers: this.getHeaderDict(response.headers),
             body: await response.json() as T,
             status: response.status
         };
@@ -57,17 +57,17 @@ export class FetchClient implements INetworkModule {
         if (!(options && options.headers)) {
             return headers;
         }
-        options.headers.forEach((value, key) => {
-            headers.append(key, value);
+        Object.keys(options.headers).forEach((key) => {
+            headers.append(key, options.headers[key]);
         });
         return headers;
     }
 
-    private getHeaderMap(headers: Headers): Map<string, string> {
-        const headerMap = new Map<string, string>();
+    private getHeaderDict(headers: Headers): Record<string, string> {
+        const headerDict: Record<string, string> = {};
         headers.forEach((value: string, key: string) => {
-            headerMap.set(key, value);
+            headerDict[key] = value;
         });
-        return headerMap;
+        return headerDict;
     }
 }
