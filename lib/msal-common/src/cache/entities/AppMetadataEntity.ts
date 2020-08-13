@@ -30,4 +30,16 @@ export class AppMetadataEntity {
         const appMetaDataKeyArray: Array<string> = [APP_METADATA, this.environment, this.clientId];
         return appMetaDataKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
+
+    /**
+     * Validates an entity: checks for all expected params
+     * @param entity
+     */
+    static isAppMetadataEntity(key: string, entity: object): boolean {
+        return (
+            (key.indexOf(APP_METADATA) !== -1) &&
+            entity.hasOwnProperty("clientId") &&
+            entity.hasOwnProperty("environment")
+        );
+    }
 }
