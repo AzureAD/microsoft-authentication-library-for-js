@@ -242,4 +242,101 @@ describe("PopupHandler.ts Unit Tests", () => {
             }, 500);
         });
     });
+
+    describe("openPopup", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("assigns urlNavigate if popup passed in", () => {
+            const assignSpy = sinon.spy();
+            const focusSpy = sinon.spy();
+
+            let windowObject = {
+                location: {
+                    assign: assignSpy
+                },
+                focus: focusSpy
+            };
+
+            const testRequest: AuthorizationCodeRequest = {
+				redirectUri: "",
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+            };
+
+            // @ts-ignore
+            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, windowObject);
+
+            expect(assignSpy.calledWith("http://localhost/#/code=hello")).to.be.true;
+            expect(popupWindow).to.equal(windowObject);
+        });
+
+        it("opens popup if no popup window is passed in", () => {
+            sinon.stub(window, "open").returns(window);
+            sinon.stub(window, "focus");
+
+            const testRequest: AuthorizationCodeRequest = {
+				redirectUri: "",
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+            };
+
+            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest);
+
+            expect(popupWindow).to.equal(window);
+        });
+
+        it("throws error if no popup passed in but window.open returns null", () => {
+            sinon.stub(window, "open").returns(null);
+
+            const testRequest: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+            };
+
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest)).to.throw(BrowserAuthError);
+        });
+
+        it("throws error if popup passed in is null", () => {
+            const testRequest: AuthorizationCodeRequest = {
+				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+				code: "thisIsATestCode",
+				scopes: TEST_CONFIG.DEFAULT_SCOPES,
+				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+				authority: `${Constants.DEFAULT_AUTHORITY}/`,
+				correlationId: RANDOM_TEST_GUID
+            };
+
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, null)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, null)).to.throw(BrowserAuthError);
+        });
+    });
+
+    describe("openSizedPopup", () => {
+        it("opens a popup with urlNavigate", () => {
+            const windowOpenSpy = sinon.stub(window, "open");
+            PopupHandler.openSizedPopup("http://localhost/");
+
+            expect(windowOpenSpy.calledWith("http://localhost/")).to.be.true;
+        });
+
+        it("opens a popup with about:blank if no urlNavigate passed in", () => {
+            const windowOpenSpy = sinon.stub(window, "open");
+            PopupHandler.openSizedPopup();
+
+            expect(windowOpenSpy.calledWith("about:blank")).to.be.true;
+        });
+    });
 });
