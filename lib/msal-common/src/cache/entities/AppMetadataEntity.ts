@@ -5,7 +5,7 @@
 import { APP_METADATA, Separators } from "../../utils/Constants";
 
 /**
- * APP_META_DATA Cache
+ * APP_METADATA Cache
  *
  * Key:Value Schema:
  *
