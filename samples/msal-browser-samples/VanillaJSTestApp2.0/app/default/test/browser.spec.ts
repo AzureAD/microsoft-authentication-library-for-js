@@ -1,7 +1,7 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials, getTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../e2eTests/TestUtils"
+import { Screenshot, createFolder, setupCredentials, getTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../../../e2eTestUtils/TestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = 'http://localhost:30662/';
