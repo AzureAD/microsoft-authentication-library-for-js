@@ -20,5 +20,5 @@ export type AuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;
     code: string;
     codeVerifier?: string;
-    authenticationType?: AuthenticationType;
+    authenticationScheme?: AuthenticationType;
 };
