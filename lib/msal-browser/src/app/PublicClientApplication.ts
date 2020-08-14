@@ -292,14 +292,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        // delayOpenPopup flag is true. Acquires token without first opening popup.
-        if (this.config.system.delayOpenPopup) {
-            return this.acquireTokenPopup(request || DEFAULT_REQUEST);
-        } else {
-            // delayOpenPopup flag it set to false. Opens popup before acquiring token.
-            const popup = PopupHandler.openSizedPopup();
-            return this.acquireTokenPopup(request || DEFAULT_REQUEST, popup);
-        }
+        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
     /**
@@ -308,7 +301,24 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async acquireTokenPopup(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        // delayOpenPopup flag is true. Acquires token without first opening popup.
+        if (this.config.system.delayOpenPopup) {
+            return this.acquireTokenPopupAsync(request);
+        } else {
+            // delayOpenPopup flag it set to false. Opens popup before acquiring token.
+            const popup = PopupHandler.openSizedPopup();
+            return this.acquireTokenPopupAsync(request, popup);
+        }
+    }
+
+    /**
+     * Helper which obtains an access_token for your API via opening a popup window in the user's browser
+     * @param {@link (PopupRequest:type)}
+     *
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
