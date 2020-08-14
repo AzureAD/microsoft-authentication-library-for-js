@@ -11,7 +11,9 @@ export const ParamKeys = {
     AZURE_ENVIRONMENT: "azureenvironment",
     USER_TYPE: "usertype",
     FEDERATION_PROVIDER: "federationprovider",
-    B2C_PROVIDER: "b2cprovider"
+    B2C_PROVIDER: "b2cprovider",
+    HOME_DOMAIN: "homedomain",
+    APP_TYPE: "apptype"
 };
 
 // Lab API Query Param Values
@@ -61,5 +63,10 @@ export const UserTypes = {
     GUEST: "guest", 
     MSA: "msa", 
     B2C: "b2c"
+};
+
+export const AppTypes = {
+    CLOUD: "cloud",
+    ONPREM: "onprem"
 };
 

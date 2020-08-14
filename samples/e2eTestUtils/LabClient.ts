@@ -36,7 +36,7 @@ export class LabClient {
         return null;
     }
 
-    async getUserVarsByCloudEnvironment(labApiParams: LabApiQueryParams): Promise<any> {
+    async getVarsByCloudEnvironment(labApiParams: LabApiQueryParams): Promise<any> {
         const accessToken = await this.getCurrentToken();
         let apiParams: Array<string> = [];
 
@@ -52,13 +52,21 @@ export class LabClient {
         }
 
         if (labApiParams.b2cProvider) {
-            apiParams.push(`${ParamKeys.B2C_PROVIDER}=${labApiParams.b2cProvider}`)
+            apiParams.push(`${ParamKeys.B2C_PROVIDER}=${labApiParams.b2cProvider}`);
+        }
+
+        if (labApiParams.homeDomain) {
+            apiParams.push(`${ParamKeys.HOME_DOMAIN}=${labApiParams.homeDomain}`);
+        }
+
+        if (labApiParams.appType) {
+            apiParams.push(`${ParamKeys.APP_TYPE}=${labApiParams.appType}`);
         }
 
         if (apiParams.length <= 0) {
-            throw "Must provide at least one param to getUserVarsByCloudEnvironment";
+            throw "Must provide at least one param to getVarsByCloudEnvironment";
         }
-        const apiUrl = '/user?' + apiParams.join("&");
+        const apiUrl = '/Config?' + apiParams.join("&");
 
         return await this.requestLabApi(apiUrl, accessToken);
     }

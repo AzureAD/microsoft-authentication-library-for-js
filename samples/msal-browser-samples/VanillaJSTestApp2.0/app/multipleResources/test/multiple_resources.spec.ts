@@ -3,7 +3,8 @@ import puppeteer from "puppeteer";
 import { expect } from "chai";
 import { Screenshot, createFolder, setupCredentials, getTokens, removeTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../../../e2eTestUtils/TestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
+import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
+import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let username = "";
 let accountPwd = "";
@@ -30,9 +31,12 @@ describe("Browser tests", function () {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE
+            azureEnvironment: AzureEnvironments.PPE,
+            appType: AppTypes.CLOUD
         };
-        [username, accountPwd] = await setupCredentials(labApiParams);
+
+        const labClient = new LabClient();
+        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         browser = await puppeteer.launch({
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']

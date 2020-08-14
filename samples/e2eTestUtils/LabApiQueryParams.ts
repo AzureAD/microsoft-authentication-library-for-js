@@ -3,5 +3,6 @@ export type LabApiQueryParams = {
     azureEnvironment?: string,
     federationProvider?: string,
     b2cProvider?: string,
-    homeDomain?: string
+    homeDomain?: string,
+    appType?: string
 };
