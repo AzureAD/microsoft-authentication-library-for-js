@@ -4,6 +4,7 @@ import { UrlString } from "../../src/url/UrlString";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { IUri } from "../../src/url/IUri";
 import sinon from "sinon";
+import { IdToken } from "../../src/account/IdToken";
 
 describe("UrlString.ts Class Unit Tests", () => {
 
@@ -120,10 +121,8 @@ describe("UrlString.ts Class Unit Tests", () => {
             "param2": "value2",
             "param3": "value3",
         };
-        const urlWithHash = TEST_URIS.TEST_AUTH_ENDPT + serializedHash;
-        const urlObjWithHash = new UrlString(urlWithHash);
 
-        expect(urlObjWithHash.getDeserializedHash()).to.be.deep.eq(deserializedHash);
+        expect(UrlString.getDeserializedHash(serializedHash)).to.be.deep.eq(deserializedHash);
     });
 
     it("getUrlComponents returns all path components", () => {
@@ -157,5 +156,33 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("hashContainsKnownProperties returns false if incorrect hash is given", () => {
         const exampleUnknownHash = "#param1=value1&param2=value2&param3=value3";
         expect(UrlString.hashContainsKnownProperties(exampleUnknownHash)).to.be.false;
+    });
+
+    describe("getDomainFromUrl tests", () => {
+        it("tests domain is returned when provided url includes protocol", () => {
+            expect(UrlString.getDomainFromUrl("https://domain.com")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("https://domain.com/")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("http://domain.com")).to.eq("domain.com");
+        });
+
+        it("tests domain is returned when only domain is provided", () => {
+            expect(UrlString.getDomainFromUrl("domain.com/")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("domain.com")).to.eq("domain.com");
+        });
+
+        it("tests domain is returned when provided url is not homepage", () => {
+            expect(UrlString.getDomainFromUrl("domain.com/page")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("domain.com/index.html")).to.eq("domain.com");
+        });
+
+        it("tests domain is returned when provided url includes hash", () => {
+            expect(UrlString.getDomainFromUrl("domain.com#customHash")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("domain.com/#customHash")).to.eq("domain.com");
+        });
+
+        it("tests domain is returned when provided url includes query string", () => {
+            expect(UrlString.getDomainFromUrl("domain.com?queryString=1")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("domain.com/?queryString=1")).to.eq("domain.com");
+        });
     });
 });

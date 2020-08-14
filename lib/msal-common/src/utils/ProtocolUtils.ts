@@ -13,10 +13,12 @@ import { ClientAuthError } from "../error/ClientAuthError";
  * Contains the following:
  * - id - unique identifier for this request
  * - ts - timestamp for the time the request was made. Used to ensure that token expiration is not calculated incorrectly.
+ * - platformState - string value sent from the platform.
  */
 export type LibraryStateObject = {
     id: string,
-    ts: number
+    ts: number,
+    meta?: Record<string, string>
 };
 
 /**
@@ -37,17 +39,17 @@ export class ProtocolUtils {
      * @param userState 
      * @param randomGuid 
      */
-    static setRequestState(userState: string, cryptoObj: ICrypto): string {
-        const libraryState = ProtocolUtils.generateLibraryState(cryptoObj);
+    static setRequestState(cryptoObj: ICrypto, userState?: string, meta?: Record<string, string>): string {
+        const libraryState = ProtocolUtils.generateLibraryState(cryptoObj, meta);
         return !StringUtils.isEmpty(userState) ? `${libraryState}${Constants.RESOURCE_DELIM}${userState}` : libraryState;
     }
 
     /**
-     * Generates the state value used by the library.
+     * Generates the state value used by the common library.
      * @param randomGuid 
      * @param cryptoObj 
      */
-    static generateLibraryState(cryptoObj: ICrypto): string {
+    static generateLibraryState(cryptoObj: ICrypto, meta?: Record<string, string>): string {
         if (!cryptoObj) {
             throw ClientAuthError.createNoCryptoObjectError("generateLibraryState");
         }
@@ -57,6 +59,10 @@ export class ProtocolUtils {
             id: cryptoObj.createNewGuid(),
             ts: TimeUtils.nowSeconds()
         };
+
+        if (meta) {
+            stateObj.meta = meta;
+        }
 
         const stateString = JSON.stringify(stateObj);
 
@@ -68,7 +74,7 @@ export class ProtocolUtils {
      * @param state 
      * @param cryptoObj 
      */
-    static parseRequestState(state: string, cryptoObj: ICrypto): RequestStateObject {
+    static parseRequestState(cryptoObj: ICrypto, state: string): RequestStateObject {
         if (!cryptoObj) {
             throw ClientAuthError.createNoCryptoObjectError("parseRequestState");
         }

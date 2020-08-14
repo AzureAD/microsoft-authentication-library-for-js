@@ -1,3 +1,18 @@
+# Change Log - msal
+
+This log was last generated on Fri, 07 Aug 2020 21:19:23 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+# 1.3.4
+
+## Bugs
+* Fix lowercase scopes issue (#1945)
+* Fix Redirect Error Callback (#1942)
+* Replace /organizations with tenant ID in replaceTenantPath (#1974)
+* Fix cache miss when common authority is provided (#2015)
+* Fix back button behavior (#2081)
+
 # 1.3.3
 
 ##  Enhancements
