@@ -1,13 +1,14 @@
 import { ClientSecretCredential, AccessToken } from "@azure/identity";
 import axios from "axios";
-const labApiUri = "https://msidlab.com/api"
+import { ENV_VARIABLES, LAB_SCOPE, LAB_API_ENDPOINT, ParamKeys } from "./Constants";
+import { LabApiParams } from "./LabApiParams";
 
 export class LabClient {
 
     private credentials: ClientSecretCredential;
     private currentToken: AccessToken;
     constructor() {
-        this.credentials = new ClientSecretCredential(process.env["AZURE_TENANT_ID"], process.env["AZURE_CLIENT_ID"], process.env["AZURE_CLIENT_SECRET"]);   
+        this.credentials = new ClientSecretCredential(process.env[ENV_VARIABLES.TENANT], process.env[ENV_VARIABLES.CLIENT_ID], process.env[ENV_VARIABLES.SECRET]);
     }
 
     private async getCurrentToken(): Promise<string> {
@@ -16,13 +17,13 @@ export class LabClient {
                 return this.currentToken.token;
             }
         }
-        this.currentToken = await this.credentials.getToken("https://msidlab.com/.default");
+        this.currentToken = await this.credentials.getToken(LAB_SCOPE);
         return this.currentToken.token;
     }
 
     private async requestLabApi(endpoint: string, accessToken: string): Promise<any> {
         try {
-            const response = await axios(`${labApiUri}${endpoint}`, {
+            const response = await axios(`${LAB_API_ENDPOINT}${endpoint}`, {
                 headers: {
                     "Authorization": `Bearer ${accessToken}`
                 }
@@ -35,19 +36,23 @@ export class LabClient {
         return null;
     }
 
-    async getUserVarsByCloudEnvironment(envName: string, usertype?: string, federationprovider?:string): Promise<any> {
+    async getUserVarsByCloudEnvironment(labApiParams: LabApiParams): Promise<any> {
         const accessToken = await this.getCurrentToken();
         let apiParams: Array<string> = [];
 
 
-        if (envName) {
-            apiParams.push(`azureenvironment=${envName}`);
+        if (labApiParams.envName) {
+            apiParams.push(`${ParamKeys.ENVIRONMENT}=${labApiParams.envName}`);
         }
-        if (usertype) {
-            apiParams.push(`usertype=${usertype}`);
+        if (labApiParams.userType) {
+            apiParams.push(`${ParamKeys.USER_TYPE}=${labApiParams.userType}`);
         }
-        if (federationprovider) {
-            apiParams.push(`federationprovider=${federationprovider}`);
+        if (labApiParams.federationProvider) {
+            apiParams.push(`${ParamKeys.FEDERATION_PROVIDER}=${labApiParams.federationProvider}`);
+        }
+
+        if (labApiParams.b2cProvider) {
+            apiParams.push(`${ParamKeys.B2C_PROVIDER}=${labApiParams.b2cProvider}`)
         }
 
         if (apiParams.length <= 0) {

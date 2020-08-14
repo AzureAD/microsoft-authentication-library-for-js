@@ -2,6 +2,7 @@ import fs from "fs";
 import puppeteer from "puppeteer";
 import { LabClient } from "./LabClient";
 import { expect } from 'chai';
+import { LabApiParams } from "./LabApiParams";
 
 export class Screenshot {
     private folderName: string;
@@ -24,11 +25,11 @@ export function createFolder(foldername: string) {
     }
 }
 
-export async function setupCredentials(envName: string, usertype?: string, federationprovider?:string): Promise<[string, string]> {
+export async function setupCredentials(labApiParams: LabApiParams): Promise<[string, string]> {
     let username = "";
     let accountPwd = "";
     const testCreds = new LabClient();
-    const envResponse = await testCreds.getUserVarsByCloudEnvironment(envName, usertype, federationprovider);
+    const envResponse = await testCreds.getUserVarsByCloudEnvironment(labApiParams);
     const testEnv = envResponse[0];
     if (testEnv.upn) {
         username = testEnv.upn;

@@ -31,6 +31,8 @@
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN"
   },
   "dependencies": {
-    "@babel/register": "^7.7.0"
+    "@babel/register": "^7.7.0",
+    "express": "^4.17.1",
+    "morgan": "^1.10.0"
   }
 }
