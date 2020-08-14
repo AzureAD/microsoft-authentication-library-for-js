@@ -47,6 +47,8 @@ describe("Browser tests", function () {
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        
         browser = await puppeteer.launch({
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
