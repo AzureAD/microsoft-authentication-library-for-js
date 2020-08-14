@@ -335,7 +335,7 @@ export abstract class CacheManager implements ICacheManager {
         const allCacheKeys = this.getKeys();
         allCacheKeys.forEach((cacheKey) => {
             if (this.isAppMetadata(cacheKey)) {
-                this.removeItem(cacheKey, CacheSchemaType.APP_META_DATA);
+                this.removeItem(cacheKey, CacheSchemaType.APP_METADATA);
             }
         });
 
