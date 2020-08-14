@@ -32,7 +32,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  */
 export type AuthorizationUrlRequest = BaseAuthRequest & {
-    authenticationType?: AuthenticationType,
+    authenticationScheme?: AuthenticationType,
     redirectUri?: string;
     extraScopesToConsent?: Array<string>;
     responseMode?: ResponseMode;
