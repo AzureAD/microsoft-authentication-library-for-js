@@ -165,7 +165,6 @@ export class BrowserCrypto {
         return new Promise((resolve: any, reject: any) => {
             const msExportKey = window["msCrypto"].subtle.exportKey(format, key);
             msExportKey.addEventListener("complete", (e: { target: { result: ArrayBuffer; }; }) => {
-                // TODO: Check with Jason for details?
                 const resultBuffer: ArrayBuffer = e.target.result;
 
                 const resultString = BrowserStringUtils.utf8ArrToString(new Uint8Array(resultBuffer))
