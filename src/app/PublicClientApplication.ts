@@ -64,9 +64,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Network interface implementation
     private readonly networkClient: INetworkModule;
 
-    // Response promise
-    private readonly tokenExchangePromise: Promise<AuthenticationResult>;
-
     // Input configuration by developer/user
     private config: Configuration;
 
