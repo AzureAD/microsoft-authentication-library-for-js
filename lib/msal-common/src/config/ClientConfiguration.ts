@@ -145,6 +145,10 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     async generatePkceCodes(): Promise<PkceCodes> {
         const notImplErr = "Crypto interface - generatePkceCodes() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getPublicKeyThumprint(): Promise<string> {
+        const notImplErr = "Crypto interface - getPublicKeyThumprint() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 

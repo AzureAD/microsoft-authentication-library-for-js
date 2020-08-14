@@ -1,12 +1,29 @@
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
+ * 
  */
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-
+import { StringUtils } from "@azure/msal-common";
+/**
+ * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
+ */
+// RSA KeyGen Algorithm
+const PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5";
 // SHA-256 hashing algorithm
-const HASH_ALG = "SHA-256";
+const S256_HASH_ALG = "SHA-256";
+// MOD length for PoP tokens
+const MODULUS_LENGTH = 2048;
+// Public Exponent
+const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
+
+/**
+ * Used for exporting keys
+ */
+export enum KeyFormat {
+    jwk = "jwk"
+}
 
 /**
  * This class implements functions used by the browser library to perform cryptography operations such as
@@ -14,10 +31,25 @@ const HASH_ALG = "SHA-256";
  */
 export class BrowserCrypto {
 
-    constructor() {
+    private _keygenAlgorithmOptions: RsaHashedKeyGenParams;
+
+    constructor(keygenAlgName?: string, hashAlg?: string, modLength?: number, publicExp?: Uint8Array) {
         if (!(this.hasCryptoAPI())) {
             throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.");
         }
+
+        const keygenConfigName: string = StringUtils.isEmpty(keygenAlgName) ? PKCS1_V15_KEYGEN_ALG : keygenAlgName;
+        const keygenConfigHash: string = StringUtils.isEmpty(hashAlg) ? S256_HASH_ALG : hashAlg;
+        const keygenConfigModulusLength: number = modLength ? modLength : MODULUS_LENGTH;
+        const keygenConfigPublicExponent: Uint8Array = publicExp ? publicExp : PUBLIC_EXPONENT;
+
+        this._keygenAlgorithmOptions = {
+            name: keygenConfigName,
+            hash: keygenConfigHash,
+            modulusLength: keygenConfigModulusLength,
+            publicExponent: keygenConfigPublicExponent
+        };
+        console.log(this._keygenAlgorithmOptions);
     }
 
     /**
@@ -27,7 +59,7 @@ export class BrowserCrypto {
     async sha256Digest(dataString: string): Promise<ArrayBuffer> {
         const data = BrowserStringUtils.stringToUtf8Arr(dataString);
 
-        return this.hasIECrypto() ? this.getMSCryptoDigest(HASH_ALG, data) : this.getSubtleCryptoDigest(HASH_ALG, data);
+        return this.hasIECrypto() ? this.getMSCryptoDigest(S256_HASH_ALG, data) : this.getSubtleCryptoDigest(S256_HASH_ALG, data);
     }
 
     /**
@@ -40,6 +72,35 @@ export class BrowserCrypto {
             throw BrowserAuthError.createCryptoNotAvailableError("getRandomValues does not exist.");
         }
         cryptoObj.getRandomValues(dataBuffer);
+    }
+
+    /**
+     * Generates a keypair based on current keygen algorithm config.
+     * @param extractable 
+     * @param usages 
+     */
+    async generateKeyPair(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
+        return (
+            this.hasIECrypto() ? 
+                this.msCryptoGenerateKey(extractable, usages) 
+                : window.crypto.subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages)
+        ) as Promise<CryptoKeyPair>;
+    }
+
+    /**
+     * Export key as given KeyFormat (see above)
+     * @param key 
+     * @param format 
+     */
+    async exportKey(key: CryptoKey, format: KeyFormat): Promise<JsonWebKey> {
+        return this.hasIECrypto() ? this.msCryptoExportKey(key, format) : window.crypto.subtle.exportKey(format, key);
+    }
+
+    /**
+     * Check whether IE crypto or other browser cryptography is available.
+     */
+    private hasCryptoAPI(): boolean {
+        return this.hasIECrypto() || this.hasBrowserCrypto();
     }
 
     /**
@@ -57,13 +118,6 @@ export class BrowserCrypto {
     }
 
     /**
-     * Check whether IE crypto or other browser cryptography is available.
-     */
-    private hasCryptoAPI(): boolean {
-        return this.hasIECrypto() || this.hasBrowserCrypto();
-    }
-
-    /**
      * Helper function for SHA digest.
      * @param algorithm 
      * @param data 
@@ -73,7 +127,7 @@ export class BrowserCrypto {
     }
 
     /**
-     * Helper function for SHA digest.
+     * IE Helper function for SHA digest.
      * @param algorithm 
      * @param data 
      */
@@ -87,5 +141,58 @@ export class BrowserCrypto {
                 reject(error);
             });
         });
+    }
+
+    private async msCryptoGenerateKey(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
+        return new Promise((resolve: any, reject: any) => {
+            const msGenerateKey = window["msCrypto"].subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages);
+            msGenerateKey.addEventListener("complete", (e: { target: { result: CryptoKeyPair | PromiseLike<CryptoKeyPair>; }; }) => {
+                resolve(e.target.result);
+            });
+
+            msGenerateKey.addEventListener("error", (error: any) => {
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * IE Helper function for exporting keys
+     * @param key 
+     * @param format 
+     */
+    private async msCryptoExportKey(key: CryptoKey, format: KeyFormat): Promise<JsonWebKey> {
+        return new Promise((resolve: any, reject: any) => {
+            const msExportKey = window["msCrypto"].subtle.exportKey(format, key);
+            msExportKey.addEventListener("complete", (e: { target: { result: ArrayBuffer; }; }) => {
+                // TODO: Check with Jason for details?
+                const resultBuffer: ArrayBuffer = e.target.result;
+
+                const resultString = BrowserStringUtils.utf8ArrToString(new Uint8Array(resultBuffer))
+                    .replace(/\r/g, "")
+                    .replace(/\n/g, "")
+                    .replace(/\t/g, "")
+                    .split(" ").join("")
+                    .replace("\u0000", "");
+
+                try {
+                    resolve(JSON.parse(resultString));
+                } catch (e) {
+                    reject(e);
+                }
+            });
+
+            msExportKey.addEventListener("error", (error: any) => {
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * Returns stringified jwk.
+     * @param jwk 
+     */
+    static getJwkString(jwk: JsonWebKey): string {
+        return JSON.stringify(jwk, Object.keys(jwk).sort());
     }
 }
