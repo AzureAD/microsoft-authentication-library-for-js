@@ -291,7 +291,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    loginPopup(request: PopupRequest): Promise<AuthenticationResult> {
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
