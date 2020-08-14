@@ -27,7 +27,7 @@ export class PopTokenGenerator {
 
     async generateCnf(): Promise<string> {
         const reqCnf: ReqCnf = {
-            kid: await this.cryptoUtils.generatePoPThumbprint(),
+            kid: await this.cryptoUtils.getPublicKeyThumprint(),
             xms_ksl: KeyLocation.SW
         };
 
