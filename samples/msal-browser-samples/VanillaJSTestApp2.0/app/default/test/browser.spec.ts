@@ -2,7 +2,8 @@ import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
 import { Screenshot, createFolder, setupCredentials, getTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../../../e2eTestUtils/TestUtils";
-import { LabApiParams } from "../../../../../e2eTestUtils/LabApiParams";
+import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
+import { AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = 'http://localhost:30662/';
@@ -38,8 +39,8 @@ describe("Browser tests", function () {
     let browser: puppeteer.Browser;
     before(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
-        const labApiParams: LabApiParams = {
-            envName: "azureppe"
+        const labApiParams: LabApiQueryParams = {
+            azureEnvironment: AzureEnvironments.PPE
         };
         [username, accountPwd] = await setupCredentials(labApiParams);
         browser = await puppeteer.launch({

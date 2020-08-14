@@ -1,7 +1,7 @@
 import { ClientSecretCredential, AccessToken } from "@azure/identity";
 import axios from "axios";
 import { ENV_VARIABLES, LAB_SCOPE, LAB_API_ENDPOINT, ParamKeys } from "./Constants";
-import { LabApiParams } from "./LabApiParams";
+import { LabApiQueryParams } from "./LabApiQueryParams";
 
 export class LabClient {
 
@@ -36,13 +36,13 @@ export class LabClient {
         return null;
     }
 
-    async getUserVarsByCloudEnvironment(labApiParams: LabApiParams): Promise<any> {
+    async getUserVarsByCloudEnvironment(labApiParams: LabApiQueryParams): Promise<any> {
         const accessToken = await this.getCurrentToken();
         let apiParams: Array<string> = [];
 
 
-        if (labApiParams.envName) {
-            apiParams.push(`${ParamKeys.ENVIRONMENT}=${labApiParams.envName}`);
+        if (labApiParams.azureEnvironment) {
+            apiParams.push(`${ParamKeys.AZURE_ENVIRONMENT}=${labApiParams.azureEnvironment}`);
         }
         if (labApiParams.userType) {
             apiParams.push(`${ParamKeys.USER_TYPE}=${labApiParams.userType}`);
