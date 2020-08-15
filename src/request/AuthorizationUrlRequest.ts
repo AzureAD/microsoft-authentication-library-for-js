@@ -34,7 +34,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type AuthorizationUrlRequest = BaseAuthRequest & {
-    authenticationScheme?: AuthenticationType,
+    authenticationScheme?: AuthenticationType;
     redirectUri?: string;
     extraScopesToConsent?: Array<string>;
     responseMode?: ResponseMode;
