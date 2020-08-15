@@ -34,12 +34,10 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(
+        return await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority
         );
-
-        return tokenResponse;
     }
 
     private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)

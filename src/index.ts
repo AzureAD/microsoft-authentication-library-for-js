@@ -7,8 +7,8 @@ export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS } fro
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { AccountInfo } from "./account/AccountInfo";
-export { IdToken } from "./account/IdToken";
-export { IdTokenClaims } from "./account/IdTokenClaims";
+export { JwtToken as IdToken } from "./account/JwtToken";
+export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
 export { CloudDiscoveryMetadata } from "./authority/CloudDiscoveryMetadata";
@@ -31,7 +31,7 @@ export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
 export { ICrypto, PkceCodes } from "./crypto/ICrypto";
-
+export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
