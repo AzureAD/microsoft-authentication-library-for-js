@@ -30,8 +30,6 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - extraQueryParameters       - String to string map of custom query parameters.
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
- * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
- * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type AuthorizationUrlRequest = BaseAuthRequest & {
     authenticationScheme?: AuthenticationType,

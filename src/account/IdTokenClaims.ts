@@ -6,7 +6,7 @@
 /**
  * Type which describes Id Token claims known by MSAL.
  */
-export type TokenClaims = {
+export type IdTokenClaims = {
     iss?: string,
     oid?: string,
     sub?: string,
@@ -19,8 +19,5 @@ export type TokenClaims = {
     exp?: number,
     home_oid?: string,
     sid?: string,
-    cloud_instance_host_name?: string,
-    cnf?: {
-        kid: string;
-    };
+    cloud_instance_host_name?: string
 };

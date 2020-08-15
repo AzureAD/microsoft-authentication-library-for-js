@@ -15,8 +15,6 @@ import { AuthenticationType } from "../utils/Constants";
  * - redirectUri             - The redirect URI of your app, where the authority will redirect to after the user inputs credentials and consents. It must exactly match one of the redirect URIs you registered in the portal.
  * - code                    - The authorization_code that the user acquired in the first leg of the flow.
  * - codeVerifier            - The same code_verifier that was used to obtain the authorization_code. Required if PKCE was used in the authorization code grant request.For more information, see the PKCE RFC: https://tools.ietf.org/html/rfc7636
- * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
- * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type AuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;

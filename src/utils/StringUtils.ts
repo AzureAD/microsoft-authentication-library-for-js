@@ -17,12 +17,12 @@ export class StringUtils {
      */
     static decodeJwt(jwtToken: string): DecodedJwt {
         if (StringUtils.isEmpty(jwtToken)) {
-            throw ClientAuthError.createTokenNullOrEmptyError(jwtToken);
+            throw ClientAuthError.createIdTokenNullOrEmptyError(jwtToken);
         }
         const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
         const matches = idTokenPartsRegex.exec(jwtToken);
         if (!matches || matches.length < 4) {
-            throw ClientAuthError.createTokenParsingError(`Given token is malformed: ${JSON.stringify(jwtToken)}`);
+            throw ClientAuthError.createIdTokenParsingError(`Given token is malformed: ${JSON.stringify(jwtToken)}`);
         }
         const crackedToken: DecodedJwt = {
             header: matches[1],
