@@ -49,6 +49,7 @@ export class BrowserCrypto {
             modulusLength: keygenConfigModulusLength,
             publicExponent: keygenConfigPublicExponent
         };
+        console.log(this._keygenAlgorithmOptions);
     }
 
     /**
@@ -93,33 +94,6 @@ export class BrowserCrypto {
      */
     async exportKey(key: CryptoKey, format: KeyFormat): Promise<JsonWebKey> {
         return this.hasIECrypto() ? this.msCryptoExportKey(key, format) : window.crypto.subtle.exportKey(format, key);
-    }
-
-    /**
-     * Imports key as given KeyFormat, can set extractable and usages.
-     * @param key 
-     * @param format 
-     * @param extractable 
-     * @param usages 
-     */
-    async importKey(key: JsonWebKey, format: KeyFormat, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
-        const keyString = BrowserCrypto.getJwkString(key);
-        const keyBuffer = BrowserStringUtils.stringToArrayBuffer(keyString);
-
-        return this.hasIECrypto() ? 
-            this.msCryptoImportKey(keyBuffer, format, extractable, usages) 
-            : window.crypto.subtle.importKey(format, key, this._keygenAlgorithmOptions, extractable, usages);
-    }
-
-    /**
-     * Signs given data with given key
-     * @param key 
-     * @param data 
-     */
-    async sign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
-        return this.hasIECrypto() ?
-            this.msCryptoSign(key, data)
-            : window.crypto.subtle.sign(this._keygenAlgorithmOptions, key, data);
     }
 
     /**
@@ -169,11 +143,6 @@ export class BrowserCrypto {
         });
     }
 
-    /**
-     * IE Helper function for generating a keypair
-     * @param extractable 
-     * @param usages 
-     */
     private async msCryptoGenerateKey(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
         return new Promise((resolve: any, reject: any) => {
             const msGenerateKey = window["msCrypto"].subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages);
@@ -188,7 +157,7 @@ export class BrowserCrypto {
     }
 
     /**
-     * IE Helper function for exportKey
+     * IE Helper function for exporting keys
      * @param key 
      * @param format 
      */
@@ -213,44 +182,6 @@ export class BrowserCrypto {
             });
 
             msExportKey.addEventListener("error", (error: any) => {
-                reject(error);
-            });
-        });
-    }
-
-    /**
-     * IE Helper function for importKey
-     * @param key 
-     * @param format 
-     * @param extractable 
-     * @param usages 
-     */
-    private async msCryptoImportKey(keyBuffer: ArrayBuffer, format: KeyFormat, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
-        return new Promise((resolve: any, reject: any) => {
-            const msImportKey = window["msCrypto"].subtle.importKey(format, keyBuffer, this._keygenAlgorithmOptions, extractable, usages);
-            msImportKey.addEventListener("complete", (e: { target: { result: CryptoKey | PromiseLike<CryptoKey>; }; }) => {
-                resolve(e.target.result);
-            });
-
-            msImportKey.addEventListener("error", (error: any) => {
-                reject(error);
-            });
-        });
-    }
-
-    /**
-     * IE Helper function for sign JWT
-     * @param key 
-     * @param data 
-     */
-    private async msCryptoSign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
-        return new Promise((resolve: any, reject: any) => {
-            const msSign = window["msCrypto"].subtle.sign(this._keygenAlgorithmOptions, key, data);
-            msSign.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
-                resolve(e.target.result);
-            });
-
-            msSign.addEventListener("error", (error: any) => {
                 reject(error);
             });
         });
