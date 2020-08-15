@@ -10,9 +10,10 @@ import { Authority, NetworkResponse } from "..";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType } from "../utils/Constants";
+import { GrantType, AuthenticationType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 
 /**
  * OAuth2.0 refresh token client
@@ -36,20 +37,24 @@ export class RefreshTokenClient extends BaseClient {
         responseHandler.validateTokenResponse(response.body);
         return await responseHandler.handleServerTokenResponse(
             response.body,
-            this.authority
+            this.authority,
+            "",
+            "",
+            request.resourceRequestMethod,
+            request.resourceRequestUri
         );
     }
 
     private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
-        const requestBody = this.createTokenRequestBody(request);
+        const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }
 
-    private createTokenRequestBody(request: RefreshTokenRequest): string {
+    private async createTokenRequestBody(request: RefreshTokenRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -74,6 +79,11 @@ export class RefreshTokenClient extends BaseClient {
             const clientAssertion = this.config.clientCredentials.clientAssertion;
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        }
+
+        if (request.authenticationScheme === AuthenticationType.POP) {
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
         }
 
         return parameterBuilder.createQueryString();
