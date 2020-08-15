@@ -249,7 +249,7 @@ export class RequestParameterBuilder {
      * add pop_jwk to query params
      * @param cnfString 
      */
-    addPopToken(cnfString: string) {
+    addPopToken(cnfString: string): void {
         if (!StringUtils.isEmpty(cnfString)) {
             this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationType.POP);
             this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(cnfString));

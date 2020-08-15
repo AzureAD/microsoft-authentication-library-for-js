@@ -149,6 +149,10 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     async getPublicKeyThumprint(): Promise<string> {
         const notImplErr = "Crypto interface - getPublicKeyThumprint() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async signJwt(): Promise<string> {
+        const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 
