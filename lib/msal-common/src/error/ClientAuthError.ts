@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { AuthError } from "./AuthError";
-import { JwtToken } from "../account/JwtToken";
+import { IdToken } from "../account/IdToken";
 import { ScopeSet } from "../request/ScopeSet";
 
 /**
@@ -18,13 +18,13 @@ export const ClientAuthErrorMessage = {
         code: "client_info_empty_error",
         desc: "The client info was empty. Please review the trace to determine the root cause."
     },
-    tokenParsingError: {
-        code: "token_parsing_error",
-        desc: "Token cannot be parsed. Please review stack trace to determine root cause."
+    idTokenParsingError: {
+        code: "id_token_parsing_error",
+        desc: "ID token cannot be parsed. Please review stack trace to determine root cause."
     },
-    nullOrEmptyToken: {
-        code: "null_or_empty_token",
-        desc: "The token is null or empty. Please review the trace to determine the root cause."
+    nullOrEmptyIdToken: {
+        code: "null_or_empty_id_token",
+        desc: "The idToken is null or empty. Please review the trace to determine the root cause."
     },
     endpointResolutionError: {
         code: "endpoints_resolution_error",
@@ -191,18 +191,18 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the id token extraction errors out.
      * @param err
      */
-    static createTokenParsingError(caughtExtractionError: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.tokenParsingError.code,
-            `${ClientAuthErrorMessage.tokenParsingError.desc} Failed with error: ${caughtExtractionError}`);
+    static createIdTokenParsingError(caughtExtractionError: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.idTokenParsingError.code,
+            `${ClientAuthErrorMessage.idTokenParsingError.desc} Failed with error: ${caughtExtractionError}`);
     }
 
     /**
      * Creates an error thrown when the id token string is null or empty.
      * @param invalidRawTokenString
      */
-    static createTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyToken.code,
-            `${ClientAuthErrorMessage.nullOrEmptyToken.desc} Raw ID Token Value: ${invalidRawTokenString}`);
+    static createIdTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyIdToken.code,
+            `${ClientAuthErrorMessage.nullOrEmptyIdToken.desc} Raw ID Token Value: ${invalidRawTokenString}`);
     }
 
     /**
@@ -268,7 +268,7 @@ export class ClientAuthError extends AuthError {
      * Throws error if idToken is not correctly formed
      * @param idToken
      */
-    static createInvalidIdTokenError(idToken: JwtToken) : ClientAuthError {
+    static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidIdToken.code,
             `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${JSON.stringify(idToken)}`);
     }

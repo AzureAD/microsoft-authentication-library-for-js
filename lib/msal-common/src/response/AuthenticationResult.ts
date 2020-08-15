@@ -30,7 +30,6 @@ export type AuthenticationResult = {
     accessToken: string;
     fromCache: boolean;
     expiresOn: Date;
-    tokenType: string;
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;
