@@ -12,7 +12,7 @@ import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
-import { IdToken } from "../account/IdToken";
+import { JwtToken } from "../account/JwtToken";
 import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
@@ -77,14 +77,22 @@ export class SilentFlowClient extends BaseClient {
         // Return tokens from cache
         this.config.serverTelemetryManager.incrementCacheHits();
         const cachedIdToken = this.readIdTokenFromCache(homeAccountId, environment, cachedAccount.realm);
-        const idTokenObj = new IdToken(cachedIdToken.secret, this.config.cryptoInterface);
+        const idTokenObj = new JwtToken(cachedIdToken.secret, this.config.cryptoInterface);
 
-        return ResponseHandler.generateAuthenticationResult({
-            account: cachedAccount,
-            accessToken: cachedAccessToken,
-            idToken: cachedIdToken,
-            refreshToken: cachedRefreshToken
-        }, idTokenObj, true);
+        return await ResponseHandler.generateAuthenticationResult(
+            this.cryptoUtils,
+            {
+                account: cachedAccount,
+                accessToken: cachedAccessToken,
+                idToken: cachedIdToken,
+                refreshToken: cachedRefreshToken 
+            },
+            idTokenObj, 
+            true,
+            null,
+            request.resourceRequestMethod,
+            request.resourceRequestUri
+        );
     }
 
     /**
