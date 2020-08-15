@@ -10,7 +10,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
-import { IdToken } from "../account/IdToken";
+import { JwtToken } from "../account/JwtToken";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AuthenticationResult } from "./AuthenticationResult";
@@ -25,6 +25,8 @@ import { CacheRecord } from "../cache/entities/CacheRecord";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
+import { AuthenticationType } from "../utils/Constants";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 
 /**
  * Class that handles response parsing.
@@ -98,9 +100,15 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): AuthenticationResult {
+    async handleServerTokenResponse(
+        serverTokenResponse: ServerAuthorizationTokenResponse, 
+        authority: Authority, 
+        cachedNonce?: string, 
+        cachedState?: string, 
+        resourceRequestMethod?: string, 
+        resourceRequestUri?: string): Promise<AuthenticationResult> {
         // create an idToken object (not entity)
-        const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
+        const idTokenObj = new JwtToken(serverTokenResponse.id_token, this.cryptoObj);
 
         // token nonce check (TODO: Add a warning if no nonce is given?)
         if (!StringUtils.isEmpty(cachedNonce)) {
@@ -118,7 +126,7 @@ export class ResponseHandler {
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
         this.cacheStorage.saveCacheRecord(cacheRecord);
 
-        return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
+        return await ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
     /**
@@ -127,7 +135,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: JwtToken, authority: Authority, libraryState?: LibraryStateObject): CacheRecord {
         // Account
         const cachedAccount  = this.generateAccountEntity(
             serverTokenResponse,
@@ -175,7 +183,8 @@ export class ResponseHandler {
                 idTokenObj.claims.tid,
                 responseScopes.printScopesLowerCase(),
                 tokenExpirationSeconds,
-                extendedTokenExpirationSeconds
+                extendedTokenExpirationSeconds,
+                serverTokenResponse.token_type
             );
         }
 
@@ -200,7 +209,7 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
+    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: JwtToken, authority: Authority): AccountEntity {
         const authorityType = authority.authorityType;
 
         if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
@@ -222,33 +231,41 @@ export class ResponseHandler {
      * @param fromTokenCache 
      * @param stateString 
      */
-    static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, requestState?: RequestStateObject): AuthenticationResult {
+    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, idTokenObj: JwtToken, fromTokenCache: boolean, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date = null;
         let extExpiresOn: Date = null;
         let familyId: string = null;
         if (cacheRecord.accessToken) {
-            accessToken = cacheRecord.accessToken.secret;
+            if (cacheRecord.accessToken.tokenType === AuthenticationType.POP) {
+                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
+                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, resourceRequestMethod, resourceRequestUri);
+            } else {
+                accessToken = cacheRecord.accessToken.secret;
+            }
             responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target).asArray();
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
         }
+
         if (cacheRecord.refreshToken) {
             familyId = cacheRecord.refreshToken.familyId || null;
         }
+
         return {
             uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
             tenantId: idTokenObj.claims.tid,
             scopes: responseScopes,
             account: cacheRecord.account.getAccountInfo(),
-            idToken: idTokenObj.rawIdToken,
+            idToken: idTokenObj.rawToken,
             idTokenClaims: idTokenObj.claims,
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
+            tokenType: cacheRecord.accessToken.tokenType,
             state: requestState ? requestState.userRequestState : ""
         };
     }
