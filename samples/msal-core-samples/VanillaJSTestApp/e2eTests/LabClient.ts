@@ -55,6 +55,9 @@ export class LabClient {
         if (apiParams.b2cProvider) {
             queryParams.push(`b2cprovider=${apiParams.b2cProvider}`);
         }
+        if (apiParams.federationProvider) {
+            queryParams.push(`federationprovider=${apiParams.federationProvider}`);
+        }
 
         if (queryParams.length <= 0) {
             throw "Must provide at least one param to getUserVarsByCloudEnvironment";
