@@ -51,7 +51,7 @@ export type CacheOptions = {
  * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup
  * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe
  * - loadFrameTimeout             - Maximum time the library should wait for a frame to load
- * - asyncPopup               - When set to false, blank popup is opened before anything else happens. When set to true, popup is opened when making the network request.
+ * - asyncPopup                   - Sets whether popup is open as soon as loginPopup is called. By default, this flag is set to false. When set to false, blank popup is opened before anything else happens. When set to true, popup is opened when making the network request.
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
