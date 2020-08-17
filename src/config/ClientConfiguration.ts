@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { ICacheStorage } from "../cache/ICacheStorage";
 import { INetworkModule } from "../network/INetworkModule";
 import { ICrypto, PkceCodes } from "../crypto/ICrypto";
 import { AuthError } from "../error/AuthError";
@@ -11,6 +10,8 @@ import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
+import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -19,61 +20,57 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
  *
  * This object allows you to configure important elements of MSAL functionality:
- * - logger: logging for application
- * - storage: this is where you configure storage implementation.
- * - network: this is where you can configure network implementation.
- * - crypto: implementation of crypto functions
+ * - authOptions                - Authentication for application
+ * - cryptoInterface            - Implementation of crypto functions
+ * - libraryInfo                - Library metadata
+ * - loggerOptions              - Logging for application
+ * - networkInterface           - Network implementation
+ * - storageInterface           - Storage implementation
+ * - systemOptions              - Additional library options
+ * - clientCredentials          - Credentials options for confidential clients
  */
 export type ClientConfiguration = {
     authOptions: AuthOptions,
     systemOptions?: SystemOptions,
     loggerOptions?: LoggerOptions,
-    storageInterface?: ICacheStorage,
+    storageInterface?: CacheManager,
     networkInterface?: INetworkModule,
     cryptoInterface?: ICrypto,
+    clientCredentials?: ClientCredentials,
     libraryInfo?: LibraryInfo
+    serverTelemetryManager?: ServerTelemetryManager
 };
 
 /**
- * @type AuthOptions: Use this to configure the auth options in the Configuration object
+ * Use this to configure the auth options in the ClientConfiguration object
  *
- *  - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
- *  - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
+ * - clientId                    - Client ID of your app registered with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview in Microsoft Identity Platform
+ * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
+ * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
+ * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
  */
 export type AuthOptions = {
     clientId: string;
     authority?: Authority;
     knownAuthorities?: Array<string>;
-    redirectUri?: string | (() => string);
-    postLogoutRedirectUri?: string | (() => string);
+    cloudDiscoveryMetadata?: string;
 };
 
 /**
- * Telemetry Config Options
- * - applicationName              - Name of the consuming apps application
- * - applicationVersion           - Version of the consuming application
- * - telemetryEmitter             - Function where telemetry events are flushed to
- */
-export type TelemetryOptions = {
-    applicationName: string;
-    applicationVersion: string;
-    // TODO, add onlyAddFailureTelemetry option
-};
-
-/**
- * Library Specific Options
+ * Use this to configure token renewal info in the Configuration object
  *
- * - tokenRenewalOffsetSeconds    - sets the window of offset needed to renew the token before expiry
- * - telemetry                    - Telemetry options for library network requests
+ * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
  */
 export type SystemOptions = {
-    storeInMemory?: boolean;
     tokenRenewalOffsetSeconds?: number;
-    telemetry?: TelemetryOptions;
 };
 
 /**
- * Logger options to configure the logging that MSAL does.
+ *  Use this to configure the logging that MSAL does, by configuring logger options in the Configuration object
+ *
+ * - loggerCallback                - Callback for logger
+ * - piiLoggingEnabled             - Sets whether pii logging is enabled
+ * - logLevel                      - Sets the level at which logging happens
  */
 export type LoggerOptions = {
     loggerCallback?: ILoggerCallback,
@@ -82,7 +79,7 @@ export type LoggerOptions = {
 };
 
 /**
- * Telemetry info about library
+ * Library-specific options
  */
 export type LibraryInfo = {
     sku: string,
@@ -91,18 +88,26 @@ export type LibraryInfo = {
     os: string
 };
 
+/**
+ * Credentials for confidential clients
+ */
+export type ClientCredentials = {
+    clientSecret?: string,
+    clientAssertion? : {
+        assertion: string,
+        assertionType: string
+    };
+};
+
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
-    redirectUri: "",
-    postLogoutRedirectUri: ""
+    cloudDiscoveryMetadata: ""
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
-    storeInMemory: true,
-    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    telemetry: null
+    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
@@ -111,41 +116,6 @@ const DEFAULT_LOGGER_IMPLEMENTATION: LoggerOptions = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info
-};
-
-const DEFAULT_STORAGE_IMPLEMENTATION: ICacheStorage = {
-    clear: () => {
-        const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    containsKey: (): boolean => {
-        const notImplErr = "Storage interface - containsKey() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    getItem: (): object => {
-        const notImplErr = "Storage interface - getItem() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    getKeys: (): string[] => {
-        const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    removeItem: () => {
-        const notImplErr = "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    setItem: () => {
-        const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    getCache: (): object => {
-        const notImplErr = "Storage interface - getCache() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    setCache: () => {
-        const notImplErr = "Storage interface - setCache() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    }
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -185,6 +155,11 @@ const DEFAULT_LIBRARY_INFO: LibraryInfo = {
     os: ""
 };
 
+const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
+    clientSecret: "",
+    clientAssertion: null
+};
+
 /**
  * Function that sets the default options when not explicitly configured from app developer
  *
@@ -200,15 +175,19 @@ export function buildClientConfiguration(
         storageInterface: storageImplementation,
         networkInterface: networkImplementation,
         cryptoInterface: cryptoImplementation,
-        libraryInfo: libraryInfo
+        clientCredentials: clientCredentials,
+        libraryInfo: libraryInfo,
+        serverTelemetryManager: serverTelemetryManager
     } : ClientConfiguration): ClientConfiguration {
     return {
         authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption },
-        storageInterface: storageImplementation || DEFAULT_STORAGE_IMPLEMENTATION,
+        storageInterface: storageImplementation || new DefaultStorageClass(),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
-        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo }
+        clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
+        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
+        serverTelemetryManager: serverTelemetryManager || null
     };
 }

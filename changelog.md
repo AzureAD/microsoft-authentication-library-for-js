@@ -1,3 +1,67 @@
+# Change Log - @azure/msal-common
+
+This log was last generated on Thu, 13 Aug 2020 02:20:48 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+## 1.1.1
+
+Thu, 13 Aug 2020 02:20:48 GMT
+
+### Patches
+
+- knownAuthorities enhancements (#2106) (thomas.l.norling@gmail.com)
+- Update typing of IdTokenClaims (#2105) (hemoral@microsoft.com)
+- Fix hash parsing issue from #2118 and back button cache clearing (#2129) (prkanher@microsoft.com)
+
+# 1.1.0
+## Breaking Changes
+- None
+
+## Features and Fixes
+- Decode state from URI Encoding before comparing (#2049)
+- getAllAccounts() returns empty array instead of `null` (#2059)
+- Updated the `UrlString.canonicalizeUri()` API to be static (#2078)
+- Add sid to `AuthorizationUrlRequest` and as part of request parameters sent to server (#2030)
+- Enable server telemetry headers to be formatted and sent in every request (#1917)
+- Enable platform level state information to be sent and read through the request state (#2045)
+- Add the confidential client flow (#2023)
+
+# 1.0.0
+## Breaking Changes
+- None
+
+## Features and Fixes
+- Fixed an issue where scopes were being made lower case before being sent to the service (#1961)
+- Fix an issue where token values were replaced with undefined if not sent by server (#1946)
+- Fix an issue where cache lookup for accounts was not working correctly (#1919)
+- Removed TelemetryOptions from msal-common since they were unused (#1983)
+- Add a response handler for the device code flow (#1947)
+
+# 1.0.0-beta.4
+## Breaking Changes
+- None
+
+## Features and Fixes
+- Fix an issue where state may be encoded twice on the server-side (#1852)
+- Fix an issue where extraScopesToConsent was not appending scopes correctly (#1854)
+- Fix an issue where the expiration was not being calculated correctly (#1860)
+- Add correlationId to all requests (#1868)
+
+# 1.0.0-beta.3
+## Breaking Changes
+- `Request` update in msal-common (#1682, #1771)
+- AccountInfo interface (#1789)
+- Removal of SPA Client (#1793)
+- Unified Cache support (#1444, #1471, #1519, #1520, #1522, #1609, #1622, #1624, #1655, #1680, #1762)
+
+## Features and Fixes
+- Initialization of B2cTrustedHostList (#1646)
+- SilentFlow support (#1711)
+- Utilize `Scopeset` across all libraries (#1770)
+- `state` support in msal-common (#1790)
+- EndSessionRequest (#1802)
+
 # 1.0.0-beta.2
 - Fixed an issue where types were not being exported from the correct location (#1613)
 - Fixed an issue where system configuration values were being overwritten with `undefined` (#1631)
@@ -11,7 +75,7 @@
 - Synced all classes and objects to work for both @azure/msal-browser and @azure/msal-node (#1552)
 - Merged configuration for node and browser classes (#1575)
 - Fixed issue with caching for multiple resources (#1553)
-- Adding support for node classes 
+- Adding support for node classes
     - Refresh token client (#1496)
     - Device code client (#1550, #1434)
     - Authorization Code Client (#1434)
