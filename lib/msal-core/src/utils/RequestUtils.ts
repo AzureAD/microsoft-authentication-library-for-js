@@ -48,6 +48,7 @@ export class RequestUtils {
             // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
             scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
             ScopeSet.validateInputScope(scopes, !isLoginCall, clientId);
+            scopes = ScopeSet.translateClientIdIfSingleScope(scopes, clientId);
 
             // validate prompt parameter
             this.validatePromptParameter(request.prompt);
@@ -57,7 +58,6 @@ export class RequestUtils {
 
             // validate claimsRequest
             this.validateClaimsRequest(request.claimsRequest);
-
         }
 
         // validate and generate state and correlationId
@@ -71,7 +71,7 @@ export class RequestUtils {
             state,
             correlationId
         };
-
+        
         return validatedRequest;
     }
 

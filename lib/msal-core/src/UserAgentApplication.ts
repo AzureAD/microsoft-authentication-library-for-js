@@ -38,6 +38,7 @@ import { Constants,
     ServerHashParamKeys,
     InteractionType,
     libraryVersion,
+    ResponseTypes,
     TemporaryCacheKeys,
     PersistentCacheKeys,
     ErrorCacheKeys,
@@ -65,20 +66,6 @@ declare global {
         requestType: string;
     }
 }
-
-/**
- * @hidden
- * @ignore
- * response_type from OpenIDConnect
- * References: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html & https://tools.ietf.org/html/rfc6749#section-4.2.1
- * Since we support only implicit flow in this library, we restrict the response_type support to only 'token' and 'id_token'
- *
- */
-const ResponseTypes = {
-    id_token: "id_token",
-    token: "token",
-    id_token_token: "id_token token"
-};
 
 /**
  * @hidden
@@ -528,8 +515,8 @@ export class UserAgentApplication {
 
         // Track the acquireToken progress
         this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
-        const scope = request.scopes ? request.scopes.join(" ").toLowerCase() : this.clientId.toLowerCase();
-        this.logger.verbosePii(`Serialized scopes: ${scope}`);
+        const requestSignature = request.scopes ? request.scopes.join(" ").toLowerCase() : Constants.oidcScopes.join(" ");
+        this.logger.verbosePii(`Request signature: ${requestSignature}`);
 
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
@@ -545,7 +532,7 @@ export class UserAgentApplication {
             }
 
             // On Fulfillment
-            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes, false);
+            const responseType: string = isLoginCall ? ResponseTypes.id_token : this.getTokenType(account, request.scopes);
 
             const loginStartPage = request.redirectStartPage || window.location.href;
 
@@ -569,7 +556,6 @@ export class UserAgentApplication {
 
             // Construct urlNavigate
             const urlNavigate = UrlUtils.createNavigateUrl(serverAuthenticationRequest) + Constants.response_mode_fragment;
-
             // set state in cache
             if (interactionType === Constants.interactionTypeRedirect) {
                 if (!isLoginCall) {
@@ -586,7 +572,7 @@ export class UserAgentApplication {
                 this.logger.verbosePii(`State saved: ${serverAuthenticationRequest.state}`);
 
                 // Register callback to capture results from server
-                this.registerCallback(serverAuthenticationRequest.state, scope, resolve, reject);
+                this.registerCallback(serverAuthenticationRequest.state, requestSignature, resolve, reject);
             } else {
                 this.logger.verbose("Invalid interaction error. State not cached");
                 throw ClientAuthError.createInvalidInteractionTypeError();
@@ -689,7 +675,7 @@ export class UserAgentApplication {
 
         return this.acquireTokenSilent({
             ...request,
-            scopes: [this.clientId]
+            scopes: Constants.oidcScopes
         });
     }
 
@@ -742,7 +728,7 @@ export class UserAgentApplication {
             }
 
             // set the response type based on the current cache status / scopes set
-            const responseType = this.getTokenType(account, request.scopes, true);
+            const responseType = this.getTokenType(account, request.scopes);
             this.logger.verbose(`Response type: ${responseType}`);
 
             // create a serverAuthenticationRequest populating the `queryParameters` to be sent to the Server
@@ -839,12 +825,12 @@ export class UserAgentApplication {
                         this.registerCallback(window.activeRenewals[requestSignature], requestSignature, resolve, reject);
                     }
                     else {
-                        if (request.scopes && request.scopes.indexOf(this.clientId) > -1 && request.scopes.length === 1) {
+                        if (request.scopes && ScopeSet.onlyContainsOidcScopes(request.scopes)) {
                             /*
                              * App uses idToken to send to api endpoints
                              * Default scope is tracked as clientId to store this token
                              */
-                            this.logger.verbose("ClientId is the only scope, renewing idToken");
+                            this.logger.verbose("OpenID Connect scopes only, renewing idToken");
                             this.silentLogin = true;
                             this.renewIdToken(requestSignature, resolve, reject, account, serverAuthenticationRequest);
                         } else {
@@ -1656,10 +1642,9 @@ export class UserAgentApplication {
             accessTokenResponse.accessToken  = parameters[ServerHashParamKeys.ACCESS_TOKEN];
             accessTokenResponse.scopes = consentedScopes;
         }
-        // if the response does not contain "scope" - scope is usually client_id and the token will be id_token
+        // if the response does not contain "scope" - scope is set to OIDC scopes by default and the token will be id_token
         else {
             this.logger.verbose("Response parameters does not contain scope, clientId set as scope");
-            scope = this.clientId;
 
             // Generate and cache accessTokenKey and accessTokenValue
             const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientObj.uid, clientObj.utid);
@@ -1667,7 +1652,7 @@ export class UserAgentApplication {
             const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ID_TOKEN], parameters[ServerHashParamKeys.ID_TOKEN], expiration.toString(), clientInfo);
             this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             this.logger.verbose("Saving token to cache");
-            accessTokenResponse.scopes = [scope];
+            accessTokenResponse.scopes = Constants.oidcScopes;
             accessTokenResponse.accessToken = parameters[ServerHashParamKeys.ID_TOKEN];
         }
 
@@ -2079,7 +2064,7 @@ export class UserAgentApplication {
 
         // Construct AuthenticationRequest based on response type; set "redirectUri" from the "request" which makes this call from Angular - for this.getRedirectUri()
         const newAuthority = this.authorityInstance ? this.authorityInstance : AuthorityFactory.CreateInstance(this.authority, this.config.auth.validateAuthority);
-        const responseType = this.getTokenType(accountObject, scopes, true);
+        const responseType = this.getTokenType(accountObject, scopes);
 
         const serverAuthenticationRequest = new ServerRequestParameters(
             newAuthority,
@@ -2265,41 +2250,13 @@ export class UserAgentApplication {
      * Utils function to create the Authentication
      * @param {@link account} account object
      * @param scopes
-     * @param silentCall
      *
-     * @returns {string} token type: id_token or access_token
+     * @returns {string} token type: token, id_token or id_token token
      *
      */
-    private getTokenType(accountObject: Account, scopes: string[], silentCall: boolean): string {
-        /*
-         * if account is passed and matches the account object/or set to getAccount() from cache
-         * if client-id is passed as scope, get id_token else token/id_token_token (in case no session exists)
-         */
-        let tokenType: string;
-
-        // acquireTokenSilent
-        if (silentCall) {
-            if (Account.compareAccounts(accountObject, this.getAccount())) {
-                tokenType = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
-            }
-            else {
-                tokenType  = (scopes.indexOf(this.config.auth.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.id_token_token;
-            }
-
-            return tokenType;
-        }
-        // all other cases
-        else {
-            if (!Account.compareAccounts(accountObject, this.getAccount())) {
-                tokenType = ResponseTypes.id_token_token;
-            }
-            else {
-                tokenType = (scopes.indexOf(this.clientId) > -1) ? ResponseTypes.id_token : ResponseTypes.token;
-            }
-
-            return tokenType;
-        }
-
+    private getTokenType(accountObject: Account, scopes: string[]): string {
+        const accountsMatch = Account.compareAccounts(accountObject, this.getAccount());
+        return ServerRequestParameters.determineResponseType(accountsMatch, scopes);
     }
 
     /**
@@ -2390,7 +2347,7 @@ export class UserAgentApplication {
     private buildIDTokenRequest(request: AuthenticationParameters): AuthenticationParameters {
 
         const tokenRequest: AuthenticationParameters = {
-            scopes: [this.clientId],
+            scopes: Constants.oidcScopes,
             authority: this.authority,
             account: this.getAccount(),
             extraQueryParameters: request.extraQueryParameters,
