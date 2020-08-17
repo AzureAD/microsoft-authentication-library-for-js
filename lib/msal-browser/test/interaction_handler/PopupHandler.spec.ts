@@ -306,7 +306,6 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
-            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest)).to.throw(BrowserAuthError);
         });
 
         it("throws error if popup passed in is null", () => {
