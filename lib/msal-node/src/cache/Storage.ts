@@ -156,7 +156,7 @@ export class Storage extends CacheManager {
      * Gets cache item with given key.
      * @param key
      */
-    getItem(key: string): string | object {
+    getItem(key: string): ValidCacheType {
         this.logger.verbosePii(`Item key: ${key}`);
 
         // read cache
