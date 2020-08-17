@@ -1019,7 +1019,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 })).rejectedWith(BrowserAuthError);
             });
 
-            it("opens popup window by default", () => {
+            it("opens popup window before network request by default", () => {
                 const request: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
 					scopes: ["scope"],
@@ -1038,10 +1038,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(popupSpy.calledWith()).to.be.true;
             });
 
-            it("delays opening popup if configured", () => {
+            it("opens popup asynchronously if configured", () => {
                 pca = new PublicClientApplication({
                     system: {
-                        delayOpenPopup: true
+                        asyncPopup: true
                     }
                 });
 
