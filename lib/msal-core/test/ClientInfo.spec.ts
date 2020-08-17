@@ -5,6 +5,7 @@ import { ClientAuthError, AuthError } from "../src";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "./TestConstants";
 import { CryptoUtils } from "../src/utils/CryptoUtils";
+import { IdToken } from "../src/IdToken";
 
 describe("Client Info", function () {
 
@@ -31,6 +32,20 @@ describe("Client Info", function () {
             expect(clientInfoObj.utid).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UTID);
         });
 
+    });
+
+    describe("createClientInfoFromIdToken", () => {
+        it("Returns encoded ClientInfo Object", () => {
+            const tempIdToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);;
+            tempIdToken.subject = "test-oid";
+
+            const clientInfo = ClientInfo.createClientInfoFromIdToken(tempIdToken);
+
+            const clientInfoObj = new ClientInfo(clientInfo);
+
+            expect(clientInfoObj.uid).to.equal("test-oid");
+            expect(clientInfoObj.utid).to.equal("");
+        });
     });
 
     describe("Parsing raw client info string", function () {
@@ -124,6 +139,34 @@ describe("Client Info", function () {
             expect(clientInfoObj.utid).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UTID);
         });
 
+        it("Does not set anything if uid and utid are not part of clientInfo", () => {
+            sinon.stub(CryptoUtils, "base64Decode").returns(`{"test-uid":"123-test-uid","test-utid":"456-test-utid"}`);
+            // What we pass in here doesn't matter since we are stubbing
+            clientInfoObj = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "");
+            expect(clientInfoObj).to.not.be.null;
+            expect(clientInfoObj.uid).to.be.eq("");
+            expect(clientInfoObj.utid).to.be.eq("");
+        });
+
+        it("Does not set utid member if utid not part of ClientInfo", () => {
+            sinon.stub(CryptoUtils, "base64Decode").returns(`{"uid":"123-test-uid","test-utid":"456-test-utid"}`);
+            // What we pass in here doesn't matter since we are stubbing
+            clientInfoObj = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "");
+            expect(clientInfoObj).to.not.be.null;
+            expect(clientInfoObj.uid).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfoObj.utid).to.be.eq("");
+
+        });
+
+        it("Does not set uid member if uid not part of ClientInfo", () => {
+            sinon.stub(CryptoUtils, "base64Decode").returns(`{"test-uid":"123-test-uid","utid":"456-test-utid"}`);
+            // What we pass in here doesn't matter since we are stubbing
+            clientInfoObj = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "");
+            expect(clientInfoObj).to.not.be.null;
+            expect(clientInfoObj.uid).to.be.eq("");
+            expect(clientInfoObj.utid).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UTID);
+        });
+
         describe("stripPolicyFromUid", () => {
             it("strips policy from uid", () => {
                 expect(ClientInfo.stripPolicyFromUid("test-uid-testPolicy", "https://b2cdomain.com/b2ctenant.com/testPolicy")).to.eq("test-uid");
@@ -135,7 +178,6 @@ describe("Client Info", function () {
             });
 
         });
-
     });
 
 });

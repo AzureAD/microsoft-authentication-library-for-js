@@ -104,6 +104,7 @@ export enum ErrorCacheKeys {
 
 export const DEFAULT_AUTHORITY: string = "https://login.microsoftonline.com/common/";
 export const AAD_INSTANCE_DISCOVERY_ENDPOINT: string = `${DEFAULT_AUTHORITY}/discovery/instance?api-version=1.1&authorization_endpoint=`;
+export const WELL_KNOWN_SUFFIX: string = ".well-known/openid-configuration";
 
 /**
  * @hidden
