@@ -26,7 +26,11 @@
   "ngPackage": {
     "lib": {
       "entryFile": "public_api.ts"
-    }
+    },
+    "whitelistedNonPeerDependencies": [
+      "minimatch",
+      "path"
+    ]
   },
   "peerDependencies": {
     "@angular/common": ">= 6.0.0",
@@ -107,5 +111,9 @@
     "endToEnd": "cd tests/endToEndTests && npm install && node testRunner.js",
     "prepack": "npm run build"
   },
-  "description": "Microsoft Authentication Library for Angular"
+  "description": "Microsoft Authentication Library for Angular",
+  "dependencies": {
+    "minimatch": "^3.0.4",
+    "path": "^0.12.7"
+  }
 }
