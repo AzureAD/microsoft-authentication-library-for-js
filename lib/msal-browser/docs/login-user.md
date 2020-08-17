@@ -68,7 +68,7 @@ When a login call has succeeded, you can use the `getAllAccounts()` function to 
 const myAccounts: AccountInfo[] = msalInstance.getAllAccounts();
 ```
 
-If you know the account information, you can also retrieve the account information by using the the `getAccountByUsername()` and `getAccountById()` APIs:
+If you know the account information, you can also retrieve the account information by using the `getAccountByUsername()` or `getAccountById()` APIs:
 ```javascript
 const username = "test@contoso.com";
 const myAccount: AccountInfo = msalInstance.getAccountByUsername(username);
