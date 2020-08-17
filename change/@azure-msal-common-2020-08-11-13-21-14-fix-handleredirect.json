@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix hash parsing issue from #2118 and back button cache clearing (#2129)",
-  "packageName": "@azure/msal-common",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-11T20:21:14.454Z"
-}
