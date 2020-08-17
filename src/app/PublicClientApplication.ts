@@ -302,11 +302,11 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        // delayOpenPopup flag is true. Acquires token without first opening popup.
-        if (this.config.system.delayOpenPopup) {
+        // asyncPopup flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+        if (this.config.system.asyncPopup) {
             return this.acquireTokenPopupAsync(request);
         } else {
-            // delayOpenPopup flag it set to false. Opens popup before acquiring token.
+            // asyncPopup flag is set to false. Opens popup before acquiring token.
             const popup = PopupHandler.openSizedPopup();
             return this.acquireTokenPopupAsync(request, popup);
         }
