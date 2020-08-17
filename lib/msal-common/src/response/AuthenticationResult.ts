@@ -4,7 +4,6 @@
  */
 
 import { AccountInfo } from "../account/AccountInfo";
-import { IdTokenClaims } from "../account/IdTokenClaims";
 
 /**
  * Result returned from the authority's token endpoint.
