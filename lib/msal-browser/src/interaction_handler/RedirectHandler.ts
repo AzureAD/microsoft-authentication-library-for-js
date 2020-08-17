@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, TokenResponse, AuthorizationCodeRequest, ICrypto, ProtocolUtils, AuthenticationResult } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -14,12 +14,16 @@ export class RedirectHandler extends InteractionHandler {
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, browserCrypto?: ICrypto): Window {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectStartPage?: string, browserCrypto?: ICrypto): Window {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
+            // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
+            if (redirectStartPage) {
+                this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), redirectStartPage, CacheSchemaType.TEMPORARY);
+            }
+
             // Set interaction status in the library.
-            this.browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, BrowserUtils.getCurrentUri());
-            this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
             this.browserStorage.cacheCodeRequest(authCodeRequest, browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             const isIframedApp = BrowserUtils.isInIframe();
@@ -49,26 +53,21 @@ export class RedirectHandler extends InteractionHandler {
         }
 
         // Interaction is completed - remove interaction status.
-        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
-
-        // Get cached items
-        const requestState = this.browserStorage.getItem(TemporaryCacheKeys.REQUEST_STATE);
-        const cachedNonceKey = this.browserStorage.generateNonceKey(requestState);
-        const cachedNonce = this.browserStorage.getItem(cachedNonceKey);
-        this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
 
         // Handle code response.
+        const requestState = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
         const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
+
+        // Get cached items
+        const cachedNonceKey = this.browserStorage.generateNonceKey(requestState);
+        const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateCacheKey(cachedNonceKey), CacheSchemaType.TEMPORARY) as string;
+        this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
         this.authCodeRequest.code = authCode;
 
-        // Hash was processed successfully - remove from cache
-        this.browserStorage.removeItem(TemporaryCacheKeys.URL_HASH);
-
-        // Extract user state.
-        const userState = ProtocolUtils.getUserRequestState(requestState);
-
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, userState, cachedNonce);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
+
         this.browserStorage.cleanRequest();
         return tokenResponse;
     }

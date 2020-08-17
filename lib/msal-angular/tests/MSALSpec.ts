@@ -33,7 +33,9 @@ const clientId = "6226576d-37e9-49eb-b201-ec1eeb0029b6";
 
 function initializeMsal() {
     TestBed.configureTestingModule({
-        imports: [RouterTestingModule],
+        imports: [RouterTestingModule.withRoutes(
+            [{path: 'graph', redirectTo: ''}]
+        )],
         providers: [
             MsalService,
             {
@@ -58,8 +60,15 @@ function initializeMsal() {
                 useValue: {
                     popUp: false,
                     consentScopes: ["user.read", "mail.send"],
+                    unprotectedResources: [],
                     protectedResourceMap: [
-                        ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
+                        ["https://graph.microsoft.com/v1.0/me", ["user.read"]],
+                        ["https://myapplication.com/user/*", ["customscope.read"]],
+                        ["http://localhost:4200/details", ["details.read"]],
+                        ["https://*.myapplication.com/*", ["mail.read"]],
+                        ["https://api.test.com", ["default.scope1"]],
+                        ["https://*.test.com", ["default.scope2"]],
+                        ["http://localhost:3000", ["base.scope"]]
                     ]
                 } as MsalAngularConfiguration
             },
@@ -380,6 +389,36 @@ describe("Msal Angular Pubic API tests", function () {
 
             expect(scopes).toEqual([ clientId ]);
         });
+
+        it("wildcard", () => {
+            const scopes = authService.getScopesForEndpoint("https://myapplication.com/user/1");
+
+            expect(scopes).toEqual(["customscope.read"]);
+        });
+
+        it("wildcard for own domain", () => {
+            const scopes = authService.getScopesForEndpoint("http://localhost:4200/details");
+
+            expect(scopes).toEqual(["details.read"]);
+        });
+
+        it("multiple wildcards", () => {
+            const scopes = authService.getScopesForEndpoint("https://mail.myapplication.com/me");
+
+            expect(scopes).toEqual(["mail.read"]);
+        });
+
+        it("multiple matching entries", () => {
+            const scopes = authService.getScopesForEndpoint("https://api.test.com");
+
+            expect(scopes).toEqual(["default.scope1"]);
+        });
+
+        it("base url as protected resource", () => {
+            const scopes = authService.getScopesForEndpoint("http://localhost:3000/api");
+
+            expect(scopes).toEqual(["base.scope"]);
+        });
     });
 
     describe("handleRedirectCallback", () => {
@@ -406,8 +445,8 @@ describe("Msal Angular Pubic API tests", function () {
         });
 
         it("success with token type id_token", done => {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_LOGIN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
             initializeMsal();
 
@@ -426,8 +465,8 @@ describe("Msal Angular Pubic API tests", function () {
         });
 
         it("success with token type access_token", done => {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_NONCE}`);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
             initializeMsal();
 
@@ -446,8 +485,8 @@ describe("Msal Angular Pubic API tests", function () {
         });
 
         it("failure with token type id_token", done => {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_NUM;
             initializeMsal();
 
@@ -482,8 +521,8 @@ describe("Msal Angular Pubic API tests", function () {
         });
 
         it("failure with token type access_token", done => {
-            cacheStorage.setItem(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
-            cacheStorage.setItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`, TEST_NONCE);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
+            cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE).TEST_ERROR_HASH + TEST_USER_STATE_NUM;
             initializeMsal();
 

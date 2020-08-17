@@ -35,6 +35,16 @@ export class BrowserUtils {
     }
 
     /**
+     * Replaces current hash with hash from provided url
+     */
+    static replaceHash(url: string): void {
+        const urlParts = url.split("#");
+        urlParts.shift(); // Remove part before the hash
+        
+        window.location.hash = urlParts.length > 0 ? urlParts.join("#") : "";
+    }
+
+    /**
      * Returns boolean of whether the current window is in an iframe or not.
      */
     static isInIframe(): boolean {
@@ -48,6 +58,15 @@ export class BrowserUtils {
      */
     static getCurrentUri(): string {
         return window.location.href.split("?")[0].split("#")[0];
+    }
+
+    /**
+     * Gets the homepage url for the current window location.
+     */
+    static getHomepage(): string {
+        const currentUrl = new UrlString(window.location.href);
+        const urlComponents = currentUrl.getUrlComponents();
+        return `${urlComponents.Protocol}//${urlComponents.HostNameAndPort}/`;
     }
 
     /**

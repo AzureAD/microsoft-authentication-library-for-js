@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, SPAClient, StringUtils, AuthorizationCodeRequest } from "@azure/msal-common";
+import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -11,7 +11,7 @@ import { BrowserStorage } from "../cache/BrowserStorage";
 export class SilentHandler extends InteractionHandler {
 
     private loadFrameTimeout: number;
-    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage, configuredLoadFrameTimeout: number) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, configuredLoadFrameTimeout: number) {
         super(authCodeModule, storageImpl);
         this.loadFrameTimeout = configuredLoadFrameTimeout;
     }
@@ -35,54 +35,46 @@ export class SilentHandler extends InteractionHandler {
 
     /**
      * Monitors an iframe content window until it loads a url with a known hash, or hits a specified timeout.
-     * @param iframeContentWindow 
+     * @param iframe 
      * @param timeout 
-     * @param urlNavigate 
      */
-    monitorFrameForHash(iframe: HTMLIFrameElement, timeout: number, urlNavigate: string): Promise<string> {
-        const contentWindow = iframe.contentWindow;
+    monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
-            const maxTicks = timeout / BrowserConstants.POLL_INTERVAL_MS;
-            let ticks = 0;
+            /*
+             * Polling for iframes can be purely timing based,
+             * since we don't need to account for interaction.
+             */
+            const nowMark = window.performance.now();
+            const timeoutMark = nowMark + timeout;
 
             const intervalId = setInterval(() => {
-                if (contentWindow.closed) {
-                    // Window is closed
+                if (window.performance.now() > timeoutMark) {
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createIframeClosedPrematurelyError());
+                    reject(BrowserAuthError.createMonitorWindowTimeoutError());
                     return;
                 }
 
-                let href;
+                let href: string;
                 try {
                     /*
                      * Will throw if cross origin,
                      * which should be caught and ignored
                      * since we need the interval to keep running while on STS UI.
                      */
-                    href = contentWindow.location.href;
+                    href = iframe.contentWindow.location.href;
                 } catch (e) {}
 
-                /*
-                 * Always run clock for silent calls
-                 * as silent operations should be short,
-                 * and to ensure they always at worst timeout.
-                 */
-                ticks++;
+                if (StringUtils.isEmpty(href)) {
+                    return;
+                }
 
-                if (UrlString.hashContainsKnownProperties(href)) {
+                const contentHash = iframe.contentWindow.location.hash;
+                if (UrlString.hashContainsKnownProperties(contentHash)) {
                     // Success case
-                    const contentHash = contentWindow.location.hash;
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
                     resolve(contentHash);
-                    return;
-                } else if (ticks > maxTicks) {
-                    // Timeout error
-                    this.removeHiddenIframe(iframe);
-                    clearInterval(intervalId);
-                    reject(BrowserAuthError.createMonitorWindowTimeoutError(urlNavigate));
                     return;
                 }
             }, BrowserConstants.POLL_INTERVAL_MS);

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, Constants, SPAClient, AuthorizationCodeRequest } from "@azure/msal-common";
+import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, CacheSchemaType, AuthorizationCodeClient } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
@@ -16,7 +16,7 @@ export class PopupHandler extends InteractionHandler {
 
     private currentWindow: Window;
 
-    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
         super(authCodeModule, storageImpl);
 
         // Properly sets this reference for the unload event.
@@ -33,7 +33,7 @@ export class PopupHandler extends InteractionHandler {
             // Save auth code request
             this.authCodeRequest = authCodeRequest;
             // Set interaction status in the library.
-            this.browserStorage.setItem(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             // Open the popup window to requestUrl.
             return this.openPopup(requestUrl, Constants.LIBRARY_NAME, BrowserConstants.POPUP_WIDTH, BrowserConstants.POPUP_HEIGHT);
@@ -46,17 +46,17 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Monitors a window until it loads a url with a known hash, or hits a specified timeout.
-     * @param contentWindow - window that is being monitored
+     * @param popupWindow - window that is being monitored
      * @param timeout - milliseconds until timeout
      * @param urlNavigate - url that was navigated to
      */
-    monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string): Promise<string> {
+    monitorPopupForHash(popupWindow: Window, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
             const maxTicks = timeout / BrowserConstants.POLL_INTERVAL_MS;
             let ticks = 0;
 
             const intervalId = setInterval(() => {
-                if (contentWindow.closed) {
+                if (popupWindow.closed) {
                     // Window is closed
                     this.cleanPopup();
                     clearInterval(intervalId);
@@ -64,36 +64,35 @@ export class PopupHandler extends InteractionHandler {
                     return;
                 }
 
-                let href;
+                let href: string;
                 try {
                     /*
                      * Will throw if cross origin,
                      * which should be caught and ignored
                      * since we need the interval to keep running while on STS UI.
                      */
-                    href = contentWindow.location.href;
+                    href = popupWindow.location.href;
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
+                if (StringUtils.isEmpty(href) || href === "about:blank") {
                     return;
                 }
 
                 // Only run clock when we are on same domain
                 ticks++;
-
-                if (UrlString.hashContainsKnownProperties(href)) {
+                const contentHash = popupWindow.location.hash;
+                if (UrlString.hashContainsKnownProperties(contentHash)) {
                     // Success case
-                    const contentHash = contentWindow.location.hash;
-                    this.cleanPopup(contentWindow);
+                    this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
                     resolve(contentHash);
                     return;
                 } else if (ticks > maxTicks) {
                     // Timeout error
-                    this.cleanPopup(contentWindow);
+                    this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createMonitorWindowTimeoutError(urlNavigate));
+                    reject(BrowserAuthError.createMonitorWindowTimeoutError());
                     return;
                 }
             }, BrowserConstants.POLL_INTERVAL_MS);
@@ -126,8 +125,8 @@ export class PopupHandler extends InteractionHandler {
              */
             const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
             const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-            const left = ((width / 2) - (popUpWidth / 2)) + winLeft;
-            const top = ((height / 2) - (popUpHeight / 2)) + winTop;
+            const left = Math.max(0, ((width / 2) - (popUpWidth / 2)) + winLeft);
+            const top = Math.max(0, ((height / 2) - (popUpHeight / 2)) + winTop);
 
             // open the window
             const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
@@ -143,7 +142,7 @@ export class PopupHandler extends InteractionHandler {
             return popupWindow;
         } catch (e) {
             this.authModule.logger.error("error opening popup " + e.message);
-            this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
             throw BrowserAuthError.createPopupWindowError(e.toString());
         }
     }
@@ -171,6 +170,6 @@ export class PopupHandler extends InteractionHandler {
         window.removeEventListener("beforeunload", this.unloadWindow);
 
         // Interaction is completed - remove interaction status.
-        this.browserStorage.removeItem(BrowserConstants.INTERACTION_STATUS_KEY);
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
     }
 }

@@ -3,6 +3,7 @@ import { UrlUtils } from "./UrlUtils";
 import { Logger } from "../Logger";
 import { AuthCache } from "../cache/AuthCache";
 import { TemporaryCacheKeys, Constants } from "../utils/Constants";
+import { TimeUtils } from "./TimeUtils";
 
 export class WindowUtils {
     /**
@@ -42,11 +43,60 @@ export class WindowUtils {
 
     /**
      * @hidden
-     * Monitors a window until it loads a url with a hash
+     * Polls an iframe until it loads a url with a hash
      * @ignore
      */
-    static monitorWindowForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger, isSilentCall?: boolean): Promise<string> {
+    static monitorIframeForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger): Promise<string> {
         return new Promise((resolve, reject) => {
+            /*
+             * Polling for iframes can be purely timing based,
+             * since we don't need to account for interaction.
+             */
+            const nowMark = TimeUtils.relativeNowMs();
+            const timeoutMark = nowMark + timeout;
+
+            logger.verbose("monitorWindowForIframe polling started");
+
+            const intervalId = setInterval(() => {
+                if (TimeUtils.relativeNowMs() > timeoutMark) {
+                    logger.error("monitorIframeForHash unable to find hash in url, timing out");
+                    logger.errorPii(`monitorIframeForHash polling timed out for url: ${urlNavigate}`);
+                    clearInterval(intervalId);
+                    reject(ClientAuthError.createTokenRenewalTimeoutError());
+                    return;
+                }
+
+                let href;
+
+                try {
+                    /*
+                     * Will throw if cross origin,
+                     * which should be caught and ignored
+                     * since we need the interval to keep running while on STS UI.
+                     */
+                    href = contentWindow.location.href;
+                } catch (e) {}
+
+                if (href && UrlUtils.urlContainsHash(href)) {
+                    logger.verbose("monitorIframeForHash found url in hash");
+                    clearInterval(intervalId);
+                    resolve(contentWindow.location.hash);
+                } 
+            }, WindowUtils.POLLING_INTERVAL_MS);
+        });
+    }
+
+    /**
+     * @hidden
+     * Polls a popup until it loads a url with a hash
+     * @ignore
+     */
+    static monitorPopupForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger): Promise<string> {
+        return new Promise((resolve, reject) => {
+            /*
+             * Polling for popups needs to be tick-based,
+             * since a non-trivial amount of time can be spent on interaction (which should not count against the timeout).
+             */
             const maxTicks = timeout / WindowUtils.POLLING_INTERVAL_MS;
             let ticks = 0;
 
@@ -70,33 +120,24 @@ export class WindowUtils {
                     href = contentWindow.location.href;
                 } catch (e) {}
 
-                if (isSilentCall) {
-                    /*
-                     * Always run clock for silent calls
-                     * as silent operations should be short,
-                     * and to ensure they always at worst timeout.
-                     */
-                    ticks++;
-                } else {
-                    // Don't process blank pages or cross domain
-                    if (!href || href === "about:blank") {
-                        return;
-                    }
-
-                    /*
-                     * Only run clock when we are on same domain for popups
-                     * as popup operations can take a long time.
-                     */
-                    ticks++;
+                // Don't process blank pages or cross domain
+                if (!href || href === "about:blank") {
+                    return;
                 }
 
+                /*
+                 * Only run clock when we are on same domain for popups
+                 * as popup operations can take a long time.
+                 */
+                ticks++;
+
                 if (href && UrlUtils.urlContainsHash(href)) {
-                    logger.verbose("monitorWindowForHash found url in hash");
+                    logger.verbose("monitorPopupForHash found url in hash");
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
                 } else if (ticks > maxTicks) {
-                    logger.error("monitorWindowForHash unable to find hash in url, timing out");
-                    logger.errorPii(`monitorWindowForHash polling timed out for url: ${urlNavigate}`);
+                    logger.error("monitorPopupForHash unable to find hash in url, timing out");
+                    logger.errorPii(`monitorPopupForHash polling timed out for url: ${urlNavigate}`);
                     clearInterval(intervalId);
                     reject(ClientAuthError.createTokenRenewalTimeoutError());
                 }
@@ -286,7 +327,8 @@ export class WindowUtils {
         // if redirect request is set and there is no hash
         if(redirectCache && !UrlUtils.urlContainsHash(window.location.hash)) {
             const splitCache = redirectCache.split(Constants.resourceDelimiter);
-            const state = splitCache.length > 1 ? splitCache[splitCache.length-1]: null;
+            splitCache.shift();
+            const state = splitCache.length > 0 ? splitCache.join(Constants.resourceDelimiter): null;
             cacheStorage.resetTempCacheItems(state);
         }
     }

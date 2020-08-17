@@ -10,12 +10,14 @@
         "@azure/msal-node",
         "vanilla-js-test-app",
         "vanilla-js-test-app-2.0"
-      ]
+      ],
+      "stream": true
     }
   },
   "packages": [
     "lib/*",
-    "samples/*"
+    "experimental/*",
+    "samples/**/*"
   ],
   "version": "independent",
   "concurrency": 2

@@ -2,6 +2,7 @@ import TelemetryManager from "../telemetry/TelemetryManager";
 import { XhrClient, XhrResponse } from "../XHRClient";
 import HttpEvent from "../telemetry/HttpEvent";
 import { AAD_INSTANCE_DISCOVERY_ENDPOINT, NetworkRequestType } from "../utils/Constants";
+import { UrlUtils } from "../utils/UrlUtils";
 
 export class TrustedAuthority {
     private static TrustedHostList: Array<string> = [];
@@ -24,12 +25,13 @@ export class TrustedAuthority {
      * @param telemetryManager 
      * @param correlationId 
      */
-    private static async getAliases(telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<any>> {
+    private static async getAliases(authorityToVerify: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<any>> {
         const client: XhrClient = new XhrClient();
 
         const httpMethod = NetworkRequestType.GET;
-        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, AAD_INSTANCE_DISCOVERY_ENDPOINT, "getAliases");
-        return client.sendRequestAsync(AAD_INSTANCE_DISCOVERY_ENDPOINT, httpMethod, true)
+        const instanceDiscoveryEndpoint = `${AAD_INSTANCE_DISCOVERY_ENDPOINT}${authorityToVerify}oauth2/v2.0/authorize`;
+        const httpEvent: HttpEvent = telemetryManager.createAndStartHttpEvent(correlationId, httpMethod, instanceDiscoveryEndpoint, "getAliases");
+        return client.sendRequestAsync(instanceDiscoveryEndpoint, httpMethod, true)
             .then((response: XhrResponse) => {
                 httpEvent.httpResponseStatus = response.statusCode;
                 telemetryManager.stopEvent(httpEvent);
@@ -47,14 +49,20 @@ export class TrustedAuthority {
      * @param telemetryManager 
      * @param correlationId 
      */
-    public static async setTrustedAuthoritiesFromNetwork(telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
-        const metadata = await this.getAliases(telemetryManager, correlationId);
+    public static async setTrustedAuthoritiesFromNetwork(authorityToVerify: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
+        const metadata = await this.getAliases(authorityToVerify, telemetryManager, correlationId);
         metadata.forEach(function(entry: any){
             const authorities: Array<string> = entry.aliases;
             authorities.forEach(function(authority: string) {
                 TrustedAuthority.TrustedHostList.push(authority.toLowerCase());
             });
         });
+
+        const host = UrlUtils.GetUrlComponents(authorityToVerify).HostNameAndPort;
+        if (TrustedAuthority.getTrustedHostList().length && !TrustedAuthority.IsInTrustedHostList(host)){
+            // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
+            TrustedAuthority.TrustedHostList.push(host.toLowerCase());
+        }
     } 
 
     public static getTrustedHostList(): Array<string> {

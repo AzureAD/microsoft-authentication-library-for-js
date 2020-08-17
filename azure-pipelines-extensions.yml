@@ -1,0 +1,25 @@
+# MSAL Node extensions build pipeline configuration
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+
+jobs:
+  - job: rolling_VS2017_build
+    displayName: 'Extensions build'
+    pool:
+      name: Hosted VS2017
+    steps:
+      - template: build/sdl-tasks.yml
+      - template: build/npm-build-extensions-steps.yml
+pr:
+    branches: 
+      include:
+        - '*'
+    paths:
+      include:
+        - extensions/*
+      exclude: 
+        - '*'
+trigger:
+    - none

@@ -32,10 +32,10 @@ At a minimum, MSAL Angular will follow the [support schedule of the main Angular
 
 * [Angular Quickstart](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-angular)
 * [B2C Angular SPA](https://github.com/Azure-Samples/active-directory-b2c-javascript-angular-spa)
-* [Angular v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular6-sample-app)
-* [Angular v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular7-sample-app)
-* [Angular v8](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular8-sample-app)
-* [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/angular9-sample-app)
+* [Angular v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular6-sample-app)
+* [Angular v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular7-sample-app)
+* [Angular v8](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular8-sample-app)
+* [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular9-sample-app)
 
 ## Usage
 
@@ -86,23 +86,49 @@ When a user visits these routes, the library will prompt the user to authenticat
 
 ### 3. Get tokens for Web API calls
 
-MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. MsalInterceptor will obtain tokens and add them to all your Http requests in API calls except the API endpoints listed as `unprotectedResources`.
+MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. MsalInterceptor will obtain tokens and add them to all your Http requests in API calls based on the `protectedResourceMap`.
 
 ```js
-providers: [
-    ProductService, {
-        provide: HTTP_INTERCEPTORS,
-        useClass: MsalInterceptor,
-        multi: true
-    }
-],
+@NgModule({
+    imports: [
+        MsalModule.forRoot({
+            auth: {
+                clientId: "Your client ID"
+            }
+        }, {
+            protectedResourceMap: [
+                ['https://graph.microsoft.com/v1.0/me', ['user.read']],
+                ['https://api.myapplication.com/users/*', ['customscope.read']]
+            ]
+        })
+    ],
+    providers: [
+        ProductService, 
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: MsalInterceptor,
+            multi: true
+        }
+    ]
+})
+export class AppModule {}
 ```
 
 Using MsalInterceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
 
+As of `@azure/msal-angular@1.1.0`, `protectedResourceMap` supports wildcard patterns that are supported by [minimatch](https://github.com/isaacs/minimatch), and `unprotectedResources` is deprecated and ignored. 
+
+**Note:** When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`).
+
 ### 4. Subscribe to event callbacks
 
-MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service.
+MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service and also implement a `handleRedirectCallback`:
+
+```js
+this.authService.handleRedirectCallback((authError, response) => {
+    // do something here
+});
+```
 
 1. Login-related events (`loginPopup`/`loginRedirect`)
 
@@ -197,7 +223,7 @@ export function loggerCallback(logLevel, message, piiEnabled) {
                 correlationId: '1234',
                 level: LogLevel.Verbose,
                 piiLoggingEnabled: true,
-            }
+            }),
         }
     })]
 })
@@ -216,7 +242,7 @@ You should protect your site for XSS. Please check the article here: [https://ww
 
 ### CORS API usage
 
-MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the config.
+MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the Angular config.
 
 ```js
 export const protectedResourceMap:[string, string[]][]= [
@@ -229,10 +255,9 @@ export const protectedResourceMap:[string, string[]][]= [
         MsalModule.forRoot({
             auth: {
                 clientId: 'Your client ID',
-            },
-            framework: {
-                protectedResourceMap : protectedResourceMap
             }
+        }, {
+            protectedResourceMap : protectedResourceMap
         })
     ]
 })
@@ -261,9 +286,8 @@ MsalModule.forRoot({
     cache: {
         storeAuthStateInCookie: ieIE
     }
-    framework: {
-        popUp: !isIE
-    }
+}, {
+    popUp: !isIE
 });
 ```
 
