@@ -51,7 +51,7 @@ export type CacheOptions = {
  * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup
  * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe
  * - loadFrameTimeout             - Maximum time the library should wait for a frame to load
- * - asyncPopup                   - Sets whether popup is opened asynchronously. By default, this flag is set to false. When set to false, blank popup is opened before anything else happens. When set to true, popup is opened when making the network request.
+ * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -59,7 +59,7 @@ export type BrowserSystemOptions = SystemOptions & {
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
-    asyncPopup?: boolean;
+    asyncPopups?: boolean;
 };
 
 /**
@@ -107,7 +107,7 @@ const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
     windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
     iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
     loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
-    asyncPopup: false
+    asyncPopups: false
 };
 
 /**
