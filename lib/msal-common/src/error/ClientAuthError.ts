@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 import { AuthError } from "./AuthError";
-import { JwtToken } from "../account/JwtToken";
 import { ScopeSet } from "../request/ScopeSet";
 
 /**
