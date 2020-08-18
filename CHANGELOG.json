@@ -1,0 +1,34 @@
+{
+  "name": "@azure/msal-browser",
+  "entries": [
+    {
+      "date": "Thu, 13 Aug 2020 02:20:48 GMT",
+      "tag": "@azure/msal-browser_v2.0.2",
+      "version": "2.0.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix hash parsing issue from #2118 and back button cache clearing (#2129)",
+            "author": "prkanher@microsoft.com",
+            "commit": "10ab51ecd9e4bb1ba1668972b693055310c65736",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update Migration Guide (#2111)",
+            "author": "thomas.l.norling@gmail.com",
+            "commit": "671ababe31fe86f8e702507d261101e50548346d",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add beachball config",
+            "author": "prkanher@microsoft.com",
+            "commit": "50d9a9533b07a4a5bf7833bd6a5d0d35798c4903",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    }
+  ]
+}
