@@ -7,8 +7,8 @@ export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS } fro
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { AccountInfo } from "./account/AccountInfo";
-export { JwtToken as IdToken } from "./account/JwtToken";
-export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
+export { JwtToken } from "./account/JwtToken";
+export { TokenClaims } from "./account/TokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
 export { CloudDiscoveryMetadata } from "./authority/CloudDiscoveryMetadata";
@@ -51,7 +51,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType } from "./utils/Constants";
+export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, AuthenticationScheme } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";

@@ -58,10 +58,6 @@ export const ClientAuthErrorMessage = {
         code: "account_mismatch",
         desc: "The cached account and account which made the token request do not match."
     },
-    invalidIdToken: {
-        code: "invalid_id_token",
-        desc: "Invalid ID token format."
-    },
     noTokensFoundError: {
         code: "no_tokens_found",
         desc: "No tokens were found for the given scopes, and no authorization code was passed to acquireToken. You must retrieve an authorization code before making a call to acquireToken()."
@@ -202,7 +198,7 @@ export class ClientAuthError extends AuthError {
      */
     static createTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyToken.code,
-            `${ClientAuthErrorMessage.nullOrEmptyToken.desc} Raw ID Token Value: ${invalidRawTokenString}`);
+            `${ClientAuthErrorMessage.nullOrEmptyToken.desc} Raw Token Value: ${invalidRawTokenString}`);
     }
 
     /**
@@ -262,15 +258,6 @@ export class ClientAuthError extends AuthError {
     static createAccountMismatchError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.accountMismatchError.code,
             ClientAuthErrorMessage.accountMismatchError.desc);
-    }
-
-    /**
-     * Throws error if idToken is not correctly formed
-     * @param idToken
-     */
-    static createInvalidIdTokenError(idToken: JwtToken) : ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidIdToken.code,
-            `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${JSON.stringify(idToken)}`);
     }
 
     /**

@@ -25,7 +25,7 @@ import { CacheRecord } from "../cache/entities/CacheRecord";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
-import { AuthenticationType } from "../utils/Constants";
+import { AuthenticationScheme } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 
 /**
@@ -238,7 +238,7 @@ export class ResponseHandler {
         let extExpiresOn: Date = null;
         let familyId: string = null;
         if (cacheRecord.accessToken) {
-            if (cacheRecord.accessToken.tokenType === AuthenticationType.POP) {
+            if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
                 accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, resourceRequestMethod, resourceRequestUri);
             } else {
