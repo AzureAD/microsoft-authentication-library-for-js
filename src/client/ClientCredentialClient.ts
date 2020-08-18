@@ -6,8 +6,6 @@
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
-import { NetworkResponse } from "../network/NetworkManager";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
 import { GrantType } from "../utils/Constants";
@@ -17,7 +15,7 @@ import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { CredentialType } from "../utils/Constants";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
-import { TimeUtils } from '../utils/TimeUtils';
+import { TimeUtils } from "../utils/TimeUtils";
 
 /**
  * OAuth2.0 client credential grant
@@ -38,7 +36,7 @@ export class ClientCredentialClient extends BaseClient {
             return await this.executeTokenRequest(request, this.authority);
         }
 
-        const cachedAuthenticationResult = this.getCachedAuthenticationResult(request);
+        const cachedAuthenticationResult = this.getCachedAuthenticationResult();
         if (cachedAuthenticationResult != null) {
             return cachedAuthenticationResult;
         } else {
@@ -46,9 +44,9 @@ export class ClientCredentialClient extends BaseClient {
         }
     }
 
-    private getCachedAuthenticationResult(request: ClientCredentialRequest): AuthenticationResult {
-        const cachedAccessToken = this.readAccessTokenFromCache(request);
-        if (!cachedAccessToken || 
+    private getCachedAuthenticationResult(): AuthenticationResult {
+        const cachedAccessToken = this.readAccessTokenFromCache();
+        if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             return null;
         }
@@ -57,13 +55,10 @@ export class ClientCredentialClient extends BaseClient {
             accessToken: cachedAccessToken,
             idToken: null,
             refreshToken: null
-        },
-            null,
-            true
-        );
+        }, null, true);
     }
 
-    private readAccessTokenFromCache(request: ClientCredentialRequest): AccessTokenEntity {
+    private readAccessTokenFromCache(): AccessTokenEntity {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: "",
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
@@ -115,8 +110,6 @@ export class ClientCredentialClient extends BaseClient {
         parameterBuilder.addScopes(this.scopeSet);
 
         parameterBuilder.addGrantType(GrantType.CLIENT_CREDENTIALS_GRANT);
-
-        parameterBuilder.addClientInfo();
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
