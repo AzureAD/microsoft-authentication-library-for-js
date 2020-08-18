@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update tests (#2128)",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-08-11T17:20:56.876Z"
+}
