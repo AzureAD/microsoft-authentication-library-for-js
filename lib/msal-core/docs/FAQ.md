@@ -365,7 +365,7 @@ A few additional things to keep in mind regarding multiple policy scenarios:
 
 ## How can I implement password reset user flow in my B2C application with MSAL.js?
 
-Please review our sample [here](https://github.com/Azure-Samples/active-directory-b2c-javascript-msal-singlepageapp) to see how to implement the **password reset** user flow.
+Please checkout our sample [here](https://github.com/Azure-Samples/active-directory-b2c-javascript-msal-singlepageapp) to see how to implement the **password reset** user flow.
 
 # Common Issues
 
