@@ -536,7 +536,7 @@ msal = new Msal.UserAgentApplication({
 })
 ```
 
-## 
+## I'm using one of your samples on Internet Explorer and I get the error "SignIn() is not defined"
 
 Our samples use [ES6](http://www.ecma-international.org/ecma-262/6.0/) conventions, in particular **promises**, **arrow functions** and **template literals**. As such, they will **not** work on Internet Explorer out-of-the-box. For **promises**, you need to add a polyfill, i.e.:
 
