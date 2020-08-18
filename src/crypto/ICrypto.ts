@@ -38,5 +38,5 @@ export interface ICrypto {
     /**
      * Generates an JWK RSA S256 Thumbprint
      */
-    getPublicKeyThumprint(): Promise<string>;
+    getPublicKeyThumbprint(): Promise<string>;
 }

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ResponseMode, AuthenticationType } from "../utils/Constants";
+import { ResponseMode, AuthenticationScheme } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 
@@ -32,7 +32,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  */
 export type AuthorizationUrlRequest = BaseAuthRequest & {
-    authenticationScheme?: AuthenticationType,
+    authenticationScheme?: AuthenticationScheme,
     redirectUri?: string;
     extraScopesToConsent?: Array<string>;
     responseMode?: ResponseMode;
