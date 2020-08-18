@@ -7,8 +7,7 @@ import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
-import { BrowserCrypto, KeyFormat } from "./BrowserCrypto";
-import { BrowserStringUtils } from "../utils/BrowserStringUtils";
+import { BrowserCrypto } from "./BrowserCrypto";
 
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and 
@@ -35,10 +34,10 @@ export class CryptoOps implements ICrypto {
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
     }
 
-    async getPublicKeyThumprint(): Promise<string> {
+    async getPublicKeyThumbprint(): Promise<string> {
         const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
         // TODO: Store keypair
-        const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportKey(keyPair.publicKey, KeyFormat.jwk);
+        const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
         const publicJwkString: string = BrowserCrypto.getJwkString(publicKeyJwk);
         const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
         const publicJwkDigest: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
