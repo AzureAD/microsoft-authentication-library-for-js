@@ -7,8 +7,8 @@ export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS } fro
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { AccountInfo } from "./account/AccountInfo";
-export { JwtToken as IdToken } from "./account/JwtToken";
-export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
+export { JwtToken } from "./account/JwtToken";
+export { TokenClaims } from "./account/TokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
 export { CloudDiscoveryMetadata } from "./authority/CloudDiscoveryMetadata";
