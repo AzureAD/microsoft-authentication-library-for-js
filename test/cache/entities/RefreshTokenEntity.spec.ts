@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";
-import { mockRefreshTokenEntity, mockRefreshTokenEntityWithFamilyId } from "./cacheConstants";
+import { mockRefreshTokenEntity, mockRefreshTokenEntityWithFamilyId, mockAppMetaDataEntity } from "./cacheConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { CacheType } from "../../../src/utils/Constants";
 
@@ -36,5 +36,14 @@ describe("RefreshTokenEntity.ts Unit Tests", () => {
         const rt = new RefreshTokenEntity();
         Object.assign(rt, mockRefreshTokenEntity);
         expect(rt.generateType()).to.eql(CacheType.REFRESH_TOKEN);
+    });
+
+    it("verify if an object is a refresh token entity", () => {
+        expect(RefreshTokenEntity.isRefreshTokenEntity(mockRefreshTokenEntity)).to.eql(true);
+        expect(RefreshTokenEntity.isRefreshTokenEntity(mockRefreshTokenEntityWithFamilyId)).to.eql(true);
+    });
+
+    it("verify if an object is not a refresh token entity", () => {
+        expect(RefreshTokenEntity.isRefreshTokenEntity(mockAppMetaDataEntity)).to.eql(false);
     });
 });
