@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ICrypto, PkceCodes } from "@azure/msal-common";
+import { ICrypto, PkceCodes, SignedHttpRequest } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -73,5 +73,9 @@ export class CryptoOps implements ICrypto {
      */
     async generatePkceCodes(): Promise<PkceCodes> {
         return this.pkceGenerator.generateCodes();
+    }
+
+    signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
+        throw new Error("Method not implemented.");
     }
 }
