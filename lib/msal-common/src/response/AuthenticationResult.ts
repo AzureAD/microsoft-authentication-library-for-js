@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict } from "../utils/MsalTypes";
 import { AccountInfo } from "../account/AccountInfo";
 
 /**
@@ -27,7 +26,7 @@ export type AuthenticationResult = {
     scopes: Array<string>;
     account: AccountInfo;
     idToken: string;
-    idTokenClaims: StringDict;
+    idTokenClaims: object;
     accessToken: string;
     fromCache: boolean;
     expiresOn: Date;

@@ -9,11 +9,11 @@ import { TimeUtils } from "../../utils/TimeUtils";
 
 /**
  * ACCESS_TOKEN Credential Type
- * 
+ *
  * Key:Value Schema:
- * 
+ *
  * Key Example: uid.utid-login.microsoftonline.com-accesstoken-clientId-contoso.com-user.read
- * 
+ *
  * Value Schema:
  * {
  *      homeAccountId: home account identifier for the auth scheme,
@@ -82,5 +82,23 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.target = scopes;
 
         return atEntity;
+    }
+
+    /**
+     * Validates an entity: checks for all expected params
+     * @param entity
+     */
+    static isAccessTokenEntity(entity: object): boolean {
+
+        return (
+            entity.hasOwnProperty("homeAccountId") &&
+            entity.hasOwnProperty("environment") &&
+            entity.hasOwnProperty("credentialType") &&
+            entity.hasOwnProperty("realm") &&
+            entity.hasOwnProperty("clientId") &&
+            entity.hasOwnProperty("secret") &&
+            entity.hasOwnProperty("target") &&
+            entity["credentialType"] === CredentialType.ACCESS_TOKEN
+        );
     }
 }
