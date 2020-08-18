@@ -5,6 +5,7 @@ import { Screenshot, createFolder, setupCredentials, getTokens, getAccountFromCa
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
+import { LabConfig } from "../../../../../e2eTestUtils/LabConfig";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = 'http://localhost:30662/';
@@ -63,7 +64,7 @@ describe("Browser tests", function () {
     
             const labClient = new LabClient();
             const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
-    
+
             [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
         });
 

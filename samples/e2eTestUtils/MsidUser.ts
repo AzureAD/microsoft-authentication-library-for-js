@@ -1,4 +1,4 @@
-export type LabUser = {
+export type MsidUser = {
     objectId?: string,
     homeObjectId?: string,
     displayName?: string,
@@ -9,6 +9,5 @@ export type LabUser = {
     homeDomain?: string,
     tenantID?: string,
     homeTenantID?: string,
-    b2cProvider?: string,
-    labName?: string
-}
+    b2cProvider?: string
+};

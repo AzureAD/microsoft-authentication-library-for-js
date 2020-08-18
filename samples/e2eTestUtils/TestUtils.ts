@@ -1,7 +1,7 @@
 import fs from "fs";
 import puppeteer from "puppeteer";
 import { LabClient } from "./LabClient";
-import { LabUser } from "./LabUser";
+import { LabConfig } from "./LabConfig";
 
 export class Screenshot {
     private folderName: string;
@@ -24,16 +24,15 @@ export function createFolder(foldername: string) {
     }
 }
 
-export async function setupCredentials(labData: object, labClient: LabClient): Promise<[string, string]> {
+export async function setupCredentials(labConfig: LabConfig, labClient: LabClient): Promise<[string, string]> {
     let username = "";
     let accountPwd = "";
 
-    let labUser = labData["user"];
-    if (labUser.upn) {
-        username = labUser.upn;
+    if (labConfig.user.upn) {
+        username = labConfig.user.upn;
     }
 
-    const testPwdSecret = await labClient.getSecret(labData["lab"].labName);
+    const testPwdSecret = await labClient.getSecret(labConfig.lab.labName);
 
     accountPwd = testPwdSecret.value;
 
