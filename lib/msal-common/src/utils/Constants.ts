@@ -267,7 +267,7 @@ export const SERVER_TELEM_CONSTANTS = {
 /**
  * Type of the authentication request
  */
-export enum AuthenticationType {
+export enum AuthenticationScheme {
     POP = "pop",
     BEARER = "bearer"
 };

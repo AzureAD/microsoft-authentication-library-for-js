@@ -4,7 +4,7 @@
  */
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
-import { AuthenticationType } from "../utils/Constants";
+import { AuthenticationScheme } from "../utils/Constants";
 
 /**
  * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)
@@ -20,5 +20,5 @@ export type AuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;
     code: string;
     codeVerifier?: string;
-    authenticationScheme?: AuthenticationType;
+    authenticationScheme?: AuthenticationScheme;
 };
