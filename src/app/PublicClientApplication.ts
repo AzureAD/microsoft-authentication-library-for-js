@@ -15,7 +15,7 @@ import {
     TrustedAuthority,
     AuthorizationUrlRequest,
     PersistentCacheKeys,
-    IdToken,
+    JwtToken,
     ProtocolUtils,
     AuthorizationCodeRequest,
     Constants,
@@ -681,7 +681,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Only check for adal token if no SSO params are being used
             const adalIdTokenString = this.browserStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN, CacheSchemaType.TEMPORARY) as string;
             if (!StringUtils.isEmpty(adalIdTokenString)) {
-                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
+                const adalIdToken = new JwtToken(adalIdTokenString, this.browserCrypto);
                 this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (adalIdToken.claims && adalIdToken.claims.upn) {
                     validatedRequest.loginHint = adalIdToken.claims.upn;
