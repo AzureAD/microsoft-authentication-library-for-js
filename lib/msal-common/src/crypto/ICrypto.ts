@@ -42,7 +42,7 @@ export interface ICrypto {
      * @param resourceRequestMethod 
      * @param resourceRequestUri 
      */
-    getPublicKeyThumprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string>;
+    getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string>;
     /** 
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken 

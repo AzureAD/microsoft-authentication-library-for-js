@@ -7,9 +7,10 @@ import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
-import { BrowserCrypto, KeyFormat } from "./BrowserCrypto";
+import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
+import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 
 type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -86,14 +87,14 @@ export class CryptoOps implements ICrypto {
      * @param resourceRequestMethod 
      * @param resourceRequestUri 
      */
-    async getPublicKeyThumprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+    async getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
         const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
-        const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportKey(keyPair.publicKey, KeyFormat.jwk);
-        const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportKey(keyPair.privateKey, KeyFormat.jwk);
+        const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
+        const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
         const publicJwkString: string = BrowserCrypto.getJwkString(publicKeyJwk);
         const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
         const publicJwkDigest: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
-        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importKey(privateKeyJwk, KeyFormat.jwk, false, ["sign"]);
+        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
         const publicKeyHash = this.base64Encode(publicJwkDigest).substr(0, CryptoOps.POP_HASH_LENGTH);
         this._cache.put(publicKeyHash, {
             privateKey: unextractablePrivateKey,
@@ -111,12 +112,12 @@ export class CryptoOps implements ICrypto {
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
         const cachedKeyPair: CachedKeyPair = await this._cache.get(kid);
-        const publicKeyJwk = await this.browserCrypto.exportKey(cachedKeyPair.publicKey, KeyFormat.jwk);
+        const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
         const publicKeyJwkString = BrowserCrypto.getJwkString(publicKeyJwk);
 
         const header = {
             alg: publicKeyJwk.alg,
-            type: KeyFormat.jwk,
+            type: KEY_FORMAT_JWK,
             jwk: JSON.parse(publicKeyJwkString)
         };
 
