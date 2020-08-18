@@ -1038,10 +1038,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(popupSpy.calledWith()).to.be.true;
             });
 
-            it("opens popup asynchronously if configured", () => {
+            it("opens popups asynchronously if configured", () => {
                 pca = new PublicClientApplication({
                     system: {
-                        asyncPopup: true
+                        asyncPopups: true
                     }
                 });
 
