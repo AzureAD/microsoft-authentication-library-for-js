@@ -10,7 +10,7 @@ import { Authority, NetworkResponse } from "..";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType, AuthenticationType } from "../utils/Constants";
+import { GrantType, AuthenticationScheme } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -81,7 +81,7 @@ export class RefreshTokenClient extends BaseClient {
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
-        if (request.authenticationScheme === AuthenticationType.POP) {
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
             parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
         }
