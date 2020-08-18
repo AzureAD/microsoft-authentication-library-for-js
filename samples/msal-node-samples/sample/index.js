@@ -3,32 +3,47 @@
  * Licensed under the MIT License.
  */
 const express = require("express");
-const exphbs = require('express-handlebars');
-const msal = require('@azure/msal-node');
+const exphbs = require("express-handlebars");
+const msal = require("@azure/msal-node");
+const { promises: fs } = require("fs");
 
-// AAD variables
-const aadConfig = require('./AAD/authConfig');
-const aadRequest = require('./AAD/request');
-const aadApiConfig = require('./AAD/apiConfig');
 const graph = require("./AAD/graph");
-
-// B2C variables
-const b2cConfig = require('./B2C/authConfig');
-const b2cRequest = require('./B2C/request');
-const b2cApiConfig = require('./B2C/apiConfig');
-const b2cAPI = require('./B2C/api');
-
+const graphAPI = require("./configuration/graphApiConfig.json");
+const b2cAPI = require("./configuration/b2cApiConfig.json");
+// const config = require("./configuration/aadConfig.json");
+const config = require("./configuration/b2cConfig.json");
 const SERVER_PORT = process.env.PORT || 3000;
+
+/**
+ * Cache Plugin configuration
+ */
+const cachePath = "./data/example.cache.json"; // Replace this string with the path to your valid cache file.
+
+const readFromStorage = () => {
+    return fs.readFile(cachePath, "utf-8");
+};
+
+const writeToStorage = (getMergedState) => {
+    return readFromStorage().then((oldFile) => {
+        const mergedState = getMergedState(oldFile);
+        return fs.writeFile(cachePath, mergedState);
+    });
+};
+
+const cachePlugin = {
+    readFromStorage,
+    writeToStorage,
+};
+
 // const tenantType = "AAD";
 const tenantType = "B2C";
 
 /**
  * Public Client Application
  */
-const config = (tenantType === "AAD") ? aadConfig : b2cConfig;
-const request = (tenantType === "AAD") ? aadRequest : b2cRequest;
+config.msalConfig.cache = { cachePlugin };
 
-const pca = new msal.PublicClientApplication(config);
+const pca = new msal.PublicClientApplication(config.msalConfig);
 const msalTokenCache = pca.getTokenCache();
 let accounts;
 
@@ -51,7 +66,7 @@ app.get('/', (req, res) => {
 // Initiates Auth Code Grant
 app.get('/login', async(req, res) => {
     try {
-        response = await pca.getAuthCodeUrl(request.authCodeUrlParameters);
+        response = await pca.getAuthCodeUrl(config.authCodeUrlParameters);
         console.log("successful auth url acquisition"); // console.log(response);
         res.redirect(response);
     }
@@ -61,10 +76,10 @@ app.get('/login', async(req, res) => {
 });
 
 // Second leg of Auth Code grant
-app.get('/redirect', async(req, res) => {
-    request.tokenRequest.code = req.query.code;
+app.get('/redirect', async (req, res) => {
+    config.tokenRequest.code = req.query.code;
     try {
-        response = await pca.acquireTokenByCode(request.tokenRequest);
+        response = await pca.acquireTokenByCode(config.tokenRequest);
         console.log("Successful auth-code token acquisition"); // console.log("\nResponse: \n:", response);
         const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
         res.render("graph", templateParams);
@@ -82,19 +97,19 @@ app.get('/graphCall', async(req, res) => {
     console.log("Accounts: ", accounts);
 
     const currentAccount = (tenantType === "AAD") ? accounts[1] : accounts[2];
-    request.silentRequest.account = currentAccount;
+    config.silentRequest.account = currentAccount;
 
     let templateParams = { showLoginButton: false };
     // Acquire Token Silently to be used in MS Graph call
     try {
-        response = await pca.acquireTokenSilent(request.silentRequest);
+        response = await pca.acquireTokenSilent(config.silentRequest);
 
         console.log("\nSuccessful silent token acquisition\n"); // console.log("Response: \n:", response);
         const username = response.account.username;
 
         if (tenantType === "AAD") {
             // Call graph after successfully acquiring token
-            graph.callMSGraph(aadApiConfig.graphConfig.graphMeEndpoint, response.accessToken, (response, endpoint) => {
+            graph.callMSGraph(graphAPI.graphConfig.graphMeEndpoint, response.accessToken, (response, endpoint) => {
                 templateParams = {
                     ...templateParams,
                     username,
@@ -105,7 +120,7 @@ app.get('/graphCall', async(req, res) => {
             });
         } else {
             // call B2C endpoint with the token
-            b2cAPI.callApiWithAccessToken(b2cApiConfig.b2cApiConfig.webApi, response.accessToken, (response, endpoint) => {
+            b2cAPI.callApiWithAccessToken(b2cAPI.b2cApiConfig.webApi, response.accessToken, (response, endpoint) => {
                 templateParams = {
                     ...templateParams,
                     username,
