@@ -66,16 +66,19 @@ export class ClientInfo {
 
     static stripPolicyFromUid(uid: string, authority: string): string {
         const uidSegments = uid.split("-");
+        // Reverse the url segments so the last one is more easily accessible
         const urlSegments = authority.split("/").reverse();
-        let policy = ""
+        let policy = "";
 
         if (!StringUtils.isEmpty(urlSegments[0])) {
             policy = urlSegments[0];
         } else if (urlSegments.length > 1) {
+            // If the original url had a trailing slash, urlSegments[0] would be "" so take the next element
             policy = urlSegments[1];
         }
 
         if (uidSegments[uidSegments.length - 1] ===  policy) {
+            // If the last segment of uid matches the last segment of authority url, remove the last segment of uid
             return uidSegments.slice(0, uidSegments.length - 1).join("-");
         }
 
