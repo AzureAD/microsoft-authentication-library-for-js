@@ -4,7 +4,7 @@
  */
 
 import { CredentialEntity } from "./CredentialEntity";
-import { CredentialType, AuthenticationType } from "../../utils/Constants";
+import { CredentialType, AuthenticationScheme } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 import { StringUtils } from "../../utils/StringUtils";
 
@@ -83,7 +83,7 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.realm = tenantId;
         atEntity.target = scopes;
 
-        atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationType.BEARER : tokenType;
+        atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
         return atEntity;
     }
 }

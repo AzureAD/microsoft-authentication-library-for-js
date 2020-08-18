@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, AuthenticationType } from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, AuthenticationScheme } from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
@@ -251,7 +251,7 @@ export class RequestParameterBuilder {
      */
     addPopToken(cnfString: string): void {
         if (!StringUtils.isEmpty(cnfString)) {
-            this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationType.POP);
+            this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
             this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(cnfString));
         }
     }

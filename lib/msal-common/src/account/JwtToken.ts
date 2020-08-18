@@ -9,13 +9,13 @@ import { StringUtils } from "../utils/StringUtils";
 import { ICrypto } from "../crypto/ICrypto";
 
 /**
- * Id Token representation class. Parses id token string and generates claims object.
+ * JWT Token representation class. Parses token string and generates claims object.
  */
 export class JwtToken {
 
-    // Raw Id Token string
+    // Raw Token string
     rawToken: string;
-    // Claims inside Id Token
+    // Claims inside token
     claims: TokenClaims;
     constructor(rawToken: string, crypto: ICrypto) {
         if (StringUtils.isEmpty(rawToken)) {
@@ -27,13 +27,13 @@ export class JwtToken {
     }
 
     /**
-     * Extract IdToken by decoding the RAWIdToken
+     * Extract token by decoding the rawToken
      *
-     * @param encodedIdToken
+     * @param encodedToken
      */
-    static extractTokenClaims(encodedIdToken: string, crypto: ICrypto): TokenClaims {
-        // id token will be decoded to get the username
-        const decodedToken: DecodedJwt = StringUtils.decodeJwt(encodedIdToken);
+    static extractTokenClaims(encodedToken: string, crypto: ICrypto): TokenClaims {
+        // token will be decoded to get the username
+        const decodedToken: DecodedJwt = StringUtils.decodeJwt(encodedToken);
         if (!decodedToken) {
             return null;
         }

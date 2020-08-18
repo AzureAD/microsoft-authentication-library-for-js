@@ -14,6 +14,7 @@ export { SilentRequest } from "./request/SilentRequest";
 
 // Common Object Formats
 export {
+    AuthenticationScheme,
     // Account
     AccountInfo,
     // Request

@@ -5,11 +5,11 @@
  */
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { StringUtils } from "@azure/msal-common";
+import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
-// RSA KeyGen Algorithm
+ // RSA KeyGen Algorithm
 const PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5";
 // SHA-256 hashing algorithm
 const S256_HASH_ALG = "SHA-256";
@@ -19,13 +19,6 @@ const MODULUS_LENGTH = 2048;
 const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
 
 /**
- * Used for exporting keys
- */
-export enum KeyFormat {
-    jwk = "jwk"
-}
-
-/**
  * This class implements functions used by the browser library to perform cryptography operations such as
  * hashing and encoding. It also has helper functions to validate the availability of specific APIs.
  */
@@ -33,21 +26,16 @@ export class BrowserCrypto {
 
     private _keygenAlgorithmOptions: RsaHashedKeyGenParams;
 
-    constructor(keygenAlgName?: string, hashAlg?: string, modLength?: number, publicExp?: Uint8Array) {
+    constructor() {
         if (!(this.hasCryptoAPI())) {
             throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.");
         }
 
-        const keygenConfigName: string = StringUtils.isEmpty(keygenAlgName) ? PKCS1_V15_KEYGEN_ALG : keygenAlgName;
-        const keygenConfigHash: string = StringUtils.isEmpty(hashAlg) ? S256_HASH_ALG : hashAlg;
-        const keygenConfigModulusLength: number = modLength ? modLength : MODULUS_LENGTH;
-        const keygenConfigPublicExponent: Uint8Array = publicExp ? publicExp : PUBLIC_EXPONENT;
-
         this._keygenAlgorithmOptions = {
-            name: keygenConfigName,
-            hash: keygenConfigHash,
-            modulusLength: keygenConfigModulusLength,
-            publicExponent: keygenConfigPublicExponent
+            name: PKCS1_V15_KEYGEN_ALG,
+            hash: S256_HASH_ALG,
+            modulusLength: MODULUS_LENGTH,
+            publicExponent: PUBLIC_EXPONENT
         };
     }
 
@@ -87,28 +75,28 @@ export class BrowserCrypto {
     }
 
     /**
-     * Export key as given KeyFormat (see above)
+     * Export key as Json Web Key (JWK)
      * @param key 
      * @param format 
      */
-    async exportKey(key: CryptoKey, format: KeyFormat): Promise<JsonWebKey> {
-        return this.hasIECrypto() ? this.msCryptoExportKey(key, format) : window.crypto.subtle.exportKey(format, key);
+    async exportJwk(key: CryptoKey): Promise<JsonWebKey> {
+        return this.hasIECrypto() ? this.msCryptoExportJwk(key) : window.crypto.subtle.exportKey(KEY_FORMAT_JWK, key);
     }
 
     /**
-     * Imports key as given KeyFormat, can set extractable and usages.
+     * Imports key as Json Web Key (JWK), can set extractable and usages.
      * @param key 
      * @param format 
      * @param extractable 
      * @param usages 
      */
-    async importKey(key: JsonWebKey, format: KeyFormat, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
+    async importJwk(key: JsonWebKey, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
         const keyString = BrowserCrypto.getJwkString(key);
         const keyBuffer = BrowserStringUtils.stringToArrayBuffer(keyString);
 
         return this.hasIECrypto() ? 
-            this.msCryptoImportKey(keyBuffer, format, extractable, usages) 
-            : window.crypto.subtle.importKey(format, key, this._keygenAlgorithmOptions, extractable, usages);
+            this.msCryptoImportKey(keyBuffer, extractable, usages) 
+            : window.crypto.subtle.importKey(KEY_FORMAT_JWK, key, this._keygenAlgorithmOptions, extractable, usages);
     }
 
     /**
@@ -133,14 +121,14 @@ export class BrowserCrypto {
      * Checks whether IE crypto (AKA msCrypto) is available.
      */
     private hasIECrypto(): boolean {
-        return !!window["msCrypto"];
+        return "msCrypto" in window;
     }
 
     /**
      * Check whether browser crypto is available.
      */
     private hasBrowserCrypto(): boolean {
-        return !!window.crypto;
+        return "crypto" in window;
     }
 
     /**
@@ -192,9 +180,9 @@ export class BrowserCrypto {
      * @param key 
      * @param format 
      */
-    private async msCryptoExportKey(key: CryptoKey, format: KeyFormat): Promise<JsonWebKey> {
+    private async msCryptoExportJwk(key: CryptoKey): Promise<JsonWebKey> {
         return new Promise((resolve: any, reject: any) => {
-            const msExportKey = window["msCrypto"].subtle.exportKey(format, key);
+            const msExportKey = window["msCrypto"].subtle.exportKey(KEY_FORMAT_JWK, key);
             msExportKey.addEventListener("complete", (e: { target: { result: ArrayBuffer; }; }) => {
                 const resultBuffer: ArrayBuffer = e.target.result;
 
@@ -225,9 +213,9 @@ export class BrowserCrypto {
      * @param extractable 
      * @param usages 
      */
-    private async msCryptoImportKey(keyBuffer: ArrayBuffer, format: KeyFormat, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
+    private async msCryptoImportKey(keyBuffer: ArrayBuffer, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
         return new Promise((resolve: any, reject: any) => {
-            const msImportKey = window["msCrypto"].subtle.importKey(format, keyBuffer, this._keygenAlgorithmOptions, extractable, usages);
+            const msImportKey = window["msCrypto"].subtle.importKey(KEY_FORMAT_JWK, keyBuffer, this._keygenAlgorithmOptions, extractable, usages);
             msImportKey.addEventListener("complete", (e: { target: { result: CryptoKey | PromiseLike<CryptoKey>; }; }) => {
                 resolve(e.target.result);
             });

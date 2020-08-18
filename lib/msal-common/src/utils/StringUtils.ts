@@ -19,8 +19,8 @@ export class StringUtils {
         if (StringUtils.isEmpty(jwtToken)) {
             throw ClientAuthError.createTokenNullOrEmptyError(jwtToken);
         }
-        const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
-        const matches = idTokenPartsRegex.exec(jwtToken);
+        const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
+        const matches = tokenPartsRegex.exec(jwtToken);
         if (!matches || matches.length < 4) {
             throw ClientAuthError.createTokenParsingError(`Given token is malformed: ${JSON.stringify(jwtToken)}`);
         }
