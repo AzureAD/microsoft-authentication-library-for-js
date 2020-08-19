@@ -105,6 +105,7 @@ export const TEST_CONFIG = {
     CODE_CHALLENGE_METHOD: "S256",
     TOKEN_TYPE_BEARER: "Bearer",
     DEFAULT_SCOPES: ["openid", "profile", "offline_access"],
+    EXAMPLE_CLAIMS_REQUEST: '{"access_token":{"example_claim":{"values": ["example_value"]}}}',
     DEFAULT_GRAPH_SCOPE: ["user.read"],
     LOGIN_HINT: "user@test.com",
     DOMAIN_HINT: "test.com",
