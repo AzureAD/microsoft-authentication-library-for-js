@@ -18,6 +18,7 @@ import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { BrowserConfigurationAuthErrorMessage } from "../../src/error/BrowserConfigurationAuthError";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -690,6 +691,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await expect(pca.acquireTokenRedirect(null)).to.be.rejectedWith(BrowserAuthError);
             });
 
+            it("throws error if claims is not a JSON", async () => {
+                await expect(pca.acquireTokenRedirect({
+                        scopes: ["scope"],
+                        claims: "invalid_claims_request"
+                    })).rejectedWith(BrowserConfigurationAuthErrorMessage.invalidClaimsRequest.desc);
+            });
+
             it("acquireTokenRedirect navigates to created login url", (done) => {
                 sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Window => {
                     expect(navigateUrl).to.be.eq(testNavUrl);
@@ -1005,6 +1013,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 })).rejectedWith(BrowserAuthError);
             });
 
+            it("throws error if claims is not a JSON", async () => {
+                await expect(pca.acquireTokenPopup({
+                        scopes: ["scope"],
+                        claims: "invalid_claims_request"
+                    })).rejectedWith(BrowserConfigurationAuthErrorMessage.invalidClaimsRequest.desc);
+            });
+
             it("resolves the response successfully", async () => {
                 const testServerTokenResponse = {
                     token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -1229,6 +1244,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("Acquire Token Silent (Iframe) Tests", () => {
+
+        it("throws error if claims is not a JSON", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+
+            await expect(pca.acquireTokenSilent({
+                    account: testAccount,
+                    scopes: ["scope"],
+                    claims: "invalid_claims_request"
+                })).rejectedWith(BrowserConfigurationAuthErrorMessage.invalidClaimsRequest.desc);
+        });
 
         it("successfully renews token", async () => {
             const testServerTokenResponse = {
