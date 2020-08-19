@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Remove log statement",
+  "packageName": "@azure/msal-node",
+  "email": "email not defined",
+  "dependentChangeType": "patch",
+  "date": "2020-08-19T20:55:46.846Z"
+}
