@@ -2,6 +2,7 @@ import fs from "fs";
 import puppeteer from "puppeteer";
 import { LabClient } from "./LabClient";
 import { LabConfig } from "./LabConfig";
+import { Configuration } from "../../lib/msal-browser";
 
 export class Screenshot {
     private folderName: string;
@@ -129,4 +130,20 @@ export async function getAccountFromCache(page: puppeteer.Page, idTokenKey: stri
     }
 
     return null
+}
+
+export function buildConfig(labConfig: LabConfig): Configuration {
+    const msalConfig: Configuration = {
+        auth: {
+            clientId: labConfig.app.appId
+        }
+    };
+
+    if (labConfig.lab.authority.endsWith("/")) {
+        msalConfig.auth.authority = labConfig.lab.authority + labConfig.user.tenantID;
+    } else {
+        msalConfig.auth.authority = `${labConfig.lab.authority}/${labConfig.user.tenantID}`;
+    }
+
+    return msalConfig;
 }

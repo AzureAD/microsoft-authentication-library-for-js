@@ -1,11 +1,12 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials, getTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, getTokens, getAccountFromCache, accessTokenForScopesExists, buildConfig } from "../../../../../e2eTestUtils/TestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { LabConfig } from "../../../../../e2eTestUtils/LabConfig";
+import { msalConfig, request } from "../authConfig.json";
+import fs from "fs";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = 'http://localhost:30662/';
@@ -66,6 +67,8 @@ describe("Browser tests", function () {
             const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
 
             [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+
+            fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: msalConfig, request: request}));
         });
 
         it("Performs loginRedirect", async () => {
