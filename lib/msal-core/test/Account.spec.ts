@@ -49,7 +49,7 @@ describe("Account.ts Class", function() {
             const tempIdToken = idToken;
             tempIdToken.subject = "";
 
-            const emptyClientInfo = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
+            const emptyClientInfo = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
             const account = Account.createAccount(idToken, emptyClientInfo);
     
             expect(account.homeAccountIdentifier).to.be.undefined;
@@ -71,7 +71,7 @@ describe("Account.ts Class", function() {
             const tempIdToken = idToken;
             tempIdToken.subject = "";
 
-            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
+            const clientInfo2 = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
             const account1 = Account.createAccount(idToken, clientInfo2);
             const account2 = Account.createAccount(idToken, clientInfo);
 
@@ -83,7 +83,7 @@ describe("Account.ts Class", function() {
             const tempIdToken = idToken;
             tempIdToken.subject = "";
 
-            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
+            const clientInfo2 = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
             const account1 = Account.createAccount(idToken, clientInfo);
             const account2 = Account.createAccount(idToken, clientInfo2);
 
@@ -102,7 +102,7 @@ describe("Account.ts Class", function() {
             const tempIdToken = idToken;
             tempIdToken.subject = "test-oid";
 
-            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
+            const clientInfo2 = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
             const account1 = Account.createAccount(idToken, clientInfo);
             const account2 = Account.createAccount(idToken, clientInfo2);
 

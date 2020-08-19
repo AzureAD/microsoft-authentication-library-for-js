@@ -3,7 +3,7 @@ import sinon from "sinon";
 import { ClientInfo } from "../src/ClientInfo";
 import { ClientAuthError, AuthError } from "../src";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
-import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "./TestConstants";
+import { TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS } from "./TestConstants";
 import { CryptoUtils } from "../src/utils/CryptoUtils";
 import { IdToken } from "../src/IdToken";
 
@@ -39,12 +39,10 @@ describe("Client Info", function () {
             const tempIdToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);;
             tempIdToken.subject = "test-oid";
 
-            const clientInfo = ClientInfo.createClientInfoFromIdToken(tempIdToken);
+            const clientInfo = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
 
-            const clientInfoObj = new ClientInfo(clientInfo);
-
-            expect(clientInfoObj.uid).to.equal("test-oid");
-            expect(clientInfoObj.utid).to.equal("");
+            expect(clientInfo.uid).to.equal("test-oid");
+            expect(clientInfo.utid).to.equal("");
         });
     });
 
