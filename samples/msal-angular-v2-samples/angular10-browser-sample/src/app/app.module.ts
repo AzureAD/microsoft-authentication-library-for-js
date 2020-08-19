@@ -12,7 +12,7 @@ import { HomeComponent } from './home/home.component';
 import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { MsalService, MSAL_INSTANCE, MsalGuard } from './msal';
+import { MsalService, MSAL_INSTANCE, MsalGuard, MsalInterceptor } from './msal';
 import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
 
 function MSALInstanceFactory(): IPublicClientApplication {
@@ -36,9 +36,15 @@ function MSALInstanceFactory(): IPublicClientApplication {
     AppRoutingModule,
     MatButtonModule,
     MatToolbarModule,
-    MatListModule
+    MatListModule,
+    HttpClientModule
   ],
   providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: MsalInterceptor,
+      multi: true
+    },
     {
       provide: MSAL_INSTANCE,
       useFactory: MSALInstanceFactory
