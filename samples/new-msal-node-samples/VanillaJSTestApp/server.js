@@ -48,14 +48,19 @@ function initializeWebApp(sampleFilesPath, inputPort) {
     // Build client application
     const clientApplication = require(`${sampleFilesPath}/clientApplication`);
 
+    // Initialize MSAL Token Cache
+    const msalTokenCache = clientApplication.getTokenCache();
+
     // Initialize express app
     const app = express();
     const port = (inputPort) ? inputPort : DEFAULT_PORT;
-    app.listen(port, () => console.log(`Msal Node Auth Code Sample app listening on port ${port}!`));
 
-    // Load sample routes
-    const sampleRoutes = require(`${sampleFilesPath}/routes`);
-    sampleRoutes(app, clientApplication);
+    msalTokenCache.readFromPersistence().then(() => {
+        app.listen(port, () => console.log(`Msal Node Auth Code Sample app listening on port ${port}!`));
+        // Load sample routes
+        const sampleRoutes = require(`${sampleFilesPath}/routes`);
+        sampleRoutes(app, clientApplication, msalTokenCache);
+    })
 }
 
 

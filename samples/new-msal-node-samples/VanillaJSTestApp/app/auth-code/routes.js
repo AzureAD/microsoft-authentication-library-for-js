@@ -1,4 +1,4 @@
-module.exports = function(app, clientApplication) {
+module.exports = function(app, clientApplication, msalTokenCache) {
     app.get('/', (req, res) => {
         const authCodeUrlParameters = {
             scopes: ["user.read"],
@@ -20,6 +20,7 @@ module.exports = function(app, clientApplication) {
     
         clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
             console.log("\nResponse: \n:", response);
+            msalTokenCache.writeToPersistence();
             res.sendStatus(200);
         }).catch((error) => {
             console.log(error);
