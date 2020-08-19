@@ -321,7 +321,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "ver": "2.0",
                 "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "exp": "1536361411",
+                "exp": 1536361411,
                 "name": "Abe Lincoln",
                 "preferred_username": "AbeLi@microsoft.com",
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
@@ -336,7 +336,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 code: TEST_TOKENS.AUTHORIZATION_CODE,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: "{claimsRequest}"
+                claims: TEST_CONFIG.EXAMPLE_CLAIMS_REQUEST
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, idTokenClaims.nonce, testState);
@@ -352,7 +352,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(authCodeRequest.claims)}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.EXAMPLE_CLAIMS_REQUEST)}`);
         });
     });
 
