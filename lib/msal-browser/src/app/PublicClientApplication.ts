@@ -48,6 +48,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
+import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -639,6 +640,14 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         if (StringUtils.isEmpty(validatedRequest.authority)) {
             validatedRequest.authority = this.config.auth.authority;
+        }
+
+        if (!StringUtils.isEmpty(request.claims)){
+            try {
+                JSON.parse(request.claims);
+            } catch (e) {
+                throw BrowserConfigurationAuthError.createInvalidClaimsRequestError();
+            }
         }
 
         validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();

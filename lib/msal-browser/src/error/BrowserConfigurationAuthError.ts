@@ -20,6 +20,10 @@ export const BrowserConfigurationAuthErrorMessage = {
         code: "storage_not_supported",
         desc: "Given storage configuration option was not supported."
     },
+    invalidClaimsRequest: {
+        code: "invalid_claims",
+        desc: "Given claims parameter must be a stringified JSON object."
+    },
     noRedirectCallbacksSet: {
         code: "no_redirect_callbacks",
         desc: "No redirect callbacks have been set. Please call setRedirectCallbacks() with the appropriate function arguments before continuing. " +
@@ -83,5 +87,13 @@ export class BrowserConfigurationAuthError extends AuthError {
     static createRedirectCallbacksNotSetError(): BrowserConfigurationAuthError {
         return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.code, 
             BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc);
+    }
+
+    /**
+     * Creates error thrown when claims parameter is not a stringified JSON object
+     */
+    static createInvalidClaimsRequestError(): BrowserConfigurationAuthError {
+        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.invalidClaimsRequest.code,
+            BrowserConfigurationAuthErrorMessage.invalidClaimsRequest.desc);
     }
 }
