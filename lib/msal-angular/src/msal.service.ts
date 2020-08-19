@@ -16,6 +16,8 @@ import { MSALError } from "./MSALError";
 import { MsalAngularConfiguration } from "./msal-angular.configuration";
 import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
 
+import { Minimatch } from "minimatch";
+
 const buildMsalConfig = (config: Configuration) : Configuration => {
     return {
         ...config,
@@ -53,31 +55,6 @@ export class MsalService extends UserAgentApplication {
                 this.setAcquireTokenInProgress(false);
             }
         });
-
-        this.router.events.subscribe(event => {
-            for (var i = 0; i < router.config.length; i++) {
-                if (!router.config[i].canActivate) {
-                    if (this.msalAngularConfig.unprotectedResources) {
-                        if (!this.isEmpty(router.config[i].path) && !this.isUnprotectedResource(router.config[i].path)) {
-                            this.msalAngularConfig.unprotectedResources.push(router.config[i].path);
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    private isUnprotectedResource(url: string): boolean {
-        const frameworkUnprotectedResources = this.msalConfig.framework && this.msalConfig.framework.unprotectedResources;
-        const configUnprotectedResources = this.msalAngularConfig.unprotectedResources || [];
-
-        const unprotectedResources = frameworkUnprotectedResources && frameworkUnprotectedResources.length ? frameworkUnprotectedResources : configUnprotectedResources;
-
-        return unprotectedResources.some(resource => url.indexOf(resource) > -1);
-    }
-
-    private isEmpty(str: string): boolean {
-        return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
     public loginPopup(request?: AuthenticationParameters): Promise<any> {
@@ -173,14 +150,8 @@ export class MsalService extends UserAgentApplication {
     }
 
     public getScopesForEndpoint(endpoint: string) : Array<string> {
-        if (this.msalConfig.framework && this.msalConfig.framework.unprotectedResources) {
-            this.getLogger().info("msalConfig.framework.unprotectedResources is deprecated, use msalAngularConfig.unprotectedResources");
-        }
-
-        // if user specified list of unprotectedResources, no need to send token to these endpoints, return null.
-        const isUnprotected = this.isUnprotectedResource(endpoint);
-        if (isUnprotected) {
-            return null;
+        if ((this.msalConfig.framework && this.msalConfig.framework.unprotectedResources) || (this.msalAngularConfig && this.msalAngularConfig.unprotectedResources)) {
+            this.getLogger().info("unprotectedResources is deprecated and ignored. msalAngularConfig.protectedResourceMap now supports glob patterns");
         }
 
         const frameworkProtectedResourceMap = this.msalConfig.framework && this.msalConfig.framework.protectedResourceMap;
@@ -189,12 +160,24 @@ export class MsalService extends UserAgentApplication {
         }
 
         const protectedResourceMap = frameworkProtectedResourceMap && frameworkProtectedResourceMap.size ? frameworkProtectedResourceMap : new Map(this.msalAngularConfig.protectedResourceMap);
-
-        // process all protected resources and send the matched one
-        const keyForEndpoint = Array.from(protectedResourceMap.keys()).find(key => endpoint.indexOf(key) > -1);
-        if (keyForEndpoint) {
-            return protectedResourceMap.get(keyForEndpoint);
-        }
+        
+        const protectedResourcesArray = Array.from(protectedResourceMap.keys());
+        const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
+            const minimatch = new Minimatch(key);
+            return minimatch.match(endpoint) || endpoint.indexOf(key) > -1;
+        });
+        
+        // process all protected resources and send the first matched resource
+        if (keyMatchesEndpointArray.length > 0) {
+            if (keyMatchesEndpointArray.length > 1) {
+                this.getLogger().warning("Multiple entries in protectedResourceMap found for resource. Using first entry.");
+                this.getLogger().warningPii(`Multiple entries found for: ${endpoint}`);
+            }
+            const keyForEndpoint = keyMatchesEndpointArray[0];
+            if (keyForEndpoint) {
+                return protectedResourceMap.get(keyForEndpoint);
+            }
+        } 
 
         /*
          * default resource will be clientid if nothing specified
@@ -217,4 +200,3 @@ export class MsalService extends UserAgentApplication {
         return null;
     }
 }
-
