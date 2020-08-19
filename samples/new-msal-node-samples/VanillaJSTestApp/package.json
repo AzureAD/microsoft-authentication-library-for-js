@@ -1,0 +1,16 @@
+{
+  "name": "vanilla-js-test-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "^1.0.0-alpha.4",
+    "express": "^4.17.1"
+  }
+}
