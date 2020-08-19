@@ -176,8 +176,8 @@ export class AuthorizationCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
-        if (!StringUtils.isEmpty(request.claims)) {
-            parameterBuilder.addClaims(request.claims);
+        if (!StringUtils.isEmpty(request.claims) || (request.clientCapabilities && request.clientCapabilities.length > 0)) {
+            parameterBuilder.addClaims(request.claims, request.clientCapabilities);
         }
 
         return parameterBuilder.createQueryString();
@@ -245,8 +245,8 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addState(request.state);
         }
 
-        if (request.claims) {
-            parameterBuilder.addClaims(request.claims);
+        if (!StringUtils.isEmpty(request.claims) || (request.clientCapabilities && request.clientCapabilities.length > 0)) {
+            parameterBuilder.addClaims(request.claims, request.clientCapabilities);
         }
 
         if (request.extraQueryParameters) {

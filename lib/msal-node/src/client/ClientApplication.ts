@@ -74,7 +74,7 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequestScopes(request) as AuthorizationUrlRequest);
+        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequest(request) as AuthorizationUrlRequest);
     }
 
     /**
@@ -94,7 +94,7 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.acquireToken(this.initializeRequestScopes(request) as AuthorizationCodeRequest);
+        return authorizationCodeClient.acquireToken(this.initializeRequest(request) as AuthorizationCodeRequest);
     }
 
     /**
@@ -113,7 +113,7 @@ export abstract class ClientApplication {
         const refreshTokenClient = new RefreshTokenClient(
             refreshTokenClientConfig
         );
-        return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
+        return refreshTokenClient.acquireToken(this.initializeRequest(request) as RefreshTokenRequest);
     }
 
     /**
@@ -131,7 +131,7 @@ export abstract class ClientApplication {
         const silentFlowClient = new SilentFlowClient(
             silentFlowClientConfig
         );
-        return silentFlowClient.acquireToken(this.initializeRequestScopes(request) as SilentFlowRequest);
+        return silentFlowClient.acquireToken(this.initializeRequest(request) as SilentFlowRequest);
     }
 
     /**
@@ -186,12 +186,13 @@ export abstract class ClientApplication {
      * Generates a request with the default scopes.
      * @param authRequest
      */
-    protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
+    protected initializeRequest(authRequest: BaseAuthRequest): BaseAuthRequest {
         this.logger.verbose("initializeRequestScopes called");
 
         return {
             ...authRequest,
-            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE],
+            clientCapabilities: authRequest && authRequest.clientCapabilities || this.config.auth.clientCapabilities
         };
     }
 

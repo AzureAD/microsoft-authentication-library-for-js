@@ -122,6 +122,11 @@ export enum IdTokenClaimName {
     CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
 }
 
+export enum ClaimsRequestKeys {
+    ACCESS_TOKEN = "access_token",
+    XMS_CC = "xms_cc"
+};
+
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
  * prompt values kept changing over past couple of years. There are some undocumented prompt values for some

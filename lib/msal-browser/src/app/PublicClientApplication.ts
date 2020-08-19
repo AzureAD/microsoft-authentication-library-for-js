@@ -641,6 +641,10 @@ export class PublicClientApplication implements IPublicClientApplication {
             validatedRequest.authority = this.config.auth.authority;
         }
 
+        if (!request.clientCapabilities || request.clientCapabilities.length === 0) {
+            request.clientCapabilities = this.config.auth.clientCapabilities;
+        }
+
         validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
 
         return validatedRequest;

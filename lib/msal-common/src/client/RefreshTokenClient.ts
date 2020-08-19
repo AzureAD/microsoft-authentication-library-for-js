@@ -79,8 +79,8 @@ export class RefreshTokenClient extends BaseClient {
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
-        if (!StringUtils.isEmpty(request.claims)) {
-            parameterBuilder.addClaims(request.claims);
+        if (!StringUtils.isEmpty(request.claims) || (request.clientCapabilities && request.clientCapabilities.length > 0)) {
+            parameterBuilder.addClaims(request.claims, request.clientCapabilities);
         }
 
         return parameterBuilder.createQueryString();
