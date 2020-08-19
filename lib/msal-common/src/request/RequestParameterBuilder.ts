@@ -93,6 +93,7 @@ export class RequestParameterBuilder {
      * @param claims
      */
     addClaims(claims: string): void {
+        RequestValidator.validateClaims(claims);
         this.parameters.set(AADServerParamKeys.CLAIMS, encodeURIComponent(claims));
     }
 
