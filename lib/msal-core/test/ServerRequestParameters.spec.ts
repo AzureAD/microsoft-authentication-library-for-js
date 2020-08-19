@@ -157,10 +157,10 @@ describe("ServerRequestParameters.ts Class", function () {
 
     describe("populateQueryParams", () => {
         const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
-        const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+        const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_CONFIG.validAuthority);
 
         it("populates parameters", () => {
-            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
 
             serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), {
                 scopes: [ "user.read" ],
@@ -174,7 +174,7 @@ describe("ServerRequestParameters.ts Class", function () {
         });
 
         it("populates parameters (null request)", () => {
-            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
 
             serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), null);
 

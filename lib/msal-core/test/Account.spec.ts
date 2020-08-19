@@ -3,13 +3,13 @@ import { expect } from "chai";
 import { ClientInfo } from "../src/ClientInfo";
 import { IdToken } from "../src/IdToken";
 import { Account } from "../src/Account";
-import { TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "./TestConstants";
+import { TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "./TestConstants";
 import { CryptoUtils } from "../src/utils/CryptoUtils";
 
 describe("Account.ts Class", function() {
 
     let idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
-    let clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+    let clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_CONFIG.validAuthority);
 
     describe("createAccount", () => {
         it("verifies account object is created", () => {
@@ -49,7 +49,7 @@ describe("Account.ts Class", function() {
             const tempIdToken = idToken;
             tempIdToken.subject = "";
 
-            const emptyClientInfo = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
+            const emptyClientInfo = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
             const account = Account.createAccount(idToken, emptyClientInfo);
     
             expect(account.homeAccountIdentifier).to.be.undefined;
@@ -71,7 +71,7 @@ describe("Account.ts Class", function() {
             const tempIdToken = idToken;
             tempIdToken.subject = "";
 
-            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
+            const clientInfo2 = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
             const account1 = Account.createAccount(idToken, clientInfo2);
             const account2 = Account.createAccount(idToken, clientInfo);
 
@@ -83,7 +83,7 @@ describe("Account.ts Class", function() {
             const tempIdToken = idToken;
             tempIdToken.subject = "";
 
-            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
+            const clientInfo2 = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
             const account1 = Account.createAccount(idToken, clientInfo);
             const account2 = Account.createAccount(idToken, clientInfo2);
 
@@ -102,7 +102,7 @@ describe("Account.ts Class", function() {
             const tempIdToken = idToken;
             tempIdToken.subject = "test-oid";
 
-            const clientInfo2 = new ClientInfo(ClientInfo.createClientInfoFromIdToken(tempIdToken));
+            const clientInfo2 = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
             const account1 = Account.createAccount(idToken, clientInfo);
             const account2 = Account.createAccount(idToken, clientInfo2);
 
