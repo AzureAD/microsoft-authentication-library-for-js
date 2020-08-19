@@ -12,7 +12,7 @@ import { HomeComponent } from './home/home.component';
 import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { MsalService, MSAL_INSTANCE } from './msal';
+import { MsalService, MSAL_INSTANCE, MsalGuard } from './msal';
 import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
 
 function MSALInstanceFactory(): IPublicClientApplication {
@@ -43,7 +43,8 @@ function MSALInstanceFactory(): IPublicClientApplication {
       provide: MSAL_INSTANCE,
       useFactory: MSALInstanceFactory
     },
-    MsalService
+    MsalService,
+    MsalGuard
   ],
   bootstrap: [AppComponent]
 })

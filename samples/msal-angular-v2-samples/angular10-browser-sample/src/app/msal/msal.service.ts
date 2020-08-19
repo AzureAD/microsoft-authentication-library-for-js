@@ -15,9 +15,7 @@ export class MsalService implements IPublicClientApplication {
 
     constructor(
         @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication
-    ) {
-        
-    }
+    ) {}
 
     acquireTokenPopup(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         return this.msalInstance.acquireTokenPopup(request);

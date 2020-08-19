@@ -14,7 +14,7 @@ export class AppComponent implements OnInit {
   constructor(private authService: MsalService) {}
   ngOnInit(): void {
     this.isIframe = window !== window.parent && !window.opener;
-    
+
     this.checkAccount();
   }
 
