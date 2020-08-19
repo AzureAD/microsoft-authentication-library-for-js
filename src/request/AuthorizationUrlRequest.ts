@@ -12,6 +12,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * 
  * - scopes                     - Array of scopes the application is requesting access to.
  * - claims                     - A stringified claims request which will be added to all /authorize and /token calls
+ * - clientCapabilities         - Array of capabilities which will be added to the claims.access_token.xms_cc request property
  * - authority                  - Url of the authority which the application acquires tokens from.
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
