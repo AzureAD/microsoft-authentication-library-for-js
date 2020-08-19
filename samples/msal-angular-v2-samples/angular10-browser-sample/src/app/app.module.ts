@@ -12,6 +12,17 @@ import { HomeComponent } from './home/home.component';
 import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { MsalService, MSAL_INSTANCE } from './msal';
+import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+
+function MSALInstanceFactory(): IPublicClientApplication {
+  return new PublicClientApplication({
+    auth: {
+      clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
+      redirectUri: 'http://localhost:4200'
+    }
+  });
+}
 
 @NgModule({
   declarations: [
@@ -27,7 +38,13 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
     MatToolbarModule,
     MatListModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: MSAL_INSTANCE,
+      useFactory: MSALInstanceFactory
+    },
+    MsalService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
