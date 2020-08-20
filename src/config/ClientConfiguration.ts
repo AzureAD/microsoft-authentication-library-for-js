@@ -55,6 +55,7 @@ export type AuthOptions = {
     authority?: Authority;
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
+    clientCapabilities?: Array<string>;
 };
 
 /**
@@ -104,7 +105,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
-    cloudDiscoveryMetadata: ""
+    cloudDiscoveryMetadata: "",
+    clientCapabilities: []
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {

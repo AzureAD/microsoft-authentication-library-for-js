@@ -14,6 +14,7 @@ import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizatio
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -62,6 +63,18 @@ export abstract class BaseClient {
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
 
         this.authority = this.config.authOptions.authority;
+    }
+
+    protected initializeBaseAuthRequest(request: BaseAuthRequest): BaseAuthRequest {
+        const validatedRequest: BaseAuthRequest = {
+            ...request
+        };
+
+        if (!validatedRequest.clientCapabilities || validatedRequest.clientCapabilities.length === 0) {
+            validatedRequest.clientCapabilities = this.config.authOptions.clientCapabilities;
+        }
+
+        return validatedRequest;
     }
 
     /**
