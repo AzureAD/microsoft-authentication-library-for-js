@@ -1,7 +1,6 @@
-import * as Mocha from "mocha";
+import * as mocha from "mocha";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
