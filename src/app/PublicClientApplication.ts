@@ -591,7 +591,8 @@ export class PublicClientApplication implements IPublicClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
                 knownAuthorities: this.config.auth.knownAuthorities,
-                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+                clientCapabilities: this.config.auth.clientCapabilities
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds
@@ -639,10 +640,6 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         if (StringUtils.isEmpty(validatedRequest.authority)) {
             validatedRequest.authority = this.config.auth.authority;
-        }
-
-        if (!request.clientCapabilities || request.clientCapabilities.length === 0) {
-            request.clientCapabilities = this.config.auth.clientCapabilities;
         }
 
         validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
