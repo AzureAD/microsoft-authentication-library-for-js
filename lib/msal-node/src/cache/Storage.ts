@@ -22,15 +22,13 @@ import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerT
 export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.
     private logger: Logger;
+    private cache: CacheKVStore = {};
+    private changeEmitters: Array<Function> = [];
 
     constructor(logger: Logger) {
         super();
         this.logger = logger;
     }
-
-    private cache: CacheKVStore = {};
-
-    private changeEmitters: Array<Function> = [];
 
     registerChangeEmitter(func: () => void): void {
         this.changeEmitters.push(func);
@@ -94,7 +92,7 @@ export class Storage extends CacheManager {
     /**
      * gets the current in memory cache for the client
      */
-    getInMemoryCache(): object {
+    getInMemoryCache(): InMemoryCache {
         this.logger.verbose("Getting in-memory cache");
 
         // convert the cache key value store to inMemoryCache
