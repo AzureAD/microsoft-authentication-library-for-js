@@ -105,7 +105,7 @@ export enum AADServerParamKeys {
     OBO_ASSERTION = "assertion",
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
- }
+}
 
 /**
  * IdToken claim string constants
