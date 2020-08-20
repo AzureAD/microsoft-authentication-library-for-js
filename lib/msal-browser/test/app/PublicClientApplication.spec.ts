@@ -1,7 +1,6 @@
-import * as Mocha from "mocha";
+import * as mocha from "mocha";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
@@ -590,7 +589,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 			it("Uses adal token from cache if it is present.", async () => {
 				const idTokenClaims: IdTokenClaims = {
 					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-					"exp": "1536279024",
+					"exp": 1536279024,
 					"name": "abeli",
 					"nonce": "123523",
 					"oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
@@ -637,7 +636,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 			it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
 				const idTokenClaims: IdTokenClaims = {
 					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-					"exp": "1536279024",
+					"exp": 1536279024,
 					"name": "abeli",
 					"nonce": "123523",
 					"oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
@@ -796,7 +795,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 				const testScope = "testscope";
 				const idTokenClaims: IdTokenClaims = {
 					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-					"exp": "1536279024",
+					"exp": 1536279024,
 					"name": "abeli",
 					"nonce": "123523",
 					"oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
@@ -843,7 +842,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 			it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
 				const idTokenClaims: IdTokenClaims = {
 					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-					"exp": "1536279024",
+					"exp": 1536279024,
 					"name": "abeli",
 					"nonce": "123523",
 					"oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",

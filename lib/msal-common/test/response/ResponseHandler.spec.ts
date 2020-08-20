@@ -3,7 +3,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
-import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES } from "../utils/StringConstants";
+import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES } from "../utils/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { CacheManager } from "../../src/cache/CacheManager";
@@ -12,7 +12,7 @@ import { IdToken } from "../../src/account/IdToken";
 import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { ClientTestUtils } from "../client/ClientTestUtils";
 import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError } from "../../src";
-import { ServerAuthorizationCodeResponse } from "../../src/server/ServerAuthorizationCodeResponse";
+import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
 import { buildClientInfo } from "../../src/account/ClientInfo";
 
 const networkInterface: INetworkModule = {
@@ -30,6 +30,8 @@ const cryptoInterface: ICrypto = {
     },
     base64Decode(input: string): string {
         switch (input) {
+            case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                TEST_POP_VALUES.DECODED_REQ_CNF;
             case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                 return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             default:
@@ -37,7 +39,14 @@ const cryptoInterface: ICrypto = {
         }
     },
     base64Encode(input: string): string {
-        return input;
+        switch (input) {
+            case TEST_POP_VALUES.DECODED_REQ_CNF:
+                TEST_POP_VALUES.ENCODED_REQ_CNF;
+            case TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO:
+                return TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+            default:
+                return input;
+        }
     },
     async generatePkceCodes(): Promise<PkceCodes> {
         return {
@@ -45,6 +54,9 @@ const cryptoInterface: ICrypto = {
             verifier: TEST_CONFIG.TEST_VERIFIER,
         };
     },
+    async getPublicKeyThumbprint(): Promise<string> {
+        return TEST_POP_VALUES.KID;
+    }
 }
 
 let store = {};

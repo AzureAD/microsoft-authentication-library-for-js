@@ -102,6 +102,8 @@ export enum AADServerParamKeys {
     CLIENT_SECRET = "client_secret",
     CLIENT_ASSERTION = "client_assertion",
     CLIENT_ASSERTION_TYPE = "client_assertion_type",
+    TOKEN_TYPE = "token_type",
+    REQ_CNF = "req_cnf"
 }
 
 /**
@@ -260,4 +262,12 @@ export const SERVER_TELEM_CONSTANTS = {
     CACHE_KEY: "server-telemetry",
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
+};
+
+/**
+ * Type of the authentication request
+ */
+export enum AuthenticationScheme {
+    POP = "pop",
+    BEARER = "Bearer"
 };

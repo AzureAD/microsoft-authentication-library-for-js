@@ -35,4 +35,8 @@ export interface ICrypto {
      * Generate PKCE codes for OAuth. See RFC here: https://tools.ietf.org/html/rfc7636
      */
     generatePkceCodes(): Promise<PkceCodes>;
+    /**
+     * Generates an JWK RSA S256 Thumbprint
+     */
+    getPublicKeyThumbprint(): Promise<string>;
 }

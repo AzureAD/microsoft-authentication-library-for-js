@@ -3,13 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { ResponseMode } from "../utils/Constants";
+import { ResponseMode, AuthenticationScheme } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
  * 
+ * - authenticationScheme       - The type of token retrieved. Defaults to "Bearer". Can also be type "pop".
  * - scopes                     - Array of scopes the application is requesting access to.
  * - authority                  - Url of the authority which the application acquires tokens from.
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
@@ -32,6 +33,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  */
 export type AuthorizationUrlRequest = BaseAuthRequest & {
+    authenticationScheme?: AuthenticationScheme,
     redirectUri?: string;
     extraScopesToConsent?: Array<string>;
     responseMode?: ResponseMode;

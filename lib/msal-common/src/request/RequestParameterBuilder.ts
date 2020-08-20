@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo } from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, AuthenticationScheme } from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
@@ -243,6 +243,17 @@ export class RequestParameterBuilder {
         Object.keys(eQparams).forEach((key) => {
             this.parameters.set(key, eQparams[key]);
         });
+    }
+
+    /**
+     * add pop_jwk to query params
+     * @param cnfString 
+     */
+    addPopToken(cnfString: string): void {
+        if (!StringUtils.isEmpty(cnfString)) {
+            this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
+            this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(cnfString));
+        }
     }
 
     /**

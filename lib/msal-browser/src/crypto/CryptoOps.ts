@@ -21,6 +21,10 @@ export class CryptoOps implements ICrypto {
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
 
+    private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
+    private static EXTRACTABLE: boolean = true;
+    private static POP_HASH_LENGTH = 43; // 256 bit digest / 6 bits per char = 43
+
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto();
@@ -28,6 +32,16 @@ export class CryptoOps implements ICrypto {
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
+    }
+
+    async getPublicKeyThumbprint(): Promise<string> {
+        const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
+        // TODO: Store keypair
+        const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
+        const publicJwkString: string = BrowserCrypto.getJwkString(publicKeyJwk);
+        const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
+        const publicJwkDigest: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
+        return this.base64Encode(publicJwkDigest).substr(0, CryptoOps.POP_HASH_LENGTH);
     }
 
     /**

@@ -8,7 +8,7 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AADServerParamKeys } from "../utils/Constants";
+import { GrantType, AADServerParamKeys, AuthenticationScheme } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -22,6 +22,7 @@ import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorization
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -131,7 +132,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const requestBody = this.createTokenRequestBody(request);
+        const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
@@ -141,7 +142,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private createTokenRequestBody(request: AuthorizationCodeRequest): string {
+    private async createTokenRequestBody(request: AuthorizationCodeRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -172,6 +173,12 @@ export class AuthorizationCodeClient extends BaseClient {
 
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
         parameterBuilder.addClientInfo();
+
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            const cnfString = await popTokenGenerator.generateCnf();
+            parameterBuilder.addPopToken(cnfString);
+        }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);

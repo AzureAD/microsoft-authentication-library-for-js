@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
-import { RANDOM_TEST_GUID, TEST_CONFIG } from "./StringConstants";
+import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "./StringConstants";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
@@ -23,6 +23,8 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             },
             base64Decode(input: string): string {
                 switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        TEST_POP_VALUES.DECODED_REQ_CNF;
                     case encodedLibState:
                         return decodedLibState;
                     default:
@@ -31,6 +33,8 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             },
             base64Encode(input: string): string {
                 switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        TEST_POP_VALUES.ENCODED_REQ_CNF;
                     case `${decodedLibState}`:
                         return encodedLibState;
                     default:
@@ -43,6 +47,9 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER,
                 };
             },
+            async getPublicKeyThumbprint(): Promise<string> {
+                return TEST_POP_VALUES.KID;
+            }
         };
     });
 

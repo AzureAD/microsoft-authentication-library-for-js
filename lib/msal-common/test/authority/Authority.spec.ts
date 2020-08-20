@@ -12,7 +12,6 @@ import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../..
 import { ClientAuthErrorMessage } from "../../src";
 import { ClientTestUtils } from "../client/ClientTestUtils";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
-import { hostname } from "os";
 
 describe("Authority.ts Class Unit Tests", () => {
     afterEach(() => {
