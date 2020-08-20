@@ -48,18 +48,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(Object.keys(inMemoryCache.accessTokens).length).toBe(0);
     });
 
-    it("setInMemoryCache() and getCache()", () => {
-        const nodeStorage = new Storage(logger);
-        nodeStorage.setInMemoryCache(inMemoryCache);
-
-        const cache = nodeStorage.getCache();
-        const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
-        const account = cache[accountKey] as AccountEntity;
-        expect(account).toBeInstanceOf(AccountEntity);
-        expect(account.clientInfo).toBe('eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==');
-    });
-
-    it('setInMemoryCache() and getInMemoryCache() tests', () => {
+    it('setInMemoryCache() and getInMemoryCache() tests - tests for an account', () => {
         const nodeStorage = new Storage(logger);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
@@ -75,7 +64,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(newInMemoryCache.accounts[accountKey]).toEqual(account);
     });
 
-    it('setItem() and getItem() tests', () => {
+    it('setItem() and getItem() tests - tests for an account', () => {
         const nodeStorage = new Storage(logger);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
@@ -97,10 +86,11 @@ describe("Storage tests for msal-node: ", () => {
         nodeStorage.setItem(accountKey, account);
         const fetchedAccount = nodeStorage.getItem(accountKey);
 
+        expect(fetchedAccount).toBeInstanceOf(AccountEntity);
         expect(account).toEqual(fetchedAccount);
     });
 
-    it('setCache() and getCache() tests', () => {
+    it('setCache() and getCache() tests - tests for an accessToken', () => {
         const nodeStorage = new Storage(logger);
 
         const accessTokenKey = 'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite';
@@ -130,7 +120,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(readCache[accessTokenKey]).toEqual(accessToken);
     });
 
-    it('containsKey() tests', () => {
+    it('containsKey() tests - tests for an accountKey', () => {
         const nodeStorage = new Storage(logger);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
@@ -138,7 +128,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(nodeStorage.containsKey(accountKey)).toBeTruthy;
     });
 
-    it('getKeys() tests', () => {
+    it('getKeys() tests - tests for an accountKey', () => {
         const nodeStorage = new Storage(logger);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
@@ -146,7 +136,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(nodeStorage.getKeys().includes(accountKey)).toBeTruthy;
     });
 
-    it('removeItem() tests', () => {
+    it('removeItem() tests - removes an account', () => {
         const nodeStorage = new Storage(logger);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
