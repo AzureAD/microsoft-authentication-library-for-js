@@ -336,7 +336,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 code: TEST_TOKENS.AUTHORIZATION_CODE,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: TEST_CONFIG.CLAIMS
+                claims: TEST_CONFIG.CLAIMS,
+                clientCapabilities: []
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, idTokenClaims.nonce, testState);
