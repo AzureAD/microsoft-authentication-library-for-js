@@ -75,7 +75,9 @@ export class SilentFlowClient extends BaseClient {
         }
 
         // Return tokens from cache
-        this.config.serverTelemetryManager.incrementCacheHits();
+        if (this.config.serverTelemetryManager) {
+            this.config.serverTelemetryManager.incrementCacheHits();
+        }
         const cachedIdToken = this.readIdTokenFromCache(homeAccountId, environment, cachedAccount.realm);
         const idTokenObj = new IdToken(cachedIdToken.secret, this.config.cryptoInterface);
 
@@ -91,7 +93,7 @@ export class SilentFlowClient extends BaseClient {
         if (request.forceRefresh || request.claims || (request.clientCapabilities && request.clientCapabilities.length > 0)) {
             // Must refresh due to request parameters
             return true;
-        } else if (!cachedAccessToken || this.isTokenExpired(cachedAccessToken.expiresOn)) {
+        } else if (!cachedAccessToken || TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             // Must refresh due to expired or non-existent access_token
             return true;
         }
@@ -152,16 +154,4 @@ export class SilentFlowClient extends BaseClient {
         return this.cacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
     }
 
-    /**
-     * check if a token is expired based on given UTC time in seconds.
-     * @param expiresOn
-     */
-    private isTokenExpired(expiresOn: string): boolean {
-        // check for access token expiry
-        const expirationSec = Number(expiresOn) || 0;
-        const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
-
-        // If current time + offset is greater than token expiration time, then token is expired.
-        return (offsetCurrentTimeSec > expirationSec);
-    }
 }
