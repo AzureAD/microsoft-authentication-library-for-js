@@ -7,7 +7,6 @@ import crypto from "crypto";
 import { PkceCodes } from "@azure/msal-common";
 
 describe("CryptoOps.ts Unit Tests", () => {
-
     let cryptoObj: CryptoOps;
     beforeEach(() => {
         cryptoObj = new CryptoOps();
@@ -91,5 +90,5 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(generateKeyPairSpy.calledWith(true, ["sign", "verify"]));
         expect(exportJwkSpy.calledWith((await generateKeyPairSpy.returnValues[0]).publicKey));
         expect(regExp.test(pkThumbprint)).to.be.true;
-    });
+    }).timeout(800);
 });
