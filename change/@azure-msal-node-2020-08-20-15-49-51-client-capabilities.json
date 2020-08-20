@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Client Capabilities Support (#2169)",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.l.norling@gmail.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-20T22:49:51.888Z"
+}
