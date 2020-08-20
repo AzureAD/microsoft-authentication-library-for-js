@@ -9,7 +9,7 @@ import { Observable, from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { MsalService } from './msal.service';
 import { Minimatch } from "minimatch";
-import { AuthenticationResult, AccountInfo, AuthError } from "@azure/msal-browser";
+import { AuthenticationResult, AccountInfo } from "@azure/msal-browser";
 import { Injectable } from '@angular/core';
 
 @Injectable()
@@ -62,7 +62,7 @@ export class MsalInterceptor implements HttpInterceptor {
 
     acquireToken(scopes: Array<string>, account: AccountInfo): Promise<AuthenticationResult> {
         return this.authService.acquireTokenSilent({scopes: scopes.concat(['openid']), account})
-            .catch((error) =>  {
+            .catch(() => {
                 return this.authService.acquireTokenPopup({scopes});
             });
     }
