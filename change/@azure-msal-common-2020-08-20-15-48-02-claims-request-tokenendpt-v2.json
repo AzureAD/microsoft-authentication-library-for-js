@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Add claims request to /token calls (#2138)",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.l.norling@gmail.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-20T22:48:02.519Z"
+}
