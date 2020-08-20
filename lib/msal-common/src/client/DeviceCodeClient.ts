@@ -31,11 +31,15 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult> {
+        const validRequest: DeviceCodeRequest = {
+            ...request, 
+            ...this.initializeBaseAuthRequest(request)
+        };
 
-        const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
-        request.deviceCodeCallback(deviceCodeResponse);
+        const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(validRequest);
+        validRequest.deviceCodeCallback(deviceCodeResponse);
         const response: ServerAuthorizationTokenResponse = await this.acquireTokenWithDeviceCode(
-            request,
+            validRequest,
             deviceCodeResponse);
 
         const responseHandler = new ResponseHandler(
@@ -60,8 +64,12 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
+        const validRequest: DeviceCodeRequest = {
+            ...request, 
+            ...this.initializeBaseAuthRequest(request)
+        };
 
-        const queryString = this.createQueryString(request);
+        const queryString = this.createQueryString(validRequest);
         const headers = this.createDefaultLibraryHeaders();
 
         return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers);
@@ -114,6 +122,7 @@ export class DeviceCodeClient extends BaseClient {
         const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
+        parameterBuilder.addClaims(request.claims, request.clientCapabilities);
 
         return parameterBuilder.createQueryString();
     }
@@ -190,6 +199,7 @@ export class DeviceCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         requestParameters.addCorrelationId(correlationId);
         requestParameters.addClientInfo();
+        requestParameters.addClaims(request.claims, request.clientCapabilities);
         return requestParameters.createQueryString();
     }
 }

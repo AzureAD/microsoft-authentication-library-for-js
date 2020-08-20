@@ -43,7 +43,12 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
-        const queryString = this.createAuthCodeUrlQueryString(request);
+        const validRequest: AuthorizationUrlRequest = {
+            ...request,
+            ...this.initializeBaseAuthRequest(request)
+        };
+
+        const queryString = this.createAuthCodeUrlQueryString(validRequest);
         return `${this.authority.authorizationEndpoint}?${queryString}`;
     }
 
@@ -54,12 +59,16 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
-        // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
 
-        const response = await this.executeTokenRequest(this.authority, request);
+        const validRequest: AuthorizationCodeRequest = {
+            ...request,
+            ...this.initializeBaseAuthRequest(request)
+        };
+
+        const response = await this.executeTokenRequest(this.authority, validRequest);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,

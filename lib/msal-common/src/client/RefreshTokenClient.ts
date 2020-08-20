@@ -25,7 +25,12 @@ export class RefreshTokenClient extends BaseClient {
     }
 
     public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
-        const response = await this.executeTokenRequest(request, this.authority);
+        const validRequest: RefreshTokenRequest = {
+            ...request,
+            ...this.initializeBaseAuthRequest(request)
+        };
+
+        const response = await this.executeTokenRequest(validRequest, this.authority);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
