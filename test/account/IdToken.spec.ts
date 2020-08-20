@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { IdToken } from "../../src/account/IdToken";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../utils/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import sinon from "sinon";
 import { ClientAuthErrorMessage, ClientAuthError, StringUtils } from "../../src";
@@ -11,7 +11,7 @@ const idTokenClaims = {
     "ver": "2.0",
     "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
     "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-    "exp": "1536361411",
+    "exp": 1536361411,
     "name": "Abe Lincoln",
     "preferred_username": "AbeLi@microsoft.com",
     "oid": "00000000-0000-0000-66f3-3332eca7ea81",
@@ -31,6 +31,8 @@ describe("IdToken.ts Class Unit Tests", () => {
                 },
                 base64Decode(input: string): string {
                     switch (input) {
+                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                            return TEST_POP_VALUES.DECODED_REQ_CNF;
                         case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                             return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                         case testTokenPayload:
@@ -45,8 +47,8 @@ describe("IdToken.ts Class Unit Tests", () => {
                             return "MTIzLXRlc3QtdWlk";
                         case "456-test-uid":
                             return "NDU2LXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
+                        case TEST_POP_VALUES.DECODED_REQ_CNF:
+                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
                         default:
                             return input;
                     }
@@ -56,6 +58,9 @@ describe("IdToken.ts Class Unit Tests", () => {
                         challenge: TEST_CONFIG.TEST_CHALLENGE,
                         verifier: TEST_CONFIG.TEST_VERIFIER
                     }
+                },
+                async getPublicKeyThumbprint(): Promise<string> {
+                    return TEST_POP_VALUES.KID;
                 }
             };
         });
