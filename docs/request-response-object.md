@@ -84,6 +84,11 @@ All interactive token APIs and `ssoSilent()` accept an object with the following
     claims?: string;
 
     /**
+    *  Capabilities which should be returned on the xms_cc claim of the access token
+    */
+    clientCapabilities?: Array<string>;
+
+    /**
      *  A value included in the request that is returned in the id token. A randomly
      *  generated unique value is typically used to mitigate replay attacks.
      */
@@ -125,6 +130,10 @@ The `acquireTokenSilent` API accepts an object with the following signature to r
     account: AccountInfo;
     // REQUIRED: Scopes that the requested access token has consent for
     scopes: Array<string>;
+    // Claims that should be included on the tokens, in accordance with OIDC claims request
+    claims?: string;
+    // Capabilities which should be returned on the xms_cc claim of the access token
+    clientCapabilities?: Array<string>;
     // Authority to retrieve tokens for
     authority?: string;
     // Boolean value - if true, will perform refresh token request to get new access token
@@ -152,6 +161,8 @@ const resp = msalInstance.acquireTokenSilent(silentRequest);
 | Option | Description | Format | 
 | ------ | ----------- | ------ |
 | `scopes` | See [below](#scopes). | String array |
+| `claims` | OIDC Claims request via claims parameter | Stringified JSON |
+| `clientCapabilities` | Capabilities which should be returned on the xms_cc claim of the access token | String array |
 | `redirectUri` | URI to return to after request is completed. | String |
 | `extraQueryParameters` | `key`:`value` object with additional parameters to be sent as part of URI request. For example, `extraQueryParameters: {k1: v1}` is included in the request URI as `?k1=v1`. | String dictionary - `{key: value}`|
 | `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}`. Overwrites the authority set in the [`PublicClientApplication` configuration object](./configuration.md). | String in URI format with tenant - `https://{uri}/{tenantid}` |
