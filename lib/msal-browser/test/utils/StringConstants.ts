@@ -69,6 +69,12 @@ export const TEST_DATA_CLIENT_INFO = {
     TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA=="
 };
 
+export const TEST_POP_VALUES = {
+    KID: "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+    ENCODED_REQ_CNF: "eyJraWQiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwieG1zX2tzbCI6InN3In0=",
+    DECODED_REQ_CNF: `{"kid":"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs","xms_ksl":"sw"}`
+};
+
 export const TEST_STATE_VALUES = {
     USER_STATE: "userState",
     TEST_TIMESTAMP: 1592846482,

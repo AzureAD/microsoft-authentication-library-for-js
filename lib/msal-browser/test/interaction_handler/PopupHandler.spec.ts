@@ -6,7 +6,7 @@ import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, Authoriza
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
 import sinon from "sinon";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -93,6 +93,9 @@ describe("PopupHandler.ts Unit Tests", () => {
                 generatePkceCodes: async (): Promise<PkceCodes> => {
                     return testPkceCodes;
                 },
+                getPublicKeyThumbprint: async (): Promise<string> => {
+                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                }
             },
             storageInterface: new TestStorageInterface(),
             networkInterface: {

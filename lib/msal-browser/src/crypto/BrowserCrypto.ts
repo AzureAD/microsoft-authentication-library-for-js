@@ -112,6 +112,7 @@ export class BrowserCrypto {
      * @param data 
      */
     private async getSubtleCryptoDigest(algorithm: string, data: Uint8Array): Promise<ArrayBuffer> {
+        console.log(algorithm);
         return window.crypto.subtle.digest(algorithm, data);
     }
 

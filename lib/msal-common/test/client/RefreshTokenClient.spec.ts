@@ -44,7 +44,7 @@ describe("RefreshTokenClient unit tests", () => {
             "ver": "2.0",
             "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
             "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": "1536361411",
+            "exp": 1536361411,
             "name": "Abe Lincoln",
             "preferred_username": "AbeLi@microsoft.com",
             "oid": "00000000-0000-0000-66f3-3332eca7ea81",

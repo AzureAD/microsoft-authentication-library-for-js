@@ -36,7 +36,6 @@ export class PopTokenGenerator {
             kid: kidThumbprint,
             xms_ksl: KeyLocation.SW
         };
-
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
