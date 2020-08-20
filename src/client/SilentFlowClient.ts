@@ -59,7 +59,7 @@ export class SilentFlowClient extends BaseClient {
         const cachedRefreshToken = this.readRefreshTokenFromCache(homeAccountId, environment);
 
         // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (request.forceRefresh || !cachedAccessToken || this.isTokenExpired(cachedAccessToken.expiresOn)) {
+        if (request.forceRefresh || !cachedAccessToken || TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             // no refresh Token
             if (!cachedRefreshToken) {
                 throw ClientAuthError.createNoTokensFoundError();
@@ -140,16 +140,4 @@ export class SilentFlowClient extends BaseClient {
         return this.cacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
     }
 
-    /**
-     * check if a token is expired based on given UTC time in seconds.
-     * @param expiresOn
-     */
-    private isTokenExpired(expiresOn: string): boolean {
-        // check for access token expiry
-        const expirationSec = Number(expiresOn) || 0;
-        const offsetCurrentTimeSec = TimeUtils.nowSeconds() + this.config.systemOptions.tokenRenewalOffsetSeconds;
-
-        // If current time + offset is greater than token expiration time, then token is expired.
-        return (offsetCurrentTimeSec > expirationSec);
-    }
 }
