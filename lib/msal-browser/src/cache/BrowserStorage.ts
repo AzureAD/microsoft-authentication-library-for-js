@@ -19,6 +19,8 @@ import {
     CacheManager,
     ServerTelemetryCacheValue,
     SERVER_TELEM_CONSTANTS,
+    AUTHORITY_TYPE,
+    CredentialEntity
 } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -129,7 +131,7 @@ export class BrowserStorage extends CacheManager {
 
         let stringifiedValue: string;
         // throw for invalid cache type
-        if (!(type in CacheSchemaType) || (type === CacheSchemaType.UNDEFINED)) {
+        if ((CacheSchemaType[type] === null) || (type === CacheSchemaType.UNDEFINED)) {
             throw BrowserAuthError.createInvalidCacheTypeError();
         }
 
@@ -147,19 +149,12 @@ export class BrowserStorage extends CacheManager {
         this.windowStorage.setItem(key, stringifiedValue);
     }
 
-    // getItem ->
-    // read the value: string
-    // helper function (value, type):
-    //   persistent cache types: CacheManager.toObject(type based entity, JSON.parse(value)) as type based entity
-    //   telemetry/ throttling: JSON.parse(value)
-    //   temporary: cookie check, value as is
-
     /**
      * Gets cache item with given key.
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
      */
-    getItem(key: string, type: string): ValidCacheType {
+    getItem(key: string): ValidCacheType {
         const value = this.windowStorage.getItem(key);
         return this.getItemHelper(key, value);
     }
@@ -420,49 +415,51 @@ export class BrowserStorage extends CacheManager {
         }
 
         let parsedValue;
+
         // handle strings - TEMPORARY Values; check cookies for these
         try {
             parsedValue = JSON.parse(value);
         } catch (e) {
-            const itemCookie = this.getItemCookie(key);
             if (this.cacheConfig.storeAuthStateInCookie) {
+                const itemCookie = this.getItemCookie(key);
                 return itemCookie;
             }
             return value;
         }
 
         // Account
-        if (parsedValue.includes("authorityType")) {
+        if (parsedValue.hasOwnProperty(AUTHORITY_TYPE)) {
             const accountEntity = new AccountEntity();
             return CacheManager.toObject(accountEntity, parsedValue) as AccountEntity;
         }
         // IdToken
-        else if (parsedValue.includes(CredentialType.ID_TOKEN)) {
+        // else if (parsedValue["credentialType"] === CredentialType.ID_TOKEN) {
+        else if (CredentialEntity.isCredentialEntity(parsedValue)) {
             const idTokenEntity = new IdTokenEntity();
             return CacheManager.toObject(idTokenEntity, parsedValue) as IdTokenEntity;
         }
         // AccessToken
-        else if (parsedValue.includes(CredentialType.ACCESS_TOKEN)) {
+        else if (parsedValue["credentialType"] === CredentialType.ACCESS_TOKEN) {
             const accessTokenEntity = new IdTokenEntity();
             return CacheManager.toObject(accessTokenEntity, parsedValue) as AccessTokenEntity;
         }
         // RefreshToken
-        else if (parsedValue.includes(CredentialType.REFRESH_TOKEN)) {
+        else if (parsedValue["credentialType"] === CredentialType.REFRESH_TOKEN) {
             const refreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
             return (CacheManager.toObject(refreshTokenEntity, parsedValue) as RefreshTokenEntity);
         }
         // AppMetadata
-        else if (parsedValue.includes(CacheSchemaType.APP_METADATA)) {
+        else if (key.indexOf(CacheSchemaType.APP_METADATA) === 0) {
             const appMetadataEntity: AppMetadataEntity = new AppMetadataEntity();
             return (CacheManager.toObject(appMetadataEntity, parsedValue) as AppMetadataEntity);
         }
-        // Telemetry
-        else if (key.includes(SERVER_TELEM_CONSTANTS.CACHE_KEY)) {
+        // Telemetry, TODO: throttling type
+        else if (key.indexOf(SERVER_TELEM_CONSTANTS.CACHE_KEY) === 0) {
             return parsedValue as ServerTelemetryCacheValue;
         }
-        // fail safe for any
+        // for unidentified keys, fetch the item as is
         else {
-            throw BrowserAuthError.createInvalidCacheTypeError();
+            return value;
         }
     }
 }
