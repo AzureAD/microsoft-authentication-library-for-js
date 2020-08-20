@@ -19,7 +19,7 @@ import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { IdToken } from "../../src/account/IdToken";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AccountInfo } from "../../src/account/AccountInfo";
-import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage } from "../../src";
+import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage, TimeUtils } from "../../src";
 
 describe("SilentFlowClient unit tests", () => {
     beforeEach(() => {
@@ -154,7 +154,7 @@ describe("SilentFlowClient unit tests", () => {
         sinon.stub(SilentFlowClient.prototype, <any>"readIdTokenFromCache").returns(testIdToken);
         sinon.stub(SilentFlowClient.prototype, <any>"readAccessTokenFromCache").returns(testAccessTokenEntity);
         sinon.stub(SilentFlowClient.prototype, <any>"readRefreshTokenFromCache").returns(testRefreshTokenEntity);
-        sinon.stub(SilentFlowClient.prototype, <any>"isTokenExpired").returns(true);
+        sinon.stub(TimeUtils, <any>"isTokenExpired").returns(true);
 
         const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new SilentFlowClient(config);

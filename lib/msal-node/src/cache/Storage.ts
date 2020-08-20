@@ -10,10 +10,11 @@ import {
     AppMetadataEntity,
     CacheManager,
     Logger,
+    ValidCacheType,
 } from '@azure/msal-common';
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
-import { InMemoryCache, JsonCache, CacheKVStore, ValidCacheType } from "./serializer/SerializerTypes";
+import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerTypes";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -21,15 +22,13 @@ import { InMemoryCache, JsonCache, CacheKVStore, ValidCacheType } from "./serial
 export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.
     private logger: Logger;
+    private cache: CacheKVStore = {};
+    private changeEmitters: Array<Function> = [];
 
     constructor(logger: Logger) {
         super();
         this.logger = logger;
     }
-
-    private cache: CacheKVStore = {};
-
-    private changeEmitters: Array<Function> = [];
 
     registerChangeEmitter(func: () => void): void {
         this.changeEmitters.push(func);
@@ -93,7 +92,7 @@ export class Storage extends CacheManager {
     /**
      * gets the current in memory cache for the client
      */
-    getInMemoryCache(): object {
+    getInMemoryCache(): InMemoryCache {
         this.logger.verbose("Getting in-memory cache");
 
         // convert the cache key value store to inMemoryCache
@@ -136,13 +135,11 @@ export class Storage extends CacheManager {
     }
 
     /**
-     *
+     * Gets cache item with given <key, value>
      * @param key
      * @param value
-     * @param type
      */
-    setItem(key: string, value: ValidCacheType, type?: string) {
-        this.logger.verbose(`setItem called for item type: ${type}`);
+    setItem(key: string, value: ValidCacheType) {
         this.logger.verbosePii(`Item key: ${key}`);
 
         // read cache
@@ -155,13 +152,9 @@ export class Storage extends CacheManager {
 
     /**
      * Gets cache item with given key.
-     * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
-     * @param type
-     * @param inMemory
      */
-    getItem(key: string, type?: string): string | object {
-        this.logger.verbose(`getItem called for item type: ${type}`);
+    getItem(key: string): ValidCacheType {
         this.logger.verbosePii(`Item key: ${key}`);
 
         // read cache
@@ -172,11 +165,9 @@ export class Storage extends CacheManager {
     /**
      * Removes the cache item from memory with the given key.
      * @param key
-     * @param type
      * @param inMemory
      */
-    removeItem(key: string, type?: string): boolean {
-        this.logger.verbose(`removeItem called for item type: ${type}`);
+    removeItem(key: string): boolean {
         this.logger.verbosePii(`Item key: ${key}`);
 
         // read inMemoryCache
@@ -208,6 +199,7 @@ export class Storage extends CacheManager {
      */
     getKeys(): string[] {
         this.logger.verbose("Retrieving all cache keys");
+
         // read cache
         const cache = this.getCache();
         return [ ...Object.keys(cache)];
@@ -218,6 +210,7 @@ export class Storage extends CacheManager {
      */
     clear(): void {
         this.logger.verbose("Clearing cache entries created by MSAL");
+
         // read inMemoryCache
         const cacheKeys = this.getKeys();
 

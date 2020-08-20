@@ -37,7 +37,7 @@ export class AppMetadataEntity {
      */
     static isAppMetadataEntity(key: string, entity: object): boolean {
         return (
-            (key.indexOf(APP_METADATA) !== -1) &&
+            (key.indexOf(APP_METADATA) === 0) &&
             entity.hasOwnProperty("clientId") &&
             entity.hasOwnProperty("environment")
         );
