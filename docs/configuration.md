@@ -48,7 +48,8 @@ const msalConfig = {
         },
         windowHashTimeout: 60000,
         iframeHashTimeout: 6000,
-        loadFrameTimeout: 0
+        loadFrameTimeout: 0,
+        asyncPopups: false
     };
 }
 
@@ -81,6 +82,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `windowHashTimeout` | Timeout in milliseconds to wait for popup authentication to resolve. | integer (milliseconds) | `60000` |
 | `iframeHashTimeout` | Timeout in milliseconds to wait for iframe authentication to resolve | integer (milliseconds) | `6000` |
 | `loadFrameTimeout` | Timeout in milliseconds to wait for the iframe to load in the window. | integer (milliseconds) | In IE or Edge: `500`, in all other browsers: `0` |
+| `asyncPopups` | Sets whether popups are opened asynchronously. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request. Can be set to true for scenarios that do not support popups, e.g. desktop apps or progressive web apps | boolean | `false` |
 
 ### Logger Config Options
 | Option | Description | Format | Default Value |
