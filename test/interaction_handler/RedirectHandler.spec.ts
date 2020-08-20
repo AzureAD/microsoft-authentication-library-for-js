@@ -5,7 +5,7 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
-import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
@@ -73,6 +73,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 generatePkceCodes: async (): Promise<PkceCodes> => {
                     return testPkceCodes;
                 },
+                getPublicKeyThumbprint: async (): Promise<string> => {
+                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                }
             },
             storageInterface: browserStorage,
             networkInterface: {

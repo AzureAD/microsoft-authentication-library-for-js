@@ -61,7 +61,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(cryptoObj.base64Decode("Zm9vYmFy")).to.be.eq("foobar");
     });
 
-    it("generatePkceCode()", async () => {
+    it("generatePkceCode() creates a valid Pkce code", async () => {
         sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).to.be.eq("SHA-256");
             return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
@@ -74,5 +74,22 @@ describe("CryptoOps.ts Unit Tests", () => {
         const generatedCodes: PkceCodes = await cryptoObj.generatePkceCodes();
         expect(regExp.test(generatedCodes.challenge)).to.be.true;
         expect(regExp.test(generatedCodes.verifier)).to.be.true;
+    });
+
+    it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
+        sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+            expect(algorithm).to.be.eq("SHA-256");
+            return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
+        });
+        const generateKeyPairSpy = sinon.spy(BrowserCrypto.prototype, "generateKeyPair");
+        const exportJwkSpy = sinon.spy(BrowserCrypto.prototype, "exportJwk");
+        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint();
+        /**
+         * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+         */
+        const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+        expect(generateKeyPairSpy.calledWith(true, ["sign", "verify"]));
+        expect(exportJwkSpy.calledWith((await generateKeyPairSpy.returnValues[0]).publicKey));
+        expect(regExp.test(pkThumbprint)).to.be.true;
     });
 });
