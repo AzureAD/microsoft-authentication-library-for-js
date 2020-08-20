@@ -1,5 +1,5 @@
 import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError} from "../../src";
-import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
+import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../utils/StringConstants";
 import { AuthorityFactory } from "../../src";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 import sinon from "sinon";
@@ -81,10 +81,20 @@ export class ClientTestUtils {
                     return RANDOM_TEST_GUID;
                 },
                 base64Decode(input: string): string {
-                    return input;
+                    switch (input) {
+                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                            return TEST_POP_VALUES.DECODED_REQ_CNF;
+                        default:
+                            return input;
+                    }
                 },
                 base64Encode(input: string): string {
-                    return input;
+                    switch (input) {
+                        case TEST_POP_VALUES.DECODED_REQ_CNF:
+                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                        default:
+                            return input;
+                    }
                 },
                 async generatePkceCodes(): Promise<PkceCodes> {
                     return {
@@ -92,6 +102,9 @@ export class ClientTestUtils {
                         verifier: TEST_CONFIG.TEST_VERIFIER,
                     };
                 },
+                async getPublicKeyThumbprint(): Promise<string> {
+                    return TEST_POP_VALUES.KID;
+                }
             },
             loggerOptions: {
                 loggerCallback: testLoggerCallback,

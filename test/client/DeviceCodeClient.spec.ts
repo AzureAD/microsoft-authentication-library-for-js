@@ -16,7 +16,8 @@ import {
     DEVICE_CODE_RESPONSE,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
-    TEST_URIS
+    TEST_URIS,
+    TEST_POP_VALUES
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType } from "../../src/utils/Constants";
@@ -38,6 +39,8 @@ describe("DeviceCodeClient unit tests", async () => {
         const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;
         config.cryptoInterface.base64Decode = (input: string): string => {
             switch (input) {
+                case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
                 case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                     return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                 case `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9`:
@@ -49,6 +52,8 @@ describe("DeviceCodeClient unit tests", async () => {
 
         config.cryptoInterface.base64Encode = (input: string): string => {
             switch (input) {
+                case TEST_POP_VALUES.DECODED_REQ_CNF:
+                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
                 case "123-test-uid":
                     return "MTIzLXRlc3QtdWlk";
                 case "456-test-utid":
@@ -65,7 +70,7 @@ describe("DeviceCodeClient unit tests", async () => {
             ver: "2.0",
             iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
             sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            exp: "1536361411",
+            exp: 1536361411,
             name: "Abe Lincoln",
             preferred_username: "AbeLi@microsoft.com",
             oid: "00000000-0000-0000-66f3-3332eca7ea81",
