@@ -545,7 +545,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * or null when no matching account is found
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
-    getAccountById(homeAccountId: string): AccountInfo|null {
+    getAccountByHomeId(homeAccountId: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
             return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;

@@ -20,7 +20,7 @@ function callMSGraph(endpoint, accessToken, callback) {
 }
 
 async function seeProfile() {
-    const currentAcc = myMSALObj.getAccountById(accountId);
+    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
     if (currentAcc) {
         const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
             console.log(error);
@@ -31,7 +31,7 @@ async function seeProfile() {
 }
 
 async function readMail() {
-    const currentAcc = myMSALObj.getAccountById(accountId);
+    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
     if (currentAcc) {
         const response = await getTokenPopup(tokenRequest, currentAcc).catch(error => {
             console.log(error);
@@ -42,7 +42,7 @@ async function readMail() {
 }
 
 async function seeProfileRedirect() {
-    const currentAcc = myMSALObj.getAccountById(accountId);
+    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
     if (currentAcc) {
         const response = await getTokenRedirect(loginRequest, currentAcc).catch(error => {
             console.log(error);
@@ -53,7 +53,7 @@ async function seeProfileRedirect() {
 }
 
 async function readMailRedirect() {
-    const currentAcc = myMSALObj.getAccountById(accountId);
+    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
     if (currentAcc) {
         const response = await getTokenRedirect(tokenRequest, currentAcc).catch(error => {
             console.log(error);

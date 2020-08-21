@@ -1543,18 +1543,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).to.be.null;
         });
 
-        it("getAccountById returns account specified", () => {
-            const account = pca.getAccountById(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
+        it("getAccountByHomeId returns account specified", () => {
+            const account = pca.getAccountByHomeId(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
             expect(account).to.deep.eq(testAccountInfo1);
         });
 
-        it("getAccountById returns null if passed id doesn't exist", () => {
-            const account = pca.getAccountById("this-id-doesnt-exist");
+        it("getAccountByHomeId returns null if passed id doesn't exist", () => {
+            const account = pca.getAccountByHomeId("this-id-doesnt-exist");
             expect(account).to.be.null;
         });
 
-        it("getAccountById returns null if passed id is null", () => {
-            const account = pca.getAccountById(null);
+        it("getAccountByHomeId returns null if passed id is null", () => {
+            const account = pca.getAccountByHomeId(null);
             expect(account).to.be.null;
         });
     });

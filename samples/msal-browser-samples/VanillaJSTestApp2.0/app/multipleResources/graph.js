@@ -20,7 +20,7 @@ function callMSGraph(endpoint, accessToken, callback) {
 }
 
 async function seeProfile() {
-    const currentAcc = myMSALObj.getAccountById(accountId);
+    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
     if (currentAcc) {
         const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
             console.log(error);
@@ -31,7 +31,7 @@ async function seeProfile() {
 }
 
 async function acquireSecondToken() {
-    const currentAcc = myMSALObj.getAccountById(accountId);
+    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
     if (currentAcc) {
         const response = await getTokenPopup(tokenRequest, currentAcc).catch(error => {
             console.log(error);
