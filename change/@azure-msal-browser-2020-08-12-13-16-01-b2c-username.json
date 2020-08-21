@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add getAccountById API (#2114)",
+  "comment": "Add getAccountByHomeId API (#2114)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.l.norling@gmail.com",
   "dependentChangeType": "patch",
