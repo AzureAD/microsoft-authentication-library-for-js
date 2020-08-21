@@ -2,7 +2,7 @@
   "type": "patch",
   "comment": "Add getAccountByHomeId API (#2114)",
   "packageName": "@azure/msal-browser",
-  "email": "thomas.l.norling@gmail.com",
+  "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch",
   "date": "2020-08-12T20:15:05.753Z"
 }
