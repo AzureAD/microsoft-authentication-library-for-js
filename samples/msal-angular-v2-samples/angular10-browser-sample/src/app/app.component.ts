@@ -24,7 +24,7 @@ export class AppComponent implements OnInit {
 
   login() {
     this.authService.loginPopup()
-      .then(() => this.checkAccount());
+      .subscribe(() => this.checkAccount());
   }
 
   logout() {

@@ -2,14 +2,13 @@ import {
     HttpRequest,
     HttpHandler,
     HttpEvent,
-    HttpInterceptor,
-    HttpErrorResponse
+    HttpInterceptor
 } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, catchError } from 'rxjs/operators';
 import { MsalService } from './msal.service';
 import { Minimatch } from "minimatch";
-import { AuthenticationResult, AccountInfo } from "@azure/msal-browser";
+import { AuthenticationResult } from "@azure/msal-browser";
 import { Injectable } from '@angular/core';
 
 @Injectable()
@@ -29,8 +28,10 @@ export class MsalInterceptor implements HttpInterceptor {
             return next.handle(req);
         }
 
-        return from(this.acquireToken(scopes, account))
+        // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
+        return this.authService.acquireTokenSilent({scopes, account})
             .pipe(
+                catchError(() => this.authService.acquireTokenPopup({scopes})),
                 switchMap((result: AuthenticationResult) => {
                     const headers = req.headers
                         .set('Authorization', `Bearer ${result.accessToken}`)
@@ -58,14 +59,6 @@ export class MsalInterceptor implements HttpInterceptor {
         } 
 
         return null;
-    }
-
-    acquireToken(scopes: Array<string>, account: AccountInfo): Promise<AuthenticationResult> {
-        // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
-        return this.authService.acquireTokenSilent({scopes, account})
-            .catch(() => {
-                return this.authService.acquireTokenPopup({scopes});
-            });
     }
     
 }
