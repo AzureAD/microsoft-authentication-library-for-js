@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Merge branch 'dev' into msal-common-cacheType-validation",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-08-21T21:13:27.893Z"
+}
