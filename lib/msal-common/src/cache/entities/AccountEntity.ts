@@ -19,11 +19,11 @@ import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
- * 
+ *
  * Key : Value Schema
- * 
+ *
  * Key: <home_account_id>-<environment>-<realm*>
- * 
+ *
  * Value Schema:
  * {
  *      homeAccountId: home account identifier for the auth scheme,
@@ -35,7 +35,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      name: Full name for the account, including given name and family name,
  *      clientInfo: Full base64 encoded client info received from ESTS
  *      lastModificationTime: last time this entity was modified in the cache
- *      lastModificationApp: 
+ *      lastModificationApp:
  * }
  */
 export class AccountEntity {
@@ -140,7 +140,7 @@ export class AccountEntity {
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
-        
+
         account.environment = env;
         account.realm = idToken.claims.tid;
 
@@ -170,7 +170,7 @@ export class AccountEntity {
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
-        
+
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
 
@@ -184,5 +184,21 @@ export class AccountEntity {
         // account.name = idToken.claims.uniqueName;
 
         return account;
+    }
+
+    /**
+     * Validates an entity: checks for all expected params
+     * @param entity
+     */
+    static isAccountEntity(entity: object): boolean {
+
+        return (
+            entity.hasOwnProperty("homeAccountId") &&
+            entity.hasOwnProperty("environment") &&
+            entity.hasOwnProperty("realm") &&
+            entity.hasOwnProperty("localAccountId") &&
+            entity.hasOwnProperty("username") &&
+            entity.hasOwnProperty("authorityType")
+        );
     }
 }
