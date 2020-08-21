@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "patch",
   "comment": "Adds checks for cache entities",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",

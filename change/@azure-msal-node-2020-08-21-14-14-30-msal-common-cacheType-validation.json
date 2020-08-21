@@ -1,5 +1,6 @@
 {
   "type": "prerelease",
+  "comment": "update APP_META_DATA to APP_METADATA",
   "packageName": "@azure/msal-node",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",
