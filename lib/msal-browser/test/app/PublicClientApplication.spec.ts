@@ -893,6 +893,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("Popup Flow Unit tests", () => {
 
         describe("loginPopup", () => {
+            beforeEach(() => {
+                sinon.stub(window, "open").returns(window);
+            });
+
+            afterEach(() => {
+                sinon.restore();
+            });
 
             it("throws error if interaction is in progress", async () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -992,6 +999,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         describe("acquireTokenPopup", () => {
+            beforeEach(() => {
+                sinon.stub(window, "open").returns(window);
+            });
+
+            afterEach(() => {
+                sinon.restore();
+            });
 
             it("throws error if interaction is in progress", async () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -1003,6 +1017,50 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["scope"]
                 })).rejectedWith(BrowserAuthError);
+            });
+
+            it("opens popup window before network request by default", () => {
+                const request: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: ["scope"],
+					loginHint: "AbeLi@microsoft.com",
+                    state: TEST_STATE_VALUES.USER_STATE
+                };
+
+                sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                });
+
+                const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
+                
+                pca.acquireTokenPopup(request);
+                expect(popupSpy.calledWith()).to.be.true;
+            });
+
+            it("opens popups asynchronously if configured", () => {
+                pca = new PublicClientApplication({
+                    system: {
+                        asyncPopups: true
+                    }
+                });
+
+                sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                });
+
+                const request: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: ["scope"],
+					loginHint: "AbeLi@microsoft.com",
+                    state: TEST_STATE_VALUES.USER_STATE
+                };
+
+                const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
+                
+                pca.acquireTokenPopup(request);
+                expect(popupSpy.calledWith()).to.be.false;
             });
 
             it("resolves the response successfully", async () => {

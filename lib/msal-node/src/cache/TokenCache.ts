@@ -95,7 +95,6 @@ export class TokenCache {
     async writeToPersistence(): Promise<void> {
         this.logger.verbose("Writing to persistent cache");
         if (this.persistence) {
-            this.logger.verbose("cachePlugin (persistent cache) not set by the user");
             let cache = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
             const getMergedState = (stateFromDisk: string) => {
                 if (!StringUtils.isEmpty(stateFromDisk)) {
@@ -123,7 +122,6 @@ export class TokenCache {
     async readFromPersistence(): Promise<void> {
         this.logger.verbose("Reading from persistent cache");
         if (this.persistence) {
-            this.logger.verbose("cachePlugin (persistent cache) not set by the user");
             this.cacheSnapshot = await this.persistence.readFromStorage();
 
             if (!StringUtils.isEmpty(this.cacheSnapshot)) {

@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Fix Telemetry cacheHit Bug (#2170)",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.l.norling@gmail.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-20T18:36:50.041Z"
+}
