@@ -10,7 +10,6 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * SilentFlow parameters passed by the user to retrieve credentials silently
  * - scopes                 - Array of scopes the application is requesting access to.
  * - claims                 - A stringified claims request which will be added to all /authorize and /token calls. When included on a silent request, cache lookup will be skipped and token will be refreshed.
- * - clientCapabilities     - Array of capabilities which will be added to the claims.access_token.xms_cc request property. When included on a silent request, cache lookup will be skipped and token will be refreshed.
  * - authority              - Url of the authority which the application acquires tokens from.
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - account                - Account entity to lookup the credentials.

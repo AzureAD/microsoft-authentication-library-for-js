@@ -15,6 +15,7 @@ import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizatio
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { StringUtils } from "../utils/StringUtils";
 
 /**
  * OAuth2.0 Device code client
@@ -31,15 +32,11 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult> {
-        const validRequest: DeviceCodeRequest = {
-            ...request, 
-            ...this.initializeBaseAuthRequest(request)
-        };
 
-        const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(validRequest);
-        validRequest.deviceCodeCallback(deviceCodeResponse);
+        const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
+        request.deviceCodeCallback(deviceCodeResponse);
         const response: ServerAuthorizationTokenResponse = await this.acquireTokenWithDeviceCode(
-            validRequest,
+            request,
             deviceCodeResponse);
 
         const responseHandler = new ResponseHandler(
@@ -64,12 +61,8 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
-        const validRequest: DeviceCodeRequest = {
-            ...request, 
-            ...this.initializeBaseAuthRequest(request)
-        };
 
-        const queryString = this.createQueryString(validRequest);
+        const queryString = this.createQueryString(request);
         const headers = this.createDefaultLibraryHeaders();
 
         return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers);
@@ -122,7 +115,10 @@ export class DeviceCodeClient extends BaseClient {
         const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
-        parameterBuilder.addClaims(request.claims, request.clientCapabilities);
+        
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
 
         return parameterBuilder.createQueryString();
     }
@@ -199,7 +195,10 @@ export class DeviceCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         requestParameters.addCorrelationId(correlationId);
         requestParameters.addClientInfo();
-        requestParameters.addClaims(request.claims, request.clientCapabilities);
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            requestParameters.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
         return requestParameters.createQueryString();
     }
 }

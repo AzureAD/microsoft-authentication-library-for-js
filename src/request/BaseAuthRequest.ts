@@ -13,7 +13,6 @@
 export type BaseAuthRequest = {
     scopes: Array<string>;
     claims?: string;
-    clientCapabilities?: Array<string>;
     authority?: string;
     correlationId?: string;
 };
