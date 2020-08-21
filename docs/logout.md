@@ -49,7 +49,7 @@ The logout API also accepts an object for different configuration options:
 ## Code Snippet
 
 ```javascript
-const currentAccount = msalInstance.getAccountById(homeAccountId);
+const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
 msalInstance.logout({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut",
