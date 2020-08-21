@@ -48,9 +48,10 @@ export type CacheOptions = {
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
  * - loggerOptions                - Used to initialize the Logger object (See ClientConfiguration.ts)
  * - networkClient                - Network interface implementation
- * - windowHashTimeout            - sets the timeout for waiting for a response hash in a popup
- * - iframeHashTimeout            - sets the timeout for waiting for a response hash in an iframe
- * - loadFrameTimeout             - maximum time the library should wait for a frame to load
+ * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup
+ * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe
+ * - loadFrameTimeout             - Maximum time the library should wait for a frame to load
+ * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -58,6 +59,7 @@ export type BrowserSystemOptions = SystemOptions & {
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
+    asyncPopups?: boolean;
 };
 
 /**
@@ -104,7 +106,8 @@ const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
     networkClient: BrowserUtils.getBrowserNetworkClient(),
     windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
     iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
-    loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0
+    loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
+    asyncPopups: false
 };
 
 /**
