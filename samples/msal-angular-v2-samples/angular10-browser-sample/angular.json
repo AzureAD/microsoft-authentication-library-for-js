@@ -26,7 +26,12 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies" : [
+              "minimatch",
+              "path",
+              "brace-expansion"
+            ]
           },
           "configurations": {
             "production": {

@@ -61,7 +61,8 @@ export class MsalInterceptor implements HttpInterceptor {
     }
 
     acquireToken(scopes: Array<string>, account: AccountInfo): Promise<AuthenticationResult> {
-        return this.authService.acquireTokenSilent({scopes: scopes.concat(['openid']), account})
+        // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
+        return this.authService.acquireTokenSilent({scopes, account})
             .catch(() => {
                 return this.authService.acquireTokenPopup({scopes});
             });
