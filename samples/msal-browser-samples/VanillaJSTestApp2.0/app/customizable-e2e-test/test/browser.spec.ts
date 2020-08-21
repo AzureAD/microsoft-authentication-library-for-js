@@ -2,7 +2,7 @@ import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
 import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
-import { getTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
+import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
@@ -42,9 +42,12 @@ describe("Browser tests", function () {
 
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
+    let BrowserCache: BrowserCacheUtils;
+
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
+        BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
         await page.goto(SAMPLE_HOME_URL);
     });
 
@@ -87,13 +90,13 @@ describe("Browser tests", function () {
             // Wait for return to page
             await page.waitForNavigation({ waitUntil: "networkidle0"});
             await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
-            let tokenStore = await getTokens(page);
+            let tokenStore = await BrowserCache.getTokens();
             expect(tokenStore.idTokens).to.be.length(1);
             expect(tokenStore.accessTokens).to.be.length(1);
             expect(tokenStore.refreshTokens).to.be.length(1);
-            expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
-            expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
-            const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+            expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
+            expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, request.scopes)).to.be.true;
+            const storage = await BrowserCache.getWindowStorage();
             expect(Object.keys(storage).length).to.be.eq(4);
         });
         
@@ -118,13 +121,13 @@ describe("Browser tests", function () {
             await page.waitFor(1000);
             expect(popupPage.isClosed()).to.be.true;
             await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
-            let tokenStore = await getTokens(page);
+            let tokenStore = await BrowserCache.getTokens();
             expect(tokenStore.idTokens).to.be.length(1);
             expect(tokenStore.accessTokens).to.be.length(1);
             expect(tokenStore.refreshTokens).to.be.length(1);
-            expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
-            expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
-            const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+            expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
+            expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, request.scopes)).to.be.true;
+            const storage = await BrowserCache.getWindowStorage();
             expect(Object.keys(storage).length).to.be.eq(4);
         });
     });
