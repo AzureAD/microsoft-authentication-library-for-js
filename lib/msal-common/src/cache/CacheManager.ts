@@ -5,7 +5,7 @@
 
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, APP_META_DATA } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_METADATA } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -335,7 +335,7 @@ export abstract class CacheManager implements ICacheManager {
         const allCacheKeys = this.getKeys();
         allCacheKeys.forEach((cacheKey) => {
             if (this.isAppMetadata(cacheKey)) {
-                this.removeItem(cacheKey, CacheSchemaType.APP_META_DATA);
+                this.removeItem(cacheKey, CacheSchemaType.APP_METADATA);
             }
         });
 
@@ -512,7 +512,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param key
      */
     private isAppMetadata(key: string): boolean {
-        return key.indexOf(APP_META_DATA) !== -1;
+        return key.indexOf(APP_METADATA) !== -1;
     }
 
     /**
