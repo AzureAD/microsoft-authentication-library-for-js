@@ -49,6 +49,6 @@ export class PublicClientApplication extends ClientApplication {
         );
         this.logger.verbose("Auth client config generated");
         const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
-        return deviceCodeClient.acquireToken(this.initializeRequest(request) as DeviceCodeRequest);
+        return deviceCodeClient.acquireToken(this.initializeRequestScopes(request) as DeviceCodeRequest);
     }
 }

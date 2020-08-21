@@ -25,12 +25,7 @@ export class RefreshTokenClient extends BaseClient {
     }
 
     public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
-        const validRequest: RefreshTokenRequest = {
-            ...request,
-            ...this.initializeBaseAuthRequest(request)
-        };
-
-        const response = await this.executeTokenRequest(validRequest, this.authority);
+        const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -84,8 +79,8 @@ export class RefreshTokenClient extends BaseClient {
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
-        if (!StringUtils.isEmpty(request.claims) || (request.clientCapabilities && request.clientCapabilities.length > 0)) {
-            parameterBuilder.addClaims(request.claims, request.clientCapabilities);
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
         return parameterBuilder.createQueryString();

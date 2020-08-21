@@ -90,7 +90,7 @@ export class SilentFlowClient extends BaseClient {
     }
 
     private isRefreshRequired(request: SilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
-        if (request.forceRefresh || request.claims || (request.clientCapabilities && request.clientCapabilities.length > 0)) {
+        if (request.forceRefresh || request.claims) {
             // Must refresh due to request parameters
             return true;
         } else if (!cachedAccessToken || TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
