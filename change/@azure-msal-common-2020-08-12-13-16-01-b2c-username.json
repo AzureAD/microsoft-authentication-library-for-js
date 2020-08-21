@@ -2,7 +2,7 @@
   "type": "patch",
   "comment": "Get username from emails claim in B2C scenarios (#2114)",
   "packageName": "@azure/msal-common",
-  "email": "thomas.l.norling@gmail.com",
+  "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch",
   "date": "2020-08-12T20:16:01.650Z"
 }
