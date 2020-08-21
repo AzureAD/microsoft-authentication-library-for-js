@@ -75,7 +75,9 @@ export class SilentFlowClient extends BaseClient {
         }
 
         // Return tokens from cache
-        this.config.serverTelemetryManager.incrementCacheHits();
+        if (this.config.serverTelemetryManager) {
+            this.config.serverTelemetryManager.incrementCacheHits();
+        }
         const cachedIdToken = this.readIdTokenFromCache(homeAccountId, environment, cachedAccount.realm);
         const idTokenObj = new IdToken(cachedIdToken.secret, this.config.cryptoInterface);
 
