@@ -55,7 +55,7 @@ export const TEST_DATA_CLIENT_INFO = {
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
     TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
     TEST_CACHE_RAW_CLIENT_INFO: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-    TEST_CACHE_DECODED_CLIENT_INFO:`{"uid":"uid", "utid":"utid"}`
+    TEST_CACHE_DECODED_CLIENT_INFO: `{"uid":"uid", "utid":"utid"}`
 };
 
 // Test Hashes
@@ -232,6 +232,17 @@ export const AUTHENTICATION_RESULT = {
     }
 };
 
+export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
+    status: 200,
+    body: {
+        "token_type": "Bearer",
+        "expires_in": 3599,
+        "ext_expires_in": 3599,
+        "access_token": "thisIs.an.accessT0ken",
+    }
+};
+
+
 export const DEVICE_CODE_RESPONSE = {
     "userCode": "FRWQDE7YL",
     "deviceCode": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
@@ -252,13 +263,13 @@ export const DEVICE_CODE_EXPIRED_RESPONSE = {
 };
 
 export const AUTHORIZATION_PENDING_RESPONSE = {
-    body : {
+    body: {
         error: 'authorization_pending',
         error_description: 'AADSTS70016: OAuth 2.0 device flow error. Authorization is pending. Continue polling.' +
             'Trace ID: 01707a0c-640b-4049-8cbb-ee2304dc0700' +
             'Correlation ID: 78b0fdfc-dd0e-4dfb-b13a-d316333783f6' +
             'Timestamp: 2020-03-26 22:54:14Z',
-        error_codes: [ 70016 ],
+        error_codes: [70016],
         timestamp: '2020-03-26 22:54:14Z',
         trace_id: '01707a0c-640b-4049-8cbb-ee2304dc0700',
         correlation_id: '78b0fdfc-dd0e-4dfb-b13a-d316333783f6',
