@@ -8,11 +8,11 @@ import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
- * 
+ *
  * Key:Value Schema:
- * 
+ *
  * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
- * 
+ *
  * Value Schema:
  * {
  *      homeAccountId: home account identifier for the auth scheme,
