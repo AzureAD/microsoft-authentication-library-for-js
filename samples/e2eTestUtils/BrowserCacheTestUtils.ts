@@ -91,15 +91,15 @@ export class BrowserCacheUtils {
         });
     }
             
-    async removeTokens(tokens: Array<string>) {
+    async removeTokens(tokens: Array<string>): Promise<void> {
         if (this.storageType === "localStorage") {
-            tokens.forEach(async (key) => {
-                await this.page.evaluate((key) => window.localStorage.removeItem(key))
-            });
+            await Promise.all(tokens.map(async (tokenKey) => {
+                await this.page.evaluate((key) => window.localStorage.removeItem(key), tokenKey);
+            }));
         } else {
-            tokens.forEach(async (key) => {
-                await this.page.evaluate((key) => window.sessionStorage.removeItem(key))
-            });
+            await Promise.all(tokens.map(async (tokenKey) => {
+                await this.page.evaluate((key) => window.sessionStorage.removeItem(key), tokenKey);
+            }));
         }
     }
             
@@ -113,5 +113,18 @@ export class BrowserCacheUtils {
         }
         
         return null
+    }
+
+    async getTelemetryCacheEntry(clientId: string): Promise<object> {
+        const storage = await this.getWindowStorage();
+        const telemetryKey = BrowserCacheUtils.getTelemetryKey(clientId);
+
+        const telemetryVal = storage[telemetryKey];
+
+        return telemetryVal ? JSON.parse(telemetryVal): null;
+    }
+
+    static getTelemetryKey(clientId: string): string {
+        return "server-telemetry-" + clientId;
     }
 }
