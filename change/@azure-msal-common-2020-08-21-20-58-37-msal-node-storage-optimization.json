@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Change files",
+  "comment": "ValidCacheType adds ServerTelemetryEntity",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",

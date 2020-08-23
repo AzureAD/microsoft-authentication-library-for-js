@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Change files",
+  "comment": "none",
   "packageName": "@azure/msal-browser",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "none",

@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "Changes node storage: getItem(), setItem() and removeItem() simplified and no longer need a 'type'",
+  "type": "none",
+  "comment": "package.lock changes",
   "packageName": "@azure/msal-angular",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",
