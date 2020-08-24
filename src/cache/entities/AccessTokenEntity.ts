@@ -6,6 +6,9 @@
 import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
+import { CacheManager } from "../CacheManager";
+import { ScopeSet } from "../../request/ScopeSet";
+import { CredentialFilter, CredentialCache } from "../utils/CacheTypes";
 
 /**
  * ACCESS_TOKEN Credential Type
@@ -82,5 +85,29 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.target = scopes;
 
         return atEntity;
+    }
+
+    /**
+     * fetches accessToken from cache if present
+     * @param request
+     * @param scopes
+     */
+    static readAccessTokenFromCache(cacheManager: CacheManager, clientId: string, homeAccountId: string, environment: string, scopes: ScopeSet, inputRealm: string): AccessTokenEntity {
+        const accessTokenFilter: CredentialFilter = {
+            homeAccountId,
+            environment,
+            credentialType: CredentialType.ACCESS_TOKEN,
+            clientId: clientId,
+            realm: inputRealm,
+            target: scopes.printScopesLowerCase()
+        };
+        const credentialCache: CredentialCache = cacheManager.getCredentialsFilteredBy(accessTokenFilter);
+        const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
+        if (accessTokens.length > 1) {
+            // TODO: Figure out what to throw or return here.
+        } else if (accessTokens.length < 1) {
+            return null;
+        }
+        return accessTokens[0] as AccessTokenEntity;
     }
 }
