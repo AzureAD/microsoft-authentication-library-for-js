@@ -104,6 +104,27 @@ export abstract class CacheManager implements ICacheManager {
         }
     }
 
+    getCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet): CacheRecord {
+        // Get account object for this request.
+        const accountKey: string = AccountEntity.generateAccountCacheKey(account);
+        const cachedAccount = this.getAccount(accountKey);
+
+        const homeAccountId = cachedAccount.homeAccountId;
+        const environment = cachedAccount.environment;
+
+        // Get current cached tokens
+        const cachedAccessToken = AccessTokenEntity.readAccessTokenFromCache(this, clientId, homeAccountId, environment, scopes, cachedAccount.realm);
+        const cachedRefreshToken = RefreshTokenEntity.readRefreshTokenFromCache(this, clientId, homeAccountId, environment);
+        const cachedIdToken = IdTokenEntity.readIdTokenFromCache(this, clientId, homeAccountId, environment, cachedAccount.realm);
+
+        return {
+            account: cachedAccount,
+            accessToken: cachedAccessToken,
+            idToken: cachedIdToken,
+            refreshToken: cachedRefreshToken
+        }
+    }
+
     /**
      * saves account into cache
      * @param account
