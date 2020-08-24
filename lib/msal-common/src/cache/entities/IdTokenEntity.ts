@@ -6,6 +6,7 @@
 import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType } from "../../utils/Constants";
 import { CacheManager } from "../CacheManager";
+import { AccountInfo } from "../../account/AccountInfo";
 
 /**
  * ID_TOKEN Cache
@@ -57,10 +58,10 @@ export class IdTokenEntity extends CredentialEntity {
      * fetches idToken from cache if present
      * @param request
      */
-    static readIdTokenFromCache(cacheManager: CacheManager, clientId: string, homeAccountId: string, environment: string, inputRealm: string): IdTokenEntity {
+    static readIdTokenFromCache(cacheManager: CacheManager, clientId: string, account: AccountInfo, inputRealm: string): IdTokenEntity {
         const idTokenKey: string = CredentialEntity.generateCredentialCacheKey(
-            homeAccountId,
-            environment,
+            account.homeAccountId,
+            account.environment,
             CredentialType.ID_TOKEN,
             clientId,
             inputRealm
