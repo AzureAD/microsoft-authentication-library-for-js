@@ -15,7 +15,7 @@ function callMSGraph(endpoint, accessToken, callback) {
 }
 
 function seeProfileRedirect() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
     if (currentAcc) {
         getTokenRedirect(request, currentAcc).then(function (response) {
             // Will only execute if token was acquired silently
