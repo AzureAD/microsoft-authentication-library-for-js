@@ -5,7 +5,8 @@ const labApiUri = "https://msidlab.com/api"
 export interface ILabApiParams {
     envName?: string,
     userType?: string,
-    b2cProvider?: string
+    b2cProvider?: string,
+    federationProvider?: string
 };
 
 export class LabClient {
@@ -53,6 +54,9 @@ export class LabClient {
         }
         if (apiParams.b2cProvider) {
             queryParams.push(`b2cprovider=${apiParams.b2cProvider}`);
+        }
+        if (apiParams.federationProvider) {
+            queryParams.push(`federationprovider=${apiParams.federationProvider}`);
         }
 
         if (queryParams.length <= 0) {
