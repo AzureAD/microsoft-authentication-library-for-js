@@ -893,6 +893,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("Popup Flow Unit tests", () => {
 
         describe("loginPopup", () => {
+            beforeEach(() => {
+                sinon.stub(window, "open").returns(window);
+            });
+
+            afterEach(() => {
+                sinon.restore();
+            });
 
             it("throws error if interaction is in progress", async () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -992,6 +999,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         describe("acquireTokenPopup", () => {
+            beforeEach(() => {
+                sinon.stub(window, "open").returns(window);
+            });
+
+            afterEach(() => {
+                window.localStorage.clear();
+                window.sessionStorage.clear();
+                sinon.restore();
+            });
 
             it("throws error if interaction is in progress", async () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -1003,6 +1019,53 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["scope"]
                 })).rejectedWith(BrowserAuthError);
+            });
+
+            it("opens popup window before network request by default", () => {
+                const request: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: ["scope"],
+					loginHint: "AbeLi@microsoft.com",
+                    state: TEST_STATE_VALUES.USER_STATE
+                };
+
+                sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                });
+
+                const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
+                
+                pca.acquireTokenPopup(request);
+                expect(popupSpy.calledWith()).to.be.true;
+            });
+
+            it("opens popups asynchronously if configured", () => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    },
+                    system: {
+                        asyncPopups: true
+                    }
+                });
+
+                sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                });
+
+                const request: AuthorizationUrlRequest = {
+					redirectUri: TEST_URIS.TEST_REDIR_URI,
+					scopes: ["scope"],
+					loginHint: "AbeLi@microsoft.com",
+                    state: TEST_STATE_VALUES.USER_STATE
+                };
+
+                const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
+                
+                pca.acquireTokenPopup(request);
+                expect(popupSpy.calledWith()).to.be.false;
             });
 
             it("resolves the response successfully", async () => {
@@ -1476,14 +1539,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("getAccountByUsername returns null if account doesn't exist", () => {
-            window.sessionStorage.clear();
-            const account = pca.getAccountByUsername("example@microsoft.com");
+            const account = pca.getAccountByUsername("this-email-doesnt-exist@microsoft.com");
             expect(account).to.be.null;
         });
 
         it("getAccountByUsername returns null if passed username is null", () => {
-            window.sessionStorage.clear();
             const account = pca.getAccountByUsername(null);
+            expect(account).to.be.null;
+        });
+
+        it("getAccountByHomeId returns account specified", () => {
+            const account = pca.getAccountByHomeId(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
+            expect(account).to.deep.eq(testAccountInfo1);
+        });
+
+        it("getAccountByHomeId returns null if passed id doesn't exist", () => {
+            const account = pca.getAccountByHomeId("this-id-doesnt-exist");
+            expect(account).to.be.null;
+        });
+
+        it("getAccountByHomeId returns null if passed id is null", () => {
+            const account = pca.getAccountByHomeId(null);
             expect(account).to.be.null;
         });
     });

@@ -291,7 +291,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
@@ -301,7 +301,24 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+        if (this.config.system.asyncPopups) {
+            return this.acquireTokenPopupAsync(request);
+        } else {
+            // asyncPopups flag is set to false. Opens popup before acquiring token.
+            const popup = PopupHandler.openSizedPopup();
+            return this.acquireTokenPopupAsync(request, popup);
+        }
+    }
+
+    /**
+     * Helper which obtains an access_token for your API via opening a popup window in the user's browser
+     * @param {@link (PopupRequest:type)}
+     *
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
@@ -320,7 +337,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const interactionHandler = new PopupHandler(authClient, this.browserStorage);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
+            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, popup);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
@@ -499,7 +516,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Returns all accounts that MSAL currently has data for.
      * (the account object is created at the time of successful login)
-     * or null when no state is found
+     * or empty array when no accounts are found
      * @returns {@link AccountInfo[]} - Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
@@ -509,12 +526,32 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Returns the signed in account matching username.
      * (the account object is created at the time of successful login)
-     * or null when no state is found
+     * or null when no matching account is found.
+     * This API is provided for convenience but getAccountById should be used for best reliability
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByUsername(userName: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
-        return allAccounts && allAccounts.length ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
+        if (!StringUtils.isEmpty(userName) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] || null;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the signed in account matching homeAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @returns {@link AccountInfo} - the account object stored in MSAL
+     */
+    getAccountByHomeId(homeAccountId: string): AccountInfo|null {
+        const allAccounts = this.getAllAccounts();
+        if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
+        } else {
+            return null;
+        }
     }
 
     // #endregion
