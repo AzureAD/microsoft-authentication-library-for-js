@@ -58,8 +58,8 @@ export class SilentFlowClient extends BaseClient {
         const cachedAccessToken = this.readAccessTokenFromCache(homeAccountId, environment, requestScopes, cachedAccount.realm);
         const cachedRefreshToken = this.readRefreshTokenFromCache(homeAccountId, environment);
 
-        // Check if refresh is forced, or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (request.forceRefresh || request.claims || !cachedAccessToken || TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+        // Check if refresh is forced, claims are being requested or if tokens are expired. If neither are true, return a token response with the found token entry.
+        if (this.isRefreshRequired(request, cachedAccessToken)) {
             // no refresh Token
             if (!cachedRefreshToken) {
                 throw ClientAuthError.createNoTokensFoundError();
@@ -87,6 +87,18 @@ export class SilentFlowClient extends BaseClient {
             idToken: cachedIdToken,
             refreshToken: cachedRefreshToken
         }, idTokenObj, true);
+    }
+
+    private isRefreshRequired(request: SilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
+        if (request.forceRefresh || request.claims) {
+            // Must refresh due to request parameters
+            return true;
+        } else if (!cachedAccessToken || TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+            // Must refresh due to expired or non-existent access_token
+            return true;
+        }
+
+        return false;
     }
 
     /**

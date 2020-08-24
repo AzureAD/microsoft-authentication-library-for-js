@@ -79,8 +79,8 @@ export class RefreshTokenClient extends BaseClient {
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
-        if (!StringUtils.isEmpty(request.claims)) {
-            parameterBuilder.addClaims(request.claims);
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
         return parameterBuilder.createQueryString();
