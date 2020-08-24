@@ -100,11 +100,11 @@ async function validateAccessTokens(page: puppeteer.Page, localStorage: Storage)
     Object.keys(localStorage).forEach(async (key) => {
         if (key.includes("authority")) {
             let cacheKey = JSON.parse(key);
-            let cachedScopeList = cacheKey.scopes.split(" ");
+            // let cachedScopeList = cacheKey.scopes.split(" ");
 
             accessTokenMatch = cacheKey.authority === authority.toLowerCase() &&
-                                cacheKey.clientId.toLowerCase() === clientId.toLowerCase() &&
-                                scopes.every(scope => cachedScopeList.includes(scope));
+                                cacheKey.clientId.toLowerCase() === clientId.toLowerCase()
+                                // scopes.every(scope => cachedScopeList.includes(scope));
 
             if (accessTokenMatch) {
                 accessTokensFound += 1;
