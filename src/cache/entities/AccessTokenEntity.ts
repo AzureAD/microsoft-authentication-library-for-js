@@ -9,6 +9,7 @@ import { TimeUtils } from "../../utils/TimeUtils";
 import { CacheManager } from "../CacheManager";
 import { ScopeSet } from "../../request/ScopeSet";
 import { CredentialFilter, CredentialCache } from "../utils/CacheTypes";
+import { AccountInfo } from "../../account/AccountInfo";
 
 /**
  * ACCESS_TOKEN Credential Type
@@ -92,10 +93,10 @@ export class AccessTokenEntity extends CredentialEntity {
      * @param request
      * @param scopes
      */
-    static readAccessTokenFromCache(cacheManager: CacheManager, clientId: string, homeAccountId: string, environment: string, scopes: ScopeSet, inputRealm: string): AccessTokenEntity {
+    static readAccessTokenFromCache(cacheManager: CacheManager, clientId: string, account: AccountInfo, scopes: ScopeSet, inputRealm: string): AccessTokenEntity {
         const accessTokenFilter: CredentialFilter = {
-            homeAccountId,
-            environment,
+            homeAccountId: account.homeAccountId,
+            environment: account.environment,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: clientId,
             realm: inputRealm,

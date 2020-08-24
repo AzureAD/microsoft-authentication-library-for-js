@@ -6,6 +6,7 @@
 import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType } from "../../utils/Constants";
 import { CacheManager } from "../CacheManager";
+import { AccountInfo } from "../../account/AccountInfo";
 
 /**
  * REFRESH_TOKEN Cache
@@ -61,10 +62,10 @@ export class RefreshTokenEntity extends CredentialEntity {
      * fetches refreshToken from cache if present
      * @param request
      */
-    static readRefreshTokenFromCache(cacheManager: CacheManager, clientId: string, homeAccountId: string, environment: string): RefreshTokenEntity {
+    static readRefreshTokenFromCache(cacheManager: CacheManager, clientId: string, account: AccountInfo): RefreshTokenEntity {
         const refreshTokenKey: string = CredentialEntity.generateCredentialCacheKey(
-            homeAccountId,
-            environment,
+            account.homeAccountId,
+            account.environment,
             CredentialType.REFRESH_TOKEN,
             clientId
         );
