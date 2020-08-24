@@ -238,7 +238,7 @@ describe("Browser tests", function () {
             expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
             
             const accessTokensFound = await validateAccessTokens(page, localStorage);
-            expect(accessTokensFound).to.equal(1);
+            expect(accessTokensFound).to.equal(2);
         }); 
     });
 });
