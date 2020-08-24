@@ -37,6 +37,19 @@ describe("RequestValidator unit tests", () => {
         });
     });
 
+    describe("ValidateClaims tests", () => {
+        
+        it("Valid Claims", () => {
+            RequestValidator.validateClaims('{"access_token":{"example_claim":{"values": ["example_value"]}}}');
+        });
+
+        it("Throws InvalidClaimsError if invalid claims value passed in", () => {
+            expect(function() { RequestValidator.validateClaims("invalid_claims_value")})
+                .to.throw(ClientConfigurationError.createInvalidClaimsRequestError().message);
+        });
+        
+    });
+
     describe("ValidateCodeChallengeParams tests", () => {
 
         it("Throws InvalidCodeChallengeParamsError if no code challenge method present", () => {
