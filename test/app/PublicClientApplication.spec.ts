@@ -1004,6 +1004,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             afterEach(() => {
+                window.localStorage.clear();
+                window.sessionStorage.clear();
                 sinon.restore();
             });
 
@@ -1040,6 +1042,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("opens popups asynchronously if configured", () => {
                 pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    },
                     system: {
                         asyncPopups: true
                     }
