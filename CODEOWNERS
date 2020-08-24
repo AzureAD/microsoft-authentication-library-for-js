@@ -1,1 +1,30 @@
 * @jasonnutter @tnorling @sameerag @pkanher617 @DarylThayil @jo-arroyo @jmckennon @technical-boy
+
+# MSAL Angular
+/lib/msal-angular/ @jasonnutter @jo-arroyo
+/lib/msal-angularjs/ @jasonnutter @jo-arroyo
+/samples/msal-angular-samples/ @jasonnutter @jo-arroyo
+/samples/msal-angularjs-samples/ @jasonnutter @jo-arroyo
+
+# MSAL Browser
+/lib/msal-browser/ @pkanher617 @jmckennon @jasonnutter
+/samples/msal-browser-samples/ @pkanher617 @jmckennon
+
+# MSAL Common
+/lib/msal-common/ @sameerag @pkanher617 @tnorling
+
+# MSAL Core
+/lib/msal-core/ @jasonnutter @sameerag @tnorling
+/samples/msal-core-samples/ @jasonnutter @sameerag @tnorling
+
+# MSAL Node
+/lib/msal-node/ @sameerag @technical-boy
+/samples/msal-node-samples/ @sameerag @technical-boy
+/extensions/msal-node-extensions/ @sameerag @technical-boy
+
+# MSAL Electron POC
+/experimental/msal-electron-proof-of-concept/ @technical-boy
+/samples/msal-electron-sample-app/ @technical-boy
+
+# Build
+/build/ @pkanher617 @jasonnutter

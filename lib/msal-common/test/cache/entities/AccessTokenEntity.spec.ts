@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
-import { mockCache } from "./cacheConstants";
+import { mockCache, mockAccessTokenEntity_1, mockAccessTokenEntity_2, mockRefreshTokenEntity } from "./cacheConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { CacheType } from "../../../src/utils/Constants";
 
@@ -27,5 +27,14 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
     it("Generate AccessTokenEntity type", () => {
         const at = mockCache.createMockATOne();
         expect(at.generateType()).to.eql(CacheType.ACCESS_TOKEN);
+    });
+
+    it("verify if an object is an access token entity", () => {
+        expect(AccessTokenEntity.isAccessTokenEntity(mockAccessTokenEntity_1)).to.eql(true);
+        expect(AccessTokenEntity.isAccessTokenEntity(mockAccessTokenEntity_2)).to.eql(true);
+    });
+
+    it("verify if an object is not an access token entity", () => {
+        expect(AccessTokenEntity.isAccessTokenEntity(mockRefreshTokenEntity)).to.eql(false);
     });
 });
