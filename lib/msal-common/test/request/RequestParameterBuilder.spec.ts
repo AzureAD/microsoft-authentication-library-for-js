@@ -8,7 +8,8 @@ import {
 } from "../utils/StringConstants";
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
 import { ScopeSet } from "../../src/request/ScopeSet";
-import { ClientConfigurationError } from "../../src";
+import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src";
+import sinon from "sinon";
 
 describe("RequestParameterBuilder unit tests", () => {
 
@@ -26,7 +27,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addRedirectUri(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST);
         requestParameterBuilder.addDomainHint(TEST_CONFIG.DOMAIN_HINT);
         requestParameterBuilder.addLoginHint(TEST_CONFIG.LOGIN_HINT);
-        requestParameterBuilder.addClaims(TEST_CONFIG.CLAIMS);
+        requestParameterBuilder.addClaims(TEST_CONFIG.CLAIMS, []);
         requestParameterBuilder.addCorrelationId(TEST_CONFIG.CORRELATION_ID);
         requestParameterBuilder.addPrompt(PromptValue.SELECT_ACCOUNT);
         requestParameterBuilder.addState(TEST_CONFIG.STATE);
@@ -67,5 +68,50 @@ describe("RequestParameterBuilder unit tests", () => {
     it("addCodeChallengeParams throws invalidCodeChallengeParamsError if codeChallenge empty", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         expect(() => requestParameterBuilder.addCodeChallengeParams("", AADServerParamKeys.CODE_CHALLENGE_METHOD)).to.throw(ClientConfigurationError.createInvalidCodeChallengeParamsError().errorMessage);
+    });
+
+    it("throws error if claims is not stringified JSON object", () => {
+        const claims = "not-a-valid-JSON-object";
+        sinon.stub(RequestParameterBuilder.prototype, "addClientCapabilitiesToClaims").returns(claims);
+        const requestParameterBuilder = new RequestParameterBuilder();
+        expect(() => requestParameterBuilder.addClaims(claims, [])).to.throw(ClientConfigurationErrorMessage.invalidClaimsRequest.desc);
+        sinon.restore();
+    });
+
+    describe("addClientCapabilitiesToClaims tests", () => {
+        it("passing just claims returns claims", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            const testClaims = TEST_CONFIG.CLAIMS;
+            expect(requestParameterBuilder.addClientCapabilitiesToClaims(testClaims, [])).to.eq(testClaims);
+        });
+
+        it("passing just clientCapabilities returns clientCapabilities as claims request", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            const clientCapabilities = ["CP1"];
+            const expectedString = '{"access_token":{"xms_cc":{"values":["CP1"]}}}'
+            expect(requestParameterBuilder.addClientCapabilitiesToClaims(undefined, clientCapabilities)).to.eq(expectedString);
+        });
+
+        it("passed claims already has access_token key, append xms_cc claim from clientCapabilities", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            const claimsRequest = '{"access_token":{"example_claim":{"values":["example_value"]}}}';
+            const clientCapabilities = ["CP1"];
+            const expectedString = '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}}}'
+            expect(requestParameterBuilder.addClientCapabilitiesToClaims(claimsRequest, clientCapabilities)).to.eq(expectedString);
+        });
+
+        it("passed claims does not have access_token key, add access_token key and xms_cc key underneath", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            const claimsRequest = '{"id_token":{"example_claim":{"values":["example_value"]}}}';
+            const clientCapabilities = ["CP1"];
+            const expectedString = '{"id_token":{"example_claim":{"values":["example_value"]}},"access_token":{"xms_cc":{"values":["CP1"]}}}'
+            expect(requestParameterBuilder.addClientCapabilitiesToClaims(claimsRequest, clientCapabilities)).to.eq(expectedString);
+        });
+
+        it("throws error if claims passed is not stringified JSON object", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            const testClaims = "not-a-valid-JSON-object";
+            expect(() => requestParameterBuilder.addClientCapabilitiesToClaims(testClaims, [])).to.throw(ClientConfigurationErrorMessage.invalidClaimsRequest.desc);
+        });
     });
 });

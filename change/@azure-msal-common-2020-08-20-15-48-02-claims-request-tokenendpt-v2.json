@@ -1,8 +1,8 @@
 {
   "type": "patch",
-  "comment": "Fix Telemetry cacheHit Bug (#2170)",
+  "comment": "Add claims request to /token calls (#2138)",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch",
-  "date": "2020-08-20T18:36:50.041Z"
+  "date": "2020-08-20T22:48:02.519Z"
 }
