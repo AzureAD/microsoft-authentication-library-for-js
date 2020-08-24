@@ -12,6 +12,7 @@ export interface IPublicClientApplication {
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     getAccountByUsername(userName: string): AccountInfo | null;
+    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
     handleRedirectPromise(): Promise<AuthenticationResult | null>;
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
