@@ -48,6 +48,10 @@ export const ClientConfigurationErrorMessage = {
         code: "invalid_prompt_value",
         desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'.  Please see here for valid configuration options: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications#configuration-options",
     },
+    invalidClaimsRequest: {
+        code: "invalid_claims",
+        desc: "Given claims parameter must be a stringified JSON object."
+    },
     tokenRequestEmptyError: {
         code: "token_request_empty",
         desc: "Token request was empty and not found in cache."
@@ -174,6 +178,14 @@ export class ClientConfigurationError extends ClientAuthError {
     static createInvalidPromptError(promptValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
             `${ClientConfigurationErrorMessage.invalidPrompt.desc} Given value: ${promptValue}`);
+    }
+
+    /**
+     * Creates error thrown when claims parameter is not a stringified JSON object
+     */
+    static createInvalidClaimsRequestError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidClaimsRequest.code,
+            ClientConfigurationErrorMessage.invalidClaimsRequest.desc);
     }
 
     /**
