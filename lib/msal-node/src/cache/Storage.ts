@@ -111,7 +111,7 @@ export class Storage extends CacheManager {
                 }
                 break;
             }
-            case CacheSchemaType.APP_META_DATA: {
+            case CacheSchemaType.APP_METADATA: {
                 cache.appMetadata[key] = value as AppMetadataEntity;
                 break;
             }
@@ -165,7 +165,7 @@ export class Storage extends CacheManager {
                 }
                 return credential!;
             }
-            case CacheSchemaType.APP_META_DATA: {
+            case CacheSchemaType.APP_METADATA: {
                 return (cache.appMetadata[key] as AppMetadataEntity) || null;
             }
             default: {
@@ -226,7 +226,7 @@ export class Storage extends CacheManager {
                 }
                 break;
             }
-            case CacheSchemaType.APP_META_DATA: {
+            case CacheSchemaType.APP_METADATA: {
                 if (!!cache.appMetadata[key]) {
                     delete cache.appMetadata[key];
                     result = true;
