@@ -19,18 +19,18 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 
 #### Latest compiled and minified JavaScript (US West region)
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.4/js/msal.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.0/js/msal.js"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.4/js/msal.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.0/js/msal.min.js"></script>
 ````
 
 #### Alternate region URLs (Europe region)
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.4/js/msal.js"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.4.0/js/msal.js"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.4/js/msal.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.4.0/js/msal.min.js"></script>
 ```
 
 ### Via Latest Microsoft CDN Version (with SRI Hash):
@@ -38,10 +38,10 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 #### Latest compiled and minified JavaScript
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.4/js/msal.js" integrity="sha384-SLUfcZqOuUn4mgjkztK5Q6sZ/m08tFoo6K1sSGPkKN+y+QZZZ4DYFNpLmLcmMoLA" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.0/js/msal.js" integrity="sha384-JUS68ZBO4b1j6ODn7kQpZo+5aaopc61YDBiG3LNzQu/9sMXhjcJW6fjIM1Y4uy3X" crossorigin="anonymous"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.4/js/msal.min.js" integrity="sha384-pkCsjTAwVvsQv5UEAo+kNmnVMFs/GoqIP/G9J0ZV7rC55j3hcV225SGGQJY8wwtn" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.0/js/msal.min.js" integrity="sha384-2D8uXeS7ZdB2Bn3guhdPcT51gdZYtzSK2xRnWF+w0sOfN1zuWRu/0LQRyqk1YBdW" crossorigin="anonymous"></script>
 ```
 
 #### Alternate region URLs
@@ -49,18 +49,18 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 To help ensure reliability, Microsoft provides a second CDN:
 
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.4/js/msal.js" integrity="sha384-SLUfcZqOuUn4mgjkztK5Q6sZ/m08tFoo6K1sSGPkKN+y+QZZZ4DYFNpLmLcmMoLA" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.4.0/js/msal.js" integrity="sha384-JUS68ZBO4b1j6ODn7kQpZo+5aaopc61YDBiG3LNzQu/9sMXhjcJW6fjIM1Y4uy3X" crossorigin="anonymous"></script>
 ```
 ```html
-<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.3.4/js/msal.min.js" integrity="sha384-pkCsjTAwVvsQv5UEAo+kNmnVMFs/GoqIP/G9J0ZV7rC55j3hcV225SGGQJY8wwtn" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://alcdn.msftauth.net/lib/1.4.0/js/msal.min.js" integrity="sha384-2D8uXeS7ZdB2Bn3guhdPcT51gdZYtzSK2xRnWF+w0sOfN1zuWRu/0LQRyqk1YBdW" crossorigin="anonymous"></script>
 ```
 
 Below is an example of how to use one CDN as a fallback when the other CDN is not working:
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.4/js/msal.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.0/js/msal.js"></script>
 <script type="text/javascript">
-    if(typeof Msal === 'undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/lib/1.3.4/js/msal.js' type='text/javascript' %3E%3C/script%3E"));
+    if(typeof Msal === 'undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/lib/1.4.0/js/msal.js' type='text/javascript' %3E%3C/script%3E"));
 </script>
 ```
 
