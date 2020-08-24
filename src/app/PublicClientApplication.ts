@@ -516,7 +516,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Returns all accounts that MSAL currently has data for.
      * (the account object is created at the time of successful login)
-     * or null when no state is found
+     * or empty array when no accounts are found
      * @returns {@link AccountInfo[]} - Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
@@ -526,12 +526,32 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Returns the signed in account matching username.
      * (the account object is created at the time of successful login)
-     * or null when no state is found
+     * or null when no matching account is found.
+     * This API is provided for convenience but getAccountById should be used for best reliability
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByUsername(userName: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
-        return allAccounts && allAccounts.length ? allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] : null;
+        if (!StringUtils.isEmpty(userName) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] || null;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the signed in account matching homeAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @returns {@link AccountInfo} - the account object stored in MSAL
+     */
+    getAccountByHomeId(homeAccountId: string): AccountInfo|null {
+        const allAccounts = this.getAllAccounts();
+        if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
+        } else {
+            return null;
+        }
     }
 
     // #endregion
