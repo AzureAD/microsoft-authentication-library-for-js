@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
-import { mockAccountEntity } from "./cacheConstants";
+import { mockAccountEntity, mockIdTokenEntity} from "./cacheConstants";
 import { IdToken } from "../../../src/account/IdToken";
 import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { Constants } from "../../../src/utils/Constants";
@@ -101,7 +101,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             "ver": "2.0",
             "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
             "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": "1536361411",
+            "exp": 1536361411,
             "name": "Abe Lincoln",
             "preferred_username": "AbeLi@microsoft.com",
             "oid": "00000000-0000-0000-66f3-3332eca7ea81",
@@ -128,7 +128,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             "ver": "2.0",
             "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
             "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": "1536361411",
+            "exp": 1536361411,
             "name": "Abe Lincoln",
             "emails": ["AbeLi@microsoft.com"],
             "oid": "00000000-0000-0000-66f3-3332eca7ea81",
@@ -150,12 +150,17 @@ describe("AccountEntity.ts Unit Tests", () => {
     });
 
     it("create an Account no preferred_username or emails claim", () => {       
+        const authority =  AuthorityFactory.createInstance(
+            Constants.DEFAULT_AUTHORITY,
+            networkInterface
+		);
+
         // Set up stubs
         const idTokenClaims = {
             "ver": "2.0",
             "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
             "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": "1536361411",
+            "exp": 1536361411,
             "name": "Abe Lincoln",
             "oid": "00000000-0000-0000-66f3-3332eca7ea81",
             "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
@@ -173,5 +178,13 @@ describe("AccountEntity.ts Unit Tests", () => {
 
         expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
         expect(acc.username).to.eq("");
+    });
+
+    it("verify if an object is an account entity", () => {
+        expect(AccountEntity.isAccountEntity(mockAccountEntity)).to.eql(true);
+    });
+
+    it("verify if an object is not an account entity", () => {
+        expect(AccountEntity.isAccountEntity(mockIdTokenEntity)).to.eql(false);
     });
 });
