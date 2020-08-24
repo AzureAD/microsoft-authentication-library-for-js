@@ -1,3 +1,4 @@
+# https://github.com/actions/stale
 name: Mark stale issues and pull requests
 
 on:
@@ -15,10 +16,11 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         operations-per-run: 60
         stale-issue-message: 'This issue has not seen activity in 14 days. It may be closed if it remains stale.'
+        close-issue-message: 'This issue has been closed due to inactivity. If this has not been resolved please open a new issue. Thanks!'
         stale-pr-message: 'This PR has not seen activity in 14 days. It may be closed if it remains stale.'
         stale-issue-label: 'no-issue-activity'
         stale-pr-label: 'no-pr-activity'
         exempt-issue-labels: 'internal, feature, enhancement, known-issue, work-in-progress'
         exempt-pr-labels: 'work-in-progress'
         days-before-stale: 14
-        days-before-close: -1
+        days-before-close: 7
