@@ -199,7 +199,8 @@ export class PublicClientApplication implements IPublicClientApplication {
                 return null;
             } else {
                 BrowserUtils.clearHash();
-                return responseHash;
+                // Return null if interaction is not in progress to prevent throwing errors when processing the hash
+                return this.interactionInProgress() ? responseHash : null;
             }
         }
 
