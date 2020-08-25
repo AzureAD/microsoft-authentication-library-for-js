@@ -5,10 +5,6 @@
 
 import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType } from "../../utils/Constants";
-import { CacheManager } from "../CacheManager";
-import { AccountInfo } from "../../account/AccountInfo";
-import { StringUtils } from "../../utils/StringUtils";
-import { AccountEntity } from "./AccountEntity";
 
 /**
  * ID_TOKEN Cache

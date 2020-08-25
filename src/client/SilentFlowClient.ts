@@ -16,7 +16,6 @@ import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
-import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 
 export class SilentFlowClient extends BaseClient {
