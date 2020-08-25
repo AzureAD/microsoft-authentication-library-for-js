@@ -58,20 +58,6 @@ export class RefreshTokenEntity extends CredentialEntity {
         return rtEntity;
     }
 
-    /**
-     * fetches refreshToken from cache if present
-     * @param request
-     */
-    static readRefreshTokenFromCache(cacheManager: CacheManager, clientId: string, account: AccountInfo): RefreshTokenEntity {
-        const refreshTokenKey: string = CredentialEntity.generateCredentialCacheKey(
-            account.homeAccountId,
-            account.environment,
-            CredentialType.REFRESH_TOKEN,
-            clientId
-        );
-        return cacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
-    }
-
     /*
      * Validates an entity: checks for all expected params
      * @param entity

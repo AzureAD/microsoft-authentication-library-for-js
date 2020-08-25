@@ -56,27 +56,6 @@ export class IdTokenEntity extends CredentialEntity {
         return idTokenEntity;
     }
 
-    /**
-     * fetches idToken from cache if present
-     * @param request
-     */
-    static readIdTokenFromCache(cacheManager: CacheManager, clientId: string, account: AccountInfo, realm?: string): IdTokenEntity {
-        if (StringUtils.isEmpty(realm)) {
-            const accountKey: string = AccountEntity.generateAccountCacheKey(account);
-            const cachedAccount = cacheManager.getAccount(accountKey);
-            realm = cachedAccount && cachedAccount.realm ? cachedAccount.realm : realm;
-        }
-
-        const idTokenKey: string = CredentialEntity.generateCredentialCacheKey(
-            account.homeAccountId,
-            account.environment,
-            CredentialType.ID_TOKEN,
-            clientId,
-            realm
-        );
-        return cacheManager.getCredential(idTokenKey) as IdTokenEntity;
-    }
-
     /*
      * Validates an entity: checks for all expected params
      * @param entity

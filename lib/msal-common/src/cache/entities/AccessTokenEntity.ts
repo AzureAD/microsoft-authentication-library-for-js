@@ -90,36 +90,6 @@ export class AccessTokenEntity extends CredentialEntity {
         return atEntity;
     }
 
-    /**
-     * fetches accessToken from cache if present
-     * @param request
-     * @param scopes
-     */
-    static readAccessTokenFromCache(cacheManager: CacheManager, clientId: string, account: AccountInfo, scopes: ScopeSet, realm?: string): AccessTokenEntity {
-        if (StringUtils.isEmpty(realm)) {
-            const accountKey: string = AccountEntity.generateAccountCacheKey(account);
-            const cachedAccount = cacheManager.getAccount(accountKey);
-            realm = cachedAccount && cachedAccount.realm ? cachedAccount.realm : realm;
-        }
-
-        const accessTokenFilter: CredentialFilter = {
-            homeAccountId: account.homeAccountId,
-            environment: account.environment,
-            credentialType: CredentialType.ACCESS_TOKEN,
-            clientId,
-            realm,
-            target: scopes.printScopesLowerCase()
-        };
-        const credentialCache: CredentialCache = cacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
-        if (accessTokens.length > 1) {
-            // TODO: Figure out what to throw or return here.
-        } else if (accessTokens.length < 1) {
-            return null;
-        }
-        return accessTokens[0] as AccessTokenEntity;
-    }
-
     /*
      * Validates an entity: checks for all expected params
      * @param entity

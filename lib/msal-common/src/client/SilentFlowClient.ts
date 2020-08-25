@@ -31,9 +31,8 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      */
     public async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
-        let result: AuthenticationResult;
         try {
-            result = this.acquireCachedToken(request);
+            return this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
                 return this.refreshToken(request);
@@ -41,8 +40,6 @@ export class SilentFlowClient extends BaseClient {
                 throw e;
             }
         }
-
-        return result;
     }
 
     /**
@@ -85,7 +82,7 @@ export class SilentFlowClient extends BaseClient {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         } 
 
-        const refreshToken = RefreshTokenEntity.readRefreshTokenFromCache(this.cacheManager, this.config.authOptions.clientId, request.account);
+        const refreshToken = this.cacheManager.getRefreshTokenEntity(this.config.authOptions.clientId, request.account);
         // no refresh Token
         if (!refreshToken) {
             throw ClientAuthError.createNoTokensFoundError();
