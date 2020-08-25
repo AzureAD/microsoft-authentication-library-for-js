@@ -6,13 +6,11 @@
 import { AuthorizationCodeClient } from "./AuthorizationCodeClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { ScopeSet } from "../request/ScopeSet";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { BrokerAuthenticationResult } from "../response/BrokerAuthenticationResult";
-import { GrantType } from "../utils/Constants";
 
 /**
  * Oauth2.0 Authorization Code client implementing the broker protocol for browsers.
@@ -54,72 +52,14 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
     protected createAuthCodeUrlQueryString(request: AuthorizationUrlRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        // TODO: Add broker params here
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        if (request.extraScopesToConsent) {
-            scopeSet.appendScopes(request.extraScopesToConsent);
-        }
-        parameterBuilder.addScopes(scopeSet);
-
-        // TODO: Add Broker params
-
-        // validate the redirectUri (to be a non null value)
-        parameterBuilder.addRedirectUri(request.redirectUri);
-
-        // generate the correlationId if not set by the user and add
-        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
-        parameterBuilder.addCorrelationId(correlationId);
-
-        // add response_mode. If not passed in it defaults to query.
-        parameterBuilder.addResponseMode(request.responseMode);
-
-        // add response_type = code
-        parameterBuilder.addResponseTypeCode();
-
-        // add library info parameters
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
-        // add client_info=1
-        parameterBuilder.addClientInfo();
-
-        if (request.codeChallenge) {
-            parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
-        }
-
-        if (request.prompt) {
-            parameterBuilder.addPrompt(request.prompt);
-        }
-
-        if (request.loginHint) {
-            parameterBuilder.addLoginHint(request.loginHint);
-        }
-
-        if (request.domainHint) {
-            parameterBuilder.addDomainHint(request.domainHint);
-        }
-
-        if (request.sid) {
-            parameterBuilder.addSid(request.sid);
-        }
-
-        if (request.nonce) {
-            parameterBuilder.addNonce(request.nonce);
-        }
-
-        if (request.state) {
-            parameterBuilder.addState(request.state);
-        }
-
-        if (request.claims) {
-            parameterBuilder.addClaims(request.claims);
-        }
-
-        if (request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
-        }
-
-        return parameterBuilder.createQueryString();
+        const authCodeUrlQueryString = parameterBuilder.createQueryString();
+        return StringUtils.isEmpty(authCodeUrlQueryString) ? 
+            // No broker params
+            super.createAuthCodeUrlQueryString(request) : 
+            // Append broker params to other request params
+            `${super.createAuthCodeUrlQueryString(request)}&${authCodeUrlQueryString}`;
     }
 
     /**
@@ -129,40 +69,13 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
     protected createTokenRequestBody(request: AuthorizationCodeRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
-
-        // validate the redirectUri (to be a non null value)
-        parameterBuilder.addRedirectUri(request.redirectUri);
-
-        const scopeSet = new ScopeSet(request.scopes || []);
-        parameterBuilder.addScopes(scopeSet);
-
         // TODO: Add broker params
 
-        // add code: user set, not validated
-        parameterBuilder.addAuthorizationCode(request.code);
-
-        // add code_verifier if passed
-        if (request.codeVerifier) {
-            parameterBuilder.addCodeVerifier(request.codeVerifier);
-        }
-
-        if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
-        }
-
-        if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion = this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion);
-            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
-        }
-
-        parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
-        parameterBuilder.addClientInfo();
-
-        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
-        parameterBuilder.addCorrelationId(correlationId);
-
-        return parameterBuilder.createQueryString();
+        const tokenRequestString = parameterBuilder.createQueryString();
+        return StringUtils.isEmpty(tokenRequestString) ? 
+            // No broker params
+            super.createTokenRequestBody(request) : 
+            // Append broker params to other request params
+            `${super.createTokenRequestBody(request)}&${tokenRequestString}`;
     }
 }

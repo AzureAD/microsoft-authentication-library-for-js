@@ -26,7 +26,6 @@ import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
 import { BrokerAuthenticationResult } from "./BrokerAuthenticationResult";
-import { CredentialCache } from "../cache/utils/CacheTypes";
 
 /**
  * Class that handles response parsing.
