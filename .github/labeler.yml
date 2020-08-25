@@ -1,5 +1,7 @@
 msal-node:
   - lib/msal-node/**/*
+extensions:
+  - extensions/**/*
 msal-angular:
   - lib/msal-angular/**/*
 angularjs:
