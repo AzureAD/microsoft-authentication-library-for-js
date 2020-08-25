@@ -139,19 +139,16 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState); 
         }
 
-        // Get creds to send to child
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
-        const refreshTokenRecord: CacheRecord = {
-            accessToken: null,
-            idToken: null,
-            refreshToken: cacheRecord.refreshToken,
-            account: null
-        };
-
         // Save refresh token
-        this.cacheStorage.saveCacheRecord(refreshTokenRecord);
+        if (!!cacheRecord.refreshToken) {
+            this.cacheStorage.saveCredential(cacheRecord.refreshToken);
+        }
+
         cacheRecord.refreshToken = null;
         const result = ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
+
+        // Get creds to send to child
         return {
             ...result,
             tokensToCache: cacheRecord
