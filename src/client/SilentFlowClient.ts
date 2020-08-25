@@ -13,7 +13,7 @@ import { IdToken } from "../account/IdToken";
 import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
-import { ClientAuthError } from "../error/ClientAuthError";
+import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
@@ -35,12 +35,20 @@ export class SilentFlowClient extends BaseClient {
         try {
             result = this.acquireCachedToken(request);
         } catch (e) {
-            return this.refreshToken(request);
+            if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
+                return this.refreshToken(request);
+            } else {
+                throw e;
+            }
         }
 
         return result;
     }
 
+    /**
+     * Retrieves token from cache or throws an error if it must be refreshed.
+     * @param request 
+     */
     public acquireCachedToken(request: SilentFlowRequest): AuthenticationResult {
         // Cannot renew token if no request object is given.
         if (!request) {
@@ -56,13 +64,16 @@ export class SilentFlowClient extends BaseClient {
         const cacheRecord = this.cacheManager.getCacheRecord(request.account, this.config.authOptions.clientId, requestScopes);
 
         if (this.isRefreshRequired(request, cacheRecord.accessToken)) {
-            // TODO Add better error
-            throw "This token is expired"
+            throw ClientAuthError.createRefreshRequiredError();
         } else {
             return this.generateResultFromCacheRecord(cacheRecord);
         }
     }
 
+    /**
+     * Gets cached refresh token and uses RefreshTokenClient to refresh tokens
+     * @param request 
+     */
     refreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
@@ -89,7 +100,11 @@ export class SilentFlowClient extends BaseClient {
         return refreshTokenClient.acquireToken(refreshTokenRequest);
     }
 
-    generateResultFromCacheRecord(cacheRecord: CacheRecord): AuthenticationResult {
+    /**
+     * Helper function to build response object from the CacheRecord
+     * @param cacheRecord 
+     */
+    private generateResultFromCacheRecord(cacheRecord: CacheRecord): AuthenticationResult {
         // Return tokens from cache
         if (this.config.serverTelemetryManager) {
             this.config.serverTelemetryManager.incrementCacheHits();
@@ -99,7 +114,12 @@ export class SilentFlowClient extends BaseClient {
         return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, true);
     }
 
-    private isRefreshRequired(request: SilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
+    /**
+     * Given a request object and an accessTokenEntity determine if the accessToken needs to be refreshed
+     * @param request 
+     * @param cachedAccessToken 
+     */
+    isRefreshRequired(request: SilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
         if (request.forceRefresh || request.claims) {
             // Must refresh due to request parameters
             return true;
