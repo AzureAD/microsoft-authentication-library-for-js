@@ -15,6 +15,7 @@ import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizatio
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { StringUtils } from "../utils/StringUtils";
 
 /**
  * OAuth2.0 Device code client
@@ -114,6 +115,10 @@ export class DeviceCodeClient extends BaseClient {
         const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
+        
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
 
         return parameterBuilder.createQueryString();
     }
@@ -190,6 +195,10 @@ export class DeviceCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         requestParameters.addCorrelationId(correlationId);
         requestParameters.addClientInfo();
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            requestParameters.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
         return requestParameters.createQueryString();
     }
 }

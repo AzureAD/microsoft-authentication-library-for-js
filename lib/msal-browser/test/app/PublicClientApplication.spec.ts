@@ -1004,6 +1004,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             afterEach(() => {
+                window.localStorage.clear();
+                window.sessionStorage.clear();
                 sinon.restore();
             });
 
@@ -1040,6 +1042,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("opens popups asynchronously if configured", () => {
                 pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    },
                     system: {
                         asyncPopups: true
                     }
@@ -1534,14 +1539,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("getAccountByUsername returns null if account doesn't exist", () => {
-            window.sessionStorage.clear();
-            const account = pca.getAccountByUsername("example@microsoft.com");
+            const account = pca.getAccountByUsername("this-email-doesnt-exist@microsoft.com");
             expect(account).to.be.null;
         });
 
         it("getAccountByUsername returns null if passed username is null", () => {
-            window.sessionStorage.clear();
             const account = pca.getAccountByUsername(null);
+            expect(account).to.be.null;
+        });
+
+        it("getAccountByHomeId returns account specified", () => {
+            const account = pca.getAccountByHomeId(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
+            expect(account).to.deep.eq(testAccountInfo1);
+        });
+
+        it("getAccountByHomeId returns null if passed id doesn't exist", () => {
+            const account = pca.getAccountByHomeId("this-id-doesnt-exist");
+            expect(account).to.be.null;
+        });
+
+        it("getAccountByHomeId returns null if passed id is null", () => {
+            const account = pca.getAccountByHomeId(null);
             expect(account).to.be.null;
         });
     });
