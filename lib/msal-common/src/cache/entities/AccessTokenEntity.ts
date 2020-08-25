@@ -10,6 +10,8 @@ import { CacheManager } from "../CacheManager";
 import { ScopeSet } from "../../request/ScopeSet";
 import { CredentialFilter, CredentialCache } from "../utils/CacheTypes";
 import { AccountInfo } from "../../account/AccountInfo";
+import { StringUtils } from "../../utils/StringUtils";
+import { AccountEntity } from "./AccountEntity";
 
 /**
  * ACCESS_TOKEN Credential Type
@@ -93,13 +95,19 @@ export class AccessTokenEntity extends CredentialEntity {
      * @param request
      * @param scopes
      */
-    static readAccessTokenFromCache(cacheManager: CacheManager, clientId: string, account: AccountInfo, scopes: ScopeSet, inputRealm: string): AccessTokenEntity {
+    static readAccessTokenFromCache(cacheManager: CacheManager, clientId: string, account: AccountInfo, scopes: ScopeSet, realm?: string): AccessTokenEntity {
+        if (StringUtils.isEmpty(realm)) {
+            const accountKey: string = AccountEntity.generateAccountCacheKey(account);
+            const cachedAccount = cacheManager.getAccount(accountKey);
+            realm = cachedAccount && cachedAccount.realm ? cachedAccount.realm : realm;
+        }
+
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
             credentialType: CredentialType.ACCESS_TOKEN,
-            clientId: clientId,
-            realm: inputRealm,
+            clientId,
+            realm,
             target: scopes.printScopesLowerCase()
         };
         const credentialCache: CredentialCache = cacheManager.getCredentialsFilteredBy(accessTokenFilter);
@@ -111,7 +119,7 @@ export class AccessTokenEntity extends CredentialEntity {
         }
         return accessTokens[0] as AccessTokenEntity;
     }
-    
+
     /*
      * Validates an entity: checks for all expected params
      * @param entity

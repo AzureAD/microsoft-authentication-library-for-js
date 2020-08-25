@@ -108,11 +108,13 @@ export abstract class CacheManager implements ICacheManager {
         // Get account object for this request.
         const accountKey: string = AccountEntity.generateAccountCacheKey(account);
         const cachedAccount = this.getAccount(accountKey);
+        const realm = cachedAccount && cachedAccount.realm ? cachedAccount.realm : null;
+
 
         // Get current cached tokens
-        const cachedAccessToken = AccessTokenEntity.readAccessTokenFromCache(this, clientId, account, scopes, cachedAccount.realm);
+        const cachedAccessToken = AccessTokenEntity.readAccessTokenFromCache(this, clientId, account, scopes, realm);
         const cachedRefreshToken = RefreshTokenEntity.readRefreshTokenFromCache(this, clientId, account);
-        const cachedIdToken = IdTokenEntity.readIdTokenFromCache(this, clientId, account, cachedAccount.realm);
+        const cachedIdToken = IdTokenEntity.readIdTokenFromCache(this, clientId, account, realm);
 
         return {
             account: cachedAccount,
