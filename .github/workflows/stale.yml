@@ -15,7 +15,7 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         operations-per-run: 60
-        stale-issue-message: 'This issue has not seen activity in 14 days. It may be closed if it remains stale.'
+        stale-issue-message: 'This issue has not seen activity in 14 days. It will be closed in 7 days if it remains stale.'
         close-issue-message: 'This issue has been closed due to inactivity. If this has not been resolved please open a new issue. Thanks!'
         stale-pr-message: 'This PR has not seen activity in 14 days. It may be closed if it remains stale.'
         stale-issue-label: 'no-issue-activity'
