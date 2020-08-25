@@ -172,7 +172,7 @@ export class ScopeSet {
         return (scopesCount > 0 && scopesCount === oidcScopesFound);
     }
 
-       /**
+    /**
      * @ignore
      * Returns true if the scopes array only contains openid and/or profile
      */
