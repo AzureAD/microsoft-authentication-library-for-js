@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 13 Aug 2020 02:20:48 GMT and should not be manually modified.
+This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.1.0
+
+Tue, 25 Aug 2020 00:40:45 GMT
+
+### Minor changes
+
+- Client Capabilities Support (#2169) (thomas.norling@microsoft.com)
+
+### Patches
+
+- update APP_META_DATA to APP_METADATA (sameera.gajjarapu@microsoft.com)
+- Add getAccountByHomeId API (#2114) (thomas.norling@microsoft.com)
+- Change msal-browser loginPopup and openPopup, add ability to configure popup delay (#2132) (joarroyo@microsoft.com)
+- Update POST header to type Record (#2128) (thomas.norling@microsoft.com)
 
 ## 2.0.2
 

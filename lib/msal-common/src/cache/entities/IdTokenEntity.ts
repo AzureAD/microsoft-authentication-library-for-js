@@ -10,11 +10,11 @@ import { AccountInfo } from "../../account/AccountInfo";
 
 /**
  * ID_TOKEN Cache
- * 
+ *
  * Key:Value Schema:
- * 
+ *
  * Key Example: uid.utid-login.microsoftonline.com-idtoken-clientId-contoso.com-
- * 
+ *
  * Value Schema:
  * {
  *      homeAccountId: home account identifier for the auth scheme,
@@ -67,5 +67,22 @@ export class IdTokenEntity extends CredentialEntity {
             inputRealm
         );
         return cacheManager.getCredential(idTokenKey) as IdTokenEntity;
+    }
+
+    /*
+     * Validates an entity: checks for all expected params
+     * @param entity
+     */
+    static isIdTokenEntity(entity: object): boolean {
+
+        return (
+            entity.hasOwnProperty("homeAccountId") &&
+            entity.hasOwnProperty("environment") &&
+            entity.hasOwnProperty("credentialType") &&
+            entity.hasOwnProperty("realm") &&
+            entity.hasOwnProperty("clientId") &&
+            entity.hasOwnProperty("secret") &&
+            entity["credentialType"] === CredentialType.ID_TOKEN
+        );
     }
 }

@@ -6,10 +6,10 @@ const mailButton = document.getElementById("readMail");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
 
-function showWelcomeMessage() {
+function showWelcomeMessage(account) {
     // Reconfiguring DOM elements
     cardDiv.setAttribute('style', 'display:initial');
-    welcomeDiv.innerHTML = 'Welcome ' + username;
+    welcomeDiv.innerHTML = 'Welcome ' + account.username;
     signInButton.setAttribute("onclick", "signOut();");
     signInButton.setAttribute('class', "btn btn-success")
     signInButton.innerHTML = "Sign Out";

@@ -1,4 +1,4 @@
-let username = "";
+let accountId = "";
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
@@ -11,8 +11,8 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(function (err) {
 
 function handleResponse(resp) {
     if (resp !== null) {
-        username = resp.account.username;
-        showWelcomeMessage();
+        accountId = resp.account.homeAccountId;
+        showWelcomeMessage(resp.account);
 
         if (resp.accessToken) {
             callMSGraph(graphConfig.graphMeEndpoint, resp.accessToken, updateUI);
@@ -26,9 +26,8 @@ function handleResponse(resp) {
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
-            username = currentAccounts[0].username;
-            console.log(username)
-            showWelcomeMessage();
+            accountId = currentAccounts[0].homeAccountId;
+            showWelcomeMessage(currentAccounts[0]);
         }
     }
 }
@@ -39,7 +38,7 @@ function signIn() {
 
 function signOut() {
     const logoutRequest = {
-        account: myMSALObj.getAccountByUsername(username)
+        account: myMSALObj.getAccountByHomeId(accountId)
     };
 
     myMSALObj.logout(logoutRequest);
