@@ -4,7 +4,7 @@
  */
 
 import { BrokerOptions } from "../config/Configuration";
-import { Logger, ClientAuthError, AuthenticationResult } from "@azure/msal-common";
+import { Logger, ClientAuthError, AuthenticationResult, CacheRecord, CacheManager, AccessTokenEntity, IdTokenEntity, AccountEntity } from "@azure/msal-common";
 import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
 import { PopupRequest } from "../request/PopupRequest";
@@ -12,6 +12,8 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { BrokerAuthRequest } from "./BrokerAuthRequest";
 import { InteractionType } from "../utils/BrowserConstants";
 import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
+import { BrokerAuthResult } from "./BrokerAuthResult";
+import { BrowserStorage } from "../cache/BrowserStorage";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 /**
@@ -23,14 +25,16 @@ export class BrokerClient {
     private clientId: string;
     private version: string;
     private brokerOrigin: string;
+    private browserStorage: BrowserStorage;
 
     public brokeringEnabled: boolean;
 
-    constructor(brokerOptions: BrokerOptions, logger: Logger, clientId: string, version: string) {
+    constructor(brokerOptions: BrokerOptions, logger: Logger, clientId: string, version: string, browserStorage: BrowserStorage) {
         this.brokerOptions = brokerOptions;
         this.logger = logger;
         this.clientId = clientId;
         this.version = version;
+        this.browserStorage = browserStorage;
 
         if (!this.brokerOptions.trustedBrokerDomains || this.brokerOptions.trustedBrokerDomains.length < 1) {
             this.logger.info("Application was identified as an embedded app in a broker scenario, but no trusted broker domains were provided.");
@@ -57,18 +61,39 @@ export class BrokerClient {
     }
 
     async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult> {
-        return this.sendRequest<AuthenticationResult>(request, InteractionType.POPUP, 6000);
+        return new Promise<AuthenticationResult> ((resolve: any, reject: any) => {
+            this.sendRequest(request, InteractionType.POPUP, 6000).then((brokerAuthResultMessage: MessageEvent) => {
+                const brokerAuthResult = BrokerAuthResult.validate(brokerAuthResultMessage);
+                if (brokerAuthResult.error) {
+                    reject(brokerAuthResult.error);
+                }
+                const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
+                const idTokenEntity: IdTokenEntity = new IdTokenEntity();
+                const accountEntity: AccountEntity = new AccountEntity();
+                const cacheRecord: CacheRecord = {
+                    accessToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.accessToken, accessTokenEntity) as AccessTokenEntity,
+                    idToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.idToken, idTokenEntity) as IdTokenEntity,
+                    account: CacheManager.toObject(brokerAuthResult.result.tokensToCache.account, accountEntity) as AccountEntity,
+                    refreshToken: null
+                };
+                this.browserStorage.saveCacheRecord(cacheRecord);
+                delete brokerAuthResult.result.tokensToCache;
+                resolve(brokerAuthResult.result);
+            }).catch((err: ClientAuthError) => {
+                reject(err);
+            });
+        });
     }
 
     async sendRedirectRequest(request: RedirectRequest): Promise<void> {
-        const message = await this.sendRequest<MessageEvent>(request, InteractionType.REDIRECT, 2000);
+        const message = await this.sendRequest(request, InteractionType.REDIRECT, 2000);
         BrokerRedirectResponse.validate(message);
     }
 
-    private async sendRequest<T>(request: PopupRequest|RedirectRequest, interactionType: InteractionType, timeoutMs: number): Promise<T> {
+    private async sendRequest(request: PopupRequest|RedirectRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
         const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request);
 
-        return this.messageBroker<T>(brokerRequest, timeoutMs);
+        return this.messageBroker<MessageEvent>(brokerRequest, timeoutMs);
     }
 
     private async sendHandshakeRequest(): Promise<BrokerHandshakeResponse> {
@@ -97,8 +122,8 @@ export class BrokerClient {
             window.addEventListener("message", onHandshakeResponse);
 
             const handshakeRequest = new BrokerHandshakeRequest(this.clientId, this.version);
-            window.top.postMessage(handshakeRequest, "*");
             this.logger.verbose(`Sending handshake request: ${handshakeRequest}`);
+            window.top.postMessage(handshakeRequest, "*");
         });
     }
 

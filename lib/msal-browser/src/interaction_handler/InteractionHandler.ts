@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerAuthenticationResult } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -15,10 +15,12 @@ export abstract class InteractionHandler {
     protected authModule: AuthorizationCodeClient;
     protected browserStorage: BrowserStorage;
     protected authCodeRequest: AuthorizationCodeRequest;
+    protected isBrokeredRequest: boolean;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, broker: boolean) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
+        this.isBrokeredRequest = broker;
     }
 
     /**
@@ -48,9 +50,16 @@ export abstract class InteractionHandler {
         // Assign code to request
         this.authCodeRequest.code = authCode;
 
-        // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
-        this.browserStorage.cleanRequest();
-        return tokenResponse;
+        if (this.isBrokeredRequest) {
+            const brokerClient = this.authModule as BrokerAuthorizationCodeClient;
+            const brokeredTokenResponse: BrokerAuthenticationResult = await brokerClient.acquireTokenByBroker(this.authCodeRequest, cachedNonce, requestState);
+            this.browserStorage.cleanRequest();
+            return brokeredTokenResponse;
+        } else {
+            // Acquire token with retrieved code.
+            const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
+            this.browserStorage.cleanRequest();
+            return tokenResponse;
+        }        
     }
 }

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, BrokerAuthorizationCodeClient, BrokerAuthenticationResult } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -66,9 +66,19 @@ export class RedirectHandler extends InteractionHandler {
         this.authCodeRequest.code = authCode;
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
-
-        this.browserStorage.cleanRequest();
-        return tokenResponse;
+        if (this.isBrokeredRequest) {
+            const brokerClient = this.authModule as BrokerAuthorizationCodeClient;
+            const brokeredTokenResponse: BrokerAuthenticationResult = await brokerClient.acquireTokenByBroker(this.authCodeRequest, cachedNonce, requestState);
+            this.browserStorage.saveCacheRecord(brokeredTokenResponse.tokensToCache);
+            this.browserStorage.cleanRequest();
+            return {
+                ...brokeredTokenResponse
+            };
+        } else {
+            // Acquire token with retrieved code.
+            const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
+            this.browserStorage.cleanRequest();
+            return tokenResponse;
+        }   
     }
 }

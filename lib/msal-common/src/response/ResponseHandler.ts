@@ -25,6 +25,8 @@ import { CacheRecord } from "../cache/entities/CacheRecord";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
+import { BrokerAuthenticationResult } from "./BrokerAuthenticationResult";
+import { CredentialCache } from "../cache/utils/CacheTypes";
 
 /**
  * Class that handles response parsing.
@@ -119,6 +121,42 @@ export class ResponseHandler {
         this.cacheStorage.saveCacheRecord(cacheRecord);
 
         return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
+    }
+
+    handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): BrokerAuthenticationResult {
+        // create an idToken object (not entity)
+        const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
+
+        // token nonce check (TODO: Add a warning if no nonce is given?)
+        if (!StringUtils.isEmpty(cachedNonce)) {
+            if (idTokenObj.claims.nonce !== cachedNonce) {
+                throw ClientAuthError.createNonceMismatchError();
+            }
+        }
+
+        // save the response tokens
+        let requestStateObj: RequestStateObject = null;
+        if (!StringUtils.isEmpty(cachedState)) {
+            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState); 
+        }
+
+        // Get creds to send to child
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
+        const refreshTokenRecord: CacheRecord = {
+            accessToken: null,
+            idToken: null,
+            refreshToken: cacheRecord.refreshToken,
+            account: null
+        };
+
+        // Save refresh token
+        this.cacheStorage.saveCacheRecord(refreshTokenRecord);
+        cacheRecord.refreshToken = null;
+        const result = ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
+        return {
+            ...result,
+            tokensToCache: cacheRecord
+        };
     }
 
     /**

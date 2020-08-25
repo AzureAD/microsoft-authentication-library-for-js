@@ -31,7 +31,10 @@ import {
     Logger,
     ServerTelemetryManager,
     ServerTelemetryRequest,
-    ServerAuthorizationCodeResponse
+    ServerAuthorizationCodeResponse,
+    AuthError,
+    BrokerAuthorizationCodeClient,
+    BrokerAuthenticationResult
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -40,7 +43,7 @@ import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys, ApiId, DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, ApiId, DEFAULT_REQUEST, InteractionType, BrokerMessageType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { version } from "../../package.json";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -50,6 +53,12 @@ import { SilentRequest } from "../request/SilentRequest";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
 import { BrokerManager } from "../broker/BrokerManager";
 import { BrokerClient } from "../broker/BrokerClient";
+import { BrokerMessage } from "../broker/BrokerMessage";
+import { BrokerHandshakeRequest } from "../broker/BrokerHandshakeRequest";
+import { BrokerHandshakeResponse } from "../broker/BrokerHandshakeResponse";
+import { BrokerRedirectResponse } from "../broker/BrokerRedirectResponse";
+import { BrokerAuthRequest } from "../broker/BrokerAuthRequest";
+import { BrokerAuthResult } from "../broker/BrokerAuthResult";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -80,7 +89,7 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     // Broker Objects
     private embeddedApp: BrokerClient;
-    private broker: BrokerManager;
+    private broker: boolean;
 
     /**
      * @constructor
@@ -123,19 +132,82 @@ export class PublicClientApplication implements IPublicClientApplication {
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
         this.defaultAuthority = null;
-
+        this.broker = false;
         this.initializeBrokering();
     }
 
     private initializeBrokering(): void {
         if (this.config.system.brokerOptions.actAsBroker) {
-            this.broker = new BrokerManager(this.config.system.brokerOptions, this.logger, version);
+            // this.broker = new BrokerManager(this.config.system.brokerOptions, this.logger, version);
+            this.broker = true;
             this.logger.verbose("Acting as Broker");
-            this.broker.listenForMessage();
+            this.listenForBrokerMessage();
         } else if (this.config.system.brokerOptions.allowBrokering) {
-            this.embeddedApp = new BrokerClient(this.config.system.brokerOptions, this.logger, this.config.auth.clientId,  version);
+            this.embeddedApp = new BrokerClient(this.config.system.brokerOptions, this.logger, this.config.auth.clientId, version, this.browserStorage);
             this.logger.verbose("Acting as child");
             this.embeddedApp.initiateHandshake();
+        }
+    }
+
+    private listenForBrokerMessage(): void {
+        window.addEventListener("message", (message: MessageEvent): void => {
+            // Check that message is a BrokerHandshakeRequest
+            const clientMessage = BrokerMessage.validateMessage(message);
+            if (clientMessage) {
+                switch (clientMessage.data.messageType) {
+                    case BrokerMessageType.HANDSHAKE_REQUEST:
+                        this.logger.verbose("Broker handshake request received");
+                        return this.handleBrokerHandshake(clientMessage);
+                    case BrokerMessageType.AUTH_REQUEST:
+                        this.logger.verbose("Broker auth request received");
+                        return this.handleBrokerAuthRequest(clientMessage);
+                    default:
+                        return;
+                }
+            }
+        });
+    }
+
+    /* eslint-disable */
+    /**
+     * Handle a broker handshake request from a child.
+     * @param clientMessage 
+     */
+    private handleBrokerHandshake(clientMessage: MessageEvent): void {
+        const validMessage = BrokerHandshakeRequest.validate(clientMessage);
+        this.logger.verbose(`Broker handshake validated: ${validMessage}`);
+        const brokerHandshakeResponse = new BrokerHandshakeResponse(version);
+
+        // @ts-ignore
+        clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
+        this.logger.info(`Sending handshake response: ${brokerHandshakeResponse}`);
+    }
+
+    /**
+     * Handle a brokered auth request from the child.
+     * @param clientMessage 
+     */
+    private handleBrokerAuthRequest(clientMessage: MessageEvent): void {
+        const validMessage = BrokerAuthRequest.validate(clientMessage);
+        this.logger.verbose(`Broker auth request validated: ${validMessage}`);
+        if (validMessage.interactionType === InteractionType.REDIRECT) {
+            const brokerRedirectResp = new BrokerRedirectResponse();
+            // @ts-ignore
+            clientMessage.ports[0].postMessage(brokerRedirectResp);
+            this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
+
+            // Call loginRedirect
+            this.acquireTokenRedirect(validMessage.request as RedirectRequest);
+        } else if (validMessage.interactionType === InteractionType.POPUP) {
+            this.loginPopup().then((response: BrokerAuthenticationResult) => {
+                const brokerAuthResponse = new BrokerAuthResult(InteractionType.POPUP, response);
+                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+                clientMessage.ports[0].postMessage(brokerAuthResponse);
+            }).catch((err: Error) => {
+                const brokerAuthResponse = new BrokerAuthResult(InteractionType.POPUP, null, err);
+                this.logger.info(`Found auth error: ${err}`);
+                clientMessage.ports[0].postMessage(brokerAuthResponse);
+            });
         }
     }
 
@@ -221,7 +293,7 @@ export class PublicClientApplication implements IPublicClientApplication {
                 BrowserUtils.clearHash();
                 return responseHash;
             }
-        }      
+        }
 
         return null;
     }
@@ -246,7 +318,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Hash contains known properties - handle and return in callback
             const currentAuthority = this.browserStorage.getCachedAuthority();
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.broker);
             return interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -294,7 +366,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
 
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.broker);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
@@ -349,7 +421,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Create popup interaction handler.
-            const interactionHandler = new PopupHandler(authClient, this.browserStorage);
+            const interactionHandler = new PopupHandler(authClient, this.browserStorage, this.broker);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
@@ -498,7 +570,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, userRequestScopes: string): Promise<AuthenticationResult> {
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.loadFrameTimeout);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.broker, this.config.system.loadFrameTimeout);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest, userRequestScopes);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -597,7 +669,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     private async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
-        return new AuthorizationCodeClient(clientConfig);
+        
+        return this.broker ? new BrokerAuthorizationCodeClient(clientConfig) : new AuthorizationCodeClient(clientConfig);
     }
 
     /**
