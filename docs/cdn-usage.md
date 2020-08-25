@@ -8,6 +8,8 @@ The `@azure/msal-browser` package is available through CDN if you do not wish to
 
 Version | CDN URL | SRI Hash
 --------------- | ------- | ---------------------------
+2.1.0 | https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.js | sha384-knPh00kvaT+k3+4TCD5S2ORDNVc2I3RVbqI/ksbTlpdSBh8ZnyAPxW2kkTSG0+mT
+2.0.2 | https://alcdn.msauth.net/browser/2.0.2/js/msal-browser.js | sha384-rQvomuvjVybeTxLQIpbtb6lqFsDuJparCjjUJZjRZjVDNzGRloXbPj9qbgf9YM/d
 2.0.1 | https://alcdn.msauth.net/browser/2.0.1/js/msal-browser.js | sha384-knPh00kvaT+k3+4TCD5S2ORDNVc2I3RVbqI/ksbTlpdSBh8ZnyAPxW2kkTSG0+mT
 2.0.0 | https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.js | sha384-BqIcDtzVkr3wRGsSrk+iJJNm9GSdUsP0I2MplbnhPPc+I1l1d+dkKbcnqgNddGWX
 2.0.0-beta.4 | https://alcdn.msauth.net/browser/2.0.0-beta.4/js/msal-browser.js | sha384-7sxY2tN3GMVE5jXH2RL9AdbO6s46vUh9lUid4yNCHJMUzDoj+0N4ve6rLOmR88yN
@@ -19,6 +21,8 @@ Version | CDN URL | SRI Hash
 
 Version | CDN URL | SRI Hash
 --------------- | ------- | ---------------------------
+2.1.0 | https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.min.js | sha384-EmYPwkfj+VVmL1brMS1h6jUztl4QMS8Qq8xlZNgIT/luzg7MAzDVrRa2JxbNmk/e
+2.0.2 | https://alcdn.msauth.net/browser/2.0.2/js/msal-browser.min.js | sha384-zHGbJmHXAWMXaREIK7qFkrJCcU2ktJd8G9DAp49Q+y/+H6ArVhvFUW5IbyTzbNnn
 2.0.1 | https://alcdn.msauth.net/browser/2.0.1/js/msal-browser.min.js | sha384-fbyYRj8H9iJU/JyncEbzW6WgVOaR5C+PU1dHsRBg2Ag2Q14F4IB8+T8BdknwjRQ8
 2.0.0 | https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.min.js | sha384-n3aacu1eFuIAfS3ZY4WGIZiQG/skqpT+cbeqIwLddpmMWcxWZwYdt+F0PgKyw+m9
 2.0.0-beta.4 | https://alcdn.msauth.net/browser/2.0.0-beta.4/js/msal-browser.min.js | sha384-j9+OYwF1QFM1A8/DNvWKqvTw+bc5alOXQ7IA2WvGAcLLLpN/tK9XRTbJtlTiSFJI
@@ -63,9 +67,9 @@ To help ensure reliability, Microsoft provides a second CDN:
 Below is an example of how to use one CDN as a fallback when the other CDN is not working:
 
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.3.3/js/msal.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.js"></script>
 <script type="text/javascript">
-    if(typeof Msal === 'undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/lib/1.3.3/js/msal.js' type='text/javascript' %3E%3C/script%3E"));
+    if(typeof Msal === 'undefined')document.write(unescape("%3Cscript src='https://alcdn.msftauth.net/browser/2.0.0/js/msal-browser.js' type='text/javascript' %3E%3C/script%3E"));
 </script>
 ```
 
