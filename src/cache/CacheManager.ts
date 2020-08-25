@@ -120,7 +120,7 @@ export abstract class CacheManager implements ICacheManager {
             accessToken: cachedAccessToken,
             idToken: cachedIdToken,
             refreshToken: cachedRefreshToken
-        }
+        };
     }
 
     /**
