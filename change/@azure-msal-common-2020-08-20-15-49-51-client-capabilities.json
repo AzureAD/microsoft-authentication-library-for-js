@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Client Capabilities Support (#2169)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "minor",
-  "date": "2020-08-20T22:49:35.324Z"
-}
