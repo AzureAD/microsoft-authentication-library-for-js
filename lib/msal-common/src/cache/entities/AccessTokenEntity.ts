@@ -6,12 +6,6 @@
 import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
-import { CacheManager } from "../CacheManager";
-import { ScopeSet } from "../../request/ScopeSet";
-import { CredentialFilter, CredentialCache } from "../utils/CacheTypes";
-import { AccountInfo } from "../../account/AccountInfo";
-import { StringUtils } from "../../utils/StringUtils";
-import { AccountEntity } from "./AccountEntity";
 
 /**
  * ACCESS_TOKEN Credential Type
