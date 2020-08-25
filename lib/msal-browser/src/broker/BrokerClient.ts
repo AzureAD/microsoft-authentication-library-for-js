@@ -78,7 +78,9 @@ export class BrokerClient {
                 };
                 this.browserStorage.saveCacheRecord(cacheRecord);
                 delete brokerAuthResult.result.tokensToCache;
-                resolve(brokerAuthResult.result);
+                resolve({
+                    ...brokerAuthResult.result
+                });
             }).catch((err: ClientAuthError) => {
                 reject(err);
             });

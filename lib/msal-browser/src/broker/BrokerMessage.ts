@@ -10,8 +10,6 @@ export abstract class BrokerMessage {
 
     static validateMessage(message: MessageEvent): MessageEvent|null {
         if (message.data && message.data.messageType) {
-            console.log(message.data.messageType);
-            console.log(Object.values(BrokerMessageType).indexOf(message.data.messageType) > -1);
             if (Object.values(BrokerMessageType).indexOf(message.data.messageType) > -1) {
                 return message;
             } else {
