@@ -18,7 +18,8 @@ const argv = require('yargs')
 const DEFAULT_PORT = 3000;
 const DEFAULT_SAMPLE_NAME = 'auth-code';
 const APP_DIR = `${__dirname}/app`;
-const WEB_APP_TYPE = "web"; // Two types, web and CLI applications
+const WEB_APP_TYPE = "web";
+const CLI_APP_TYPE = "cli";
 
 // Loads the names of the application directories containing the sample code
 function readSampleDirs() {
@@ -44,10 +45,7 @@ function validateInputSample(sampleDirs, sampleName) {
     }
 }
 
-function initializeWebApp(sampleFilesPath, inputPort) {
-    // Build client application
-    const clientApplication = require(`${sampleFilesPath}/clientApplication`);
-
+function initializeWebApp(sampleFilesPath, inputPort, clientApplication) {
     // Initialize MSAL Token Cache
     const msalTokenCache = clientApplication.getTokenCache();
 
@@ -63,6 +61,10 @@ function initializeWebApp(sampleFilesPath, inputPort) {
     })
 }
 
+function executeCliApp(sampleFilesPath, inputPort, clientApplication) {
+    require(`${sampleFilesPath}/index`)(clientApplication);
+}
+
 
 
 
@@ -73,6 +75,17 @@ const sampleFilesPath = `${APP_DIR}/${sampleName}`;
 
 const sampleConfig = require(`${sampleFilesPath}/sampleConfig`);
 
-if (sampleConfig.appType == WEB_APP_TYPE) {
-    initializeWebApp(sampleFilesPath, argv.port);
+// Build client application
+const clientApplication = require(`${sampleFilesPath}/clientApplication`);
+
+switch(sampleConfig.appType) {
+    case WEB_APP_TYPE:
+        initializeWebApp(sampleFilesPath, argv.port, clientApplication);
+        break;git
+    case CLI_APP_TYPE:
+        executeCliApp(sampleFilesPath, argv.port, clientApplication);
+        break;
+    default:
+        console.log("Unsupported appType: ", sampleConfig.appType, clientApplication);
+        break;
 }
