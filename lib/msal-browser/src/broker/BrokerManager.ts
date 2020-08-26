@@ -6,6 +6,10 @@
 import { BrokerOptions } from "../config/Configuration";
 import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
+import { BrokerMessage } from "./BrokerMessage";
+import { BrokerAuthRequest } from "./BrokerAuthRequest";
+import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
+import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
 import { Logger } from "@azure/msal-common";
 
 export class BrokerManager {
@@ -19,21 +23,55 @@ export class BrokerManager {
         this.version = version;
     }
 
-    /* eslint-disable */
-    listenForHandshake(): void {
+    listenForMessage(): void {
         window.addEventListener("message", (message: MessageEvent): void => {
             this.logger.verbose("Broker handshake request received");
             // Check that message is a BrokerHandshakeRequest
-            const brokerMessageHandshake = BrokerHandshakeRequest.validate(message);
-            if (brokerMessageHandshake) {
-                this.logger.verbose(`Broker handshake validated: ${JSON.stringify(brokerMessageHandshake)}`);
-                const brokerHandshakeResponse = new BrokerHandshakeResponse(this.version);
-
-                // @ts-ignore
-                message.source.postMessage(brokerHandshakeResponse, message.origin);
-                this.logger.info(`Sending handshake response: ${JSON.stringify(brokerHandshakeResponse)}`);
+            const clientMessage = BrokerMessage.validateMessage(message);
+            if (clientMessage) {
+                switch (clientMessage.data.messageType) {
+                    case BrokerMessageType.HANDSHAKE_REQUEST:
+                        return this.handleHandshake(clientMessage);
+                    case BrokerMessageType.AUTH_REQUEST:
+                        return this.handleAuthRequest(clientMessage);
+                    default:
+                        return;
+                }
             }
         });
+    }
+
+    /* eslint-disable */
+    /**
+     * Handle a broker handshake request from a child.
+     * @param clientMessage 
+     */
+    private handleHandshake(clientMessage: MessageEvent): void {
+        const validMessage = BrokerHandshakeRequest.validate(clientMessage);
+        this.logger.verbose(`Broker handshake validated: ${validMessage}`);
+        const brokerHandshakeResponse = new BrokerHandshakeResponse(this.version);
+
+        // @ts-ignore
+        clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
+        this.logger.info(`Sending handshake response: ${brokerHandshakeResponse}`);
+    }
+    
+
+    /**
+     * Handle a brokered auth request from the child.
+     * @param clientMessage 
+     */
+    private handleAuthRequest(clientMessage: MessageEvent): void {
+        const validMessage = BrokerAuthRequest.validate(clientMessage);
+        this.logger.verbose(`Broker auth request validated: ${validMessage}`);
+        if (validMessage.interactionType === InteractionType.REDIRECT) {
+            const brokerRedirectResp = new BrokerRedirectResponse();
+            // @ts-ignore
+            clientMessage.ports[0].postMessage(brokerRedirectResp);
+            this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
+
+            // Call loginRedirect
+        }
     }
     /* eslint-enable */
 }

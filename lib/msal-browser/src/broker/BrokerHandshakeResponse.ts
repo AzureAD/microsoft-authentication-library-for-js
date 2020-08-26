@@ -3,25 +3,39 @@
  * Licensed under the MIT License.
  */
 import { BrokerMessage } from "./BrokerMessage";
+import { ClientAuthError } from "@azure/msal-common";
+import { BrokerMessageType } from "../utils/BrowserConstants";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class BrokerHandshakeResponse extends BrokerMessage {
     public version: string;
+    public readonly brokerOrigin: string;
 
-    constructor(version: string) {
-        super("BrokerHandshakeResponse");
+    constructor(version: string, brokerOrigin?: string) {
+        super(BrokerMessageType.HANDSHAKE_RESPONSE);
 
         this.version = version;
+        this.brokerOrigin = brokerOrigin;
     }
 
-    static validate(message: MessageEvent, trustedBrokerDomains: string[]) {
+    /**
+     * Validate broker handshake
+     * @param message 
+     * @param trustedBrokerDomains 
+     */
+    static validate(message: MessageEvent, trustedBrokerDomains: string[]): BrokerHandshakeResponse|null {
         // First, validate message type
-        if (message.data && 
-            message.data.messageType === "BrokerHandshakeResponse" &&
+        message = BrokerMessage.validateMessage(message);
+        if (message && 
+            message.data.messageType === BrokerMessageType.HANDSHAKE_RESPONSE &&
             message.data.version) {
-                
             // TODO, verify version compatibility
+            if (trustedBrokerDomains.indexOf(message.origin) < 0) {
+                // TODO make this a browser Error
+                throw BrowserAuthError.createUntrustedBrokerError();
+            }
 
-            return new BrokerHandshakeResponse(message.data.version);
+            return new BrokerHandshakeResponse(message.data.version, message.origin);
         }
 
         return null;

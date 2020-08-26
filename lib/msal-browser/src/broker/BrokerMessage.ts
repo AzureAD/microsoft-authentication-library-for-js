@@ -3,10 +3,26 @@
  * Licensed under the MIT License.
  */
 
+import { BrokerMessageType } from "../utils/BrowserConstants";
+import { ClientAuthError } from "@azure/msal-common";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+
 export abstract class BrokerMessage {
     public messageType: string;
 
     constructor(messageType: string) {
         this.messageType = messageType;
+    }
+
+    static validateMessage(message: MessageEvent): MessageEvent|null {
+        if (message.data && message.data.messageType) {
+            if (message.data.messageType in BrokerMessageType) {
+                return message;
+            } else {
+                throw(BrowserAuthError.createInvalidBrokerMessageError());
+            }
+        } else {
+            return null;
+        }
     }
 }
