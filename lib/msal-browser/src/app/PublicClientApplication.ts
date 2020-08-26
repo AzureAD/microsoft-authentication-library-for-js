@@ -48,6 +48,8 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
+import { BrokerManager } from "../broker/BrokerManager";
+import { BrokerClient } from "../broker/BrokerClient";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -75,6 +77,10 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     // Logger
     private logger: Logger;
+
+    // Broker Objects
+    private embeddedApp: BrokerClient;
+    private broker: BrokerManager;
 
     /**
      * @constructor
@@ -117,6 +123,20 @@ export class PublicClientApplication implements IPublicClientApplication {
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
         this.defaultAuthority = null;
+
+        this.initializeBrokering();
+    }
+
+    private initializeBrokering(): void {
+        if (this.config.system.brokerOptions.actAsBroker) {
+            this.broker = new BrokerManager(this.config.system.brokerOptions, this.logger, version);
+            this.logger.verbose("Acting as Broker");
+            this.broker.listenForHandshake();
+        } else if (this.config.system.brokerOptions.allowBrokering) {
+            this.embeddedApp = new BrokerClient(this.config.system.brokerOptions, this.logger, this.config.auth.clientId,  version);
+            this.logger.verbose("Acting as child");
+            this.embeddedApp.initiateHandshake();
+        }
     }
 
     // #region Redirect Flow
