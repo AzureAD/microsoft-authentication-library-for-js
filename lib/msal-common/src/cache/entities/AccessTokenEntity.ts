@@ -84,7 +84,7 @@ export class AccessTokenEntity extends CredentialEntity {
         return atEntity;
     }
 
-    /*
+    /**
      * Validates an entity: checks for all expected params
      * @param entity
      */
