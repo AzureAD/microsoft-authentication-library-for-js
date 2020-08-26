@@ -86,23 +86,49 @@ When a user visits these routes, the library will prompt the user to authenticat
 
 ### 3. Get tokens for Web API calls
 
-MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. MsalInterceptor will obtain tokens and add them to all your Http requests in API calls except the API endpoints listed as `unprotectedResources`.
+MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. MsalInterceptor will obtain tokens and add them to all your Http requests in API calls based on the `protectedResourceMap`.
 
 ```js
-providers: [
-    ProductService, {
-        provide: HTTP_INTERCEPTORS,
-        useClass: MsalInterceptor,
-        multi: true
-    }
-],
+@NgModule({
+    imports: [
+        MsalModule.forRoot({
+            auth: {
+                clientId: "Your client ID"
+            }
+        }, {
+            protectedResourceMap: [
+                ['https://graph.microsoft.com/v1.0/me', ['user.read']],
+                ['https://api.myapplication.com/users/*', ['customscope.read']]
+            ]
+        })
+    ],
+    providers: [
+        ProductService, 
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: MsalInterceptor,
+            multi: true
+        }
+    ]
+})
+export class AppModule {}
 ```
 
 Using MsalInterceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
 
+As of `@azure/msal-angular@1.1.0`, `protectedResourceMap` supports wildcard patterns that are supported by [minimatch](https://github.com/isaacs/minimatch), and `unprotectedResources` is deprecated and ignored. 
+
+**Note:** When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`).
+
 ### 4. Subscribe to event callbacks
 
-MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service.
+MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service and also implement a `handleRedirectCallback`:
+
+```js
+this.authService.handleRedirectCallback((authError, response) => {
+    // do something here
+});
+```
 
 1. Login-related events (`loginPopup`/`loginRedirect`)
 

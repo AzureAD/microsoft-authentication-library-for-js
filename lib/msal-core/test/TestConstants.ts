@@ -73,6 +73,10 @@ export const B2C_TEST_CONFIG = {
     MSAL_CLIENT_ID: "e760cab2-b9a1-4c0d-86fb-ff7084abd902"
 };
 
+export const ADFS_TEST_CONFIG = {
+    validAuthority: "https://fs.msidlab8.com/adfs"
+};
+
 export const TEST_RESPONSE_TYPE = {
     id_token: "id_token",
     token: "token",

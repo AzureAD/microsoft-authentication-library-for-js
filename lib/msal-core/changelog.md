@@ -1,3 +1,28 @@
+# Change Log - msal
+
+This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+## 1.4.0
+
+Tue, 25 Aug 2020 00:40:45 GMT
+
+### Minor changes
+
+- B2C Multiple Policy Support (#1757) (thomas.norling@microsoft.com)
+- ADFS 2019 Support (#1668) (thomas.l.norling@gmail.com)
+- Enables idToken acquisition in acquireToken API calls through the use of OIDC scopes by redefining the way response_type is determined. (PR #2022) (hemoral@microsoft.com)
+
+# 1.3.4
+
+## Bugs
+* Fix lowercase scopes issue (#1945)
+* Fix Redirect Error Callback (#1942)
+* Replace /organizations with tenant ID in replaceTenantPath (#1974)
+* Fix cache miss when common authority is provided (#2015)
+* Fix back button behavior (#2081)
+
 # 1.3.3
 
 ##  Enhancements

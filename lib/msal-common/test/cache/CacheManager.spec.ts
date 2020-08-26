@@ -125,7 +125,7 @@ class TestStorageManager extends CacheManager {
                 }
                 break;
             }
-            case CacheSchemaType.APP_META_DATA: {
+            case CacheSchemaType.APP_METADATA: {
                 if (!!store[key]) {
                     delete store[key];
                     result = true;
@@ -258,7 +258,7 @@ describe("CacheManager.ts test cases", () => {
             let accounts = cacheManager.getAccountsFilteredBy(successFilter);
             expect(Object.keys(accounts).length).to.eql(1);
             sinon.restore();
-    
+
             const wrongFilter: AccountFilter = { environment: "Wrong Env" };
             accounts = cacheManager.getAccountsFilteredBy(wrongFilter);
             expect(Object.keys(accounts).length).to.eql(0);
@@ -368,12 +368,19 @@ describe("CacheManager.ts test cases", () => {
             expect(Object.keys(credentials.idTokens).length).to.eql(0);
             expect(Object.keys(credentials.accessTokens).length).to.eql(0);
             expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+
+            const filterOidcscopes = { target: "scope1 scope2 scope3 offline_access" };
+            let filteredCredentials = cacheManager.getCredentialsFilteredBy(filterOidcscopes);
+            expect(Object.keys(filteredCredentials.idTokens).length).to.eql(0);
+            expect(Object.keys(filteredCredentials.accessTokens).length).to.eql(1);
+            expect(Object.keys(filteredCredentials.refreshTokens).length).to.eql(0);
+
         });
     });
 
     it("removeAppMetadata", () => {
         cacheManager.removeAppMetadata();
-        
+
         expect(store["appmetadata-login.microsoftonline.com-mock_client_id"]).to.be.undefined;
     });
 

@@ -13,6 +13,7 @@ import { ScopeSet } from "../request/ScopeSet";
 import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { StringUtils } from "../utils/StringUtils";
 
 /**
  * OAuth2.0 refresh token client
@@ -46,7 +47,7 @@ export class RefreshTokenClient extends BaseClient {
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }
@@ -76,6 +77,10 @@ export class RefreshTokenClient extends BaseClient {
             const clientAssertion = this.config.clientCredentials.clientAssertion;
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        }
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
         return parameterBuilder.createQueryString();
