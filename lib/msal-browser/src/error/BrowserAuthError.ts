@@ -79,6 +79,10 @@ export const BrowserAuthErrorMessage = {
     invalidCacheType: {
         code: "invalid_cache_type",
         desc: "Invalid cache type"
+    },
+    brokerTimeoutError: {
+        code: "broker_timeout",
+        desc: "Message broker timed out."
     }
 };
 
@@ -237,5 +241,9 @@ export class BrowserAuthError extends AuthError {
     */
     static createInvalidCacheTypeError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.invalidCacheType.code, `${BrowserAuthErrorMessage.invalidCacheType.desc}`);
+    }
+
+    static createMessageBrokerTimeoutError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.brokerTimeoutError.code, BrowserAuthErrorMessage.brokerTimeoutError.desc);
     }
 }
