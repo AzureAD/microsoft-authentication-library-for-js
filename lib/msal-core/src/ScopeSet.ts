@@ -114,15 +114,8 @@ export class ScopeSet {
         }
 
         // Check that scopes is not an empty array
-        if (scopes.length < 1) {
+        if (scopes.length < 1 && scopesRequired) {
             throw ClientConfigurationError.createEmptyScopesArrayError(scopes.toString());
-        }
-
-        // Check that clientId is passed as single scope
-        if (scopes.indexOf(clientId) > -1) {
-            if (scopes.length > 1) {
-                throw ClientConfigurationError.createClientIdSingleScopeError(scopes.toString());
-            }
         }
     }
 
@@ -160,4 +153,70 @@ export class ScopeSet {
 
     // #endregion
 
+    /**
+     * @ignore
+     * Returns true if the scopes array only contains openid and/or profile
+     */
+    static onlyContainsOidcScopes(scopes: Array<string>): boolean {
+        const scopesCount = scopes.length;
+        let oidcScopesFound = 0;
+
+        if (scopes.indexOf(Constants.openidScope) > -1) {
+            oidcScopesFound += 1;
+        }
+
+        if (scopes.indexOf(Constants.profileScope) > -1) {
+            oidcScopesFound += 1;
+        }
+
+        return (scopesCount > 0 && scopesCount === oidcScopesFound);
+    }
+
+    /**
+     * @ignore
+     * Returns true if the scopes array only contains openid and/or profile
+     */
+    static containsAnyOidcScopes(scopes: Array<string>): boolean {
+        const containsOpenIdScope = scopes.indexOf(Constants.openidScope) > -1;
+        const containsProfileScope = scopes.indexOf(Constants.profileScope) > -1;
+
+        return (containsOpenIdScope || containsProfileScope);
+    }
+
+    /**
+     * @ignore
+     * Returns true if the clientId is the only scope in the array
+     */
+    static onlyContainsClientId(scopes: Array<String>, clientId: string): boolean {
+        // Double negation to force false value returned in case scopes is null
+        return !!scopes && (scopes.indexOf(clientId) > -1 && scopes.length === 1);
+    }
+
+    /**
+     * @ignore
+     * Adds missing OIDC scopes to scopes array withot duplication. Since STS requires OIDC scopes for
+     * all implicit flow requests, 'openid' and 'profile' should always be included in the final request
+     */
+    static appendDefaultScopes(scopes: Array<string>): Array<string> {
+        const extendedScopes = scopes;
+        if (extendedScopes.indexOf(Constants.openidScope) === -1) {
+            extendedScopes.push(Constants.openidScope);
+        }
+
+        if(extendedScopes.indexOf(Constants.profileScope) === -1) {
+            extendedScopes.push(Constants.profileScope);
+        }
+
+        return extendedScopes;
+    }
+
+    /**
+     * @ignore
+     * Removes clientId from scopes array if included as only scope. If it's not the only scope, it is treated as a resource scope.
+     * @param scopes Array<string>: Pre-normalized scopes array
+     * @param clientId string: The application's clientId that is searched for in the scopes array
+     */
+    static translateClientIdIfSingleScope(scopes: Array<string>, clientId: string): Array<string> {
+        return this.onlyContainsClientId(scopes, clientId) ? Constants.oidcScopes : scopes;
+    }
 }

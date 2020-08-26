@@ -27,7 +27,7 @@ export class PopupHandler extends InteractionHandler {
      * Opens a popup window with given request Url.
      * @param requestUrl
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Window {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, popup?: Window|null): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
             // Save auth code request
@@ -36,7 +36,7 @@ export class PopupHandler extends InteractionHandler {
             this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             // Open the popup window to requestUrl.
-            return this.openPopup(requestUrl, Constants.LIBRARY_NAME, BrowserConstants.POPUP_WIDTH, BrowserConstants.POPUP_HEIGHT);
+            return this.openPopup(requestUrl, popup);
         } else {
             // Throw error if request URL is empty.
             this.authModule.logger.error("Navigate url is empty");
@@ -64,7 +64,7 @@ export class PopupHandler extends InteractionHandler {
                     return;
                 }
 
-                let href;
+                let href: string;
                 try {
                     /*
                      * Will throw if cross origin,
@@ -75,16 +75,15 @@ export class PopupHandler extends InteractionHandler {
                 } catch (e) {}
 
                 // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
+                if (StringUtils.isEmpty(href) || href === "about:blank") {
                     return;
                 }
 
                 // Only run clock when we are on same domain
                 ticks++;
-
-                if (UrlString.hashContainsKnownProperties(href)) {
+                const contentHash = popupWindow.location.hash;
+                if (UrlString.hashContainsKnownProperties(contentHash)) {
                     // Success case
-                    const contentHash = popupWindow.location.hash;
                     this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
                     resolve(contentHash);
@@ -112,25 +111,19 @@ export class PopupHandler extends InteractionHandler {
      * @ignore
      * @hidden
      */
-    private openPopup(urlNavigate: string, title: string, popUpWidth: number, popUpHeight: number): Window {
+    private openPopup(urlNavigate: string, popup?: Window|null): Window {
         try {
-            /**
-             * adding winLeft and winTop to account for dual monitor
-             * using screenLeft and screenTop for IE8 and earlier
-             */
-            const winLeft = window.screenLeft ? window.screenLeft : window.screenX;
-            const winTop = window.screenTop ? window.screenTop : window.screenY;
-            /**
-             * window.innerWidth displays browser window"s height and width excluding toolbars
-             * using document.documentElement.clientWidth for IE8 and earlier
-             */
-            const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-            const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-            const left = Math.max(0, ((width / 2) - (popUpWidth / 2)) + winLeft);
-            const top = Math.max(0, ((height / 2) - (popUpHeight / 2)) + winTop);
+            let popupWindow;
+            // Popup window passed in, setting url to navigate to
+            if (popup) {
+                popupWindow = popup;
+                popupWindow.location.assign(urlNavigate);
+            } else if (typeof popup === "undefined") { 
+                // Popup will be undefined if it was not passed in
+                popupWindow = PopupHandler.openSizedPopup(urlNavigate);
+            }
 
-            // open the window
-            const popupWindow = window.open(urlNavigate, title, "width=" + popUpWidth + ", height=" + popUpHeight + ", top=" + top + ", left=" + left);
+            // Popup will be null if popups are blocked
             if (!popupWindow) {
                 throw BrowserAuthError.createEmptyWindowCreatedError();
             }
@@ -146,6 +139,25 @@ export class PopupHandler extends InteractionHandler {
             this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
             throw BrowserAuthError.createPopupWindowError(e.toString());
         }
+    }
+
+    static openSizedPopup(urlNavigate: string = "about:blank"): Window|null {
+        /**
+         * adding winLeft and winTop to account for dual monitor
+         * using screenLeft and screenTop for IE8 and earlier
+         */
+        const winLeft = window.screenLeft ? window.screenLeft : window.screenX;
+        const winTop = window.screenTop ? window.screenTop : window.screenY;
+        /**
+         * window.innerWidth displays browser window"s height and width excluding toolbars
+         * using document.documentElement.clientWidth for IE8 and earlier
+         */
+        const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+        const left = Math.max(0, ((width / 2) - (BrowserConstants.POPUP_WIDTH / 2)) + winLeft);
+        const top = Math.max(0, ((height / 2) - (BrowserConstants.POPUP_HEIGHT / 2)) + winTop);
+
+        return window.open(urlNavigate, Constants.LIBRARY_NAME, "width=" + BrowserConstants.POPUP_WIDTH + ", height=" + BrowserConstants.POPUP_HEIGHT + ", top=" + top + ", left=" + left);
     }
 
     /**

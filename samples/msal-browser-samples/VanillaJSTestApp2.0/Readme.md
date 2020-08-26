@@ -6,7 +6,7 @@ This developer sample is used to run basic use cases for the MSAL library. You c
 ## How to run the sample:
 
 ### Pre-requisites
-- Ensure [all pre-requisites](../../lib/msal-browser/README.md#prerequisites) have been completed to run msal-browser.
+- Ensure [all pre-requisites](../../../lib/msal-browser/README.md#prerequisites) have been completed to run msal-browser.
 - Install node.js if needed (https://nodejs.org/en/).
 - Build the `msal-browser` project with instructions provided in the [`README.md`](../../../lib/msal-browser/README.md) or using the command `npm run build:package`.
 

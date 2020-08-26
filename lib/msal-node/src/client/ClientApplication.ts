@@ -151,7 +151,8 @@ export abstract class ClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
-                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+                clientCapabilities: this.config.auth.clientCapabilities
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!

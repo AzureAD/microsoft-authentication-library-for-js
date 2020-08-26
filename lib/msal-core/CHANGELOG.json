@@ -1,0 +1,47 @@
+{
+  "name": "msal",
+  "entries": [
+    {
+      "date": "Tue, 25 Aug 2020 00:40:45 GMT",
+      "tag": "msal_v1.4.0",
+      "version": "1.4.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "B2C Multiple Policy Support (#1757)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d5548a12c7974ffe641a2ca45e2e6290d29ca7d1",
+            "package": "msal"
+          },
+          {
+            "comment": "ADFS 2019 Support (#1668)",
+            "author": "thomas.l.norling@gmail.com",
+            "commit": "63bac814b6e59971636c4f5af12ec101032ed1be",
+            "package": "msal"
+          },
+          {
+            "comment": "Enables idToken acquisition in acquireToken API calls through the use of OIDC scopes by redefining the way response_type is determined. (PR #2022)",
+            "author": "hemoral@microsoft.com",
+            "commit": "603c101a97c0bf34a815e2c9c6398c8f57108ee4",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 13 Aug 2020 02:20:48 GMT",
+      "tag": "msal_v1.3.4",
+      "version": "1.3.4",
+      "comments": {
+        "none": [
+          {
+            "comment": "updating files for automated release steps",
+            "author": "prkanher@microsoft.com",
+            "commit": "c5ad7e5b021128fa04a19d5c74be9386b3c45c88",
+            "package": "msal"
+          }
+        ]
+      }
+    }
+  ]
+}
