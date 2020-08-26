@@ -56,7 +56,7 @@ export class RefreshTokenEntity extends CredentialEntity {
         return rtEntity;
     }
 
-    /*
+    /**
      * Validates an entity: checks for all expected params
      * @param entity
      */
