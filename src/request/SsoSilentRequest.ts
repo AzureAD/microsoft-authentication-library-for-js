@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationUrlRequest } from '@azure/msal-common';
+import { AuthorizationUrlRequest } from "@azure/msal-common";
 
 /**
  * Request object passed by user to ssoSilent to retrieve a Code from the server (first leg of authorization code grant flow)
