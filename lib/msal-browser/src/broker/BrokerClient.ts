@@ -52,7 +52,7 @@ export class BrokerClient {
         return new Promise<BrokerHandshakeResponse>((resolve: any, reject: any) => {
             const timeoutId = setTimeout(() => {
                 this.logger.warning("Broker handshake timed out");
-                reject(new ClientAuthError("message_broker_timeout", "Message broker timed out"));
+                reject(BrowserAuthError.createMessageBrokerTimeoutError());
             }, 2000);
 
             window.addEventListener("message", (message: MessageEvent) => {
