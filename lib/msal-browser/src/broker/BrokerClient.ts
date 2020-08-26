@@ -14,6 +14,7 @@ import { InteractionType } from "../utils/BrowserConstants";
 import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
 import { BrokerAuthResult } from "./BrokerAuthResult";
 import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 /**
@@ -102,7 +103,7 @@ export class BrokerClient {
         return new Promise<BrokerHandshakeResponse>((resolve: any, reject: any) => {
             const timeoutId = setTimeout(() => {
                 this.logger.warning("Broker handshake timed out");
-                reject(new ClientAuthError("message_broker_timeout", "Message broker timed out"));
+                reject(BrowserAuthError.createMessageBrokerTimeoutError());
             }, 2000);
 
             const onHandshakeResponse = (message: MessageEvent) => {
@@ -125,6 +126,7 @@ export class BrokerClient {
 
             const handshakeRequest = new BrokerHandshakeRequest(this.clientId, this.version);
             this.logger.verbose(`Sending handshake request: ${handshakeRequest}`);
+            // Message top frame window
             window.top.postMessage(handshakeRequest, "*");
         });
     }
@@ -132,8 +134,7 @@ export class BrokerClient {
     private async messageBroker<T>(payload: any, timeoutMs: number = DEFAULT_MESSAGE_TIMEOUT): Promise<T> {
         return new Promise<T>((resolve: any, reject: any) => {
             const timeoutId = setTimeout(() => {
-                // TODO: Make this a BrowserAuthError
-                reject(new ClientAuthError("message_broker_timeout", "Message broker timed out"));                
+                reject(BrowserAuthError.createMessageBrokerTimeoutError());
             }, timeoutMs);
 
             const messageChannel = new MessageChannel();
@@ -142,6 +143,7 @@ export class BrokerClient {
                 clearTimeout(timeoutId);
                 resolve(message);
             });
+            // Message top frame window
             window.top.postMessage(payload, this.brokerOrigin, [messageChannel.port2]);
         });
     }
