@@ -108,12 +108,11 @@ export abstract class CacheManager implements ICacheManager {
         // Get account object for this request.
         const accountKey: string = AccountEntity.generateAccountCacheKey(account);
         const cachedAccount = this.getAccount(accountKey);
-        const realm = cachedAccount && cachedAccount.realm ? cachedAccount.realm : null;
 
         // Get current cached tokens
-        const cachedAccessToken = this.getAccessTokenEntity(clientId, account, scopes, realm);
+        const cachedAccessToken = this.getAccessTokenEntity(clientId, account, scopes);
         const cachedRefreshToken = this.getRefreshTokenEntity(clientId, account);
-        const cachedIdToken = this.getIdTokenEntity(clientId, account, realm);
+        const cachedIdToken = this.getIdTokenEntity(clientId, account);
 
         return {
             account: cachedAccount,
@@ -197,14 +196,13 @@ export abstract class CacheManager implements ICacheManager {
      * @param account 
      * @param inputRealm 
      */
-    getIdTokenEntity(clientId: string, account: AccountInfo, inputRealm?: string): IdTokenEntity | null {
-        const realm: string = StringUtils.isEmpty(inputRealm) ? this.getRealmForAccount(account) : inputRealm;
+    getIdTokenEntity(clientId: string, account: AccountInfo): IdTokenEntity | null {
         const idTokenKey: string = CredentialEntity.generateCredentialCacheKey(
             account.homeAccountId,
             account.environment,
             CredentialType.ID_TOKEN,
             clientId,
-            realm
+            account.tenantId
         );
 
         return this.getCredential(idTokenKey) as IdTokenEntity;
@@ -217,14 +215,13 @@ export abstract class CacheManager implements ICacheManager {
      * @param scopes 
      * @param inputRealm 
      */
-    getAccessTokenEntity(clientId: string, account: AccountInfo, scopes: ScopeSet, inputRealm?: string): AccessTokenEntity | null {
-        const realm: string = StringUtils.isEmpty(inputRealm) ? this.getRealmForAccount(account) : inputRealm;
+    getAccessTokenEntity(clientId: string, account: AccountInfo, scopes: ScopeSet): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId,
-            realm,
+            realm: account.tenantId,
             target: scopes.printScopesLowerCase()
         };
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
@@ -587,16 +584,6 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         return entity;
-    }
-
-    /**
-     * Given an account object, lookup the account in cache and return the realm
-     * @param account 
-     */
-    private getRealmForAccount(account: AccountInfo): string | null {
-        const accountKey: string = AccountEntity.generateAccountCacheKey(account);
-        const cachedAccount = this.getAccount(accountKey);
-        return cachedAccount && cachedAccount.realm ? cachedAccount.realm : null;
     }
 
     /**

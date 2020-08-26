@@ -17,7 +17,7 @@ import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { IdToken } from "../../src/account/IdToken";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AccountInfo } from "../../src/account/AccountInfo";
-import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage, TimeUtils, ClientConfiguration, RefreshTokenRequest } from "../../src";
+import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage, TimeUtils, ClientConfiguration, RefreshTokenRequest, ServerTelemetryManager } from "../../src";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -92,7 +92,7 @@ describe("SilentFlowClient unit tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: null
             })).to.be.rejectedWith(ClientAuthErrorMessage.NoAccountInSilentRequest.desc);
-            await expect(() => client.acquireCachedToken({
+            expect(() => client.acquireCachedToken({
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: null
             })).to.throw(ClientAuthErrorMessage.NoAccountInSilentRequest.desc);
@@ -103,7 +103,11 @@ describe("SilentFlowClient unit tests", () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config);
             await expect(client.acquireToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
-            await expect(client.acquireToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            await expect(client.acquireToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            await expect(client.refreshToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            await expect(client.refreshToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            expect(() => client.acquireCachedToken(null)).to.throw(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            expect(() => client.acquireCachedToken(undefined)).to.throw(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
         });
 
         it("Throws error if scopes are not included in request object", async () => {
@@ -317,6 +321,13 @@ describe("SilentFlowClient unit tests", () => {
         });
     
         it("acquireCachedToken returns cached token", () => {
+            config.serverTelemetryManager = new ServerTelemetryManager({
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                apiId: 862,
+                correlationId: "test-correlation-id"
+            }, null);
+            client = new SilentFlowClient(config);
+            const telemetryCacheHitSpy = sinon.stub(ServerTelemetryManager.prototype, "incrementCacheHits").returns(1);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
             const silentFlowRequest: SilentFlowRequest = {
@@ -327,6 +338,7 @@ describe("SilentFlowClient unit tests", () => {
             
             const authResult: AuthenticationResult = client.acquireCachedToken(silentFlowRequest);
             const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+            expect(telemetryCacheHitSpy.calledOnce).to.be.true;
             expect(authResult.uniqueId).to.deep.eq(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).to.deep.eq(ID_TOKEN_CLAIMS.tid);
             expect(authResult.scopes).to.deep.eq(expectedScopes);
