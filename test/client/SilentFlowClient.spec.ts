@@ -151,9 +151,9 @@ describe("SilentFlowClient unit tests", () => {
         sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
 
         const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
-        sinon.stub(SilentFlowClient.prototype, <any>"readIdTokenFromCache").returns(testIdToken);
-        sinon.stub(SilentFlowClient.prototype, <any>"readAccessTokenFromCache").returns(testAccessTokenEntity);
-        sinon.stub(SilentFlowClient.prototype, <any>"readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+        sinon.stub(CacheManager.prototype, "getIdTokenEntity").returns(testIdToken);
+        sinon.stub(CacheManager.prototype, "getAccessTokenEntity").returns(testAccessTokenEntity);
+        sinon.stub(CacheManager.prototype, "getRefreshTokenEntity").returns(testRefreshTokenEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(true);
 
         const config = await ClientTestUtils.createTestClientConfiguration();
@@ -240,9 +240,9 @@ describe("SilentFlowClient unit tests", () => {
         sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
         sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
 
-        sinon.stub(SilentFlowClient.prototype, <any>"readIdTokenFromCache").returns(testIdToken);
-        sinon.stub(SilentFlowClient.prototype, <any>"readAccessTokenFromCache").returns(testAccessTokenEntity);
-        sinon.stub(SilentFlowClient.prototype, <any>"readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+        sinon.stub(CacheManager.prototype, "getIdTokenEntity").returns(testIdToken);
+        sinon.stub(CacheManager.prototype, "getAccessTokenEntity").returns(testAccessTokenEntity);
+        sinon.stub(CacheManager.prototype, "getRefreshTokenEntity").returns(testRefreshTokenEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
         const config = await ClientTestUtils.createTestClientConfiguration();
