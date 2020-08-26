@@ -4,7 +4,7 @@
 */
 module.exports = {
     auth: {
-        clientId: "6c04f413-f6e7-4690-b372-dbdd083e7e5a",
-        authority: "https://login.microsoftonline.com/sgonz.onmicrosoft.com",
+        clientId: "89e61572-2f96-47ba-b571-9d8c8f96b69d",
+        authority: "https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660",
     }
 };
