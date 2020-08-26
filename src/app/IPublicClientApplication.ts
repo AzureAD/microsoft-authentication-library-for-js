@@ -2,6 +2,7 @@ import { AuthenticationResult, AuthorizationUrlRequest, AccountInfo, EndSessionR
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,5 +19,5 @@ export interface IPublicClientApplication {
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
-    ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult>;
+    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 }
