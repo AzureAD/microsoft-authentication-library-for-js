@@ -5,6 +5,7 @@
 import { BrokerMessage } from "./BrokerMessage";
 import { ClientAuthError } from "@azure/msal-common";
 import { BrokerMessageType } from "../utils/BrowserConstants";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class BrokerHandshakeResponse extends BrokerMessage {
     public version: string;
@@ -31,7 +32,7 @@ export class BrokerHandshakeResponse extends BrokerMessage {
             // TODO, verify version compatibility
             if (trustedBrokerDomains.indexOf(message.origin) < 0) {
                 // TODO make this a browser Error
-                throw new ClientAuthError("untrusted_broker", "The given broker origin is not trusted.");
+                throw BrowserAuthError.createUntrustedBrokerError();
             }
 
             return new BrokerHandshakeResponse(message.data.version, message.origin);

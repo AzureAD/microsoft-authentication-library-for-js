@@ -83,6 +83,14 @@ export const BrowserAuthErrorMessage = {
     brokerTimeoutError: {
         code: "broker_timeout",
         desc: "Message broker timed out."
+    },
+    invalidBrokerMessage: {
+        code: "invalid_broker_message",
+        desc: "messageType for broker message is invalid"
+    },
+    untrustedBrokerError: {
+        code: "untrusted_broker_error",
+        desc: "The given broker origin is not trusted."
     }
 };
 
@@ -245,5 +253,13 @@ export class BrowserAuthError extends AuthError {
 
     static createMessageBrokerTimeoutError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.brokerTimeoutError.code, BrowserAuthErrorMessage.brokerTimeoutError.desc);
+    }
+
+    static createInvalidBrokerMessageError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.invalidBrokerMessage.code, BrowserAuthErrorMessage.invalidBrokerMessage.desc);
+    }
+
+    static createUntrustedBrokerError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.untrustedBrokerError.code, BrowserAuthErrorMessage.untrustedBrokerError.desc);
     }
 }
