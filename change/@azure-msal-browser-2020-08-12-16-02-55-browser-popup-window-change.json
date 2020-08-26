@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Change msal-browser loginPopup and openPopup, add ability to configure popup delay (#2132)",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-12T23:02:55.249Z"
-}

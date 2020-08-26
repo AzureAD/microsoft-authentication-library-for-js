@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Fri, 07 Aug 2020 21:19:23 GMT and should not be manually modified.
+This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.1.0
+
+Tue, 25 Aug 2020 00:40:45 GMT
+
+### Minor changes
+
+- Update protectedResources with wildcard, remove unprotectedResources from msal-angular (#2029) (joarroyo@microsoft.com)
 
 ## 1.0.0
 
@@ -111,4 +119,3 @@ Initial upgrade to use `msal@1.2.0`.
 
 ## 0.1.0
 Preview Release
-

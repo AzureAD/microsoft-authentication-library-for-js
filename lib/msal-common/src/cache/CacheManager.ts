@@ -471,8 +471,13 @@ export abstract class CacheManager implements ICacheManager {
         if (entity.credentialType !== CredentialType.ACCESS_TOKEN || StringUtils.isEmpty(entity.target)) {
             return false;
         }
+
         const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target);
         const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target);
+
+        // ignore offline_access when comparing scopes
+        entityScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+        requestTargetScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }
 
