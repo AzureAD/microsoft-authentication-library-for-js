@@ -20,7 +20,7 @@ const DEFAULT_MESSAGE_TIMEOUT = 2000;
 /**
  * Embedded application in a broker scenario.
  */
-export class BrokerClient {
+export class EmbeddedClientApplication {
     private brokerOptions: BrokerOptions;
     private logger: Logger;
     private clientId: string;
@@ -28,6 +28,9 @@ export class BrokerClient {
     private brokerOrigin: string;
     private browserStorage: BrowserStorage;
 
+    private get trustedBrokersProvided(): boolean {
+        return this.brokerOptions.trustedBrokerDomains && this.brokerOptions.trustedBrokerDomains.length >= 1;
+    };
     public brokeringEnabled: boolean;
 
     constructor(brokerOptions: BrokerOptions, logger: Logger, clientId: string, version: string, browserStorage: BrowserStorage) {
@@ -36,24 +39,18 @@ export class BrokerClient {
         this.clientId = clientId;
         this.version = version;
         this.browserStorage = browserStorage;
-
-        if (!this.brokerOptions.trustedBrokerDomains || this.brokerOptions.trustedBrokerDomains.length < 1) {
-            this.logger.info("Application was identified as an embedded app in a broker scenario, but no trusted broker domains were provided.");
-            this.brokeringEnabled = false;
-        } else {
-            this.brokeringEnabled = true;
-        }
+        this.brokeringEnabled = false;
     }
 
     async initiateHandshake(): Promise<void> {
-        if (!this.brokeringEnabled) {
-            this.logger.verbose("Brokering is not enabled, handshake was not performed.");
-            return;
+        if (!this.trustedBrokersProvided) {
+            throw BrowserAuthError.createNoTrustedBrokersProvidedError();
         }
 
         try {
             const response = await this.sendHandshakeRequest();
             this.brokerOrigin = response.brokerOrigin;
+            this.brokeringEnabled = true;
         } catch (e) {
             this.logger.error(e);
             this.brokeringEnabled = false;
@@ -61,34 +58,45 @@ export class BrokerClient {
         }
     }
 
+    private async preflightBrokerRequest(): Promise<void> {
+        if (!this.brokeringEnabled) {
+            this.logger.info("Attempting handshake...");
+            try {
+                await this.initiateHandshake();
+            } catch (e) {
+                this.logger.error("Handshake rejected");
+                throw BrowserAuthError.createBrokeringDisabledError(e);
+            }
+        }
+    }
+
     async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult> {
-        return new Promise<AuthenticationResult> ((resolve: any, reject: any) => {
-            this.sendRequest(request, InteractionType.POPUP, 6000).then((brokerAuthResultMessage: MessageEvent) => {
-                const brokerAuthResult = BrokerAuthResult.validate(brokerAuthResultMessage);
-                if (brokerAuthResult.error) {
-                    reject(brokerAuthResult.error);
-                }
-                const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-                const idTokenEntity: IdTokenEntity = new IdTokenEntity();
-                const accountEntity: AccountEntity = new AccountEntity();
-                const cacheRecord: CacheRecord = {
-                    accessToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.accessToken, accessTokenEntity) as AccessTokenEntity,
-                    idToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.idToken, idTokenEntity) as IdTokenEntity,
-                    account: CacheManager.toObject(brokerAuthResult.result.tokensToCache.account, accountEntity) as AccountEntity,
-                    refreshToken: null
-                };
-                this.browserStorage.saveCacheRecord(cacheRecord);
-                delete brokerAuthResult.result.tokensToCache;
-                resolve({
-                    ...brokerAuthResult.result
-                });
-            }).catch((err: ClientAuthError) => {
-                reject(err);
-            });
-        });
+        await this.preflightBrokerRequest();
+
+        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.POPUP, 60000);
+        const brokerAuthResult = BrokerAuthResult.validate(brokerAuthResultMessage);
+        if (brokerAuthResult.error) {
+            throw brokerAuthResult.error;
+        }
+        const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
+        const idTokenEntity: IdTokenEntity = new IdTokenEntity();
+        const accountEntity: AccountEntity = new AccountEntity();
+        const cacheRecord: CacheRecord = {
+            accessToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.accessToken, accessTokenEntity) as AccessTokenEntity,
+            idToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.idToken, idTokenEntity) as IdTokenEntity,
+            account: CacheManager.toObject(brokerAuthResult.result.tokensToCache.account, accountEntity) as AccountEntity,
+            refreshToken: null
+        };
+        this.browserStorage.saveCacheRecord(cacheRecord);
+        delete brokerAuthResult.result.tokensToCache;
+        return {
+            ...brokerAuthResult.result
+        };
     }
 
     async sendRedirectRequest(request: RedirectRequest): Promise<void> {
+        await this.preflightBrokerRequest();
+
         const message = await this.sendRequest(request, InteractionType.REDIRECT, 2000);
         BrokerRedirectResponse.validate(message);
     }

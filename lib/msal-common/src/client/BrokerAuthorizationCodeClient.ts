@@ -22,7 +22,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireTokenByBroker(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<BrokerAuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<BrokerAuthenticationResult> {
         this.logger.info("in acquireToken call");
         // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {

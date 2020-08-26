@@ -15,12 +15,10 @@ export abstract class InteractionHandler {
     protected authModule: AuthorizationCodeClient;
     protected browserStorage: BrowserStorage;
     protected authCodeRequest: AuthorizationCodeRequest;
-    protected isBrokeredRequest: boolean;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, broker: boolean) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
-        this.isBrokeredRequest = broker;
     }
 
     /**
@@ -50,16 +48,9 @@ export abstract class InteractionHandler {
         // Assign code to request
         this.authCodeRequest.code = authCode;
 
-        if (this.isBrokeredRequest) {
-            const brokerClient = this.authModule as BrokerAuthorizationCodeClient;
-            const brokeredTokenResponse: BrokerAuthenticationResult = await brokerClient.acquireTokenByBroker(this.authCodeRequest, cachedNonce, requestState);
-            this.browserStorage.cleanRequest();
-            return brokeredTokenResponse;
-        } else {
-            // Acquire token with retrieved code.
-            const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
-            this.browserStorage.cleanRequest();
-            return tokenResponse;
-        }        
+        // Acquire token with retrieved code.
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
+        this.browserStorage.cleanRequest();
+        return tokenResponse;
     }
 }

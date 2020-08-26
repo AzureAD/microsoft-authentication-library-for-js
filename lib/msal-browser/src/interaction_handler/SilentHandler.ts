@@ -11,8 +11,8 @@ import { BrowserStorage } from "../cache/BrowserStorage";
 export class SilentHandler extends InteractionHandler {
 
     private loadFrameTimeout: number;
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, broker: boolean, configuredLoadFrameTimeout: number) {
-        super(authCodeModule, storageImpl, broker);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, configuredLoadFrameTimeout: number) {
+        super(authCodeModule, storageImpl);
         this.loadFrameTimeout = configuredLoadFrameTimeout;
     }
 

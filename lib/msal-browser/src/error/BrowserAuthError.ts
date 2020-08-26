@@ -91,6 +91,14 @@ export const BrowserAuthErrorMessage = {
     untrustedBrokerError: {
         code: "untrusted_broker_error",
         desc: "The given broker origin is not trusted."
+    },
+    noTrustedBrokersProvided: {
+        code: "no_trusted_brokers_provided",
+        desc: "No trusted brokers provided."
+    },
+    brokeringDisabledError: {
+        code: "brokering_disabled",
+        desc: "Brokering is not enabled for the client application. Please check logs to see if handshake was performed."
     }
 };
 
@@ -261,5 +269,13 @@ export class BrowserAuthError extends AuthError {
 
     static createUntrustedBrokerError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.untrustedBrokerError.code, BrowserAuthErrorMessage.untrustedBrokerError.desc);
+    }
+
+    static createNoTrustedBrokersProvidedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.noTrustedBrokersProvided.code, BrowserAuthErrorMessage.noTrustedBrokersProvided.desc);
+    }
+
+    static createBrokeringDisabledError(innerError: string) {
+        return new BrowserAuthError(BrowserAuthErrorMessage.brokeringDisabledError.code, `${BrowserAuthErrorMessage.brokeringDisabledError.desc} Inner Error: ${innerError}`);
     }
 }

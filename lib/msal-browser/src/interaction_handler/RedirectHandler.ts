@@ -66,19 +66,8 @@ export class RedirectHandler extends InteractionHandler {
         this.authCodeRequest.code = authCode;
 
         // Acquire token with retrieved code.
-        if (this.isBrokeredRequest) {
-            const brokerClient = this.authModule as BrokerAuthorizationCodeClient;
-            const brokeredTokenResponse: BrokerAuthenticationResult = await brokerClient.acquireTokenByBroker(this.authCodeRequest, cachedNonce, requestState);
-            this.browserStorage.saveCacheRecord(brokeredTokenResponse.tokensToCache);
-            this.browserStorage.cleanRequest();
-            return {
-                ...brokeredTokenResponse
-            };
-        } else {
-            // Acquire token with retrieved code.
-            const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
-            this.browserStorage.cleanRequest();
-            return tokenResponse;
-        }   
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
+        this.browserStorage.cleanRequest();
+        return tokenResponse;
     }
 }

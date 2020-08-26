@@ -16,8 +16,8 @@ export class PopupHandler extends InteractionHandler {
 
     private currentWindow: Window;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, broker: boolean) {
-        super(authCodeModule, storageImpl, broker);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+        super(authCodeModule, storageImpl);
 
         // Properly sets this reference for the unload event.
         this.unloadWindow = this.unloadWindow.bind(this);
