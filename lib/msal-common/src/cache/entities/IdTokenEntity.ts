@@ -52,7 +52,7 @@ export class IdTokenEntity extends CredentialEntity {
         return idTokenEntity;
     }
 
-    /**
+    /*
      * Validates an entity: checks for all expected params
      * @param entity
      */
