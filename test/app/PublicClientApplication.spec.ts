@@ -1036,8 +1036,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
                 
-                await pca.acquireTokenPopup(request);
-                expect(popupSpy.calledWith()).to.be.true;
+                try {
+                    await pca.acquireTokenPopup(request);
+                } catch(e) {}
+                expect(popupSpy.getCall(0).args).to.be.length(0);
             });
 
             it("opens popups asynchronously if configured", async () => {
@@ -1064,8 +1066,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
                 
-                await pca.acquireTokenPopup(request);
-                expect(popupSpy.calledWith()).to.be.false;
+                try {
+                    await pca.acquireTokenPopup(request);
+                } catch(e) {}
+                expect(popupSpy.calledOnce).to.be.true;
+                expect(popupSpy.getCall(0).args).to.be.length(1);
+                expect(popupSpy.getCall(0).args[0].startsWith(TEST_URIS.TEST_AUTH_ENDPT)).to.be.true;
+                expect(popupSpy.getCall(0).args[0]).to.include(`client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+                expect(popupSpy.getCall(0).args[0]).to.include(`redirect_uri=${encodeURIComponent(request.redirectUri)}`);
+                expect(popupSpy.getCall(0).args[0]).to.include(`login_hint=${encodeURIComponent(request.loginHint)}`);
             });
 
             it("resolves the response successfully", async () => {
