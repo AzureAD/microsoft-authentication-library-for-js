@@ -126,7 +126,7 @@ describe("TrustedAuthority.ts Class", function () {
             });
         });
 
-        it("createcloudDiscoveryMetadataFromKnownAuthorities creates metadata object for each host passed in", () => {
+        it("createCloudDiscoveryMetadataFromKnownAuthorities creates metadata object for each host passed in", () => {
             const testAuthorities = ["contoso.b2clogin.com"]
             TrustedAuthority.createCloudDiscoveryMetadataFromKnownAuthorities(testAuthorities);
 
@@ -138,6 +138,27 @@ describe("TrustedAuthority.ts Class", function () {
             });
             expect(savedcloudDiscoveryMetadata.preferred_cache).to.eq(testAuthorities[0]);
             expect(savedcloudDiscoveryMetadata.preferred_network).to.eq(testAuthorities[0]);
+        });
+
+        it("createCloudDiscoveryMetadataFromKnownAuthorities creates metadata object when passed host includes more than just domain", () => {
+            const testDomains = ["contoso1.com", "contoso2.com", "contoso3.com", "contoso4.com", "contoso5.com"]
+            const testAuthorities = ["https://contoso1.com", "contoso2.com/additionalPage", "contoso3.com#customHash", "contoso4.com?customQueryParam", "http://contoso5.com/additionalPage/anotherPage/"];
+            TrustedAuthority.createCloudDiscoveryMetadataFromKnownAuthorities(testAuthorities);
+
+            testDomains.forEach((authority) => {
+                expect(TrustedAuthority.IsInTrustedHostList(authority)).to.be.true;
+                const savedcloudDiscoveryMetadata = TrustedAuthority.getCloudDiscoveryMetadata(authority);
+                savedcloudDiscoveryMetadata.aliases.forEach((alias) => {
+                    expect(alias).to.eq(authority);
+                });
+                expect(savedcloudDiscoveryMetadata.preferred_cache).to.eq(authority);
+                expect(savedcloudDiscoveryMetadata.preferred_network).to.eq(authority);
+            });
+
+            testAuthorities.forEach((authority) => {
+                expect(TrustedAuthority.IsInTrustedHostList(authority)).to.be.false;
+                expect(TrustedAuthority.getCloudDiscoveryMetadata(authority)).to.be.null;
+            });
         });
 
         it("getTrustedHostList", () => {

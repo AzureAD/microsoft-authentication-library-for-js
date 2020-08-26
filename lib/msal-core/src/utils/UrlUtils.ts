@@ -9,7 +9,6 @@ import { ServerRequestParameters } from "../ServerRequestParameters";
 import { ScopeSet } from "../ScopeSet";
 import { StringUtils } from "./StringUtils";
 import { CryptoUtils } from "./CryptoUtils";
-import { ClientConfigurationError } from "./../error/ClientConfigurationError";
 
 /**
  * @hidden
@@ -39,15 +38,10 @@ export class UrlUtils {
      * @param scopes
      */
     static createNavigationUrlString(serverRequestParams: ServerRequestParameters): Array<string> {
-        const scopes = serverRequestParams.scopes;
+        const scopes = ScopeSet.appendDefaultScopes(serverRequestParams.scopes);
 
-        if (scopes.indexOf(serverRequestParams.clientId) === -1) {
-            scopes.push(serverRequestParams.clientId);
-        }
         const str: Array<string> = [];
         str.push("response_type=" + serverRequestParams.responseType);
-
-        this.translateclientIdUsedInScope(scopes, serverRequestParams.clientId);
         str.push("scope=" + encodeURIComponent(ScopeSet.parseScope(scopes)));
         str.push("client_id=" + encodeURIComponent(serverRequestParams.clientId));
         str.push("redirect_uri=" + encodeURIComponent(serverRequestParams.redirectUri));
@@ -76,23 +70,6 @@ export class UrlUtils {
 
         str.push("client-request-id=" + encodeURIComponent(serverRequestParams.correlationId));
         return str;
-    }
-
-    /**
-     * append the required scopes: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
-     * @param scopes
-     */
-    private static translateclientIdUsedInScope(scopes: Array<string>, clientId: string): void {
-        const clientIdIndex: number = scopes.indexOf(clientId);
-        if (clientIdIndex >= 0) {
-            scopes.splice(clientIdIndex, 1);
-            if (scopes.indexOf("openid") === -1) {
-                scopes.push("openid");
-            }
-            if (scopes.indexOf("profile") === -1) {
-                scopes.push("profile");
-            }
-        }
     }
 
     /**
@@ -128,18 +105,18 @@ export class UrlUtils {
         return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
     }
     
-     /**
+    /**
      * Checks if an authority is common (ex. https://a:b/common/)
      * @param url The url
      * @returns true if authority is common and false otherwise 
      */
-     static isCommonAuthority(url: string): boolean {
+    static isCommonAuthority(url: string): boolean {
         const authority =  this.CanonicalizeUri(url);
         const pathArray = this.GetUrlComponents(authority).PathSegments;
         return (pathArray.length !== 0 && pathArray[0] === Constants.common);
-     }
+    }
 
-      /**
+    /**
      * Checks if an authority is for organizations (ex. https://a:b/organizations/)
      * @param url The url
      * @returns true if authority is for  and false otherwise 
@@ -148,8 +125,7 @@ export class UrlUtils {
         const authority =  this.CanonicalizeUri(url);
         const pathArray = this.GetUrlComponents(authority).PathSegments;
         return (pathArray.length !== 0 && pathArray[0] === SSOTypes.ORGANIZATIONS);
-     }
-
+    }
 
     /**
      * Parses out the components from a url string.
