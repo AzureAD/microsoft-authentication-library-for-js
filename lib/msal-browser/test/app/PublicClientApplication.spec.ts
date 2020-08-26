@@ -18,6 +18,7 @@ import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { SsoSilentRequest } from "../../src/request/SsoSilentRequest";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -1228,7 +1229,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const tokenResp = await pca.ssoSilent({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 loginHint: "testLoginHint"
             });
             expect(loadFrameSyncSpy.calledOnce).to.be.true;

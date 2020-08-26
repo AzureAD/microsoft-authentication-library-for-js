@@ -47,6 +47,7 @@ import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
 
 /**
@@ -366,11 +367,11 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
-     * @param {@link AuthorizationUrlRequest}
+     * @param {@link SsoSilentRequest}
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -699,7 +700,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Generates a request that will contain the openid and profile scopes.
      * @param request 
      */
-    private setDefaultScopes(request: BaseAuthRequest): BaseAuthRequest {
+    private setDefaultScopes(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest): AuthorizationUrlRequest {
         return {
             ...request,
             scopes: [...((request && request.scopes) || []), ...DEFAULT_REQUEST.scopes]
@@ -710,9 +711,10 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    private initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+    private initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         let validatedRequest: AuthorizationUrlRequest = {
-            ...request
+            ...request,
+            ...this.setDefaultScopes(request)
         };
 
         validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
@@ -754,8 +756,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
         return {
-            ...validatedRequest,
-            ...this.setDefaultScopes(validatedRequest)
+            ...validatedRequest
         };
     }
 
