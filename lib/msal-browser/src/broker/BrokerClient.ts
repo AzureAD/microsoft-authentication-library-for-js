@@ -7,6 +7,7 @@ import { BrokerOptions } from "../config/Configuration";
 import { Logger, AuthenticationResult, ClientAuthError } from "@azure/msal-common";
 import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 /**
  * Embedded application in a broker scenario.
@@ -73,6 +74,7 @@ export class BrokerClient {
             });
 
             const handshakeRequest = new BrokerHandshakeRequest(this.clientId, this.version);
+            // Message top frame window
             window.top.postMessage(handshakeRequest, "*");
             this.logger.verbose(`Sending handshake request: ${handshakeRequest}`);
         });
@@ -81,8 +83,7 @@ export class BrokerClient {
     private async messageBroker<T>(payload: any, origin?: string): Promise<T> {
         return new Promise<T>((resolve: any, reject: any) => {
             const timeoutId = setTimeout(() => {
-                // TODO: Make this a BrowserAuthError
-                reject(new ClientAuthError("message_broker_timeout", "Message broker timed out"));                
+                reject(BrowserAuthError.createMessageBrokerTimeoutError());
             }, 2000);
 
             const messageChannel = new MessageChannel();
@@ -91,6 +92,7 @@ export class BrokerClient {
                 clearTimeout(timeoutId);
                 resolve(message);
             });
+            // Message top frame window
             window.top.postMessage(payload, origin, [messageChannel.port2]);
         });
     }

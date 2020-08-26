@@ -4,7 +4,6 @@
  */
 
 import { BrokerMessage } from "./BrokerMessage";
-import { CacheManager } from "@azure/msal-common";
 
 export class BrokerHandshakeRequest extends BrokerMessage {
     public embeddedClientId: string;
