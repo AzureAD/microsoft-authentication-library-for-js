@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "update cdn hash for v2.1.0",
+  "packageName": "@azure/msal-browser",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-08-27T20:05:15.652Z"
+}
