@@ -1,6 +1,5 @@
 import { PublicClientApplication, AuthorizationUrlRequest, SilentRequest, AuthenticationResult, Configuration, LogLevel, AccountInfo, InteractionRequiredAuthError, EndSessionRequest, RedirectRequest, PopupRequest } from "@azure/msal-browser";
 import { UIManager } from "./UIManager";
-import { SsoSilentRequest } from "@azure/msal-browser/dist/src/request/SsoSilentRequest";
 
 /**
  * Configuration class for @azure/msal-browser: 
@@ -54,7 +53,6 @@ export class AuthModule {
     private mailRequest: PopupRequest;
     private silentProfileRequest: SilentRequest; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_silentrequest_.html
     private silentMailRequest: SilentRequest;
-    private silentLoginRequest: SsoSilentRequest;
 
     constructor() {
         this.myMSALObj = new PublicClientApplication(MSAL_CONFIG);
@@ -105,10 +103,6 @@ export class AuthModule {
             account: null,
             forceRefresh: false
         };
-
-        this.silentLoginRequest = {
-            loginHint: "IDLAB@msidlab0.ccsctp.net"
-        }
     }
 
     /**
@@ -152,18 +146,12 @@ export class AuthModule {
     handleResponse(response: AuthenticationResult) {
         if (response !== null) {
             this.account = response.account;
-            UIManager.showWelcomeMessage(this.account);
         } else {
-            this.myMSALObj.ssoSilent(this.silentLoginRequest).then(() => {
-                console.log("SSO SILENT SUCCEEDED");
-                this.account = this.getAccount();
-                UIManager.showWelcomeMessage(this.account);
-            }).catch(error => {
-                console.error("Silent Error: " + error);
-                if (error instanceof InteractionRequiredAuthError) {
-                    this.login("loginPopup");
-                }
-            })
+            this.account = this.getAccount();
+        }
+
+        if (this.account) {
+            UIManager.showWelcomeMessage(this.account);
         }
     }
 
