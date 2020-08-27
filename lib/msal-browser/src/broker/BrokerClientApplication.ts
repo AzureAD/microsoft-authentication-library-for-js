@@ -4,7 +4,6 @@
  */
 import { version } from "../../package.json";
 import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient } from "@azure/msal-common";
-import { PublicClientApplication } from "../app/PublicClientApplication";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { Configuration } from "../config/Configuration";
@@ -14,11 +13,13 @@ import { BrokerAuthRequest } from "./BrokerAuthRequest";
 import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { BrokerAuthResult } from "./BrokerAuthResult";
+import { ClientApplication } from "../app/ClientApplication";
+import { PopupRequest } from "../request/PopupRequest";
 
 /**
  * Broker Application class to manage brokered requests.
  */
-export class BrokerClientApplication extends PublicClientApplication {
+export class BrokerClientApplication extends ClientApplication {
 
     constructor(configuration: Configuration) {
         super(configuration);
@@ -30,24 +31,24 @@ export class BrokerClientApplication extends PublicClientApplication {
      * 
      */
     private listenForBrokerMessage(): void {
-        window.addEventListener("message", this.handleBrokerMessage);
+        window.addEventListener("message", this.handleBrokerMessage.bind(this));
     }
 
     /**
      * 
      * @param message 
      */
-    private handleBrokerMessage(message: MessageEvent): void {
+    private async handleBrokerMessage(message: MessageEvent): Promise<void> {
         // Check that message is a BrokerHandshakeRequest
         const clientMessage = BrokerMessage.validateMessage(message);
         if (clientMessage) {
             switch (clientMessage.data.messageType) {
                 case BrokerMessageType.HANDSHAKE_REQUEST:
                     this.logger.verbose("Broker handshake request received");
-                    return this.handleBrokerHandshake(clientMessage);
+                    return await this.handleBrokerHandshake(clientMessage);
                 case BrokerMessageType.AUTH_REQUEST:
                     this.logger.verbose("Broker auth request received");
-                    return this.handleBrokerAuthRequest(clientMessage);
+                    return await this.handleBrokerAuthRequest(clientMessage);
                 default:
                     return;
             }
@@ -59,7 +60,7 @@ export class BrokerClientApplication extends PublicClientApplication {
      * Handle a broker handshake request from a child.
      * @param clientMessage 
      */
-    private handleBrokerHandshake(clientMessage: MessageEvent): void {
+    private async handleBrokerHandshake(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandshakeRequest.validate(clientMessage);
         this.logger.verbose(`Broker handshake validated: ${validMessage}`);
         const brokerHandshakeResponse = new BrokerHandshakeResponse(version);
@@ -73,27 +74,41 @@ export class BrokerClientApplication extends PublicClientApplication {
      * Handle a brokered auth request from the child.
      * @param clientMessage 
      */
-    private handleBrokerAuthRequest(clientMessage: MessageEvent): void {
+    private async handleBrokerAuthRequest(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
-        this.logger.verbose(`Broker auth request validated: ${validMessage}`);
-        if (validMessage.interactionType === InteractionType.REDIRECT) {
-            const brokerRedirectResp = new BrokerRedirectResponse();
-            // @ts-ignore
-            clientMessage.ports[0].postMessage(brokerRedirectResp);
-            this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
+        if (validMessage) {
+            this.logger.verbose(`Broker auth request validated: ${validMessage}`);
+            switch (validMessage.interactionType) {
+                case InteractionType.REDIRECT:
+                    return this.brokeredRedirectRequest(validMessage, clientMessage.ports[0]);
+                case InteractionType.POPUP:
+                    return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
+                default:
+                    return;
+            }
+        }
+    }
 
-            // Call loginRedirect
-            this.acquireTokenRedirect(validMessage.request as RedirectRequest);
-        } else if (validMessage.interactionType === InteractionType.POPUP) {
-            this.loginPopup().then((response: BrokerAuthenticationResult) => {
-                const brokerAuthResponse = new BrokerAuthResult(InteractionType.POPUP, response);
-                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
-                clientMessage.ports[0].postMessage(brokerAuthResponse);
-            }).catch((err: Error) => {
-                const brokerAuthResponse = new BrokerAuthResult(InteractionType.POPUP, null, err);
-                this.logger.info(`Found auth error: ${err}`);
-                clientMessage.ports[0].postMessage(brokerAuthResponse);
-            });
+    private async brokeredRedirectRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
+        const brokerRedirectResp = new BrokerRedirectResponse();
+        // @ts-ignore
+        clientPort.postMessage(brokerRedirectResp);
+        this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
+
+        // Call loginRedirect
+        this.acquireTokenRedirect(validMessage.request as RedirectRequest);
+    }
+
+    private async brokeredPopupRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
+        try {
+            const response: BrokerAuthenticationResult = (await this.acquireTokenPopup(validMessage.request as PopupRequest)) as BrokerAuthenticationResult;
+            const brokerAuthResponse: BrokerAuthResult = new BrokerAuthResult(InteractionType.POPUP, response);
+            this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+            clientPort.postMessage(brokerAuthResponse);
+        } catch (err) {
+            const brokerAuthResponse = new BrokerAuthResult(InteractionType.POPUP, null, err);
+            this.logger.info(`Found auth error: ${err}`);
+            clientPort.postMessage(brokerAuthResponse);
         }
     }
 
