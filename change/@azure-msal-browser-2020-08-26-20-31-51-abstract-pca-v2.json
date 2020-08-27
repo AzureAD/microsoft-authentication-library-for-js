@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Creating ClientApplication.ts subclass",
+  "comment": "Creating ClientApplication.ts subclass (#2199)",
   "packageName": "@azure/msal-browser",
   "email": "prkanher@microsoft.com",
   "dependentChangeType": "patch",
