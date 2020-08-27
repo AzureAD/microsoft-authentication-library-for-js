@@ -16,8 +16,8 @@ const pca = new msal.PublicClientApplication(msalConfig);
 
 const usernamePasswordRequest = {
     scopes: ["user.read"],
-    username: "user@sgonz.onmicrosoft.com",
-    password: "Authclient2020!",
+    username: "", // add you username here
+    password: "" // add your password here
 };
 
 pca.acquireTokenByUsernamePassword(usernamePasswordRequest)
