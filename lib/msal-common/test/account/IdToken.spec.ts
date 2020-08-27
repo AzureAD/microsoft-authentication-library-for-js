@@ -1,10 +1,10 @@
 import { expect } from "chai";
-import { IdToken } from "../../src/account/IdToken";
+import { AuthToken } from "../../src/account/AuthToken";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../utils/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import sinon from "sinon";
 import { ClientAuthErrorMessage, ClientAuthError, StringUtils } from "../../src";
-import { DecodedJwt } from "../../src/account/DecodedJwt";
+import { DecodedAuthToken } from "../../src/account/DecodedAuthToken";
 
 // Set up stubs
 const idTokenClaims = {
@@ -61,6 +61,9 @@ describe("IdToken.ts Class Unit Tests", () => {
                 },
                 async getPublicKeyThumbprint(): Promise<string> {
                     return TEST_POP_VALUES.KID;
+                },
+                async signJwt(): Promise<string> {
+                    return "";
                 }
             };
         });
@@ -72,18 +75,18 @@ describe("IdToken.ts Class Unit Tests", () => {
     describe("Constructor", () => {
 
         it("Throws error if rawIdToken is null or empty", () => {
-            expect(() => new IdToken("", cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-            expect(() => new IdToken("", cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => new AuthToken("", cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() => new AuthToken("", cryptoInterface)).to.throw(ClientAuthError);
 
-            expect(() => new IdToken(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-            expect(() => new IdToken(null, cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => new AuthToken(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() => new AuthToken(null, cryptoInterface)).to.throw(ClientAuthError);
         });
 
         it("Successfully sets the rawidToken and claims fields", () => {
-            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 
-            const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
-            expect(idToken.rawIdToken).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
+            const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+            expect(idToken.rawToken).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
             expect(idToken.claims).to.be.deep.eq(idTokenClaims);
         });
     });
@@ -91,32 +94,32 @@ describe("IdToken.ts Class Unit Tests", () => {
     describe("extractIdToken()", () => {
 
         it("Throws error if idToken is null or empty", () => {
-            expect(() => IdToken.extractIdToken("", cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-            expect(() => IdToken.extractIdToken("", cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => AuthToken.extractTokenClaims("", cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() => AuthToken.extractTokenClaims("", cryptoInterface)).to.throw(ClientAuthError);
 
-            expect(() => IdToken.extractIdToken(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-            expect(() => IdToken.extractIdToken(null, cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => AuthToken.extractTokenClaims(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() => AuthToken.extractTokenClaims(null, cryptoInterface)).to.throw(ClientAuthError);
         });
 
         it("returns null if decodeJwt returns null", () => {
-            sinon.stub(StringUtils, "decodeJwt").returns(null);
-            expect(IdToken.extractIdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.be.null;
+            sinon.stub(StringUtils, "decodeAuthToken").returns(null);
+            expect(AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.be.null;
         });
 
         it("Throws error if payload cannot be parsed", () => {
-            const decodedJwt: DecodedJwt = {
+            const decodedJwt: DecodedAuthToken = {
                 header: "jwt header",
                 JWSPayload: "jws payload",
                 JWSSig: "signature"
             };
-            sinon.stub(StringUtils, "decodeJwt").returns(decodedJwt);
+            sinon.stub(StringUtils, "decodeAuthToken").returns(decodedJwt);
 
-            expect(() => IdToken.extractIdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.throw(ClientAuthErrorMessage.idTokenParsingError.desc);
-            expect(() => IdToken.extractIdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.throw(ClientAuthErrorMessage.tokenParsingError.desc);
+            expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.throw(ClientAuthError);
         });
 
         it("Successfully extracts the idTokenClaims from the decodedJwt", () => {
-            const decodedJwt: DecodedJwt = {
+            const decodedJwt: DecodedAuthToken = {
                 header: JSON.stringify({
                     "typ": "JWT",
                     "alg": "RS256",
@@ -125,8 +128,8 @@ describe("IdToken.ts Class Unit Tests", () => {
                 JWSPayload: testTokenPayload,
                 JWSSig: "signature"
             };
-            sinon.stub(StringUtils, "decodeJwt").returns(decodedJwt);
-            expect(IdToken.extractIdToken(decodedJwt.JWSPayload, cryptoInterface)).to.be.deep.eq(idTokenClaims);
+            sinon.stub(StringUtils, "decodeAuthToken").returns(decodedJwt);
+            expect(AuthToken.extractTokenClaims(decodedJwt.JWSPayload, cryptoInterface)).to.be.deep.eq(idTokenClaims);
         });
     });
 });

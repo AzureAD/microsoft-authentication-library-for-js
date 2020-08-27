@@ -49,6 +49,9 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             },
             async getPublicKeyThumbprint(): Promise<string> {
                 return TEST_POP_VALUES.KID;
+            },
+            async signJwt(): Promise<string> {
+                return "";
             }
         };
     });

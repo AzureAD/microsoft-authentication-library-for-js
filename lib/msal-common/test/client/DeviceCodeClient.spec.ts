@@ -6,8 +6,8 @@ import {
     Constants,
     DeviceCodeClient,
     DeviceCodeRequest,
-    IdToken,
     ClientConfiguration,
+    AuthToken,
 } from "../../src";
 import {
     AUTHENTICATION_RESULT, AUTHORIZATION_PENDING_RESPONSE,
@@ -77,7 +77,7 @@ describe("DeviceCodeClient unit tests", async () => {
             tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
             nonce: "123523",
         };
-        sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
     });
 
     afterEach(() => {
