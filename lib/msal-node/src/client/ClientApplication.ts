@@ -19,6 +19,8 @@ import {
     BaseAuthRequest,
     SilentFlowRequest,
     SilentFlowClient,
+    UsernamePasswordRequest,
+    UsernamePasswordClient,
     Logger
 } from '@azure/msal-common';
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
@@ -132,6 +134,25 @@ export abstract class ClientApplication {
             silentFlowClientConfig
         );
         return silentFlowClient.acquireToken(this.initializeRequestScopes(request) as SilentFlowRequest);
+    }
+
+    /**
+     * Acquires tokens with password grant by exchanging client applications username and password for credentials
+     *
+     * This API is supported only for testing;
+     * The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely.
+     * This flow is added *only* for internal testing.
+     * @param request
+     */
+    async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult> {
+        const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
+        const usernamePasswordClient = new UsernamePasswordClient(
+            usernamePasswordClientConfig
+        );
+
+        return usernamePasswordClient.acquireToken(this.initializeRequestScopes(request) as UsernamePasswordRequest);
     }
 
     /**

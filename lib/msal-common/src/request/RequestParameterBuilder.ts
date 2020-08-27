@@ -3,13 +3,14 @@
 * Licensed under the MIT License.
 */
 
-import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, ClaimsRequestKeys } from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, ClaimsRequestKeys, PasswordGrantConstants } from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "./RequestValidator";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
+import { use } from 'chai';
 
 export class RequestParameterBuilder {
 
@@ -82,7 +83,7 @@ export class RequestParameterBuilder {
 
     /**
      * add sid
-     * @param sid 
+     * @param sid
      */
     addSid(sid: string): void {
         this.parameters.set(SSOTypes.SID, encodeURIComponent(sid));
@@ -274,6 +275,22 @@ export class RequestParameterBuilder {
         }
 
         return JSON.stringify(mergedClaims);
+    }
+
+    /**
+     * adds `username` for Password Grant flow
+     * @param username
+     */
+    addUsername(username: string) {
+        this.parameters.set(PasswordGrantConstants.username, username);
+    }
+
+    /**
+     * adds `password` for Password Grant flow
+     * @param password
+     */
+    addPassword(password: string) {
+        this.parameters.set(PasswordGrantConstants.password, password);
     }
 
     /**
