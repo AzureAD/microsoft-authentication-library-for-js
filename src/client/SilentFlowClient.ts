@@ -22,6 +22,7 @@ import { AccountEntity } from "../cache/entities/AccountEntity";
 import { CredentialEntity } from "../cache/entities/CredentialEntity";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
+import { CacheRecord } from "../cache/entities/CacheRecord";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -39,14 +40,14 @@ export class SilentFlowClient extends BaseClient {
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
         }
-        
+
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
-        } 
+        }
 
         const requestScopes = new ScopeSet(request.scopes || []);
-    
+
         // Get account object for this request.
         const accountKey: string = AccountEntity.generateAccountCacheKey(request.account);
         const cachedAccount = this.cacheManager.getAccount(accountKey);
@@ -54,9 +55,12 @@ export class SilentFlowClient extends BaseClient {
         const homeAccountId = cachedAccount.homeAccountId;
         const environment = cachedAccount.environment;
 
-        // Get current cached tokens
+        // fetch cached access token
         const cachedAccessToken = this.readAccessTokenFromCache(homeAccountId, environment, requestScopes, cachedAccount.realm);
-        const cachedRefreshToken = this.readRefreshTokenFromCache(homeAccountId, environment);
+
+        // fetch cached refresh token
+        const familyId = this.cacheManager.getApplicationFamilyId(this.config.authOptions.clientId, environment);
+        const cachedRefreshToken = this.readRefreshTokenFromCache(homeAccountId, environment, familyId);
 
         // Check if refresh is forced, claims are being requested or if tokens are expired. If neither are true, return a token response with the found token entry.
         if (this.isRefreshRequired(request, cachedAccessToken)) {
@@ -81,12 +85,14 @@ export class SilentFlowClient extends BaseClient {
         const cachedIdToken = this.readIdTokenFromCache(homeAccountId, environment, cachedAccount.realm);
         const idTokenObj = new IdToken(cachedIdToken.secret, this.config.cryptoInterface);
 
-        return ResponseHandler.generateAuthenticationResult({
-            account: cachedAccount,
-            accessToken: cachedAccessToken,
-            idToken: cachedIdToken,
-            refreshToken: cachedRefreshToken
-        }, idTokenObj, true);
+        const cacheRecord: CacheRecord = new CacheRecord(
+            cachedAccount,
+            cachedIdToken,
+            cachedAccessToken,
+            cachedRefreshToken
+        );
+
+        return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, true);
     }
 
     private isRefreshRequired(request: SilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
@@ -144,14 +150,15 @@ export class SilentFlowClient extends BaseClient {
      * fetches refreshToken from cache if present
      * @param request
      */
-    private readRefreshTokenFromCache(homeAccountId: string, environment: string): RefreshTokenEntity {
+    private readRefreshTokenFromCache(homeAccountId: string, environment: string, familyId?: string): RefreshTokenEntity {
+        let idFilter = familyId ? familyId : this.config.authOptions.clientId;
+
         const refreshTokenKey: string = CredentialEntity.generateCredentialCacheKey(
             homeAccountId,
             environment,
             CredentialType.REFRESH_TOKEN,
-            this.config.authOptions.clientId
+            idFilter
         );
         return this.cacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
     }
-
 }

@@ -113,7 +113,8 @@ export class ClientTestUtils {
         const stubbedCloudDiscoveryMetadata: CloudDiscoveryMetadata = {
             preferred_cache: "login.windows.net",
             preferred_network: "login.microsoftonline.com",
-            aliases: ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]};
+            aliases: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"]
+        };
         sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
         sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
     }

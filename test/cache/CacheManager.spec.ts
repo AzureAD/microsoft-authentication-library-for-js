@@ -1,21 +1,19 @@
 import { expect } from "chai";
 import { CacheManager } from "../../src/cache/CacheManager";
-import { CacheSchemaType, CredentialType, Constants } from "../../src/utils/Constants";
+import { CacheSchemaType, CredentialType } from "../../src/utils/Constants";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
-import { mockCache } from "./entities/cacheConstants";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
 import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
 import sinon from "sinon";
 import { CredentialEntity } from "../../src/cache/entities/CredentialEntity";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 import { ClientTestUtils } from "../client/ClientTestUtils";
 
-const cacheJson = require("./cache.json");
+const cacheJson = require("./cacheStore.json");
 
 let store = {};
 class TestStorageManager extends CacheManager {
@@ -46,7 +44,7 @@ class TestStorageManager extends CacheManager {
                 }
                 break;
             }
-            case CacheSchemaType.APP_META_DATA: {
+            case CacheSchemaType.APP_METADATA: {
                 store[key] = value as AppMetadataEntity;
                 break;
             }
@@ -76,7 +74,7 @@ class TestStorageManager extends CacheManager {
                 }
                 break;
             }
-            case CacheSchemaType.APP_META_DATA: {
+            case CacheSchemaType.APP_METADATA: {
                 return CacheManager.toObject(new AppMetadataEntity(), store[key]) as AppMetadataEntity;
             }
             default: {
@@ -284,7 +282,7 @@ describe("CacheManager.ts test cases", () => {
             let credentials = cacheManager.getCredentialsFilteredBy(successFilter);
             expect(Object.keys(credentials.idTokens).length).to.eql(1);
             expect(Object.keys(credentials.accessTokens).length).to.eql(2);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(2);
+            expect(Object.keys(credentials.refreshTokens).length).to.eql(1);
 
             const wrongFilter: CredentialFilter = { homeAccountId: "someuid.someutid" };
             credentials = cacheManager.getCredentialsFilteredBy(wrongFilter);
@@ -346,7 +344,7 @@ describe("CacheManager.ts test cases", () => {
             let credentials = cacheManager.getCredentialsFilteredBy(successFilter);
             expect(Object.keys(credentials.idTokens).length).to.eql(1);
             expect(Object.keys(credentials.accessTokens).length).to.eql(2);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(2);
+            expect(Object.keys(credentials.refreshTokens).length).to.eql(1);
 
             const wrongFilter: CredentialFilter = { clientId: "Wrong Client ID" };
             credentials = cacheManager.getCredentialsFilteredBy(wrongFilter);
@@ -378,10 +376,19 @@ describe("CacheManager.ts test cases", () => {
         });
     });
 
+    it.only("getApplicationFamilyId", () => {
+        const clientId = "mock_client_id_1";
+        const environment = "login.microsoftonline.com";
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+
+        expect(cacheManager.getApplicationFamilyId(clientId, environment)).to.eql("1");
+        sinon.restore();
+    });
+
     it("removeAppMetadata", () => {
         cacheManager.removeAppMetadata();
 
-        expect(store["appmetadata-login.microsoftonline.com-mock_client_id"]).to.be.undefined;
+        expect(store["appmetadata-login.microsoftonline.com-mock_client_id_1"]).to.be.undefined;
     });
 
     it("removeAllAccounts", () => {
@@ -401,6 +408,7 @@ describe("CacheManager.ts test cases", () => {
         cacheManager.removeAllAccounts();
 
         // Only app metadata remaining
+        console.log(cacheManager.getKeys());
         expect(cacheManager.getKeys().length === 1).to.be.true;
     });
 

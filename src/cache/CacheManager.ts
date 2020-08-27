@@ -18,6 +18,7 @@ import { ICacheManager } from "./interface/ICacheManager";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { AccountInfo } from "../account/AccountInfo";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
+import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -329,6 +330,27 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * fetches all app metadata objects from cache.
+     */
+    getApplicationFamilyId(clientId: string, environment: string): string {
+        const allCacheKeys = this.getKeys();
+        allCacheKeys.forEach((cacheKey) => {
+            if (this.isAppMetadata(cacheKey)) {
+                const entity = this.getItem(cacheKey, CacheSchemaType.APP_METADATA) as AppMetadataEntity;
+                console.log(this.matchEnvironment(entity, environment));
+
+                // check for clientId match
+                if (this.matchClientId(entity, clientId) && this.matchEnvironment(entity, environment) && !StringUtils.isEmpty(entity.familyId)) {
+                    return entity.familyId;
+                }
+            }
+            return null;
+        });
+
+        return null;
+    }
+
+    /**
      * Removes all app metadata objects from cache.
      */
     removeAppMetadata(): boolean {
@@ -421,10 +443,11 @@ export abstract class CacheManager implements ICacheManager {
      * @param environment
      */
     private matchEnvironment(
-        entity: AccountEntity | CredentialEntity,
+        entity: AccountEntity | CredentialEntity | AppMetadataEntity,
         environment: string
     ): boolean {
         const cloudMetadata = TrustedAuthority.getCloudDiscoveryMetadata(environment);
+        console.log(cloudMetadata);
         if (
             cloudMetadata &&
             cloudMetadata.aliases.indexOf(entity.environment) > -1
@@ -449,7 +472,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param entity
      * @param clientId
      */
-    private matchClientId(entity: CredentialEntity, clientId: string): boolean {
+    private matchClientId(entity: CredentialEntity | AppMetadataEntity, clientId: string): boolean {
         return entity.clientId && clientId === entity.clientId;
     }
 

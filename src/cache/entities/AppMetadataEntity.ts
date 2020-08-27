@@ -32,6 +32,24 @@ export class AppMetadataEntity {
     }
 
     /**
+     * Creates AppMetadataEntity
+     * @param clientId
+     * @param environment
+     * @param familyId
+     */
+    static createAppMetadataEntity(clientId: string, environment: string, familyId?: string): AppMetadataEntity {
+        const appMetadata = new AppMetadataEntity();
+
+        appMetadata.clientId = clientId;
+        appMetadata.environment = environment;
+        if (familyId) {
+            appMetadata.familyId = familyId;
+        }
+
+        return appMetadata;
+    }
+
+    /**
      * Validates an entity: checks for all expected params
      * @param entity
      */

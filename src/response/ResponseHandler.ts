@@ -22,9 +22,9 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
+import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
 
 /**
  * Class that handles response parsing.
@@ -91,7 +91,7 @@ export class ResponseHandler {
      * @param authority
      */
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string, requestScopes?: string[]): AuthenticationResult {
-        
+
         // generate homeAccountId
         if (serverTokenResponse.client_info) {
             this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
@@ -118,7 +118,7 @@ export class ResponseHandler {
         // save the response tokens
         let requestStateObj: RequestStateObject = null;
         if (!StringUtils.isEmpty(cachedState)) {
-            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState); 
+            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState);
         }
 
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState, requestScopes);
@@ -135,8 +135,7 @@ export class ResponseHandler {
      */
     private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[]): CacheRecord {
 
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+        const env = Authority.generateEnvironmentFromAuthority(authority);
 
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -164,7 +163,7 @@ export class ResponseHandler {
         // AccessToken
         let cachedAccessToken: AccessTokenEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
-            
+
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
 
@@ -200,7 +199,13 @@ export class ResponseHandler {
             );
         }
 
-        return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken);
+        // appMetadata
+        let cachedAppMetadata: AppMetadataEntity = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.foci)) {
+            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(this.clientId, env, serverTokenResponse.foci);
+        }
+
+        return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken, cachedAppMetadata);
     }
 
     /**
@@ -226,13 +231,13 @@ export class ResponseHandler {
 
     /**
      * Creates an @AuthenticationResult from @CacheRecord , @IdToken , and a boolean that states whether or not the result is from cache.
-     * 
+     *
      * Optionally takes a state string that is set as-is in the response.
-     * 
-     * @param cacheRecord 
-     * @param idTokenObj 
-     * @param fromTokenCache 
-     * @param stateString 
+     *
+     * @param cacheRecord
+     * @param idTokenObj
+     * @param fromTokenCache
+     * @param stateString
      */
     static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, requestState?: RequestStateObject): AuthenticationResult {
         let accessToken: string = "";
@@ -246,8 +251,8 @@ export class ResponseHandler {
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
         }
-        if (cacheRecord.refreshToken) {
-            familyId = cacheRecord.refreshToken.familyId || null;
+        if (cacheRecord.appMetadata) {
+            familyId = cacheRecord.appMetadata.familyId || null;
         }
         const uid = idTokenObj ? idTokenObj.claims.oid || idTokenObj.claims.sub : "";
         const tid = idTokenObj ? idTokenObj.claims.tid : "";
