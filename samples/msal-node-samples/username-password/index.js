@@ -27,8 +27,3 @@ pca.acquireTokenByUsernamePassword(usernamePasswordRequest)
     .catch((error) => {
         console.log(JSON.stringify(error));
     });
-
-// Uncomment to test cancellation
-// setTimeout(function() {
-//     deviceCodeRequest.cancel = true;
-// }, 12000);
