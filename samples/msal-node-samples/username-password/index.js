@@ -16,8 +16,8 @@ const pca = new msal.PublicClientApplication(msalConfig);
 
 const usernamePasswordRequest = {
     scopes: ["user.read"],
-    username: "", // add you username here
-    password: "" // add your password here
+    username: "", // Add your username here
+    password: "", // Add your password here
 };
 
 pca.acquireTokenByUsernamePassword(usernamePasswordRequest)
