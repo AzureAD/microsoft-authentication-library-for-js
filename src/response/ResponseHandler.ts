@@ -102,11 +102,11 @@ export class ResponseHandler {
      */
     async handleServerTokenResponse(
         serverTokenResponse: ServerAuthorizationTokenResponse, 
-        authority: Authority, 
-        cachedNonce?: string, 
-        cachedState?: string, 
+        authority: Authority,
         resourceRequestMethod?: string, 
-        resourceRequestUri?: string): Promise<AuthenticationResult> {
+        resourceRequestUri?: string,
+        cachedNonce?: string, 
+        cachedState?: string): Promise<AuthenticationResult> {
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
 
