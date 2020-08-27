@@ -46,23 +46,6 @@ describe("RequestUtils.ts class", () => {
         expect(emptyScopesError.stack).to.include("RequestUtils.spec.ts");
     });
 
-    it("ClientId can be sent only as a single scope", () => {
-
-        let improperScopes : ClientConfigurationError;
-
-        try {
-            const userRequest: AuthenticationParameters = {scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "newScope`"]};
-            const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
-        } catch (e) {
-            improperScopes = e;
-        };
-
-        expect(improperScopes instanceof ClientConfigurationError).to.be.true;
-        expect(improperScopes.errorCode).to.equal(ClientConfigurationErrorMessage.clientScope.code);
-        expect(improperScopes.name).to.equal("ClientConfigurationError");
-        expect(improperScopes.stack).to.include("RequestUtils.spec.ts");
-    });
-
     it("validate prompt", () => {
 
         let promptError: ClientConfigurationError;
