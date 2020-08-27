@@ -266,3 +266,11 @@ export const SERVER_TELEM_CONSTANTS = {
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
 };
+
+/**
+ * Password grant parameters
+ */
+export enum PasswordGrantConstants {
+    username = "username",
+    password = "password"
+}

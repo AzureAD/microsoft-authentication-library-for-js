@@ -4,6 +4,7 @@ export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { ClientCredentialClient } from "./client/ClientCredentialClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
+export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
 export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
@@ -42,6 +43,7 @@ export { ClientCredentialRequest } from "./request/ClientCredentialRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
+export { UsernamePasswordRequest } from "./request/UsernamePasswordRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 // Logger Callback
