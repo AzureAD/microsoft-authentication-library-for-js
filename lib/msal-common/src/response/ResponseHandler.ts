@@ -10,7 +10,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
-import { JwtToken } from "../account/JwtToken";
+import { AuthToken } from "../account/AuthToken";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AuthenticationResult } from "./AuthenticationResult";
@@ -108,7 +108,7 @@ export class ResponseHandler {
         resourceRequestMethod?: string, 
         resourceRequestUri?: string): Promise<AuthenticationResult> {
         // create an idToken object (not entity)
-        const idTokenObj = new JwtToken(serverTokenResponse.id_token, this.cryptoObj);
+        const idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
 
         // token nonce check (TODO: Add a warning if no nonce is given?)
         if (!StringUtils.isEmpty(cachedNonce)) {
@@ -135,7 +135,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: JwtToken, authority: Authority, libraryState?: LibraryStateObject): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: AuthToken, authority: Authority, libraryState?: LibraryStateObject): CacheRecord {
         // Account
         const cachedAccount  = this.generateAccountEntity(
             serverTokenResponse,
@@ -209,7 +209,7 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: JwtToken, authority: Authority): AccountEntity {
+    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority): AccountEntity {
         const authorityType = authority.authorityType;
 
         if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
@@ -231,7 +231,7 @@ export class ResponseHandler {
      * @param fromTokenCache 
      * @param stateString 
      */
-    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, idTokenObj: JwtToken, fromTokenCache: boolean, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
+    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, idTokenObj: AuthToken, fromTokenCache: boolean, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date = null;
