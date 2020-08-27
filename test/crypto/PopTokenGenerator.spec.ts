@@ -5,7 +5,7 @@ import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { ICrypto, PkceCodes } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "../utils/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 
 describe("PopTokenGenerator Unit Tests", () => {
@@ -44,12 +44,15 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async getPublicKeyThumbprint(): Promise<string> {
             return TEST_POP_VALUES.KID;
+        },
+        async signJwt(): Promise<string> {
+            return "";
         }
     };
 
     it("Generates the req_cnf correctly", async () => {
         const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
-        const req_cnf = await popTokenGenerator.generateCnf();
+        const req_cnf = await popTokenGenerator.generateCnf("POST", TEST_URIS.TEST_REDIR_URI);
         expect(req_cnf).to.be.eq(TEST_POP_VALUES.ENCODED_REQ_CNF);
     })
 });

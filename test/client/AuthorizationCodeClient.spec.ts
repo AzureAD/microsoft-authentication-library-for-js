@@ -345,7 +345,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
             };
-            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: AuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -418,7 +418,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
             };
-            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: AuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.POP,

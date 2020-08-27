@@ -265,7 +265,7 @@ export class ResponseHandler {
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
-            tokenType: cacheRecord.accessToken.tokenType,
+            tokenType: cacheRecord.accessToken ? cacheRecord.accessToken.tokenType : "",
             state: requestState ? requestState.userRequestState : ""
         };
     }

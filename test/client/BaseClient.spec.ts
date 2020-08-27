@@ -6,7 +6,7 @@ import { ClientTestUtils } from "./ClientTestUtils";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import sinon from "sinon";
 import { DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONFIG } from "../utils/StringConstants";
-import { IdToken, ServerTelemetryRequest } from "../../dist/src";
+import { ServerTelemetryRequest } from "../../dist/src";
 
 class TestClient extends BaseClient {
 
