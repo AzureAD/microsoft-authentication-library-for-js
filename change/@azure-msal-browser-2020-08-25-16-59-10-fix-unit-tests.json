@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Fix Unit Tests (#2191)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-08-25T23:59:10.865Z"
+}
