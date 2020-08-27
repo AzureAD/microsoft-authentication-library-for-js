@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { TokenClaims } from "./TokenClaims";
-import { DecodedJwt } from "./DecodedJwt";
+import { DecodedAuthToken } from "./DecodedAuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { ICrypto } from "../crypto/ICrypto";
@@ -11,7 +11,7 @@ import { ICrypto } from "../crypto/ICrypto";
 /**
  * JWT Token representation class. Parses token string and generates claims object.
  */
-export class JwtToken {
+export class AuthToken {
 
     // Raw Token string
     rawToken: string;
@@ -23,7 +23,7 @@ export class JwtToken {
         }
 
         this.rawToken = rawToken;
-        this.claims = JwtToken.extractTokenClaims(rawToken, crypto);
+        this.claims = AuthToken.extractTokenClaims(rawToken, crypto);
     }
 
     /**
@@ -33,7 +33,7 @@ export class JwtToken {
      */
     static extractTokenClaims(encodedToken: string, crypto: ICrypto): TokenClaims {
         // token will be decoded to get the username
-        const decodedToken: DecodedJwt = StringUtils.decodeJwt(encodedToken);
+        const decodedToken: DecodedAuthToken = StringUtils.decodeAuthToken(encodedToken);
         if (!decodedToken) {
             return null;
         }
