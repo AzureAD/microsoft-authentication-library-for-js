@@ -9,6 +9,8 @@ import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestUtils } from "../utils/RequestUtils";
+import { IdToken } from '../IdToken';
+import { AccessTokenValue } from './AccessTokenValue';
 
 /**
  * @hidden
@@ -204,6 +206,31 @@ export class AuthCache extends BrowserStorage {// Singleton
         }, []);
 
         return results;
+    }
+
+    /**
+     * Get idToken in the cache
+     * @param  
+     */
+    getIdToken(clientId: string, homeAccountIdentifier: string): AccessTokenValue {
+        const key = Object.keys(window[this.cacheLocation]).find((key) => {
+            const keyMatches = key.match(clientId) && key.match(homeAccountIdentifier);
+            return keyMatches;
+        });
+        let newAccessTokenCacheItem;
+        if (key) {
+            const value = this.getItem(key);
+            if (value) {
+                try {
+                    const parseIdTokenKey = JSON.parse(key);
+                    newAccessTokenCacheItem = new AccessTokenCacheItem(parseIdTokenKey, JSON.parse(value));
+                } catch (e) {
+                    throw ClientAuthError.createCacheParseError(key);
+                }
+            }
+        }
+        
+        return newAccessTokenCacheItem.value;
     }
 
     /**
