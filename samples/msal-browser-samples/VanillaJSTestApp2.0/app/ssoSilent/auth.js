@@ -26,22 +26,17 @@ function handleResponse(resp) {
         showWelcomeMessage(resp.account);
         getTokenRedirect(loginRequest, resp.account);
     } else {
-        // need to call getAccount here?
-        const currentAccounts = myMSALObj.getAllAccounts();
-        if (!currentAccounts || currentAccounts.length < 1) {
-            myMSALObj.ssoSilent(silentRequest).then(handleResponse).catch(error => {
-                console.error("Silent Error: " + error);
-                if (error instanceof msal.InteractionRequiredAuthError) {
-                    signIn("loginPopup");
-                }
-            });
-        } else if (currentAccounts.length > 1) {
-            // Add choose account code here
-        } else if (currentAccounts.length === 1) {
+        myMSALObj.ssoSilent(silentRequest).then(() => {
+            const currentAccounts = myMSALObj.getAllAccounts();
             accountId = currentAccounts[0].homeAccountId;
             showWelcomeMessage(currentAccounts[0]);
             getTokenRedirect(loginRequest, currentAccounts[0]);
-        }
+        }).catch(error => {
+            console.error("Silent Error: " + error);
+            if (error instanceof msal.InteractionRequiredAuthError) {
+                signIn("loginPopup");
+            }
+        });
     }
 }
 

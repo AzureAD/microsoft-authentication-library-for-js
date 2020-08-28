@@ -51,6 +51,5 @@ const tokenRequest = {
 };
 
 const silentRequest = {
-    scopes: ["openid", "profile", "User.Read", "Mail.Read"],
     loginHint: "IDLAB@msidlab0.ccsctp.net"
 };
