@@ -152,19 +152,29 @@ export class AuthModule {
     handleResponse(response: AuthenticationResult) {
         if (response !== null) {
             this.account = response.account;
-            UIManager.showWelcomeMessage(this.account);
         } else {
-            this.myMSALObj.ssoSilent(this.silentLoginRequest).then(() => {
-                console.log("SSO SILENT SUCCEEDED");
-                this.account = this.getAccount();
-                UIManager.showWelcomeMessage(this.account);
-            }).catch(error => {
-                console.error("Silent Error: " + error);
-                if (error instanceof InteractionRequiredAuthError) {
-                    this.login("loginPopup");
-                }
-            })
+            this.account = this.getAccount();
         }
+
+        if (this.account) {
+            UIManager.showWelcomeMessage(this.account);
+        }
+    }
+
+    /**
+     * Calls ssoSilent to attempt silent flow. If it fails due to interaction required error, it will prompt the user to login using popup.
+     * @param request 
+     */
+    attemptSsoSilent() {
+        this.myMSALObj.ssoSilent(this.silentLoginRequest).then(() => {
+            this.account = this.getAccount();
+            UIManager.showWelcomeMessage(this.account);
+        }).catch(error => {
+            console.error("Silent Error: " + error);
+            if (error instanceof InteractionRequiredAuthError) {
+                this.login("loginPopup");
+            }
+        })
     }
 
     /**
