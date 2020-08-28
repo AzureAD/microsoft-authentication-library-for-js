@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult } from '@azure/msal-common';
+import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult, UsernamePasswordRequest, UsernamePasswordClient } from '@azure/msal-common';
 import { Configuration } from '../config/Configuration';
 import { ClientApplication } from './ClientApplication';
 
@@ -50,5 +50,26 @@ export class PublicClientApplication extends ClientApplication {
         this.logger.verbose("Auth client config generated");
         const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
         return deviceCodeClient.acquireToken(this.initializeRequestScopes(request) as DeviceCodeRequest);
+    }
+
+    /**
+     * Acquires tokens with password grant by exchanging client applications username and password for credentials
+     *
+     * The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely.
+     * More details on this recommendation at https://tools.ietf.org/html/draft-ietf-oauth-security-topics-13#section-3.4
+     * Microsoft's documentation and recommendations are at:
+     * https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword
+     *
+     * @param request
+     */
+    async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult> {
+        const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
+            request.authority
+        );
+        const usernamePasswordClient = new UsernamePasswordClient(
+            usernamePasswordClientConfig
+        );
+
+        return usernamePasswordClient.acquireToken(this.initializeRequestScopes(request) as UsernamePasswordRequest);
     }
 }
