@@ -7,19 +7,13 @@ import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { CredentialType } from "../utils/Constants";
-import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { IdToken } from "../account/IdToken";
 import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
-import { ClientAuthError } from "../error/ClientAuthError";
-import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
-import { AccountEntity } from "../cache/entities/AccountEntity";
-import { CredentialEntity } from "../cache/entities/CredentialEntity";
+import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
@@ -35,7 +29,23 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    public async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        try {
+            return this.acquireCachedToken(request);
+        } catch (e) {
+            if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
+                return this.refreshToken(request);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * Retrieves token from cache or throws an error if it must be refreshed.
+     * @param request
+     */
+    acquireCachedToken(request: SilentFlowRequest): AuthenticationResult {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -47,54 +57,62 @@ export class SilentFlowClient extends BaseClient {
         }
 
         const requestScopes = new ScopeSet(request.scopes || []);
+        const cacheRecord = this.cacheManager.getCacheRecord(request.account, this.config.authOptions.clientId, requestScopes);
 
-        // Get account object for this request.
-        const accountKey: string = AccountEntity.generateAccountCacheKey(request.account);
-        const cachedAccount = this.cacheManager.getAccount(accountKey);
-
-        const homeAccountId = cachedAccount.homeAccountId;
-        const environment = cachedAccount.environment;
-
-        // fetch cached access token
-        const cachedAccessToken = this.readAccessTokenFromCache(homeAccountId, environment, requestScopes, cachedAccount.realm);
-
-        // fetch cached refresh token
-        const familyId = this.cacheManager.getApplicationFamilyId(this.config.authOptions.clientId, environment);
-        const cachedRefreshToken = this.readRefreshTokenFromCache(homeAccountId, environment, familyId);
-
-        // Check if refresh is forced, claims are being requested or if tokens are expired. If neither are true, return a token response with the found token entry.
-        if (this.isRefreshRequired(request, cachedAccessToken)) {
-            // no refresh Token
-            if (!cachedRefreshToken) {
-                throw ClientAuthError.createNoTokensFoundError();
+        if (this.isRefreshRequired(request, cacheRecord.accessToken)) {
+            throw ClientAuthError.createRefreshRequiredError();
+        } else {
+            if (this.config.serverTelemetryManager) {
+                this.config.serverTelemetryManager.incrementCacheHits();
             }
+            return this.generateResultFromCacheRecord(cacheRecord);
+        }
+    }
 
-            const refreshTokenClient = new RefreshTokenClient(this.config);
-            const refreshTokenRequest: RefreshTokenRequest = {
-                ...request,
-                refreshToken: cachedRefreshToken.secret
-            };
-
-            return refreshTokenClient.acquireToken(refreshTokenRequest);
+    /**
+     * Gets cached refresh token and uses RefreshTokenClient to refresh tokens
+     * @param request
+     */
+    async refreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        // Cannot renew token if no request object is given.
+        if (!request) {
+            throw ClientConfigurationError.createEmptyTokenRequestError();
         }
 
-        // Return tokens from cache
-        if (this.config.serverTelemetryManager) {
-            this.config.serverTelemetryManager.incrementCacheHits();
+        // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
+        if (!request.account) {
+            throw ClientAuthError.createNoAccountInSilentRequestError();
         }
-        const cachedIdToken = this.readIdTokenFromCache(homeAccountId, environment, cachedAccount.realm);
-        const idTokenObj = new IdToken(cachedIdToken.secret, this.config.cryptoInterface);
 
-        const cacheRecord: CacheRecord = new CacheRecord(
-            cachedAccount,
-            cachedIdToken,
-            cachedAccessToken,
-            cachedRefreshToken
-        );
+        const refreshToken = this.cacheManager.getRefreshTokenEntity(this.config.authOptions.clientId, request.account);
+        // no refresh Token
+        if (!refreshToken) {
+            throw ClientAuthError.createNoTokensFoundError();
+        }
 
+        const refreshTokenClient = new RefreshTokenClient(this.config);
+        const refreshTokenRequest: RefreshTokenRequest = {
+            ...request,
+            refreshToken: refreshToken.secret
+        };
+
+        return refreshTokenClient.acquireToken(refreshTokenRequest);
+    }
+
+    /**
+     * Helper function to build response object from the CacheRecord
+     * @param cacheRecord
+     */
+    private generateResultFromCacheRecord(cacheRecord: CacheRecord): AuthenticationResult {
+        const idTokenObj = new IdToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
         return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, true);
     }
 
+    /**
+     * Given a request object and an accessTokenEntity determine if the accessToken needs to be refreshed
+     * @param request
+     * @param cachedAccessToken
+     */
     private isRefreshRequired(request: SilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
         if (request.forceRefresh || request.claims) {
             // Must refresh due to request parameters
@@ -105,60 +123,5 @@ export class SilentFlowClient extends BaseClient {
         }
 
         return false;
-    }
-
-    /**
-     * fetches idToken from cache if present
-     * @param request
-     */
-    private readIdTokenFromCache(homeAccountId: string, environment: string, inputRealm: string): IdTokenEntity {
-        const idTokenKey: string = CredentialEntity.generateCredentialCacheKey(
-            homeAccountId,
-            environment,
-            CredentialType.ID_TOKEN,
-            this.config.authOptions.clientId,
-            inputRealm
-        );
-        return this.cacheManager.getCredential(idTokenKey) as IdTokenEntity;
-    }
-
-    /**
-     * fetches accessToken from cache if present
-     * @param request
-     * @param scopes
-     */
-    private readAccessTokenFromCache(homeAccountId: string, environment: string, scopes: ScopeSet, inputRealm: string): AccessTokenEntity {
-        const accessTokenFilter: CredentialFilter = {
-            homeAccountId,
-            environment,
-            credentialType: CredentialType.ACCESS_TOKEN,
-            clientId: this.config.authOptions.clientId,
-            realm: inputRealm,
-            target: scopes.printScopesLowerCase()
-        };
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
-        if (accessTokens.length > 1) {
-            // TODO: Figure out what to throw or return here.
-        } else if (accessTokens.length < 1) {
-            return null;
-        }
-        return accessTokens[0] as AccessTokenEntity;
-    }
-
-    /**
-     * fetches refreshToken from cache if present
-     * @param request
-     */
-    private readRefreshTokenFromCache(homeAccountId: string, environment: string, familyId?: string): RefreshTokenEntity {
-        let idFilter = familyId ? familyId : this.config.authOptions.clientId;
-
-        const refreshTokenKey: string = CredentialEntity.generateCredentialCacheKey(
-            homeAccountId,
-            environment,
-            CredentialType.REFRESH_TOKEN,
-            idFilter
-        );
-        return this.cacheManager.getCredential(refreshTokenKey) as RefreshTokenEntity;
     }
 }

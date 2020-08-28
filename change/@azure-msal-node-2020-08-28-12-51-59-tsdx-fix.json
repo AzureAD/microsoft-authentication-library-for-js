@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Address tsdx warnings (#2202)",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-28T19:51:59.127Z"
+}
