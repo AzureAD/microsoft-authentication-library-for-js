@@ -8,7 +8,7 @@ The `@azure/msal-browser` package is available through CDN if you do not wish to
 
 Version | CDN URL | SRI Hash
 --------------- | ------- | ---------------------------
-2.1.0 | https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.js | sha384-knPh00kvaT+k3+4TCD5S2ORDNVc2I3RVbqI/ksbTlpdSBh8ZnyAPxW2kkTSG0+mT
+2.1.0 | https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.js | sha384-M9bRB06LdiYadS+F9rPQnntFCYR3UJvtb2Vr4Tmhw9WBwWUfxH8VDRAFKNn3VTc/
 2.0.2 | https://alcdn.msauth.net/browser/2.0.2/js/msal-browser.js | sha384-rQvomuvjVybeTxLQIpbtb6lqFsDuJparCjjUJZjRZjVDNzGRloXbPj9qbgf9YM/d
 2.0.1 | https://alcdn.msauth.net/browser/2.0.1/js/msal-browser.js | sha384-knPh00kvaT+k3+4TCD5S2ORDNVc2I3RVbqI/ksbTlpdSBh8ZnyAPxW2kkTSG0+mT
 2.0.0 | https://alcdn.msauth.net/browser/2.0.0/js/msal-browser.js | sha384-BqIcDtzVkr3wRGsSrk+iJJNm9GSdUsP0I2MplbnhPPc+I1l1d+dkKbcnqgNddGWX
