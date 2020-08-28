@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes } from '@azure/msal-common';
+import { ICrypto, PkceCodes, SignedHttpRequest } from '@azure/msal-common';
 import { GuidGenerator } from './GuidGenerator';
 import { EncodingUtils } from './../utils/EncodingUtils';
 import { PkceGenerator } from './PkceGenerator';
@@ -52,6 +52,10 @@ export class CryptoProvider implements ICrypto {
     }
 
     getPublicKeyThumbprint(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+
+    signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
         throw new Error("Method not implemented.");
     }
 }
