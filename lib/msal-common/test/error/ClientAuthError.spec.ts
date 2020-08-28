@@ -46,27 +46,27 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
     });
 
     it("createIdTokenParsingError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createIdTokenParsingError("Raw client info.");
+        const err: ClientAuthError = ClientAuthError.createTokenParsingError("Raw client info.");
 
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.idTokenParsingError.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.idTokenParsingError.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.idTokenParsingError.desc);
+        expect(err.errorCode).to.equal(ClientAuthErrorMessage.tokenParsingError.code);
+        expect(err.errorMessage).to.include(ClientAuthErrorMessage.tokenParsingError.desc);
+        expect(err.message).to.include(ClientAuthErrorMessage.tokenParsingError.desc);
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });
 
     it("createIdTokenNullOrEmptyError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createIdTokenNullOrEmptyError("Invalid Raw IdToken string.");
+        const err: ClientAuthError = ClientAuthError.createTokenNullOrEmptyError("Invalid Raw IdToken string.");
 
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyIdToken.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
+        expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyToken.code);
+        expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+        expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });
@@ -145,19 +145,6 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.errorCode).to.equal(ClientAuthErrorMessage.accountMismatchError.code);
         expect(err.errorMessage).to.include(ClientAuthErrorMessage.accountMismatchError.desc);
         expect(err.message).to.include(ClientAuthErrorMessage.accountMismatchError.desc);
-        expect(err.name).to.equal("ClientAuthError");
-        expect(err.stack).to.include("ClientAuthError.spec.ts");
-    });
-
-    it("createInvalidIdTokenError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createInvalidIdTokenError(null);
-
-        expect(err instanceof ClientAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.invalidIdToken.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.invalidIdToken.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.invalidIdToken.desc);
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });

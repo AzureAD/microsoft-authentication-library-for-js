@@ -251,5 +251,5 @@ export const SERVER_TELEM_CONSTANTS = {
  */
 export enum AuthenticationScheme {
     POP = "pop",
-    BEARER = "bearer"
+    BEARER = "Bearer"
 };
