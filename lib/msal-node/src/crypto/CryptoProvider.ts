@@ -55,7 +55,7 @@ export class CryptoProvider implements ICrypto {
         throw new Error("Method not implemented.");
     }
 
-    signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
+    signJwt(): Promise<string> {
         throw new Error("Method not implemented.");
     }
 }
