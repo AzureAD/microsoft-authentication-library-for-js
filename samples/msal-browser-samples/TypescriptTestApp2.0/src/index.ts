@@ -56,3 +56,10 @@ export async function readMail(): Promise<void> {
         UIManager.updateUI(graphResponse, GRAPH_CONFIG.GRAPH_MAIL_ENDPT);
     }
 }
+
+/**
+ * Called when user clicks "Attempt SsoSilent"
+ */
+export function attemptSsoSilent(): void {
+    authModule.attemptSsoSilent();
+}
