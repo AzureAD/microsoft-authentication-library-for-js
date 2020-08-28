@@ -4,7 +4,7 @@
  */
 
 import { ICrypto } from "./ICrypto";
-import { JwtToken } from "../account/JwtToken";
+import { AuthToken } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
@@ -41,12 +41,11 @@ export class PopTokenGenerator {
             kid: kidThumbprint,
             xms_ksl: KeyLocation.SW
         };
-
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
     async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
-        const tokenClaims: TokenClaims = JwtToken.extractTokenClaims(accessToken, this.cryptoUtils);
+        const tokenClaims: TokenClaims = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
         const resourceUrlString: UrlString = new UrlString(resourceRequestUri);
         const resourceUrlComponents: IUri = resourceUrlString.getUrlComponents();
         return await this.cryptoUtils.signJwt({
