@@ -16,7 +16,11 @@ import {
     IdToken,
     CacheManager,
     AccountInfo,
-    AccountEntity
+    AccountEntity,
+    AuthToken,
+    ICrypto,
+    TokenClaims,
+    SignedHttpRequest
 } from "../../src";
 import {
     ALTERNATE_OPENID_CONFIG_RESPONSE,
@@ -345,7 +349,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
             };
-            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: AuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -406,6 +410,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             };
+            const signedJwt = "signedJwt";
+            config.cryptoInterface.signJwt = async (payload: SignedHttpRequest, kid: string): Promise<string> => {
+                expect(payload.at).to.be.eq(POP_AUTHENTICATION_RESULT.body.access_token);
+                return signedJwt;
+            };
             // Set up stubs
             const idTokenClaims = {
                 "ver": "2.0",
@@ -418,7 +427,20 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
             };
-            sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedToken: string, crypto: ICrypto): TokenClaims => {
+                switch (encodedToken) {
+                    case POP_AUTHENTICATION_RESULT.body.id_token:
+                        return idTokenClaims as TokenClaims;
+                    case POP_AUTHENTICATION_RESULT.body.access_token:
+                        return {
+                            cnf: {
+                                kid: TEST_POP_VALUES.KID
+                            }
+                        };
+                    default:
+                        return null;
+                };
+            });
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: AuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.POP,
@@ -426,12 +448,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 code: TEST_TOKENS.AUTHORIZATION_CODE,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, idTokenClaims.nonce, testState);
 
-            expect(authenticationResult.accessToken).to.deep.eq(POP_AUTHENTICATION_RESULT.body.access_token);
+            expect(authenticationResult.accessToken).to.eq(signedJwt);
             expect((Date.now() + (POP_AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).to.be.true;
             expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).to.be.ok;
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);

@@ -4,7 +4,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import sinon from "sinon";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, CacheManager, AuthorizationCodeClient, AuthenticationScheme } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -75,6 +75,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 },
                 getPublicKeyThumbprint: async (): Promise<string> => {
                     return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                },
+                signJwt: async (): Promise<string> => {
+                    return "signedJwt";
                 }
             },
             storageInterface: browserStorage,
@@ -211,7 +214,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
-                uniqueId: idTokenClaims.oid
+                uniqueId: idTokenClaims.oid,
+                tokenType: AuthenticationScheme.BEARER
 			};
 			const browserCrypto = new CryptoOps();
 			const testAuthCodeRequest: AuthorizationCodeRequest = {

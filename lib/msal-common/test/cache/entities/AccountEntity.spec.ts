@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
 import { mockAccountEntity } from "./cacheConstants";
-import { IdToken } from "../../../src/account/IdToken";
+import { AuthToken } from "../../../src/account/AuthToken";
 import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { Constants } from "../../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INetworkModule";
@@ -80,6 +80,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             },
             async getPublicKeyThumbprint(): Promise<string> {
                 return TEST_POP_VALUES.KID;
+            },
+            async signJwt(): Promise<string> {
+                return "";
             }
         };
 
@@ -114,8 +117,8 @@ describe("AccountEntity.ts Unit Tests", () => {
             "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
         };
-        sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-		const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,

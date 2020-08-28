@@ -4,7 +4,6 @@ import { UrlString } from "../../src/url/UrlString";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { IUri } from "../../src/url/IUri";
 import sinon from "sinon";
-import { IdToken } from "../../src/account/IdToken";
 
 describe("UrlString.ts Class Unit Tests", () => {
 
@@ -126,12 +125,13 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     it("getUrlComponents returns all path components", () => {
-        const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS1);
+        const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2);
         expect(urlObj.getUrlComponents()).to.be.deep.eq({
             Protocol: "https:",
             HostNameAndPort: "login.microsoftonline.com",
             AbsolutePath: "/common/oauth2/v2.0/authorize",
-            PathSegments: ["common", "oauth2", "v2.0", "authorize"]
+            PathSegments: ["common", "oauth2", "v2.0", "authorize"],
+            QueryString: "param1=value1&param2=value2"
         } as IUri);
     });
 

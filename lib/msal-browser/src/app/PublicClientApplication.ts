@@ -15,7 +15,6 @@ import {
     TrustedAuthority,
     AuthorizationUrlRequest,
     PersistentCacheKeys,
-    IdToken,
     ProtocolUtils,
     AuthorizationCodeRequest,
     Constants,
@@ -31,7 +30,8 @@ import {
     Logger,
     ServerTelemetryManager,
     ServerTelemetryRequest,
-    ServerAuthorizationCodeResponse
+    ServerAuthorizationCodeResponse,
+    AuthToken
 } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { BrowserStorage } from "../cache/BrowserStorage";
@@ -681,7 +681,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             // Only check for adal token if no SSO params are being used
             const adalIdTokenString = this.browserStorage.getItem(PersistentCacheKeys.ADAL_ID_TOKEN, CacheSchemaType.TEMPORARY) as string;
             if (!StringUtils.isEmpty(adalIdTokenString)) {
-                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
+                const adalIdToken = new AuthToken(adalIdTokenString, this.browserCrypto);
                 this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (adalIdToken.claims && adalIdToken.claims.upn) {
                     validatedRequest.loginHint = adalIdToken.claims.upn;

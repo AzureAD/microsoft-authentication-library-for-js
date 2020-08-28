@@ -54,4 +54,8 @@ export class CryptoProvider implements ICrypto {
     getPublicKeyThumbprint(): Promise<string> {
         throw new Error("Method not implemented.");
     }
+
+    signJwt(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
 }

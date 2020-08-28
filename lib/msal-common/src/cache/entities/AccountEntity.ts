@@ -9,7 +9,7 @@ import {
     CacheType,
 } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
-import { IdToken } from "../../account/IdToken";
+import { AuthToken } from "../../account/AuthToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
@@ -125,7 +125,7 @@ export class AccountEntity {
     static createAccount(
         clientInfo: string,
         authority: Authority,
-        idToken: IdToken,
+        idToken: AuthToken,
         crypto: ICrypto
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
@@ -164,7 +164,7 @@ export class AccountEntity {
      */
     static createADFSAccount(
         authority: Authority,
-        idToken: IdToken
+        idToken: AuthToken
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 

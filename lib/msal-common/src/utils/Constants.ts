@@ -107,24 +107,6 @@ export enum AADServerParamKeys {
 }
 
 /**
- * IdToken claim string constants
- */
-export enum IdTokenClaimName {
-    ISSUER = "iss",
-    OBJID = "oid",
-    SUBJECT = "sub",
-    TENANTID = "tid",
-    VERSION = "ver",
-    PREF_USERNAME = "preferred_username",
-    NAME = "name",
-    NONCE = "nonce",
-    EXPIRATION = "exp",
-    HOME_OBJID = "home_oid",
-    SESSIONID = "sid",
-    CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
-}
-
-/**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
  * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
  * internal partners too, hence the choice of generic "string" type instead of the "enum"

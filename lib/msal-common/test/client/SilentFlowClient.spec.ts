@@ -14,12 +14,10 @@ import { AADServerParamKeys, GrantType, Constants, CredentialType } from "../../
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
-import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
-import { IdToken } from "../../src/account/IdToken";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AccountInfo } from "../../src/account/AccountInfo";
-import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage } from "../../src";
+import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage, AuthToken, TokenClaims } from "../../src";
 
 describe("SilentFlowClient unit tests", () => {
     beforeEach(() => {
@@ -100,7 +98,7 @@ describe("SilentFlowClient unit tests", () => {
     });
 
     it("acquires a token", async () => {
-        const idTokenClaims: IdTokenClaims = {
+        const idTokenClaims: TokenClaims = {
             "ver": "2.0",
             "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
             "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -147,7 +145,7 @@ describe("SilentFlowClient unit tests", () => {
         sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
         AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
         sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
-        sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
 
         const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");

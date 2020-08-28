@@ -1,4 +1,9 @@
 import { ICrypto } from "./ICrypto";
+import { AuthToken } from "../account/AuthToken";
+import { TokenClaims } from "../account/TokenClaims";
+import { TimeUtils } from "../utils/TimeUtils";
+import { UrlString } from "../url/UrlString";
+import { IUri } from "../url/IUri";
 
 /**
  * See eSTS docs for more info.
@@ -25,12 +30,27 @@ export class PopTokenGenerator {
         this.cryptoUtils = cryptoUtils;
     }
 
-    async generateCnf(): Promise<string> {
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint();
+    async generateCnf(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(resourceRequestMethod, resourceRequestUri);
         const reqCnf: ReqCnf = {
             kid: kidThumbprint,
             xms_ksl: KeyLocation.SW
         };
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
+    }
+
+    async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+        const tokenClaims: TokenClaims = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
+        const resourceUrlString: UrlString = new UrlString(resourceRequestUri);
+        const resourceUrlComponents: IUri = resourceUrlString.getUrlComponents();
+        return await this.cryptoUtils.signJwt({
+            at: accessToken,
+            ts: `${TimeUtils.nowSeconds()}`,
+            m: resourceRequestMethod.toUpperCase(),
+            u: resourceUrlComponents.HostNameAndPort || "",
+            nonce: this.cryptoUtils.createNewGuid(),
+            p: resourceUrlComponents.AbsolutePath,
+            q: [[], resourceUrlComponents.QueryString]
+        }, tokenClaims.cnf.kid);
     }
 }

@@ -95,6 +95,9 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
                 getPublicKeyThumbprint: async (): Promise<string> => {
                     return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                },
+                signJwt: async (): Promise<string> => {
+                    return "signedJwt";
                 }
             },
             storageInterface: new TestStorageInterface(),

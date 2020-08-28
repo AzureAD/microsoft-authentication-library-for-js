@@ -71,9 +71,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(response.body, this.authority, cachedNonce, cachedState);
-
-        return tokenResponse;
+        return await responseHandler.handleServerTokenResponse(response.body, this.authority, request.resourceRequestMethod, request.resourceRequestUri, cachedNonce, cachedState);
     }
 
     /**
@@ -176,7 +174,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf();
+            const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
             parameterBuilder.addPopToken(cnfString);
         }
 

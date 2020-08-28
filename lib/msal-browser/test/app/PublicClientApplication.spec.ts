@@ -6,7 +6,7 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, IdTokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, IdToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryCacheValue } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryCacheValue, AuthenticationScheme } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -203,7 +203,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
                     }
                 };
-                const testIdTokenClaims: IdTokenClaims = {
+                const testIdTokenClaims: TokenClaims = {
                     "ver": "2.0",
                     "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                     "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -228,7 +228,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     accessToken: testServerTokenResponse.body.access_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
-                    account: testAccount
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
                 };
                 sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
@@ -307,7 +308,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     }
                 };
 
-                const testIdTokenClaims: IdTokenClaims = {
+                const testIdTokenClaims: TokenClaims = {
                     "ver": "2.0",
                     "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                     "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -334,7 +335,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     accessToken: testServerTokenResponse.body.access_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
-                    account: testAccount
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
                 };
 
                 sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
@@ -391,7 +393,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     }
                 };
 
-                const testIdTokenClaims: IdTokenClaims = {
+                const testIdTokenClaims: TokenClaims = {
                     "ver": "2.0",
                     "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                     "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -418,7 +420,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     accessToken: testServerTokenResponse.body.access_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
-                    account: testAccount
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
                 };
 
                 sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
@@ -587,7 +590,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 			});
 
 			it("Uses adal token from cache if it is present.", async () => {
-				const idTokenClaims: IdTokenClaims = {
+				const idTokenClaims: TokenClaims = {
 					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
 					"exp": 1536279024,
 					"name": "abeli",
@@ -598,7 +601,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					"ver": "1.0",
 					"upn": "AbeLincoln@contoso.com"
 				};
-				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+				sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
 				const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
@@ -634,7 +637,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 			});
 	
 			it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
-				const idTokenClaims: IdTokenClaims = {
+				const idTokenClaims: TokenClaims = {
 					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
 					"exp": 1536279024,
 					"name": "abeli",
@@ -645,7 +648,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					"ver": "1.0",
 					"upn": "AbeLincoln@contoso.com"
 				};
-				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+				sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
 				const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
@@ -793,7 +796,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
 			it("Uses adal token from cache if it is present.", async () => {
 				const testScope = "testscope";
-				const idTokenClaims: IdTokenClaims = {
+				const idTokenClaims: TokenClaims = {
 					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
 					"exp": 1536279024,
 					"name": "abeli",
@@ -804,7 +807,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					"ver": "1.0",
 					"upn": "AbeLincoln@contoso.com"
 				};
-				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+				sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
 				const acquireTokenUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
@@ -840,7 +843,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 			});
 	
 			it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
-				const idTokenClaims: IdTokenClaims = {
+				const idTokenClaims: TokenClaims = {
 					"iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
 					"exp": 1536279024,
 					"name": "abeli",
@@ -851,7 +854,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 					"ver": "1.0",
 					"upn": "AbeLincoln@contoso.com"
 				};
-				sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+				sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 				const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 				browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
 				const acquireTokenUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
@@ -920,7 +923,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                     id_token: TEST_TOKENS.IDTOKEN_V2
                 };
-                const testIdTokenClaims: IdTokenClaims = {
+                const testIdTokenClaims: TokenClaims = {
                     "ver": "2.0",
                     "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                     "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -945,7 +948,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     accessToken: testServerTokenResponse.access_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
-                    account: testAccount
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
                 };
                 sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
@@ -1014,7 +1018,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                     id_token: TEST_TOKENS.IDTOKEN_V2
                 };
-                const testIdTokenClaims: IdTokenClaims = {
+                const testIdTokenClaims: TokenClaims = {
                     "ver": "2.0",
                     "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                     "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -1039,7 +1043,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     accessToken: testServerTokenResponse.access_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
-                    account: testAccount
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
                 };
                 sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
                 sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
@@ -1126,7 +1131,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2
             };
-            const testIdTokenClaims: IdTokenClaims = {
+            const testIdTokenClaims: TokenClaims = {
                 "ver": "2.0",
                 "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -1151,7 +1156,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
-                account: testAccount
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
@@ -1181,7 +1187,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2
             };
-            const testIdTokenClaims: IdTokenClaims = {
+            const testIdTokenClaims: TokenClaims = {
                 "ver": "2.0",
                 "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -1206,7 +1212,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
-                account: testAccount
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
@@ -1239,7 +1246,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2
             };
-            const testIdTokenClaims: IdTokenClaims = {
+            const testIdTokenClaims: TokenClaims = {
                 "ver": "2.0",
                 "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -1264,7 +1271,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
-                account: testAccount
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
             };
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const silentATStub = sinon.stub(SilentFlowClient.prototype, "acquireToken").resolves(testTokenResponse);
@@ -1326,7 +1334,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2
             };
-            const testIdTokenClaims: IdTokenClaims = {
+            const testIdTokenClaims: TokenClaims = {
                 "ver": "2.0",
                 "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -1351,7 +1359,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
-                account: testAccount
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
             };
             const createAcqTokenStub = sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
 			const silentTokenHelperStub = sinon.stub(pca, <any>"silentTokenHelper").resolves(testTokenResponse);

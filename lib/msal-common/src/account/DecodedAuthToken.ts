@@ -6,7 +6,7 @@
 /**
  * Interface for Decoded JWT tokens.
  */
-export interface DecodedJwt {
+export interface DecodedAuthToken {
     header: string,
     JWSPayload: string,
     JWSSig: string
