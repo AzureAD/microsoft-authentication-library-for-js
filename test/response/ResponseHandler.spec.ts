@@ -3,15 +3,14 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
-import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES } from "../utils/StringConstants";
+import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS } from "../utils/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientTestUtils } from "../client/ClientTestUtils";
-import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError } from "../../src";
+import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme } from "../../src";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
-import { TokenClaims } from "../../dist/src/account/TokenClaims";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -21,7 +20,7 @@ const networkInterface: INetworkModule = {
         return null;
     }
 };
-
+const signedJwt = "SignedJwt";
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {
         return RANDOM_TEST_GUID;
@@ -32,6 +31,8 @@ const cryptoInterface: ICrypto = {
                 TEST_POP_VALUES.DECODED_REQ_CNF;
             case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                 return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+            case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED:
+                return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED;
             default:
                 return input;
         }
@@ -42,6 +43,8 @@ const cryptoInterface: ICrypto = {
                 TEST_POP_VALUES.ENCODED_REQ_CNF;
             case TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO:
                 return TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+            case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED:
+                return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED;
             default:
                 return input;
         }
@@ -56,7 +59,7 @@ const cryptoInterface: ICrypto = {
         return TEST_POP_VALUES.KID;
     },
     async signJwt(): Promise<string> {
-        return "";
+        return signedJwt;
     }
 }
 
@@ -214,6 +217,39 @@ describe("ResponseHandler.ts", () => {
             const result = await responseHandler.handleServerTokenResponse(testResponse, authority);
 
             expect(result.familyId).to.be.null;
+        });
+
+        it("sets default values for access token using PoP scheme", async () => {
+            const testResponse: ServerAuthorizationTokenResponse = { ...POP_AUTHENTICATION_RESULT.body };
+            sinon.restore();
+            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedToken: string, crypto: ICrypto): TokenClaims => {
+                switch (encodedToken) {
+                    case testResponse.id_token:
+                        return ID_TOKEN_CLAIMS as TokenClaims;
+                    case testResponse.access_token:
+                        return {
+                            cnf: {
+                                kid: TEST_POP_VALUES.KID
+                            }
+                        };
+                    default:
+                        return null;
+                };
+            });
+            sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
+            sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                tenantId: "testTenantId",
+                username: "test@contoso.com"
+            });
+            ClientTestUtils.setCloudDiscoveryMetadataStubs();
+            
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, authority, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
+
+            expect(result.tokenType).to.be.eq(AuthenticationScheme.POP);
+            expect(result.accessToken).to.be.eq(signedJwt);
         });
     });
 
