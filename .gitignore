@@ -268,3 +268,4 @@ lib/msal-core/lib-es6
 samples/**/test/screenshots
 samples/**/data/cache.json
 .env
+.npmrc
