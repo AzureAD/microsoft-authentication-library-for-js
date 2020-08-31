@@ -76,13 +76,8 @@ export abstract class BaseClient {
      */
     protected createDefaultTokenRequestHeaders(): Record<string, string> {
         const headers = this.createDefaultLibraryHeaders();
-<<<<<<< HEAD
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
         headers[HeaderNames.X_MS_LIB_CAPABILITY] = HeaderNames.X_MS_LIB_CAPABILITY_VALUE;
-=======
-        headers.set(HeaderNames.CONTENT_TYPE, Constants.URL_FORM_CONTENT_TYPE);
-        headers.set(HeaderNames.X_MS_LIB_CAPABILITY, HeaderNames.X_MS_LIB_CAPABILITY_VALUE);
->>>>>>> b12c9108... Fix JSON.parse and add ServerError
 
         if (this.serverTelemetryManager) {
             headers[HeaderNames.X_CLIENT_CURR_TELEM] = this.serverTelemetryManager.generateCurrentRequestHeaderValue();
