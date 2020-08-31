@@ -104,6 +104,11 @@ export abstract class ClientApplication {
      * - if false, handles hash string and parses response
      */
     private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
+        if (!this.interactionInProgress()) {
+            this.logger.info("Server response detected in the hash but there is no corresponding cached request, returning null.");
+            return null;
+        }
+
         const responseHash = this.getRedirectResponseHash();
         if (StringUtils.isEmpty(responseHash)) {
             // Not a recognized server response hash or hash not associated with a redirect request
@@ -166,12 +171,7 @@ export abstract class ClientApplication {
                 return null;
             } else {
                 BrowserUtils.clearHash();
-                if (this.interactionInProgress()) {
-                    return responseHash;
-                } else {
-                    this.logger.info("Server response detected in the hash but there is no corresponding cached request, returning null. This can happen if request did not originate from MSAL or from this domain.");
-                    return null;
-                }
+                return responseHash;
             }
         }
 
