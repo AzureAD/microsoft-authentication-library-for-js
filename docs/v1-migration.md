@@ -57,7 +57,7 @@ myMSALObj.handleRedirectPromise().then((tokenResponse) => {
         const access_token = tokenResponse.accessToken;
     } else {
         const currentAccounts = myMSALObj.getAllAccounts();
-        if (currentAccounts === null) {
+        if (currentAccounts.length === 0) {
             // No user signed in
             return;
         } else if (currentAccounts.length > 1) {
@@ -99,7 +99,7 @@ async function signIn(method) {
     }
 
     const currentAccounts = myMSALObj.getAllAccounts();
-    if (currentAccounts === null) {
+    if (currentAccounts.length === 0) {
         // No user signed in
         return;
     } else if (currentAccounts.length > 1) {
