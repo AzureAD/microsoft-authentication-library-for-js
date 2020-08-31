@@ -18,6 +18,7 @@ import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { SsoSilentRequest } from "../../src/request/SsoSilentRequest";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -1021,7 +1022,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 })).rejectedWith(BrowserAuthError);
             });
 
-            it("opens popup window before network request by default", () => {
+            it("opens popup window before network request by default", async () => {
                 const request: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
 					scopes: ["scope"],
@@ -1036,11 +1037,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
                 
-                pca.acquireTokenPopup(request);
-                expect(popupSpy.calledWith()).to.be.true;
+                try {
+                    await pca.acquireTokenPopup(request);
+                } catch(e) {}
+                expect(popupSpy.getCall(0).args).to.be.length(0);
             });
 
-            it("opens popups asynchronously if configured", () => {
+            it("opens popups asynchronously if configured", async () => {
                 pca = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID
@@ -1064,8 +1067,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
                 
-                pca.acquireTokenPopup(request);
-                expect(popupSpy.calledWith()).to.be.false;
+                try {
+                    await pca.acquireTokenPopup(request);
+                } catch(e) {}
+                expect(popupSpy.calledOnce).to.be.true;
+                expect(popupSpy.getCall(0).args).to.be.length(1);
+                expect(popupSpy.getCall(0).args[0].startsWith(TEST_URIS.TEST_AUTH_ENDPT)).to.be.true;
+                expect(popupSpy.getCall(0).args[0]).to.include(`client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+                expect(popupSpy.getCall(0).args[0]).to.include(`redirect_uri=${encodeURIComponent(request.redirectUri)}`);
+                expect(popupSpy.getCall(0).args[0]).to.include(`login_hint=${encodeURIComponent(request.loginHint)}`);
             });
 
             it("resolves the response successfully", async () => {
@@ -1228,7 +1238,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const tokenResp = await pca.ssoSilent({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 loginHint: "testLoginHint"
             });
             expect(loadFrameSyncSpy.calledOnce).to.be.true;
