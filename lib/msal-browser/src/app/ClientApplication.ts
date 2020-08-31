@@ -104,6 +104,11 @@ export abstract class ClientApplication {
      * - if false, handles hash string and parses response
      */
     private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
+        if (!this.interactionInProgress()) {
+            this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
+            return null;
+        }
+
         const responseHash = this.getRedirectResponseHash();
         if (StringUtils.isEmpty(responseHash)) {
             // Not a recognized server response hash or hash not associated with a redirect request
