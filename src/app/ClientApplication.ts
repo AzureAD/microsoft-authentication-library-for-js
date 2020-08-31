@@ -166,7 +166,12 @@ export abstract class ClientApplication {
                 return null;
             } else {
                 BrowserUtils.clearHash();
-                return responseHash;
+                if (this.interactionInProgress()) {
+                    return responseHash;
+                } else {
+                    this.logger.info("Server response detected in the hash but there is no corresponding cached request, returning null. This can happen if request did not originate from MSAL or from this domain.");
+                    return null;
+                }
             }
         }
 
