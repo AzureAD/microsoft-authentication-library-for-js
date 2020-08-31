@@ -6,13 +6,9 @@ const express = require("express");
 const exphbs = require('express-handlebars');
 const { promises: fs } = require("fs");
 
-const graph = require('./graph');
-
-const graphConfig = {
-    graphMeEndpoint: 'https://graph.microsoft.com/v1.0/me'
-};
-
 const requestConfig = require('./requestConfig');
+
+const RESOURCE_API_PATH = './resourceApi';
 
 function configureExpressApp(app) {
     // Set handlebars view engine
@@ -20,11 +16,14 @@ function configureExpressApp(app) {
     app.set('view engine', '.hbs');
 }
 
-function handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache) {
+function handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache, authorityType) {
+    // Get authority-specific resource API
+    const resourceApi = require(RESOURCE_API_PATH)(authorityType);
+
     console.log("\nSuccessful silent token acquisition:\nResponse: \n:", authResponse);
     const username = authResponse.account.username;
     // Call graph after successfully acquiring token
-    graph.callMSGraph(graphConfig.graphMeEndpoint, authResponse.accessToken, (authResponse, endpoint) => {
+    resourceApi.call(authResponse.accessToken, (authResponse, endpoint) => {
         // Successful silent request
         templateParams = {
             ...templateParams,
@@ -36,7 +35,7 @@ function handleAuthorizationResponse(res, authResponse, templateParams, msalToke
     });
 }
 
-module.exports = function(app, clientApplication, msalTokenCache)  {
+module.exports = function(app, clientApplication, msalTokenCache, authorityType)  {
     configureExpressApp(app);
     /**
      * App Routes
@@ -94,7 +93,7 @@ module.exports = function(app, clientApplication, msalTokenCache)  {
         // Acquire Token Silently to be used in MS Graph call
         clientApplication.acquireTokenSilent(silentRequest)
             .then((authResponse) => {
-                return handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache);
+                return handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache, authorityType);
             })
             .catch((error) => {
                 console.log(error);

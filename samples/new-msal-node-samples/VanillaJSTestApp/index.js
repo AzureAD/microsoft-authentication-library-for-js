@@ -6,20 +6,24 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const argv = require('yargs')
-    .usage('Usage: $0 -sample [sample-name] -p [PORT] -a [authority-type]')
+    .usage('Usage: $0 -sample [sample-name] -p [PORT] -a [authority-type] --policy [B2C Policy]')
     .alias('s', 'sample')
     .alias('p', 'port')
     .alias('a', 'authority')
+    .alias('policy', 'policy')
     .describe('sample', '(Optional) Name of sample to run')
     .describe('port', '(Optional) Port Number - default is 30662')
     .describe('authority', '(Optional) Authority type (AAD, B2C, etc)')
+    .describe('policy', '(Optional) B2C policy')
     .strict()
     .argv;
 
 // Constants
 const DEFAULT_PORT = 3000;
 const DEFAULT_SAMPLE_NAME = 'auth-code';
-const DEFAULT_AUTHORITY_TYPE = 'AAD';
+const AAD_AUTHORITY_TYPE = 'AAD';
+const B2C_AUTHORITY_TYPE = 'B2C';
+const DEFAULT_B2C_POLICY= 'signUpSignIn';
 const APP_DIR = `${__dirname}/app`;
 const WEB_APP_TYPE = "web";
 const CLI_APP_TYPE = "cli";
@@ -58,7 +62,7 @@ function validateInputSample(sampleDirs, sampleName) {
 }
 
 // Validates that the input authority type exists for the selected sample
-function validateAuthorityType(authorityConfigDirs, sampleFilesPath, authorityType) {
+function validateAuthorityType(authorityConfigDirs, authorityType) {
     const isAuthorityType = authorityConfigDirs.includes(authorityType);
     if(authorityType && isAuthorityType) {
         console.log(`Running sample with valid authority type ${authorityType}`);
@@ -67,12 +71,33 @@ function validateAuthorityType(authorityConfigDirs, sampleFilesPath, authorityTy
         if (authorityType && !isAuthorityType) {
             console.warn(`WARNING: Authority Type ${authorityType} not found.\n`);
         }
-        console.log(`Running sample with default authority type: ${DEFAULT_AUTHORITY_TYPE}.\n`);
-        return DEFAULT_AUTHORITY_TYPE;
+        console.log(`Running sample with default authority type: ${AAD_AUTHORITY_TYPE}.\n`);
+        return AAD_AUTHORITY_TYPE;
     }
 }
 
-function initializeWebApp(sampleFilesPath, inputPort, clientApplication) {
+// Validates that the input B2C policy exists for the selected sample
+function validateB2CPolicy(authorityType, sampleFilesPath, policy) {
+    if (authorityType === B2C_AUTHORITY_TYPE) {
+        const policiesDir = `${sampleFilesPath}/${authorityType}/policies`;
+        const policyFileName = `${policy}.json`;
+        const policyExists = fs.readdirSync(policiesDir, { withFileTypes: true })
+                               .map(file => file.name)
+                               .includes(policyFileName);
+
+        if (policyExists) {
+            console.log(`Using B2C policy ${policy}`);
+            return policyFileName;
+        } else {
+            console.log(`WARNING: B2C policy ${policy} not found, using default policy ${DEFAULT_B2C_POLICY}`);
+            return `${DEFAULT_B2C_POLICY}.json`;
+        }
+    }
+
+    return null;
+}
+
+function initializeWebApp(sampleFilesPath, inputPort, clientApplication, authorityType) {
     // Initialize MSAL Token Cache
     const msalTokenCache = clientApplication.getTokenCache();
 
@@ -84,7 +109,7 @@ function initializeWebApp(sampleFilesPath, inputPort, clientApplication) {
         app.listen(port, () => console.log(`Msal Node Auth Code Sample app listening on port ${port}!`));
         // Load sample routes
         const sampleRoutes = require(`${sampleFilesPath}/routes`);
-        sampleRoutes(app, clientApplication, msalTokenCache);
+        sampleRoutes(app, clientApplication, msalTokenCache, authorityType);
     })
 }
 
@@ -92,16 +117,35 @@ function executeCliApp(sampleFilesPath, inputPort, clientApplication) {
     require(`${sampleFilesPath}/index`)(clientApplication);
 }
 
+function generateB2COptions(sampleFilesPath, b2cPolicy) {
+    if (b2cPolicy) {
+        const basePath = `${sampleFilesPath}/B2C`;
+        const authOptionsPath = `${basePath}/authOptions.json`;
+        const policyOptionsPath = `${basePath}/policies/${b2cPolicy}`;
+        const policyOptions = fs.readFileSync(policyOptionsPath);
+        fs.writeFileSync(authOptionsPath, policyOptions);
+    }
+}
+
 
 
 
 // Main script
+
+// Sample selection
 const sampleDirs = readSampleDirs();
 const sampleName = validateInputSample(sampleDirs, argv.sample);
 const sampleFilesPath = `${APP_DIR}/${sampleName}`;
 
+// Authority type selection
 const authorityConfigDirs = readAuthorityConfigDirs(sampleFilesPath);
-const authorityType = validateAuthorityType(authorityConfigDirs, sampleFilesPath, argv.a);
+const authorityType = validateAuthorityType(authorityConfigDirs, argv.a);
+
+// B2C policy selection
+const b2cPolicy = validateB2CPolicy(authorityType, sampleFilesPath, argv.policy);
+generateB2COptions(sampleFilesPath, b2cPolicy);
+
+// App type selection
 const sampleConfig = require(`${sampleFilesPath}/sampleConfig`);
 
 // Build client application
@@ -109,8 +153,8 @@ const clientApplication = require(`${sampleFilesPath}/clientApplication`)(author
 
 switch(sampleConfig.appType) {
     case WEB_APP_TYPE:
-        initializeWebApp(sampleFilesPath, argv.port, clientApplication);
-        break;git
+        initializeWebApp(sampleFilesPath, argv.port, clientApplication, authorityType);
+        break;
     case CLI_APP_TYPE:
         executeCliApp(sampleFilesPath, argv.port, clientApplication);
         break;
