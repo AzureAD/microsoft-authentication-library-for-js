@@ -105,7 +105,7 @@ export abstract class ClientApplication {
      */
     private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
         if (!this.interactionInProgress()) {
-            this.logger.info("Server response detected in the hash but there is no corresponding cached request, returning null.");
+            this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
             return null;
         }
 
