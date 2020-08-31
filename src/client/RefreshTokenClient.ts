@@ -14,12 +14,8 @@ import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
-import { NetworkManager } from '../network/NetworkManager';
-import { NetworkResponse } from "../network/ThrottlingManager";
 import { RequestThumbprint } from "../network/RequestThumbprint"
-import { RequestThumbprintValue } from "../network/RequestThumbprintValue";
 import { NetworkResponse } from "../network/NetworkManager";
-import { RequestThumbprint} from "../network/RequestThumbprint";
 
 
 /**
@@ -62,7 +58,7 @@ export class RefreshTokenClient extends BaseClient {
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
-        return this.networkManager.sendPostRequest(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
     }
 
     private createTokenRequestBody(request: RefreshTokenRequest): string {
