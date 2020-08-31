@@ -121,6 +121,8 @@ describe("UserAgentApplication.ts Class", function () {
     let cacheStorage: AuthCache;
     let accessTokenKey : AccessTokenKey;
     let accessTokenValue : AccessTokenValue;
+    let idTokenKey : AccessTokenKey;
+    let idToken: AccessTokenValue;
     let account : Account;
     let config: Configuration;
 
@@ -146,6 +148,20 @@ describe("UserAgentApplication.ts Class", function () {
             name: "Abe Lincoln",
             sid: "123451435",
             userName: "AbeLi@microsoft.com"
+        };
+
+        idTokenKey = {
+            authority: TEST_CONFIG.validAuthority,
+            clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
+            scopes: undefined,
+            homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
+        }
+
+        idToken = {
+            accessToken: null,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+            expiresIn: "150000000000000",
+            homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
         };
     };
 
@@ -1052,7 +1068,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
     });
 
-    describe("Cache Storage Unit Tests", function () {
+    describe.only("Cache Storage Unit Tests", function () {
 
         beforeEach(function () {
             cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
@@ -1082,6 +1098,8 @@ describe("UserAgentApplication.ts Class", function () {
             setUtilUnifiedCacheQPStubs(params);
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+            
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 expect(response.idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.be.deep.eq(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
@@ -1092,6 +1110,7 @@ describe("UserAgentApplication.ts Class", function () {
                 done();
             }).catch(function(err) {
                 // Won't happen
+                console.log(err);
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
         });
@@ -1109,6 +1128,7 @@ describe("UserAgentApplication.ts Class", function () {
             accessTokenKey.scopes = "S1 S2";
             accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen
@@ -1136,6 +1156,7 @@ describe("UserAgentApplication.ts Class", function () {
             accessTokenKey.scopes = "S2";
             accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            // cacheStorage.setItem(idTokenKey, idToken.rawIdToken);
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen
@@ -1171,6 +1192,7 @@ describe("UserAgentApplication.ts Class", function () {
             accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
             accessTokenValue.accessToken = "accessTokenAlternate";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            // cacheStorage.setItem(idTokenKey, idToken.rawIdToken);
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
@@ -1220,6 +1242,7 @@ describe("UserAgentApplication.ts Class", function () {
             accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
             accessTokenValue.accessToken = "accessTokenAlternate";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            // cacheStorage.setItem(idTokenKey, idToken.rawIdToken);
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
@@ -1268,6 +1291,7 @@ describe("UserAgentApplication.ts Class", function () {
             accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
             accessTokenValue.accessToken = "accessTokenAlternate";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            // cacheStorage.setItem(idTokenKey, idToken.rawIdToken);
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
@@ -1307,6 +1331,7 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenKey.scopes = "S1 S2";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            // cacheStorage.setItem(idTokenKey, idToken.rawIdToken);
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
@@ -1335,6 +1360,7 @@ describe("UserAgentApplication.ts Class", function () {
             const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            // cacheStorage.setItem(idTokenKey, idToken.rawIdToken);
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen - we are not testing response here
@@ -1372,6 +1398,7 @@ describe("UserAgentApplication.ts Class", function () {
             accessTokenValue.expiresIn = "1300";
             accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority + "/";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            // cacheStorage.setItem(idTokenKey, idToken.rawIdToken);
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen - we are not testing response here
@@ -1413,6 +1440,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            // cacheStorage.setItem(idTokenKey, idToken.rawIdToken);
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen - we are not testing response here
@@ -1450,6 +1478,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            // cacheStorage.setItem(idTokenKey, idToken.rawIdToken);
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen - we are not testing response here

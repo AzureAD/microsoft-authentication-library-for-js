@@ -46,6 +46,7 @@ import { Constants,
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
+import { server } from 'sinon';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -1357,27 +1358,24 @@ export class UserAgentApplication {
     private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): AuthResponse {
         this.logger.verbose("GetCachedToken has been called");
         const scopes = serverAuthenticationRequest.scopes;
-
+        const authority = (serverAuthenticationRequest.authority) ? serverAuthenticationRequest.authority : this.authority;
         // Id Token will be returned in every acquireTokenSilentCall regardless of response_type
-        const idTokenCacheObject = this.cacheStorage.getIdToken(this.clientId, account ? account.homeAccountIdentifier: null);
-        let idToken;
-
-        if(idTokenCacheObject) {
+        const idTokenCacheItem = this.cacheStorage.getIdToken(this.clientId, account ? account.homeAccountIdentifier : null, authority);
+        
+        if (idTokenCacheItem.value) {
             this.logger.verbose("Matching ID Token found in cache");
-            idToken = new IdToken(idTokenCacheObject.idToken);
+        } else {
+            this.logger.verbose("No matching ID Token found in cache");
         }
 
-        let authResponse: AuthResponse;
-        
+        let authResponse: AuthResponse = null;
+
+        const idTokenValue = idTokenCacheItem.value;
+        const idTokenObj = (idTokenValue) ? new IdToken(idTokenValue.idToken) : null;
         // Look in cache for access token in case of token or id_token token response_type
         if (serverAuthenticationRequest.responseType !== ResponseTypes.id_token) {
+            // If getCachedAccessToken returns null, ResponseUtils.setResponseIdToken will also return null
             authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
-            if(authResponse) {
-                authResponse = {...authResponse, idToken: idToken, idTokenClaims: idToken.claims }
-            } else {
-                // Return null if no cached access token is found for the request
-                return null;
-            }
         } else {
             // Build an ID Token only AuthResponse when response_type = id_token
             const aState = this.getAccountState(serverAuthenticationRequest.state);
@@ -1385,8 +1383,8 @@ export class UserAgentApplication {
                 uniqueId: "",
                 tenantId: "",
                 tokenType: ServerHashParamKeys.ID_TOKEN,
-                idToken: idToken,
-                idTokenClaims: idToken.claims,
+                idToken: null,
+                idTokenClaims: null,
                 accessToken: null,
                 scopes: scopes,
                 expiresOn: null,
@@ -1395,11 +1393,10 @@ export class UserAgentApplication {
                 fromCache: true
             };
 
-            ResponseUtils.setResponseIdToken(authResponse, idToken);
             this.logger.verbose("Response generated and token set");
         }
-
-        return authResponse;
+        
+        return (idTokenObj) ? ResponseUtils.setResponseIdToken(authResponse, idTokenObj) : authResponse;
     }
 
     private getCachedAccessToken(serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: string[]): AuthResponse {

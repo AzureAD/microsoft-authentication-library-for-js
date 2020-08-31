@@ -11,6 +11,8 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestUtils } from "../utils/RequestUtils";
 import { IdToken } from '../IdToken';
 import { AccessTokenValue } from './AccessTokenValue';
+import { AccessTokenKey } from './AccessTokenKey';
+import { Authority } from '../authority/Authority';
 
 /**
  * @hidden
@@ -209,28 +211,22 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
-     * Get idToken in the cache
-     * @param  
+     * Get idToken from the cache
      */
-    getIdToken(clientId: string, homeAccountIdentifier: string): AccessTokenValue {
-        const key = Object.keys(window[this.cacheLocation]).find((key) => {
-            const keyMatches = key.match(clientId) && key.match(homeAccountIdentifier);
-            return keyMatches;
-        });
-        let newAccessTokenCacheItem;
-        if (key) {
-            const value = this.getItem(key);
-            if (value) {
-                try {
-                    const parseIdTokenKey = JSON.parse(key);
-                    newAccessTokenCacheItem = new AccessTokenCacheItem(parseIdTokenKey, JSON.parse(value));
-                } catch (e) {
-                    throw ClientAuthError.createCacheParseError(key);
-                }
-            }
-        }
-        
-        return newAccessTokenCacheItem.value;
+    getIdToken(clientId: string, homeAccountIdentifier: string, authority: string): AccessTokenCacheItem {
+        const idTokenKey: AccessTokenKey = {
+            authority: authority,
+            clientId: clientId,
+            scopes: undefined,
+            homeAccountIdentifier: homeAccountIdentifier
+        };
+
+        const idTokenKeyString = JSON.stringify(idTokenKey);
+        const idToken = this.getItem(idTokenKeyString);
+        console.log(Object.keys(window[this.cacheLocation]).includes(idTokenKeyString));
+        const idTokenValue = JSON.parse(idToken) as AccessTokenValue;
+
+        return new AccessTokenCacheItem(idTokenKey, idTokenValue);
     }
 
     /**
