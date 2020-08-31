@@ -56,7 +56,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (this.config.system.brokerOptions.actAsBroker) {
             this.broker = new BrokerClientApplication(this.config);
         } else if (this.config.system.brokerOptions.allowBrokering) {
-            this.embeddedApp = new EmbeddedClientApplication(this.config.system.brokerOptions, this.logger, this.config.auth.clientId, version, this.browserStorage);
+            this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, version, this.browserStorage);
             this.logger.verbose("Acting as child");
             try {
                 this.embeddedApp.initiateHandshake();
@@ -90,7 +90,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Check for brokered request
-        if (this.embeddedApp && this.embeddedApp.brokeringEnabled) {
+        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
             return this.embeddedApp.sendRedirectRequest(request);
         }
         return super.acquireTokenRedirect(request);
@@ -118,7 +118,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        if (this.embeddedApp && this.embeddedApp.brokeringEnabled) {
+        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
             return this.embeddedApp.sendPopupRequest(request);
         }
         return super.acquireTokenPopup(request);

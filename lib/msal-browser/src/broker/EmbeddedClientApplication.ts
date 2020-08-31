@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { BrokerOptions } from "../config/Configuration";
-import { Logger, ClientAuthError, AuthenticationResult, CacheRecord, CacheManager, AccessTokenEntity, IdTokenEntity, AccountEntity } from "@azure/msal-common";
+import { Configuration } from "../config/Configuration";
+import { Logger, AuthenticationResult, CacheRecord, CacheManager, AccessTokenEntity, IdTokenEntity, AccountEntity } from "@azure/msal-common";
 import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
 import { PopupRequest } from "../request/PopupRequest";
@@ -17,29 +17,28 @@ import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
+const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
 /**
  * Embedded application in a broker scenario.
  */
 export class EmbeddedClientApplication {
-    private brokerOptions: BrokerOptions;
     private logger: Logger;
-    private clientId: string;
+    private config: Configuration;
     private version: string;
     private brokerOrigin: string;
     private browserStorage: BrowserStorage;
 
     private get trustedBrokersProvided(): boolean {
-        return this.brokerOptions.trustedBrokerDomains && this.brokerOptions.trustedBrokerDomains.length >= 1;
+        return this.config.system.brokerOptions.trustedBrokerDomains && this.config.system.brokerOptions.trustedBrokerDomains.length >= 1;
     };
-    public brokeringEnabled: boolean;
+    public brokerConnectionEstablished: boolean;
 
-    constructor(brokerOptions: BrokerOptions, logger: Logger, clientId: string, version: string, browserStorage: BrowserStorage) {
-        this.brokerOptions = brokerOptions;
+    constructor(configuration: Configuration, logger: Logger, version: string, browserStorage: BrowserStorage) {
+        this.config = configuration;
         this.logger = logger;
-        this.clientId = clientId;
         this.version = version;
         this.browserStorage = browserStorage;
-        this.brokeringEnabled = false;
+        this.brokerConnectionEstablished = false;
     }
 
     async initiateHandshake(): Promise<void> {
@@ -50,16 +49,16 @@ export class EmbeddedClientApplication {
         try {
             const response = await this.sendHandshakeRequest();
             this.brokerOrigin = response.brokerOrigin;
-            this.brokeringEnabled = true;
+            this.brokerConnectionEstablished = true;
         } catch (e) {
             this.logger.error(e);
-            this.brokeringEnabled = false;
+            this.brokerConnectionEstablished = false;
             throw e;
         }
     }
 
     private async preflightBrokerRequest(): Promise<void> {
-        if (!this.brokeringEnabled) {
+        if (!this.brokerConnectionEstablished) {
             this.logger.info("Attempting handshake...");
             try {
                 await this.initiateHandshake();
@@ -73,7 +72,7 @@ export class EmbeddedClientApplication {
     async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult> {
         await this.preflightBrokerRequest();
 
-        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.POPUP, 60000);
+        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.POPUP, DEFAULT_POPUP_MESSAGE_TIMEOUT);
         const brokerAuthResult = BrokerAuthResult.validate(brokerAuthResultMessage);
         if (brokerAuthResult.error) {
             throw brokerAuthResult.error;
@@ -97,12 +96,12 @@ export class EmbeddedClientApplication {
     async sendRedirectRequest(request: RedirectRequest): Promise<void> {
         await this.preflightBrokerRequest();
 
-        const message = await this.sendRequest(request, InteractionType.REDIRECT, 2000);
+        const message = await this.sendRequest(request, InteractionType.REDIRECT, DEFAULT_MESSAGE_TIMEOUT);
         BrokerRedirectResponse.validate(message);
     }
 
     private async sendRequest(request: PopupRequest|RedirectRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
-        const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request);
+        const brokerRequest = new BrokerAuthRequest(this.config.auth.clientId, interactionType, request);
 
         return this.messageBroker<MessageEvent>(brokerRequest, timeoutMs);
     }
@@ -112,11 +111,11 @@ export class EmbeddedClientApplication {
             const timeoutId = setTimeout(() => {
                 this.logger.warning("Broker handshake timed out");
                 reject(BrowserAuthError.createMessageBrokerTimeoutError());
-            }, 2000);
+            }, DEFAULT_MESSAGE_TIMEOUT);
 
             const onHandshakeResponse = (message: MessageEvent) => {
                 try {
-                    const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.brokerOptions.trustedBrokerDomains);
+                    const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.config.system.brokerOptions.trustedBrokerDomains);
                     if (brokerHandshakeResponse) {
                         clearTimeout(timeoutId);
                         this.logger.info(`Received handshake response: ${JSON.stringify(brokerHandshakeResponse)}`);
@@ -132,7 +131,7 @@ export class EmbeddedClientApplication {
 
             window.addEventListener("message", onHandshakeResponse);
 
-            const handshakeRequest = new BrokerHandshakeRequest(this.clientId, this.version);
+            const handshakeRequest = new BrokerHandshakeRequest(this.config.auth.clientId, this.version);
             this.logger.verbose(`Sending handshake request: ${handshakeRequest}`);
             // Message top frame window
             window.top.postMessage(handshakeRequest, "*");
