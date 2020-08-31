@@ -8,7 +8,7 @@ import { CryptoUtils } from "./utils/CryptoUtils";
 import { AuthenticationParameters } from "./AuthenticationParameters";
 import { StringDict } from "./MsalTypes";
 import { Account } from "./Account";
-import { SSOTypes, Constants, PromptState, libraryVersion } from "./utils/Constants";
+import { SSOTypes, Constants, PromptState, libraryVersion, ResponseTypes } from "./utils/Constants";
 import { StringUtils } from "./utils/StringUtils";
 import { ScopeSet } from "./ScopeSet";
 
@@ -59,7 +59,7 @@ export class ServerRequestParameters {
         this.nonce = CryptoUtils.createNewGuid();
 
         // set scope to clientId if null
-        this.scopes = scopes ? [ ...scopes] : [clientId];
+        this.scopes = scopes ? [ ...scopes] : Constants.oidcScopes;
         this.scopes = ScopeSet.trimScopes(this.scopes);
 
         // set state (already set at top level)
@@ -276,5 +276,30 @@ export class ServerRequestParameters {
      */
     static isSSOParam(request: AuthenticationParameters) {
         return request && (request.account || request.sid || request.loginHint);
+    }
+
+    /**
+     * Returns the correct response_type string attribute for an acquireToken request configuration
+     * @param accountsMatch boolean: Determines whether the account in the request matches the cached account
+     * @param scopes Array<string>: AuthenticationRequest scopes configuration
+     * @param loginScopesOnly boolean: True if the scopes array ONLY contains the clientId or any combination of OIDC scopes, without resource scopes
+     */
+    static determineResponseType(accountsMatch: boolean, scopes: Array<string>) {
+        // Supports getting an id_token by sending in clientId as only scope or OIDC scopes as only scopes
+        if (ScopeSet.onlyContainsOidcScopes(scopes)) {
+            return ResponseTypes.id_token;
+        }
+        // If accounts match, check if OIDC scopes are included, otherwise return id_token_token
+        return (accountsMatch) ? this.responseTypeForMatchingAccounts(scopes) : ResponseTypes.id_token_token;
+    }
+
+    /**
+     * Returns the correct response_type string attribute for an acquireToken request configuration that contains an
+     * account that matches the account in the MSAL cache.
+     * @param scopes Array<string>: AuthenticationRequest scopes configuration
+     */
+    private static responseTypeForMatchingAccounts(scopes: Array<string>): string {
+        // Opt-into also requesting an ID token by sending in 'openid', 'profile' or both along with resource scopes when login is not necessary.
+        return (ScopeSet.containsAnyOidcScopes(scopes)) ? ResponseTypes.id_token_token : ResponseTypes.token;
     }
 }
