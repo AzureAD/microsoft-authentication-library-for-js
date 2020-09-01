@@ -16,6 +16,7 @@ import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { CredentialType } from "../utils/Constants";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
+import { StringUtils } from "../utils/StringUtils";
 
 /**
  * OAuth2.0 client credential grant
@@ -122,6 +123,10 @@ export class ClientCredentialClient extends BaseClient {
             const clientAssertion = this.config.clientCredentials.clientAssertion;
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        }
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
         return parameterBuilder.createQueryString();

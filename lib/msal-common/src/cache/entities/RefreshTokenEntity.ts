@@ -8,11 +8,11 @@ import { CredentialType } from "../../utils/Constants";
 
 /**
  * REFRESH_TOKEN Cache
- * 
+ *
  * Key:Value Schema:
- * 
+ *
  * Key Example: uid.utid-login.microsoftonline.com-refreshtoken-clientId--
- * 
+ *
  * Value:
  * {
  *      homeAccountId: home account identifier for the auth scheme,
@@ -54,5 +54,21 @@ export class RefreshTokenEntity extends CredentialEntity {
             rtEntity.familyId = familyId;
 
         return rtEntity;
+    }
+
+    /**
+     * Validates an entity: checks for all expected params
+     * @param entity
+     */
+    static isRefreshTokenEntity(entity: object): boolean {
+
+        return (
+            entity.hasOwnProperty("homeAccountId") &&
+            entity.hasOwnProperty("environment") &&
+            entity.hasOwnProperty("credentialType") &&
+            entity.hasOwnProperty("clientId") &&
+            entity.hasOwnProperty("secret") &&
+            entity["credentialType"] === CredentialType.REFRESH_TOKEN
+        );
     }
 }

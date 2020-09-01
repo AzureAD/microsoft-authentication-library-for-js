@@ -35,7 +35,8 @@ describe('ConfidentialClientApplication', () => {
             clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: authority,
             knownAuthorities: [],
-            cloudDiscoveryMetadata: ""
+            cloudDiscoveryMetadata: "",
+            clientCapabilities: []
         },
         clientCredentials: {
             clientSecret: TEST_CONSTANTS.CLIENT_SECRET

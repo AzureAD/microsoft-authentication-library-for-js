@@ -68,11 +68,18 @@ When a login call has succeeded, you can use the `getAllAccounts()` function to 
 const myAccounts: AccountInfo[] = msalInstance.getAllAccounts();
 ```
 
-If you know the username of the account, you can also retrieve the account information by using the the `getAccountByUsername()` API:
+If you know the account information, you can also retrieve the account information by using the `getAccountByUsername()` or `getAccountByHomeId()` APIs:
 ```javascript
 const username = "test@contoso.com";
 const myAccount: AccountInfo = msalInstance.getAccountByUsername(username);
+
+const homeAccountId = "userid.hometenantid"; // Best to retrieve the homeAccountId from an account object previously obtained through msal
+const myAccount: AccountInfo = maslInstance.getAccountByHomeId(homeAccountId);
 ```
+
+**Note:** `getAccountByUsername()` is provided for convenience and should be considered less reliable than `getAccountByHomeId()`. When possible use `getAccountByHomeId()`.
+
+In B2C scenarios your B2C tenant will need to be configured to return the `emails` claim on `idTokens` in order to use the `getAccountByUsername()` API.
 
 These APIs will return an account object or an array of account objects with the following signature:
 ```javascript

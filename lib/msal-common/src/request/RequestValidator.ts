@@ -40,6 +40,14 @@ export class RequestValidator {
         }
     }
 
+    static validateClaims(claims: string) : void {
+        try {
+            JSON.parse(claims);
+        } catch(e) {
+            throw ClientConfigurationError.createInvalidClaimsRequestError();
+        }
+    }
+
     /**
      * Utility to validate code_challenge and code_challenge_method
      * @param codeChallenge
