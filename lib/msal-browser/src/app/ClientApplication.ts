@@ -17,6 +17,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../../package.json";
 
 export abstract class ClientApplication {
@@ -103,6 +104,11 @@ export abstract class ClientApplication {
      * - if false, handles hash string and parses response
      */
     private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
+        if (!this.interactionInProgress()) {
+            this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
+            return null;
+        }
+
         const responseHash = this.getRedirectResponseHash();
         if (StringUtils.isEmpty(responseHash)) {
             // Not a recognized server response hash or hash not associated with a redirect request
@@ -312,7 +318,7 @@ export abstract class ClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -641,7 +647,7 @@ export abstract class ClientApplication {
      * Generates a request that will contain the openid and profile scopes.
      * @param request 
      */
-    protected setDefaultScopes(request: BaseAuthRequest): BaseAuthRequest {
+    protected setDefaultScopes(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest): AuthorizationUrlRequest {
         return {
             ...request,
             scopes: [...((request && request.scopes) || []), ...DEFAULT_REQUEST.scopes]
@@ -652,9 +658,10 @@ export abstract class ClientApplication {
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+    protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         let validatedRequest: AuthorizationUrlRequest = {
-            ...request
+            ...request,
+            ...this.setDefaultScopes(request)
         };
 
         validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
@@ -696,8 +703,7 @@ export abstract class ClientApplication {
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
         return {
-            ...validatedRequest,
-            ...this.setDefaultScopes(validatedRequest)
+            ...validatedRequest
         };
     }
 
