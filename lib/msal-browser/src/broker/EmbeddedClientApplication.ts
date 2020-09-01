@@ -15,6 +15,7 @@ import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
 import { BrokerAuthResult } from "./BrokerAuthResult";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { SilentRequest } from "../request/SilentRequest";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
@@ -73,24 +74,7 @@ export class EmbeddedClientApplication {
         await this.preflightBrokerRequest();
 
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.POPUP, DEFAULT_POPUP_MESSAGE_TIMEOUT);
-        const brokerAuthResult = BrokerAuthResult.validate(brokerAuthResultMessage);
-        if (brokerAuthResult.error) {
-            throw brokerAuthResult.error;
-        }
-        const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-        const idTokenEntity: IdTokenEntity = new IdTokenEntity();
-        const accountEntity: AccountEntity = new AccountEntity();
-        const cacheRecord: CacheRecord = {
-            accessToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.accessToken, accessTokenEntity) as AccessTokenEntity,
-            idToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.idToken, idTokenEntity) as IdTokenEntity,
-            account: CacheManager.toObject(brokerAuthResult.result.tokensToCache.account, accountEntity) as AccountEntity,
-            refreshToken: null
-        };
-        this.browserStorage.saveCacheRecord(cacheRecord);
-        delete brokerAuthResult.result.tokensToCache;
-        return {
-            ...brokerAuthResult.result
-        };
+        return BrokerAuthResult.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
     }
 
     async sendRedirectRequest(request: RedirectRequest): Promise<void> {
@@ -98,6 +82,13 @@ export class EmbeddedClientApplication {
 
         const message = await this.sendRequest(request, InteractionType.REDIRECT, DEFAULT_MESSAGE_TIMEOUT);
         BrokerRedirectResponse.validate(message);
+    }
+
+    async sendSilentRefreshRequest(request: SilentRequest): Promise<AuthenticationResult> {
+        await this.preflightBrokerRequest();
+
+        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.SILENT, DEFAULT_MESSAGE_TIMEOUT);
+        return BrokerAuthResult.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
     }
 
     private async sendRequest(request: PopupRequest|RedirectRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {

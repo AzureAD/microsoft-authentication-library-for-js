@@ -1,6 +1,8 @@
 import { BrokerMessage } from "./BrokerMessage";
-import { BrokerAuthenticationResult } from "@azure/msal-common";
+import { BrokerAuthenticationResult, AccessTokenEntity, IdTokenEntity, AccountEntity, CacheManager, AuthenticationResult } from "@azure/msal-common";
 import { InteractionType, BrokerMessageType } from "../utils/BrowserConstants";
+import { CacheRecord } from "@azure/msal-common/dist/src/cache/entities/CacheRecord";
+import { BrowserStorage } from "../cache/BrowserStorage";
 
 export class BrokerAuthResult extends BrokerMessage {
     public interactionType: InteractionType;
@@ -26,5 +28,26 @@ export class BrokerAuthResult extends BrokerMessage {
         }
 
         return null;
+    }
+
+    static processBrokerResponse(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserStorage): AuthenticationResult {
+        const brokerAuthResult = BrokerAuthResult.validate(brokerAuthResultMessage);
+        if (brokerAuthResult.error) {
+            throw brokerAuthResult.error;
+        }
+        const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
+        const idTokenEntity: IdTokenEntity = new IdTokenEntity();
+        const accountEntity: AccountEntity = new AccountEntity();
+        const cacheRecord: CacheRecord = {
+            accessToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.accessToken, accessTokenEntity) as AccessTokenEntity,
+            idToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.idToken, idTokenEntity) as IdTokenEntity,
+            account: CacheManager.toObject(brokerAuthResult.result.tokensToCache.account, accountEntity) as AccountEntity,
+            refreshToken: null
+        };
+        browserStorage.saveCacheRecord(cacheRecord);
+        delete brokerAuthResult.result.tokensToCache;
+        return {
+            ...brokerAuthResult.result
+        };
     }
 }

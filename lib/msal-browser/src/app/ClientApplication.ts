@@ -373,50 +373,25 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+    protected async refreshToken(request: SilentRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
-        let serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
         try {
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await silentAuthClient.acquireToken(silentRequest);
+            return await silentAuthClient.refreshToken(silentRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
-                    ...silentRequest,
-                    redirectUri: request.redirectUri,
-                    prompt: PromptValue.NONE
-                }, InteractionType.SILENT);
-                serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_authCode, silentAuthUrlRequest.correlationId);
-
-                try {
-                    // Create auth code request and generate PKCE params
-                    const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
-
-                    // Initialize the client
-                    const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentAuthUrlRequest.authority);
-
-                    // Create authorize request url
-                    const navigateUrl = await authClient.getAuthCodeUrl(silentAuthUrlRequest);
-
-                    // Get scopeString for iframe ID
-                    const scopeString = silentAuthUrlRequest.scopes ? silentAuthUrlRequest.scopes.join(" ") : "";
-
-                    return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
-                } catch (e) {
-                    serverTelemetryManager.cacheFailedRequest(e);
-                    this.browserStorage.cleanRequest();
-                    throw e;
-                }
+                return await this.ssoSilent(request);
             }
 
             throw e;

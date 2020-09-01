@@ -15,6 +15,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { BrokerAuthResult } from "./BrokerAuthResult";
 import { ClientApplication } from "../app/ClientApplication";
 import { PopupRequest } from "../request/PopupRequest";
+import { SilentRequest } from "../request/SilentRequest";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -83,6 +84,8 @@ export class BrokerClientApplication extends ClientApplication {
                     return this.brokeredRedirectRequest(validMessage, clientMessage.ports[0]);
                 case InteractionType.POPUP:
                     return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
+                case InteractionType.SILENT:
+                    return this.brokeredSilentRequest(validMessage, clientMessage.ports[0]);
                 default:
                     return;
             }
@@ -107,6 +110,19 @@ export class BrokerClientApplication extends ClientApplication {
             clientPort.postMessage(brokerAuthResponse);
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResult(InteractionType.POPUP, null, err);
+            this.logger.info(`Found auth error: ${err}`);
+            clientPort.postMessage(brokerAuthResponse);
+        }
+    }
+
+    private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
+        try {
+            const response: BrokerAuthenticationResult = (await this.refreshToken(validMessage.request as SilentRequest)) as BrokerAuthenticationResult;
+            const brokerAuthResponse: BrokerAuthResult = new BrokerAuthResult(InteractionType.SILENT, response);
+            this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+            clientPort.postMessage(brokerAuthResponse);
+        } catch (err) {
+            const brokerAuthResponse = new BrokerAuthResult(InteractionType.SILENT, null, err);
             this.logger.info(`Found auth error: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
         }
