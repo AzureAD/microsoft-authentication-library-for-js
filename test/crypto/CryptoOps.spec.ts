@@ -1,14 +1,24 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import crypto from "crypto";
 import { PkceCodes } from "@azure/msal-common";
+import { TEST_URIS } from "../utils/StringConstants";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
+    let dbStorage = {};
     beforeEach(() => {
+        sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+            dbStorage = {};
+        });
+
+        sinon.stub(DatabaseStorage.prototype, "put").callsFake(async (key: string, payload: CachedKeyPair): Promise<void> => {
+            dbStorage[key] = payload;
+        });
         cryptoObj = new CryptoOps();
     });
 
@@ -82,7 +92,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
         const generateKeyPairSpy = sinon.spy(BrowserCrypto.prototype, "generateKeyPair");
         const exportJwkSpy = sinon.spy(BrowserCrypto.prototype, "exportJwk");
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint();
+        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint("POST", TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS);
         /**
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
