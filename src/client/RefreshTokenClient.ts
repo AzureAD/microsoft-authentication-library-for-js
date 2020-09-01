@@ -14,9 +14,8 @@ import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
-import { RequestThumbprint } from "../network/RequestThumbprint"
+import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
-
 
 /**
  * OAuth2.0 refresh token client
@@ -48,15 +47,13 @@ export class RefreshTokenClient extends BaseClient {
 
     private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-
+        const requestBody = this.createTokenRequestBody(request);
+        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes
         };
-
-        const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
     }

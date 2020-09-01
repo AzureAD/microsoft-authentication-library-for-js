@@ -7,12 +7,12 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { ThrottlingUtils } from "../../src/network/ThrottlingUtils";
 import { RequestThumbprint } from "../../src/network/RequestThumbprint";
-import { RequestThumbprintValue } from "../../src/network/RequestThumbprintValue";
+import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity";
 import { NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { MockStorageClass }  from "../client/ClientTestUtils";
 import { ServerError } from "../../src";
-import { THUMBPRINT, THUMBPRINT_VALUE, TEST_CONFIG } from "../utils/StringConstants";
+import { THUMBPRINT, THROTTLING_ENTITY, TEST_CONFIG } from "../utils/StringConstants";
 
 describe("ThrottlingUtils", () => {
     describe("generateThrottlingStorageKey", () => {
@@ -21,7 +21,7 @@ describe("ThrottlingUtils", () => {
             const jsonString = JSON.stringify(thumbprint);
             const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
 
-            expect(key).to.deep.eq(`throttle.${jsonString}`);
+            expect(key).to.deep.eq(`throttling.${jsonString}`);
         });
     });
 
@@ -32,7 +32,7 @@ describe("ThrottlingUtils", () => {
 
         it("checks the cache and throws an error", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
-            const thumbprintValue: RequestThumbprintValue = THUMBPRINT_VALUE;
+            const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getItem").callsFake(() => thumbprintValue);
@@ -48,7 +48,7 @@ describe("ThrottlingUtils", () => {
 
         it("checks the cache and removes an item", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
-            const thumbprintValue: RequestThumbprintValue = THUMBPRINT_VALUE;
+            const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getItem").callsFake(() => thumbprintValue);
@@ -81,7 +81,7 @@ describe("ThrottlingUtils", () => {
         it("sets an item in the cache", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: new Map<string, string>(),
+                headers: { },
                 body: { },
                 status: 429
             };
@@ -95,7 +95,7 @@ describe("ThrottlingUtils", () => {
         it("does not set an item in the cache", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: new Map<string, string>(),
+                headers: { },
                 body: { },
                 status: 200
             };
@@ -110,7 +110,7 @@ describe("ThrottlingUtils", () => {
     describe("checkResponseStatus", () => {
         it("returns true if status == 429", () => {
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: new Map<string, string>(),
+                headers: { },
                 body: { },
                 status: 429
             };
@@ -121,7 +121,7 @@ describe("ThrottlingUtils", () => {
 
         it("returns true if 500 <= status < 600", () => {
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: new Map<string, string>(),
+                headers: { },
                 body: { },
                 status: 500
             };
@@ -132,7 +132,7 @@ describe("ThrottlingUtils", () => {
 
         it("returns false if status is not 429 or between 500 and 600", () => {
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: new Map<string, string>(),
+                headers: { },
                 body: { },
                 status: 430
             };
@@ -144,8 +144,8 @@ describe("ThrottlingUtils", () => {
 
     describe("checkResponseForRetryAfter", () => {
         it("returns true when Retry-After header exists and when status <= 200", () => {
-            const headers = new Map<string, string>();
-            headers.set("Retry-After", "test");
+            const headers: Record<string, string> = { };
+            headers["Retry-After"] = "test";
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
                 body: { },
@@ -157,8 +157,8 @@ describe("ThrottlingUtils", () => {
         });
 
         it("returns true when Retry-After header exists and when status > 300", () => {
-            const headers = new Map<string, string>();
-            headers.set("Retry-After", "test");
+            const headers: Record<string, string> = { };
+            headers["Retry-After"] = "test";
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
                 body: { },
@@ -170,7 +170,7 @@ describe("ThrottlingUtils", () => {
         });
 
         it("returns false when there is no RetryAfter header", () => {
-            const headers = new Map<string, string>();
+            const headers: Record<string, string> = { };
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
                 body: { },
@@ -182,7 +182,7 @@ describe("ThrottlingUtils", () => {
         });
 
         it("returns false when 200 <= status < 300", () => {
-            const headers = new Map<string, string>();
+            const headers: Record<string, string> = { };
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
                 body: { },

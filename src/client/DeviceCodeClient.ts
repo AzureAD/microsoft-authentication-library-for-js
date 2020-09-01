@@ -16,7 +16,7 @@ import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
-import { RequestThumbprint } from '../network/RequestThumbprint';
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * OAuth2.0 Device code client
@@ -62,15 +62,13 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
-
+        const queryString = this.createQueryString(request);
+        const headers = this.createDefaultLibraryHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
             scopes: request.scopes
         };
-
-        const queryString = this.createQueryString(request);
-        const headers = this.createDefaultLibraryHeaders();
 
         return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers, thumbprint);
     }

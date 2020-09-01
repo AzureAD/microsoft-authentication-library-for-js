@@ -244,7 +244,7 @@ export enum CacheSchemaType {
     TEMPORARY = "TempCache",
     TELEMETRY = "Telemetry",
     UNDEFINED = "Undefined",
-    THROTTLE = "Throttle"
+    THROTTLING = "Throttling"
 }
 
 /**
@@ -279,11 +279,11 @@ export const SERVER_TELEM_CONSTANTS = {
 /**
  * Constants related to throttling
  */
-export const ThrottleConstants = {
+export const ThrottlingConstants = {
     // Default time to throttle RequestThumbprint in seconds
     DEFAULT_THROTTLE_TIME_SECONDS: 60,
     // Default maximum time to throttle in seconds, overrides what the server sends back
     DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600,
     // Prefix for storing throttling entries
-    THROTTLE_PREFIX: "throttle"
+    THROTTLING_PREFIX: "throttling"
 };

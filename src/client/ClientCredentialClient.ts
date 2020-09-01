@@ -17,6 +17,7 @@ import { CredentialType } from "../utils/Constants";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * OAuth2.0 client credential grant
@@ -81,8 +82,13 @@ export class ClientCredentialClient extends BaseClient {
 
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: request.authority,
+            scopes: request.scopes
+        };
 
-        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
+        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,

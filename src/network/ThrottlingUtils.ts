@@ -5,11 +5,11 @@
 
 import { NetworkResponse } from "./NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { HeaderNames, CacheSchemaType, ThrottleConstants } from "../utils/Constants";
+import { HeaderNames, CacheSchemaType, ThrottlingConstants } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerError } from "../error/ServerError";
 import { RequestThumbprint } from "./RequestThumbprint";
-import { RequestThumbprintValue } from "./RequestThumbprintValue";
+import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity";
 
 export class ThrottlingUtils {
 
@@ -18,7 +18,7 @@ export class ThrottlingUtils {
      * @param thumbprint
      */
     static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string {
-        return `${ThrottleConstants.THROTTLE_PREFIX}.${JSON.stringify(thumbprint)}`;
+        return `${ThrottlingConstants.THROTTLING_PREFIX}.${JSON.stringify(thumbprint)}`;
     }
 
     /**
@@ -28,12 +28,11 @@ export class ThrottlingUtils {
      */
     static preProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
-        const value = cacheManager.getItem(key, CacheSchemaType.THROTTLE) as RequestThumbprintValue;
-        // console.log("VALUE:", value);
+        const value = cacheManager.getItem(key, CacheSchemaType.THROTTLING) as ThrottlingEntity;
 
         if (value) {
             if (value.throttleTime < Date.now()) {
-                cacheManager.removeItem(key, CacheSchemaType.THROTTLE);
+                cacheManager.removeItem(key, CacheSchemaType.THROTTLING);
                 return;
             }
             throw new ServerError(value.errorCodes.join(" "), value.errorMessage, value.subError);
@@ -48,8 +47,8 @@ export class ThrottlingUtils {
      */    
     static postProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint, response: NetworkResponse<ServerAuthorizationTokenResponse>): void {
         if (ThrottlingUtils.checkResponseStatus(response) || ThrottlingUtils.checkResponseForRetryAfter(response)) {
-            const thumbprintValue: RequestThumbprintValue = {
-                throttleTime: ThrottlingUtils.calculateThrottleTime(parseInt(response.headers.get(HeaderNames.RETRY_AFTER))),
+            const thumbprintValue: ThrottlingEntity = {
+                throttleTime: ThrottlingUtils.calculateThrottleTime(parseInt(response.headers[HeaderNames.RETRY_AFTER])),
                 error: response.body.error,
                 errorCodes: response.body.error_codes,
                 errorMessage: response.body.error_description,
@@ -58,7 +57,7 @@ export class ThrottlingUtils {
             cacheManager.setItem(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
                 thumbprintValue,
-                CacheSchemaType.THROTTLE
+                CacheSchemaType.THROTTLING
             );
         }
     }
@@ -77,7 +76,7 @@ export class ThrottlingUtils {
      */
     static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
         if (response.headers) {
-            return response.headers.has(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300);
+            return response.headers.hasOwnProperty(HeaderNames.RETRY_AFTER) && (response.status < 200 || response.status >= 300);
         }
         return false;
     }
@@ -92,8 +91,8 @@ export class ThrottlingUtils {
         }
         const currentSeconds = Date.now() / 1000;
         return Math.floor(Math.min(
-            currentSeconds + (throttleTime || ThrottleConstants.DEFAULT_THROTTLE_TIME_SECONDS),
-            currentSeconds + ThrottleConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
+            currentSeconds + (throttleTime || ThrottlingConstants.DEFAULT_THROTTLE_TIME_SECONDS),
+            currentSeconds + ThrottlingConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
         ) * 1000);
     }
 
@@ -106,6 +105,6 @@ export class ThrottlingUtils {
         };
 
         const key = this.generateThrottlingStorageKey(thumbprint);
-        return cacheManager.removeItem(key, CacheSchemaType.THROTTLE);
+        return cacheManager.removeItem(key, CacheSchemaType.THROTTLING);
     }
 }
