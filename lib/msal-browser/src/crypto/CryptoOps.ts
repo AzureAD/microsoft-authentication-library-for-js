@@ -12,7 +12,7 @@ import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 
-type CachedKeyPair = {
+export type CachedKeyPair = {
     publicKey: CryptoKey,
     privateKey: CryptoKey,
     requestMethod: string,

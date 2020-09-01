@@ -17,12 +17,15 @@ import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
         cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
         storeAuthStateInCookie: false
     };
+
+    let dbStorage = {};
 
     let pca: PublicClientApplication;
     beforeEach(() => {
@@ -34,7 +37,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         };
         sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
         sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
-
+        sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+            dbStorage = {};
+        });
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID

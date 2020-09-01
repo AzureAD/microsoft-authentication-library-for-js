@@ -8,6 +8,7 @@ import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } f
 import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 class TestCacheStorage extends CacheManager {
     setItem(key: string, value: string): void {
@@ -422,6 +423,10 @@ describe("BrowserStorage() tests", () => {
 		});
 
 		it("Successfully retrieves and decodes response from cache", async () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
 			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 			const cryptoObj = new CryptoOps();
             const tokenRequest: AuthorizationCodeRequest = {
@@ -437,11 +442,15 @@ describe("BrowserStorage() tests", () => {
 
 			const cachedRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj);
 			expect(cachedRequest).to.be.deep.eq(tokenRequest);
-
+            sinon.restore();
 			// expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
 		});
 
 		it("Throws error if request cannot be retrieved from cache", async () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
 			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 			const cryptoObj = new CryptoOps();
             const tokenRequest: AuthorizationCodeRequest = {
@@ -452,13 +461,17 @@ describe("BrowserStorage() tests", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: `${RANDOM_TEST_GUID}`
 			};
-
+            sinon.restore();
 			// browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
 			expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
 		});
 
 		it("Throws error if cached request cannot be parsed correctly", async () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
 			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 			const cryptoObj = new CryptoOps();
 			const tokenRequest: AuthorizationCodeRequest = {
@@ -471,10 +484,15 @@ describe("BrowserStorage() tests", () => {
 			};
 			const stringifiedRequest = JSON.stringify(tokenRequest);
 			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), stringifiedRequest.substring(0, stringifiedRequest.length / 2), CacheSchemaType.TEMPORARY);
-			expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+            expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+            sinon.restore();
 		});
 
 		it("Uses authority from cache if not present in cached request", async () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
 			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
 			// Set up cache
 			const browserCrypto = new CryptoOps();
@@ -494,7 +512,8 @@ describe("BrowserStorage() tests", () => {
 
 			// Perform test
 			const tokenRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, browserCrypto);
-			expect(tokenRequest.authority).to.be.eq(alternateAuthority);
+            expect(tokenRequest.authority).to.be.eq(alternateAuthority);
+            sinon.restore();
 		});
 	});
 });
