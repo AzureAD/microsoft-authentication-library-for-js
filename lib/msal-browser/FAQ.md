@@ -174,4 +174,4 @@ To enable this claim open up your User Flow configuration in the Azure Portal. C
 
 When you log out of a B2C application by calling MSAL's `logout()` API, MSAL.js will first clear browser storage of your user's tokens then redirect you to the Azure B2C logout endpoint. The B2C service will then close your session but may not log you out of your federated IDP. This happens because the service does not make any assumptions about other apps you may want to log out of. What this means in practice is that when a user attempts to login again the B2C service will prompt the user to select which Social IDP they would like to sign in with. When the user makes their selection, they may be signed back in without interaction.
 
-You can read more about this behavior [here](https://docs.microsoft.com/en-us/azure/active-directory-b2c/session-overview#sign-out)
+You can read more about this behavior [here](https://docs.microsoft.com/azure/active-directory-b2c/session-overview#sign-out)
