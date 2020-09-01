@@ -2,6 +2,21 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 25 Aug 2020 00:40:45 GMT",
+      "tag": "@azure/msal-angular_v1.1.0",
+      "version": "1.1.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Update protectedResources with wildcard, remove unprotectedResources from msal-angular (#2029)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "1485f29f10687f05aca3d8cbe8185de47e08a40a",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 Aug 2020 02:20:48 GMT",
       "tag": "@azure/msal-angular_v1.0.0",
       "version": "1.0.0",

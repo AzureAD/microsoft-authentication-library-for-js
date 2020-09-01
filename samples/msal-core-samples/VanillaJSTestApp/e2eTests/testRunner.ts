@@ -42,6 +42,7 @@ function createMochaObject(sampleName: string) {
 }
 
 // Recursive test runner for each sample
+let didFail: boolean = false;
 function runMochaTests(sampleIndex: number) {
     //initialize express.
     const app = express();
@@ -72,10 +73,13 @@ function runMochaTests(sampleIndex: number) {
           // exit with non-zero status if there were failures
         server.close();
         sampleIndex++;
+        if (failures) {
+            didFail = true;
+        }
         if (sampleIndex < sampleFolders.length) {
             runMochaTests(sampleIndex);
         }
-        process.exitCode = failures ? 1 : 0;
+        process.exitCode = didFail ? 1 : 0;
     });
 }
 

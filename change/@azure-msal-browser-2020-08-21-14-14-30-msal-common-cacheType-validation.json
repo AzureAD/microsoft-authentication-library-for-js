@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "update APP_META_DATA to APP_METADATA",
-  "packageName": "@azure/msal-browser",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-21T21:13:27.893Z"
-}

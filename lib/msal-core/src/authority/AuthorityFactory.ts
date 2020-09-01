@@ -11,8 +11,6 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ITenantDiscoveryResponse, OpenIdConfiguration } from "./ITenantDiscoveryResponse";
 import TelemetryManager from "../telemetry/TelemetryManager";
-import { Constants } from "../utils/Constants";
-import { UrlUtils } from "../utils/UrlUtils";
 
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
@@ -62,16 +60,5 @@ export class AuthorityFactory {
         }
 
         return new Authority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
-    }
-
-    public static isAdfs(authorityUrl: string): boolean {
-        const components = UrlUtils.GetUrlComponents(authorityUrl);
-        const pathSegments = components.PathSegments;
-
-        if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
-            return true;
-        }
-
-        return false;
     }
 }

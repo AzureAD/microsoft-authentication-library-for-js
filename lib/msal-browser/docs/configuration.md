@@ -17,7 +17,8 @@ const msalConfig = {
         cloudDiscoveryMetadata: "",
         redirectUri: "enter_redirect_uri_here",
         postLogoutRedirectUri: "enter_postlogout_uri_here",
-        navigateToLoginRequestUrl: true
+        navigateToLoginRequestUrl: true,
+        clientCapabilities: ["CP1"]
     },
     cache: {
         cacheLocation: "sessionStorage",
@@ -68,6 +69,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `redirectUri` | URI where the authorization code response is sent back to. Whatever location is specified here must have the MSAL library available to handle the response. | String in URI format | Login request page (`window.location.href` of page which made auth request) |
 | `postLogoutRedirectUri` | URI that is redirected to after a logout() call is made. | String in URI format | Login request page (`window.location.href` of page which made auth request) |
 | `navigateToLoginRequestUrl` | If `true`, will navigate back to the original request location before processing the authorization code response. If the `redirectUri` is the same as the original request location, this flag should be set to false. | boolean | `true` |
+| `clientCapabilities` | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request | Array of strings | [] |
 
 ### Cache Config Options
 | Option | Description | Format | Default Value |
