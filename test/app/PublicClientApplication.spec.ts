@@ -18,6 +18,7 @@ import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { SsoSilentRequest } from "../../src/request/SsoSilentRequest";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -58,7 +59,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             done();
         });
 
+        it("handleRedirectPromise returns null if interaction is not in progress", async () => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(false);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            expect(await pca.handleRedirectPromise()).to.be.null;
+        });
+
         it("navigates and caches hash if navigateToLoginRequestUri is true and interaction type is redirect", (done) => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
@@ -71,6 +80,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("navigates to root and caches hash if navigateToLoginRequestUri is true", (done) => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
@@ -83,6 +93,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("navigates to root and caches hash if navigateToLoginRequestUri is true and loginRequestUrl is 'null'", (done) => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, "null");
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, noHistory?: boolean) => {
@@ -96,6 +107,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string", (done) => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "?testQueryString=1";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -109,6 +121,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string and hash", (done) => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "?testQueryString=1#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -122,6 +135,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash", (done) => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -134,6 +148,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("processes hash if navigateToLoginRequestUri is true and loginRequestUrl contains trailing slash", (done) => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href.endsWith('/') ? window.location.href.slice(0, -1) : window.location.href + "/";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -151,6 +166,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     navigateToLoginRequestUrl: false
                 }
             });
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -1004,6 +1020,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             afterEach(() => {
+                window.localStorage.clear();
+                window.sessionStorage.clear();
                 sinon.restore();
             });
 
@@ -1019,7 +1037,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 })).rejectedWith(BrowserAuthError);
             });
 
-            it("opens popup window before network request by default", () => {
+            it("opens popup window before network request by default", async () => {
                 const request: AuthorizationUrlRequest = {
 					redirectUri: TEST_URIS.TEST_REDIR_URI,
 					scopes: ["scope"],
@@ -1034,12 +1052,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
                 
-                pca.acquireTokenPopup(request);
-                expect(popupSpy.calledWith()).to.be.true;
+                try {
+                    await pca.acquireTokenPopup(request);
+                } catch(e) {}
+                expect(popupSpy.getCall(0).args).to.be.length(0);
             });
 
-            it("opens popups asynchronously if configured", () => {
+            it("opens popups asynchronously if configured", async () => {
                 pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    },
                     system: {
                         asyncPopups: true
                     }
@@ -1059,8 +1082,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
                 
-                pca.acquireTokenPopup(request);
-                expect(popupSpy.calledWith()).to.be.false;
+                try {
+                    await pca.acquireTokenPopup(request);
+                } catch(e) {}
+                expect(popupSpy.calledOnce).to.be.true;
+                expect(popupSpy.getCall(0).args).to.be.length(1);
+                expect(popupSpy.getCall(0).args[0].startsWith(TEST_URIS.TEST_AUTH_ENDPT)).to.be.true;
+                expect(popupSpy.getCall(0).args[0]).to.include(`client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+                expect(popupSpy.getCall(0).args[0]).to.include(`redirect_uri=${encodeURIComponent(request.redirectUri)}`);
+                expect(popupSpy.getCall(0).args[0]).to.include(`login_hint=${encodeURIComponent(request.loginHint)}`);
             });
 
             it("resolves the response successfully", async () => {
@@ -1223,7 +1253,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const tokenResp = await pca.ssoSilent({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 loginHint: "testLoginHint"
             });
             expect(loadFrameSyncSpy.calledOnce).to.be.true;
@@ -1534,14 +1563,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("getAccountByUsername returns null if account doesn't exist", () => {
-            window.sessionStorage.clear();
-            const account = pca.getAccountByUsername("example@microsoft.com");
+            const account = pca.getAccountByUsername("this-email-doesnt-exist@microsoft.com");
             expect(account).to.be.null;
         });
 
         it("getAccountByUsername returns null if passed username is null", () => {
-            window.sessionStorage.clear();
             const account = pca.getAccountByUsername(null);
+            expect(account).to.be.null;
+        });
+
+        it("getAccountByHomeId returns account specified", () => {
+            const account = pca.getAccountByHomeId(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
+            expect(account).to.deep.eq(testAccountInfo1);
+        });
+
+        it("getAccountByHomeId returns null if passed id doesn't exist", () => {
+            const account = pca.getAccountByHomeId("this-id-doesnt-exist");
+            expect(account).to.be.null;
+        });
+
+        it("getAccountByHomeId returns null if passed id is null", () => {
+            const account = pca.getAccountByHomeId(null);
             expect(account).to.be.null;
         });
     });

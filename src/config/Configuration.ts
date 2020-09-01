@@ -20,6 +20,7 @@ const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
  * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
  * - postLogoutRedirectUri      - The redirect URI where the window navigates after a successful logout.
  * - navigateToLoginRequestUrl  - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
+ * - clientCapabilities         - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  */
 export type BrowserAuthOptions = {
     clientId: string;
@@ -29,6 +30,7 @@ export type BrowserAuthOptions = {
     redirectUri?: string;
     postLogoutRedirectUri?: string;
     navigateToLoginRequestUrl?: boolean;
+    clientCapabilities?: Array<string>;
 };
 
 /**
@@ -84,7 +86,8 @@ const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     cloudDiscoveryMetadata: "",
     redirectUri: "",
     postLogoutRedirectUri: "",
-    navigateToLoginRequestUrl: true
+    navigateToLoginRequestUrl: true,
+    clientCapabilities: []
 };
 
 // Default cache options for browser
