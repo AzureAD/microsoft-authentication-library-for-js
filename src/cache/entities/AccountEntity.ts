@@ -150,7 +150,10 @@ export class AccountEntity {
                 ? idToken.claims.oid
                 : idToken.claims.sid;
             account.localAccountId = localAccountId;
-            account.username = idToken.claims.preferred_username;
+
+            // In B2C scenarios the emails claim is used instead of preferred_username and it is an array. In most cases it will contain a single email.
+            // This field should not be relied upon if a custom policy is configured to return more than 1 email.
+            account.username = idToken.claims.preferred_username || (idToken.claims.emails? idToken.claims.emails[0]: "");
             account.name = idToken.claims.name;
         }
 
