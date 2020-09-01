@@ -5,10 +5,20 @@
 import { SERVER_TELEM_CONSTANTS } from "../../utils/Constants";
 
 export class ServerTelemetryEntity {
-    failedRequests: Array<string|number>;
-    errors: string[];
-    errorCount: number;
-    cacheHits: number;
+    public failedRequests: Array<string|number>;
+    public errors: string[];
+    public errorCount: number;
+    public cacheHits: number;
+
+    static initializeServerTelemetryEntity(): ServerTelemetryEntity {
+        const serverTelemEntity = new ServerTelemetryEntity();
+        serverTelemEntity.failedRequests = [];
+        serverTelemEntity.errors = [];
+        serverTelemEntity.errorCount = 0;
+        serverTelemEntity.cacheHits = 0;
+
+        return serverTelemEntity;
+    }
 
     /**
      * validates if a given cache entry is "Telemetry", parses <key,value>

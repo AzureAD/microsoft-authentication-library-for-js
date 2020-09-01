@@ -5,9 +5,9 @@
 
 import { SERVER_TELEM_CONSTANTS, CacheSchemaType, Separators } from "../../utils/Constants";
 import { CacheManager } from "../../cache/CacheManager";
-import { ServerTelemetryCacheValue } from "./ServerTelemetryCacheValue";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
+import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
 
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
@@ -72,14 +72,9 @@ export class ServerTelemetryManager {
         return lastRequests.cacheHits;
     }
 
-    getLastRequests(): ServerTelemetryCacheValue { 
-        const initialValue: ServerTelemetryCacheValue = {
-            failedRequests: [],
-            errors: [],
-            errorCount: 0,
-            cacheHits: 0            
-        };
-        const lastRequests = this.cacheManager.getItem(this.telemetryCacheKey, CacheSchemaType.TELEMETRY) as ServerTelemetryCacheValue;
+    getLastRequests(): ServerTelemetryEntity { 
+        const initialValue: ServerTelemetryEntity = ServerTelemetryEntity.initializeServerTelemetryEntity();
+        const lastRequests = this.cacheManager.getItem(this.telemetryCacheKey, CacheSchemaType.TELEMETRY) as ServerTelemetryEntity;
         
         return lastRequests || initialValue;
     }
