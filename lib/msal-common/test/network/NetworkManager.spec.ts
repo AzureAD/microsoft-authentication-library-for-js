@@ -12,7 +12,7 @@ import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAutho
 import { MockStorageClass }  from "../client/ClientTestUtils";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ServerError } from "../../src/error/ServerError";
-import { AUTHENTICATION_RESULT, NETWORK_REQUEST_OPTIONS, THUMBPRINT, THUMBPRINT_VALUE, DEFAULT_NETWORK_IMPLEMENTATION } from "../utils/StringConstants";
+import { AUTHENTICATION_RESULT, NETWORK_REQUEST_OPTIONS, THUMBPRINT, THROTTLING_ENTITY, DEFAULT_NETWORK_IMPLEMENTATION } from "../utils/StringConstants";
 
 describe("NetworkManager", () => {
     describe("sendPostRequest", () => {
@@ -27,7 +27,7 @@ describe("NetworkManager", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: new Map<string, string>(),
+                headers: { },
                 body: AUTHENTICATION_RESULT.body,
                 status: 200
             }
@@ -52,9 +52,9 @@ describe("NetworkManager", () => {
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
-            const mockThumbprintValue = THUMBPRINT_VALUE;
+            const mockThrottlingEntity = THROTTLING_ENTITY;
             const networkStub = sinon.stub(networkInterface, "sendPostRequestAsync");
-            const getItemStub = sinon.stub(cache, "getItem").returns(mockThumbprintValue);
+            const getItemStub = sinon.stub(cache, "getItem").returns(mockThrottlingEntity);
             const setItemStub = sinon.stub(cache, "setItem");
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(Date, "now").callsFake(() => 1)
@@ -77,13 +77,13 @@ describe("NetworkManager", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: new Map<string, string>(),
+                headers: { },
                 body: AUTHENTICATION_RESULT.body,
                 status: 200
             }
-            const mockThumbprintValue = THUMBPRINT_VALUE;
+            const mockThrottlingEntity = THROTTLING_ENTITY;
             const networkStub = sinon.stub(networkInterface, "sendPostRequestAsync").returns(Promise.resolve(mockRes));
-            const getItemStub = sinon.stub(cache, "getItem").returns(mockThumbprintValue);
+            const getItemStub = sinon.stub(cache, "getItem").returns(mockThrottlingEntity);
             const setItemStub = sinon.stub(cache, "setItem");
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(Date, "now").callsFake(() => 10)
@@ -104,7 +104,7 @@ describe("NetworkManager", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: new Map<string, string>(),
+                headers: { },
                 body: AUTHENTICATION_RESULT.body,
                 status: 500
             }

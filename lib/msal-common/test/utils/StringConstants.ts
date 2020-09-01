@@ -3,7 +3,7 @@
  */
 
 import { Constants } from "../../src/utils/Constants";
-import { RequestThumbprint, RequestThumbprintValue } from "../../src";
+import { RequestThumbprint, ThrottlingEntity } from "../../src";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 
 // Test Tokens
@@ -294,7 +294,7 @@ export const THUMBPRINT: RequestThumbprint = {
     scopes: TEST_CONFIG.DEFAULT_SCOPES
 };
 
-export const THUMBPRINT_VALUE: RequestThumbprintValue = {
+export const THROTTLING_ENTITY: ThrottlingEntity = {
     throttleTime: 5,
     error: "This is a error",
     errorCodes: ["ErrorCode"],
@@ -303,6 +303,6 @@ export const THUMBPRINT_VALUE: RequestThumbprintValue = {
 };
 
 export const NETWORK_REQUEST_OPTIONS: NetworkRequestOptions = {
-    headers: new Map<string, string>(),
+    headers: { },
     body: ""
 };
