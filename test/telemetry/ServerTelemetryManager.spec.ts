@@ -1,7 +1,6 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
-import { ServerTelemetryManager, CacheManager, AuthError, ServerTelemetryRequest } from "../../src";
-import { ServerTelemetryCacheValue } from "../../src/telemetry/server/ServerTelemetryCacheValue";
+import { ServerTelemetryManager, CacheManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity } from "../../src";
 import { TEST_CONFIG } from "../utils/StringConstants";
 
 let store = {};
@@ -12,7 +11,8 @@ class TestCacheManager extends CacheManager {
     getItem(key: string, type?: string): string | object {
         const value = store[key]
         if (value) {
-            return JSON.parse(value) as ServerTelemetryCacheValue;
+            const serverTelemetryEntity: ServerTelemetryEntity = new ServerTelemetryEntity();
+            return (CacheManager.toObject(serverTelemetryEntity, JSON.parse(value)) as ServerTelemetryEntity);
         } else {
             return null;
         }
@@ -58,14 +58,14 @@ describe("ServerTelemetryManager.ts", () => {
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
 
-            const failures: ServerTelemetryCacheValue = {
+            const failures = {
                 failedRequests: [testApiCode, testCorrelationId],
                 errors: [testError],
                 errorCount: 1,
                 cacheHits: 0
             };
 
-            const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryCacheValue;
+            const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
             expect(cacheValue).to.deep.eq(failures);
         });
 
@@ -74,14 +74,14 @@ describe("ServerTelemetryManager.ts", () => {
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
             telemetryManager.cacheFailedRequest(new AuthError(testError, testError));
 
-            const failures: ServerTelemetryCacheValue = {
+            const failures = {
                 failedRequests: [testApiCode, testCorrelationId, testApiCode, testCorrelationId],
                 errors: [testError, testError],
                 errorCount: 2,
                 cacheHits: 0
             };
 
-            const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryCacheValue;
+            const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
             expect(cacheValue).to.deep.eq(failures);
         });
 
@@ -94,13 +94,13 @@ describe("ServerTelemetryManager.ts", () => {
             }
             let telemetryManager = new ServerTelemetryManager(firstPayload, testCacheManager);
             telemetryManager.cacheFailedRequest(new AuthError("thisErrorWillBeRemoved", "thisErrorWillBeRemoved"));
-            let failures: ServerTelemetryCacheValue = {
+            let failures = {
                 failedRequests: [firstPayload.apiId, firstPayload.correlationId],
                 errors: ["thisErrorWillBeRemoved"],
                 errorCount: 1,
                 cacheHits: 0
             };
-            let cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryCacheValue;
+            let cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
             expect(cacheValue).to.deep.eq(failures);
 
             // Error 2
@@ -112,7 +112,7 @@ describe("ServerTelemetryManager.ts", () => {
                 errorCount: 2,
                 cacheHits: 0
             };
-            cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryCacheValue;
+            cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
             expect(cacheValue).to.deep.eq(failures);
 
             // Error 3
@@ -124,7 +124,7 @@ describe("ServerTelemetryManager.ts", () => {
                 errorCount: 3,
                 cacheHits: 0
             };
-            cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryCacheValue;
+            cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
             expect(cacheValue).to.deep.eq(failures);
 
             // Error 4 - Removes the first error
@@ -136,7 +136,7 @@ describe("ServerTelemetryManager.ts", () => {
                 errorCount: 4,
                 cacheHits: 0
             };
-            cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryCacheValue;
+            cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
             expect(cacheValue).to.deep.eq(failures);
         });
         
@@ -158,7 +158,7 @@ describe("ServerTelemetryManager.ts", () => {
 
         it("Adds telemetry headers with last failed request", () => {
             const testCacheHits = 3;
-            const failures: ServerTelemetryCacheValue = {
+            const failures = {
                 failedRequests: [testApiCode, testCorrelationId],
                 errors: [testError],
                 errorCount: 1,
@@ -173,7 +173,7 @@ describe("ServerTelemetryManager.ts", () => {
 
         it("Adds telemetry headers with multiple last failed requests", () => {
             const testCacheHits = 3;
-            const failures: ServerTelemetryCacheValue = {
+            const failures = {
                 failedRequests: [testApiCode, testCorrelationId, testApiCode, testCorrelationId],
                 errors: [testError, testError],
                 errorCount: 2,
@@ -198,7 +198,7 @@ describe("ServerTelemetryManager.ts", () => {
         const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
         telemetryManager.incrementCacheHits();
 
-        const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryCacheValue;
+        const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
         expect(cacheValue.cacheHits).to.eq(2);
     });
 });
