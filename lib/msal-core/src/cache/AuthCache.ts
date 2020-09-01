@@ -223,9 +223,8 @@ export class AuthCache extends BrowserStorage {// Singleton
 
         const idTokenKeyString = JSON.stringify(idTokenKey);
         const idToken = this.getItem(idTokenKeyString);
-        console.log(Object.keys(window[this.cacheLocation]).includes(idTokenKeyString));
         const idTokenValue = JSON.parse(idToken) as AccessTokenValue;
-
+        
         return new AccessTokenCacheItem(idTokenKey, idTokenValue);
     }
 

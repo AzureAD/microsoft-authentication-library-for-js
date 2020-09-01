@@ -213,7 +213,7 @@ export class UserAgentApplication {
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
-
+        
         // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
         this.cacheStorage = new AuthCache(this.clientId, this.config.cache.cacheLocation, this.inCookie);
 
@@ -521,7 +521,7 @@ export class UserAgentApplication {
 
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
-
+        
         let popUpWindow: Window;
 
         try {
@@ -802,9 +802,11 @@ export class UserAgentApplication {
 
                 // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the API.
                 if (!serverAuthenticationRequest.authorityInstance) {
-                    serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
+                    serverAuthenticationRequest.authorityInstance = request.authority ? 
+                    AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata)
+                    : this.authorityInstance;
                 }
-
+                
                 this.logger.verbosePii(`Authority instance: ${serverAuthenticationRequest.authority}`);
                 
                 try {
