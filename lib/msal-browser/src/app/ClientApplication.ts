@@ -5,7 +5,7 @@
 
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserStorage } from "../cache/BrowserStorage";
-import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, RefreshTokenClient } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -382,9 +382,9 @@ export abstract class ClientApplication {
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
         try {
-            const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
+            const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await silentAuthClient.refreshToken(silentRequest);
+            return await refreshTokenClient.refreshToken(silentRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             const isServerError = e instanceof ServerError;
@@ -536,6 +536,16 @@ export abstract class ClientApplication {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new SilentFlowClient(clientConfig);
+    }
+
+    /**
+     * Creates a Refresh Client with the given authority, or the default authority.
+     * @param authorityUrl 
+     */
+    protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
+        // Create auth module.
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        return new RefreshTokenClient(clientConfig);
     }
 
     /**

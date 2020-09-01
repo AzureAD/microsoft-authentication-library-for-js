@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { version } from "../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, RefreshTokenClient } from "@azure/msal-common";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { Configuration } from "../config/Configuration";
@@ -137,5 +137,15 @@ export class BrokerClientApplication extends ClientApplication {
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         
         return new BrokerAuthorizationCodeClient(clientConfig);
+    }
+
+    /**
+     * Creates a Refresh Client with the given authority, or the default authority.
+     * @param authorityUrl 
+     */
+    protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
+        // Create auth module.
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        return new BrokerRefreshTokenClient(clientConfig);
     }
 }

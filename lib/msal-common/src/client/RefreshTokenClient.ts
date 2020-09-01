@@ -6,7 +6,7 @@
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
-import { Authority, NetworkResponse } from "..";
+import { Authority, NetworkResponse, SilentFlowRequest, ClientConfigurationError, ClientAuthError } from "..";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
@@ -43,7 +43,32 @@ export class RefreshTokenClient extends BaseClient {
         return tokenResponse;
     }
 
-    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
+    public async refreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        // Cannot renew token if no request object is given.
+        if (!request) {
+            throw ClientConfigurationError.createEmptyTokenRequestError();
+        }
+        
+        // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
+        if (!request.account) {
+            throw ClientAuthError.createNoAccountInSilentRequestError();
+        } 
+
+        const refreshToken = this.cacheManager.getRefreshTokenEntity(this.config.authOptions.clientId, request.account);
+        // no refresh Token
+        if (!refreshToken) {
+            throw ClientAuthError.createNoTokensFoundError();
+        }
+
+        const refreshTokenRequest: RefreshTokenRequest = {
+            ...request,
+            refreshToken: refreshToken.secret
+        };
+
+        return this.acquireToken(refreshTokenRequest);
+    }
+
+    protected async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = this.createTokenRequestBody(request);
@@ -52,7 +77,7 @@ export class RefreshTokenClient extends BaseClient {
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }
 
-    private createTokenRequestBody(request: RefreshTokenRequest): string {
+    protected createTokenRequestBody(request: RefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
