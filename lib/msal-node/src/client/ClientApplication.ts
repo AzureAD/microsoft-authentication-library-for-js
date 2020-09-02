@@ -26,7 +26,6 @@ import {
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
-import { version } from '../../package.json';
 import { Constants as NodeConstants, ApiId } from './../utils/Constants';
 import { TokenCache } from '../cache/TokenCache';
 import { ClientAssertion } from "../client/ClientAssertion";
