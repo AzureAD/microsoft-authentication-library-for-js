@@ -46,7 +46,7 @@ class TestStorageManager extends CacheManager {
                 }
                 break;
             }
-            case CacheSchemaType.APP_META_DATA: {
+            case CacheSchemaType.APP_METADATA: {
                 store[key] = value as AppMetadataEntity;
                 break;
             }
@@ -76,7 +76,7 @@ class TestStorageManager extends CacheManager {
                 }
                 break;
             }
-            case CacheSchemaType.APP_META_DATA: {
+            case CacheSchemaType.APP_METADATA: {
                 return CacheManager.toObject(new AppMetadataEntity(), store[key]) as AppMetadataEntity;
             }
             default: {
