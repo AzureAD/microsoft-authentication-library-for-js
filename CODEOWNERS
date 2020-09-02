@@ -30,3 +30,6 @@
 
 # Build
 /build/ @pkanher617 @jasonnutter
+
+# Filepaths to ignore
+/change/
