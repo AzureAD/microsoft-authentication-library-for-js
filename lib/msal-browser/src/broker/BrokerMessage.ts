@@ -16,10 +16,15 @@ export abstract class BrokerMessage {
 
     static validateMessage(message: MessageEvent): MessageEvent|null {
         if (message.data && message.data.messageType) {
-            if (Object.values(BrokerMessageType).indexOf(message.data.messageType) > -1) {
-                return message;
-            } else {
-                throw(BrowserAuthError.createInvalidBrokerMessageError());
+            switch(message.data.messageType) {
+                case BrokerMessageType.HANDSHAKE_REQUEST:
+                case BrokerMessageType.HANDSHAKE_RESPONSE:
+                case BrokerMessageType.AUTH_REQUEST:
+                case BrokerMessageType.AUTH_RESULT:
+                case BrokerMessageType.REDIRECT_RESPONSE:
+                    return message;
+                default:
+                    return null;
             }
         } else {
             return null;
