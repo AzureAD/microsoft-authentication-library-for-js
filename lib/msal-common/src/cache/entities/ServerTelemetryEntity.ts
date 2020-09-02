@@ -9,6 +9,8 @@ export class ServerTelemetryEntity {
     public errors: string[];
     public errorCount: number;
     public cacheHits: number;
+    public maxErrorsToSend: number;
+    public dataSize: number;
 
     static initializeServerTelemetryEntity(): ServerTelemetryEntity {
         const serverTelemEntity = new ServerTelemetryEntity();
@@ -16,6 +18,8 @@ export class ServerTelemetryEntity {
         serverTelemEntity.errors = [];
         serverTelemEntity.errorCount = 0;
         serverTelemEntity.cacheHits = 0;
+        serverTelemEntity.maxErrorsToSend = 0;
+        serverTelemEntity.dataSize = 0;
 
         return serverTelemEntity;
     }
