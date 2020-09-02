@@ -8,7 +8,6 @@ import { CacheManager } from "../../cache/CacheManager";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
 import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
-import { server } from "sinon";
 
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
