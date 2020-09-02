@@ -16,6 +16,7 @@ import { BrokerAuthResult } from "./BrokerAuthResult";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
+import { version } from "../../package.json";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
@@ -34,12 +35,12 @@ export class EmbeddedClientApplication {
     };
     public brokerConnectionEstablished: boolean;
 
-    constructor(configuration: Configuration, logger: Logger, version: string, browserStorage: BrowserStorage) {
+    constructor(configuration: Configuration, logger: Logger, browserStorage: BrowserStorage) {
         this.config = configuration;
         this.logger = logger;
-        this.version = version;
         this.browserStorage = browserStorage;
         this.brokerConnectionEstablished = false;
+        this.version = version;
     }
 
     async initiateHandshake(): Promise<void> {

@@ -9,7 +9,6 @@ import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
-import { version } from "../../package.json";
 import { BrokerClientApplication } from "../broker/BrokerClientApplication";
 import { EmbeddedClientApplication } from "../broker/EmbeddedClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
@@ -57,7 +56,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (this.config.system.brokerOptions.actAsBroker) {
             this.broker = new BrokerClientApplication(this.config);
         } else if (this.config.system.brokerOptions.allowBrokering) {
-            this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, version, this.browserStorage);
+            this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
             this.embeddedApp.initiateHandshake().catch((e) => {
                 this.logger.error(`Broker handshake failed: ${e}`);
