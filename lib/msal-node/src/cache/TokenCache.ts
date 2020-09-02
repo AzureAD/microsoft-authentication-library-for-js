@@ -52,7 +52,7 @@ export class TokenCache {
     serialize(): string {
         this.logger.verbose("Serializing in-memory cache");
         let finalState = Serializer.serializeAllCache(
-            this.storage.getCache() as InMemoryCache
+            this.storage.getInMemoryCache() as InMemoryCache
         );
 
         // if cacheSnapshot not null or empty, merge
@@ -83,7 +83,7 @@ export class TokenCache {
             const deserializedCache = Deserializer.deserializeAllCache(
                 this.overlayDefaults(JSON.parse(this.cacheSnapshot))
             );
-            this.storage.setCache(deserializedCache);
+            this.storage.setInMemoryCache(deserializedCache);
         } else {
             this.logger.verbose("No cache snapshot to deserialize");
         }
@@ -95,7 +95,8 @@ export class TokenCache {
     async writeToPersistence(): Promise<void> {
         this.logger.verbose("Writing to persistent cache");
         if (this.persistence) {
-            let cache = Serializer.serializeAllCache(this.storage.getCache() as InMemoryCache);
+            this.logger.verbose("cachePlugin (persistent cache) not set by the user");
+            let cache = Serializer.serializeAllCache(this.storage.getInMemoryCache() as InMemoryCache);
             const getMergedState = (stateFromDisk: string) => {
                 if (!StringUtils.isEmpty(stateFromDisk)) {
                     this.logger.verbose("Reading state from disk");
@@ -133,7 +134,7 @@ export class TokenCache {
                 const deserializedCache = Deserializer.deserializeAllCache(
                     cache
                 );
-                this.storage.setCache(deserializedCache);
+                this.storage.setInMemoryCache(deserializedCache);
             } else {
                 this.logger.verbose("No cache snapshot to overlay and deserialize");
             }

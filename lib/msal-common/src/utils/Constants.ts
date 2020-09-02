@@ -234,9 +234,13 @@ export enum CredentialType {
 export enum CacheSchemaType {
     ACCOUNT = "Account",
     CREDENTIAL = "Credential",
+    ID_TOKEN = "IdToken",
+    ACCESS_TOKEN = "AccessToken",
+    REFRESH_TOKEN = "RefreshToken",
     APP_METADATA = "AppMetadata",
     TEMPORARY = "TempCache",
     TELEMETRY = "Telemetry",
+    UNDEFINED = "Undefined"
 }
 
 /**
@@ -250,7 +254,8 @@ export enum CacheType {
     ACCESS_TOKEN = 2001,
     REFRESH_TOKEN = 2002,
     ID_TOKEN = 2003,
-    APP_METADATA = 3001
+    APP_METADATA = 3001,
+    UNDEFINED = 9999
 };
 
 /**
