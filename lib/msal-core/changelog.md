@@ -1,8 +1,18 @@
 # Change Log - msal
 
-This log was last generated on Fri, 07 Aug 2020 21:19:23 GMT and should not be manually modified.
+This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.0
+
+Tue, 25 Aug 2020 00:40:45 GMT
+
+### Minor changes
+
+- B2C Multiple Policy Support (#1757) (thomas.norling@microsoft.com)
+- ADFS 2019 Support (#1668) (thomas.l.norling@gmail.com)
+- Enables idToken acquisition in acquireToken API calls through the use of OIDC scopes by redefining the way response_type is determined. (PR #2022) (hemoral@microsoft.com)
 
 # 1.3.4
 

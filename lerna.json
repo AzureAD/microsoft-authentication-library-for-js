@@ -3,9 +3,9 @@
   "command": {
     "run": {
       "scope": [
-        "msal", 
-        "@azure/msal-common", 
-        "@azure/msal-browser", 
+        "msal",
+        "@azure/msal-common",
+        "@azure/msal-browser",
         "@azure/msal-angular",
         "@azure/msal-node",
         "vanilla-js-test-app",

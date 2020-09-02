@@ -1,0 +1,16 @@
+{
+    "authCodeUrlParameters": {
+        "scopes": ["https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read"],
+        "redirectUri": "http://localhost:3000/redirect",
+        "prompt": "consent"
+    },
+    "tokenRequest": {
+        "code": "",
+        "redirectUri": "http://localhost:3000/redirect",
+        "scopes": ["https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read"]
+    },
+    "silentRequest": {
+       "account": "",
+        "scopes": ["https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read"]
+    }
+}

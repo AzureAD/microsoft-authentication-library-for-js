@@ -118,16 +118,24 @@ describe("UrlUtils.ts class", () => {
     });
 
     describe("deserializeHash", () => {
-        it("properly decodes a twice encoded value", () => {
-            // This string is double encoded
-            // "%257C" = | encoded twice
-            const hash = "#state=eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%257Chello";
+        it("properly decodes an encoded value", () => {
+            // This string once encoded
+            const hash = "#state=eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%7Chello";
 
             const { state } = UrlUtils.deserializeHash(hash);
 
             const stateParts = state.split(Constants.resourceDelimiter);
             expect(stateParts[0]).to.equal("eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9");
             expect(stateParts[1]).to.equal("hello");
+        });
+
+        it("properly decodes a twice encoded value", () => {
+            // This string is twice encoded
+            const hash = "#state=eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%257Chello";
+
+            const { state } = UrlUtils.deserializeHash(hash);
+
+            expect(state).to.equal("eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%7Chello");
         });
     })
 
