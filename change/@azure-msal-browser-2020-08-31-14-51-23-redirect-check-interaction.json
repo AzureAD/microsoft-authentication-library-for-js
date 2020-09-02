@@ -1,8 +1,8 @@
 {
   "type": "patch",
-  "comment": "Update POST header to type Record (#2128)",
+  "comment": "Check for interaction in progress when processing redirect hash (#2183)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch",
-  "date": "2020-08-11T17:16:17.073Z"
+  "date": "2020-08-31T21:51:23.221Z"
 }

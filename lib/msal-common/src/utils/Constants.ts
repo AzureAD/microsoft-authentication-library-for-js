@@ -122,6 +122,11 @@ export enum IdTokenClaimName {
     CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
 }
 
+export enum ClaimsRequestKeys {
+    ACCESS_TOKEN = "access_token",
+    XMS_CC = "xms_cc"
+};
+
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
  * prompt values kept changing over past couple of years. There are some undocumented prompt values for some
@@ -229,9 +234,13 @@ export enum CredentialType {
 export enum CacheSchemaType {
     ACCOUNT = "Account",
     CREDENTIAL = "Credential",
-    APP_META_DATA = "AppMetadata",
+    ID_TOKEN = "IdToken",
+    ACCESS_TOKEN = "AccessToken",
+    REFRESH_TOKEN = "RefreshToken",
+    APP_METADATA = "AppMetadata",
     TEMPORARY = "TempCache",
     TELEMETRY = "Telemetry",
+    UNDEFINED = "Undefined"
 }
 
 /**
@@ -245,13 +254,14 @@ export enum CacheType {
     ACCESS_TOKEN = 2001,
     REFRESH_TOKEN = 2002,
     ID_TOKEN = 2003,
-    APP_META_DATA = 3001
+    APP_METADATA = 3001,
+    UNDEFINED = 9999
 };
 
 /**
  * More Cache related constants
  */
-export const APP_META_DATA = "appmetadata";
+export const APP_METADATA = "appmetadata";
 export const ClientInfo = "client_info";
 
 export const SERVER_TELEM_CONSTANTS = {
