@@ -4,9 +4,6 @@
  */
 const express = require("express");
 const exphbs = require('express-handlebars');
-const { promises: fs } = require("fs");
-
-const requestConfig = require('./requestConfig');
 
 const RESOURCE_API_PATH = './resourceApi';
 
@@ -37,6 +34,7 @@ function handleAuthorizationResponse(res, authResponse, templateParams, msalToke
 
 module.exports = function(app, clientApplication, msalTokenCache, authorityType)  {
     configureExpressApp(app);
+    const requestConfig = require(`./${authorityType}/requestConfig.json`);
     /**
      * App Routes
      */
@@ -46,7 +44,7 @@ module.exports = function(app, clientApplication, msalTokenCache, authorityType)
     
     // Initiates Auth Code Grant
     app.get('/login', (req, res) => {
-        clientApplication.getAuthCodeUrl(requestConfig)
+        clientApplication.getAuthCodeUrl(requestConfig.authCodeUrlParameters)
             .then((response) => {
                 console.log(response);
                 res.redirect(response);
@@ -56,14 +54,9 @@ module.exports = function(app, clientApplication, msalTokenCache, authorityType)
     
     // Second leg of Auth Code grant
     app.get('/redirect', (req, res) => {
-        const tokenRequest = {
-            code: req.query.code,
-            redirectUri: "http://localhost:3000/redirect",
-            scopes: requestConfig.scopes,
-        };
+        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
     
         clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
-            console.log("\nResponse: \n:", response);
             const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
             res.render("graph", templateParams);
             return msalTokenCache.writeToPersistence();
@@ -78,16 +71,12 @@ module.exports = function(app, clientApplication, msalTokenCache, authorityType)
         // get Accounts
         const accounts = msalTokenCache.getAllAccounts();
         console.log("Accounts: ", accounts);
-    
-        // Build silent request
-        const silentRequest = {
-            /** 
-             * Index must match the account's position in the cache. The sample cache file contains a dummy account
-             * entry in index 0, hence the actual account that is logged in will be index 1
-             */
-            account: accounts[1], 
-            scopes: requestConfig.scopes,
-        };
+
+        /** 
+         * Account index must match the account's position in the cache. The sample cache file contains a dummy account
+         * entry in index 0, hence the actual account that is logged in will be index 1
+         */
+        const silentRequest = { ...requestConfig.silentRequest, account: accounts[1] };
     
         let templateParams = { showLoginButton: false };
         // Acquire Token Silently to be used in MS Graph call
