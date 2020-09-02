@@ -131,34 +131,47 @@ function generateB2COptions(sampleFilesPath, b2cPolicy) {
 
 
 // Main script
+function runSample(sample, port, authorityType, policy) {
+    // Sample selection
+    const sampleDirs = readSampleDirs();
+    const sampleName = validateInputSample(sampleDirs, sample);
+    const sampleFilesPath = `${APP_DIR}/${sampleName}`;
 
-// Sample selection
-const sampleDirs = readSampleDirs();
-const sampleName = validateInputSample(sampleDirs, argv.sample);
-const sampleFilesPath = `${APP_DIR}/${sampleName}`;
+    // Authority type selection
+    const authorityConfigDirs = readAuthorityConfigDirs(sampleFilesPath);
+    authorityType = validateAuthorityType(authorityConfigDirs, authorityType);
 
-// Authority type selection
-const authorityConfigDirs = readAuthorityConfigDirs(sampleFilesPath);
-const authorityType = validateAuthorityType(authorityConfigDirs, argv.a);
+    // B2C policy selection
+    const b2cPolicy = validateB2CPolicy(authorityType, sampleFilesPath, policy);
+    generateB2COptions(sampleFilesPath, b2cPolicy);
 
-// B2C policy selection
-const b2cPolicy = validateB2CPolicy(authorityType, sampleFilesPath, argv.policy);
-generateB2COptions(sampleFilesPath, b2cPolicy);
+    // App type selection
+    const sampleConfig = require(`${sampleFilesPath}/sampleConfig`);
 
-// App type selection
-const sampleConfig = require(`${sampleFilesPath}/sampleConfig`);
+    // Build client application
+    const clientApplication = require(`${sampleFilesPath}/clientApplication`)(authorityType);
 
-// Build client application
-const clientApplication = require(`${sampleFilesPath}/clientApplication`)(authorityType);
-
-switch(sampleConfig.appType) {
-    case WEB_APP_TYPE:
-        initializeWebApp(sampleFilesPath, argv.port, clientApplication, authorityType);
-        break;
-    case CLI_APP_TYPE:
-        executeCliApp(sampleFilesPath, argv.port, clientApplication);
-        break;
-    default:
-        console.log("Unsupported appType: ", sampleConfig.appType, clientApplication);
-        break;
+    switch(sampleConfig.appType) {
+        case WEB_APP_TYPE:
+            initializeWebApp(sampleFilesPath, port, clientApplication, authorityType);
+            break;
+        case CLI_APP_TYPE:
+            executeCliApp(sampleFilesPath, port, clientApplication);
+            break;
+        default:
+            console.log("Unsupported appType: ", sampleConfig.appType, clientApplication);
+            break;
+    }
 }
+
+// If the app is executed manually, the $0 argument in argv will correspond to this index.js file
+if(argv.$0 === "index.js") {
+    console.log("Vanilla JS Test App is being executed manually.");
+    runSample(argv.s, argv.p, argv.a, argv.policy);
+} else {
+    // Whenever argv.$0 is not index.js, it means it was required and executed in an external script
+    console.log("Vanilla JS Test App is being executed from an external script.");
+}
+
+// Export the main script as a function so it can be executed programatically to enable E2E Test automation
+module.exports = runSample;
