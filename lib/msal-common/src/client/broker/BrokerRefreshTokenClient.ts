@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { RefreshTokenClient } from "./RefreshTokenClient";
-import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ResponseHandler } from "../response/ResponseHandler";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { StringUtils } from "../utils/StringUtils";
+import { RefreshTokenClient } from "../RefreshTokenClient";
+import { RefreshTokenRequest } from "../../request/RefreshTokenRequest";
+import { AuthenticationResult } from "../../response/AuthenticationResult";
+import { ResponseHandler } from "../../response/ResponseHandler";
+import { RequestParameterBuilder } from "../../request/RequestParameterBuilder";
+import { StringUtils } from "../../utils/StringUtils";
 
 /**
  * Oauth2.0 Refresh Token client implementing the broker protocol for browsers.

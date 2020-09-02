@@ -11,7 +11,6 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { IdToken } from "../account/IdToken";
 import { TimeUtils } from "../utils/TimeUtils";
-import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";

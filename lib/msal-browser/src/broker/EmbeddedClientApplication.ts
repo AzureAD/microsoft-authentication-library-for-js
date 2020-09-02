@@ -4,7 +4,7 @@
  */
 
 import { Configuration } from "../config/Configuration";
-import { Logger, AuthenticationResult, CacheRecord, CacheManager, AccessTokenEntity, IdTokenEntity, AccountEntity } from "@azure/msal-common";
+import { Logger, AuthenticationResult } from "@azure/msal-common";
 import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
 import { PopupRequest } from "../request/PopupRequest";

@@ -4,7 +4,6 @@
  */
 
 import { BrokerMessageType } from "../utils/BrowserConstants";
-import { ClientAuthError } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export abstract class BrokerMessage {

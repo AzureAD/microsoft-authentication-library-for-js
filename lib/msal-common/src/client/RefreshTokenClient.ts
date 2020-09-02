@@ -6,7 +6,6 @@
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
-import { Authority, NetworkResponse, SilentFlowRequest, ClientConfigurationError, ClientAuthError } from "..";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
@@ -14,6 +13,11 @@ import { GrantType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
+import { SilentFlowRequest } from "../request/SilentFlowRequest";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { Authority } from "../authority/Authority";
+import { NetworkResponse } from "../network/NetworkManager";
 
 /**
  * OAuth2.0 refresh token client

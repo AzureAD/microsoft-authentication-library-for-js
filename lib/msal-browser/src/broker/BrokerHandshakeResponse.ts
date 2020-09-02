@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 import { BrokerMessage } from "./BrokerMessage";
-import { ClientAuthError } from "@azure/msal-common";
 import { BrokerMessageType } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 

@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient } from "./AuthorizationCodeClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { StringUtils } from "../utils/StringUtils";
-import { ClientAuthError } from "../error/ClientAuthError";
-import { ResponseHandler } from "../response/ResponseHandler";
-import { BrokerAuthenticationResult } from "../response/BrokerAuthenticationResult";
+import { AuthorizationCodeClient } from "../AuthorizationCodeClient";
+import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
+import { RequestParameterBuilder } from "../../request/RequestParameterBuilder";
+import { AuthorizationCodeRequest } from "../../request/AuthorizationCodeRequest";
+import { StringUtils } from "../../utils/StringUtils";
+import { ClientAuthError } from "../../error/ClientAuthError";
+import { ResponseHandler } from "../../response/ResponseHandler";
+import { BrokerAuthenticationResult } from "../../response/BrokerAuthenticationResult";
 
 /**
  * Oauth2.0 Authorization Code client implementing the broker protocol for browsers.

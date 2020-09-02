@@ -1,6 +1,7 @@
 // App Auth Modules and Configuration
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
-export { BrokerAuthorizationCodeClient } from "./client/BrokerAuthorizationCodeClient";
+export { BrokerAuthorizationCodeClient } from "./client/broker/BrokerAuthorizationCodeClient";
+export { BrokerRefreshTokenClient } from "./client/broker/BrokerRefreshTokenClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { ClientCredentialClient } from "./client/ClientCredentialClient";
