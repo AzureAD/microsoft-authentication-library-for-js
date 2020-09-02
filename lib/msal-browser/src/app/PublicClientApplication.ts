@@ -8,10 +8,9 @@ import { DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
-import { BrokerManager } from "../broker/BrokerManager";
-import { BrokerClient } from "../broker/BrokerClient";
 import { ClientApplication } from "./ClientApplication";
-import { version } from "../../package.json";
+import { BrokerClientApplication } from "../broker/BrokerClientApplication";
+import { EmbeddedClientApplication } from "../broker/EmbeddedClientApplication";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -20,8 +19,8 @@ import { version } from "../../package.json";
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Broker Objects
-    private embeddedApp: BrokerClient;
-    private broker: BrokerManager;
+    protected embeddedApp: EmbeddedClientApplication;
+    protected broker: BrokerClientApplication;
 
     /**
      * @constructor
@@ -49,15 +48,20 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.initializeBrokering();
     }
 
+    /**
+     * 
+     */
     private initializeBrokering(): void {
         if (this.config.system.brokerOptions.actAsBroker) {
-            this.broker = new BrokerManager(this.config.system.brokerOptions, this.logger, version);
-            this.logger.verbose("Acting as Broker");
-            this.broker.listenForMessage();
+            this.broker = new BrokerClientApplication(this.config);
         } else if (this.config.system.brokerOptions.allowBrokering) {
-            this.embeddedApp = new BrokerClient(this.config.system.brokerOptions, this.logger, this.config.auth.clientId,  version);
+            this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
-            this.embeddedApp.initiateHandshake();
+            try {
+                this.embeddedApp.initiateHandshake();
+            } catch (e) {
+                this.logger.error(`Broker handshake failed: ${e}`);
+            }
         }
     }
 
@@ -85,7 +89,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Check for brokered request
-        if (this.embeddedApp && this.embeddedApp.brokeringEnabled) {
+        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
             return this.embeddedApp.sendRedirectRequest(request);
         }
         return super.acquireTokenRedirect(request);
@@ -113,7 +117,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        if (this.embeddedApp && this.embeddedApp.brokeringEnabled) {
+        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
             return this.embeddedApp.sendPopupRequest(request);
         }
         return super.acquireTokenPopup(request);

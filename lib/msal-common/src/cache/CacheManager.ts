@@ -126,7 +126,7 @@ export abstract class CacheManager implements ICacheManager {
      * saves account into cache
      * @param account
      */
-    private saveAccount(account: AccountEntity): void {
+    saveAccount(account: AccountEntity): void {
         const key = account.generateAccountKey();
         this.setItem(
             key,
@@ -139,7 +139,7 @@ export abstract class CacheManager implements ICacheManager {
      * saves credential - accessToken, idToken or refreshToken into cache
      * @param credential
      */
-    private saveCredential(credential: CredentialEntity): void {
+    saveCredential(credential: CredentialEntity): void {
         const key = credential.generateCredentialKey();
         this.setItem(
             key,

@@ -25,6 +25,7 @@ import { CacheRecord } from "../cache/entities/CacheRecord";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
+import { BrokerAuthenticationResult } from "./BrokerAuthenticationResult";
 
 /**
  * Class that handles response parsing.
@@ -91,7 +92,6 @@ export class ResponseHandler {
      * @param authority
      */
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string, requestScopes?: string[]): AuthenticationResult {
-        
         // generate homeAccountId
         if (serverTokenResponse.client_info) {
             this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
@@ -125,6 +125,49 @@ export class ResponseHandler {
         this.cacheStorage.saveCacheRecord(cacheRecord);
 
         return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
+    }
+
+    handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): BrokerAuthenticationResult {
+        // generate homeAccountId
+        if (serverTokenResponse.client_info) {
+            this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
+            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
+                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
+            }
+        } else {
+            this.homeAccountIdentifier = "";
+        }
+        
+        // create an idToken object (not entity)
+        const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
+
+        // token nonce check (TODO: Add a warning if no nonce is given?)
+        if (!StringUtils.isEmpty(cachedNonce)) {
+            if (idTokenObj.claims.nonce !== cachedNonce) {
+                throw ClientAuthError.createNonceMismatchError();
+            }
+        }
+
+        // save the response tokens
+        let requestStateObj: RequestStateObject = null;
+        if (!StringUtils.isEmpty(cachedState)) {
+            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState); 
+        }
+
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
+        // Save refresh token
+        if (!!cacheRecord.refreshToken) {
+            this.cacheStorage.saveCredential(cacheRecord.refreshToken);
+        }
+
+        cacheRecord.refreshToken = null;
+        const result = ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
+
+        // Get creds to send to child
+        return {
+            ...result,
+            tokensToCache: cacheRecord
+        };
     }
 
     /**

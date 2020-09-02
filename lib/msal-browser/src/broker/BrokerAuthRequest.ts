@@ -9,7 +9,7 @@ export class BrokerAuthRequest extends BrokerMessage {
     public request: RedirectRequest | PopupRequest;
 
     constructor(embeddedClientId: string, interactionType: InteractionType, request: RedirectRequest | PopupRequest) {
-        super("BrokerAuthRequest");
+        super(BrokerMessageType.AUTH_REQUEST);
         this.embeddedClientId = embeddedClientId;
         this.interactionType = interactionType;
         this.request = request;

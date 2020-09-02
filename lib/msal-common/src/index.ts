@@ -1,5 +1,6 @@
 // App Auth Modules and Configuration
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
+export { BrokerAuthorizationCodeClient } from "./client/BrokerAuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { ClientCredentialClient } from "./client/ClientCredentialClient";
@@ -19,6 +20,7 @@ export { AuthorityType } from "./authority/AuthorityType";
 // Cache
 export { CacheManager } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "./cache/utils/CacheTypes";
+export { CacheRecord } from "./cache/entities/CacheRecord";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
@@ -43,6 +45,7 @@ export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
+export { BrokerAuthenticationResult } from "./response/BrokerAuthenticationResult";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
