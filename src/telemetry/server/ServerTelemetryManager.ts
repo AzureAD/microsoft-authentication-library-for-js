@@ -8,6 +8,7 @@ import { CacheManager } from "../../cache/CacheManager";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
 import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
+import { server } from "sinon";
 
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
@@ -40,7 +41,8 @@ export class ServerTelemetryManager {
         
         const failedRequests = lastRequests.failedRequests.join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
         const errors = lastRequests.errors.join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
-        const platformFields = lastRequests.errorCount;
+        const overflow = lastRequests.maxErrorsToSend < lastRequests.errorCount ? "1" : "0"; // Indicate whether this header contains all data or partial data
+        const platformFields = overflow;
 
         return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, lastRequests.cacheHits, failedRequests, errors, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
     }
@@ -51,12 +53,11 @@ export class ServerTelemetryManager {
         lastRequests.failedRequests.push(this.apiId, this.correlationId);
         lastRequests.errors.push(error.errorCode);
         lastRequests.errorCount += 1;
+        lastRequests.dataSize += this.apiId.toString().length + this.correlationId.length + error.errorCode.length + 3 // Add 3 to account for commas
 
-        if (lastRequests.errors.length > SERVER_TELEM_CONSTANTS.FAILURE_LIMIT) {
+        if (lastRequests.dataSize < SERVER_TELEM_CONSTANTS.MAX_HEADER_BYTES) {
             // Prevent request headers from becoming too large due to excessive failures
-            lastRequests.failedRequests.shift(); // Remove apiId
-            lastRequests.failedRequests.shift(); // Remove correlationId
-            lastRequests.errors.shift();
+            lastRequests.maxErrorsToSend += 1;
         }
 
         this.cacheManager.setItem(this.telemetryCacheKey, lastRequests, CacheSchemaType.TELEMETRY);
@@ -80,6 +81,31 @@ export class ServerTelemetryManager {
     }
 
     clearTelemetryCache(): void {
-        this.cacheManager.removeItem(this.telemetryCacheKey);
+        const lastRequests = this.getLastRequests();
+        const serverTelemEntity = ServerTelemetryEntity.initializeServerTelemetryEntity();
+        if (lastRequests.maxErrorsToSend === lastRequests.errorCount) {
+            // All errors were sent on last request, clear Telemetry cache
+            this.cacheManager.removeItem(this.telemetryCacheKey);
+        } else {
+            // Partial data was flushed to server, construct a new telemetry cache item with errors that were not flushed
+            let i = lastRequests.maxErrorsToSend;
+            while (i < lastRequests.errorCount) {
+                const apiId = lastRequests.failedRequests[2*i];
+                const correlationId = lastRequests.failedRequests[2*i + 1];
+                const errorCode = lastRequests.errors[i];
+
+                serverTelemEntity.failedRequests.push(apiId); // apiId
+                serverTelemEntity.failedRequests.push(correlationId); // correlationId
+                serverTelemEntity.errors.push(errorCode);
+                serverTelemEntity.errorCount += 1;
+                serverTelemEntity.dataSize += apiId.toString().length + correlationId.toString().length + errorCode.length + 3; // Add 3 to account for commas
+
+                if (serverTelemEntity.dataSize < SERVER_TELEM_CONSTANTS.MAX_HEADER_BYTES) {
+                    serverTelemEntity.maxErrorsToSend += 1;
+                }
+                i++;
+            }
+            this.cacheManager.setItem(this.telemetryCacheKey, serverTelemEntity, CacheSchemaType.TELEMETRY);
+        }
     }
 }
