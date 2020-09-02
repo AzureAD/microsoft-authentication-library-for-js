@@ -8,7 +8,7 @@ import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
-import { ServerTelemetryEntity } from '../entities/ServerTelemetryEntity';
+import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
 
 export type AccountCache = Record<string, AccountEntity>;
 export type IdTokenCache = Record<string, IdTokenEntity>;
