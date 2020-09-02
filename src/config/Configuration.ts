@@ -20,6 +20,7 @@ const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
  * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
  * - postLogoutRedirectUri      - The redirect URI where the window navigates after a successful logout.
  * - navigateToLoginRequestUrl  - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
+ * - clientCapabilities         - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  */
 export type BrowserAuthOptions = {
     clientId: string;
@@ -29,6 +30,7 @@ export type BrowserAuthOptions = {
     redirectUri?: string;
     postLogoutRedirectUri?: string;
     navigateToLoginRequestUrl?: boolean;
+    clientCapabilities?: Array<string>;
 };
 
 /**
@@ -48,9 +50,10 @@ export type CacheOptions = {
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
  * - loggerOptions                - Used to initialize the Logger object (See ClientConfiguration.ts)
  * - networkClient                - Network interface implementation
- * - windowHashTimeout            - sets the timeout for waiting for a response hash in a popup
- * - iframeHashTimeout            - sets the timeout for waiting for a response hash in an iframe
- * - loadFrameTimeout             - maximum time the library should wait for a frame to load
+ * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup
+ * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe
+ * - loadFrameTimeout             - Maximum time the library should wait for a frame to load
+ * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -58,6 +61,7 @@ export type BrowserSystemOptions = SystemOptions & {
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
+    asyncPopups?: boolean;
 };
 
 /**
@@ -82,7 +86,8 @@ const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
     cloudDiscoveryMetadata: "",
     redirectUri: "",
     postLogoutRedirectUri: "",
-    navigateToLoginRequestUrl: true
+    navigateToLoginRequestUrl: true,
+    clientCapabilities: []
 };
 
 // Default cache options for browser
@@ -104,7 +109,8 @@ const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
     networkClient: BrowserUtils.getBrowserNetworkClient(),
     windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
     iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
-    loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0
+    loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
+    asyncPopups: false
 };
 
 /**

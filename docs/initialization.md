@@ -83,7 +83,7 @@ The popup APIs use ES6 Promises that resolve when the authentication flow in the
 - `loginRedirect`
 - `acquireTokenRedirect`
 
-The redirect APIs are asynchronous (i.e. return a promise) `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, be aware that you MUST call handleRedirectPromise() to correctly handle the API. You can use the following function to perform an action when this token exchange is completed:
+The redirect APIs are asynchronous (i.e. return a promise) `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, be aware that you MUST call `handleRedirectPromise()` to correctly handle the API. You can use the following function to perform an action when this token exchange is completed:
 ```javascript
 msalInstance.handleRedirectPromise().then((tokenResponse) => {
     // Check if the tokenResponse is null
