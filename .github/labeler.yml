@@ -1,6 +1,8 @@
-node:
+msal-node:
   - lib/msal-node/**/*
-angular:
+extensions:
+  - extensions/**/*
+msal-angular:
   - lib/msal-angular/**/*
 angularjs:
   - lib/msal-angularjs/**/*
@@ -12,3 +14,5 @@ msal-browser:
   - lib/msal-browser/**/*
 samples:
   - samples/**/*
+documentation:
+  - docs/**/*

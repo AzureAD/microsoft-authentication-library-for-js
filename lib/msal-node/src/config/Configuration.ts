@@ -30,6 +30,7 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
+    clientCapabilities?: []
 };
 
 /**
@@ -75,7 +76,8 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
         privateKey: '',
     },
     knownAuthorities: [],
-    cloudDiscoveryMetadata: ""
+    cloudDiscoveryMetadata: "",
+    clientCapabilities: []
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
