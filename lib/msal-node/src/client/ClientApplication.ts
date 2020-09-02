@@ -30,6 +30,7 @@ import { version } from '../../package.json';
 import { Constants as NodeConstants, ApiId } from './../utils/Constants';
 import { TokenCache } from '../cache/TokenCache';
 import { ClientAssertion } from "../client/ClientAssertion";
+const pjson = require("../../package.json");
 
 export abstract class ClientApplication {
     private _authority: Authority;
@@ -177,7 +178,8 @@ export abstract class ClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
-                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+                clientCapabilities: this.config.auth.clientCapabilities
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!
@@ -195,7 +197,7 @@ export abstract class ClientApplication {
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
-                version: version,
+                version: pjson.version,
                 cpu: process.arch || '',
                 os: process.platform || '',
             },

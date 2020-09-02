@@ -54,7 +54,6 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
-        // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
@@ -132,7 +131,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
     }
@@ -175,6 +174,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
 
         return parameterBuilder.createQueryString();
     }
@@ -241,8 +244,8 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addState(request.state);
         }
 
-        if (request.claims) {
-            parameterBuilder.addClaims(request.claims);
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
         if (request.extraQueryParameters) {

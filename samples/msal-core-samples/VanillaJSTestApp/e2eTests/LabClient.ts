@@ -2,6 +2,13 @@ import { ClientSecretCredential, AccessToken } from "@azure/identity";
 import axios from "axios";
 const labApiUri = "https://msidlab.com/api"
 
+export interface ILabApiParams {
+    envName?: string,
+    userType?: string,
+    b2cProvider?: string,
+    federationProvider?: string
+};
+
 export class LabClient {
 
     private credentials: ClientSecretCredential;
@@ -35,10 +42,29 @@ export class LabClient {
         return null;
     }
 
-    async getUserVarsByCloudEnvironment(envName: string): Promise<any> {
+    async getUserVarsByCloudEnvironment(apiParams: ILabApiParams): Promise<any> {
         const accessToken = await this.getCurrentToken();
+        let queryParams: Array<string> = [];
 
-        return await this.requestLabApi(`/user?azureenvironment=${envName}`, accessToken);
+        if (apiParams.envName) {
+            queryParams.push(`envname=${apiParams.envName}`);
+        }
+        if (apiParams.userType) {
+            queryParams.push(`usertype=${apiParams.userType}`);
+        }
+        if (apiParams.b2cProvider) {
+            queryParams.push(`b2cprovider=${apiParams.b2cProvider}`);
+        }
+        if (apiParams.federationProvider) {
+            queryParams.push(`federationprovider=${apiParams.federationProvider}`);
+        }
+
+        if (queryParams.length <= 0) {
+            throw "Must provide at least one param to getUserVarsByCloudEnvironment";
+        }
+        const apiUrl = '/user?' + queryParams.join("&");
+
+        return await this.requestLabApi(apiUrl, accessToken);
     }
 
     async getSecret(secretName: string): Promise<any> {

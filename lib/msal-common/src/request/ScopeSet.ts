@@ -65,7 +65,7 @@ export class ScopeSet {
      * @param scopeSet
      */
     containsScopeSet(scopeSet: ScopeSet): boolean {
-        if (!scopeSet) {
+        if (!scopeSet || scopeSet.scopes.size <= 0) {
             return false;
         }
 
