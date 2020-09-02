@@ -1,10 +1,10 @@
 import { expect } from "chai";
+import sinon from "sinon";
 import { BrowserProtocolUtils, BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 import { InteractionType } from "../../src/utils/BrowserConstants";
-import { ICrypto, PkceCodes, ProtocolUtils } from "@azure/msal-common";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_STATE_VALUES } from "./StringConstants";
-import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
+import { ProtocolUtils } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
@@ -12,8 +12,16 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
     const browserPopupRequestState: BrowserStateObject = { interactionType: InteractionType.POPUP };
 
     let cryptoInterface: CryptoOps;
+    let dbStorage = {};
     beforeEach(() => {
+        sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+            dbStorage = {};
+        });
         cryptoInterface = new CryptoOps();
+    });
+
+    afterEach(() => {
+        sinon.restore(); 
     });
 
     it("extractBrowserRequestState() returns an null if given interaction type is null or empty", () => {

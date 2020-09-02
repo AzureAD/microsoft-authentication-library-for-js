@@ -8,6 +8,16 @@ import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
+import { DatabaseStorage } from "../cache/DatabaseStorage";
+import { BrowserStringUtils } from "../utils/BrowserStringUtils";
+import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+
+export type CachedKeyPair = {
+    publicKey: CryptoKey,
+    privateKey: CryptoKey,
+    requestMethod: string,
+    requestUri: string
+};
 
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and 
@@ -25,6 +35,11 @@ export class CryptoOps implements ICrypto {
     private static EXTRACTABLE: boolean = true;
     private static POP_HASH_LENGTH = 43; // 256 bit digest / 6 bits per char = 43
 
+    private static DB_VERSION = 1;
+    private static DB_NAME = "msal.db";
+    private static TABLE_NAME =`${CryptoOps.DB_NAME}.keys`;
+    private cache: DatabaseStorage<CachedKeyPair>;
+
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto();
@@ -32,16 +47,8 @@ export class CryptoOps implements ICrypto {
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
-    }
-
-    async getPublicKeyThumbprint(): Promise<string> {
-        const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
-        // TODO: Store keypair
-        const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
-        const publicJwkString: string = BrowserCrypto.getJwkString(publicKeyJwk);
-        const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
-        const publicJwkDigest: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
-        return this.base64Encode(publicJwkDigest).substr(0, CryptoOps.POP_HASH_LENGTH);
+        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION);
+        this.cache.open();
     }
 
     /**
@@ -75,7 +82,52 @@ export class CryptoOps implements ICrypto {
         return this.pkceGenerator.generateCodes();
     }
 
-    signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        throw new Error("Method not implemented.");
+    /**
+     * Generates a keypair, stores it and returns a thumbprint
+     * @param resourceRequestMethod 
+     * @param resourceRequestUri 
+     */
+    async getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+        const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
+        const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
+        const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
+        const publicJwkString: string = BrowserCrypto.getJwkString(publicKeyJwk);
+        const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
+        const publicJwkDigest: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
+        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
+        const publicKeyHash = this.base64Encode(publicJwkDigest).substr(0, CryptoOps.POP_HASH_LENGTH);
+        this.cache.put(publicKeyHash, {
+            privateKey: unextractablePrivateKey,
+            publicKey: keyPair.publicKey,
+            requestMethod: resourceRequestMethod,
+            requestUri: resourceRequestUri
+        });
+        return publicKeyHash;
+    }
+
+    /**
+     * Signs the given object as a jwt payload with private key retrieved by given kid.
+     * @param payload 
+     * @param kid 
+     */
+    async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
+        const cachedKeyPair: CachedKeyPair = await this.cache.get(kid);
+        const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
+        const publicKeyJwkString = BrowserCrypto.getJwkString(publicKeyJwk);
+
+        const header = {
+            alg: publicKeyJwk.alg,
+            type: KEY_FORMAT_JWK,
+            jwk: JSON.parse(publicKeyJwkString)
+        };
+
+        const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
+        const encodedPayload = this.b64Encode.urlEncode(JSON.stringify(payload));
+        const tokenString = `${encodedHeader}.${encodedPayload}`;
+        const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
+        const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer);
+        const encodedSignature = this.b64Encode.urlEncode(BrowserStringUtils.utf8ArrToString(new Uint8Array(signatureBuffer)));
+
+        return `${tokenString}.${encodedSignature}`;
     }
 }

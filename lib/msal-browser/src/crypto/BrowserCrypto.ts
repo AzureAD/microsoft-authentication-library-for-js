@@ -5,7 +5,7 @@
  */
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { StringUtils } from "@azure/msal-common";
+import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
@@ -17,8 +17,6 @@ const S256_HASH_ALG = "SHA-256";
 const MODULUS_LENGTH = 2048;
 // Public Exponent
 const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
-// JWK Key Format string
-const KEY_FORMAT_JWK = "jwk";
 
 /**
  * This class implements functions used by the browser library to perform cryptography operations such as
@@ -77,12 +75,39 @@ export class BrowserCrypto {
     }
 
     /**
-     * Export key as given KeyFormat (see above)
+     * Export key as Json Web Key (JWK)
      * @param key 
      * @param format 
      */
     async exportJwk(key: CryptoKey): Promise<JsonWebKey> {
         return this.hasIECrypto() ? this.msCryptoExportJwk(key) : window.crypto.subtle.exportKey(KEY_FORMAT_JWK, key);
+    }
+
+    /**
+     * Imports key as Json Web Key (JWK), can set extractable and usages.
+     * @param key 
+     * @param format 
+     * @param extractable 
+     * @param usages 
+     */
+    async importJwk(key: JsonWebKey, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
+        const keyString = BrowserCrypto.getJwkString(key);
+        const keyBuffer = BrowserStringUtils.stringToArrayBuffer(keyString);
+
+        return this.hasIECrypto() ? 
+            this.msCryptoImportKey(keyBuffer, extractable, usages) 
+            : window.crypto.subtle.importKey(KEY_FORMAT_JWK, key, this._keygenAlgorithmOptions, extractable, usages);
+    }
+
+    /**
+     * Signs given data with given key
+     * @param key 
+     * @param data 
+     */
+    async sign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
+        return this.hasIECrypto() ?
+            this.msCryptoSign(key, data)
+            : window.crypto.subtle.sign(this._keygenAlgorithmOptions, key, data);
     }
 
     /**
@@ -133,6 +158,11 @@ export class BrowserCrypto {
         });
     }
 
+    /**
+     * IE Helper function for generating a keypair
+     * @param extractable 
+     * @param usages 
+     */
     private async msCryptoGenerateKey(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
         return new Promise((resolve: any, reject: any) => {
             const msGenerateKey = window["msCrypto"].subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages);
@@ -147,7 +177,7 @@ export class BrowserCrypto {
     }
 
     /**
-     * IE Helper function for exporting keys
+     * IE Helper function for exportKey
      * @param key 
      * @param format 
      */
@@ -172,6 +202,44 @@ export class BrowserCrypto {
             });
 
             msExportKey.addEventListener("error", (error: any) => {
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * IE Helper function for importKey
+     * @param key 
+     * @param format 
+     * @param extractable 
+     * @param usages 
+     */
+    private async msCryptoImportKey(keyBuffer: ArrayBuffer, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
+        return new Promise((resolve: any, reject: any) => {
+            const msImportKey = window["msCrypto"].subtle.importKey(KEY_FORMAT_JWK, keyBuffer, this._keygenAlgorithmOptions, extractable, usages);
+            msImportKey.addEventListener("complete", (e: { target: { result: CryptoKey | PromiseLike<CryptoKey>; }; }) => {
+                resolve(e.target.result);
+            });
+
+            msImportKey.addEventListener("error", (error: any) => {
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * IE Helper function for sign JWT
+     * @param key 
+     * @param data 
+     */
+    private async msCryptoSign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
+        return new Promise((resolve: any, reject: any) => {
+            const msSign = window["msCrypto"].subtle.sign(this._keygenAlgorithmOptions, key, data);
+            msSign.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
+                resolve(e.target.result);
+            });
+
+            msSign.addEventListener("error", (error: any) => {
                 reject(error);
             });
         });
