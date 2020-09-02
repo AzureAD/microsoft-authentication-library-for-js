@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 13 Aug 2020 02:20:48 GMT and should not be manually modified.
+This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.2.0
+
+Tue, 25 Aug 2020 00:40:45 GMT
+
+### Minor changes
+
+- Client Capabilities Support (#2169) (thomas.norling@microsoft.com)
+- Add support for acquiring tokens with client credentials grant (sagonzal@microsoft.com)
+
+### Patches
+
+- ignore offline_access in scopes lookup (sameera.gajjarapu@microsoft.com)
+- Adds checks for cache entities (sameera.gajjarapu@microsoft.com)
+- Add claims request to /token calls (#2138) (thomas.norling@microsoft.com)
+- Fix Telemetry cacheHit Bug (#2170) (thomas.norling@microsoft.com)
+- Get username from emails claim in B2C scenarios (#2114) (thomas.norling@microsoft.com)
+- Update POST header to type Record (#2128) (thomas.norling@microsoft.com)
 
 ## 1.1.1
 
