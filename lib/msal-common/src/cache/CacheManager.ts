@@ -322,7 +322,8 @@ export abstract class CacheManager implements ICacheManager {
             filter.credentialType,
             filter.clientId,
             filter.realm,
-            filter.target
+            filter.target,
+            filter.oboAssertion,
         );
     }
 
@@ -341,7 +342,8 @@ export abstract class CacheManager implements ICacheManager {
         credentialType?: string,
         clientId?: string,
         realm?: string,
-        target?: string
+        target?: string,
+        oboAssertion?: string
     ): CredentialCache {
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
@@ -362,6 +364,10 @@ export abstract class CacheManager implements ICacheManager {
             try {
                 entity = this.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as CredentialEntity;
             } catch (e) {
+                return;
+            }
+
+            if(!StringUtils.isEmpty(oboAssertion) && !this.matchOboAssertion(entity, oboAssertion)){
                 return;
             }
 
@@ -492,6 +498,17 @@ export abstract class CacheManager implements ICacheManager {
         homeAccountId: string
     ): boolean {
         return entity.homeAccountId && homeAccountId === entity.homeAccountId;
+    }
+    
+    /**
+     * @param value
+     * @param oboAssertion
+     */
+    private matchOboAssertion(
+        entity: AccountEntity | CredentialEntity,
+        oboAssertion: string
+    ): boolean {
+        return entity.oboAssertion && oboAssertion === entity.oboAssertion;
     }
 
     /**
