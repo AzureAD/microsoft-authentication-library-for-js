@@ -58,7 +58,8 @@ export enum ApiId {
     acquireTokenSilent = 62,
     acquireTokenByCode = 871,
     acquireTokenByRefreshToken = 872,
-    acquireTokenByDeviceCode = 671
+    acquireTokenByDeviceCode = 671,
+    acquireTokenByClientCredential = 771
 };
 
 /**
