@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import {
@@ -15,6 +20,10 @@ import { Authority } from "../../src/authority/Authority";
 import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
 import { IdToken } from "../../src/account/IdToken";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
+import { TimeUtils } from "../../src/utils/TimeUtils";
+import { IdTokenEntity, AccountEntity, CacheManager } from "../../src";
+import { ScopeSet } from "../../src/request/ScopeSet";
 
 describe("OnBehalfOf unit tests", () => {
     let config: ClientConfiguration;
@@ -79,7 +88,78 @@ describe("OnBehalfOf unit tests", () => {
         });
     });
 
-    it("acquires a token", async () => {
+    it("acquires a token, no token in the cache", async () => {
+
+        sinon.stub(OnBehalfOfClient.prototype, <any>"getCachedAuthenticationResult").returns(null);
+        sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
+
+        const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
+
+        const client = new OnBehalfOfClient(config);
+        const onBehalfOfRequest: OnBehalfOfRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
+            skipCache: false
+        };
+
+        const authResult = await client.acquireToken(onBehalfOfRequest);
+        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).to.deep.eq(expectedScopes);
+        expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
+        expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
+        expect(authResult.state).to.be.empty;
+
+        expect(createTokenRequestBodySpy.calledWith(onBehalfOfRequest)).to.be.true;
+
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${encodeURIComponent(GrantType.JWT_BEARER)}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REQUESTED_TOKEN_USE}=${AADServerParamKeys.ON_BEHALF_OF}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.OBO_ASSERTION}=${TEST_TOKENS.ACCESS_TOKEN}`);
+    });
+    
+    it("acquires a token, returns token from cache", async () => {
+
+        // mock access token
+        const expectedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            
+        sinon.stub(OnBehalfOfClient.prototype, <any>"readAccessTokenFromCache").returns(expectedAtEntity);
+        sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+        // mock id token
+        const expectedIdTokenEntity: IdTokenEntity = IdTokenEntity.createIdTokenEntity(
+             "", "login.microsoftonline.com", TEST_TOKENS.IDTOKEN_V2, config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_TOKENS.ACCESS_TOKEN 
+        );
+        sinon.stub(OnBehalfOfClient.prototype, <any>"readIdTokenFromCache").returns(expectedIdTokenEntity);
+        
+        // mock account
+        const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
+        const accountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.authOptions.authority, idToken, config.cryptoInterface, TEST_TOKENS.ACCESS_TOKEN);
+        sinon.stub(CacheManager.prototype, <any>"getAccount").returns(accountEntity);
+        
+        const client = new OnBehalfOfClient(config);
+        const onBehalfOfRequest: OnBehalfOfRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: TEST_TOKENS.ACCESS_TOKEN
+        };
+
+        const authResult = await client.acquireToken(onBehalfOfRequest);
+        console.log(authResult);
+        expect(authResult.scopes).to.deep.eq(ScopeSet.fromString(expectedAtEntity.target).asArray());
+        expect(authResult.idToken).to.deep.eq(TEST_TOKENS.IDTOKEN_V2);
+        expect(authResult.accessToken).to.deep.eq(expectedAtEntity.secret);
+        expect(authResult.state).to.be.empty;
+        expect(authResult.fromCache).to.be.true;
+        expect(authResult.uniqueId).to.eq(idToken.claims.oid);
+        expect(authResult.tenantId).to.eq(idToken.claims.tid);
+        expect(authResult.account.homeAccountId).to.eq(accountEntity.homeAccountId);
+        expect(authResult.account.environment).to.eq(accountEntity.environment);
+        expect(authResult.account.tenantId).to.eq(accountEntity.realm);
+    });
+    
+    it("acquires a token, skipCache=true", async () => {
 
         sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
 
@@ -88,7 +168,8 @@ describe("OnBehalfOf unit tests", () => {
         const client = new OnBehalfOfClient(config);
         const onBehalfOfRequest: OnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            oboAssertion: TEST_TOKENS.ACCESS_TOKEN
+            oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
+            skipCache: true
         };
 
         const authResult = await client.acquireToken(onBehalfOfRequest);
