@@ -142,7 +142,8 @@ export class AccountEntity {
         }
 
         account.environment = env;
-        account.realm = idToken.claims.tid;
+        // non AAD scenarios can have empty realm
+        account.realm = idToken.claims.tid || "";
 
         if (idToken) {
             // How do you account for MSA CID here?
@@ -173,6 +174,8 @@ export class AccountEntity {
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
+        // non AAD scenarios can have empty realm
+        account.realm = "";
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
