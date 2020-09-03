@@ -15,14 +15,16 @@
     "express-handlebars": "^5.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.11.4",
+    "@babel/core": "^7.11.5",
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/plugin-proposal-object-rest-spread": "^7.11.0",
-    "@babel/preset-env": "^7.11.0",
+    "@babel/preset-env": "^7.11.5",
     "@babel/preset-typescript": "^7.10.4",
     "@types/express": "^4.17.7",
     "@types/jest": "^26.0.10",
     "@types/puppeteer": "^3.0.1",
+    "babel-jest": "^26.3.0",
+    "chrome": "^0.1.0",
     "jest": "^26.4.1",
     "puppeteer": "^5.2.1",
     "ts-node": "^8.10.2",

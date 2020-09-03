@@ -18,14 +18,14 @@ module.exports =  function (authorityConfigSubdir) {
         cache: {
             cachePlugin
         },
-        system: {
-            loggerOptions: {
-                loggerCallback(loglevel, message, containsPii) {
-                    console.log(message);
-                },
-                piiLoggingEnabled: false,
-                logLevel: msal.LogLevel.Verbose,
-            }
-        }
+    //     system: {
+    //         loggerOptions: {
+    //             loggerCallback(loglevel, message, containsPii) {
+    //                 console.log(message);
+    //             },
+    //             piiLoggingEnabled: false,
+    //             logLevel: msal.LogLevel.Verbose,
+    //         }
+    //     }
     }
 };
