@@ -15,7 +15,7 @@ const config = {
     auth: {
         clientId: "12d77c73-d09d-406a-ae0d-3d4e576f7d9b",
         authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
-        clientSecret: "",
+        clientSecret: "T~J~u76r-ej9UmD0JFNyFYl3E~YP26OoqQ",
     }
 };
 
@@ -24,6 +24,7 @@ const cca = new msal.ConfidentialClientApplication(config);
 
 // Create Express App and Routes
 const app = express();
+let accessToken = null;
 
 app.get('/', (req, res) => {
     const authCodeUrlParameters = {
@@ -46,6 +47,7 @@ app.get('/redirect', (req, res) => {
 
     cca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("Response received. Calling web API");
+        accessToken = response.accessToken;
         callWebApi(response.accessToken, (oboResponse) => {
             console.log(oboResponse);
             res.sendStatus(200);
@@ -53,6 +55,13 @@ app.get('/redirect', (req, res) => {
     }).catch((error) => {
         console.log(error);
         res.status(500).send(error);
+    });
+});
+
+app.get('/oboCall', (req, res) => {
+    callWebApi(accessToken, (oboResponse) => {
+        console.log(oboResponse);
+        res.sendStatus(200);
     });
 });
 
