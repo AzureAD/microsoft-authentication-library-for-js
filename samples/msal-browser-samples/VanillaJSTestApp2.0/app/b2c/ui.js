@@ -30,6 +30,4 @@ function updateUI(response) {
     scopes.innerHTML = "<strong>Access Token Acquired for Scopes: </strong>" + response.scopes;
 
     accessTokenDiv.appendChild(scopes);
-    accessTokenButtonPopup.style.display = 'none';
-    accessTokenButtonRedirect.style.display = 'none';
 }
