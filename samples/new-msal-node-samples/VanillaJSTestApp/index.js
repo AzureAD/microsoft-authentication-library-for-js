@@ -4,7 +4,6 @@
 */
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
 const argv = require('yargs')
     .usage('Usage: $0 -sample [sample-name] -p [PORT] -a [authority-type] --policy [B2C Policy]')
     .alias('s', 'sample')
@@ -27,6 +26,9 @@ const DEFAULT_B2C_POLICY= 'signUpSignIn';
 const APP_DIR = `${__dirname}/app`;
 const WEB_APP_TYPE = "web";
 const CLI_APP_TYPE = "cli";
+
+// Make app variable global so server can be closed from an outside script
+let server;
 
 // Loads the names of the application directories containing the sample code
 function readSampleDirs() {
@@ -97,6 +99,13 @@ function validateB2CPolicy(authorityType, sampleFilesPath, policy) {
     return null;
 }
 
+function terminateServer() {
+    if(server) {
+        console.log("Closing server");
+        server.close();
+    }
+}
+
 function initializeWebApp(sampleFilesPath, inputPort, clientApplication, authorityType) {
     // Initialize MSAL Token Cache
     const msalTokenCache = clientApplication.getTokenCache();
@@ -106,7 +115,7 @@ function initializeWebApp(sampleFilesPath, inputPort, clientApplication, authori
     const port = (inputPort) ? inputPort : DEFAULT_PORT;
 
     msalTokenCache.readFromPersistence().then(() => {
-        app.listen(port, () => console.log(`Msal Node Auth Code Sample app listening on port ${port}!`));
+        server = app.listen(port, () => console.log(`Msal Node Auth Code Sample app listening on port ${port}!`));
         // Load sample routes
         const sampleRoutes = require(`${sampleFilesPath}/routes`);
         sampleRoutes(app, clientApplication, msalTokenCache, authorityType);
@@ -174,4 +183,7 @@ if(argv.$0 === "index.js") {
 }
 
 // Export the main script as a function so it can be executed programatically to enable E2E Test automation
-module.exports = runSample;
+module.exports = { 
+    runSample: runSample,
+    terminateServer: terminateServer
+};

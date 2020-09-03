@@ -1,5 +1,5 @@
-import { runCLI, run } from "jest";
-const runSample = require("../index.js");
+import { runCLI } from "jest";
+const { runSample, terminateServer } = require("../index.js");
 
 runSample("silent-flow", 3000, "AAD", null);
 const args = {
@@ -7,4 +7,8 @@ const args = {
     $0: '',
     testTimeout: 30000
 };
-const results = runCLI(args as any, ['./app/silent-flow']);
+
+runCLI(args as any, ['./app/silent-flow']).then(results => {
+    terminateServer();
+})
+
