@@ -7,9 +7,9 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
-} from '@azure/msal-common';
-import { HttpMethod } from '../utils/Constants';
-import axios, { AxiosRequestConfig } from 'axios';
+} from "@azure/msal-common";
+import { HttpMethod } from "../utils/Constants";
+import axios, { AxiosRequestConfig } from "axios";
 
 /**
  * This class implements the API for network requests.
@@ -54,7 +54,7 @@ export class HttpClient implements INetworkModule {
         const request: AxiosRequestConfig = {
             method: HttpMethod.POST,
             url: url,
-            data: (options && options.body) || '',
+            data: (options && options.body) || "",
             headers: options && options.headers,
         };
 

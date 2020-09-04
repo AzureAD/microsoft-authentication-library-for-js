@@ -11,7 +11,7 @@ import {
     CacheManager,
     Logger,
     ValidCacheType,
-} from '@azure/msal-common';
+} from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerTypes";
@@ -44,7 +44,7 @@ export class Storage extends CacheManager {
      */
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache {
 
-        let inMemoryCache: InMemoryCache = {
+        const inMemoryCache: InMemoryCache = {
             accounts: {},
             idTokens: {},
             accessTokens: {},
@@ -52,7 +52,7 @@ export class Storage extends CacheManager {
             appMetadata: {},
         };
 
-        for (let key in cache) {
+        for (const key in cache) {
             if (cache[key] instanceof AccountEntity) {
                 inMemoryCache.accounts[key] = cache[key] as AccountEntity;
             } else if (cache[key] instanceof IdTokenEntity) {
@@ -85,7 +85,7 @@ export class Storage extends CacheManager {
             ...inMemoryCache.accessTokens,
             ...inMemoryCache.refreshTokens,
             ...inMemoryCache.appMetadata
-        }
+        };
         return cache;
     }
 
@@ -143,7 +143,7 @@ export class Storage extends CacheManager {
         this.logger.verbosePii(`Item key: ${key}`);
 
         // read cache
-        let cache = this.getCache();
+        const cache = this.getCache();
         cache[key] = value;
 
         // write to cache
@@ -172,7 +172,7 @@ export class Storage extends CacheManager {
 
         // read inMemoryCache
         let result: boolean = false;
-        let cache = this.getCache();
+        const cache = this.getCache();
 
         if (!!cache[key]) {
             delete cache[key];
