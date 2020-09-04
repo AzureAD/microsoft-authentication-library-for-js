@@ -10,5 +10,5 @@ const args = {
 
 runCLI(args as any, ['./app/silent-flow']).then(results => {
     terminateServer();
-})
+});
 

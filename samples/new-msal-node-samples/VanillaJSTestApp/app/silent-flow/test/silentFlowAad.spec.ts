@@ -4,8 +4,8 @@ import { getTokens, getAccountFromCache, accessTokenForScopesExists } from "../.
 
 const SAMPLE_HOME_URL = 'http://localhost:3000/';
 
-let username = "user@sgonz.onmicrosoft.com"; // TODO:
-let accountPwd = "Authclient2020!"; // TODO:
+let username = ""; // TODO:
+let accountPwd = ""; // TODO:
 
 async function enterCredentials(page: puppeteer.Page): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
@@ -22,7 +22,7 @@ describe('Silent Flow', () => {
     let browser: puppeteer.Browser;
     beforeAll(async () => {
         browser = await puppeteer.launch({
-            headless: true,
+            headless: false,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
     })

@@ -26,11 +26,10 @@ export type tokenMap = {
 }
 
 export async function getTokens(page: puppeteer.Page): Promise<tokenMap> {
-    console.log(msal);
     const cacheJson = require("../data/cache.json");
-    const cache = JSON.stringify(cacheJson);
-    const jsonCache: JsonCache = Deserializer.deserializeJSONBlob(cache);
-    inMemoryCache = Deserializer.deserializeAllCache(jsonCache);
+    // const cache = JSON.stringify(cacheJson);
+    // const jsonCache: JsonCache = Deserializer.deserializeJSONBlob(cache);
+    // inMemoryCache = Deserializer.deserializeAllCache(jsonCache);
 
     const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
     let tokenKeys: tokenMap = {
