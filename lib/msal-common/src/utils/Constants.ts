@@ -43,7 +43,10 @@ export const Constants = {
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type",
     X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
-    X_CLIENT_LAST_TELEM = "x-client-last-telemetry"
+    X_CLIENT_LAST_TELEM = "x-client-last-telemetry",
+    RETRY_AFTER = "Retry-After",
+    X_MS_LIB_CAPABILITY = "x-ms-lib-capability",
+    X_MS_LIB_CAPABILITY_VALUE = "retry-after, h429"
 }
 
 /**
@@ -220,7 +223,7 @@ export enum Separators {
 }
 
 /**
- * Credentail Type stored in the cache
+ * Credential Type stored in the cache
  */
 export enum CredentialType {
     ID_TOKEN = "IdToken",
@@ -229,7 +232,7 @@ export enum CredentialType {
 }
 
 /**
- * Credentail Type stored in the cache
+ * Credential Type stored in the cache
  */
 export enum CacheSchemaType {
     ACCOUNT = "Account",
@@ -240,7 +243,8 @@ export enum CacheSchemaType {
     APP_METADATA = "AppMetadata",
     TEMPORARY = "TempCache",
     TELEMETRY = "Telemetry",
-    UNDEFINED = "Undefined"
+    UNDEFINED = "Undefined",
+    THROTTLING = "Throttling"
 }
 
 /**
@@ -270,4 +274,16 @@ export const SERVER_TELEM_CONSTANTS = {
     CACHE_KEY: "server-telemetry",
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
+};
+
+/**
+ * Constants related to throttling
+ */
+export const ThrottlingConstants = {
+    // Default time to throttle RequestThumbprint in seconds
+    DEFAULT_THROTTLE_TIME_SECONDS: 60,
+    // Default maximum time to throttle in seconds, overrides what the server sends back
+    DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600,
+    // Prefix for storing throttling entries
+    THROTTLING_PREFIX: "throttling"
 };
