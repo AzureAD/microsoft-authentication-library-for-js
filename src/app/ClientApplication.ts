@@ -130,8 +130,10 @@ export abstract class ClientApplication {
         } else if (!this.config.auth.navigateToLoginRequestUrl) {
             return this.handleHash(responseHash);
         } else if (!BrowserUtils.isInIframe()) {
-            // Returned from authority using redirect - need to perform navigation before processing response
-            // Cache the hash to be retrieved after the next redirect
+            /*
+             * Returned from authority using redirect - need to perform navigation before processing response
+             * Cache the hash to be retrieved after the next redirect
+             */
             const hashKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH);
             this.browserStorage.setItem(hashKey, responseHash, CacheSchemaType.TEMPORARY);
             if (!loginRequestUrl || loginRequestUrl === "null") {
@@ -180,10 +182,10 @@ export abstract class ClientApplication {
     }
 
     /**
-	 * Checks if hash exists and handles in window.
-	 * @param responseHash
-	 * @param interactionHandler
-	 */
+     * Checks if hash exists and handles in window.
+     * @param responseHash
+     * @param interactionHandler
+     */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
         const encodedTokenRequest = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string;
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
@@ -205,9 +207,9 @@ export abstract class ClientApplication {
     /**
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
      * the page, so any code that follows this function will not execute.
-	 *
-	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
-	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+     *
+     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      *
      * @param {@link (RedirectRequest:type)}
      */
