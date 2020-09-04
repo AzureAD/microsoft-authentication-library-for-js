@@ -87,7 +87,6 @@
     "source-map-loader": "^0.2.3",
     "ts-loader": "^2.0.3",
     "tslib": "^1.11.1",
-    "tslint": "^5.8.0",
     "typedoc": "^0.14.2",
     "typescript": "^3.6.5",
     "typings": "^2.1.1",
@@ -106,7 +105,7 @@
     "build": "npm run clean && npm run build:modules",
     "deploy": "npm run build && npm publish dist && npm run doc",
     "test": "karma start karma.conf.js",
-    "lint": "tslint -p ./",
+    "lint": "cd ../../ && npm run lint:angular",
     "test:verify-build": "npm run build:modules && npm test",
     "endToEnd": "cd tests/endToEndTests && npm install && node testRunner.js",
     "prepack": "npm run build"
