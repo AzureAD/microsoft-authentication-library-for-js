@@ -56,6 +56,10 @@ export const BrowserAuthErrorMessage = {
         code: "redirect_in_iframe",
         desc: "Code flow is not supported inside an iframe. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs."
     },
+    notInBrowserEnvironment: {
+        code: "non_browser_environment",
+        desc: "Login and token requests are not supported in non-browser environments."
+    },
     blockTokenRequestsInHiddenIframeError: {
         code: "block_iframe_reload",
         desc: "Request was blocked inside an iframe because MSAL detected an authentication response. Please ensure monitorWindowForHash was called."
@@ -188,6 +192,13 @@ export class BrowserAuthError extends AuthError {
     static createRedirectInIframeError(windowParentCheck: boolean): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.redirectInIframeError.code, 
             `${BrowserAuthErrorMessage.redirectInIframeError.desc} (window.parent !== window) => ${windowParentCheck}`);
+    }
+
+    /**
+     * Create an error thrown when login and token requests are made from a non-browser environment
+     */
+    static createNonBrowserEnvironmentError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.notInBrowserEnvironment.code, BrowserAuthErrorMessage.notInBrowserEnvironment.desc);
     }
 
     /**

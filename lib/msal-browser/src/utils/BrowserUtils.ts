@@ -84,6 +84,16 @@ export class BrowserUtils {
     }
 
     /**
+     * Throws error if token requests are made in non-browser environment
+     * @param isBrowserEnvironment Flag indicating if environment is a browser.
+     */
+    static blockNonBrowserEnvironment(): void {
+        if (typeof window === "undefined") {
+            throw BrowserAuthError.createNonBrowserEnvironmentError();
+        }
+    }
+
+    /**
      * Returns boolean of whether current browser is an Internet Explorer or Edge browser.
      */
     static detectIEOrEdge(): boolean {

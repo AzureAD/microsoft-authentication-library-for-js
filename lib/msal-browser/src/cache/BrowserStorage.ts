@@ -5,18 +5,30 @@
 
 import { IWindowStorage } from "./IWindowStorage";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserUtils } from "../utils/BrowserUtils";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class BrowserStorage implements IWindowStorage {
 
-    private windowStorage: Storage;
+    private _windowStorage: Storage;
+    private cacheLocation: string;
+    private isBrowserEnvironment: boolean;
+
+    public get windowStorage() : Storage {
+        if (!this._windowStorage) {
+            this._windowStorage = window[this.cacheLocation];
+        }
+
+        return this._windowStorage;
+    }
 
     constructor(cacheLocation: string) {
         // Validate cache location
         this.validateWindowStorage(cacheLocation);
 
-        this.windowStorage = window[cacheLocation];
+        this.cacheLocation = cacheLocation;
+        this.isBrowserEnvironment = typeof window !== "undefined";
     }
 
     /**
@@ -27,12 +39,18 @@ export class BrowserStorage implements IWindowStorage {
      * @param cacheLocation
      */
     private validateWindowStorage(cacheLocation: string): void {
-        if (typeof window === "undefined" || !window) {
-            throw BrowserAuthError.createNoWindowObjectError();
-        }
-
         if (cacheLocation !== BrowserConstants.CACHE_LOCATION_LOCAL && cacheLocation !== BrowserConstants.CACHE_LOCATION_SESSION) {
             throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
+        }
+
+        try {
+            BrowserUtils.blockNonBrowserEnvironment();
+        } catch(err: BrowserAuthError) {
+            if (e.)
+        }
+
+        if (!this.isBrowserEnvironment) {
+            return;
         }
 
         const storageSupported = !!window[cacheLocation];
@@ -46,6 +64,7 @@ export class BrowserStorage implements IWindowStorage {
      * @param key 
      */
     getWindowStorageItem(key: string): string {
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return this.windowStorage.getItem(key);
     }
 
@@ -55,6 +74,7 @@ export class BrowserStorage implements IWindowStorage {
      * @param value 
      */
     setWindowStorageItem(key: string, value: string): void {
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
         this.windowStorage.setItem(key, value);
     }
 
@@ -63,6 +83,7 @@ export class BrowserStorage implements IWindowStorage {
      * @param key 
      */
     removeWindowStorageItem(key: string): void {
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
         this.windowStorage.removeItem(key);
     }
 
@@ -70,6 +91,7 @@ export class BrowserStorage implements IWindowStorage {
      * Get all the keys from the window storage object as an iterable array of strings.
      */
     getWindowStorageKeys(): string[] {
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return Object.keys(this.windowStorage);
     }
 
@@ -78,6 +100,7 @@ export class BrowserStorage implements IWindowStorage {
      * @param key 
      */
     windowStorageContainsItem(key: string): boolean {
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
         return this.windowStorage.hasOwnProperty(key);
     }
 }
