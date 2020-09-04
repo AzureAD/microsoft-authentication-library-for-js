@@ -17,7 +17,8 @@ const msalConfig = {
         cloudDiscoveryMetadata: "",
         redirectUri: "enter_redirect_uri_here",
         postLogoutRedirectUri: "enter_postlogout_uri_here",
-        navigateToLoginRequestUrl: true
+        navigateToLoginRequestUrl: true,
+        clientCapabilities: ["CP1"]
     },
     cache: {
         cacheLocation: "sessionStorage",
@@ -48,7 +49,8 @@ const msalConfig = {
         },
         windowHashTimeout: 60000,
         iframeHashTimeout: 6000,
-        loadFrameTimeout: 0
+        loadFrameTimeout: 0,
+        asyncPopups: false
     };
 }
 
@@ -67,6 +69,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `redirectUri` | URI where the authorization code response is sent back to. Whatever location is specified here must have the MSAL library available to handle the response. | String in URI format | Login request page (`window.location.href` of page which made auth request) |
 | `postLogoutRedirectUri` | URI that is redirected to after a logout() call is made. | String in URI format | Login request page (`window.location.href` of page which made auth request) |
 | `navigateToLoginRequestUrl` | If `true`, will navigate back to the original request location before processing the authorization code response. If the `redirectUri` is the same as the original request location, this flag should be set to false. | boolean | `true` |
+| `clientCapabilities` | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request | Array of strings | [] |
 
 ### Cache Config Options
 | Option | Description | Format | Default Value |
@@ -81,6 +84,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `windowHashTimeout` | Timeout in milliseconds to wait for popup authentication to resolve. | integer (milliseconds) | `60000` |
 | `iframeHashTimeout` | Timeout in milliseconds to wait for iframe authentication to resolve | integer (milliseconds) | `6000` |
 | `loadFrameTimeout` | Timeout in milliseconds to wait for the iframe to load in the window. | integer (milliseconds) | In IE or Edge: `500`, in all other browsers: `0` |
+| `asyncPopups` | Sets whether popups are opened asynchronously. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request. Can be set to true for scenarios where `about:blank` is not supported, e.g. desktop apps or progressive web apps | boolean | `false` |
 
 ### Logger Config Options
 | Option | Description | Format | Default Value |

@@ -45,8 +45,8 @@ export class BrowserStorage implements IWindowStorage {
 
         try {
             BrowserUtils.blockNonBrowserEnvironment();
-        } catch(err: BrowserAuthError) {
-            if (e.)
+        } catch(err) {
+            throw err;
         }
 
         if (!this.isBrowserEnvironment) {
@@ -64,7 +64,7 @@ export class BrowserStorage implements IWindowStorage {
      * @param key 
      */
     getWindowStorageItem(key: string): string {
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        BrowserUtils.blockNonBrowserEnvironment();
         return this.windowStorage.getItem(key);
     }
 
@@ -74,7 +74,7 @@ export class BrowserStorage implements IWindowStorage {
      * @param value 
      */
     setWindowStorageItem(key: string, value: string): void {
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        BrowserUtils.blockNonBrowserEnvironment();
         this.windowStorage.setItem(key, value);
     }
 
@@ -83,7 +83,7 @@ export class BrowserStorage implements IWindowStorage {
      * @param key 
      */
     removeWindowStorageItem(key: string): void {
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        BrowserUtils.blockNonBrowserEnvironment();
         this.windowStorage.removeItem(key);
     }
 
@@ -91,7 +91,7 @@ export class BrowserStorage implements IWindowStorage {
      * Get all the keys from the window storage object as an iterable array of strings.
      */
     getWindowStorageKeys(): string[] {
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        BrowserUtils.blockNonBrowserEnvironment();
         return Object.keys(this.windowStorage);
     }
 
@@ -100,7 +100,7 @@ export class BrowserStorage implements IWindowStorage {
      * @param key 
      */
     windowStorageContainsItem(key: string): boolean {
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        BrowserUtils.blockNonBrowserEnvironment();
         return this.windowStorage.hasOwnProperty(key);
     }
 }

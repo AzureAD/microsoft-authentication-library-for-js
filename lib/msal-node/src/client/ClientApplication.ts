@@ -24,17 +24,21 @@ import {
 import { Configuration, buildAppConfiguration } from '../config/Configuration';
 import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
-import { version } from '../../package.json';
 import { Constants as NodeConstants } from './../utils/Constants';
 import { TokenCache } from '../cache/TokenCache';
+import { ClientAssertion } from "../client/ClientAssertion";
+const pjson = require("../../package.json");
 
 export abstract class ClientApplication {
-    private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
     private storage: Storage;
     private tokenCache: TokenCache;
     protected logger: Logger;
+    protected config: Configuration;
+
+    protected clientAssertion: ClientAssertion;
+    protected clientSecret: string;
 
     /**
      * Constructor for the ClientApplication
@@ -46,7 +50,7 @@ export abstract class ClientApplication {
         this.tokenCache = new TokenCache(
             this.storage,
             this.logger,
-            this.config.cache?.cachePlugin
+            this.config.cache!.cachePlugin
         );
         this.cryptoProvider = new CryptoProvider();
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
@@ -141,12 +145,14 @@ export abstract class ClientApplication {
     protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
+
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
-                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+                clientCapabilities: this.config.auth.clientCapabilities
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!
@@ -157,13 +163,24 @@ export abstract class ClientApplication {
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,
             storageInterface: this.storage,
+            clientCredentials: {
+                clientSecret: this.clientSecret,
+                clientAssertion: this.clientAssertion ? this.getClientAssertion() : undefined,
+            },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
-                version: version,
+                version: pjson.version,
                 cpu: process.arch || '',
                 os: process.platform || '',
             },
         };
+    }
+
+    private getClientAssertion(): { assertion: string, assertionType: string } {
+        return {
+            assertion: this.clientAssertion.getJwt(this.cryptoProvider, this.config.auth.clientId, this._authority.tokenEndpoint),
+            assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
+        }
     }
 
     /**
@@ -213,7 +230,6 @@ export abstract class ClientApplication {
             return this._authority;
         }
 
-        this.logger.verbose("No authority set on application object. Defaulting to common authority");
         this._authority = AuthorityFactory.createInstance(
             this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
             this.config.system!.networkClient!

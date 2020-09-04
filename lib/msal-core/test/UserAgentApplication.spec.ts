@@ -35,6 +35,7 @@ import { RequestUtils } from "../src/utils/RequestUtils";
 import { UrlUtils } from "../src/utils/UrlUtils";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 import { TrustedAuthority } from "../src/authority/TrustedAuthority";
+import { resolve } from "path";
 
 type kv = {
     [key: string]: string;
@@ -241,7 +242,7 @@ describe("UserAgentApplication.ts Class", function () {
             done();
         });
 
-        it("navigates user to redirectURI passed in the  request config", (done) => {
+        it("navigates user to redirectURI passed in the request config", (done) => {
             window.location = {
                 ...oldWindowLocation,
                 assign: function (url) {
@@ -912,24 +913,6 @@ describe("UserAgentApplication.ts Class", function () {
             done();
         });
 
-        it("tests if error is thrown when client id is not passed as single scope", function (done) {
-            msal.handleRedirectCallback(authCallback);
-            let authErr: AuthError;
-            try {
-                msal.acquireTokenRedirect({
-                    scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "S1"]
-                });
-            } catch (e) {
-                authErr = e;
-            }
-            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.clientScope.code);
-            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
-            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.clientScope.desc);
-            expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
-            done();
-        });
-
         it("throws an error if configured with a null request", () => {
             let correctError;
             try {
@@ -1167,25 +1150,26 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
-        it("tests getCachedToken when authority is passed and single matching accessToken is found", function (done) {
+        it("tests getCachedToken when common authority is passed and single matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["S1"],
                 account: account
             };
-            const tokenRequest2 : AuthenticationParameters = {
+            const tokenRequestAlternate : AuthenticationParameters = {
                 authority: TEST_CONFIG.alternateValidAuthority,
                 scopes: ["S1"],
                 account: account
             };
+           
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
-            accessTokenKey.authority = accessTokenKey.authority + "/";
+            accessTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority + "/";
-            accessTokenValue.accessToken = "accessToken2";
+            accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            accessTokenValue.accessToken = "accessTokenAlternate";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
@@ -1200,12 +1184,108 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
 
-            msal.acquireTokenSilent(tokenRequest2).then(function(response) {
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
                 expect(response.scopes).to.be.deep.eq(["s1"]);
                 expect(response.account).to.be.eq(account);
                 expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.include("accessToken2");
+                expect(response.accessToken).to.include("accessTokenAlternate");
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                done();
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+            
+        });
+
+        it("tests getCachedToken when organizations authority is passed and single matching accessToken is found", function (done) {
+            
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_URIS.DEFAULT_INSTANCE + "organizations",
+                scopes: ["S1"],
+                account: account
+            };
+            const tokenRequestAlternate : AuthenticationParameters = {
+                authority: TEST_URIS.ALTERNATE_INSTANCE + "organizations",
+                scopes: ["S1"],
+                account: account
+            };
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+
+            accessTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            accessTokenValue.accessToken = "accessTokenAlternate";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include("accessTokenAlternate");
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                done();
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+        });
+
+        it("tests getCachedToken when tenant authority is passed and single matching accessToken is found", function (done) {
+            
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
+                scopes: ["S1"],
+                account: account
+            };
+            const tokenRequestAlternate : AuthenticationParameters = {
+                authority: TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
+                scopes: ["S1"],
+                account: account
+            };
+            
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+
+            accessTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID;
+            accessTokenValue.accessToken = "accessTokenAlternate";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include("accessTokenAlternate");
                 expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err: AuthError) {
@@ -1242,7 +1322,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getCachedToken when authority is passed and no matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
-                authority: TEST_CONFIG.alternateValidAuthority,
+                authority: TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.MSAL_TENANT_ID,
                 scopes: ["S1"],
                 account: account
             };
@@ -1250,16 +1330,9 @@ describe("UserAgentApplication.ts Class", function () {
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
 
-            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
-                return new Promise<void>(() => {
-                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "/oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                    expect(url).to.include("&state");
-                    expect(url).to.include("&client_info=1");
-                    done();
-                });
-            });
+            setAuthInstanceStubs();
+            sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+            const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -1269,6 +1342,8 @@ describe("UserAgentApplication.ts Class", function () {
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
                 expect(err).to.be.instanceOf(AuthError);
+                expect(renewTokenSpy.calledOnce).to.be.true;
+                done();
             });
         });
 
@@ -2231,7 +2306,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
                 expect(request.loginHint).to.equal(loginHint);
-                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
+                expect(request.scopes).to.deep.equal(Constants.oidcScopes);
 
                 atsStub.restore();
                 done();
@@ -2247,7 +2322,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
                 expect(request.sid).to.equal(sid);
-                expect(request.scopes).to.deep.equal([ msal.getCurrentConfiguration().auth.clientId ]);
+                expect(request.scopes).to.deep.equal(Constants.oidcScopes);
 
                 atsStub.restore();
                 done();
@@ -2265,6 +2340,589 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(e.errorCode).to.equal("sso_silent_error");
                 done();
             }
+        });
+    });
+
+    describe("Response type configuration", () => {
+        // Trailing ampersand is added to avoid id_token matching id_token token
+        const idTokenType = "response_type=id_token&";
+        const idTokenTokenType = "response_type=id_token token&";
+        const tokenType = "response_type=token&";
+
+        describe("Login APIs", () => {
+            describe("loginRedirect", () => {
+                beforeEach(function() {
+                    cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+                    const config: Configuration = {
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                            redirectUri: TEST_URIS.TEST_REDIR_URI
+                        }
+                    };
+                    msal = new UserAgentApplication(config);
+                    setAuthInstanceStubs();
+                    setTestCacheItems();
+        
+                    delete window.location;
+                });
+        
+                afterEach(function () {
+                    cacheStorage.clear();
+                    sinon.restore();
+                    window.location = oldWindowLocation;
+                });
+    
+                // Redirect 
+                
+                it("loginRedirect should set response_type to id_token", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.loginRedirect();
+                });
+            });
+
+            describe("loginPopup", () => {
+                const oldWindow = window;
+                const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup)
+
+                beforeEach(function() {
+                    cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+                    const config: Configuration = {
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                            redirectUri: TEST_URIS.TEST_REDIR_URI
+                        }
+                    };
+                    msal = new UserAgentApplication(config);
+                    setAuthInstanceStubs();
+                    setTestCacheItems();
+
+                    delete window.location;
+                });
+
+                afterEach(function() {
+                    window = oldWindow;
+                    window.location = oldWindowLocation;
+                    cacheStorage.clear();
+                    sinon.restore();
+                });
+                
+                it("loginPopup should set response_type to id_token", (done) => {
+                    let navigateUrl;
+                    window = {
+                        ...oldWindow,
+                        location: {
+                            ...oldWindowLocation,
+                            hash: testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
+                        },
+                        open: function (url?, target?, features?, replace?): Window {
+                            navigateUrl = url;
+                            return null;
+                        }
+                    };
+                    const loginPopupPromise = msal.loginPopup({});
+                    loginPopupPromise.catch(error => {
+                        expect(navigateUrl).to.include(idTokenType);
+                        expect(navigateUrl).to.not.include(tokenType)
+                        expect(navigateUrl).to.not.include(idTokenTokenType);
+                        done();
+                    });
+                });
+            });
+        });
+
+        describe("Acquire Token APIs", () => {
+            describe("with matching accounts", () => {
+                beforeEach(function() {
+                    cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+                    const config: Configuration = {
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                            redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        }
+                    };
+                    msal = new UserAgentApplication(config);
+                    setAuthInstanceStubs();
+                    setTestCacheItems();
+    
+                    delete window.location;
+                });
+        
+                afterEach(function () {
+                    cacheStorage.clear();
+                    sinon.restore();
+                    window.location = oldWindowLocation;
+                });
+
+                it("should set response_type to id_token when clientId is the only input scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID ], account});
+                });
+
+                it("should set response_type to id_token when openid and profile are the only scopes", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [Constants.openidScope, Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token when openid is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [Constants.openidScope], account});
+                });
+
+                it("should set response_type to id_token when profile is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token when profile is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token token when a resource scope is included along with openid", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.openidScope], account});
+                });
+
+                it("should set response_type to id_token token when a resource scope is included along with profile", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token token when a resource scope is included along with both OIDC scopes", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1', ...oidcScopes], account});
+                });
+
+                it("should treat clientId as a resource scope when included with OIDC scopes and therefore set response_type to id_token token", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, ...oidcScopes], account});
+                });
+
+                it("should set response_type to token when only a single resource scope is included", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(tokenType);
+                                expect(url).to.not.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1'], account});
+                });
+
+                it("should set response_type to token when multiple resource scopes are included", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(tokenType);
+                                expect(url).to.not.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: ['S1', 'S2'], account});
+                });
+                it("should treat clientId as a resource scope when included with resource scopes and therefore set response_type to token", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(tokenType);
+                                expect(url).to.not.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    sinon.stub(msal, "getAccount").returns(account);
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, 'S1'], account});
+                });
+            }); 
+
+            describe("when accounts don't match", () => {
+                beforeEach(function() {
+                    cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
+                    const config: Configuration = {
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                            redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        }
+                    };
+                    msal = new UserAgentApplication(config);
+                    setAuthInstanceStubs();
+                    setTestCacheItems();
+    
+                    delete window.location;
+                });
+        
+                afterEach(function () {
+                    cacheStorage.clear();
+                    sinon.restore();
+                    window.location = oldWindowLocation;
+                });
+
+                it("should set response_type to id_token when clientId is the only input scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID ], account});
+                });
+
+                it("should set response_type to id_token when openid and profile are the only scopes", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: [Constants.openidScope, Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token when openid is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: [Constants.openidScope], account });
+                });
+
+                it("should set response_type to id_token when profile is the only scope", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token token when a resource scope is included along with openid", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.openidScope], account});
+                });
+
+                it("should set response_type to id_token token when a resource scope is included along with profile", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+                    
+                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.profileScope], account});
+                });
+
+                it("should set response_type to id_token token when a resource scope is included along with both OIDC scopes", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: ['S1', ...oidcScopes], account});
+                });
+
+                it("should treat clientId as a resource scope when included with OIDC scopes and therefore set response_type to id_token token", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, ...oidcScopes], account});
+                });
+
+                it("should set response_type to id_token token when only a single resource scope is included because login is required", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.not.include(tokenType);
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: ['S1'], account});
+                });
+
+                it("should set response_type to id_token token when multiple resource scopes are included because login is required", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.not.include(tokenType);
+                                expect(url).to.include(idTokenTokenType);
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: ['S1', 'S2'], account});
+                });
+                it("should treat clientId as a resource scope when included with resource scopes and therefore set response_type to id_token token because login is required", (done) => {
+                    window.location = {
+                        ...oldWindowLocation,
+                        assign: function (url) {
+                            try {
+                                expect(url).to.not.include(tokenType);
+                                expect(url).to.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenType);
+                                done();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    };
+
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, 'S1'], account});
+                });
+            }); 
         });
     });
 });

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Command line app that uses Oauth device code flow to get a token from Azure AD",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "start": "node index.js",
     "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
@@ -11,6 +12,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.0-alpha.3"
+    "@azure/msal-node": "^1.0.0-alpha.5"
   }
 }

@@ -44,7 +44,7 @@ describe("RefreshTokenClient unit tests", () => {
             "ver": "2.0",
             "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
             "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": "1536361411",
+            "exp": 1536361411,
             "name": "Abe Lincoln",
             "preferred_username": "AbeLi@microsoft.com",
             "oid": "00000000-0000-0000-66f3-3332eca7ea81",
@@ -63,7 +63,7 @@ describe("RefreshTokenClient unit tests", () => {
         const refreshTokenRequest: RefreshTokenRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-            redirectUri: TEST_URIS.TEST_REDIR_URI
+            claims: TEST_CONFIG.CLAIMS
         };
 
         const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
@@ -89,5 +89,7 @@ describe("RefreshTokenClient unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
     });
 });

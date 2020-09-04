@@ -146,6 +146,18 @@ export const ClientAuthErrorMessage = {
     unexpectedCredentialType: {
         code: "unexpected_credential_type",
         desc: "Unexpected credential type."
+    },
+    invalidAssertion: {
+        code: "invalid_assertion",
+        desc: "Client assertion must meet requirements described in https://tools.ietf.org/html/rfc7515"
+    },
+    invalidClientCredential: {
+        code: "invalid_client_credential",
+        desc: "Client credential (secret, certificate, or assertion) must not be empty when creating a confidential client. An application should at most have one credential"
+    },
+    tokenRefreshRequired: {
+        code: "token_refresh_required",
+        desc: "Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired."
     }
 };
 
@@ -421,5 +433,26 @@ export class ClientAuthError extends AuthError {
     */
     static createUnexpectedCredentialTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.unexpectedCredentialType.code, `${ClientAuthErrorMessage.unexpectedCredentialType.desc}`);
+    }
+    
+    /**
+    * Throws error if client assertion is not valid.
+    */
+    static createInvalidAssertionError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidAssertion.code, `${ClientAuthErrorMessage.invalidAssertion.desc}`);
+    }
+    
+    /**
+    * Throws error if client assertion is not valid.
+    */
+    static createInvalidCredentialError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidClientCredential.code, `${ClientAuthErrorMessage.invalidClientCredential.desc}`);
+    }
+
+    /**
+     * Throws error if token cannot be retrieved from cache due to refresh being required.
+     */
+    static createRefreshRequiredError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.tokenRefreshRequired.code, ClientAuthErrorMessage.tokenRefreshRequired.desc);
     }
 }

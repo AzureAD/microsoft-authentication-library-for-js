@@ -7,14 +7,16 @@ import { DeviceCodeResponse, ServerDeviceCodeResponse } from "../response/Device
 import { BaseClient } from "./BaseClient";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { StringUtils } from "../utils/StringUtils";
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * OAuth2.0 Device code client
@@ -60,11 +62,15 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
-
         const queryString = this.createQueryString(request);
         const headers = this.createDefaultLibraryHeaders();
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: request.authority,
+            scopes: request.scopes
+        };
 
-        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers);
+        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers, thumbprint);
     }
 
     /**
@@ -76,7 +82,8 @@ export class DeviceCodeClient extends BaseClient {
     private async executePostRequestToDeviceCodeEndpoint(
         deviceCodeEndpoint: string,
         queryString: string,
-        headers: Map<string, string>): Promise<DeviceCodeResponse> {
+        headers: Record<string, string>,
+        thumbprint: RequestThumbprint): Promise<DeviceCodeResponse> {
 
         const {
             body: {
@@ -87,7 +94,8 @@ export class DeviceCodeClient extends BaseClient {
                 interval,
                 message
             }
-        } = await this.networkClient.sendPostRequestAsync<ServerDeviceCodeResponse>(
+        } = await this.networkManager.sendPostRequest<ServerDeviceCodeResponse>(
+            thumbprint,
             deviceCodeEndpoint,
             {
                 body: queryString,
@@ -114,6 +122,10 @@ export class DeviceCodeClient extends BaseClient {
         const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
+        
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
 
         return parameterBuilder.createQueryString();
     }
@@ -129,7 +141,7 @@ export class DeviceCodeClient extends BaseClient {
         deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
 
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
@@ -152,10 +164,16 @@ export class DeviceCodeClient extends BaseClient {
                         reject(ClientAuthError.createDeviceCodeExpiredError());
 
                     } else {
+                        const thumbprint: RequestThumbprint = {
+                            clientId: this.config.authOptions.clientId,
+                            authority: request.authority,
+                            scopes: request.scopes
+                        };
                         const response = await this.executePostToTokenEndpoint(
                             this.authority.tokenEndpoint,
                             requestBody,
-                            headers);
+                            headers,
+                            thumbprint);
 
                         if (response.body && response.body.error == Constants.AUTHORIZATION_PENDING) {
                             // user authorization is pending. Sleep for polling interval and try again
@@ -190,6 +208,10 @@ export class DeviceCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         requestParameters.addCorrelationId(correlationId);
         requestParameters.addClientInfo();
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            requestParameters.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
         return requestParameters.createQueryString();
     }
 }

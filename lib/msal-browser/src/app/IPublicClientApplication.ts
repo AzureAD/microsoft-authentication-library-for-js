@@ -1,7 +1,8 @@
-import { AuthenticationResult, AuthorizationUrlRequest, AccountInfo, EndSessionRequest } from "@azure/msal-common";
+import { AuthenticationResult, AccountInfo, EndSessionRequest } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -11,11 +12,12 @@ export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
-    getAccountByUsername(userName: string): AccountInfo;
+    getAccountByUsername(userName: string): AccountInfo | null;
+    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
     handleRedirectPromise(): Promise<AuthenticationResult | null>;
-    loginPopup(request: PopupRequest): Promise<AuthenticationResult>;
-    loginRedirect(request: RedirectRequest): Promise<void>;
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
+    loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
-    ssoSilent(request: AuthorizationUrlRequest): Promise<AuthenticationResult>;
+    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 }

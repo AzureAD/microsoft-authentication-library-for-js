@@ -1,3 +1,23 @@
+# Change Log - @azure/msal-node
+
+This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+## 1.0.0-alpha.5
+
+Tue, 25 Aug 2020 00:40:45 GMT
+
+### Changes
+
+- update APP_META_DATA to APP_METADATA (sameera.gajjarapu@microsoft.com)
+- Client Capabilities Support (#2169) (thomas.norling@microsoft.com)
+- Remove log statement (email not defined)
+- undefined (sagonzal@microsoft.com)
+
+# 1.0.0-alpha.4
+- Add confidential client support (#2023)
+
 # 1.0.0-alpha.3
 - Fix an issue where the types were not defined correctly in the package.json (#2014)
 

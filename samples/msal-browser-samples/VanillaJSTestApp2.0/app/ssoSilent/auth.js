@@ -9,7 +9,7 @@ const isIE = msie > 0 || msie11 > 0;
 const isEdge = msedge > 0;
 
 let signInType;
-let username = "";
+let accountId = "";
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
@@ -22,26 +22,21 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 
 function handleResponse(resp) {
     if (resp !== null) {
-        username = resp.account.username;
+        accountId = resp.account.homeAccountId;
         showWelcomeMessage(resp.account);
         getTokenRedirect(loginRequest, resp.account);
     } else {
-        // need to call getAccount here?
-        const currentAccounts = myMSALObj.getAllAccounts();
-        if (currentAccounts === null) {
-            myMSALObj.ssoSilent(silentRequest).then(handleResponse).catch(error => {
-                console.error("Silent Error: " + error);
-                if (error instanceof msal.InteractionRequiredAuthError) {
-                    signIn("loginPopup");
-                }
-            });
-        } else if (currentAccounts.length > 1) {
-            // Add choose account code here
-        } else if (currentAccounts.length === 1) {
-            username = currentAccounts[0].username;
+        myMSALObj.ssoSilent(silentRequest).then(() => {
+            const currentAccounts = myMSALObj.getAllAccounts();
+            accountId = currentAccounts[0].homeAccountId;
             showWelcomeMessage(currentAccounts[0]);
             getTokenRedirect(loginRequest, currentAccounts[0]);
-        }
+        }).catch(error => {
+            console.error("Silent Error: " + error);
+            if (error instanceof msal.InteractionRequiredAuthError) {
+                signIn("loginPopup");
+            }
+        });
     }
 }
 
@@ -58,7 +53,7 @@ async function signIn(method) {
 
 function signOut() {
     const logoutRequest = {
-        account: myMSALObj.getAccountByUsername(username)
+        account: myMSALObj.getAccountByHomeId(homeAccountId)
     };
     myMSALObj.logout(logoutRequest);
 }
