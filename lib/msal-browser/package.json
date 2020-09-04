@@ -49,7 +49,7 @@
     "build:common": "cd ../msal-common && npm run build",
     "build:modules": "rollup -c",
     "build:modules:watch": "rollup -cw",
-    "build": "npm run clean && npm run lint && npm run build:modules",
+    "build": "npm run clean && npm run build:modules",
     "prepack": "npm run build:all",
     "sri": "npm run sri:msal && npm run sri:msalmin",
     "sri:msal": "openssl dgst -sha384 -binary lib/msal-browser.js | openssl base64 -A",
