@@ -7,11 +7,13 @@
         }
     },
     "plugins": [
-        "@typescript-eslint/eslint-plugin-tslint"
+        "@typescript-eslint/eslint-plugin-tslint",
+        "security"
     ],
     "extends": [
         "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended"
+        "plugin:@typescript-eslint/recommended",
+        "plugin:security/recommended"
     ],
     "rules": {
         "@typescript-eslint/array-type": 0,

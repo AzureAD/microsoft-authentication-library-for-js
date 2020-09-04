@@ -15,6 +15,7 @@
     "beachball": "^1.33.0",
     "coveralls": "3.0.9",
     "eslint": "^7.8.1",
+    "eslint-plugin-security": "^1.4.0",
     "lerna": "^3.20.2",
     "nyc": "^14.1.1",
     "puppeteer": "^2.1.1",
@@ -30,7 +31,7 @@
     "test:coverage": "npm run clean:coverage && lerna run test:coverage",
     "test:report": "nyc report | coveralls",
     "test:e2e": "lerna run --concurrency 1 test:e2e",
-    "lint": "npm run lint:core && npm run lint:browser",
+    "lint": "run-s lint:*",
     "lint:angular": "eslint lib/msal-angular/src --ext .ts",
     "lint:angularjs": "eslint lib/msal-angularjs/lib --ext .js",
     "lint:browser": "eslint lib/msal-browser/src --ext .ts",
@@ -43,6 +44,7 @@
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN"
   },
   "dependencies": {
-    "@babel/register": "^7.7.0"
+    "@babel/register": "^7.7.0",
+    "npm-run-all": "^4.1.5"
   }
 }
