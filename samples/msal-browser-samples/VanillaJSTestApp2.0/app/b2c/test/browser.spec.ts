@@ -41,6 +41,7 @@ async function loginRedirect(page: puppeteer.Page, screenshot: Screenshot): Prom
     await enterCredentials(page, screenshot);
     // Wait for return to page
     await page.waitForSelector("#getAccessTokenRedirect");
+    await page.waitFor(50);
     await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
 }
 
@@ -66,6 +67,7 @@ async function loginPopup(page: puppeteer.Page, screenshot: Screenshot): Promise
     // Wait until popup window closes and see that we are logged in
     await popupWindowClosed;
     await page.waitForSelector("#getAccessTokenPopup");
+    await page.waitFor(50);
     await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
 }
 
@@ -140,8 +142,8 @@ describe("Browser tests", function () {
 
         afterEach(async () => {
             const tokenStore = await getTokens(page);
-            removeTokens(page, tokenStore.accessTokens);
-            removeTokens(page, tokenStore.refreshTokens);
+            await removeTokens(page, tokenStore.accessTokens);
+            await removeTokens(page, tokenStore.refreshTokens);
             await page.reload();
         });
 
@@ -186,8 +188,8 @@ describe("Browser tests", function () {
             expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).to.be.true;
 
             // AcquireTokenSilent use refresh token to acquire new accessToken
-            removeTokens(page, tokenStore.accessTokens);
-            page.reload();
+            await removeTokens(page, tokenStore.accessTokens);
+            await page.reload();
             await page.waitForSelector("#getAccessTokenSilent");
             await page.click("#getAccessTokenSilent");
             await page.waitForSelector("#access-token-info");
@@ -201,7 +203,7 @@ describe("Browser tests", function () {
             expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).to.be.true;
 
             // AcquireTokenSilent from cache
-            page.reload();
+            await page.reload();
             await page.waitForSelector("#getAccessTokenSilent");
             await page.click("#getAccessTokenSilent");
             await page.waitForSelector("#access-token-info");

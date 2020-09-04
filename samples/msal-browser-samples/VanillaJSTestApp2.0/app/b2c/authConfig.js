@@ -6,13 +6,13 @@ const msalConfig = {
         knownAuthorities: ["login.microsoftonline.com"]
     },
     cache: {
-        cacheLocation: "localStorage", // This configures where your cache will be stored
+        cacheLocation: "sessionStorage", // This configures where your cache will be stored
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     }
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const tokenRequest = {
-    scopes: ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"],
+    scopes: ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read", "offline_access"],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };

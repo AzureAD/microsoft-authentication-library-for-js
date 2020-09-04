@@ -82,7 +82,7 @@ export function validateToken(page: puppeteer.Page, rawTokenVal: string, tokenTy
         return false;
     }
 
-    if (tokenType === "IdToken" && !validateStringField(tokenVal.realm)) {
+    if (tokenType === "IdToken" && typeof(tokenVal.realm) !== "string") {
             return false;
     } else if (tokenType === "AccessToken") {
         if (
