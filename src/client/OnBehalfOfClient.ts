@@ -8,7 +8,7 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType, AADServerParamKeys, Separators } from "../utils/Constants";
+import { GrantType, AADServerParamKeys } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -32,7 +32,6 @@ export class OnBehalfOfClient extends BaseClient {
     }
 
     public async acquireToken(request: OnBehalfOfRequest): Promise<AuthenticationResult>{
-        
         this.scopeSet = new ScopeSet(request.scopes || []);
     
         if(request.skipCache){
@@ -64,7 +63,7 @@ export class OnBehalfOfClient extends BaseClient {
                 environment: cachedIdToken.environment, 
                 tenantId: cachedIdToken.realm,
                 username: null
-            })
+            });
         
             cachedAccount = this.cacheManager.getAccount(accountKey);
         }
