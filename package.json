@@ -24,6 +24,7 @@
     "test:coverage": "npm run clean:coverage && lerna run test:coverage",
     "test:report": "nyc report | coveralls",
     "test:e2e": "lerna run --concurrency 1 test:e2e",
+    "lint": "lerna run --concurrency 1 lint",
     "clean": "lerna run clean --no-private && lerna clean",
     "clean:coverage": "rimraf ./.nyc_output/*",
     "beachball:check": "beachball check --branch origin/dev",
