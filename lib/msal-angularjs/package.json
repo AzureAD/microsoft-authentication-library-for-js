@@ -54,6 +54,7 @@
   "scripts": {
     "test": "webpack && karma start --browsers ChromeHeadlessNoSandbox karma.conf.js",
     "lint": "cd ../../ && npm run lint:angularjs",
+    "lint:fix": "npm run lint -- -- --fix",
     "build": "webpack",
     "build:modules": "npm run build"
   }

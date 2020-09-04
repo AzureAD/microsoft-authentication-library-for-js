@@ -43,6 +43,7 @@
     "test:coverage": "nyc --reporter=text mocha",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
     "lint": "cd ../../ && npm run lint:core",
+    "lint:fix": "npm run lint -- -- --fix",
     "build:webpack": "webpack",
     "prepack": "npm run lint && npm test && npm run build"
   },

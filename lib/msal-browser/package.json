@@ -38,6 +38,7 @@
     "clean": "shx rm -rf dist lib",
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "cd ../../ && npm run lint:browser",
+    "lint:fix": "npm run lint -- -- --fix",
     "doc": "npm run doc:generate && npm run doc:deploy",
     "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --out ./ref ./src/ --gitRevision dev",
     "doc:deploy": "gh-pages -d ref -a -e ref/msal-browser",

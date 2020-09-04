@@ -46,6 +46,7 @@
     "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --excludeNotExported --out ./ref ./src/ --gitRevision dev",
     "doc:deploy": "gh-pages -d ref -a -e ref/msal-common",
     "lint": "cd ../../ && npm run lint:common",
+    "lint:fix": "npm run lint -- -- --fix",
     "test": "mocha",
     "test:coverage": "nyc --reporter=text mocha --exit",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
