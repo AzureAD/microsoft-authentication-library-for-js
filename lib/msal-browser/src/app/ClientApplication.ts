@@ -19,6 +19,7 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../../package.json";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 export abstract class ClientApplication {
 
@@ -26,7 +27,7 @@ export abstract class ClientApplication {
     protected readonly browserCrypto: CryptoOps;
 
     // Storage interface implementation
-    protected readonly browserStorage: BrowserStorage;
+    protected readonly browserStorage: BrowserCacheManager;
 
     // Network interface implementation
     protected readonly networkClient: INetworkModule;
@@ -75,7 +76,7 @@ export abstract class ClientApplication {
         this.networkClient = this.config.system.networkClient;
 
         // Initialize the browser storage class.
-        this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
+        this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache);
 
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions);
