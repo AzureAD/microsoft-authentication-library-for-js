@@ -94,12 +94,6 @@ export class BrowserAuthError extends AuthError {
         this.name = "BrowserAuthError";
     }
 
-    /**
-     * Creates error thrown when no window object can be found.
-     */
-    static createNoWindowObjectError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.noWindowObjectError.code, BrowserAuthErrorMessage.noWindowObjectError.desc);
-    }
 
     /**
      * Creates an error thrown when PKCE is not implemented.

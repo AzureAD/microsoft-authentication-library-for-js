@@ -19,19 +19,6 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
 
-    it("createNoWindowObjectError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createNoWindowObjectError();
-
-        expect(err instanceof BrowserAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.noWindowObjectError.code);
-        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.noWindowObjectError.desc);
-        expect(err.message).to.include(BrowserAuthErrorMessage.noWindowObjectError.desc);
-        expect(err.name).to.equal("BrowserAuthError");
-        expect(err.stack).to.include("BrowserAuthError.spec.ts");
-    });
-
     it("createPkceNotGeneratedError()", () => {
         const err: BrowserAuthError = BrowserAuthError.createPkceNotGeneratedError("PKCE Error detail.");
 
@@ -200,19 +187,6 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.errorCode).to.equal(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.code);
         expect(err.errorMessage).to.include(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc);
         expect(err.message).to.include(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc);
-        expect(err.name).to.equal("BrowserAuthError");
-        expect(err.stack).to.include("BrowserAuthError.spec.ts");
-    });
-
-    it("createIframeClosedPrematurelyError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createIframeClosedPrematurelyError();
-
-        expect(err instanceof BrowserAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.iframeClosedPrematurelyError.code);
-        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc);
-        expect(err.message).to.include(BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc);
         expect(err.name).to.equal("BrowserAuthError");
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });

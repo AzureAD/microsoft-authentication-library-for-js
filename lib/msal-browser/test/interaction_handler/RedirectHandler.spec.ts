@@ -6,13 +6,13 @@ import sinon from "sinon";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -40,7 +40,7 @@ const networkInterface = {
 
 describe("RedirectHandler.ts Unit Tests", () => {
 
-    let browserStorage: BrowserStorage;
+    let browserStorage: BrowserCacheManager;
     let redirectHandler: RedirectHandler;
     beforeEach(() => {
         const appConfig: Configuration = {
@@ -50,7 +50,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         };
 		const configObj = buildConfiguration(appConfig);
         const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
         const authCodeModule = new AuthorizationCodeClient({
             authOptions: {
 				...configObj.auth,

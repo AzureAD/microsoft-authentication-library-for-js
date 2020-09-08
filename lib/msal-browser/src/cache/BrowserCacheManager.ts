@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity, ThrottlingEntity, ServerTelemetryCacheValue } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -111,6 +111,11 @@ export class BrowserCacheManager extends CacheManager {
                 }
                 break;
             }
+            case CacheSchemaType.THROTTLING:
+            case CacheSchemaType.TELEMETRY: {
+                this.browserStorage.setWindowStorageItem(key, JSON.stringify(value));
+                break;
+            }
             default: {
                 throw BrowserAuthError.createInvalidCacheTypeError();
             }
@@ -151,6 +156,12 @@ export class BrowserCacheManager extends CacheManager {
             }
             case CacheSchemaType.APP_METADATA: {
                 return (JSON.parse(value) as AppMetadataEntity);
+            }
+            case CacheSchemaType.THROTTLING: {
+                return (JSON.parse(value) as ThrottlingEntity);
+            }
+            case CacheSchemaType.TELEMETRY: {
+                return JSON.parse(value) as ServerTelemetryCacheValue;
             }
             case CacheSchemaType.TEMPORARY: {
                 const itemCookie = this.getItemCookie(key);
@@ -200,13 +211,12 @@ export class BrowserCacheManager extends CacheManager {
         this.removeAllAccounts();
         this.removeAppMetadata();
         const allKeys = this.getKeys();
-        let key: string;
-        for (key in allKeys) {
-            // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
-            if (this.browserStorage.windowStorageContainsItem(key) && ((key.indexOf(Constants.CACHE_PREFIX) !== -1) || (key.indexOf(this.clientId) !== -1))) {
-                this.removeItem(key);
+        allKeys.forEach((cacheKey: string) => {
+             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
+             if (this.browserStorage.windowStorageContainsItem(cacheKey) && ((cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1) || (cacheKey.indexOf(this.clientId) !== -1))) {
+                this.removeItem(cacheKey);
             }
-        }
+        });
     }
 
     /**

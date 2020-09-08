@@ -4,13 +4,13 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import sinon from "sinon";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 class TestStorageInterface extends CacheManager {
     setItem(key: string, value: string | object, type?: string): void {
@@ -61,7 +61,7 @@ const networkInterface = {
 
 describe("PopupHandler.ts Unit Tests", () => {
 
-    let browserStorage: BrowserStorage;
+    let browserStorage: BrowserCacheManager;
     let popupHandler: PopupHandler;
     beforeEach(() => {
         const appConfig: Configuration = {
@@ -122,7 +122,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true,
             },
         });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
         popupHandler = new PopupHandler(authCodeModule, browserStorage);
     });
 

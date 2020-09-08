@@ -1,9 +1,7 @@
 import { expect } from "chai";
 import { BrowserProtocolUtils, BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 import { InteractionType } from "../../src/utils/BrowserConstants";
-import { ICrypto, PkceCodes, ProtocolUtils } from "@azure/msal-common";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_STATE_VALUES } from "./StringConstants";
-import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
+import { ProtocolUtils } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 describe("BrowserProtocolUtils.ts Unit Tests", () => {

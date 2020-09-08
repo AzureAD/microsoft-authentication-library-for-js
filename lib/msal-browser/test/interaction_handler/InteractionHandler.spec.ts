@@ -3,13 +3,13 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 class TestInteractionHandler extends InteractionHandler {
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         super(authCodeModule, storageImpl);
     }
 
@@ -79,7 +79,7 @@ class TestStorageInterface extends CacheManager {
 describe("InteractionHandler.ts Unit Tests", () => {
 
     let authCodeModule: AuthorizationCodeClient;
-    let browserStorage: BrowserStorage;
+    let browserStorage: BrowserCacheManager;
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -128,7 +128,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true
             }
         });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
     });
 
     afterEach(() => {

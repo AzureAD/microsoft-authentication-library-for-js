@@ -97,7 +97,7 @@ export class BrowserUtils {
      * @param isBrowserEnvironment Flag indicating if environment is a browser.
      */
     static blockNonBrowserEnvironment(): void {
-        if (typeof window === "undefined") {
+        if (!window || typeof window === "undefined") {
             throw BrowserAuthError.createNonBrowserEnvironmentError();
         }
     }

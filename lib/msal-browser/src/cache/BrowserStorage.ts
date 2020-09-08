@@ -7,13 +7,11 @@ import { IWindowStorage } from "./IWindowStorage";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class BrowserStorage implements IWindowStorage {
 
     private _windowStorage: Storage;
     private cacheLocation: string;
-    private isBrowserEnvironment: boolean;
 
     public get windowStorage() : Storage {
         if (!this._windowStorage) {
@@ -28,7 +26,6 @@ export class BrowserStorage implements IWindowStorage {
         this.validateWindowStorage(cacheLocation);
 
         this.cacheLocation = cacheLocation;
-        this.isBrowserEnvironment = typeof window !== "undefined";
     }
 
     /**
@@ -39,18 +36,10 @@ export class BrowserStorage implements IWindowStorage {
      * @param cacheLocation
      */
     private validateWindowStorage(cacheLocation: string): void {
+        BrowserUtils.blockNonBrowserEnvironment();
+
         if (cacheLocation !== BrowserConstants.CACHE_LOCATION_LOCAL && cacheLocation !== BrowserConstants.CACHE_LOCATION_SESSION) {
             throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
-        }
-
-        try {
-            BrowserUtils.blockNonBrowserEnvironment();
-        } catch(err) {
-            throw err;
-        }
-
-        if (!this.isBrowserEnvironment) {
-            return;
         }
 
         const storageSupported = !!window[cacheLocation];

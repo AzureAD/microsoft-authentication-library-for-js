@@ -5,11 +5,11 @@ const expect = chai.expect;
 import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 class TestStorageInterface extends CacheManager {
@@ -61,7 +61,7 @@ const networkInterface = {
 
 describe("SilentHandler.ts Unit Tests", () => {
 
-    let browserStorage: BrowserStorage;
+    let browserStorage: BrowserCacheManager;
     let silentHandler: SilentHandler;
     let authCodeModule: AuthorizationCodeClient;
     beforeEach(() => {
@@ -123,7 +123,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true,
             },
         });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
         silentHandler = new SilentHandler(authCodeModule, browserStorage, DEFAULT_IFRAME_TIMEOUT_MS);
     });
 
