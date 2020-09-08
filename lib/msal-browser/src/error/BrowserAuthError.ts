@@ -94,7 +94,6 @@ export class BrowserAuthError extends AuthError {
         this.name = "BrowserAuthError";
     }
 
-
     /**
      * Creates an error thrown when PKCE is not implemented.
      * @param errDetail 
