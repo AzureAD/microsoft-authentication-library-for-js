@@ -51,7 +51,7 @@ More details on different grant types supported by Microsoft authentication libr
 ### Scenarios supported:
 
 The scenarios supported with this library are:
-- Destop app that calls web APIs
+- Desktop app that calls web APIs
 - Web app that calls web APIs 
 - Web APIs that call web APIs (upcoming)
 - Daemon apps (upcoming)
