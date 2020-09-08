@@ -38,8 +38,6 @@ export class RefreshTokenClient extends BaseClient {
         return await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
-            "",
-            "",
             request.resourceRequestMethod,
             request.resourceRequestUri
         );
