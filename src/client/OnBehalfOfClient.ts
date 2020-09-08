@@ -95,7 +95,7 @@ export class OnBehalfOfClient extends BaseClient {
     }
     
     private readIdTokenFromCache(request: OnBehalfOfRequest): IdTokenEntity {
-        const accessTokenFilter: CredentialFilter = {
+        const idTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ID_TOKEN,
             clientId: this.config.authOptions.clientId,
@@ -103,13 +103,13 @@ export class OnBehalfOfClient extends BaseClient {
             oboAssertion: request.oboAssertion
         };
 
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
+        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(idTokenFilter);
         const idTokens = Object.keys(credentialCache.idTokens).map(key => credentialCache.idTokens[key]);
         // When acquiring a token on behalf of an application, there might not be an id token in the cache
         if (idTokens.length < 1) {
             return null;
         }
-        return idTokens[0] as AccessTokenEntity;
+        return idTokens[0] as IdTokenEntity;
     }
 
     private async executeTokenRequest(request: OnBehalfOfRequest, authority: Authority)

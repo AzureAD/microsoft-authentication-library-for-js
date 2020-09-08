@@ -171,12 +171,14 @@ export class AccountEntity {
      */
     static createADFSAccount(
         authority: Authority,
-        idToken: IdToken
+        idToken: IdToken,
+        oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
+        account.oboAssertion = oboAssertion;
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
