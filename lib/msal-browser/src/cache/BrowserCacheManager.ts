@@ -212,8 +212,8 @@ export class BrowserCacheManager extends CacheManager {
         this.removeAppMetadata();
         const allKeys = this.getKeys();
         allKeys.forEach((cacheKey: string) => {
-             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
-             if (this.browserStorage.windowStorageContainsItem(cacheKey) && ((cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1) || (cacheKey.indexOf(this.clientId) !== -1))) {
+            // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
+            if (this.browserStorage.windowStorageContainsItem(cacheKey) && ((cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1) || (cacheKey.indexOf(this.clientId) !== -1))) {
                 this.removeItem(cacheKey);
             }
         });
