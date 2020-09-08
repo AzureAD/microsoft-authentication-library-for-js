@@ -1,0 +1,6 @@
+{
+    "refreshTokenRequestParamters": {
+        "scopes": ["user.read"],
+        "refreshToken": ""
+    }
+}

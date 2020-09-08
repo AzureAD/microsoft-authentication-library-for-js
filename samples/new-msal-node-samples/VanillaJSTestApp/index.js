@@ -6,98 +6,53 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const argv = require('yargs')
-    .usage('Usage: $0 -sample [sample-name] -p [PORT] -a [authority-type] --policy [B2C Policy]')
-    .alias('s', 'sample')
+    .usage('Usage: $0 -scenario [scenario-name] -p [PORT]')
     .alias('p', 'port')
-    .alias('a', 'authority')
-    .alias('policy', 'policy')
-    .describe('sample', '(Optional) Name of sample to run')
-    .describe('port', '(Optional) Port Number - default is 30662')
-    .describe('authority', '(Optional) Authority type (AAD, B2C, etc)')
-    .describe('policy', '(Optional) B2C policy')
+    .alias('s', 'scenario')
+    .describe('scenario', '(Optional) Name of scenario to run')
+    .describe('port', '(Optional) Port Number - default is 3000')
     .strict()
     .argv;
 
 // Constants
 const DEFAULT_PORT = 3000;
-const DEFAULT_SAMPLE_NAME = 'auth-code';
-const AAD_AUTHORITY_TYPE = 'AAD';
-const B2C_AUTHORITY_TYPE = 'B2C';
-const DEFAULT_B2C_POLICY= 'signUpSignIn';
 const APP_DIR = `${__dirname}/app`;
+const SCENARIOS_DIR = `${APP_DIR}/scenarios`;
+const ROUTES_DIR = `${APP_DIR}/routes`;
+const  DEFAULT_SCENARIO_NAME = `silent-flow-aad`;
 const WEB_APP_TYPE = "web";
 const CLI_APP_TYPE = "cli";
 
 // Loads the names of the application directories containing the sample code
-function readSampleDirs() {
-    return fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(function(file) {
+function readScenarios() {
+    return fs.readdirSync(SCENARIOS_DIR, { withFileTypes: true }).filter(function(file) {
         return file.isDirectory() && file.name !== "sample_template";
     }).map(function(file) {
         return file.name;
     });
 }
 
-// Loads the names of the authority-specific configuration directories inside the given sample path
-function readAuthorityConfigDirs(sampleFilesPath) {
-    return fs.readdirSync(sampleFilesPath, { withFileTypes: true }).filter(function(file) {
-        return file.isDirectory();
-    }).map(function(file) {
-        return file.name;
-    });
-}
-
 // Validates that the input sample exists or defaults to auth-code
-function validateInputSample(sampleDirs, sampleName) {
-    const isSample = sampleDirs.includes(sampleName);
-    if (sampleName && isSample) {
-        console.log(`Starting sample ${sampleName}`);
-        return sampleName;
+function validateScenario(scenarios, scenario) {
+    const isSample = scenarios.includes(scenario);
+    if (scenario && isSample) {
+        console.log(`Starting scenario ${scenario}`);
+        return scenario;
     } else {
-        if (sampleName && !isSample) {
-            console.warn(`WARNING: Sample ${sampleName} not found.\n`);
+        if (scenario && !isSample) {
+            console.warn(`WARNING: Scenario ${scenario} not found.\n`);
         }
-        console.log(`Running default sample: ${DEFAULT_SAMPLE_NAME}.\n`);
-        return DEFAULT_SAMPLE_NAME;
+        console.log(`Running default scenario: ${DEFAULT_SCENARIO_NAME}.\n`);
+        return DEFAULT_SCENARIO_NAME;
     }
 }
 
-// Validates that the input authority type exists for the selected sample
-function validateAuthorityType(authorityConfigDirs, authorityType) {
-    const isAuthorityType = authorityConfigDirs.includes(authorityType);
-    if(authorityType && isAuthorityType) {
-        console.log(`Running sample with valid authority type ${authorityType}`);
-        return authorityType;
-    } else {
-        if (authorityType && !isAuthorityType) {
-            console.warn(`WARNING: Authority Type ${authorityType} not found.\n`);
-        }
-        console.log(`Running sample with default authority type: ${AAD_AUTHORITY_TYPE}.\n`);
-        return AAD_AUTHORITY_TYPE;
-    }
+function buildRoutesPath(flow) {
+    return `${ROUTES_DIR}/${flow}`;
 }
 
-// Validates that the input B2C policy exists for the selected sample
-function validateB2CPolicy(authorityType, sampleFilesPath, policy) {
-    if (authorityType === B2C_AUTHORITY_TYPE) {
-        const policiesDir = `${sampleFilesPath}/${authorityType}/policies`;
-        const policyFileName = `${policy}.json`;
-        const policyExists = fs.readdirSync(policiesDir, { withFileTypes: true })
-                               .map(file => file.name)
-                               .includes(policyFileName);
-
-        if (policyExists) {
-            console.log(`Using B2C policy ${policy}`);
-            return policyFileName;
-        } else {
-            console.log(`WARNING: B2C policy ${policy} not found, using default policy ${DEFAULT_B2C_POLICY}`);
-            return `${DEFAULT_B2C_POLICY}.json`;
-        }
-    }
-
-    return null;
-}
-
-function initializeWebApp(sampleFilesPath, inputPort, clientApplication, authorityType) {
+// Initializes express server with scenario routes when scenario is web app type
+function initializeWebApp(scenarioPath, inputPort, clientApplication, routesPath) {
     // Initialize MSAL Token Cache
     const msalTokenCache = clientApplication.getTokenCache();
 
@@ -106,59 +61,41 @@ function initializeWebApp(sampleFilesPath, inputPort, clientApplication, authori
     const port = (inputPort) ? inputPort : DEFAULT_PORT;
 
     msalTokenCache.readFromPersistence().then(() => {
-        app.listen(port, () => console.log(`Msal Node Auth Code Sample app listening on port ${port}!`));
+        app.listen(port, () => console.log(`Msal Node Sample App listening on port ${port}!`));
         // Load sample routes
-        const sampleRoutes = require(`${sampleFilesPath}/routes`);
-        sampleRoutes(app, clientApplication, msalTokenCache, authorityType);
+        const sampleRoutes = require(routesPath);
+        sampleRoutes(app, clientApplication, msalTokenCache, scenarioPath);
     })
 }
 
-function executeCliApp(sampleFilesPath, inputPort, clientApplication) {
-    require(`${sampleFilesPath}/index`)(clientApplication);
+// Executes CLI script with scenario configuration when scenario is of CLI app type
+function executeCliApp(scenarioPath, clientApplication, routesPath) {
+    require(routesPath)(scenarioPath, clientApplication);
 }
-
-function generateB2COptions(sampleFilesPath, b2cPolicy) {
-    if (b2cPolicy) {
-        const basePath = `${sampleFilesPath}/B2C`;
-        const authOptionsPath = `${basePath}/authOptions.json`;
-        const policyOptionsPath = `${basePath}/policies/${b2cPolicy}`;
-        const policyOptions = fs.readFileSync(policyOptionsPath);
-        fs.writeFileSync(authOptionsPath, policyOptions);
-    }
-}
-
-
-
 
 // Main script
 
 // Sample selection
-const sampleDirs = readSampleDirs();
-const sampleName = validateInputSample(sampleDirs, argv.sample);
-const sampleFilesPath = `${APP_DIR}/${sampleName}`;
-
-// Authority type selection
-const authorityConfigDirs = readAuthorityConfigDirs(sampleFilesPath);
-const authorityType = validateAuthorityType(authorityConfigDirs, argv.a);
-
-// B2C policy selection
-const b2cPolicy = validateB2CPolicy(authorityType, sampleFilesPath, argv.policy);
-generateB2COptions(sampleFilesPath, b2cPolicy);
+const scenarios = readScenarios();
+const scenario = validateScenario(scenarios, argv.scenario);
+const scenarioPath = `${SCENARIOS_DIR}/${scenario}`;
 
 // App type selection
-const sampleConfig = require(`${sampleFilesPath}/sampleConfig`);
+const scenarioConfig = require(`${scenarioPath}/scenarioConfig.json`);
 
 // Build client application
-const clientApplication = require(`${sampleFilesPath}/clientApplication`)(authorityType);
+const clientApplication = require(`${APP_DIR}/clientApplication`)(scenarioPath);
 
-switch(sampleConfig.appType) {
+const routesPath = buildRoutesPath(scenarioConfig.flow);
+
+switch(scenarioConfig.appType) {
     case WEB_APP_TYPE:
-        initializeWebApp(sampleFilesPath, argv.port, clientApplication, authorityType);
+        initializeWebApp(scenarioPath, argv.port, clientApplication, routesPath);
         break;
     case CLI_APP_TYPE:
-        executeCliApp(sampleFilesPath, argv.port, clientApplication);
+        executeCliApp(scenarioPath, clientApplication, routesPath);
         break;
     default:
-        console.log("Unsupported appType: ", sampleConfig.appType, clientApplication);
+        console.log("Unsupported appType: ", scenarioConfig.appType, clientApplication);
         break;
 }

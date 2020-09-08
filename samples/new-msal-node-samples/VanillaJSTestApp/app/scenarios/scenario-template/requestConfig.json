@@ -1,0 +1,11 @@
+{
+    "authCodeUrlParameters": {
+        "scopes": [],
+        "redirectUri": ""
+    },
+    "tokenRequest": {
+        "code": "",
+        "redirectUri": "",
+        "scopes": [""]
+    }
+}

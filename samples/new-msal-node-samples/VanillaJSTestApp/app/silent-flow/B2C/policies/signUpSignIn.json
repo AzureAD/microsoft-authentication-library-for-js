@@ -1,6 +1,0 @@
-{
-    "clientId": "57eeeaa5-2ff7-497e-84bb-b45fe138ad58",
-    "authority": "https://SAMEERAB2C.b2clogin.com/SAMEERAB2C.onmicrosoft.com/B2C_1_signup_signin",
-    "knownAuthorities": ["SAMEERAB2C.b2clogin.com"],
-    "redirectUri":"http://localhost:3000/redirect"
-}

@@ -1,0 +1,5 @@
+{
+    "deviceCodeUrlParameters": {
+        "scopes": ["user.read"]
+    }
+}
