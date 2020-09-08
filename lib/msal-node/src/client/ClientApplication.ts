@@ -26,8 +26,8 @@ import { CryptoProvider } from '../crypto/CryptoProvider';
 import { Storage } from '../cache/Storage';
 import { Constants as NodeConstants } from './../utils/Constants';
 import { TokenCache } from '../cache/TokenCache';
-import { ClientAssertion } from "../client/ClientAssertion";
-const pjson = require("../../package.json");
+import { ClientAssertion } from '../client/ClientAssertion';
+import { version } from '../../package.json';
 
 export abstract class ClientApplication {
     private _authority: Authority;
@@ -169,7 +169,7 @@ export abstract class ClientApplication {
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
-                version: pjson.version,
+                version: version,
                 cpu: process.arch || '',
                 os: process.platform || '',
             },

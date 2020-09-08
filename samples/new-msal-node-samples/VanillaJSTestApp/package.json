@@ -1,5 +1,5 @@
 {
-  "name": "vanilla-js-test-app",
+  "name": "vanilla-js-node-test-app",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.0-alpha.4",
+    "@azure/msal-node": "^1.0.0-alpha.5",
     "express": "^4.17.1",
     "express-handlebars": "^5.1.0"
   }
