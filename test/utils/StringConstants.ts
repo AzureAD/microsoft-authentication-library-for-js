@@ -14,7 +14,8 @@ export const TEST_URIS = {
     TEST_REDIR_URI: "https://localhost:8081/index.html",
     TEST_ALTERNATE_REDIR_URI: "https://localhost:8081/index2.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
-    TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+    TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    TEST_AUTH_ENDPT_WITH_PARAMS: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
 };
 
 // Test MSAL config params

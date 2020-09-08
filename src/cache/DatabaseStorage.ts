@@ -19,15 +19,15 @@ interface IDBRequestEvent extends Event {
  * Storage wrapper for IndexedDB storage in browsers: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
 export class DatabaseStorage<T>{
-    private _db : IDBDatabase;
-    private _dbName: string;
-    private _tableName: string;
-    private _version: number;
+    private db : IDBDatabase;
+    private dbName: string;
+    private tableName: string;
+    private version: number;
 
     constructor(dbName: string, tableName: string, version: number) {
-        this._dbName = dbName;
-        this._tableName = tableName;
-        this._version = version;
+        this.dbName = dbName;
+        this.tableName = tableName;
+        this.version = version;
     }
 
     /**
@@ -36,12 +36,12 @@ export class DatabaseStorage<T>{
     async open(): Promise<void> {
         return new Promise((resolve, reject) => {
             // TODO: Add timeouts?
-            const openDB = window.indexedDB.open(this._dbName, this._version);
+            const openDB = window.indexedDB.open(this.dbName, this.version);
             openDB.addEventListener("upgradeneeded", (e: IDBOpenOnUpgradeNeededEvent) => {
-                e.target.result.createObjectStore(this._tableName);
+                e.target.result.createObjectStore(this.tableName);
             });
             openDB.addEventListener("success", (e: IDBOpenDBRequestEvent) => {
-                this._db = e.target.result;
+                this.db = e.target.result;
                 resolve();
             });
 
@@ -54,11 +54,11 @@ export class DatabaseStorage<T>{
      * @param key 
      */
     async get(key: string): Promise<T> {
-        return new Promise((resolve, reject) => {
+        return new Promise<T>((resolve, reject) => {
             // TODO: Add timeouts?
-            const transaction = this._db.transaction([this._tableName], "readonly");
+            const transaction = this.db.transaction([this.tableName], "readonly");
 
-            const objectStore = transaction.objectStore(this._tableName);
+            const objectStore = transaction.objectStore(this.tableName);
             const dbGet = objectStore.get(key);
             dbGet.addEventListener("success", (e: IDBRequestEvent) => resolve(e.target.result));
             dbGet.addEventListener("error", e => reject(e));
@@ -71,10 +71,10 @@ export class DatabaseStorage<T>{
      * @param payload 
      */
     async put(key: string, payload: T): Promise<T> {
-        return new Promise((resolve: any, reject: any) => {
+        return new Promise<T>((resolve: any, reject: any) => {
             // TODO: Add timeouts?
-            const transaction = this._db.transaction([this._tableName], "readwrite");
-            const objectStore = transaction.objectStore(this._tableName);
+            const transaction = this.db.transaction([this.tableName], "readwrite");
+            const objectStore = transaction.objectStore(this.tableName);
 
             const dbPut = objectStore.put(payload, key);
             dbPut.addEventListener("success", (e: IDBRequestEvent) => resolve(e.target.result));

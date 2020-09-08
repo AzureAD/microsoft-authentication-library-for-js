@@ -13,6 +13,7 @@ import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/Brows
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -150,7 +151,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
 				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
 				authority: `${Constants.DEFAULT_AUTHORITY}/`,
 				correlationId: RANDOM_TEST_GUID
-			};
+            };
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
 			const browserCrypto = new CryptoOps();
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", browserCrypto)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
@@ -158,6 +163,10 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
 
         it("navigates browser window to given window location", () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
 			const testTokenReq: AuthorizationCodeRequest = {
 				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
 				code: "thisIsATestCode",
@@ -216,7 +225,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 tokenType: AuthenticationScheme.BEARER
-			};
+            };
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
 			const browserCrypto = new CryptoOps();
 			const testAuthCodeRequest: AuthorizationCodeRequest = {
 				redirectUri: TEST_URIS.TEST_REDIR_URI,

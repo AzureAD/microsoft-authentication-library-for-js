@@ -12,7 +12,7 @@ import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 
-type CachedKeyPair = {
+export type CachedKeyPair = {
     publicKey: CryptoKey,
     privateKey: CryptoKey,
     requestMethod: string,
@@ -38,7 +38,7 @@ export class CryptoOps implements ICrypto {
     private static DB_VERSION = 1;
     private static DB_NAME = "msal.db";
     private static TABLE_NAME =`${CryptoOps.DB_NAME}.keys`;
-    private _cache: DatabaseStorage<CachedKeyPair>;
+    private cache: DatabaseStorage<CachedKeyPair>;
 
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
@@ -47,8 +47,8 @@ export class CryptoOps implements ICrypto {
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
-        this._cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION);
-        this._cache.open();
+        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION);
+        this.cache.open();
     }
 
     /**
@@ -96,7 +96,7 @@ export class CryptoOps implements ICrypto {
         const publicJwkDigest: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
         const publicKeyHash = this.base64Encode(publicJwkDigest).substr(0, CryptoOps.POP_HASH_LENGTH);
-        this._cache.put(publicKeyHash, {
+        this.cache.put(publicKeyHash, {
             privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
             requestMethod: resourceRequestMethod,
@@ -111,7 +111,7 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        const cachedKeyPair: CachedKeyPair = await this._cache.get(kid);
+        const cachedKeyPair: CachedKeyPair = await this.cache.get(kid);
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
         const publicKeyJwkString = BrowserCrypto.getJwkString(publicKeyJwk);
 
