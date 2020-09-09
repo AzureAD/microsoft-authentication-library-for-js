@@ -1,7 +1,7 @@
 # MSAL Node Vanilla JS Sample
 
 ## About this sample
-This developer sample is used to run a variety of use cases for the MSAL Node library. You can also customize the JSON configuration files in `./app/scenarios/<scenario-name>/` or create your own scenario configuration based on the scenario template (`./app/scenarios/scenario-template`) to execute other behavio
+This developer sample is used to run a variety of use cases for the MSAL Node library. You can also customize the JSON configuration files in `./app/scenarios/<scenario-name>/` or create your own scenario configuration based on the scenario template (`./app/scenarios/scenario-template`) to execute other behaviors and scenarios.
 
 ## How to run the sample:
 
