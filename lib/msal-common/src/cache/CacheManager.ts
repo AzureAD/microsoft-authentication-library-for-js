@@ -226,10 +226,12 @@ export abstract class CacheManager implements ICacheManager {
         };
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
         const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
-        if (accessTokens.length > 1) {
-            // TODO: Figure out what to throw or return here.
-        } else if (accessTokens.length < 1) {
+
+        const numAccessTokens = accessTokens.length;
+        if (numAccessTokens < 1) {
             return null;
+        } else if (numAccessTokens > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
         }
 
         return accessTokens[0] as AccessTokenEntity;
@@ -367,7 +369,7 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if(!StringUtils.isEmpty(oboAssertion) && !this.matchOboAssertion(entity, oboAssertion)){
+            if (!StringUtils.isEmpty(oboAssertion) && !this.matchOboAssertion(entity, oboAssertion)) {
                 return;
             }
 
@@ -501,7 +503,7 @@ export abstract class CacheManager implements ICacheManager {
     ): boolean {
         return entity.homeAccountId && homeAccountId === entity.homeAccountId;
     }
-    
+
     /**
      * @param value
      * @param oboAssertion

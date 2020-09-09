@@ -19,6 +19,7 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { IdToken } from "../account/IdToken";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * On-Behalf-Of client
@@ -26,18 +27,18 @@ import { IdToken } from "../account/IdToken";
 export class OnBehalfOfClient extends BaseClient {
 
     private scopeSet: ScopeSet;
-    
+
     constructor(configuration: ClientConfiguration) {
         super(configuration);
     }
 
-    public async acquireToken(request: OnBehalfOfRequest): Promise<AuthenticationResult>{
+    public async acquireToken(request: OnBehalfOfRequest): Promise<AuthenticationResult> {
         this.scopeSet = new ScopeSet(request.scopes || []);
-    
-        if(request.skipCache){
+
+        if (request.skipCache) {
             return await this.executeTokenRequest(request, this.authority);
         }
-        
+
         const cachedAuthenticationResult = this.getCachedAuthenticationResult(request);
         if (cachedAuthenticationResult != null) {
             return cachedAuthenticationResult;
@@ -45,7 +46,7 @@ export class OnBehalfOfClient extends BaseClient {
             return await this.executeTokenRequest(request, this.authority);
         }
     }
-    
+
     private getCachedAuthenticationResult(request: OnBehalfOfRequest): AuthenticationResult {
         const cachedAccessToken = this.readAccessTokenFromCache(request);
         if (!cachedAccessToken ||
@@ -54,17 +55,17 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         const cachedIdToken = this.readIdTokenFromCache(request);
-        let idTokenObject: IdToken = null; 
+        let idTokenObject: IdToken = null;
         let cachedAccount: AccountEntity = null;
-        if(cachedIdToken) {
+        if (cachedIdToken) {
             idTokenObject = new IdToken(cachedIdToken.secret, this.config.cryptoInterface);
             const accountKey = AccountEntity.generateAccountCacheKey({
                 homeAccountId: cachedIdToken.homeAccountId,
-                environment: cachedIdToken.environment, 
+                environment: cachedIdToken.environment,
                 tenantId: cachedIdToken.realm,
                 username: null
             });
-        
+
             cachedAccount = this.cacheManager.getAccount(accountKey);
         }
 
@@ -88,12 +89,16 @@ export class OnBehalfOfClient extends BaseClient {
 
         const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
         const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
-        if (accessTokens.length < 1) {
+
+        const numAccessTokens = accessTokens.length;
+        if (numAccessTokens < 1) {
             return null;
+        } else if (numAccessTokens > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
         }
         return accessTokens[0] as AccessTokenEntity;
     }
-    
+
     private readIdTokenFromCache(request: OnBehalfOfRequest): IdTokenEntity {
         const idTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
@@ -146,9 +151,9 @@ export class OnBehalfOfClient extends BaseClient {
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
         parameterBuilder.addScopes(this.scopeSet);
-        
+
         parameterBuilder.addGrantType(GrantType.JWT_BEARER);
-    
+
         parameterBuilder.addClientInfo();
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
@@ -167,7 +172,7 @@ export class OnBehalfOfClient extends BaseClient {
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
-        
+
         return parameterBuilder.createQueryString();
     }
 }
