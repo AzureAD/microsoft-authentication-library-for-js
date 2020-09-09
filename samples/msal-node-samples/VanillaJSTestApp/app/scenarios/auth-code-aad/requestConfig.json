@@ -4,7 +4,6 @@
         "redirectUri": "http://localhost:3000/redirect"
     },
     "tokenRequest": {
-        "code": "",
         "redirectUri": "http://localhost:3000/redirect",
         "scopes": ["user.read"]
     }
