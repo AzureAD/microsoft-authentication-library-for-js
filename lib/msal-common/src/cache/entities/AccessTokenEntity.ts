@@ -60,7 +60,8 @@ export class AccessTokenEntity extends CredentialEntity {
         tenantId: string,
         scopes: string,
         expiresOn: number,
-        extExpiresOn: number
+        extExpiresOn: number,
+        oboAssertion?: string
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
@@ -82,6 +83,7 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.clientId = clientId;
         atEntity.realm = tenantId;
         atEntity.target = scopes;
+        atEntity.oboAssertion = oboAssertion;
 
         return atEntity;
     }

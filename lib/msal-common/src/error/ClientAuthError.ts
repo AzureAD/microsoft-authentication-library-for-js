@@ -204,7 +204,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the id token string is null or empty.
      * @param invalidRawTokenString
      */
-    static createIdTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
+    static createIdTokenNullOrEmptyError(invalidRawTokenString: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyIdToken.code,
             `${ClientAuthErrorMessage.nullOrEmptyIdToken.desc} Raw ID Token Value: ${invalidRawTokenString}`);
     }
@@ -240,7 +240,7 @@ export class ClientAuthError extends AuthError {
      * @param invalidState 
      */
     static createInvalidStateError(invalidState: string, errorString?: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code,
             `${ClientAuthErrorMessage.invalidStateError.desc} Invalid State: ${invalidState}, Root Err: ${errorString}`);
     }
 
@@ -272,7 +272,7 @@ export class ClientAuthError extends AuthError {
      * Throws error if idToken is not correctly formed
      * @param idToken
      */
-    static createInvalidIdTokenError(idToken: IdToken) : ClientAuthError {
+    static createInvalidIdTokenError(idToken: IdToken): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidIdToken.code,
             `${ClientAuthErrorMessage.invalidIdToken.desc} Given token: ${JSON.stringify(idToken)}`);
     }
@@ -295,7 +295,7 @@ export class ClientAuthError extends AuthError {
     /**
      * Throws error when renewing token without login.
      */
-    static createUserLoginRequiredError() : ClientAuthError {
+    static createUserLoginRequiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.userLoginRequiredError.code,
             ClientAuthErrorMessage.userLoginRequiredError.desc);
     }
@@ -304,9 +304,9 @@ export class ClientAuthError extends AuthError {
      * Throws error when multiple tokens are in cache for the given scope.
      * @param scope
      */
-    static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
+    static createMultipleMatchingTokensInCacheError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
-            `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
+            `${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
     }
 
     /**
@@ -434,14 +434,14 @@ export class ClientAuthError extends AuthError {
     static createUnexpectedCredentialTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.unexpectedCredentialType.code, `${ClientAuthErrorMessage.unexpectedCredentialType.desc}`);
     }
-    
+
     /**
      * Throws error if client assertion is not valid.
      */
     static createInvalidAssertionError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidAssertion.code, `${ClientAuthErrorMessage.invalidAssertion.desc}`);
     }
-    
+
     /**
      * Throws error if client assertion is not valid.
      */

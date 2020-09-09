@@ -35,7 +35,8 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      name: Full name for the account, including given name and family name,
  *      clientInfo: Full base64 encoded client info received from ESTS
  *      lastModificationTime: last time this entity was modified in the cache
- *      lastModificationApp:
+ *      lastModificationApp: 
+ *      oboAssertion: access token passed in as part of OBO request
  * }
  */
 export class AccountEntity {
@@ -49,6 +50,7 @@ export class AccountEntity {
     clientInfo?: string;
     lastModificationTime?: string;
     lastModificationApp?: string;
+    oboAssertion?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -114,7 +116,7 @@ export class AccountEntity {
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
-
+    
     /**
      * Build Account cache from IdToken, clientInfo and authority/policy
      * @param clientInfo
@@ -126,7 +128,8 @@ export class AccountEntity {
         clientInfo: string,
         authority: Authority,
         idToken: IdToken,
-        crypto: ICrypto
+        crypto: ICrypto,
+        oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -143,6 +146,7 @@ export class AccountEntity {
 
         account.environment = env;
         account.realm = idToken.claims.tid;
+        account.oboAssertion = oboAssertion;
 
         if (idToken) {
             // How do you account for MSA CID here?
@@ -169,12 +173,14 @@ export class AccountEntity {
      */
     static createADFSAccount(
         authority: Authority,
-        idToken: IdToken
+        idToken: IdToken,
+        oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
+        account.oboAssertion = oboAssertion;
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
