@@ -14,6 +14,8 @@ import { ProfileComponent } from './profile/profile.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { MsalService, MSAL_INSTANCE, MsalGuard, MsalInterceptor } from './msal';
 import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+import { MSAL_GUARD_CONFIG, InteractionType } from './msal/constants';
+import { MsalGuardConfiguration } from './msal/msal.guard.config';
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -48,6 +50,12 @@ function MSALInstanceFactory(): IPublicClientApplication {
     {
       provide: MSAL_INSTANCE,
       useFactory: MSALInstanceFactory
+    },
+    {
+      provide: MSAL_GUARD_CONFIG,
+      useValue: {
+        interactionType: InteractionType.POPUP
+      } as MsalGuardConfiguration
     },
     MsalService,
     MsalGuard
