@@ -226,8 +226,8 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-    * Creates an error thrown if cache type is invalid.
-    */
+     * Creates an error thrown if cache type is invalid.
+     */
     static createInvalidCacheTypeError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.invalidCacheType.code, `${BrowserAuthErrorMessage.invalidCacheType.desc}`);
     }

@@ -146,8 +146,10 @@ export class DeviceCodeClient extends BaseClient {
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
 
-        // Poll token endpoint while (device code is not expired AND operation has not been cancelled by
-        // setting CancellationToken.cancel = true). POST request is sent at interval set by pollingIntervalMilli
+        /*
+         * Poll token endpoint while (device code is not expired AND operation has not been cancelled by
+         * setting CancellationToken.cancel = true). POST request is sent at interval set by pollingIntervalMilli
+         */
         return new Promise<ServerAuthorizationTokenResponse>((resolve, reject) => {
 
             const intervalId: ReturnType<typeof setTimeout> = setInterval(async () => {

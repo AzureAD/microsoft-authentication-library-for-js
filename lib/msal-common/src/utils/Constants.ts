@@ -128,7 +128,7 @@ export enum IdTokenClaimName {
 export enum ClaimsRequestKeys {
     ACCESS_TOKEN = "access_token",
     XMS_CC = "xms_cc"
-};
+}
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
@@ -260,7 +260,7 @@ export enum CacheType {
     ID_TOKEN = 2003,
     APP_METADATA = 3001,
     UNDEFINED = 9999
-};
+}
 
 /**
  * More Cache related constants
