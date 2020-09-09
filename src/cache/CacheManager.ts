@@ -391,8 +391,10 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            // TODO: Add case for target specific refresh tokens
+            /*
+             * idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
+             * TODO: Add case for target specific refresh tokens
+             */
             if (!StringUtils.isEmpty(target) && !this.matchTarget(entity, target)) {
                 return;
             }

@@ -3,6 +3,8 @@
  */
 
 import { Constants } from "../../src/utils/Constants";
+import { RequestThumbprint, ThrottlingEntity } from "../../src";
+import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 
 // Test Tokens
 export const TEST_TOKENS = {
@@ -288,4 +290,32 @@ export const AUTHORIZATION_PENDING_RESPONSE = {
         correlation_id: '78b0fdfc-dd0e-4dfb-b13a-d316333783f6',
         error_uri: 'https://login.microsoftonline.com/error?code=70016'
     }
+};
+
+export const DEFAULT_NETWORK_IMPLEMENTATION = {
+    sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+        return { test: "test" };
+    },
+    sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+        return { test: "test" };
+    }
+}
+
+export const THUMBPRINT: RequestThumbprint = {
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    authority: TEST_CONFIG.validAuthority,
+    scopes: TEST_CONFIG.DEFAULT_SCOPES
+};
+
+export const THROTTLING_ENTITY: ThrottlingEntity = {
+    throttleTime: 5,
+    error: "This is a error",
+    errorCodes: ["ErrorCode"],
+    errorMessage:"This is an errorMessage",
+    subError: "This is a subError"
+};
+
+export const NETWORK_REQUEST_OPTIONS: NetworkRequestOptions = {
+    headers: { },
+    body: ""
 };

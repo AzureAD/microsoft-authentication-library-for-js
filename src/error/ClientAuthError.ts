@@ -415,36 +415,36 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-    * Throws error if cache type is invalid.
-    */
+     * Throws error if cache type is invalid.
+     */
     static createInvalidCacheTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidCacheType.code, `${ClientAuthErrorMessage.invalidCacheType.desc}`);
     }
 
     /**
-    * Throws error if unexpected account type.
-    */
+     * Throws error if unexpected account type.
+     */
     static createUnexpectedAccountTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.unexpectedAccountType.code, `${ClientAuthErrorMessage.unexpectedAccountType.desc}`);
     }
 
     /**
-    * Throws error if unexpected credential type.
-    */
+     * Throws error if unexpected credential type.
+     */
     static createUnexpectedCredentialTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.unexpectedCredentialType.code, `${ClientAuthErrorMessage.unexpectedCredentialType.desc}`);
     }
     
     /**
-    * Throws error if client assertion is not valid.
-    */
+     * Throws error if client assertion is not valid.
+     */
     static createInvalidAssertionError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidAssertion.code, `${ClientAuthErrorMessage.invalidAssertion.desc}`);
     }
     
     /**
-    * Throws error if client assertion is not valid.
-    */
+     * Throws error if client assertion is not valid.
+     */
     static createInvalidCredentialError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidClientCredential.code, `${ClientAuthErrorMessage.invalidClientCredential.desc}`);
     }
