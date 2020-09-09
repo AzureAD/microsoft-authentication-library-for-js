@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { ICrypto } from "./ICrypto";
 import { AuthToken } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";

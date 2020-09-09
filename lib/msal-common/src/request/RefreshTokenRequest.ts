@@ -4,6 +4,7 @@
  */
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
+import { AuthenticationScheme } from "../utils/Constants";
 
 /**
  * RefreshTokenRequest
@@ -16,4 +17,5 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  */
 export type RefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
+    authenticationScheme?: AuthenticationScheme;
 };
