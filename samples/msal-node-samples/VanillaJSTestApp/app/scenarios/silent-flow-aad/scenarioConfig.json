@@ -1,4 +1,5 @@
 {
     "appType": "web",
-    "flow": "silent"
+    "flow": "silent",
+    "clientType": "public"
 }

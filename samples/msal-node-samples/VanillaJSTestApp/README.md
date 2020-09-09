@@ -18,14 +18,15 @@ Open the `./app/scenarios/<scenario-name>/` directory corresponding to your scen
 
 1. **authOptions.json**
 
-    This file is used to configure the MSAL AuthOptions configuration object that mostly deals with the configuration of the AzureAD App Registration. Replace clientId with the ClientId value in your AzureAD App Regsitration. You can update the rest of the values listed in the JSON object to match your Azure App registration configuration.
+    This file is used to configure the MSAL AuthOptions configuration object that mostly deals with the configuration of the AzureAD App Registration. Replace clientId with the ClientId value in your AzureAD App Regsitration (as well as the client secret if you are using a Confidential Client Application). You can update the rest of the values listed in the JSON object to match your Azure App registration configuration.
 
     Example `./app/scenarios/auth-code-aad/authOptions.json`:
 
     ```json
     {
         "clientId": "YOUR_CLIENT_ID",
-        "authority": "YOUR_AUTHORITY_URL"
+        "authority": "YOUR_AUTHORITY_URL",
+        "clientSecret": "YOUR_CONFIDENTIAL_CLIENT_APPLICATION_SECRET"
     }
     ```
 
@@ -67,7 +68,6 @@ Open the `./app/scenarios/<scenario-name>/` directory corresponding to your scen
     - `appType`: The options for `appType` are either `web` for scenarios that use flows that use an Express web app (i.e. Authorization Code and Silent) or `cli` for flows that can be run from the command line (i.e. Device Code and Refresh Token)
 
     - `flow`: This value represents the Authorization Flow supported by MSAL Node that a scenario is supposed to use. Each of the supported flows has it's own application code in the `./app/routes/` directory. The `flow` configuration option should match the name of one of the files under `./app/routes/`. Currently supported flows and their configuration values are summarized in the following table:
-    
 
         | Authorization Flow | Configuration value |
         | ------------------ | ------------------- |
@@ -75,6 +75,26 @@ Open the `./app/scenarios/<scenario-name>/` directory corresponding to your scen
         | Silent Flow        |      `silent`       |
         | Device Code        |    `deviceCode`     |
         | Refesh Token       |   `refreshToken`    |
+    
+    - `clientType`: This value determines what subclass of `ClientApplication` the sample application instantiates for authorization requests. Possible values:
+        
+        |  ClientApplication Subclass   | Configuration value |
+        | ----------------------------- | ------------------- |
+        | PublicClientApplication       |      `public`       |
+        | ConfidentialClientApplication |      `silent`       |
+
+        *Note: When configuring a scenario to use a ConfidentialClientApplication, make sure to include the `clientSecret` value in the `authOptions.json` scenario configuration file.*
+
+        Example `./app/scenarios/auth-code-aad/scenarioConfig.json`:
+
+        ```json
+        {
+            "appType": "web",
+            "flow": "authCode",
+            "clientType": "confidential"
+        }
+        ```
+
 
 #### Install npm dependencies for sample
 - In a command prompt, run `npm install`.

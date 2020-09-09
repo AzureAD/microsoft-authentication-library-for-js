@@ -84,7 +84,7 @@ const scenarioPath = `${SCENARIOS_DIR}/${scenario}`;
 const scenarioConfig = require(`${scenarioPath}/scenarioConfig.json`);
 
 // Build client application
-const clientApplication = require(`${APP_DIR}/clientApplication`)(scenarioPath);
+const clientApplication = require(`${APP_DIR}/clientApplication`)(scenarioPath, scenarioConfig.clientType);
 
 const routesPath = buildRoutesPath(scenarioConfig.flow);
 

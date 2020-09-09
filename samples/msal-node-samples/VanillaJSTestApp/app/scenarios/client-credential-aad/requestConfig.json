@@ -1,0 +1,5 @@
+{
+    "clientCredentialRequest": {
+        "scopes": ["https://graph.microsoft.com/.default"]
+    }
+}

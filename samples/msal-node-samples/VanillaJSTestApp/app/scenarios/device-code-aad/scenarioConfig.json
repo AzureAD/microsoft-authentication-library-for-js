@@ -1,4 +1,5 @@
 {
     "appType": "cli",
-    "flow": "deviceCode"
+    "flow": "deviceCode",
+    "clientType": "public"
 }

@@ -1,0 +1,5 @@
+{
+    "appType": "cli",
+    "flow": "clientCredential",
+    "clientType": "confidential"
+}

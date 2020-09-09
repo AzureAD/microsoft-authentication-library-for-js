@@ -1,4 +1,5 @@
 {
     "appType": "web",
-    "flow": "authCode"
+    "flow": "authCode",
+    "clientType": "confidential"
 }
