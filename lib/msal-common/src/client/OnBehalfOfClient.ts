@@ -20,6 +20,7 @@ import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { IdToken } from "../account/IdToken";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * On-Behalf-Of client
@@ -122,8 +123,13 @@ export class OnBehalfOfClient extends BaseClient {
 
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: request.authority,
+            scopes: request.scopes
+        };
 
-        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
+        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
