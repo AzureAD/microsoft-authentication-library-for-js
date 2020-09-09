@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientApplication } from './ClientApplication';
+import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "../client/ClientAssertion";
 import { 
@@ -88,7 +88,7 @@ export class ConfidentialClientApplication extends ClientApplication {
             clientSecretNotEmpty && clientAssertionNotEmpty ||
             clientAssertionNotEmpty && certificateNotEmpty ||
             clientSecretNotEmpty && certificateNotEmpty) {
-                throw ClientAuthError.createInvalidCredentialError();
+            throw ClientAuthError.createInvalidCredentialError();
         }
 
         if (clientSecretNotEmpty) {

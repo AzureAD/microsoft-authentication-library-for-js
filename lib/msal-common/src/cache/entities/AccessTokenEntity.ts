@@ -72,8 +72,10 @@ export class AccessTokenEntity extends CredentialEntity {
         const currentTime = TimeUtils.nowSeconds();
         atEntity.cachedAt = currentTime.toString();
 
-        // Token expiry time.
-        // This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
+        /*
+         * Token expiry time.
+         * This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
+         */
         atEntity.expiresOn = expiresOn.toString();
         atEntity.extendedExpiresOn = extExpiresOn.toString();
 

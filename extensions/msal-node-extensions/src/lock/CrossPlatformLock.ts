@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { promises as fs } from "fs"
+import { promises as fs } from "fs";
 import { pid } from "process";
 import { CrossPlatformLockOptions } from "./CrossPlatformLockOptions";
 import { Constants } from "../utils/Constants";
