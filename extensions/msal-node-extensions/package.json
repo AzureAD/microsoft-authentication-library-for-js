@@ -26,7 +26,8 @@
     "build:common": "cd ../../lib/msal-common && npm i && npm run build && npm link",
     "link:common": "npm link @azure/msal-common",
     "test": "tsdx test",
-    "lint": "tsdx lint",
+    "lint": "cd ../../ && npm run lint:node:extensions",
+    "lint:fix": "npm run lint -- -- --fix",
     "prepare": "tsdx build",
     "prepack": "npm run build"
   },

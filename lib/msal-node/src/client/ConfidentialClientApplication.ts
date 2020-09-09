@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ClientApplication } from './ClientApplication';
+import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "../client/ClientAssertion";
-import { ClientCredentialRequest, ClientCredentialClient, AuthenticationResult, StringUtils, ClientAuthError } from '@azure/msal-common';
+import { ClientCredentialRequest, ClientCredentialClient, AuthenticationResult, StringUtils, ClientAuthError } from "@azure/msal-common";
 
 export class ConfidentialClientApplication extends ClientApplication {
 
@@ -60,7 +60,7 @@ export class ConfidentialClientApplication extends ClientApplication {
             clientSecretNotEmpty && clientAssertionNotEmpty ||
             clientAssertionNotEmpty && certificateNotEmpty ||
             clientSecretNotEmpty && certificateNotEmpty) {
-                throw ClientAuthError.createInvalidCredentialError();
+            throw ClientAuthError.createInvalidCredentialError();
         }
 
         if (clientSecretNotEmpty) {

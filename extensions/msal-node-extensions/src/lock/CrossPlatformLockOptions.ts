@@ -12,4 +12,4 @@
 export type CrossPlatformLockOptions = {
     retryNumber: number;
     retryDelay: number;
-}
+};

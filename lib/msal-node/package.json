@@ -35,20 +35,13 @@
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
-    "lint": "tsdx lint",
-    "lint:fix": "tsdx lint --fix",
+    "lint": "cd ../../ && npm run lint:node",
+    "lint:fix": "npm run lint -- -- --fix",
     "build:all": "npm run build:common && npm run build",
     "build:common": "cd ../msal-common && npm run build",
     "prepack": "npm run build:all"
   },
   "peerDependencies": {},
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5",
-    "endOfLine": "lf"
-  },
   "jest": {
     "verbose": true,
     "moduleFileExtensions": [
