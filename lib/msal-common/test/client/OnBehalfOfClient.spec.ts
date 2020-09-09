@@ -20,10 +20,14 @@ import { Authority } from "../../src/authority/Authority";
 import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
 import { IdToken } from "../../src/account/IdToken";
-import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
 import { TimeUtils } from "../../src/utils/TimeUtils";
-import { IdTokenEntity, AccountEntity, CacheManager } from "../../src";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { ScopeSet } from "../../src/request/ScopeSet";
+import { CredentialCache } from "../../src/cache/utils/CacheTypes";
+import { CacheManager } from "../../src/cache/CacheManager";
+import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 
 describe("OnBehalfOf unit tests", () => {
     let config: ClientConfiguration;
@@ -146,7 +150,6 @@ describe("OnBehalfOf unit tests", () => {
         };
 
         const authResult = await client.acquireToken(onBehalfOfRequest);
-        console.log(authResult);
         expect(authResult.scopes).to.deep.eq(ScopeSet.fromString(expectedAtEntity.target).asArray());
         expect(authResult.idToken).to.deep.eq(TEST_TOKENS.IDTOKEN_V2);
         expect(authResult.accessToken).to.deep.eq(expectedAtEntity.secret);
@@ -187,5 +190,32 @@ describe("OnBehalfOf unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REQUESTED_TOKEN_USE}=${AADServerParamKeys.ON_BEHALF_OF}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.OBO_ASSERTION}=${TEST_TOKENS.ACCESS_TOKEN}`);
+    });
+
+    it("Multiple access tokens matched, exception thrown", async () => {
+        const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            
+        const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            
+        const mockedCredentialCache: CredentialCache = {
+            accessTokens: { 
+                "key1": mockedAtEntity,
+                "key2": mockedAtEntity2
+            },
+            refreshTokens: null,
+            idTokens: null
+        }
+
+        sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
+
+        const client = new OnBehalfOfClient(config);
+        const onBehalfOfRequest: OnBehalfOfRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: TEST_TOKENS.ACCESS_TOKEN
+        };
+        
+        await expect(client.acquireToken(onBehalfOfRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 });
