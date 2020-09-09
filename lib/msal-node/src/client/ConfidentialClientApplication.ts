@@ -13,7 +13,7 @@ import {
     OnBehalfOfClient, 
     AuthenticationResult, 
     StringUtils, 
-    ClientAuthError } from '@azure/msal-common';
+    ClientAuthError } from "@azure/msal-common";
 
 export class ConfidentialClientApplication extends ClientApplication {
 
