@@ -6,6 +6,7 @@
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "../client/ClientAssertion";
+import { ApiId } from "../utils/Constants";
 import { 
     ClientCredentialRequest, 
     ClientCredentialClient, 
@@ -47,12 +48,20 @@ export class ConfidentialClientApplication extends ClientApplication {
      */
     public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByClientCredential called");
-        const clientCredentialConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        this.logger.verbose("Auth client config generated");
-        const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
-        return clientCredentialClient.acquireToken(request);
+        const validRequest = this.initializeRequest(request) as ClientCredentialRequest;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId!, validRequest.skipCache);
+        try {
+            const clientCredentialConfig = await this.buildOauthClientConfiguration(
+                request.authority,
+                serverTelemetryManager
+            );
+            this.logger.verbose("Auth client config generated");
+            const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
+            return clientCredentialClient.acquireToken(request);
+        } catch(e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 
     /**
@@ -73,7 +82,7 @@ export class ConfidentialClientApplication extends ClientApplication {
         );
         this.logger.verbose("Auth client config generated");
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
-        return oboClient.acquireToken(this.initializeRequestScopes(request) as OnBehalfOfRequest);
+        return oboClient.acquireToken(this.initializeRequest(request) as OnBehalfOfRequest);
     }
 
     private setClientCredential(configuration: Configuration): void {

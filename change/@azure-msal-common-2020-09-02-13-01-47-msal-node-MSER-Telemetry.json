@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Track Suberrors in Telemetry (#1921)",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-09-02T20:01:33.353Z"
+}

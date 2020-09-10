@@ -8,6 +8,7 @@ import { CacheManager } from "../../cache/CacheManager";
 import { ServerTelemetryCacheValue } from "./ServerTelemetryCacheValue";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
+import { StringUtils } from "../../utils/StringUtils";
 
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
@@ -49,7 +50,7 @@ export class ServerTelemetryManager {
     cacheFailedRequest(error: AuthError): void {
         const lastRequests = this.getLastRequests();
         lastRequests.failedRequests.push(this.apiId, this.correlationId);
-        lastRequests.errors.push(error.errorCode);
+        lastRequests.errors.push(StringUtils.isEmpty(error.suberror)? error.errorCode: error.suberror);
         lastRequests.errorCount += 1;
 
         if (lastRequests.errors.length > SERVER_TELEM_CONSTANTS.FAILURE_LIMIT) {
