@@ -138,7 +138,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
                 return this.embeddedApp.sendSilentRefreshRequest(request);
             }
-            return this.refreshToken(request);
+            return this.acquireTokenByRefreshToken(request);
         }
     }
 }

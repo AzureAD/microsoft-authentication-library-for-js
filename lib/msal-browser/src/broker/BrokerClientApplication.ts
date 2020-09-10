@@ -117,7 +117,7 @@ export class BrokerClientApplication extends ClientApplication {
 
     private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
-            const response: BrokerAuthenticationResult = (await this.refreshToken(validMessage.request as SilentRequest)) as BrokerAuthenticationResult;
+            const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(validMessage.request as SilentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResult = new BrokerAuthResult(InteractionType.SILENT, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);

@@ -112,7 +112,9 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {
 
 // Default logger options for browser
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
-    loggerCallback: (): void => {},
+    loggerCallback: (): void => {
+        // Default logger does nothing.
+    },
     piiLoggingEnabled: false
 };
 

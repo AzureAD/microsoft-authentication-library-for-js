@@ -84,7 +84,7 @@ export enum BrokerMessageType {
     AUTH_REQUEST = "BrokerAuthRequest",
     REDIRECT_RESPONSE = "BrokerRedirectResponse",
     AUTH_RESULT = "BrokerAuthResult"
-};
+}
 
 export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]

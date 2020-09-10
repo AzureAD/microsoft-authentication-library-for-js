@@ -34,7 +34,7 @@ export class SilentFlowClient extends BaseClient {
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
                 const refreshTokenClient = new RefreshTokenClient(this.config);
-                return refreshTokenClient.refreshToken(request);
+                return refreshTokenClient.acquireTokenByRefreshToken(request);
             } else {
                 throw e;
             }

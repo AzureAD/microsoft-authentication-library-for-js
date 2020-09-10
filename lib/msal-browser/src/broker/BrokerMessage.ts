@@ -4,7 +4,6 @@
  */
 
 import { BrokerMessageType } from "../utils/BrowserConstants";
-import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export abstract class BrokerMessage {
     public messageType: string;
