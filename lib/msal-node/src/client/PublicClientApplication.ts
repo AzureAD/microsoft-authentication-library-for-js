@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ApiId } from '../utils/Constants';
+import { ApiId } from "../utils/Constants";
 import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";

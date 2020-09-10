@@ -60,7 +60,7 @@ export enum ApiId {
     acquireTokenByRefreshToken = 872,
     acquireTokenByDeviceCode = 671,
     acquireTokenByClientCredential = 771
-};
+}
 
 /**
  * JWT  constants
