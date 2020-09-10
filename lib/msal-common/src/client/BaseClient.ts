@@ -5,15 +5,16 @@
 
 import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
 import { INetworkModule } from "../network/INetworkModule";
+import { NetworkManager, NetworkResponse } from "../network/NetworkManager";
 import { ICrypto } from "../crypto/ICrypto";
 import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
-import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -37,6 +38,9 @@ export abstract class BaseClient {
     // Server Telemetry Manager
     protected serverTelemetryManager: ServerTelemetryManager;
 
+    // Network Manager
+    protected networkManager: NetworkManager;
+
     // Default authority object
     protected authority: Authority;
 
@@ -56,6 +60,9 @@ export abstract class BaseClient {
         // Set the network interface
         this.networkClient = this.config.networkInterface;
 
+        // Set the NetworkManager
+        this.networkManager = new NetworkManager(this.networkClient, this.cacheManager);
+
         // Set TelemetryManager
         this.serverTelemetryManager = this.config.serverTelemetryManager;
 
@@ -70,6 +77,7 @@ export abstract class BaseClient {
     protected createDefaultTokenRequestHeaders(): Record<string, string> {
         const headers = this.createDefaultLibraryHeaders();
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
+        headers[HeaderNames.X_MS_LIB_CAPABILITY] = HeaderNames.X_MS_LIB_CAPABILITY_VALUE;
 
         if (this.serverTelemetryManager) {
             headers[HeaderNames.X_CLIENT_CURR_TELEM] = this.serverTelemetryManager.generateCurrentRequestHeaderValue();
@@ -99,14 +107,14 @@ export abstract class BaseClient {
      * @param tokenEndpoint
      * @param queryString
      * @param headers
+     * @param thumbprint
      */
-    protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const response = await this.networkClient.sendPostRequestAsync<
-        ServerAuthorizationTokenResponse
-        >(tokenEndpoint, {
-            body: queryString,
-            headers: headers,
-        });
+    protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+        const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
+            thumbprint,
+            tokenEndpoint, 
+            { body: queryString, headers: headers }
+        );
 
         if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
             // Telemetry data successfully logged by server, clear Telemetry cache

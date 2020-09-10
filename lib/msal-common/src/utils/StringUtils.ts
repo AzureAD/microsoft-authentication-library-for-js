@@ -86,4 +86,16 @@ export class StringUtils {
             return !StringUtils.isEmpty(entry);
         });
     }
+
+    /**
+     * Attempts to parse a string into JSON
+     * @param str
+     */
+    static jsonParseHelper<T>(str: string): T {
+        try {
+            return JSON.parse(str) as T;
+        } catch (e) {
+            return null;
+        }
+    }
 }
