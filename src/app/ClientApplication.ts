@@ -397,7 +397,7 @@ export abstract class ClientApplication {
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
-                    ...silentRequest,
+                    ...request,
                     redirectUri: request.redirectUri,
                     prompt: PromptValue.NONE
                 }, InteractionType.SILENT);
@@ -625,7 +625,8 @@ export abstract class ClientApplication {
      */
     protected initializeBaseRequest(request: BaseAuthRequest): BaseAuthRequest {
         const validatedRequest: BaseAuthRequest = {
-            ...request
+            ...request,
+            ...this.setDefaultScopes(request)
         };
 
         if (StringUtils.isEmpty(validatedRequest.authority)) {
@@ -652,7 +653,7 @@ export abstract class ClientApplication {
      * Generates a request that will contain the openid and profile scopes.
      * @param request 
      */
-    protected setDefaultScopes(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest): AuthorizationUrlRequest {
+    protected setDefaultScopes(request: BaseAuthRequest): AuthorizationUrlRequest {
         return {
             ...request,
             scopes: [...((request && request.scopes) || []), ...DEFAULT_REQUEST.scopes]
@@ -664,9 +665,9 @@ export abstract class ClientApplication {
      * @param request
      */
     protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        let validatedRequest: AuthorizationUrlRequest = {
+        const validatedRequest: AuthorizationUrlRequest = {
             ...request,
-            ...this.setDefaultScopes(request)
+            ...this.initializeBaseRequest(request as BaseAuthRequest)
         };
 
         validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
@@ -700,16 +701,9 @@ export abstract class ClientApplication {
 
         validatedRequest.responseMode = ResponseMode.FRAGMENT;
 
-        validatedRequest = {
-            ...validatedRequest,
-            ...this.initializeBaseRequest(validatedRequest)
-        };
-
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
-        return {
-            ...validatedRequest
-        };
+        return validatedRequest;
     }
 
     /**
