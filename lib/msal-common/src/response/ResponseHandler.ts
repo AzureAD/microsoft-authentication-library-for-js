@@ -90,7 +90,7 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string, requestScopes?: string[]): AuthenticationResult {
+    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string, requestScopes?: string[], oboAssertion?: string): AuthenticationResult {
         
         // generate homeAccountId
         if (serverTokenResponse.client_info) {
@@ -121,7 +121,7 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState); 
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState, requestScopes);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState, requestScopes, oboAssertion);
         this.cacheStorage.saveCacheRecord(cacheRecord);
 
         return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
@@ -133,7 +133,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[]): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
@@ -151,13 +151,15 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                idTokenObj.claims.tid
+                idTokenObj.claims.tid,
+                oboAssertion
             );
 
             cachedAccount = this.generateAccountEntity(
                 serverTokenResponse,
                 idTokenObj,
-                authority
+                authority,
+                oboAssertion
             );
         }
 
@@ -184,7 +186,8 @@ export class ResponseHandler {
                 idTokenObj ? idTokenObj.claims.tid : authority.tenant,
                 responseScopes.printScopesLowerCase(),
                 tokenExpirationSeconds,
-                extendedTokenExpirationSeconds
+                extendedTokenExpirationSeconds,
+                oboAssertion
             );
         }
 
@@ -196,7 +199,8 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.refresh_token,
                 this.clientId,
-                serverTokenResponse.foci
+                serverTokenResponse.foci,
+                oboAssertion
             );
         }
 
@@ -209,19 +213,19 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
+    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority, oboAssertion?: string): AccountEntity {
         const authorityType = authority.authorityType;
 
         // ADFS does not require client_info in the response
         if(authorityType === AuthorityType.Adfs){
-            return AccountEntity.createADFSAccount(authority, idToken);
+            return AccountEntity.createADFSAccount(authority, idToken, oboAssertion);
         }
 
         if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
         }
 
-        return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
+        return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion);
     }
 
     /**
