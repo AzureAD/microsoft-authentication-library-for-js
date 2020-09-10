@@ -5,7 +5,7 @@
 
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserStorage } from "../cache/BrowserStorage";
-import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -104,6 +104,11 @@ export abstract class ClientApplication {
      * - if false, handles hash string and parses response
      */
     private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
+        if (!this.interactionInProgress()) {
+            this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
+            return null;
+        }
+
         const responseHash = this.getRedirectResponseHash();
         if (StringUtils.isEmpty(responseHash)) {
             // Not a recognized server response hash or hash not associated with a redirect request
@@ -125,8 +130,10 @@ export abstract class ClientApplication {
         } else if (!this.config.auth.navigateToLoginRequestUrl) {
             return this.handleHash(responseHash);
         } else if (!BrowserUtils.isInIframe()) {
-            // Returned from authority using redirect - need to perform navigation before processing response
-            // Cache the hash to be retrieved after the next redirect
+            /*
+             * Returned from authority using redirect - need to perform navigation before processing response
+             * Cache the hash to be retrieved after the next redirect
+             */
             const hashKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH);
             this.browserStorage.setItem(hashKey, responseHash, CacheSchemaType.TEMPORARY);
             if (!loginRequestUrl || loginRequestUrl === "null") {
@@ -175,10 +182,10 @@ export abstract class ClientApplication {
     }
 
     /**
-	 * Checks if hash exists and handles in window.
-	 * @param responseHash
-	 * @param interactionHandler
-	 */
+     * Checks if hash exists and handles in window.
+     * @param responseHash
+     * @param interactionHandler
+     */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
         const encodedTokenRequest = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string;
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
@@ -189,7 +196,7 @@ export abstract class ClientApplication {
             const currentAuthority = this.browserStorage.getCachedAuthority();
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
-            return await interactionHandler.handleCodeResponse(responseHash, this.browserCrypto);
+            return await interactionHandler.handleCodeResponse(responseHash, this.browserCrypto, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest();
@@ -200,9 +207,9 @@ export abstract class ClientApplication {
     /**
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
      * the page, so any code that follows this function will not execute.
-	 *
-	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
-	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+     *
+     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      *
      * @param {@link (RedirectRequest:type)}
      */
@@ -284,6 +291,9 @@ export abstract class ClientApplication {
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
+
+            // Remove throttle if it exists
+            ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
 
             // Handle response from hash string.
             return await interactionHandler.handleCodeResponse(hash);
