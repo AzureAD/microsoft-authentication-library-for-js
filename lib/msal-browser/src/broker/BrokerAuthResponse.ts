@@ -4,7 +4,7 @@ import { InteractionType, BrokerMessageType } from "../utils/BrowserConstants";
 import { CacheRecord } from "@azure/msal-common/dist/src/cache/entities/CacheRecord";
 import { BrowserStorage } from "../cache/BrowserStorage";
 
-export class BrokerAuthResult extends BrokerMessage {
+export class BrokerAuthResponse extends BrokerMessage {
     public interactionType: InteractionType;
     public result: BrokerAuthenticationResult;
     public error: Error;
@@ -16,7 +16,7 @@ export class BrokerAuthResult extends BrokerMessage {
         this.error = authError;
     }
 
-    static validate(message: MessageEvent): BrokerAuthResult | null {
+    static validate(message: MessageEvent): BrokerAuthResponse | null {
         if (message.data &&
             message.data.messageType === BrokerMessageType.AUTH_RESULT &&
             message.data.interactionType &&
@@ -24,14 +24,14 @@ export class BrokerAuthResult extends BrokerMessage {
 
             // TODO: verify version compat
 
-            return new BrokerAuthResult(message.data.interactionType, message.data.result);
+            return new BrokerAuthResponse(message.data.interactionType, message.data.result);
         }
 
         return null;
     }
 
     static processBrokerResponse(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserStorage): AuthenticationResult {
-        const brokerAuthResult = BrokerAuthResult.validate(brokerAuthResultMessage);
+        const brokerAuthResult = BrokerAuthResponse.validate(brokerAuthResultMessage);
         if (brokerAuthResult.error) {
             throw brokerAuthResult.error;
         }

@@ -12,7 +12,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { BrokerAuthRequest } from "./BrokerAuthRequest";
 import { InteractionType } from "../utils/BrowserConstants";
 import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
-import { BrokerAuthResult } from "./BrokerAuthResult";
+import { BrokerAuthResponse } from "./BrokerAuthResponse";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
@@ -75,7 +75,7 @@ export class EmbeddedClientApplication {
         await this.preflightBrokerRequest();
 
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.POPUP, DEFAULT_POPUP_MESSAGE_TIMEOUT);
-        return BrokerAuthResult.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
+        return BrokerAuthResponse.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
     }
 
     async sendRedirectRequest(request: RedirectRequest): Promise<void> {
@@ -89,7 +89,7 @@ export class EmbeddedClientApplication {
         await this.preflightBrokerRequest();
 
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.SILENT, DEFAULT_MESSAGE_TIMEOUT);
-        return BrokerAuthResult.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
+        return BrokerAuthResponse.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
     }
 
     private async sendRequest(request: PopupRequest|RedirectRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {

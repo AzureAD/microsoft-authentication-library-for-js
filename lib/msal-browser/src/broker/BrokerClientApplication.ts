@@ -12,7 +12,7 @@ import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
 import { BrokerAuthRequest } from "./BrokerAuthRequest";
 import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
 import { RedirectRequest } from "../request/RedirectRequest";
-import { BrokerAuthResult } from "./BrokerAuthResult";
+import { BrokerAuthResponse } from "./BrokerAuthResponse";
 import { ClientApplication } from "../app/ClientApplication";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
@@ -105,11 +105,11 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredPopupRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const response: BrokerAuthenticationResult = (await this.acquireTokenPopup(validMessage.request as PopupRequest)) as BrokerAuthenticationResult;
-            const brokerAuthResponse: BrokerAuthResult = new BrokerAuthResult(InteractionType.POPUP, response);
+            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.POPUP, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);
         } catch (err) {
-            const brokerAuthResponse = new BrokerAuthResult(InteractionType.POPUP, null, err);
+            const brokerAuthResponse = new BrokerAuthResponse(InteractionType.POPUP, null, err);
             this.logger.info(`Found auth error: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
         }
@@ -118,11 +118,11 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(validMessage.request as SilentRequest)) as BrokerAuthenticationResult;
-            const brokerAuthResponse: BrokerAuthResult = new BrokerAuthResult(InteractionType.SILENT, response);
+            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.SILENT, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);
         } catch (err) {
-            const brokerAuthResponse = new BrokerAuthResult(InteractionType.SILENT, null, err);
+            const brokerAuthResponse = new BrokerAuthResponse(InteractionType.SILENT, null, err);
             this.logger.info(`Found auth error: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
         }
