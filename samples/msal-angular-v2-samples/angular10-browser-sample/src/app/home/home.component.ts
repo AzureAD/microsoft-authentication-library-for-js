@@ -11,7 +11,10 @@ export class HomeComponent implements OnInit {
   constructor(private authService: MsalService) { }
 
   ngOnInit(): void {
-    this.authService.handleRedirectObservable();
+    this.authService.handleRedirectObservable().subscribe({
+      next: (response) => console.log(response),
+      error: (error) => console.log(error)
+    });
   }
 
 }
