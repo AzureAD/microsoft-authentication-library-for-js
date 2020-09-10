@@ -38,10 +38,8 @@ describe("AuthorityFactory.ts Class", function () {
 
     describe("saveMetadataFromConfig", () => {
         it("does nothing if json is falsey", () => {
-            const originalMetadata = AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority);
-            AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, "");
-            expect(AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority)).to.be.eq(originalMetadata);
-            expect(AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority)).to.be.eql(originalMetadata);
+            AuthorityFactory.saveMetadataFromConfig("testJsonFalsey.com", "");
+            expect(AuthorityFactory.getMetadata("testJsonFalsey.com")).to.be.undefined;
         });
 
         it("throws if invalid json is provided", done => {

@@ -2273,15 +2273,24 @@ describe("UserAgentApplication.ts Class", function () {
     });
 
     describe("Test null request calls for acquireTokenSilent and acquireTokenPopup", () => {
-        const config: Configuration = {
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                knownAuthorities: ["login.microsoftonline.com"]
-            }
-        };
+        let msal : UserAgentApplication;
+        
+        beforeEach(function() {
+            sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
+            const config: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
+                }
+            };
+    
+            msal = new UserAgentApplication(config);
+        });
 
-        msal = new UserAgentApplication(config);
+        afterEach(() => {
+            sinon.restore();
+        }); 
+
         it("throws an error if configured with a null request", () => {
             try {
                 msal.acquireTokenSilent(null);
