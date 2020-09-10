@@ -3,14 +3,14 @@ import { MsalService } from './msal.service';
 import { Injectable, Inject } from '@angular/core';
 import { Location } from "@angular/common";
 import { MsalGuardConfiguration } from './msal.guard.config';
-import { InteractionType, MSAL_GUARD_CONFIG, MSAL_INSTANCE } from './constants';
-import { IPublicClientApplication } from '@azure/msal-browser';
+import { InteractionType, MSAL_GUARD_CONFIG } from './constants';
+import { concatMap, catchError, map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 
 @Injectable()
 export class MsalGuard implements CanActivate {
     constructor(
         @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
-        @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
         private authService: MsalService,
         private location: Location,
     ) {}
@@ -38,27 +38,34 @@ export class MsalGuard implements CanActivate {
         return `${baseUrl}${path}`;
     }
 
-    private async loginInteractively(url: string): Promise<boolean> {
+    private loginInteractively(url: string): Observable<boolean> {
         if (this.msalGuardConfig.interactionType === InteractionType.POPUP) {
-            return this.msalInstance.loginPopup()
-                .then(() => true)
-                .catch(() => false)
+            return this.authService.loginPopup()
+                .pipe(
+                    map(() => true),
+                    catchError(() => of(false))
+                )
         }
 
         const redirectStartPage = this.getDestinationUrl(url);
-        this.msalInstance.loginRedirect({
+        this.authService.loginRedirect({
             redirectStartPage,
             scopes: [],
         });
+        return of(false);
     }
 
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
-        return this.msalInstance.handleRedirectPromise()
-            .then(() => {
-                if (!this.authService.getAllAccounts().length) {
-                    return this.loginInteractively(state.url);
-                }
-                return true;
-            })
+    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Observable<boolean> {
+        return this.authService.handleRedirectObservable()
+            .pipe(
+                concatMap(() => {
+                    if (!this.authService.getAllAccounts().length) {
+                        return this.loginInteractively(state.url)
+                    }
+                    return of(true);
+                }),
+                catchError(() => console.log)
+            )
     }
+
 }

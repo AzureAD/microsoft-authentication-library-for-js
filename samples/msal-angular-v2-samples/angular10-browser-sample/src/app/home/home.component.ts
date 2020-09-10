@@ -1,6 +1,5 @@
-import { Component, OnInit, Inject } from '@angular/core';
-import { MSAL_INSTANCE } from '../msal';
-import { IPublicClientApplication } from '@azure/msal-browser';
+import { Component, OnInit } from '@angular/core';
+import { MsalService } from '../msal';
 
 @Component({
   selector: 'app-home',
@@ -9,12 +8,10 @@ import { IPublicClientApplication } from '@azure/msal-browser';
 })
 export class HomeComponent implements OnInit {
 
-  constructor(
-    @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication
-  ) { }
+  constructor(private authService: MsalService) { }
 
   ngOnInit(): void {
-    this.msalInstance.handleRedirectPromise();
+    this.authService.handleRedirectObservable();
   }
 
 }

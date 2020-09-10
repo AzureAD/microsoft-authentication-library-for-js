@@ -65,7 +65,7 @@ function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
     {
       provide: MSAL_GUARD_CONFIG,
       useValue: {
-        interactionType: InteractionType.POPUP
+        interactionType: InteractionType.REDIRECT
       } as MsalGuardConfiguration
     },
     {
