@@ -33,7 +33,7 @@ export class ScopeSet {
      * @param inputScopeString
      * @param appClientId
      * @param scopesRequired
-    */
+     */
     static fromString(inputScopeString: string): ScopeSet {
         inputScopeString = inputScopeString || "";
         const inputScopes: Array<string> = inputScopeString.split(" ");
@@ -44,7 +44,7 @@ export class ScopeSet {
      * Used to validate the scopes input parameter requested  by the developer.
      * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
-    */
+     */
     private validateInputScopes(inputScopes: Array<string>): void {
         // Check if scopes are required but not given or is an empty array
         if (!inputScopes || inputScopes.length < 1) {
