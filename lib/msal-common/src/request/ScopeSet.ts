@@ -6,6 +6,7 @@
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { Constants } from "../utils/Constants";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
@@ -103,6 +104,15 @@ export class ScopeSet {
             throw ClientAuthError.createRemoveEmptyScopeFromSetError(scope);
         }
         this.scopes.delete(scope.trim());
+    }
+
+    /**
+     * Removes default scopes from set of scopes in order to prevent cache misses
+     */
+    removeDefaultScopes(): void {
+        this.scopes.delete(Constants.OFFLINE_ACCESS_SCOPE);
+        this.scopes.delete(Constants.OPENID_SCOPE);
+        this.scopes.delete(Constants.PROFILE_SCOPE);
     }
 
     /**
