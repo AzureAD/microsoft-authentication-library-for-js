@@ -36,7 +36,7 @@ export const ID_TOKEN_CLAIMS = {
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
     aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY"
-}
+};
 
 // Test Expiration Vals
 export const TEST_TOKEN_LIFETIMES = {
@@ -49,13 +49,13 @@ export const TEST_TOKEN_LIFETIMES = {
 export const TEST_DATA_CLIENT_INFO = {
     TEST_UID: "123-test-uid",
     TEST_UTID: "456-test-utid",
-    TEST_DECODED_CLIENT_INFO: `{"uid":"123-test-uid","utid":"456-test-utid"}`,
-    TEST_INVALID_JSON_CLIENT_INFO: `{"uid":"123-test-uid""utid":"456-test-utid"}`,
+    TEST_DECODED_CLIENT_INFO: "{\"uid\":\"123-test-uid\",\"utid\":\"456-test-utid\"}",
+    TEST_INVALID_JSON_CLIENT_INFO: "{\"uid\":\"123-test-uid\"\"utid\":\"456-test-utid\"}",
     TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
     TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
     TEST_CACHE_RAW_CLIENT_INFO: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-    TEST_CACHE_DECODED_CLIENT_INFO: `{"uid":"uid", "utid":"utid"}`
+    TEST_CACHE_DECODED_CLIENT_INFO: "{\"uid\":\"uid\", \"utid\":\"utid\"}"
 };
 
 // Test Hashes
@@ -110,7 +110,7 @@ export const TEST_CONFIG = {
     DOMAIN_HINT: "test.com",
     SID: "session-id",
     CORRELATION_ID: "7821e1d3-ad52-42t9-8666-399gea483401",
-    CLAIMS: '{"access_token":{"example_claim":{"values":["example_value"]}}}',
+    CLAIMS: "{\"access_token\":{\"example_claim\":{\"values\":[\"example_value\"]}}}",
     TEST_SKU: "test.sku",
     TEST_VERSION: "1.1.0",
     TEST_OS: "win32",
@@ -124,8 +124,8 @@ export const TEST_STATE_VALUES = {
     USER_STATE: "userState",
     TEST_TIMESTAMP: 1592846482,
     DECODED_LIB_STATE: `{"id":"${RANDOM_TEST_GUID}","ts":1592846482}`,
-    ENCODED_LIB_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==`,
-    URI_ENCODED_LIB_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3D%3D`,
+    ENCODED_LIB_STATE: "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==",
+    URI_ENCODED_LIB_STATE: "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3D%3D",
     TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${Constants.RESOURCE_DELIM}userState`
 };
 
@@ -242,7 +242,6 @@ export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     }
 };
 
-
 export const DEVICE_CODE_RESPONSE = {
     "userCode": "FRWQDE7YL",
     "deviceCode": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
@@ -264,15 +263,15 @@ export const DEVICE_CODE_EXPIRED_RESPONSE = {
 
 export const AUTHORIZATION_PENDING_RESPONSE = {
     body: {
-        error: 'authorization_pending',
-        error_description: 'AADSTS70016: OAuth 2.0 device flow error. Authorization is pending. Continue polling.' +
-            'Trace ID: 01707a0c-640b-4049-8cbb-ee2304dc0700' +
-            'Correlation ID: 78b0fdfc-dd0e-4dfb-b13a-d316333783f6' +
-            'Timestamp: 2020-03-26 22:54:14Z',
+        error: "authorization_pending",
+        error_description: "AADSTS70016: OAuth 2.0 device flow error. Authorization is pending. Continue polling." +
+            "Trace ID: 01707a0c-640b-4049-8cbb-ee2304dc0700" +
+            "Correlation ID: 78b0fdfc-dd0e-4dfb-b13a-d316333783f6" +
+            "Timestamp: 2020-03-26 22:54:14Z",
         error_codes: [70016],
-        timestamp: '2020-03-26 22:54:14Z',
-        trace_id: '01707a0c-640b-4049-8cbb-ee2304dc0700',
-        correlation_id: '78b0fdfc-dd0e-4dfb-b13a-d316333783f6',
-        error_uri: 'https://login.microsoftonline.com/error?code=70016'
+        timestamp: "2020-03-26 22:54:14Z",
+        trace_id: "01707a0c-640b-4049-8cbb-ee2304dc0700",
+        correlation_id: "78b0fdfc-dd0e-4dfb-b13a-d316333783f6",
+        error_uri: "https://login.microsoftonline.com/error?code=70016"
     }
 };
