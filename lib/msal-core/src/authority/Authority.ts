@@ -174,10 +174,6 @@ export class Authority {
      * Checks if there is a cached tenant discovery response with required fields.
      */
     public hasCachedMetadata(): boolean {
-        console.log("TDR: ", this.tenantDiscoveryResponse);
-        console.log("AE: ", this.tenantDiscoveryResponse.AuthorizationEndpoint);
-        console.log("ESE:", this.tenantDiscoveryResponse.EndSessionEndpoint);
-        console.log("Issuer: ", this.tenantDiscoveryResponse.Issuer);
         return !!(this.tenantDiscoveryResponse &&
             this.tenantDiscoveryResponse.AuthorizationEndpoint &&
             this.tenantDiscoveryResponse.EndSessionEndpoint &&

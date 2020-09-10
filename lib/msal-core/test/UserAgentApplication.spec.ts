@@ -35,14 +35,12 @@ import { RequestUtils } from "../src/utils/RequestUtils";
 import { UrlUtils } from "../src/utils/UrlUtils";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 import { TrustedAuthority } from "../src/authority/TrustedAuthority";
-import { resolve } from "path";
 
 type kv = {
     [key: string]: string;
 };
 
-describe.only("UserAgentApplication.ts Class", function () {
-
+describe("UserAgentApplication.ts Class", function () {
     // Test state params
     sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
     const TEST_LIBRARY_STATE = RequestUtils.generateLibraryState(Constants.interactionTypeRedirect);
@@ -100,9 +98,9 @@ describe.only("UserAgentApplication.ts Class", function () {
 
     const setAuthInstanceStubs = function () {
         sinon.restore();
-        sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () : Promise<Authority> {
+        sinon.stub(msal.getAuthorityInstance(), "resolveEndpointsAsync").callsFake(function () : Promise<ITenantDiscoveryResponse> {
             return new Promise((resolve, reject) => {
-                return resolve(msal.getAuthorityInstance());
+                return resolve(validOpenIdConfigurationResponse);
             });
         });
         sinon.stub(msal.getAuthorityInstance(), "AuthorizationEndpoint").value(validOpenIdConfigurationResponse.AuthorizationEndpoint);
@@ -1335,7 +1333,7 @@ describe.only("UserAgentApplication.ts Class", function () {
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
-            accessTokenKey.authority = accessTokenKey.authority + "/";
+            accessTokenKey.authority = accessTokenKey.authority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenKey.scopes = "S1 S2";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -1404,7 +1402,7 @@ describe.only("UserAgentApplication.ts Class", function () {
             });
 
             accessTokenValue.expiresIn = "1300";
-            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority + "/";
+            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
@@ -1449,7 +1447,7 @@ describe.only("UserAgentApplication.ts Class", function () {
             });
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            console.log("HERE");
+
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 // Won't happen - we are not testing response here
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
