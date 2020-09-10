@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult } from '@azure/msal-common';
-import { Configuration } from '../config/Configuration';
-import { ClientApplication } from './ClientApplication';
+import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult } from "@azure/msal-common";
+import { Configuration } from "../config/Configuration";
+import { ClientApplication } from "./ClientApplication";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications

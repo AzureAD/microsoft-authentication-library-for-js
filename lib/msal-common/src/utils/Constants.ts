@@ -105,6 +105,9 @@ export enum AADServerParamKeys {
     CLIENT_SECRET = "client_secret",
     CLIENT_ASSERTION = "client_assertion",
     CLIENT_ASSERTION_TYPE = "client_assertion_type",
+    OBO_ASSERTION = "assertion",
+    REQUESTED_TOKEN_USE = "requested_token_use",
+    ON_BEHALF_OF = "on_behalf_of",
 }
 
 /**
@@ -128,7 +131,7 @@ export enum IdTokenClaimName {
 export enum ClaimsRequestKeys {
     ACCESS_TOKEN = "access_token",
     XMS_CC = "xms_cc"
-};
+}
 
 /**
  * we considered making this "enum" in the request instead of string, however it looks like the allowed list of
@@ -201,7 +204,8 @@ export enum GrantType {
     CLIENT_CREDENTIALS_GRANT = "client_credentials",
     RESOURCE_OWNER_PASSWORD_GRANT = "password",
     REFRESH_TOKEN_GRANT = "refresh_token",
-    DEVICE_CODE_GRANT = "device_code"
+    DEVICE_CODE_GRANT = "device_code",
+    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer" 
 }
 
 /**
@@ -260,7 +264,7 @@ export enum CacheType {
     ID_TOKEN = 2003,
     APP_METADATA = 3001,
     UNDEFINED = 9999
-};
+}
 
 /**
  * More Cache related constants

@@ -6,14 +6,20 @@ import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
-import { mockCache } from "./entities/cacheConstants";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
 import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
 import sinon from "sinon";
 import { CredentialEntity } from "../../src/cache/entities/CredentialEntity";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 import { ClientTestUtils } from "../client/ClientTestUtils";
+import { ScopeSet } from "../../src/request/ScopeSet";
+import {
+    TEST_CONFIG,
+    TEST_TOKENS,
+} from "../utils/StringConstants";
+import { CredentialCache } from "../../src/cache/utils/CacheTypes";
+import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { AccountInfo } from "../../src/account/AccountInfo";
 
 const cacheJson = require("./cache.json");
 
@@ -428,5 +434,34 @@ describe("CacheManager.ts test cases", () => {
         cacheManager.removeCredential(at);
         const atKey = at.generateCredentialKey();
         expect(store[atKey]).to.eql(undefined);
+    });
+    
+    it("getAccessTokenEntity matches multiple tokens, throws error", () => {
+        
+        const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "mocked_homeaccountid", "login.microsoftonline.com", "an_access_token", "client_id", TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            
+        const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "mocked_homeaccountid", "login.microsoftonline.com", "an_access_token", "client_id", TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            
+        const mockedCredentialCache: CredentialCache = {
+            accessTokens: { 
+                "key1": mockedAtEntity,
+                "key2": mockedAtEntity2
+            },
+            refreshTokens: null,
+            idTokens: null
+        }
+
+        sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
+
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "mocked_homeaccountid",
+            environment: "mocked_env",
+            tenantId: "mocked_tid",
+            username: "mocked_username"
+        };
+
+        expect(() => cacheManager.getAccessTokenEntity("client_id", mockedAccountInfo, new ScopeSet(["openid"]))).to.throw(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 });

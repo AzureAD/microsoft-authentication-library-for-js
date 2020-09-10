@@ -20,14 +20,14 @@ import {
     SilentFlowRequest,
     SilentFlowClient,
     Logger
-} from '@azure/msal-common';
-import { Configuration, buildAppConfiguration } from '../config/Configuration';
-import { CryptoProvider } from '../crypto/CryptoProvider';
-import { Storage } from '../cache/Storage';
-import { Constants as NodeConstants } from './../utils/Constants';
-import { TokenCache } from '../cache/TokenCache';
+} from "@azure/msal-common";
+import { Configuration, buildAppConfiguration } from "../config/Configuration";
+import { CryptoProvider } from "../crypto/CryptoProvider";
+import { Storage } from "../cache/Storage";
+import { Constants as NodeConstants } from "./../utils/Constants";
+import { TokenCache } from "../cache/TokenCache";
 import { ClientAssertion } from "../client/ClientAssertion";
-const pjson = require("../../package.json");
+import { version } from "../../package.json";
 
 export abstract class ClientApplication {
     private _authority: Authority;
@@ -169,9 +169,9 @@ export abstract class ClientApplication {
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
-                version: pjson.version,
-                cpu: process.arch || '',
-                os: process.platform || '',
+                version: version,
+                cpu: process.arch || "",
+                os: process.platform || "",
             },
         };
     }
@@ -180,7 +180,7 @@ export abstract class ClientApplication {
         return {
             assertion: this.clientAssertion.getJwt(this.cryptoProvider, this.config.auth.clientId, this._authority.tokenEndpoint),
             assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
-        }
+        };
     }
 
     /**
@@ -210,7 +210,7 @@ export abstract class ClientApplication {
             authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!);
         } else {
             this.logger.verbose("No authority passed in request, defaulting to authority set on application object");
-            authority = this.authority
+            authority = this.authority;
         }
 
         if (authority.discoveryComplete()) {

@@ -18,6 +18,7 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * OAuth2.0 client credential grant
@@ -73,6 +74,8 @@ export class ClientCredentialClient extends BaseClient {
         const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
         if (accessTokens.length < 1) {
             return null;
+        } else if (accessTokens.length > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
         }
         return accessTokens[0] as AccessTokenEntity;
     }
