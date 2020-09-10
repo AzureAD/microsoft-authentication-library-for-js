@@ -1,7 +1,7 @@
 /*
-* Copyright (c) Microsoft Corporation. All rights reserved.
-* Licensed under the MIT License.
-*/
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
 import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, ClaimsRequestKeys } from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
@@ -218,6 +218,22 @@ export class RequestParameterBuilder {
      */
     addClientAssertionType(clientAssertionType: string): void {
         this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION_TYPE, encodeURIComponent(clientAssertionType));
+    }
+    
+    /**
+     * add OBO assertion for confidential client flows
+     * @param clientAssertion
+     */
+    addOboAssertion(oboAssertion: string): void {
+        this.parameters.set(AADServerParamKeys.OBO_ASSERTION, encodeURIComponent(oboAssertion));
+    }
+    
+    /**
+     * add grant type
+     * @param grantType
+     */
+    addRequestTokenUse(tokenUse: string): void {
+        this.parameters.set(AADServerParamKeys.REQUESTED_TOKEN_USE, encodeURIComponent(tokenUse));
     }
 
     /**

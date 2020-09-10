@@ -8,6 +8,7 @@ import { CacheManager } from "../../cache/CacheManager";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
 import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
+import { StringUtils } from "../../utils/StringUtils";
 
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
@@ -50,9 +51,9 @@ export class ServerTelemetryManager {
     cacheFailedRequest(error: AuthError): void {
         const lastRequests = this.getLastRequests();
         lastRequests.failedRequests.push(this.apiId, this.correlationId);
-        lastRequests.errors.push(error.errorCode);
+        lastRequests.errors.push(StringUtils.isEmpty(error.suberror)? error.errorCode: error.suberror);
         lastRequests.errorCount += 1;
-        lastRequests.dataSize += this.apiId.toString().length + this.correlationId.length + error.errorCode.length + 3 // Add 3 to account for commas
+        lastRequests.dataSize += this.apiId.toString().length + this.correlationId.length + error.errorCode.length + 3; // Add 3 to account for commas
 
         if (lastRequests.dataSize < SERVER_TELEM_CONSTANTS.MAX_HEADER_BYTES) {
             // Prevent request headers from becoming too large due to excessive failures
