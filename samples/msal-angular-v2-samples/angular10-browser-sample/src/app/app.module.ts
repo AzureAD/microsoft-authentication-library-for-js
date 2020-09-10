@@ -14,6 +14,9 @@ import { ProfileComponent } from './profile/profile.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { MsalService, MSAL_INSTANCE, MsalGuard, MsalInterceptor } from './msal';
 import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+import { MSAL_GUARD_CONFIG, InteractionType, MSAL_INTERCEPTOR_CONFIG } from './msal/constants';
+import { MsalGuardConfiguration } from './msal/msal.guard.config';
+import { MsalInterceptorConfig } from './msal/msal.interceptor.config';
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -22,6 +25,16 @@ function MSALInstanceFactory(): IPublicClientApplication {
       redirectUri: 'http://localhost:4200'
     }
   });
+}
+
+function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
+  const protectedResourceMap = new Map<string, Array<string>>()
+  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read'])
+
+  return {
+    interactionType: InteractionType.REDIRECT,
+    protectedResourceMap: protectedResourceMap,
+  }
 }
 
 @NgModule({
@@ -48,6 +61,16 @@ function MSALInstanceFactory(): IPublicClientApplication {
     {
       provide: MSAL_INSTANCE,
       useFactory: MSALInstanceFactory
+    },
+    {
+      provide: MSAL_GUARD_CONFIG,
+      useValue: {
+        interactionType: InteractionType.REDIRECT
+      } as MsalGuardConfiguration
+    },
+    {
+      provide: MSAL_INTERCEPTOR_CONFIG,
+      useFactory: MSALInterceptorConfigFactory
     },
     MsalService,
     MsalGuard
