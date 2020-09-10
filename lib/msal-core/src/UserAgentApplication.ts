@@ -800,8 +800,8 @@ export class UserAgentApplication {
                 // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the API.
                 if (!serverAuthenticationRequest.authorityInstance) {
                     serverAuthenticationRequest.authorityInstance = request.authority ? 
-                    AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata)
-                    : this.authorityInstance;
+                        AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata)
+                        : this.authorityInstance;
                 }    
                 this.logger.verbosePii(`Authority instance: ${serverAuthenticationRequest.authority}`);
                 

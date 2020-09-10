@@ -9,10 +9,8 @@ import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestUtils } from "../utils/RequestUtils";
-import { IdToken } from '../IdToken';
-import { AccessTokenValue } from './AccessTokenValue';
-import { AccessTokenKey } from './AccessTokenKey';
-import { Authority } from '../authority/Authority';
+import { AccessTokenValue } from "./AccessTokenValue";
+import { AccessTokenKey } from "./AccessTokenKey";
 
 /**
  * @hidden
