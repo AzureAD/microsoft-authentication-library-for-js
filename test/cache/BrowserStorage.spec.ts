@@ -495,6 +495,6 @@ describe("BrowserStorage() tests", () => {
 			// Perform test
 			const tokenRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, browserCrypto);
 			expect(tokenRequest.authority).to.be.eq(alternateAuthority);
-		});
+        });
 	});
 });
