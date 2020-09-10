@@ -22,7 +22,6 @@ export class UrlUtils {
     static createNavigateUrl(serverRequestParams: ServerRequestParameters): string {
         const str = this.createNavigationUrlString(serverRequestParams);
         let authEndpoint: string = serverRequestParams.authorityInstance.AuthorizationEndpoint;
-        
         // if the endpoint already has queryparams, lets add to it, otherwise add the first one
         if (authEndpoint.indexOf("?") < 0) {
             authEndpoint += "?";

@@ -46,7 +46,6 @@ import { Constants,
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
-import { server } from 'sinon';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -213,7 +212,6 @@ export class UserAgentApplication {
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
-        
         // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
         this.cacheStorage = new AuthCache(this.clientId, this.config.cache.cacheLocation, this.inCookie);
 
@@ -521,7 +519,6 @@ export class UserAgentApplication {
 
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
-        
         let popUpWindow: Window;
 
         try {
@@ -805,8 +802,7 @@ export class UserAgentApplication {
                     serverAuthenticationRequest.authorityInstance = request.authority ? 
                     AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata)
                     : this.authorityInstance;
-                }
-                
+                }    
                 this.logger.verbosePii(`Authority instance: ${serverAuthenticationRequest.authority}`);
                 
                 try {
