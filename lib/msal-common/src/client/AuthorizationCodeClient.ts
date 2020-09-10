@@ -231,16 +231,17 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addPrompt(request.prompt);
         }
 
-        if (request.loginHint) {
-            parameterBuilder.addLoginHint(request.loginHint);
-        }
-
         if (request.domainHint) {
             parameterBuilder.addDomainHint(request.domainHint);
         }
 
+        // Add sid or loginHint with preference for sid -> loginHint -> username of AccountInfo object
         if (request.sid) {
             parameterBuilder.addSid(request.sid);
+        } else if (request.loginHint) {
+            parameterBuilder.addLoginHint(request.loginHint);
+        } else if (request.account && request.account.username) {
+            parameterBuilder.addLoginHint(request.account.username);
         }
 
         if (request.nonce) {
