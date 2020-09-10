@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Remove unnecessary debug dependency from msal-common",
+  "packageName": "@azure/msal-common",
+  "email": "hegi@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-09-10T01:53:33.562Z"
+}

@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Remove unnecessary debug dependency from msal-common",
+  "packageName": "@azure/msal-node",
+  "email": "hegi@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-09-10T01:53:39.233Z"
+}
