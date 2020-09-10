@@ -24,7 +24,7 @@ export enum LogLevel {
     Warning,
     Info,
     Verbose
-};
+}
 
 /**
  * Callback to send the messages to.

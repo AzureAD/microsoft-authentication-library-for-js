@@ -44,8 +44,8 @@ export class MsalService extends UserAgentApplication {
         });
 
         window.addEventListener("msal:popUpClosed", (e: CustomEvent) => {
-            var errorParts = e.detail.split("|");
-            var msalError = new MSALError(errorParts[0], errorParts[1]);
+            const errorParts = e.detail.split("|");
+            const msalError = new MSALError(errorParts[0], errorParts[1]);
             if (this.getLoginInProgress()) {
                 broadcastService.broadcast("msal:loginFailure", msalError);
                 this.setloginInProgress(false);
