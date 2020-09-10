@@ -48,12 +48,11 @@ export class CrossPlatformLock {
                     this.logger.info(err);
                     await this.sleep(this.retryDelay);
                 } else {
-                    throw PersistenceError.createCrossPlatformLockError(err.code, err.message);
+                    throw PersistenceError.createCrossPlatformLockError(err.message);
                 }
             }
         }
         throw PersistenceError.createCrossPlatformLockError(
-            "Exceeded retry options",
             "Not able to acquire lock. Exceeded amount of retries set in options");
     }
 
@@ -69,7 +68,7 @@ export class CrossPlatformLock {
             if (err.code == Constants.ENOENT_ERROR) {
                 this.logger.warning("Tried to unlock but Lockfile does not exist");
             } else {
-                throw PersistenceError.createCrossPlatformLockError(err.code, err.message);
+                throw PersistenceError.createCrossPlatformLockError(err.message);
             }
         }
     }
