@@ -12,7 +12,7 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.authService.handleRedirectObservable().subscribe({
-      next: (response) => console.log(response),
+      next: (result) => console.log(result),
       error: (error) => console.log(error)
     });
   }
