@@ -23,6 +23,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      familyId: Family ID identifier, usually only used for refresh tokens
  *      realm: Full tenant or organizational identifier that the account belongs to
  *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
+ *      oboAssertion: access token passed in as part of OBO request
  * }
  */
 export class CredentialEntity {
@@ -34,6 +35,7 @@ export class CredentialEntity {
     familyId?: string;
     realm?: string;
     target?: string;
+    oboAssertion?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>

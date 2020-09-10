@@ -4,6 +4,7 @@ import {
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
+    TEST_TOKENS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants } from "../../src/utils/Constants";
@@ -13,6 +14,9 @@ import { ClientCredentialClient } from "../../src/client/ClientCredentialClient"
 import { ClientCredentialRequest } from "../../src/request/ClientCredentialRequest";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
 import { TimeUtils } from "../../src/utils/TimeUtils";
+import { CredentialCache } from "../../src/cache/utils/CacheTypes";
+import { CacheManager } from "../../src/cache/CacheManager";
+import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 
 describe("ClientCredentialClient unit tests", () => {
     beforeEach(() => {
@@ -112,4 +116,36 @@ describe("ClientCredentialClient unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
     });
+
+    it("Multiple access tokens matched, exception thrown", async () => {
+
+        sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        
+        // mock access token
+        const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            
+        const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            
+        const mockedCredentialCache: CredentialCache = {
+            accessTokens: { 
+                "key1": mockedAtEntity,
+                "key2": mockedAtEntity2
+            },
+            refreshTokens: null,
+            idTokens: null
+        }
+
+        sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
+
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: ClientCredentialRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
+
+        await expect(client.acquireToken(clientCredentialRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+    });
+
 });
