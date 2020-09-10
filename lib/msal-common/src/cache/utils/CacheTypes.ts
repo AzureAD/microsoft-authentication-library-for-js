@@ -43,4 +43,5 @@ export type CredentialFilter = {
     clientId?: string;
     realm?: string;
     target?: string;
+    oboAssertion?: string;
 };
