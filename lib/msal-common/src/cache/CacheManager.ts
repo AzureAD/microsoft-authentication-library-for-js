@@ -226,10 +226,12 @@ export abstract class CacheManager implements ICacheManager {
         };
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
         const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
-        if (accessTokens.length > 1) {
-            // TODO: Figure out what to throw or return here.
-        } else if (accessTokens.length < 1) {
+
+        const numAccessTokens = accessTokens.length;
+        if (numAccessTokens < 1) {
             return null;
+        } else if (numAccessTokens > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
         }
 
         return accessTokens[0] as AccessTokenEntity;
@@ -322,7 +324,8 @@ export abstract class CacheManager implements ICacheManager {
             filter.credentialType,
             filter.clientId,
             filter.realm,
-            filter.target
+            filter.target,
+            filter.oboAssertion,
         );
     }
 
@@ -341,7 +344,8 @@ export abstract class CacheManager implements ICacheManager {
         credentialType?: string,
         clientId?: string,
         realm?: string,
-        target?: string
+        target?: string,
+        oboAssertion?: string
     ): CredentialCache {
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
@@ -362,6 +366,10 @@ export abstract class CacheManager implements ICacheManager {
             try {
                 entity = this.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as CredentialEntity;
             } catch (e) {
+                return;
+            }
+
+            if (!StringUtils.isEmpty(oboAssertion) && !this.matchOboAssertion(entity, oboAssertion)) {
                 return;
             }
 
@@ -494,6 +502,17 @@ export abstract class CacheManager implements ICacheManager {
         homeAccountId: string
     ): boolean {
         return entity.homeAccountId && homeAccountId === entity.homeAccountId;
+    }
+
+    /**
+     * @param value
+     * @param oboAssertion
+     */
+    private matchOboAssertion(
+        entity: AccountEntity | CredentialEntity,
+        oboAssertion: string
+    ): boolean {
+        return entity.oboAssertion && oboAssertion === entity.oboAssertion;
     }
 
     /**
