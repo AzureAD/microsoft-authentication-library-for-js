@@ -625,8 +625,7 @@ export abstract class ClientApplication {
      */
     protected initializeBaseRequest(request: BaseAuthRequest): BaseAuthRequest {
         const validatedRequest: BaseAuthRequest = {
-            ...request,
-            ...this.setDefaultScopes(request)
+            ...request
         };
 
         if (StringUtils.isEmpty(validatedRequest.authority)) {
@@ -653,10 +652,10 @@ export abstract class ClientApplication {
      * Generates a request that will contain the openid and profile scopes.
      * @param request 
      */
-    protected setDefaultScopes(request: BaseAuthRequest): AuthorizationUrlRequest {
+    protected setDefaultScopes(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest): AuthorizationUrlRequest {
         return {
             ...request,
-            scopes: [...((request && request.scopes) || []), ...DEFAULT_REQUEST.scopes]
+            scopes: [...((request && request.scopes) || [])]
         };
     }
 
@@ -665,9 +664,9 @@ export abstract class ClientApplication {
      * @param request
      */
     protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        const validatedRequest: AuthorizationUrlRequest = {
+        let validatedRequest: AuthorizationUrlRequest = {
             ...request,
-            ...this.initializeBaseRequest(request as BaseAuthRequest)
+            ...this.setDefaultScopes(request)
         };
 
         validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
@@ -700,6 +699,11 @@ export abstract class ClientApplication {
         }
 
         validatedRequest.responseMode = ResponseMode.FRAGMENT;
+
+        validatedRequest = {	
+            ...validatedRequest,	
+            ...this.initializeBaseRequest(validatedRequest)	
+        };
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
