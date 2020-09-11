@@ -186,7 +186,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal = new UserAgentApplication(config);
-            setAuthInstanceStubs();
+            setAuthInstanceStubs(msal);
             setTestCacheItems();
 
             delete window.location;
@@ -890,7 +890,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
 
-            setAuthInstanceStubs();
+            setAuthInstanceStubs(msal);
             setTestCacheItems();
         });
 
@@ -1016,7 +1016,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
 
-            setAuthInstanceStubs();
+            setAuthInstanceStubs(msal);
             setTestCacheItems();
             
             delete window.location;
@@ -1378,7 +1378,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
 
-            setAuthInstanceStubs();
+            setAuthInstanceStubs(msal);
             setTestCacheItems();
         });
 
@@ -1521,7 +1521,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal = new UserAgentApplication(config);
-            setAuthInstanceStubs();
+            setAuthInstanceStubs(msal);
             setTestCacheItems();
             delete window.location;
         });
@@ -1616,7 +1616,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal = new UserAgentApplication(config);
-            setAuthInstanceStubs();
+            setAuthInstanceStubs(msal);
             setTestCacheItems();
         });
 
@@ -1645,7 +1645,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         beforeEach(function () {
             cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
-            setAuthInstanceStubs();
+            setAuthInstanceStubs(msal);
             setTestCacheItems();
         });
 
@@ -1695,7 +1695,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal = new UserAgentApplication(config);
-            setAuthInstanceStubs();
+            setAuthInstanceStubs(msal);
             setTestCacheItems();
 
             delete window.location;
@@ -1771,7 +1771,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal = new UserAgentApplication(config);
-            setAuthInstanceStubs();
+            setAuthInstanceStubs(msal);
         });
 
         afterEach(function() {
@@ -1917,7 +1917,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
                     msal = new UserAgentApplication(config);
-                    setAuthInstanceStubs();
+                    setAuthInstanceStubs(msal);
                     setTestCacheItems();
         
                     delete window.location;
@@ -1963,7 +1963,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
                     msal = new UserAgentApplication(config);
-                    setAuthInstanceStubs();
+                    setAuthInstanceStubs(msal);
                     setTestCacheItems();
 
                     delete window.location;
@@ -2011,7 +2011,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
                     msal = new UserAgentApplication(config);
-                    setAuthInstanceStubs();
+                    setAuthInstanceStubs(msal);
                     setTestCacheItems();
     
                     delete window.location;
@@ -2266,7 +2266,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
                     msal = new UserAgentApplication(config);
-                    setAuthInstanceStubs();
+                    setAuthInstanceStubs(msal);
                     setTestCacheItems();
     
                     delete window.location;

@@ -69,7 +69,7 @@ describe("UserAgentApplication - AcquireTokenSilent", () => {
             }
         };
         msal = new UserAgentApplication(config);
-        setAuthInstanceStubs();
+        setAuthInstanceStubs(msal);
         setTestCacheItems();
     });
 
@@ -353,8 +353,8 @@ describe("UserAgentApplication - AcquireTokenSilent", () => {
         params[SSOTypes.SID] = account.sid;
         setUtilUnifiedCacheQPStubs(params);
 
-        setAuthInstanceStubs();
         sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+        // TODO: Stub renewToken instead of spying.
         const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
 
         cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
@@ -365,7 +365,6 @@ describe("UserAgentApplication - AcquireTokenSilent", () => {
             console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
         }).catch(function(err: AuthError) {
             // Failure will be caught here since the tests are being run within the stub.
-            console.log("Error", err);
             expect(err).to.be.instanceOf(AuthError);
             expect(renewTokenSpy.calledOnce).to.be.true;
             done();
@@ -384,8 +383,6 @@ describe("UserAgentApplication - AcquireTokenSilent", () => {
 
         sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
             return new Promise<void>(() => {
-                console.log("GET: ", accessTokenKey);
-                console.log(url);
                 expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
                 expect(url).to.include(TEST_CONFIG.ALTERNATE_VALID_AUTHORITY + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
                 expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
@@ -398,7 +395,6 @@ describe("UserAgentApplication - AcquireTokenSilent", () => {
 
         accessTokenValue.expiresIn = "1300";
         accessTokenKey.authority = TEST_CONFIG.ALTERNATE_VALID_AUTHORITY;
-        console.log("SET: ", accessTokenKey);
         cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
         cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
@@ -406,7 +402,6 @@ describe("UserAgentApplication - AcquireTokenSilent", () => {
             // Won't happen - we are not testing response here
             console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
         }).catch(function(err: AuthError) {
-            console.log("Error", err);
             // Failure will be caught here since the tests are being run within the stub.
             expect(err).to.be.instanceOf(AuthError);
         });
