@@ -131,4 +131,20 @@ describe("StringUtils.ts Class Unit Tests", () => {
     it("removeEmptyStringsFromArray() removes empty strings from an array", () => {
 
     });
+
+    describe("jsonParseHelper", () => {
+        it("parses json", () => {
+            const test = { test: "json" };
+            const jsonString = JSON.stringify(test);
+            const parsedVal = StringUtils.jsonParseHelper(jsonString);
+            expect(parsedVal).to.be.deep.eq(test);
+        });
+
+        it("returns null on error", () => {
+            const parsedValNull = StringUtils.jsonParseHelper(null);
+            const parsedValEmptyString = StringUtils.jsonParseHelper("");
+            expect(parsedValNull).to.be.null;
+            expect(parsedValEmptyString).to.be.null;
+        })
+    });
 });

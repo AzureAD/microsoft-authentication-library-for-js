@@ -7,14 +7,17 @@
         }
     },
     "plugins": [
-        "@typescript-eslint/eslint-plugin-tslint"
+        "@typescript-eslint/eslint-plugin-tslint",
+        "security"
     ],
     "extends": [
         "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended"
+        "plugin:@typescript-eslint/recommended",
+        "plugin:security/recommended"
     ],
     "rules": {
         "@typescript-eslint/array-type": 0,
+        "@typescript-eslint/ban-ts-comment": 1,
         "@typescript-eslint/ban-types": 0,
         "@typescript-eslint/camelcase": 0,
         "@typescript-eslint/explicit-member-accessibility": 0,
@@ -22,12 +25,14 @@
         "@typescript-eslint/interface-name-prefix": 0,
         "@typescript-eslint/member-delimiter-style": 0,
         "@typescript-eslint/no-angle-bracket-type-assertion": 0,
+        "@typescript-eslint/no-empty-function": 1,
         "@typescript-eslint/no-inferrable-types": 0,
         "@typescript-eslint/no-object-literal-type-assertion": 0,
         "@typescript-eslint/prefer-interface": 0,
         "@typescript-eslint/semi": 2,
         "@typescript-eslint/type-annotation-spacing": 0,
         "eol-last": 2,
+        "multiline-comment-style": [2, "starred-block" ],
         "no-multiple-empty-lines": [2, { "max": 1 }],
         "no-var": 2,
         "prefer-const": 2,

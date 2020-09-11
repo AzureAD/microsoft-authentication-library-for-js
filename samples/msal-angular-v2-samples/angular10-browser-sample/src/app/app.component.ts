@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { MsalService } from './msal';
+import { MSAL_GUARD_CONFIG, InteractionType } from './msal/constants';
+import { MsalGuardConfiguration } from './msal/msal.guard.config';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +13,10 @@ export class AppComponent implements OnInit {
   isIframe = false;
   loggedIn = false;
 
-  constructor(private authService: MsalService) {}
+  constructor(
+    @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
+    private authService: MsalService
+  ) {}
   ngOnInit(): void {
     this.isIframe = window !== window.parent && !window.opener;
 
@@ -23,8 +28,12 @@ export class AppComponent implements OnInit {
   }
 
   login() {
-    this.authService.loginPopup()
-      .subscribe(() => this.checkAccount());
+    if (this.msalGuardConfig.interactionType === InteractionType.POPUP) {
+      this.authService.loginPopup()
+        .subscribe(() => this.checkAccount());
+    } else {
+      this.authService.loginRedirect();
+    }
   }
 
   logout() {
