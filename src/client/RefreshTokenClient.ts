@@ -6,7 +6,7 @@
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
-import { Authority } from "..";
+import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
@@ -16,6 +16,9 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
+import { SilentFlowRequest } from "../request/SilentFlowRequest";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * OAuth2.0 refresh token client
@@ -43,6 +46,36 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         return tokenResponse;
+    }
+
+    /**
+     * Gets cached refresh token and attaches to request, then calls acquireToken API
+     * @param request 
+     */
+
+    public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        // Cannot renew token if no request object is given.
+        if (!request) {
+            throw ClientConfigurationError.createEmptyTokenRequestError();
+        }
+
+        // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
+        if (!request.account) {
+            throw ClientAuthError.createNoAccountInSilentRequestError();
+        } 
+
+        const refreshToken = this.cacheManager.getRefreshTokenEntity(this.config.authOptions.clientId, request.account);
+        // no refresh Token
+        if (!refreshToken) {
+            throw ClientAuthError.createNoTokensFoundError();
+        }
+
+        const refreshTokenRequest: RefreshTokenRequest = {
+            ...request,
+            refreshToken: refreshToken.secret
+        };
+
+        return this.acquireToken(refreshTokenRequest);
     }
 
     private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
