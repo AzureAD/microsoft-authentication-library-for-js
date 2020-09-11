@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update msal-node-extensionst to use central eslint configuration",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-09-04T22:34:59.072Z"
+}

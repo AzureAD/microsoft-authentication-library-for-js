@@ -1,4 +1,4 @@
-export { PersistenceCachePlugin } from "./persistence/PersistenceCachePlugin"
+export { PersistenceCachePlugin } from "./persistence/PersistenceCachePlugin";
 export { FilePersistence } from "./persistence/FilePersistence";
 export { FilePersistenceWithDataProtection } from "./persistence/FilePersistenceWithDataProtection";
 export { DataProtectionScope } from "./persistence/DataProtectionScope";

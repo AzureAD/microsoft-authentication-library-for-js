@@ -15,7 +15,15 @@ import { Authority } from "../../src/authority/Authority";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { IdToken } from "../../src/account/IdToken";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
-import { AccountInfo, AuthenticationResult, ClientAuthErrorMessage, ClientConfigurationErrorMessage, SilentFlowRequest, RefreshTokenEntity, AccountEntity, ClientConfiguration, CacheManager } from "../../src";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { AccountInfo } from "../../src/account/AccountInfo";
+import { CacheManager } from "../../src/cache/CacheManager";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
+import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -63,7 +71,6 @@ describe("RefreshTokenClient unit tests", () => {
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username
         };
-        
         beforeEach(async () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
@@ -112,18 +119,16 @@ describe("RefreshTokenClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
         });
 
-        it("acquireTokenByRefreshToken refreshes a token", async () => {            
+        it("acquireTokenByRefreshToken refreshes a token", async () => {
             const silentFlowRequest: SilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: testAccount
             };
-    
             const expectedRefreshRequest: RefreshTokenRequest = {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret
             };
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
-    
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).to.be.true;
         });

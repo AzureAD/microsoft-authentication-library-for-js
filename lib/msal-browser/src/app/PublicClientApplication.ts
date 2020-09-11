@@ -67,10 +67,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     /**
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
      * any code that follows this function will not execute.
-	 *
-	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
-	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
-	 *
+     *
+     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+     *
      * @param {@link (RedirectRequest:type)}
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
@@ -80,9 +80,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     /**
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
      * the page, so any code that follows this function will not execute.
-	 *
-	 * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
-	 * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+     *
+     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      *
      * @param {@link (RedirectRequest:type)}
      */
@@ -123,7 +123,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     // #endregion
-
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         const silentRequest: SilentFlowRequest = {
             ...request,

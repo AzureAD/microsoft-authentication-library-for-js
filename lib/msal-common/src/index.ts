@@ -5,6 +5,7 @@ export { BrokerRefreshTokenClient } from "./client/broker/BrokerRefreshTokenClie
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { ClientCredentialClient } from "./client/ClientCredentialClient";
+export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
 export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
@@ -20,7 +21,7 @@ export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 // Cache
 export { CacheManager } from "./cache/CacheManager";
-export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache } from "./cache/utils/CacheTypes";
+export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType } from "./cache/utils/CacheTypes";
 export { CacheRecord } from "./cache/entities/CacheRecord";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
@@ -28,9 +29,12 @@ export { AccountEntity } from "./cache/entities/AccountEntity";
 export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
 export { AccessTokenEntity } from "./cache/entities/AccessTokenEntity";
 export { RefreshTokenEntity } from "./cache/entities/RefreshTokenEntity";
+export { ThrottlingEntity } from "./cache/entities/ThrottlingEntity";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
-export { NetworkResponse } from "./network/NetworkManager";
+export { NetworkManager, NetworkResponse } from "./network/NetworkManager";
+export { ThrottlingUtils } from "./network/ThrottlingUtils";
+export { RequestThumbprint } from "./network/RequestThumbprint";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
@@ -42,6 +46,7 @@ export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export { ClientCredentialRequest } from "./request/ClientCredentialRequest";
+export { OnBehalfOfRequest } from "./request/OnBehalfOfRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
@@ -57,7 +62,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType } from "./utils/Constants";
+export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
