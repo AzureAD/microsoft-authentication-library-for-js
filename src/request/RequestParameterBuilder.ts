@@ -44,6 +44,7 @@ export class RequestParameterBuilder {
      * @param scopeSet
      */
     addScopes(scopeSet: ScopeSet): void {
+        scopeSet.appendScopes([Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]); // Add default scopes
         this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
 
