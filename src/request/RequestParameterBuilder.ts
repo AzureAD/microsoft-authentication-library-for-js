@@ -43,8 +43,9 @@ export class RequestParameterBuilder {
      * add scopes
      * @param scopeSet
      */
-    addScopes(scopeSet: ScopeSet): void {
-        scopeSet.appendScopes([Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]); // Add default scopes
+    addScopes(scopes: string[]): void {
+        const requestScopes = [...scopes || [], Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE];
+        const scopeSet = new ScopeSet(requestScopes);
         this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
 
