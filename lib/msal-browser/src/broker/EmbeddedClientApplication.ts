@@ -31,7 +31,7 @@ export class EmbeddedClientApplication {
 
     private get trustedBrokersProvided(): boolean {
         return this.config.system.brokerOptions.trustedBrokerDomains && this.config.system.brokerOptions.trustedBrokerDomains.length >= 1;
-    };
+    }
     public brokerConnectionEstablished: boolean;
 
     constructor(configuration: Configuration, logger: Logger, browserStorage: BrowserStorage) {

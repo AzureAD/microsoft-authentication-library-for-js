@@ -34,7 +34,8 @@ export class SilentFlowClient extends BaseClient {
             return this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
-                return this.refreshToken(request);
+                const refreshTokenClient = new RefreshTokenClient(this.config);
+                return refreshTokenClient.acquireTokenByRefreshToken(request);
             } else {
                 throw e;
             }
@@ -67,36 +68,6 @@ export class SilentFlowClient extends BaseClient {
             }
             return this.generateResultFromCacheRecord(cacheRecord);
         }
-    }
-
-    /**
-     * Gets cached refresh token and uses RefreshTokenClient to refresh tokens
-     * @param request 
-     */
-    async refreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
-        // Cannot renew token if no request object is given.
-        if (!request) {
-            throw ClientConfigurationError.createEmptyTokenRequestError();
-        }
-        
-        // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
-        if (!request.account) {
-            throw ClientAuthError.createNoAccountInSilentRequestError();
-        } 
-
-        const refreshToken = this.cacheManager.getRefreshTokenEntity(this.config.authOptions.clientId, request.account);
-        // no refresh Token
-        if (!refreshToken) {
-            throw ClientAuthError.createNoTokensFoundError();
-        }
-
-        const refreshTokenClient = new RefreshTokenClient(this.config);
-        const refreshTokenRequest: RefreshTokenRequest = {
-            ...request,
-            refreshToken: refreshToken.secret
-        };
-
-        return refreshTokenClient.acquireToken(refreshTokenRequest);
     }
 
     /**
