@@ -9,8 +9,8 @@ import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 const stubbedTelemetryConfig: TelemetryConfig = {
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
     platform: {
-        applicationName: TEST_CONFIG.applicationName,
-        applicationVersion: TEST_CONFIG.applicationVersion
+        applicationName: TEST_CONFIG.APPLICATION_NAME,
+        applicationVersion: TEST_CONFIG.APPLICATION_VERSION
     }
 };
 
@@ -24,9 +24,9 @@ describe("TrustedAuthority.ts Class", function () {
     describe("setTrustedAuthoritiesFromConfig", () => {
         it("Sets TrustedHostList with Known Authorities", () => {
             sinon.stub(TrustedAuthority, "getTrustedHostList").returns([]);
-            TrustedAuthority.setTrustedAuthoritiesFromConfig(true, TEST_CONFIG.knownAuthorities);
+            TrustedAuthority.setTrustedAuthoritiesFromConfig(true, TEST_CONFIG.KNOWN_AUTHORITIES);
 
-            TEST_CONFIG.knownAuthorities.forEach(function(authority) {
+            TEST_CONFIG.KNOWN_AUTHORITIES.forEach(function(authority) {
                 expect(TrustedAuthority.IsInTrustedHostList(authority)).to.be.true;
             });
         });
@@ -42,7 +42,7 @@ describe("TrustedAuthority.ts Class", function () {
     describe("setTrustedAuthoritiesFromNetwork", () => {
         it("Sets TrustedHostList with Authorities known to Microsoft via Instance Discovery Network Call", async () => {
             const countBefore = TrustedAuthority.getTrustedHostList().length;
-            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(TEST_CONFIG.validAuthority, stubbedTelemetryManager);
+            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(TEST_CONFIG.VALID_AUTHORITY, stubbedTelemetryManager);
             const countAfter = TrustedAuthority.getTrustedHostList().length;
             expect(countBefore).to.be.lessThan(countAfter);
         });

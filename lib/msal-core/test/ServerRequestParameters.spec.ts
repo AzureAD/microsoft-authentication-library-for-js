@@ -18,7 +18,7 @@ describe("ServerRequestParameters.ts Class", function () {
 
         it("Scope array pointer is not passed into constructor", function () {
             const scopes = ["S1"];
-            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.VALID_AUTHORITY, false);
             sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
             const req = new ServerRequestParameters(
                 authority,
@@ -26,8 +26,8 @@ describe("ServerRequestParameters.ts Class", function () {
                 TEST_RESPONSE_TYPE.token,
                 TEST_URIS.TEST_REDIR_URI,
                 scopes,
-                TEST_CONFIG.STATE,
-                TEST_CONFIG.CorrelationId
+                TEST_CONFIG.STATE_NUM,
+                TEST_CONFIG.CORRELATION_ID
             );
             expect(req.scopes).to.not.be.equal(scopes);
             expect(req.scopes.length).to.be.eql(1);
@@ -35,7 +35,7 @@ describe("ServerRequestParameters.ts Class", function () {
         });
 
         it("Scopes are set to OIDC scopes if null or empty scopes object passed", function () {
-            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.VALID_AUTHORITY, false);
             sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
             const req = new ServerRequestParameters(
                 authority,
@@ -43,8 +43,8 @@ describe("ServerRequestParameters.ts Class", function () {
                 TEST_RESPONSE_TYPE.token,
                 TEST_URIS.TEST_REDIR_URI,
                 null,
-                TEST_CONFIG.STATE,
-                TEST_CONFIG.CorrelationId
+                TEST_CONFIG.STATE_NUM,
+                TEST_CONFIG.CORRELATION_ID
             );
             expect(req.scopes).to.be.eql(Constants.oidcScopes);
             expect(req.scopes.length).to.be.eql(2);
@@ -65,10 +65,10 @@ describe("ServerRequestParameters.ts Class", function () {
                 TEST_RESPONSE_TYPE.id_token,
                 "",
                 scopes,
-                TEST_CONFIG.STATE,
-                TEST_CONFIG.CorrelationId);
+                TEST_CONFIG.STATE_NUM,
+                TEST_CONFIG.CORRELATION_ID);
             const result = UrlUtils.createNavigationUrlString(authenticationRequestParameters);
-            expect(decodeURIComponent(result[4])).to.include(TEST_CONFIG.STATE);
+            expect(decodeURIComponent(result[4])).to.include(TEST_CONFIG.STATE_NUM);
         });
 
         it('test if authenticateRequestParameter generates state correctly, if state is a url', function () {
@@ -85,7 +85,7 @@ describe("ServerRequestParameters.ts Class", function () {
                 "",
                 scopes,
                 state,
-                TEST_CONFIG.CorrelationId);
+                TEST_CONFIG.CORRELATION_ID);
             const result = UrlUtils.createNavigationUrlString(authenticationRequestParameters);
             expect(decodeURIComponent(result[4])).to.include("https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2");
         });
@@ -105,10 +105,10 @@ describe("ServerRequestParameters.ts Class", function () {
                 TEST_RESPONSE_TYPE.id_token,
                 "",
                 scopes,
-                TEST_CONFIG.STATE,
-                TEST_CONFIG.CorrelationId);
+                TEST_CONFIG.STATE_NUM,
+                TEST_CONFIG.CORRELATION_ID);
             const result = UrlUtils.createNavigationUrlString(authenticationRequestParameters);
-            expect(decodeURIComponent(result[result.length-1])).to.include(TEST_CONFIG.CorrelationId);
+            expect(decodeURIComponent(result[result.length-1])).to.include(TEST_CONFIG.CORRELATION_ID);
         });
 
         it("tests correlation Id passed by the user is validated correctly", function () {
@@ -157,7 +157,7 @@ describe("ServerRequestParameters.ts Class", function () {
 
     describe("populateQueryParams", () => {
         const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
-        const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_CONFIG.validAuthority);
+        const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_CONFIG.VALID_AUTHORITY);
 
         it("populates parameters", () => {
             const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");

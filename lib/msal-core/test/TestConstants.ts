@@ -1,5 +1,7 @@
 import { TimeUtils } from "../src/utils/TimeUtils";
 import { OpenIdConfiguration, ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryResponse";
+import { Constants } from "../src";
+import { RequestUtils } from "../src/utils/RequestUtils";
 
 // Test Tokens
 export const TEST_TOKENS = {
@@ -59,22 +61,31 @@ export const TEST_CONFIG = {
     TENANT: "common/",
     MSAL_CLIENT_ID: "0813e1d1-ad72-46a9-8665-399bba48c201",
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
-    validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common/",
-    alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common/",
-    knownAuthorities: ["login.microsoftonline.com","login.windows.net", "fabrikamb2c.b2clogin.com"],
-    applicationName: "msal.js-tests",
-    applicationVersion: "msal.js-tests.1.0.fake",
-    STATE: "1234",
-    CorrelationId: "ed2a3125-a597-416f-9d12-68b9add1c268"
+    VALID_AUTHORITY: TEST_URIS.DEFAULT_INSTANCE + "common/",
+    ALTERNATE_VALID_AUTHORITY: TEST_URIS.ALTERNATE_INSTANCE + "common/",
+    KNOWN_AUTHORITIES: ["login.microsoftonline.com","login.windows.net", "fabrikamb2c.b2clogin.com"],
+    APPLICATION_NAME: "msal.js-tests",
+    APPLICATION_VERSION: "msal.js-tests.1.0.fake",
+    STATE_NUM: "1234",
+    STATE_URL: "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow/scope1",
+    CORRELATION_ID: "ed2a3125-a597-416f-9d12-68b9add1c268",
+    LOGIN_HINT: "test@test.com",
+    SID: "1234-5678"
 };
 
+export const TEST_AUTH_PARAMS = {
+    NONCE: "123523",
+    OID: "00000000-0000-0000-66f3-3332eca7ea81",
+    UNIQUE_ID: "00000000-0000-0000-66f3-3332eca7ea81"
+}
+
 export const B2C_TEST_CONFIG = {
-    validAuthority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
+    VALID_AUTHORITY: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
     MSAL_CLIENT_ID: "e760cab2-b9a1-4c0d-86fb-ff7084abd902"
 };
 
 export const ADFS_TEST_CONFIG = {
-    validAuthority: "https://fs.msidlab8.com/adfs/"
+    VALID_AUTHORITY: "https://fs.msidlab8.com/adfs/"
 };
 
 export const TEST_RESPONSE_TYPE = {
@@ -95,3 +106,13 @@ export const TENANT_DISCOVERY_RESPONSE: ITenantDiscoveryResponse = {
     Issuer: OPENID_CONFIGURATION.issuer
 }
 
+export const TEST_ERROR = {
+    CODE: "error_code",
+    DESCRIPTION: "msal error description"
+}
+
+export const VALID_OPENID_CONFIGURATION_RESPONSE: ITenantDiscoveryResponse = {
+    AuthorizationEndpoint: `${TEST_CONFIG.VALID_AUTHORITY}oauth2/v2.0/authorize`,
+    EndSessionEndpoint: "https://end_session_endpoint",
+    Issuer: "https://fakeIssuer"
+};

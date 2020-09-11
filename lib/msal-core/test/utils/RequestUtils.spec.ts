@@ -148,7 +148,7 @@ describe("RequestUtils.ts class", () => {
     });
 
     it("generate request signature", () => {
-        const userRequest: AuthenticationParameters = { scopes: ["s1", "s2", "s3"], authority: TEST_CONFIG.validAuthority};
+        const userRequest: AuthenticationParameters = { scopes: ["s1", "s2", "s3"], authority: TEST_CONFIG.VALID_AUTHORITY};
         const requestSignature = RequestUtils.createRequestSignature(userRequest);
 
         expect(requestSignature).to.be.equal("s1 s2 s3|https://login.microsoftonline.com/common/");

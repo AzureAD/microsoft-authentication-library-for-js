@@ -70,7 +70,7 @@ describe("UrlUtils.ts class", () => {
 
     it("Scopes are from serverRequestParameters are mutated, but not user-given scopes", function () {
         const scopes = ["S1"];
-        const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+        const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.VALID_AUTHORITY, false);
         sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
         const req = new ServerRequestParameters(
             authority,
@@ -78,8 +78,8 @@ describe("UrlUtils.ts class", () => {
             TEST_RESPONSE_TYPE.token,
             TEST_URIS.TEST_REDIR_URI,
             scopes,
-            TEST_CONFIG.STATE,
-            TEST_CONFIG.CorrelationId
+            TEST_CONFIG.STATE_NUM,
+            TEST_CONFIG.CORRELATION_ID
         );
         const uriString = UrlUtils.createNavigateUrl(req);
 

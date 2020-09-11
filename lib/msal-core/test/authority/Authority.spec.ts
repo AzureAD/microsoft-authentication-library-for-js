@@ -11,8 +11,8 @@ import sinon from "sinon";
 const stubbedTelemetryConfig: TelemetryConfig = {
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
     platform: {
-        applicationName: TEST_CONFIG.applicationName,
-        applicationVersion: TEST_CONFIG.applicationVersion
+        applicationName: TEST_CONFIG.APPLICATION_NAME,
+        applicationVersion: TEST_CONFIG.APPLICATION_VERSION
     }
 };
 
@@ -22,7 +22,7 @@ let authority: Authority;
 
 describe("Authority.ts Class", function () {
     beforeEach(function() {
-        authority = new Authority(TEST_CONFIG.validAuthority, true);
+        authority = new Authority(TEST_CONFIG.VALID_AUTHORITY, true);
     });
 
     afterEach(function () {
@@ -65,13 +65,13 @@ describe("Authority.ts Class", function () {
 
     describe("get AuthorityType", () => {
         it("Default type", () => {
-            authority = new Authority(TEST_CONFIG.validAuthority, true);
+            authority = new Authority(TEST_CONFIG.VALID_AUTHORITY, true);
 
             expect(authority.AuthorityType).to.equal(AuthorityType.Default)
         });
 
         it("ADFS type", () => {
-            authority = new Authority(ADFS_TEST_CONFIG.validAuthority, true);
+            authority = new Authority(ADFS_TEST_CONFIG.VALID_AUTHORITY, true);
 
             expect(authority.AuthorityType).to.equal(AuthorityType.Adfs)
         });
@@ -88,7 +88,7 @@ describe("Authority.ts Class", function () {
         });
 
         it("tests AuthorizationEndpoint", async function () {
-            const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
+            const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CORRELATION_ID);
 
             expect(authority.AuthorizationEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/authorize")
         });
@@ -105,7 +105,7 @@ describe("Authority.ts Class", function () {
         });
 
         it("tests EndSessionEndpoint", async function () {
-            const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
+            const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CORRELATION_ID);
     
             expect(authority.EndSessionEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/logout")
         });
@@ -122,7 +122,7 @@ describe("Authority.ts Class", function () {
         });
 
         it("tests SelfSignedJwtAudience", async function () {
-            const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
+            const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CORRELATION_ID);
     
             expect(authority.SelfSignedJwtAudience).to.equal("https://login.microsoftonline.com/common/v2.0")
         });
@@ -130,7 +130,7 @@ describe("Authority.ts Class", function () {
 
     describe("resolveEndpointsAsync", () => {
         it("returns authority metadata", async function () {
-            const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
+            const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CORRELATION_ID);
 
             expect(endpoints.EndSessionEndpoint).to.not.be.undefined;
             expect(endpoints.AuthorizationEndpoint).to.not.be.undefined;
@@ -138,9 +138,9 @@ describe("Authority.ts Class", function () {
         });
 
         it("returns authority metadata with validateAuthority false", async function () {
-            authority = new Authority(TEST_CONFIG.validAuthority, false);
+            authority = new Authority(TEST_CONFIG.VALID_AUTHORITY, false);
             sinon.stub(TrustedAuthority, "getTrustedHostList").throws("Validation is disabled. This function should not be called.");
-            const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
+            const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CORRELATION_ID);
 
             expect(endpoints.EndSessionEndpoint).to.not.be.undefined;
             expect(endpoints.AuthorizationEndpoint).to.not.be.undefined;
@@ -156,7 +156,7 @@ describe("Authority.ts Class", function () {
                 setFromNetworkCalled = true;
             });
 
-            await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
+            await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CORRELATION_ID);
             expect(setFromNetworkCalled).to.be.true;
         });
 
@@ -164,7 +164,7 @@ describe("Authority.ts Class", function () {
             sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(false);
             let err = null;
             try {
-                const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
+                const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CORRELATION_ID);
             } catch(e) {
                 expect(e).to.be.instanceOf(ClientConfigurationError);
                 err = e;
@@ -181,7 +181,7 @@ describe("Authority.ts Class", function () {
         });
     
         it("returns true when metadata is provided", () => {
-            const testAuthorityWithMetadata = new Authority(TEST_CONFIG.validAuthority, true, TENANT_DISCOVERY_RESPONSE);
+            const testAuthorityWithMetadata = new Authority(TEST_CONFIG.VALID_AUTHORITY, true, TENANT_DISCOVERY_RESPONSE);
     
             expect(testAuthorityWithMetadata.hasCachedMetadata()).to.be.true;
         });
@@ -191,21 +191,21 @@ describe("Authority.ts Class", function () {
         it("returns well-known endpoint", () => {
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.equal(TEST_CONFIG.validAuthority + "v2.0/.well-known/openid-configuration");
+            expect(endpoint).to.equal(TEST_CONFIG.VALID_AUTHORITY + "v2.0/.well-known/openid-configuration");
         });
     
         it("returns well-known endpoint, alternate authority", () => {
-            authority = new Authority(TEST_CONFIG.alternateValidAuthority, true);
+            authority = new Authority(TEST_CONFIG.ALTERNATE_VALID_AUTHORITY, true);
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.equal(TEST_CONFIG.alternateValidAuthority + "v2.0/.well-known/openid-configuration");
+            expect(endpoint).to.equal(TEST_CONFIG.ALTERNATE_VALID_AUTHORITY + "v2.0/.well-known/openid-configuration");
         });
 
         it("returns v1 well-known endpoint, ADFS scenario", () => {
-            authority = new Authority(ADFS_TEST_CONFIG.validAuthority, true);
+            authority = new Authority(ADFS_TEST_CONFIG.VALID_AUTHORITY, true);
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.equal(ADFS_TEST_CONFIG.validAuthority + ".well-known/openid-configuration");
+            expect(endpoint).to.equal(ADFS_TEST_CONFIG.VALID_AUTHORITY + ".well-known/openid-configuration");
         });
     });
 });
