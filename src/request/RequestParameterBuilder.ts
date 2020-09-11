@@ -45,7 +45,7 @@ export class RequestParameterBuilder {
      * @param addOidcScopes
      */
     addScopes(scopes: string[], addOidcScopes: boolean = true): void {
-        const requestScopes = addOidcScopes ? [...scopes || [], Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE] : scopes;
+        const requestScopes = addOidcScopes ? [...scopes || [], Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE] : scopes || [];
         const scopeSet = new ScopeSet(requestScopes);
         this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
