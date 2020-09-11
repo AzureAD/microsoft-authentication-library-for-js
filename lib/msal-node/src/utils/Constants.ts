@@ -48,6 +48,21 @@ export const Constants = {
 };
 
 /**
+ * API Codes for Telemetry purposes. 
+ * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
+ * 0-99 Silent Flow
+ * 600-699 Device Code Flow
+ * 800-899 Auth Code Flow
+ */
+export enum ApiId {
+    acquireTokenSilent = 62,
+    acquireTokenByCode = 871,
+    acquireTokenByRefreshToken = 872,
+    acquireTokenByDeviceCode = 671,
+    acquireTokenByClientCredential = 771
+}
+
+/**
  * JWT  constants
  */
 export const JwtConstants = {
