@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add default scopes to all requests (#2267)",
+  "comment": "Default scope addition done in msal-common (#2267)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch",
