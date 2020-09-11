@@ -43,7 +43,10 @@ export const Constants = {
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type",
     X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
-    X_CLIENT_LAST_TELEM = "x-client-last-telemetry"
+    X_CLIENT_LAST_TELEM = "x-client-last-telemetry",
+    RETRY_AFTER = "Retry-After",
+    X_MS_LIB_CAPABILITY = "x-ms-lib-capability",
+    X_MS_LIB_CAPABILITY_VALUE = "retry-after, h429"
 }
 
 /**
@@ -102,6 +105,9 @@ export enum AADServerParamKeys {
     CLIENT_SECRET = "client_secret",
     CLIENT_ASSERTION = "client_assertion",
     CLIENT_ASSERTION_TYPE = "client_assertion_type",
+    OBO_ASSERTION = "assertion",
+    REQUESTED_TOKEN_USE = "requested_token_use",
+    ON_BEHALF_OF = "on_behalf_of",
 }
 
 /**
@@ -120,6 +126,11 @@ export enum IdTokenClaimName {
     HOME_OBJID = "home_oid",
     SESSIONID = "sid",
     CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
+}
+
+export enum ClaimsRequestKeys {
+    ACCESS_TOKEN = "access_token",
+    XMS_CC = "xms_cc"
 }
 
 /**
@@ -193,7 +204,8 @@ export enum GrantType {
     CLIENT_CREDENTIALS_GRANT = "client_credentials",
     RESOURCE_OWNER_PASSWORD_GRANT = "password",
     REFRESH_TOKEN_GRANT = "refresh_token",
-    DEVICE_CODE_GRANT = "device_code"
+    DEVICE_CODE_GRANT = "device_code",
+    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer" 
 }
 
 /**
@@ -215,7 +227,7 @@ export enum Separators {
 }
 
 /**
- * Credentail Type stored in the cache
+ * Credential Type stored in the cache
  */
 export enum CredentialType {
     ID_TOKEN = "IdToken",
@@ -224,14 +236,19 @@ export enum CredentialType {
 }
 
 /**
- * Credentail Type stored in the cache
+ * Credential Type stored in the cache
  */
 export enum CacheSchemaType {
     ACCOUNT = "Account",
     CREDENTIAL = "Credential",
-    APP_META_DATA = "AppMetadata",
+    ID_TOKEN = "IdToken",
+    ACCESS_TOKEN = "AccessToken",
+    REFRESH_TOKEN = "RefreshToken",
+    APP_METADATA = "AppMetadata",
     TEMPORARY = "TempCache",
     TELEMETRY = "Telemetry",
+    UNDEFINED = "Undefined",
+    THROTTLING = "Throttling"
 }
 
 /**
@@ -245,13 +262,14 @@ export enum CacheType {
     ACCESS_TOKEN = 2001,
     REFRESH_TOKEN = 2002,
     ID_TOKEN = 2003,
-    APP_META_DATA = 3001
-};
+    APP_METADATA = 3001,
+    UNDEFINED = 9999
+}
 
 /**
  * More Cache related constants
  */
-export const APP_META_DATA = "appmetadata";
+export const APP_METADATA = "appmetadata";
 export const ClientInfo = "client_info";
 
 export const SERVER_TELEM_CONSTANTS = {
@@ -260,4 +278,16 @@ export const SERVER_TELEM_CONSTANTS = {
     CACHE_KEY: "server-telemetry",
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
+};
+
+/**
+ * Constants related to throttling
+ */
+export const ThrottlingConstants = {
+    // Default time to throttle RequestThumbprint in seconds
+    DEFAULT_THROTTLE_TIME_SECONDS: 60,
+    // Default maximum time to throttle in seconds, overrides what the server sends back
+    DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600,
+    // Prefix for storing throttling entries
+    THROTTLING_PREFIX: "throttling"
 };

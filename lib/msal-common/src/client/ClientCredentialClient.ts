@@ -16,6 +16,9 @@ import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { CredentialType } from "../utils/Constants";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
+import { StringUtils } from "../utils/StringUtils";
+import { RequestThumbprint } from "../network/RequestThumbprint";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * OAuth2.0 client credential grant
@@ -71,6 +74,8 @@ export class ClientCredentialClient extends BaseClient {
         const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
         if (accessTokens.length < 1) {
             return null;
+        } else if (accessTokens.length > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
         }
         return accessTokens[0] as AccessTokenEntity;
     }
@@ -80,8 +85,13 @@ export class ClientCredentialClient extends BaseClient {
 
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: request.authority,
+            scopes: request.scopes
+        };
 
-        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
+        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -122,6 +132,10 @@ export class ClientCredentialClient extends BaseClient {
             const clientAssertion = this.config.clientCredentials.clientAssertion;
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        }
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
         return parameterBuilder.createQueryString();

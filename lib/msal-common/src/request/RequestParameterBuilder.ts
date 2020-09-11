@@ -1,9 +1,9 @@
 /*
-* Copyright (c) Microsoft Corporation. All rights reserved.
-* Licensed under the MIT License.
-*/
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo } from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, ClaimsRequestKeys } from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
@@ -92,8 +92,10 @@ export class RequestParameterBuilder {
      * add claims
      * @param claims
      */
-    addClaims(claims: string): void {
-        this.parameters.set(AADServerParamKeys.CLAIMS, encodeURIComponent(claims));
+    addClaims(claims: string, clientCapabilities: Array<string>): void {
+        const mergedClaims = this.addClientCapabilitiesToClaims(claims, clientCapabilities);
+        RequestValidator.validateClaims(mergedClaims);
+        this.parameters.set(AADServerParamKeys.CLAIMS, encodeURIComponent(mergedClaims));
     }
 
     /**
@@ -217,6 +219,22 @@ export class RequestParameterBuilder {
     addClientAssertionType(clientAssertionType: string): void {
         this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION_TYPE, encodeURIComponent(clientAssertionType));
     }
+    
+    /**
+     * add OBO assertion for confidential client flows
+     * @param clientAssertion
+     */
+    addOboAssertion(oboAssertion: string): void {
+        this.parameters.set(AADServerParamKeys.OBO_ASSERTION, encodeURIComponent(oboAssertion));
+    }
+    
+    /**
+     * add grant type
+     * @param grantType
+     */
+    addRequestTokenUse(tokenUse: string): void {
+        this.parameters.set(AADServerParamKeys.REQUESTED_TOKEN_USE, encodeURIComponent(tokenUse));
+    }
 
     /**
      * add grant type
@@ -243,6 +261,35 @@ export class RequestParameterBuilder {
         Object.keys(eQparams).forEach((key) => {
             this.parameters.set(key, eQparams[key]);
         });
+    }
+
+    addClientCapabilitiesToClaims(claims: string, clientCapabilities: Array<string>): string {
+        let mergedClaims: object;
+
+        // Parse provided claims into JSON object or initialize empty object
+        if (StringUtils.isEmpty(claims)) {
+            mergedClaims = {};
+        } else {
+            try {
+                mergedClaims = JSON.parse(claims);
+            } catch(e) {
+                throw ClientConfigurationError.createInvalidClaimsRequestError();
+            }
+        }
+
+        if (clientCapabilities && clientCapabilities.length > 0) {
+            if (!mergedClaims.hasOwnProperty(ClaimsRequestKeys.ACCESS_TOKEN)){
+                // Add access_token key to claims object
+                mergedClaims[ClaimsRequestKeys.ACCESS_TOKEN] = {};
+            }
+
+            // Add xms_cc claim with provided clientCapabilities to access_token key
+            mergedClaims[ClaimsRequestKeys.ACCESS_TOKEN][ClaimsRequestKeys.XMS_CC] = {
+                values: clientCapabilities
+            };
+        }
+
+        return JSON.stringify(mergedClaims);
     }
 
     /**
