@@ -63,7 +63,9 @@ export class CrossPlatformLock {
         try {
             // delete lock file
             await fs.unlink(this.lockFilePath);
-            await this.lockFileHandle.close();
+            if(this.lockFileHandle){
+                await this.lockFileHandle.close();
+            }
         } catch (err) {
             if (err.code == Constants.ENOENT_ERROR) {
                 this.logger.warning("Tried to unlock but Lockfile does not exist");
