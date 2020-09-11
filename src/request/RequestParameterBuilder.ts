@@ -40,11 +40,12 @@ export class RequestParameterBuilder {
     }
 
     /**
-     * add scopes
+     * add scopes. set addOidcScopes to false to prevent default scopes in non-user scenarios
      * @param scopeSet
+     * @param addOidcScopes
      */
-    addScopes(scopes: string[]): void {
-        const requestScopes = [...scopes || [], Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE];
+    addScopes(scopes: string[], addOidcScopes: boolean = true): void {
+        const requestScopes = addOidcScopes ? [...scopes || [], Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE] : scopes;
         const scopeSet = new ScopeSet(requestScopes);
         this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
