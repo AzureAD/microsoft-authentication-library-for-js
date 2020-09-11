@@ -1,0 +1,3 @@
+[submodule "deprecated/azure-activedirectory-library-for-js"]
+	path = deprecated/azure-activedirectory-library-for-js
+	url = git@github.com:AzureAD/azure-activedirectory-library-for-js.git
