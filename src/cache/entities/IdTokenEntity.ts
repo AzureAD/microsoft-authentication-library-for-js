@@ -38,7 +38,8 @@ export class IdTokenEntity extends CredentialEntity {
         environment: string,
         idToken: string,
         clientId: string,
-        tenantId: string
+        tenantId: string,
+        oboAssertion?: string
     ): IdTokenEntity {
         const idTokenEntity = new IdTokenEntity();
 
@@ -48,6 +49,7 @@ export class IdTokenEntity extends CredentialEntity {
         idTokenEntity.clientId = clientId;
         idTokenEntity.secret = idToken;
         idTokenEntity.realm = tenantId;
+        idTokenEntity.oboAssertion = oboAssertion;
 
         return idTokenEntity;
     }
