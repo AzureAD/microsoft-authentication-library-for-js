@@ -44,14 +44,16 @@ export class CrossPlatformLock {
                 await this.lockFileHandle.write(pid.toString());
                 return;
             } catch (err) {
-                if (err.code == Constants.EEXIST_ERROR) {
+                if (err.code == Constants.EEXIST_ERROR || err.code == Constants.EPERM_ERROR) {
                     this.logger.info(err);
                     await this.sleep(this.retryDelay);
                 } else {
+                    this.logger.error(`${pid} was not able to acquire lock. Ran into error: ${err.message}`);
                     throw PersistenceError.createCrossPlatformLockError(err.message);
                 }
             }
         }
+        this.logger.error(`${pid} was not able to acquire lock. Exceeded amount of retries set in the options`);
         throw PersistenceError.createCrossPlatformLockError(
             "Not able to acquire lock. Exceeded amount of retries set in options");
     }
@@ -61,15 +63,19 @@ export class CrossPlatformLock {
      */
     public async unlock(): Promise<void> {
         try {
-            // delete lock file
-            await fs.unlink(this.lockFilePath);
             if(this.lockFileHandle){
+                // if we have a file handle to the .lockfile, delete lock file
+                await fs.unlink(this.lockFilePath);
                 await this.lockFileHandle.close();
+                this.logger.info("lockfile deleted");
+            } else {
+                this.logger.warning("lockfile handle does not exist, so lockfile could not be deleted");
             }
         } catch (err) {
             if (err.code == Constants.ENOENT_ERROR) {
-                this.logger.warning("Tried to unlock but Lockfile does not exist");
+                this.logger.warning("Tried to unlock but lockfile does not exist");
             } else {
+                this.logger.error(`${pid} was not able to release lock. Ran into error: ${err.message}`);
                 throw PersistenceError.createCrossPlatformLockError(err.message);
             }
         }

@@ -18,6 +18,12 @@ export const Constants = {
     ENOENT_ERROR: "ENOENT",
 
     /**
+     * Operation not permitted. AN attempt was made to perform an operation taht requires 
+     * elevated privileges. 
+     */
+    EPERM_ERROR: "EPERM",
+    
+    /**
      * Default service name for using MSAL Keytar
      */
     DEFAULT_SERVICE_NAME: "msal-node-extensions",
