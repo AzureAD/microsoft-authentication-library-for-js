@@ -189,7 +189,7 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
     });
 
     it("createMultipleMatchingTokensInCacheError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createMultipleMatchingTokensInCacheError("scope1");
+        const err: ClientAuthError = ClientAuthError.createMultipleMatchingTokensInCacheError();
 
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;

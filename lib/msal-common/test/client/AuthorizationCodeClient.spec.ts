@@ -47,7 +47,6 @@ describe("AuthorizationCodeClient unit tests", () => {
     });
 
     afterEach(() => {
-        const config = null;
         sinon.restore();
     });
 
@@ -503,7 +502,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 code: TEST_TOKENS.AUTHORIZATION_CODE,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 resourceRequestMethod: "POST",
-                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                claims: TEST_CONFIG.CLAIMS
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, idTokenClaims.nonce, testState);
