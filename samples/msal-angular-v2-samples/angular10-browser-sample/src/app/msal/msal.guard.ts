@@ -40,7 +40,7 @@ export class MsalGuard implements CanActivate {
 
     private loginInteractively(url: string): Observable<boolean> {
         if (this.msalGuardConfig.interactionType === InteractionType.POPUP) {
-            return this.authService.loginPopup()
+            return this.authService.loginPopup({...this.msalGuardConfig.authRequest})
                 .pipe(
                     map(() => true),
                     catchError(() => of(false))
@@ -49,6 +49,7 @@ export class MsalGuard implements CanActivate {
 
         const redirectStartPage = this.getDestinationUrl(url);
         this.authService.loginRedirect({
+            ...this.msalGuardConfig.authRequest,
             redirectStartPage,
             scopes: [],
         });

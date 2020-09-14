@@ -32,7 +32,7 @@ function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
   protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read'])
 
   return {
-    interactionType: InteractionType.REDIRECT,
+    interactionType: InteractionType.POPUP,
     protectedResourceMap: protectedResourceMap,
   }
 }
@@ -65,7 +65,7 @@ function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
     {
       provide: MSAL_GUARD_CONFIG,
       useValue: {
-        interactionType: InteractionType.REDIRECT
+        interactionType: InteractionType.POPUP
       } as MsalGuardConfiguration
     },
     {
