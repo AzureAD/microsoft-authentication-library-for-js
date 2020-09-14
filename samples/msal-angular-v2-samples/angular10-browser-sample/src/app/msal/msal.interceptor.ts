@@ -33,10 +33,10 @@ export class MsalInterceptor implements HttpInterceptor {
             .pipe(
                 catchError(() => {
                     if (this.msalInterceptorConfig.interactionType === InteractionType.POPUP) {
-                        return this.authService.acquireTokenPopup({scopes})
+                        return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes})
                     }
                     const redirectStartPage = window.location.href;
-                    this.authService.acquireTokenRedirect({scopes, redirectStartPage});
+                    this.authService.acquireTokenRedirect({...this.msalInterceptorConfig.authRequest, scopes, redirectStartPage});
                     return EMPTY;
                 }),
                 switchMap((result: AuthenticationResult) => {
