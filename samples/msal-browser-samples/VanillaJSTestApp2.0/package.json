@@ -8,9 +8,10 @@
     "start": "node server.js",
     "build:package": "cd ../../../lib/msal-browser && npm run build:all",
     "start:build": "npm run build:package && npm start",
-    "test:e2e": "ts-node ./e2eTests/testRunner.ts"
+    "test:e2e": "ts-node ./testRunner.ts"
   },
   "dependencies": {
+    "e2eTestUtils": "file:../../.",
     "@azure/identity": "^1.0.2",
     "axios": "^0.19.2",
     "clear-module": "^4.1.1",

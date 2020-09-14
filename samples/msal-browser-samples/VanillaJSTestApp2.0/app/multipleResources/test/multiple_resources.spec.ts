@@ -1,8 +1,11 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials, getTokens, removeTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../e2eTests/TestUtils"
-
+import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
+import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
+import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
+import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let username = "";
 let accountPwd = "";
@@ -27,7 +30,16 @@ describe("Browser tests", function () {
     let browser: puppeteer.Browser;
     before(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
-        [username, accountPwd] = await setupCredentials("azureppe");
+        
+        const labApiParams: LabApiQueryParams = {
+            azureEnvironment: AzureEnvironments.PPE,
+            appType: AppTypes.CLOUD
+        };
+
+        const labClient = new LabClient();
+        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        
         browser = await puppeteer.launch({
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
@@ -36,9 +48,11 @@ describe("Browser tests", function () {
 
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
+    let BrowserCache: BrowserCacheUtils;
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
+        BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto('http://localhost:30662/');
     });
 
@@ -65,34 +79,34 @@ describe("Browser tests", function () {
         // Wait for return to page
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
-        let tokenStore = await getTokens(page);
+        let tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);
         expect(tokenStore.accessTokens).to.be.length(1);
         expect(tokenStore.refreshTokens).to.be.length(1);
-        expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
+        expect(BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
 
         // acquire First Access Token
-        await removeTokens(page, tokenStore.accessTokens);
+        await BrowserCache.removeTokens(tokenStore.accessTokens);
         await page.click("#seeProfile");
         await page.waitFor(2000)
         await screenshot.takeScreenshot(page, "seeProfile");
-        tokenStore = await getTokens(page);
+        tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);
         expect(tokenStore.accessTokens).to.be.length(1);
         expect(tokenStore.refreshTokens).to.be.length(1);
-        expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
-        expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
+        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
 
         //acquire Second Access Token
         await page.click("#secondToken");
         await page.waitForSelector("#second-resource-div");
         await screenshot.takeScreenshot(page, "secondToken");
-        tokenStore = await getTokens(page);
+        tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);
         expect(tokenStore.accessTokens).to.be.length(2);
         expect(tokenStore.refreshTokens).to.be.length(1);
-        expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
-        expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
-        expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["https://msidlab0.spoppe.com/User.Read"])).to.be.true;
+        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
+        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["https://msidlab0.spoppe.com/User.Read"])).to.be.true;
     });
 });
