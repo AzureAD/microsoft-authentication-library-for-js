@@ -6,9 +6,9 @@ import {
     LoggerOptions,
     INetworkModule,
     LogLevel
-} from '@azure/msal-common';
-import { NetworkUtils } from '../utils/NetworkUtils';
-import debug from 'debug';
+} from "@azure/msal-common";
+import { NetworkUtils } from "../utils/NetworkUtils";
+import debug from "debug";
 import { ICachePlugin } from "../cache/ICachePlugin";
 
 /**
@@ -67,13 +67,13 @@ export type Configuration = {
 };
 
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
-    clientId: '',
-    authority: '',
-    clientSecret: '',
-    clientAssertion: '',
+    clientId: "",
+    authority: "",
+    clientSecret: "",
+    clientAssertion: "",
     clientCertificate: {
-        thumbprint: '',
-        privateKey: '',
+        thumbprint: "",
+        privateKey: "",
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
@@ -88,7 +88,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         message: string,
         containsPii: boolean
     ) => {
-        debug(`msal:${LogLevel[level]}${containsPii ? '-Pii' : ''}`)(message);
+        debug(`msal:${LogLevel[level]}${containsPii ? "-Pii" : ""}`)(message);
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
