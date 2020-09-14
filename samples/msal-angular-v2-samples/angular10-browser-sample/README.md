@@ -22,5 +22,5 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - In the web page, click on the "Login" button. The app will automatically reload if you change any of the source files.
 
 ## Additional notes
-- The sample currently uses popups when logging in.
+- The default interaction type for the sample is popups. The sample can be configured to use redirects by changing the `interactionType` in `app.module.ts` to `InteractionType.REDIRECT`. Note that there are current issues with using redirects, such as updating state and the asynchronous processing of redirect responses. These issues are being investigated and will be addressed.
 - The sample implements basic versions of Angular service, guard, and interceptors. Broadcast functionality has not been implemented.
