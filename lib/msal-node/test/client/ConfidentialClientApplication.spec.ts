@@ -1,5 +1,5 @@
 import { ConfidentialClientApplication } from './../../src/client/ConfidentialClientApplication';
-import { Authority, ClientConfiguration, AuthorizationCodeRequest, AuthorityFactory, AuthorizationCodeClient, RefreshTokenRequest, RefreshTokenClient, StringUtils } from '@azure/msal-common';
+import { Authority, ClientConfiguration, AuthorizationCodeRequest, AuthorityFactory, AuthorizationCodeClient, RefreshTokenRequest, RefreshTokenClient, StringUtils, ClientCredentialRequest, OnBehalfOfRequest } from '@azure/msal-common';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import { Configuration } from "../../src/config/Configuration";
 import { mocked } from 'ts-jest/utils';
@@ -35,7 +35,8 @@ describe('ConfidentialClientApplication', () => {
             clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: authority,
             knownAuthorities: [],
-            cloudDiscoveryMetadata: ""
+            cloudDiscoveryMetadata: "",
+            clientCapabilities: []
         },
         clientCredentials: {
             clientSecret: TEST_CONSTANTS.CLIENT_SECRET
@@ -76,6 +77,38 @@ describe('ConfidentialClientApplication', () => {
         await authApp.acquireTokenByRefreshToken(request);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
+
+    test('acquireTokenByClientCredential', async () => {
+        const request: ClientCredentialRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            skipCache: false
+        };
+
+        mocked(AuthorityFactory.createInstance).mockReturnValueOnce(authority);
+
+        const authApp = new ConfidentialClientApplication(appConfig);
+        await authApp.acquireTokenByClientCredential(request);
+        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
+
+    test('acquireTokenOnBehalfOf', async () => {
+        const request: OnBehalfOfRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: TEST_CONSTANTS.ACCESS_TOKEN
+        };
+
+        mocked(AuthorityFactory.createInstance).mockReturnValueOnce(authority);
+
+        const authApp = new ConfidentialClientApplication(appConfig);
+        await authApp.acquireTokenOnBehalfOf(request);
+        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
     });

@@ -26,7 +26,8 @@
     "build:common": "cd ../../lib/msal-common && npm i && npm run build && npm link",
     "link:common": "npm link @azure/msal-common",
     "test": "tsdx test",
-    "lint": "tsdx lint",
+    "lint": "cd ../../ && npm run lint:node:extensions",
+    "lint:fix": "npm run lint -- -- --fix",
     "prepare": "tsdx build",
     "prepack": "npm run build"
   },
@@ -40,7 +41,7 @@
     "keytar": "6.0.1",
     "bindings": "^1.5.0",
     "nan": "^2.13.2",
-    "@azure/msal-common": "^1.1.1"
+    "@azure/msal-common": "^1.2.0"
   },
   "devDependencies": {
     "husky": "^4.2.5",

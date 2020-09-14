@@ -11,7 +11,7 @@ import { UrlUtils } from "../utils/UrlUtils";
 import TelemetryManager from "../telemetry/TelemetryManager";
 import HttpEvent from "../telemetry/HttpEvent";
 import { TrustedAuthority } from "./TrustedAuthority";
-import { NetworkRequestType } from "../utils/Constants";
+import { NetworkRequestType, Constants, WELL_KNOWN_SUFFIX } from "../utils/Constants";
 
 /**
  * @hidden
@@ -31,6 +31,17 @@ export class Authority {
 
         this.validateAsUri();
         this.tenantDiscoveryResponse = authorityMetadata;
+    }
+
+    public static isAdfs(authorityUrl: string): boolean {
+        const components = UrlUtils.GetUrlComponents(authorityUrl);
+        const pathSegments = components.PathSegments;
+
+        return (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS);
+    }
+
+    public get AuthorityType(): AuthorityType {
+        return Authority.isAdfs(this.canonicalAuthority)? AuthorityType.Adfs : AuthorityType.Default;
     }
 
     public IsValidationEnabled: boolean;
@@ -87,7 +98,7 @@ export class Authority {
 
     // http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
     protected get DefaultOpenIdConfigurationEndpoint(): string {
-        return `${this.CanonicalAuthority}v2.0/.well-known/openid-configuration`;
+        return (this.AuthorityType === AuthorityType.Adfs)? `${this.CanonicalAuthority}${WELL_KNOWN_SUFFIX}` : `${this.CanonicalAuthority}v2.0/${WELL_KNOWN_SUFFIX}`;
     }
 
     /**

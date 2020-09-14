@@ -10,7 +10,7 @@ import { TelemetryOptions } from "../Configuration";
 interface IClientConfigurationErrorMessage {
     code: string,
     desc: string
-};
+}
 
 export const ClientConfigurationErrorMessage: Record<string, IClientConfigurationErrorMessage> = {
     configurationNotSet: {
@@ -42,10 +42,6 @@ export const ClientConfigurationErrorMessage: Record<string, IClientConfiguratio
     nonArrayScopes: {
         code: "nonarray_input_scopes_error",
         desc: "Scopes cannot be passed as non-array."
-    },
-    clientScope: {
-        code: "clientid_input_scopes_error",
-        desc: "Client ID can only be provided as a single scope."
     },
     invalidPrompt: {
         code: "invalid_prompt_value",
@@ -143,11 +139,6 @@ export class ClientConfigurationError extends ClientAuthError {
     static createScopesNonArrayError(scopesValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopes.code,
             `${ClientConfigurationErrorMessage.nonArrayScopes.desc} Given value: ${scopesValue}.`);
-    }
-
-    static createClientIdSingleScopeError(scopesValue: string): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.clientScope.code,
-            `${ClientConfigurationErrorMessage.clientScope.desc} Given value: ${scopesValue}.`);
     }
 
     static createScopesRequiredError(scopesValue: any): ClientConfigurationError {

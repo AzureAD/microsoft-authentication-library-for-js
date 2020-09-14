@@ -11,7 +11,7 @@ export class EncodingUtils {
      * @param str text
      */
     static base64Encode(str: string, encoding?: BufferEncoding): string {
-        return Buffer.from(str, encoding).toString('base64');
+        return Buffer.from(str, encoding).toString("base64");
     }
 
     /**
@@ -20,9 +20,9 @@ export class EncodingUtils {
      */
     static base64EncodeUrl(str: string, encoding?: BufferEncoding): string {
         return EncodingUtils.base64Encode(str, encoding)
-            .replace(/=/g, '')
-            .replace(/\+/g, '-')
-            .replace(/\//g, '_');
+            .replace(/=/g, "")
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_");
     }
 
     /**
@@ -32,16 +32,16 @@ export class EncodingUtils {
      * @param base64Str Base64 encoded text
      */
     static base64Decode(base64Str: string): string {
-        return Buffer.from(base64Str, 'base64').toString('utf8');
+        return Buffer.from(base64Str, "base64").toString("utf8");
     }
 
     /**
      * @param base64Str Base64 encoded Url
      */
     static base64DecodeUrl(base64Str: string): string {
-        let str = base64Str.replace(/-/g, '+').replace(/_/g, '/');
+        let str = base64Str.replace(/-/g, "+").replace(/_/g, "/");
         while (str.length % 4) {
-            str += '=';
+            str += "=";
         }
         return EncodingUtils.base64Decode(str);
     }

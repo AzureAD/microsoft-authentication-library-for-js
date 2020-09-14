@@ -48,12 +48,14 @@ export type ClientConfiguration = {
  * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
  * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
+ * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  */
 export type AuthOptions = {
     clientId: string;
     authority?: Authority;
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
+    clientCapabilities?: Array<string>;
 };
 
 /**
@@ -103,7 +105,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
-    cloudDiscoveryMetadata: ""
+    cloudDiscoveryMetadata: "",
+    clientCapabilities: []
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {

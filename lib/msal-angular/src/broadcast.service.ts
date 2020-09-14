@@ -10,8 +10,8 @@ export class BroadcastService {
     private msalItem$:  Observable<any>;
 
     constructor() {
-     this._msalSubject = new BehaviorSubject<any>(1);
-     this.msalItem$  = this._msalSubject.asObservable();
+        this._msalSubject = new BehaviorSubject<any>(1);
+        this.msalItem$  = this._msalSubject.asObservable();
     }
 
     broadcast(type: string, payload: any) {

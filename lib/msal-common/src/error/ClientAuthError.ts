@@ -149,6 +149,10 @@ export const ClientAuthErrorMessage = {
     invalidClientCredential: {
         code: "invalid_client_credential",
         desc: "Client credential (secret, certificate, or assertion) must not be empty when creating a confidential client. An application should at most have one credential"
+    },
+    tokenRefreshRequired: {
+        code: "token_refresh_required",
+        desc: "Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired."
     }
 };
 
@@ -231,7 +235,7 @@ export class ClientAuthError extends AuthError {
      * @param invalidState 
      */
     static createInvalidStateError(invalidState: string, errorString?: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code, 
+        return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code,
             `${ClientAuthErrorMessage.invalidStateError.desc} Invalid State: ${invalidState}, Root Err: ${errorString}`);
     }
 
@@ -277,7 +281,7 @@ export class ClientAuthError extends AuthError {
     /**
      * Throws error when renewing token without login.
      */
-    static createUserLoginRequiredError() : ClientAuthError {
+    static createUserLoginRequiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.userLoginRequiredError.code,
             ClientAuthErrorMessage.userLoginRequiredError.desc);
     }
@@ -286,9 +290,9 @@ export class ClientAuthError extends AuthError {
      * Throws error when multiple tokens are in cache for the given scope.
      * @param scope
      */
-    static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
+    static createMultipleMatchingTokensInCacheError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
-            `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
+            `${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
     }
 
     /**
@@ -397,37 +401,44 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-    * Throws error if cache type is invalid.
-    */
+     * Throws error if cache type is invalid.
+     */
     static createInvalidCacheTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidCacheType.code, `${ClientAuthErrorMessage.invalidCacheType.desc}`);
     }
 
     /**
-    * Throws error if unexpected account type.
-    */
+     * Throws error if unexpected account type.
+     */
     static createUnexpectedAccountTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.unexpectedAccountType.code, `${ClientAuthErrorMessage.unexpectedAccountType.desc}`);
     }
 
     /**
-    * Throws error if unexpected credential type.
-    */
+     * Throws error if unexpected credential type.
+     */
     static createUnexpectedCredentialTypeError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.unexpectedCredentialType.code, `${ClientAuthErrorMessage.unexpectedCredentialType.desc}`);
     }
-    
+
     /**
-    * Throws error if client assertion is not valid.
-    */
+     * Throws error if client assertion is not valid.
+     */
     static createInvalidAssertionError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidAssertion.code, `${ClientAuthErrorMessage.invalidAssertion.desc}`);
     }
-    
+
     /**
-    * Throws error if client assertion is not valid.
-    */
+     * Throws error if client assertion is not valid.
+     */
     static createInvalidCredentialError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidClientCredential.code, `${ClientAuthErrorMessage.invalidClientCredential.desc}`);
+    }
+
+    /**
+     * Throws error if token cannot be retrieved from cache due to refresh being required.
+     */
+    static createRefreshRequiredError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.tokenRefreshRequired.code, ClientAuthErrorMessage.tokenRefreshRequired.desc);
     }
 }

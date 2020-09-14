@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Add support for On-behalf-of flow",
+  "packageName": "@azure/msal-common",
+  "email": "sagonzal@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-08-20T19:21:21.628Z"
+}
