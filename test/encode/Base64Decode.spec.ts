@@ -89,5 +89,10 @@ describe("Base64Decode.ts Unit Tests", () => {
             const stringifiedReq = JSON.stringify(tokenRequest);
             expect(b64Decode.decode(b64Encode.encode(stringifiedReq))).to.be.eq(stringifiedReq);
         });
+
+        it("Percent encoded URI", ()=> {
+            const b64Encode = new Base64Encode();
+            expect(b64Decode.decode(b64Encode.encode(TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI))).to.be.eq(TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI);
+        });
     });
 });

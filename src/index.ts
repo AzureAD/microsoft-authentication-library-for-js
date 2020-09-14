@@ -11,6 +11,7 @@ export { IPublicClientApplication } from "./app/IPublicClientApplication";
 export { PopupRequest } from "./request/PopupRequest";
 export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";
+export { SsoSilentRequest } from "./request/SsoSilentRequest";
 
 // Common Object Formats
 export {
