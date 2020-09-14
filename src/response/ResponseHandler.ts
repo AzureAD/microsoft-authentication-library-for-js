@@ -85,14 +85,6 @@ export class ResponseHandler {
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
             throw new ServerError(serverResponse.error, errString);
         }
-
-        // generate homeAccountId
-        if (serverResponse.client_info) {
-            this.clientInfo = buildClientInfo(serverResponse.client_info, this.cryptoObj);
-            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
-            }
-        }
     }
 
     /**
@@ -100,20 +92,29 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    async handleServerTokenResponse(
-        serverTokenResponse: ServerAuthorizationTokenResponse, 
-        authority: Authority,
-        resourceRequestMethod?: string, 
-        resourceRequestUri?: string,
-        cachedNonce?: string, 
-        cachedState?: string): Promise<AuthenticationResult> {
-        // create an idToken object (not entity)
-        const idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
+    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, resourceRequestMethod?: string, 
+        resourceRequestUri?: string, cachedNonce?: string, cachedState?: string, requestScopes?: string[], oboAssertion?: string): AuthenticationResult {
+        
+        // generate homeAccountId
+        if (serverTokenResponse.client_info) {
+            this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
+            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
+                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
+            }
+        } else {
+            this.homeAccountIdentifier = "";
+        }
 
-        // token nonce check (TODO: Add a warning if no nonce is given?)
-        if (!StringUtils.isEmpty(cachedNonce)) {
-            if (idTokenObj.claims.nonce !== cachedNonce) {
-                throw ClientAuthError.createNonceMismatchError();
+        let idTokenObj: AuthToken = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
+            // create an idToken object (not entity)
+            idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
+
+            // token nonce check (TODO: Add a warning if no nonce is given?)
+            if (!StringUtils.isEmpty(cachedNonce)) {
+                if (idTokenObj.claims.nonce !== cachedNonce) {
+                    throw ClientAuthError.createNonceMismatchError();
+                }
             }
         }
 
@@ -123,7 +124,7 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState); 
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState, requestScopes, oboAssertion);
         this.cacheStorage.saveCacheRecord(cacheRecord);
 
         return await ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
@@ -135,7 +136,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: AuthToken, authority: Authority, libraryState?: LibraryStateObject): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: AuthToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
         // Account
         const cachedAccount  = this.generateAccountEntity(
             serverTokenResponse,
@@ -152,20 +153,31 @@ export class ResponseHandler {
 
         // IdToken
         let cachedIdToken: IdTokenEntity = null;
+        let cachedAccount: AccountEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
             cachedIdToken = IdTokenEntity.createIdTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                idTokenObj.claims.tid
+                idTokenObj.claims.tid,
+                oboAssertion
+            );
+
+            cachedAccount = this.generateAccountEntity(
+                serverTokenResponse,
+                idTokenObj,
+                authority,
+                oboAssertion
             );
         }
 
         // AccessToken
         let cachedAccessToken: AccessTokenEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
-            const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
+            
+            // If scopes not returned in server response, use request scopes
+            const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
 
             // Expiration calculation
             const currentTime = TimeUtils.nowSeconds();
@@ -180,11 +192,12 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                idTokenObj.claims.tid,
+                idTokenObj ? idTokenObj.claims.tid : authority.tenant,
                 responseScopes.printScopesLowerCase(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
-                serverTokenResponse.token_type
+                serverTokenResponse.token_type,
+                oboAssertion
             );
         }
 
@@ -196,7 +209,8 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.refresh_token,
                 this.clientId,
-                serverTokenResponse.foci
+                serverTokenResponse.foci,
+                oboAssertion
             );
         }
 
@@ -209,16 +223,19 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority): AccountEntity {
+    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority, oboAssertion?: string): AccountEntity {
         const authorityType = authority.authorityType;
+
+        // ADFS does not require client_info in the response
+        if(authorityType === AuthorityType.Adfs){
+            return AccountEntity.createADFSAccount(authority, idToken, oboAssertion);
+        }
 
         if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
         }
 
-        return (authorityType === AuthorityType.Adfs)? 
-            AccountEntity.createADFSAccount(authority, idToken): 
-            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj);
+        return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion);
     }
 
     /**
@@ -252,14 +269,15 @@ export class ResponseHandler {
         if (cacheRecord.refreshToken) {
             familyId = cacheRecord.refreshToken.familyId || null;
         }
-
+        const uid = idTokenObj ? idTokenObj.claims.oid || idTokenObj.claims.sub : "";
+        const tid = idTokenObj ? idTokenObj.claims.tid : "";
         return {
-            uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
-            tenantId: idTokenObj.claims.tid,
+            uniqueId: uid,
+            tenantId: tid,
             scopes: responseScopes,
-            account: cacheRecord.account.getAccountInfo(),
-            idToken: idTokenObj.rawToken,
-            idTokenClaims: idTokenObj.claims,
+            account: cacheRecord.account ? cacheRecord.account.getAccountInfo() : null,
+            idToken: idTokenObj ? idTokenObj.rawToken : "",
+            idTokenClaims: idTokenObj ? idTokenObj.claims : null,
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,

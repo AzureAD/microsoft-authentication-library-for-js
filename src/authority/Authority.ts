@@ -37,7 +37,7 @@ export class Authority {
         }
 
         return AuthorityType.Default;
-    };
+    }
 
     /**
      * A URL that is the authority set by the developer

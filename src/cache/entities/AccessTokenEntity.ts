@@ -10,11 +10,11 @@ import { StringUtils } from "../../utils/StringUtils";
 
 /**
  * ACCESS_TOKEN Credential Type
- * 
+ *
  * Key:Value Schema:
- * 
+ *
  * Key Example: uid.utid-login.microsoftonline.com-accesstoken-clientId-contoso.com-user.read
- * 
+ *
  * Value Schema:
  * {
  *      homeAccountId: home account identifier for the auth scheme,
@@ -62,7 +62,8 @@ export class AccessTokenEntity extends CredentialEntity {
         scopes: string,
         expiresOn: number,
         extExpiresOn: number,
-        tokenType?: string
+        tokenType?: string,
+        oboAssertion?: string
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
@@ -73,8 +74,10 @@ export class AccessTokenEntity extends CredentialEntity {
         const currentTime = TimeUtils.nowSeconds();
         atEntity.cachedAt = currentTime.toString();
 
-        // Token expiry time.
-        // This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
+        /*
+         * Token expiry time.
+         * This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
+         */
         atEntity.expiresOn = expiresOn.toString();
         atEntity.extendedExpiresOn = extExpiresOn.toString();
 
@@ -82,8 +85,27 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.clientId = clientId;
         atEntity.realm = tenantId;
         atEntity.target = scopes;
+        atEntity.oboAssertion = oboAssertion;
 
         atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
         return atEntity;
+    }
+
+    /**
+     * Validates an entity: checks for all expected params
+     * @param entity
+     */
+    static isAccessTokenEntity(entity: object): boolean {
+
+        return (
+            entity.hasOwnProperty("homeAccountId") &&
+            entity.hasOwnProperty("environment") &&
+            entity.hasOwnProperty("credentialType") &&
+            entity.hasOwnProperty("realm") &&
+            entity.hasOwnProperty("clientId") &&
+            entity.hasOwnProperty("secret") &&
+            entity.hasOwnProperty("target") &&
+            entity["credentialType"] === CredentialType.ACCESS_TOKEN
+        );
     }
 }

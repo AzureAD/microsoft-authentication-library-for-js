@@ -23,6 +23,7 @@ import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -55,7 +56,6 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
-        // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
@@ -130,10 +130,16 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: authority.canonicalAuthority,
+            scopes: request.scopes
+        };
+        
         const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
+        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
     }
 
     /**
@@ -181,6 +187,10 @@ export class AuthorizationCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
+
         return parameterBuilder.createQueryString();
     }
 
@@ -226,16 +236,17 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addPrompt(request.prompt);
         }
 
-        if (request.loginHint) {
-            parameterBuilder.addLoginHint(request.loginHint);
-        }
-
         if (request.domainHint) {
             parameterBuilder.addDomainHint(request.domainHint);
         }
 
+        // Add sid or loginHint with preference for sid -> loginHint -> username of AccountInfo object
         if (request.sid) {
             parameterBuilder.addSid(request.sid);
+        } else if (request.loginHint) {
+            parameterBuilder.addLoginHint(request.loginHint);
+        } else if (request.account && request.account.username) {
+            parameterBuilder.addLoginHint(request.account.username);
         }
 
         if (request.nonce) {
@@ -246,8 +257,8 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addState(request.state);
         }
 
-        if (request.claims) {
-            parameterBuilder.addClaims(request.claims);
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
         if (request.extraQueryParameters) {

@@ -19,11 +19,11 @@ import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
- * 
+ *
  * Key : Value Schema
- * 
+ *
  * Key: <home_account_id>-<environment>-<realm*>
- * 
+ *
  * Value Schema:
  * {
  *      homeAccountId: home account identifier for the auth scheme,
@@ -36,6 +36,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      clientInfo: Full base64 encoded client info received from ESTS
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp: 
+ *      oboAssertion: access token passed in as part of OBO request
  * }
  */
 export class AccountEntity {
@@ -49,6 +50,7 @@ export class AccountEntity {
     clientInfo?: string;
     lastModificationTime?: string;
     lastModificationApp?: string;
+    oboAssertion?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -114,7 +116,7 @@ export class AccountEntity {
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
-
+    
     /**
      * Build Account cache from IdToken, clientInfo and authority/policy
      * @param clientInfo
@@ -126,7 +128,8 @@ export class AccountEntity {
         clientInfo: string,
         authority: Authority,
         idToken: AuthToken,
-        crypto: ICrypto
+        crypto: ICrypto,
+        oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -140,9 +143,10 @@ export class AccountEntity {
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
-        
+
         account.environment = env;
         account.realm = idToken.claims.tid;
+        account.oboAssertion = oboAssertion;
 
         if (idToken) {
             // How do you account for MSA CID here?
@@ -150,7 +154,12 @@ export class AccountEntity {
                 ? idToken.claims.oid
                 : idToken.claims.sid;
             account.localAccountId = localAccountId;
-            account.username = idToken.claims.preferred_username;
+
+            /*
+             * In B2C scenarios the emails claim is used instead of preferred_username and it is an array. In most cases it will contain a single email.
+             * This field should not be relied upon if a custom policy is configured to return more than 1 email.
+             */
+            account.username = idToken.claims.preferred_username || (idToken.claims.emails? idToken.claims.emails[0]: "");
             account.name = idToken.claims.name;
         }
 
@@ -164,13 +173,15 @@ export class AccountEntity {
      */
     static createADFSAccount(
         authority: Authority,
-        idToken: AuthToken
+        idToken: AuthToken,
+        oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
-        
+        account.oboAssertion = oboAssertion;
+
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
 
@@ -180,9 +191,27 @@ export class AccountEntity {
 
         account.environment = env;
         account.username = idToken.claims.upn;
-        // add uniqueName to claims
-        // account.name = idToken.claims.uniqueName;
+        /*
+         * add uniqueName to claims
+         * account.name = idToken.claims.uniqueName;
+         */
 
         return account;
+    }
+
+    /**
+     * Validates an entity: checks for all expected params
+     * @param entity
+     */
+    static isAccountEntity(entity: object): boolean {
+
+        return (
+            entity.hasOwnProperty("homeAccountId") &&
+            entity.hasOwnProperty("environment") &&
+            entity.hasOwnProperty("realm") &&
+            entity.hasOwnProperty("localAccountId") &&
+            entity.hasOwnProperty("username") &&
+            entity.hasOwnProperty("authorityType")
+        );
     }
 }
