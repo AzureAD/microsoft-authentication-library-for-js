@@ -3,7 +3,6 @@ export class MSALError {
     private _errorDesc: string = "";
     private _scopes: string = "";
 
-
     constructor(error: string , errorDesc?: string, scopes?: string) {
         this._error = error;
         if (errorDesc) {

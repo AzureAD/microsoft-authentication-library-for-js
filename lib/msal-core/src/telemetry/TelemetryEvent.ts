@@ -63,7 +63,7 @@ export default class TelemetryEvent {
 
     public get key() {
         return `${this.telemetryCorrelationId}_${this.eventId}-${this.eventName}`;
-    };
+    }
 
     public get displayName() {
         return `Msal-${this.label}-${this.telemetryCorrelationId}`;
