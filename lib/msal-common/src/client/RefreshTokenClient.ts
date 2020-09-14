@@ -77,7 +77,7 @@ export class RefreshTokenClient extends BaseClient {
         return this.acquireToken(refreshTokenRequest);
     }
 
-    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
+    protected async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
