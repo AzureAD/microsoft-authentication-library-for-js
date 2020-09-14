@@ -30,7 +30,7 @@ export class SilentFlowClient extends BaseClient {
      */
     async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         try {
-            return this.acquireCachedToken(request);
+            return await this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
                 const refreshTokenClient = new RefreshTokenClient(this.config);
