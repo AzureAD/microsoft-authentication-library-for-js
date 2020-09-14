@@ -92,8 +92,8 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, resourceRequestMethod?: string, 
-        resourceRequestUri?: string, cachedNonce?: string, cachedState?: string, requestScopes?: string[], oboAssertion?: string): AuthenticationResult {
+    async handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, resourceRequestMethod?: string, 
+        resourceRequestUri?: string, cachedNonce?: string, cachedState?: string, requestScopes?: string[], oboAssertion?: string): Promise<AuthenticationResult> {
         
         // generate homeAccountId
         if (serverTokenResponse.client_info) {
@@ -137,13 +137,6 @@ export class ResponseHandler {
      * @param authority
      */
     private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: AuthToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
-        // Account
-        const cachedAccount  = this.generateAccountEntity(
-            serverTokenResponse,
-            idTokenObj,
-            authority
-        );
-
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
 
