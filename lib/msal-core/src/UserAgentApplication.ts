@@ -1359,8 +1359,9 @@ export class UserAgentApplication {
         const authority = (serverAuthenticationRequest.authority) ? serverAuthenticationRequest.authority : this.authority;
         // Id Token will be returned in every acquireTokenSilentCall regardless of response_type
         const idTokenCacheItem = this.cacheStorage.getIdToken(this.clientId, account ? account.homeAccountIdentifier : null, authority);
+        const idTokenValue = (idTokenCacheItem) ? idTokenCacheItem.value : null;
         
-        if (idTokenCacheItem.value) {
+        if (idTokenValue) {
             this.logger.verbose("Matching ID Token found in cache");
         } else {
             this.logger.verbose("No matching ID Token found in cache");
@@ -1368,7 +1369,7 @@ export class UserAgentApplication {
 
         let authResponse: AuthResponse = null;
 
-        const idTokenValue = idTokenCacheItem.value;
+       
         const idTokenObj = (idTokenValue) ? new IdToken(idTokenValue.idToken) : null;
         // Look in cache for access token in case of token or id_token token response_type
         if (serverAuthenticationRequest.responseType !== ResponseTypes.id_token) {

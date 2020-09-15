@@ -209,7 +209,8 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
-     * Get idToken from the cache
+     * Returns an IdToken retrieved from the cache in the form of a AccessTokenCacheItem object so it is 
+     * in a normalized format and can make use of the existing cached access token validation logic
      */
     getIdToken(clientId: string, homeAccountIdentifier: string, authority: string): AccessTokenCacheItem {
         const idTokenKey: AccessTokenKey = {
@@ -221,13 +222,22 @@ export class AuthCache extends BrowserStorage {// Singleton
 
         const idTokenKeyString = JSON.stringify(idTokenKey);
         const idToken = this.getItem(idTokenKeyString);
-        const idTokenValue = JSON.parse(idToken) as AccessTokenValue;
         
-        return new AccessTokenCacheItem(idTokenKey, idTokenValue);
+        if (idToken) {
+            try {
+                const idTokenValue = JSON.parse(idToken) as AccessTokenValue;
+                return new AccessTokenCacheItem(idTokenKey, idTokenValue);
+            } catch (e) {
+                throw ClientAuthError.createCacheParseError(idTokenKeyString);
+            }
+        }
+
+        return null;
     }
 
     /**
      * Return if the token renewal is still in progress
+     * 
      * @param stateValue
      */
     private tokenRenewalInProgress(stateValue: string): boolean {
