@@ -1356,7 +1356,7 @@ export class UserAgentApplication {
     private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): AuthResponse {
         this.logger.verbose("GetCachedToken has been called");
         const scopes = serverAuthenticationRequest.scopes;
-        const authority = (serverAuthenticationRequest.authority) ? serverAuthenticationRequest.authority : this.authority;
+        const authority = serverAuthenticationRequest.authority || this.authority;
         // Id Token will be returned in every acquireTokenSilentCall regardless of response_type
         const idTokenCacheItem = this.cacheStorage.getIdToken(this.clientId, account ? account.homeAccountIdentifier : null, authority);
         const idTokenValue = (idTokenCacheItem) ? idTokenCacheItem.value : null;

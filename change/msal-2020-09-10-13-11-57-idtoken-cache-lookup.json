@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix ID Token cache lookup",
+  "comment": "Fix ID Token cache lookup. PR #2206",
   "packageName": "msal",
   "email": "hectormgdev@gmail.com",
   "dependentChangeType": "patch",
