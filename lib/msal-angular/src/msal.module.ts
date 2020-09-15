@@ -8,32 +8,32 @@ import { MsalAngularConfiguration, defaultMsalAngularConfiguration } from "./msa
 import { MSAL_CONFIG, MSAL_CONFIG_ANGULAR } from "./constants";
 
 @NgModule({
-  imports: [CommonModule],
+    imports: [CommonModule],
     declarations: [
 
     ],
-  providers: [MsalGuard, BroadcastService],
+    providers: [MsalGuard, BroadcastService],
 })
 export class MsalModule {
-   static forRoot(
-       config: Configuration,
-       angularConfig: MsalAngularConfiguration = defaultMsalAngularConfiguration
+    static forRoot(
+        config: Configuration,
+        angularConfig: MsalAngularConfiguration = defaultMsalAngularConfiguration
     ): ModuleWithProviders {
-    return {
-      ngModule: MsalModule,
-      providers: [
-        {
-            provide: MSAL_CONFIG,
-            useValue: config
-        },
-        {
-            provide: MSAL_CONFIG_ANGULAR,
-            useValue: angularConfig
-        },
-        MsalService
-      ]
-    };
-  }
+        return {
+            ngModule: MsalModule,
+            providers: [
+                {
+                    provide: MSAL_CONFIG,
+                    useValue: config
+                },
+                {
+                    provide: MSAL_CONFIG_ANGULAR,
+                    useValue: angularConfig
+                },
+                MsalService
+            ]
+        };
+    }
 
 }
 
