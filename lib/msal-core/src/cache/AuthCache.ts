@@ -226,6 +226,10 @@ export class AuthCache extends BrowserStorage {// Singleton
         if (idToken) {
             try {
                 const idTokenValue = JSON.parse(idToken) as AccessTokenValue;
+                /**
+                 * Return an AccessTokenCacheItem because the class already exists and the logic to validate access tokens that
+                 * depends on it can be reused for ID token validation
+                 */
                 return new AccessTokenCacheItem(idTokenKey, idTokenValue);
             } catch (e) {
                 throw ClientAuthError.createCacheParseError(idTokenKeyString);
