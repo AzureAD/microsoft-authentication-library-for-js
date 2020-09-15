@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, ThrottlingUtils, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -55,8 +55,12 @@ export class RedirectHandler extends InteractionHandler {
         // Interaction is completed - remove interaction status.
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
 
+        const hashUrlString = new UrlString(locationHash);
+        // Deserialize hash fragment response parameters.
+        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hashUrlString.getHash());
+
         // Handle code response.
-        const requestState = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE), CacheSchemaType.TEMPORARY) as string;
+        const requestState = this.browserStorage.getItem(this.browserStorage.generateStateKey(serverParams.state), CacheSchemaType.TEMPORARY) as string;
         const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
@@ -73,7 +77,7 @@ export class RedirectHandler extends InteractionHandler {
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
 
-        this.browserStorage.cleanRequest();
+        this.browserStorage.cleanRequest(serverParams.state);
         return tokenResponse;
     }
 }
