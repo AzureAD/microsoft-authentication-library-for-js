@@ -6,6 +6,7 @@
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { Constants } from "../utils/Constants";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
@@ -73,6 +74,24 @@ export class ScopeSet {
     }
 
     /**
+     * Check if set of scopes contains only the defaults
+     */
+    containsOnlyDefaultScopes(): boolean {
+        let defaultScopeCount = 0;
+        if (this.containsScope(Constants.OPENID_SCOPE)) {
+            defaultScopeCount += 1;
+        } 
+        if (this.containsScope(Constants.PROFILE_SCOPE)) {
+            defaultScopeCount += 1;
+        }
+        if (this.containsScope(Constants.OFFLINE_ACCESS_SCOPE)) {
+            defaultScopeCount += 1;
+        }
+
+        return this.scopes.size === defaultScopeCount;
+    }
+
+    /**
      * Appends single scope if passed
      * @param newScope
      */
@@ -106,6 +125,16 @@ export class ScopeSet {
     }
 
     /**
+     * Removes default scopes from set of scopes
+     * Primarily used to prevent cache misses if the default scopes are not returned from the server
+     */
+    removeDefaultScopes(): void {
+        this.scopes.delete(Constants.OFFLINE_ACCESS_SCOPE);
+        this.scopes.delete(Constants.OPENID_SCOPE);
+        this.scopes.delete(Constants.PROFILE_SCOPE);
+    }
+
+    /**
      * Combines an array of scopes with the current set of scopes.
      * @param otherScopes
      */
@@ -130,7 +159,10 @@ export class ScopeSet {
 
         const unionScopes = this.unionScopeSets(otherScopes);
 
-        // Do not allow offline_access to be the only intersecting scope
+        // Do not allow default scopes to be the only intersecting scopes
+        if (!otherScopes.containsOnlyDefaultScopes()) {
+            otherScopes.removeDefaultScopes();
+        }
         const sizeOtherScopes = otherScopes.getScopeCount();
         const sizeThisScopes = this.getScopeCount();
         const sizeUnionScopes = unionScopes.size;
