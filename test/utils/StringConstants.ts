@@ -327,3 +327,14 @@ export const NETWORK_REQUEST_OPTIONS: NetworkRequestOptions = {
     headers: { },
     body: ""
 };
+
+export const CACHE_MOCKS = {
+    MOCK_CLIENT_ID: "mock_client_id",
+    MOCK_CLIENT_ID_1: "mock_client_id_1",
+    MOCK_ACCOUNT_INFO: {
+        homeAccountId: "uid.utid",
+        environment: "login.microsoftonline.com",
+        tenantId: "microsoft",
+        username: "mocked_username"
+    },
+};

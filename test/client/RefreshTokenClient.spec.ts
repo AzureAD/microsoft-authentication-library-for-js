@@ -80,7 +80,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             sinon.stub(IdToken, "extractIdToken").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "getRefreshTokenEntity").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             client = new RefreshTokenClient(config);
@@ -90,9 +90,9 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.restore();
         });
 
-        it("acquires a token", async () => {          
+        it("acquires a token", async () => {
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
-    
+
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
             const refreshTokenRequest: RefreshTokenRequest = {
@@ -100,7 +100,7 @@ describe("RefreshTokenClient unit tests", () => {
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 claims: TEST_CONFIG.CLAIMS
             };
-    
+
             const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0], "email"];
             expect(authResult.uniqueId).to.deep.eq(ID_TOKEN_CLAIMS.oid);
@@ -111,9 +111,9 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.idTokenClaims).to.deep.eq(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
             expect(authResult.state).to.be.empty;
-    
+
             expect(createTokenRequestBodySpy.calledWith(refreshTokenRequest)).to.be.true;
-    
+
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`);
