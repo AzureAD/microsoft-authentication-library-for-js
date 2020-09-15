@@ -46,8 +46,7 @@ export abstract class InteractionHandler {
         const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
         
         // Get cached items
-        const cachedNonceKey = this.browserStorage.generateNonceKey(requestState);
-        const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateCacheKey(cachedNonceKey), CacheSchemaType.TEMPORARY) as string;
+        const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateNonceKey(requestState), CacheSchemaType.TEMPORARY) as string;
 
         // Assign code to request
         this.authCodeRequest.code = authCode;
