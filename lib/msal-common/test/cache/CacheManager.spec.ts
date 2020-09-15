@@ -171,7 +171,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("save account", () => {
-        let ac = new AccountEntity();
+        const ac = new AccountEntity();
         ac.homeAccountId = "someUid.someUtid";
         ac.environment = "login.microsoftonline.com";
         ac.realm = "microsoft";
@@ -188,7 +188,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("save credential", () => {
-        let at = new AccessTokenEntity();
+        const at = new AccessTokenEntity();
         Object.assign(at, {
             homeAccountId: "someUid.someUtid",
             environment: "login.microsoftonline.com",
@@ -211,7 +211,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getAccount", () => {
-        let ac = new AccountEntity();
+        const ac = new AccountEntity();
         ac.homeAccountId = "someUid.someUtid";
         ac.environment = "login.microsoftonline.com";
         ac.realm = "microsoft";
@@ -229,7 +229,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getCredential", () => {
-        let accessTokenEntity = new AccessTokenEntity();
+        const accessTokenEntity = new AccessTokenEntity();
         accessTokenEntity.homeAccountId = "someUid.someUtid";
         accessTokenEntity.environment = "login.microsoftonline.com";
         accessTokenEntity.realm = "microsoft";
@@ -375,8 +375,8 @@ describe("CacheManager.ts test cases", () => {
             expect(Object.keys(credentials.accessTokens).length).to.eql(0);
             expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
 
-            const filterOidcscopes = { target: "scope1 scope2 scope3 offline_access" };
-            let filteredCredentials = cacheManager.getCredentialsFilteredBy(filterOidcscopes);
+            const filterOidcscopes = { target: "scope1 scope2 scope3 offline_access openid profile" };
+            const filteredCredentials = cacheManager.getCredentialsFilteredBy(filterOidcscopes);
             expect(Object.keys(filteredCredentials.idTokens).length).to.eql(0);
             expect(Object.keys(filteredCredentials.accessTokens).length).to.eql(1);
             expect(Object.keys(filteredCredentials.refreshTokens).length).to.eql(0);
@@ -400,7 +400,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("removeAllAccounts", () => {
-        let ac = new AccountEntity();
+        const ac = new AccountEntity();
         ac.homeAccountId = "someUid.someUtid";
         ac.environment = "login.microsoftonline.com";
         ac.realm = "microsoft";
@@ -427,7 +427,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("removeCredential", () => {
-        let at = new AccessTokenEntity();
+        const at = new AccessTokenEntity();
         Object.assign(at, {
             homeAccountId: "someUid.someUtid",
             environment: "login.microsoftonline.com",
@@ -461,7 +461,7 @@ describe("CacheManager.ts test cases", () => {
             },
             refreshTokens: null,
             idTokens: null
-        }
+        };
 
         sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
 

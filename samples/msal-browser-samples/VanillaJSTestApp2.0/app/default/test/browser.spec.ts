@@ -1,7 +1,11 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials, getTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../e2eTests/TestUtils"
+import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
+import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
+import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
+import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = 'http://localhost:30662/';
@@ -37,7 +41,15 @@ describe("Browser tests", function () {
     let browser: puppeteer.Browser;
     before(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
-        [username, accountPwd] = await setupCredentials("azureppe");
+        const labApiParams: LabApiQueryParams = {
+            azureEnvironment: AzureEnvironments.PPE,
+            appType: AppTypes.CLOUD
+        };
+
+        const labClient = new LabClient();
+        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        
         browser = await puppeteer.launch({
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
@@ -46,9 +58,11 @@ describe("Browser tests", function () {
 
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
+    let BrowserCache: BrowserCacheUtils;
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
+        BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(SAMPLE_HOME_URL);
     });
 
@@ -76,13 +90,13 @@ describe("Browser tests", function () {
         // Wait for return to page
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
-        let tokenStore = await getTokens(page);
+        let tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);
         expect(tokenStore.accessTokens).to.be.length(1);
         expect(tokenStore.refreshTokens).to.be.length(1);
-        expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
-        expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
-        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
+        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        const storage = await BrowserCache.getWindowStorage();
         expect(Object.keys(storage).length).to.be.eq(4);
     });
 
@@ -99,7 +113,7 @@ describe("Browser tests", function () {
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         // Click back button
         await page.goBack();
-        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        const storage = await BrowserCache.getWindowStorage();
         expect(Object.keys(storage).length).to.be.eq(0);
     });
 
@@ -116,7 +130,7 @@ describe("Browser tests", function () {
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         await goBackToSampleHomepage(page, screenshot);
         await page.waitForNavigation({ waitUntil: "networkidle0"});
-        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        const storage = await BrowserCache.getWindowStorage();
         // Server returns error in the hash, so length = 1 for server telemetry
         expect(Object.keys(storage).length).to.be.eq(1);
     });
@@ -142,13 +156,13 @@ describe("Browser tests", function () {
         await page.waitFor(1000);
         expect(popupPage.isClosed()).to.be.true;
         await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
-        let tokenStore = await getTokens(page);
+        let tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);
         expect(tokenStore.accessTokens).to.be.length(1);
         expect(tokenStore.refreshTokens).to.be.length(1);
-        expect(getAccountFromCache(page, tokenStore.idTokens[0])).to.not.be.null;
-        expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
-        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
+        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        const storage = await BrowserCache.getWindowStorage();
         expect(Object.keys(storage).length).to.be.eq(4);
     });
 
@@ -169,7 +183,7 @@ describe("Browser tests", function () {
         // Wait for processing
         await page.waitFor(500);
         // Wait until popup window closes
-        const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
+        const storage = await BrowserCache.getWindowStorage();
         expect(Object.keys(storage).length).to.be.eq(1);
     });
 });
