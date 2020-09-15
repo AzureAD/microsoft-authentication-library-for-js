@@ -645,7 +645,7 @@ export abstract class ClientApplication {
     protected setDefaultScopes(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest): AuthorizationUrlRequest {
         return {
             ...request,
-            scopes: [...((request && request.scopes) || []), ...DEFAULT_REQUEST.scopes]
+            scopes: [...((request && request.scopes) || [])]
         };
     }
 
@@ -690,16 +690,14 @@ export abstract class ClientApplication {
 
         validatedRequest.responseMode = ResponseMode.FRAGMENT;
 
-        validatedRequest = {
-            ...validatedRequest,
-            ...this.initializeBaseRequest(validatedRequest)
+        validatedRequest = {	
+            ...validatedRequest,	
+            ...this.initializeBaseRequest(validatedRequest)	
         };
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
-        return {
-            ...validatedRequest
-        };
+        return validatedRequest;
     }
 
     /**
