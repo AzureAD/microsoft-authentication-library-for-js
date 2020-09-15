@@ -50,7 +50,7 @@ export class RefreshTokenClient extends BaseClient {
 
     /**
      * Gets cached refresh token and attaches to request, then calls acquireToken API
-     * @param request 
+     * @param request
      */
 
     public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
@@ -62,9 +62,9 @@ export class RefreshTokenClient extends BaseClient {
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
-        } 
+        }
 
-        const refreshToken = this.cacheManager.getRefreshTokenEntity(this.config.authOptions.clientId, request.account);
+        const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account);
         // no refresh Token
         if (!refreshToken) {
             throw ClientAuthError.createNoTokensFoundError();
@@ -98,7 +98,7 @@ export class RefreshTokenClient extends BaseClient {
 
         const scopeSet = new ScopeSet(request.scopes || []);
         parameterBuilder.addScopes(scopeSet);
-        
+
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
 
         parameterBuilder.addClientInfo();

@@ -16,6 +16,7 @@ import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthErro
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
+import { Authority } from "../authority/Authority";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -57,7 +58,8 @@ export class SilentFlowClient extends BaseClient {
         }
 
         const requestScopes = new ScopeSet(request.scopes || []);
-        const cacheRecord = this.cacheManager.getCacheRecord(request.account, this.config.authOptions.clientId, requestScopes);
+        const environment = request.authority || Authority.generateEnvironmentFromAuthority(this.authority);
+        const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment);
 
         if (this.isRefreshRequired(request, cacheRecord.accessToken)) {
             throw ClientAuthError.createRefreshRequiredError();
