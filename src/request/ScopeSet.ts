@@ -6,6 +6,7 @@
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { Constants } from "../utils/Constants";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
@@ -33,7 +34,7 @@ export class ScopeSet {
      * @param inputScopeString
      * @param appClientId
      * @param scopesRequired
-    */
+     */
     static fromString(inputScopeString: string): ScopeSet {
         inputScopeString = inputScopeString || "";
         const inputScopes: Array<string> = inputScopeString.split(" ");
@@ -44,7 +45,7 @@ export class ScopeSet {
      * Used to validate the scopes input parameter requested  by the developer.
      * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
-    */
+     */
     private validateInputScopes(inputScopes: Array<string>): void {
         // Check if scopes are required but not given or is an empty array
         if (!inputScopes || inputScopes.length < 1) {
@@ -70,6 +71,24 @@ export class ScopeSet {
         }
 
         return (this.scopes.size >= scopeSet.scopes.size && scopeSet.asArray().every(scope => this.containsScope(scope)));
+    }
+
+    /**
+     * Check if set of scopes contains only the defaults
+     */
+    containsOnlyDefaultScopes(): boolean {
+        let defaultScopeCount = 0;
+        if (this.containsScope(Constants.OPENID_SCOPE)) {
+            defaultScopeCount += 1;
+        } 
+        if (this.containsScope(Constants.PROFILE_SCOPE)) {
+            defaultScopeCount += 1;
+        }
+        if (this.containsScope(Constants.OFFLINE_ACCESS_SCOPE)) {
+            defaultScopeCount += 1;
+        }
+
+        return this.scopes.size === defaultScopeCount;
     }
 
     /**
@@ -106,6 +125,16 @@ export class ScopeSet {
     }
 
     /**
+     * Removes default scopes from set of scopes
+     * Primarily used to prevent cache misses if the default scopes are not returned from the server
+     */
+    removeDefaultScopes(): void {
+        this.scopes.delete(Constants.OFFLINE_ACCESS_SCOPE);
+        this.scopes.delete(Constants.OPENID_SCOPE);
+        this.scopes.delete(Constants.PROFILE_SCOPE);
+    }
+
+    /**
      * Combines an array of scopes with the current set of scopes.
      * @param otherScopes
      */
@@ -130,7 +159,10 @@ export class ScopeSet {
 
         const unionScopes = this.unionScopeSets(otherScopes);
 
-        // Do not allow offline_access to be the only intersecting scope
+        // Do not allow default scopes to be the only intersecting scopes
+        if (!otherScopes.containsOnlyDefaultScopes()) {
+            otherScopes.removeDefaultScopes();
+        }
         const sizeOtherScopes = otherScopes.getScopeCount();
         const sizeThisScopes = this.getScopeCount();
         const sizeUnionScopes = unionScopes.size;
