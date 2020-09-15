@@ -237,7 +237,7 @@ describe("SilentFlowClient unit tests", () => {
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
-            name: "Abe Lincoln"
+            name: ID_TOKEN_CLAIMS.name
         };
         
         beforeEach(async () => {

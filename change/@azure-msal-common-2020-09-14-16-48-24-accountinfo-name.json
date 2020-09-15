@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add name field to AccountInfo",
+  "comment": "Add name field to AccountInfo (#2288)",
   "packageName": "@azure/msal-common",
   "email": "jamckenn@microsoft.com",
   "dependentChangeType": "patch",
