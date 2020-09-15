@@ -119,8 +119,7 @@ export class DeviceCodeClient extends BaseClient {
 
         const parameterBuilder: RequestParameterBuilder = new RequestParameterBuilder();
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        parameterBuilder.addScopes(scopeSet);
+        parameterBuilder.addScopes(request.scopes);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
         
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
@@ -202,8 +201,7 @@ export class DeviceCodeClient extends BaseClient {
 
         const requestParameters: RequestParameterBuilder = new RequestParameterBuilder();
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        requestParameters.addScopes(scopeSet);
+        requestParameters.addScopes(request.scopes);
         requestParameters.addClientId(this.config.authOptions.clientId);
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
         requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);

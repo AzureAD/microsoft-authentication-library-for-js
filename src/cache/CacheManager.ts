@@ -615,9 +615,9 @@ export abstract class CacheManager implements ICacheManager {
         const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target);
         const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target);
 
-        // ignore offline_access when comparing scopes
-        entityScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
-        requestTargetScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+        if (!requestTargetScopeSet.containsOnlyDefaultScopes()) {
+            requestTargetScopeSet.removeDefaultScopes(); // ignore default scopes
+        }
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }
 
