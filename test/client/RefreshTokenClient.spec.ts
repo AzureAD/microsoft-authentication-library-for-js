@@ -71,7 +71,8 @@ describe("RefreshTokenClient unit tests", () => {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username
+            username: ID_TOKEN_CLAIMS.preferred_username,
+            name: ID_TOKEN_CLAIMS.name
         };
 
         beforeEach(async () => {
