@@ -4,7 +4,7 @@ export type tokenMap = {
     idTokens: string[],
     accessTokens: string[],
     refreshTokens: string[]
-}
+};
 
 export class BrowserCacheUtils {
     private page: puppeteer.Page;
@@ -19,17 +19,17 @@ export class BrowserCacheUtils {
         if (this.storageType === "localStorage") {
             return this.page.evaluate(() =>  Object.assign({}, window.localStorage));
         } else {
-            return this.page.evaluate(() => Object.assign({}, window.sessionStorage))
+            return this.page.evaluate(() => Object.assign({}, window.sessionStorage));
         }
     }
     
     async getTokens(): Promise<tokenMap> {
         const storage = await this.getWindowStorage();
-        let tokenKeys: tokenMap = {
+        const tokenKeys: tokenMap = {
             idTokens: [],
             accessTokens: [],
             refreshTokens: []
-        }
+        };
         
         Object.keys(storage).forEach(async key => {
             if (key.includes("idtoken") && BrowserCacheUtils.validateToken(storage[key], "IdToken")) {
@@ -37,7 +37,7 @@ export class BrowserCacheUtils {
             } else if (key.includes("accesstoken") && BrowserCacheUtils.validateToken(storage[key], "AccessToken")) {
                 tokenKeys.accessTokens.push(key);
             } else if (key.includes("refreshtoken") && BrowserCacheUtils.validateToken(storage[key], "RefreshToken")) {
-                tokenKeys.refreshTokens.push(key)
+                tokenKeys.refreshTokens.push(key);
             }
         });
         
@@ -54,25 +54,25 @@ export class BrowserCacheUtils {
             !BrowserCacheUtils.validateStringField(tokenVal.homeAccountId) ||
             !BrowserCacheUtils.validateStringField(tokenVal.secret) ||
             tokenVal.credentialType !== tokenType
-            ) {
-                return false;
-            }
+        ) {
+            return false;
+        }
             
-            if (tokenType === "IdToken" && !BrowserCacheUtils.validateStringField(tokenVal.realm)) {
-                return false;
-            } else if (tokenType === "AccessToken") {
-                if (
-                    !BrowserCacheUtils.validateStringField(tokenVal.cachedAt) ||
+        if (tokenType === "IdToken" && typeof(tokenVal.realm) !== "string") {
+            return false;
+        } else if (tokenType === "AccessToken") {
+            if (
+                !BrowserCacheUtils.validateStringField(tokenVal.cachedAt) ||
                     !BrowserCacheUtils.validateStringField(tokenVal.expiresOn) ||
                     !BrowserCacheUtils.validateStringField(tokenVal.extendedExpiresOn) ||
                     !BrowserCacheUtils.validateStringField(tokenVal.target)
-                    ) {
-                        return false;
-                    }
-                }
-                
-                return true;
+            ) {
+                return false;
             }
+        }
+                
+        return true;
+    }
             
     static validateStringField(field: any): boolean {
         return typeof(field) === "string" && field.length > 0;
@@ -83,7 +83,7 @@ export class BrowserCacheUtils {
         
         return accessTokenKeys.some((key) => {
             const tokenVal = JSON.parse(storage[key]);
-            const tokenScopes = tokenVal.target.split(' ');
+            const tokenScopes = tokenVal.target.split(" ");
             
             return scopes.every((scope) => {
                 return tokenScopes.includes(scope.toLowerCase());
@@ -112,7 +112,7 @@ export class BrowserCacheUtils {
             return JSON.parse(storage[accountKey]);
         }
         
-        return null
+        return null;
     }
 
     async getTelemetryCacheEntry(clientId: string): Promise<object> {
