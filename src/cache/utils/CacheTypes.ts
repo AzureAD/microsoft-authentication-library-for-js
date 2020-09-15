@@ -34,7 +34,7 @@ export type AccountFilter = {
 };
 
 /**
- * Credential:	<home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
+ * Credential: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
  */
 export type CredentialFilter = {
     homeAccountId?: string;
@@ -44,4 +44,12 @@ export type CredentialFilter = {
     realm?: string;
     target?: string;
     oboAssertion?: string;
+};
+
+/**
+ * AppMetadata: appmetadata-<environment>-<client_id>
+ */
+export type AppMetadataFilter = {
+    environment?: string;
+    clientId?: string;
 };
