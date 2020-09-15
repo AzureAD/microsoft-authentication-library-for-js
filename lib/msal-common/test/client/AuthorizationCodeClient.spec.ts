@@ -211,34 +211,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
         });
-
-        it("Throws error if no scopes are passed to createUrl", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
-
-            const emptyRequest: AuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: null,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-            };
-            await expect(client.getAuthCodeUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
-        });
-
-        it("Throws error if empty scopes are passed to createUrl", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
-
-            const emptyRequest: AuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [],
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-            };
-            await expect(client.getAuthCodeUrl(emptyRequest)).to.be.rejectedWith(ClientConfigurationErrorMessage.emptyScopesError.desc);
-        });
     });
 
     describe("handleFragmentResponse()", () => {

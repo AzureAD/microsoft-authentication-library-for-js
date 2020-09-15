@@ -29,10 +29,10 @@ export class AppComponent implements OnInit {
 
   login() {
     if (this.msalGuardConfig.interactionType === InteractionType.POPUP) {
-      this.authService.loginPopup()
+      this.authService.loginPopup({...this.msalGuardConfig.authRequest})
         .subscribe(() => this.checkAccount());
     } else {
-      this.authService.loginRedirect();
+      this.authService.loginRedirect({...this.msalGuardConfig.authRequest});
     }
   }
 
