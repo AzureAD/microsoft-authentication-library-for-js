@@ -25,7 +25,7 @@ testAccountEntity.localAccountId = "testId";
 testAccountEntity.environment = "login.windows.net";
 testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
-testAccountEntity.name = "Abe Lincoln";
+testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 
 const testIdToken: IdTokenEntity = new IdTokenEntity();
