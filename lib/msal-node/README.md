@@ -13,7 +13,6 @@ Currently `msal-node` is under development, please track the project progress [h
 1. [Installation](#installation)
 1. [Usage](#usage)
 1. [Samples](#samples)
-1. [Build Library](#build-and-test)
 1. [Security Reporting](#security-reporting)
 1. [License](#license)
 1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
@@ -69,6 +68,9 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 ## Installation
 
 ### Via NPM:
+
+Our samples include this dependency in the package configuration for use with `npm install`.
+
 ```javascript
 npm install @azure/msal-node
 ```
@@ -92,30 +94,6 @@ There are multiple [samples](https://github.com/AzureAD/microsoft-authentication
 - [client-credentials](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/client-credentials): Daemon app using Oauth 2.0 client credential grant to acquire a token. 
 - [on-behalf-of](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/on-behalf-of): Web application uses Oauth 2.0 auth code flow to acquire a token for a Web API. The web API validates the token, and calls Microsoft Graph on behalf of the user who authenticated in the web application.
 - [msal-node-extensions](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-extensions): Uses authorization code flow to acquire tokens then the [msal-extensions](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/msal-node-extensions) library to write the MSAL in-memory token cache to disk.
-
-## Build and Test
-
-- Get [lerna](https://github.com/lerna/lerna) installed, run `npm install -g lerna`
-- Run `lerna bootstrap` from anywhere within `microsoft-authentication-library-for-js.git`.
-- Navigate to `microsoft-authentication-library-for-js/lib/msal-common` and run `npm run build`
-- Navigate to `microsoft-authentication-library-for-js/lib/msal-node` and run `npm run build`
-
-```javascript
-// to link msal-node and msal-common packages
-lerna bootstrap
-
-// Change to the msal-node package directory
-cd lib/msal-common/
-
-// To run build only for node package
-npm run build
-
-// Change to the msal-node package directory
-cd lib/msal-node/
-
-// To run build only for node package
-npm run build
-```
 
 ### Local Development
 Below is a list of commands you will probably find useful:
