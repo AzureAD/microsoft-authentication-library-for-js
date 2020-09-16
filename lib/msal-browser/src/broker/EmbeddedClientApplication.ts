@@ -140,6 +140,7 @@ export class EmbeddedClientApplication {
             messageChannel.port1.onmessage = ((message: MessageEvent): void => {
                 this.logger.verbose(`in messageBroker<T> w/ origin: ${message}`);
                 clearTimeout(timeoutId);
+                messageChannel.port1.close();
                 resolve(message);
             });
             // Message top frame window

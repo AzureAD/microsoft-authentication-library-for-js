@@ -96,6 +96,7 @@ export class BrokerClientApplication extends ClientApplication {
         const brokerRedirectResp = new BrokerRedirectResponse();
         // @ts-ignore
         clientPort.postMessage(brokerRedirectResp);
+        clientPort.close();
         this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
 
         // Call loginRedirect
@@ -108,10 +109,12 @@ export class BrokerClientApplication extends ClientApplication {
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.POPUP, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.POPUP, null, err);
             this.logger.info(`Found auth error: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
         }
     }
 
@@ -121,10 +124,12 @@ export class BrokerClientApplication extends ClientApplication {
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.SILENT, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.SILENT, null, err);
             this.logger.info(`Found auth error: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
         }
     }
 
