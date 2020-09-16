@@ -4,7 +4,9 @@ The Microsoft Authentication Library for JavaScript adds Auth to Javascript appl
 
 MSAL.js now supports Node.js and Electron! 
 
-Supported account types: [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) for work and school accounts (AAD), Microsoft personal accounts (MSA).  Additionally, MSAL.js supports social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. 
+MSAL.js supports both consumer and enterprise Microsoft accounts.  This can be restricted if desired.  Only applications that use special consumer or enterprise data will need to differentiate.
+
+MSAL.js supports social identity providers like Facebook, Google, and LinkedIn through the [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. 
 
 ## How do I get Started?
 
