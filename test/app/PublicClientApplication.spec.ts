@@ -572,7 +572,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const browserCrypto = new CryptoOps();
                 await pca.loginRedirect(tokenRequest);
                 const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string));
-                expect(cachedRequest.scopes).to.be.deep.eq(TEST_CONFIG.DEFAULT_SCOPES);
+                expect(cachedRequest.scopes).to.be.deep.eq([]);
                 expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
                 expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
                 expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
@@ -643,7 +643,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.loginRedirect(emptyRequest);
                 const validatedRequest: AuthorizationUrlRequest = {
                     ...emptyRequest,
-                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    scopes: [],
                     loginHint: idTokenClaims.upn,
                     state: TEST_STATE_VALUES.TEST_STATE,
                     correlationId: RANDOM_TEST_GUID,
@@ -691,7 +691,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.loginRedirect(loginRequest);
                 const validatedRequest: AuthorizationUrlRequest = {
                     ...loginRequest,
-                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    scopes: [],
                     state: TEST_STATE_VALUES.TEST_STATE,
                     correlationId: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
@@ -777,7 +777,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const browserCrypto = new CryptoOps();
                 await pca.acquireTokenRedirect(tokenRequest);
                 const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string));
-                expect(cachedRequest.scopes).to.be.deep.eq([testScope, ...TEST_CONFIG.DEFAULT_SCOPES]);
+                expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
                 expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
                 expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
                 expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
@@ -849,7 +849,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenRedirect(emptyRequest);
                 const validatedRequest: AuthorizationUrlRequest = {
                     ...emptyRequest,
-                    scopes: [...emptyRequest.scopes, ...TEST_CONFIG.DEFAULT_SCOPES],
+                    scopes: [...emptyRequest.scopes],
                     loginHint: idTokenClaims.upn,
                     state: TEST_STATE_VALUES.TEST_STATE,
                     correlationId: RANDOM_TEST_GUID,
@@ -898,7 +898,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.acquireTokenRedirect(loginRequest);
                 const validatedRequest: AuthorizationUrlRequest = {
                     ...loginRequest,
-                    scopes: [...loginRequest.scopes, ...TEST_CONFIG.DEFAULT_SCOPES],
+                    scopes: [...loginRequest.scopes],
                     state: TEST_STATE_VALUES.TEST_STATE,
                     correlationId: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
@@ -1373,6 +1373,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const expectedTokenRequest: SilentFlowRequest = {
                 ...tokenRequest,
+                scopes: ["scope1"],
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID
             };
@@ -1467,7 +1468,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const expectedRequest: AuthorizationUrlRequest = {
                 ...silentFlowRequest,
-                scopes: ["User.Read", ...TEST_CONFIG.DEFAULT_SCOPES],
+                scopes: ["User.Read"],
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 prompt: "none",
@@ -1511,7 +1512,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-            username: "example@microsoft.com"
+            username: "example@microsoft.com",
+            name: "Abe Lincoln"
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -1519,6 +1521,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.environment = testAccountInfo1.environment;
         testAccount1.realm = testAccountInfo1.tenantId;
         testAccount1.username = testAccountInfo1.username;
+        testAccount1.name = testAccountInfo1.name;
         testAccount1.authorityType = "MSSTS";
         testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
@@ -1527,7 +1530,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             homeAccountId: "different-home-account-id",
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-            username: "anotherExample@microsoft.com"
+            username: "anotherExample@microsoft.com",
+            name: "Abe Lincoln"
         };
 
         const testAccount2: AccountEntity = new AccountEntity();
@@ -1535,6 +1539,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount2.environment = testAccountInfo2.environment;
         testAccount2.realm = testAccountInfo2.tenantId;
         testAccount2.username = testAccountInfo2.username;
+        testAccount2.name = testAccountInfo2.name;
         testAccount2.authorityType = "MSSTS";
         testAccount2.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
