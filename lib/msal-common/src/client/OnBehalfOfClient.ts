@@ -160,7 +160,7 @@ export class OnBehalfOfClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        parameterBuilder.addScopes(this.scopeSet);
+        parameterBuilder.addScopes(request.scopes);
 
         parameterBuilder.addGrantType(GrantType.JWT_BEARER);
 

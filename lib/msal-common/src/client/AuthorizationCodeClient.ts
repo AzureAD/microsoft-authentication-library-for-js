@@ -12,7 +12,6 @@ import { GrantType, AADServerParamKeys, AuthenticationScheme } from "../utils/Co
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
-import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
@@ -154,8 +153,8 @@ export class AuthorizationCodeClient extends BaseClient {
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        parameterBuilder.addScopes(scopeSet);
+        // Add scope array, parameter builder will add default scopes and dedupe
+        parameterBuilder.addScopes(request.scopes);
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
@@ -203,11 +202,8 @@ export class AuthorizationCodeClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        if (request.extraScopesToConsent) {
-            scopeSet.appendScopes(request.extraScopesToConsent);
-        }
-        parameterBuilder.addScopes(scopeSet);
+        const requestScopes = [...request.scopes || [], ...request.extraScopesToConsent || []];
+        parameterBuilder.addScopes(requestScopes);
 
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);
