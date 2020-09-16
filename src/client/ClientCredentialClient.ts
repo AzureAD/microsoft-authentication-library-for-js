@@ -125,7 +125,7 @@ export class ClientCredentialClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        parameterBuilder.addScopes(this.scopeSet);
+        parameterBuilder.addScopes(request.scopes, false);
 
         parameterBuilder.addGrantType(GrantType.CLIENT_CREDENTIALS_GRANT);
 

@@ -121,7 +121,7 @@ export class ResponseHandler {
         // save the response tokens
         let requestStateObj: RequestStateObject = null;
         if (!StringUtils.isEmpty(cachedState)) {
-            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState); 
+            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState);
         }
 
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState, requestScopes, oboAssertion);
@@ -144,7 +144,7 @@ export class ResponseHandler {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
-        // IdToken
+        // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity = null;
         let cachedAccount: AccountEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
@@ -153,7 +153,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                idTokenObj.claims.tid,
+                idTokenObj.claims.tid || "",
                 oboAssertion
             );
 
@@ -168,7 +168,7 @@ export class ResponseHandler {
         // AccessToken
         let cachedAccessToken: AccessTokenEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
-            
+
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
 
@@ -180,12 +180,13 @@ export class ResponseHandler {
             const tokenExpirationSeconds = timestamp + serverTokenResponse.expires_in;
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
 
+            // non AAD scenarios can have empty realm
             cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                idTokenObj ? idTokenObj.claims.tid : authority.tenant,
+                idTokenObj ? idTokenObj.claims.tid || "" : authority.tenant,
                 responseScopes.printScopesLowerCase(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
@@ -233,13 +234,13 @@ export class ResponseHandler {
 
     /**
      * Creates an @AuthenticationResult from @CacheRecord , @IdToken , and a boolean that states whether or not the result is from cache.
-     * 
+     *
      * Optionally takes a state string that is set as-is in the response.
-     * 
-     * @param cacheRecord 
-     * @param idTokenObj 
-     * @param fromTokenCache 
-     * @param stateString 
+     *
+     * @param cacheRecord
+     * @param idTokenObj
+     * @param fromTokenCache
+     * @param stateString
      */
     static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, idTokenObj: AuthToken, fromTokenCache: boolean, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";

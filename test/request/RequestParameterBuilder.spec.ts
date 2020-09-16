@@ -23,7 +23,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addResponseTypeCode();
         requestParameterBuilder.addResponseMode(ResponseMode.FORM_POST);
-        requestParameterBuilder.addScopes(new ScopeSet(TEST_CONFIG.DEFAULT_SCOPES));
+        requestParameterBuilder.addScopes(TEST_CONFIG.DEFAULT_SCOPES);
         requestParameterBuilder.addClientId(TEST_CONFIG.MSAL_CLIENT_ID);
         requestParameterBuilder.addRedirectUri(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST);
         requestParameterBuilder.addDomainHint(TEST_CONFIG.DOMAIN_HINT);
@@ -81,6 +81,35 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(requestQueryString2).to.be.empty;
     });
 
+    it("addScopes appends oidc scopes by default", () => {
+        let requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addScopes(["testScope"]);
+        let requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=testScope%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`);
+
+        requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addScopes([]);
+        requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`);
+
+        requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addScopes(null);
+        requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`);
+
+        requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addScopes(undefined);
+        requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`);
+    });
+
+    it("addScopes does not append oidc scopes if flag set to false", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addScopes(["testScope"], false);
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=testScope`);
+    });
+
     it("addCodeChallengeParams throws invalidCodeChallengeParamsError if codeChallengeMethod empty", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         expect(() => requestParameterBuilder.addCodeChallengeParams(TEST_CONFIG.TEST_CHALLENGE, "")).to.throw(ClientConfigurationError.createInvalidCodeChallengeParamsError().errorMessage);
@@ -109,23 +138,23 @@ describe("RequestParameterBuilder unit tests", () => {
         it("passing just clientCapabilities returns clientCapabilities as claims request", () => {
             const requestParameterBuilder = new RequestParameterBuilder();
             const clientCapabilities = ["CP1"];
-            const expectedString = '{"access_token":{"xms_cc":{"values":["CP1"]}}}'
+            const expectedString = "{\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\"]}}}";
             expect(requestParameterBuilder.addClientCapabilitiesToClaims(undefined, clientCapabilities)).to.eq(expectedString);
         });
 
         it("passed claims already has access_token key, append xms_cc claim from clientCapabilities", () => {
             const requestParameterBuilder = new RequestParameterBuilder();
-            const claimsRequest = '{"access_token":{"example_claim":{"values":["example_value"]}}}';
+            const claimsRequest = "{\"access_token\":{\"example_claim\":{\"values\":[\"example_value\"]}}}";
             const clientCapabilities = ["CP1"];
-            const expectedString = '{"access_token":{"example_claim":{"values":["example_value"]},"xms_cc":{"values":["CP1"]}}}'
+            const expectedString = "{\"access_token\":{\"example_claim\":{\"values\":[\"example_value\"]},\"xms_cc\":{\"values\":[\"CP1\"]}}}";
             expect(requestParameterBuilder.addClientCapabilitiesToClaims(claimsRequest, clientCapabilities)).to.eq(expectedString);
         });
 
         it("passed claims does not have access_token key, add access_token key and xms_cc key underneath", () => {
             const requestParameterBuilder = new RequestParameterBuilder();
-            const claimsRequest = '{"id_token":{"example_claim":{"values":["example_value"]}}}';
+            const claimsRequest = "{\"id_token\":{\"example_claim\":{\"values\":[\"example_value\"]}}}";
             const clientCapabilities = ["CP1"];
-            const expectedString = '{"id_token":{"example_claim":{"values":["example_value"]}},"access_token":{"xms_cc":{"values":["CP1"]}}}'
+            const expectedString = "{\"id_token\":{\"example_claim\":{\"values\":[\"example_value\"]}},\"access_token\":{\"xms_cc\":{\"values\":[\"CP1\"]}}}";
             expect(requestParameterBuilder.addClientCapabilitiesToClaims(claimsRequest, clientCapabilities)).to.eq(expectedString);
         });
 
