@@ -523,14 +523,24 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      */
     readRefreshTokenFromCache(clientId: string, account: AccountInfo): RefreshTokenEntity | null {
-        const refreshTokenKey: string = CredentialEntity.generateCredentialCacheKey(
-            account.homeAccountId,
-            account.environment,
-            CredentialType.REFRESH_TOKEN,
+        const refreshTokenFilter: CredentialFilter = {
+            homeAccountId: account.homeAccountId,
+            environment: account.environment,
+            credentialType: CredentialType.REFRESH_TOKEN,
             clientId
-        );
+        };
 
-        return this.getCredential(refreshTokenKey) as RefreshTokenEntity;
+        const credentialCache: CredentialCache = this.getCredentialsFilteredBy(refreshTokenFilter);
+        const refreshTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.refreshTokens[key]);
+
+        const numAccessTokens = refreshTokens.length;
+        if (numAccessTokens < 1) {
+            return null;
+        } else if (numAccessTokens > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+        }
+
+        return refreshTokens[0] as RefreshTokenEntity;
     }
 
     /**
