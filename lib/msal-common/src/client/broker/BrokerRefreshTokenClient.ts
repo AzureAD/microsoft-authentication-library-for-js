@@ -9,12 +9,13 @@ import { AuthenticationResult } from "../../response/AuthenticationResult";
 import { ResponseHandler } from "../../response/ResponseHandler";
 import { RequestParameterBuilder } from "../../request/RequestParameterBuilder";
 import { StringUtils } from "../../utils/StringUtils";
+import { BrokerAuthenticationResult } from "../../response/BrokerAuthenticationResult";
 
 /**
  * Oauth2.0 Refresh Token client implementing the broker protocol for browsers.
  */
 export class BrokerRefreshTokenClient extends RefreshTokenClient {
-    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
+    async acquireToken(request: RefreshTokenRequest): Promise<BrokerAuthenticationResult>{
         const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
