@@ -8,21 +8,26 @@
 Currently `msal-node` is under development, please track the project progress [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/projects/4). This documentation is also in progress and will be changing as we release our `alpha` patches. **We do not recommend using this in a production environment yet**.
 
 1. [About](#about)
-2. [FAQ](#faq)
-3. [Releases](#releases)
-4. [Prerequisites](#prerequisites)
-5. [Installation](#installation)
-6. [Usage](#usage)
-7. [Samples](#samples)
-8. [Build Library](#build-and-test)
-9. [Security Reporting](#security-reporting)
-10. [License](#license)
-11. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
+1. [FAQ](#faq)
+1. [Prerequisites](#prerequisites)
+1. [Installation](#installation)
+1. [Usage](#usage)
+1. [Samples](#samples)
+1. [Build Library](#build-and-test)
+1. [Security Reporting](#security-reporting)
+1. [License](#license)
+1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
 
 ## About
 
-MSAL Node enables applications to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
+To learn more about the MSAL.js project in general, see the README [here](/../../).
 
+### How this library works:
+
+- Understand [your scenario](https://docs.microsoft.com/en-us/azure/active-directory/develop/authentication-flows-app-scenarios) so you can register appropriately and pick the right sample 
+- Register your app at [Azure](https://docs.microsoft.com/en-us/graph/auth-register-app-v2)
+- Install this package via [npm](#installation)
+- Follow the [samples](#samples) to update your app
 
 ### OAuth2.0 grant types supported:
 
@@ -61,12 +66,6 @@ More details on scenarios and the authentication flows that map to each of them 
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/faq.md).
 
-## Prerequisites
-
-Before using `@azure/msal-node` you will need to register your app in the azure portal:  
-
-- [App registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2)
-
 ## Installation
 
 ### Via NPM:
@@ -96,7 +95,7 @@ There are multiple [samples](https://github.com/AzureAD/microsoft-authentication
 
 ## Build and Test
 
-- If you don't have [lerna](https://github.com/lerna/lerna) installed, run `npm install -g lerna`
+- Get [lerna](https://github.com/lerna/lerna) installed, run `npm install -g lerna`
 - Run `lerna bootstrap` from anywhere within `microsoft-authentication-library-for-js.git`.
 - Navigate to `microsoft-authentication-library-for-js/lib/msal-common` and run `npm run build`
 - Navigate to `microsoft-authentication-library-for-js/lib/msal-node` and run `npm run build`
