@@ -12,6 +12,7 @@ import { ClientApplication } from "./ClientApplication";
 import { BrokerClientApplication } from "../broker/BrokerClientApplication";
 import { EmbeddedClientApplication } from "../broker/EmbeddedClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -46,21 +47,19 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     constructor(configuration: Configuration) {
         super(configuration);
-        this.initializeBrokering();
     }
 
     /**
      * 
      */
-    private initializeBrokering(): void {
-        if (this.config.system.brokerOptions.actAsBroker) {
+    async initializeBrokering(): Promise<void> {     
+        if (this.config.system.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
             this.broker = new BrokerClientApplication(this.config);
+            this.broker.listenForBrokerMessage();
         } else if (this.config.system.brokerOptions.allowBrokering) {
             this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
-            this.embeddedApp.initiateHandshake().catch((e) => {
-                this.logger.error(`Broker handshake failed: ${e}`);
-            });
+            await this.embeddedApp.initiateHandshake();
         }
     }
 
