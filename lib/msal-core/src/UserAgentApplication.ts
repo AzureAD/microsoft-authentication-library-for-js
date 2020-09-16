@@ -46,6 +46,7 @@ import { Constants,
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
+import { server } from 'sinon';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -771,7 +772,7 @@ export class UserAgentApplication {
                     authErr = e;
                 }
             }
-
+            
             // resolve/reject based on cacheResult
             if (cacheResultResponse) {
                 this.logger.verbose("Token found in cache lookup");
@@ -1356,21 +1357,11 @@ export class UserAgentApplication {
     private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): AuthResponse {
         this.logger.verbose("GetCachedToken has been called");
         const scopes = serverAuthenticationRequest.scopes;
-        const authority = serverAuthenticationRequest.authority || this.authority;
-        // Id Token will be returned in every acquireTokenSilentCall regardless of response_type
-        const idTokenCacheItem = this.cacheStorage.getIdToken(this.clientId, account ? account.homeAccountIdentifier : null, authority);
-        const idTokenValue = (idTokenCacheItem) ? idTokenCacheItem.value : null;
-        
-        if (idTokenValue) {
-            this.logger.verbose("Matching ID Token found in cache");
-        } else {
-            this.logger.verbose("No matching ID Token found in cache");
-        }
 
         let authResponse: AuthResponse = null;
-
-       
-        const idTokenObj = (idTokenValue) ? new IdToken(idTokenValue.idToken) : null;
+        // Id Token will be returned in every acquireTokenSilentCall regardless of response_type
+        const idToken = this.getCachedIdToken(serverAuthenticationRequest, account);
+        
         // Look in cache for access token in case of token or id_token token response_type
         if (serverAuthenticationRequest.responseType !== ResponseTypes.id_token) {
             // If getCachedAccessToken returns null, ResponseUtils.setResponseIdToken will also return null
@@ -1394,8 +1385,42 @@ export class UserAgentApplication {
 
             this.logger.verbose("Response generated and token set");
         }
+
+        return (idToken) ? ResponseUtils.setResponseIdToken(authResponse, idToken) : authResponse;
+    }
+
+    /**
+     * 
+     * @param serverAuthenticationRequest 
+     * @param account 
+     */
+    private getCachedIdToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): IdToken {
+        const authority = serverAuthenticationRequest.authority || this.authority;
+        const idTokenCacheItem = this.cacheStorage.getIdToken(this.clientId, account ? account.homeAccountIdentifier : null, authority);
+
+        if (idTokenCacheItem != null) {
+            this.logger.verbose("Evaluating ID token found");
+            const idTokenIsStillValid = this.evaluateTokenExpiration(idTokenCacheItem);
+
+            if (idTokenIsStillValid) {
+                this.logger.verbose("ID token expiration is within offset, using ID token found in cache");
+                const idTokenValue = idTokenCacheItem.value;
+                if (idTokenValue) {
+                    this.logger.verbose("Matching ID Token found in cache");
+                } else {
+                    this.logger.verbose("No matching ID Token found in cache");
+                }
         
-        return (idTokenObj) ? ResponseUtils.setResponseIdToken(authResponse, idTokenObj) : authResponse;
+                return (idTokenValue) ? new IdToken(idTokenValue.idToken) : null;
+            } else {
+                this.logger.verbose("Cached ID token is expired, removing from cache");
+                this.cacheStorage.removeItem(JSON.stringify(idTokenCacheItem.key));
+                return null;
+            }
+        } else {
+            this.logger.verbose("No tokens found");
+            return null;
+        }
     }
 
     private getCachedAccessToken(serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: string[]): AuthResponse {
@@ -1499,11 +1524,11 @@ export class UserAgentApplication {
 
         if (accessTokenCacheItem != null) {
             this.logger.verbose("Evaluating access token found");
-            const expired = Number(accessTokenCacheItem.value.expiresIn);
-            // If expiration is within offset, it will force renew
-            const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
-            if (expired && (expired > TimeUtils.now() + offset)) {
-                this.logger.verbose("Token expiration is within offset, renewing token");
+            const tokenIsStillValid = this.evaluateTokenExpiration(accessTokenCacheItem);
+            // The response value will stay null if token retrieved from the cache is expired, otherwise it will be populated with said token's data
+            
+            if (tokenIsStillValid) {
+                this.logger.verbose("Access token expiration is within offset, using access token found in cache");
                 if (!account) {
                     account = this.getAccount();
                     if (!account) {
@@ -1511,30 +1536,40 @@ export class UserAgentApplication {
                     }
                 }
                 const aState = this.getAccountState(serverAuthenticationRequest.state);
-                const response : AuthResponse = {
+                const response: AuthResponse = {
                     uniqueId: "",
                     tenantId: "",
-                    tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? ServerHashParamKeys.ID_TOKEN : ServerHashParamKeys.ACCESS_TOKEN,
+                    tokenType: ServerHashParamKeys.ACCESS_TOKEN,
                     idToken: null,
                     idTokenClaims: null,
                     accessToken: accessTokenCacheItem.value.accessToken,
                     scopes: accessTokenCacheItem.key.scopes.split(" "),
-                    expiresOn: new Date(expired * 1000),
+                    expiresOn: new Date(Number(accessTokenCacheItem.value.expiresIn) * 1000),
                     account: account,
                     accountState: aState,
                     fromCache: true
-                };
-
+                };   
+                
                 return response;
             } else {
-                this.logger.verbose("Token expired, removing from cache");
-                this.cacheStorage.removeItem(JSON.stringify(filteredItems[0].key));
+                this.logger.verbose("Access token expired, removing from cache");
+                this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
                 return null;
             }
         } else {
             this.logger.verbose("No tokens found");
             return null;
         }
+    }
+
+    /**
+     * Returns true if the token passed in is within the acceptable expiration time offset, false if it is expired.
+     * @param tokenCacheItem 
+     * @param serverAuthenticationRequest 
+     */
+    private evaluateTokenExpiration(tokenCacheItem: AccessTokenCacheItem): Boolean {
+        const expiration = Number(tokenCacheItem.value.expiresIn);
+        return TokenUtils.validateExpirationIsWithinOffset(expiration, this.config.system.tokenRenewalOffsetSeconds);
     }
 
     /**
