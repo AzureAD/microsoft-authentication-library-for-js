@@ -18,11 +18,13 @@ let username = "";
  * configuration parameters are located at authConfig.js
  */
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
-myMSALObj.initializeBrokering();
+myMSALObj.initializeBrokering().then(() => {
+    // Must ensure that initialize has completed before calling any other MSAL functions
+    myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+        console.error(err);
+    });
 
-// Redirect: once login is successful and redirects with tokens, call Graph API
-myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-    console.error(err);
+    enableSigninButton();
 });
 
 function handleResponse(resp) {

@@ -54,7 +54,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async initializeBrokering(): Promise<void> {     
         if (this.config.system.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
+            if(this.config.system.brokerOptions.allowBrokering) {
+                this.logger.verbose("Broker options actAsBroker and allowBrokering both set to true. Preferring to act as broker.");
+            }
+            
             this.broker = new BrokerClientApplication(this.config);
+            this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
         } else if (this.config.system.brokerOptions.allowBrokering) {
             this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
