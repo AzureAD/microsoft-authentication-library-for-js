@@ -13,11 +13,17 @@ Use this sample to understand how MSAL Node works with a standard web app
 
 ## Installation
 
+## Download sample code
+
+1.  [Clone the MSAL.js repository](https://github.com/mvrak/microsoft-authentication-library-for-js.git), or with [Github Desktop](x-github-client://openRepo/https://github.com/mvrak/microsoft-authentication-library-for-js), or download just the sample files.
+2.  Navigate to this sample directory.
+3.  You will need package.json, index.js, and package-lock.json.
+
 ### Via NPM:
 ```javascript
-npm install @azure/msal-node
-npm install -g lerna
+npm install
 ```
+
 ## Configuration
 
 Our sample app embeds configuration within index.js.  
