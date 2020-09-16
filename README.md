@@ -1,12 +1,21 @@
 # Microsoft Authentication Library for JavaScript (MSAL.js)
 
-The Microsoft Authentication Library for JavaScript enables client-side JavaScript web applications, running in a web browser, to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) for work and school accounts (AAD), Microsoft personal accounts (MSA), and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
+The Microsoft Authentication Library for JavaScript adds Auth to Javascript applications, and access to resource APIs in the [Microsoft Cloud](https://www.microsoft.com/enterprise) such as [Microsoft Graph](https://graph.microsoft.io).
 
-## Repository
+MSAL.js now supports Node.js and Electron! 
 
-### Core and wrapper libaries
+Supported account types: [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) for work and school accounts (AAD), Microsoft personal accounts (MSA).  Additionally, MSAL.js supports social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. 
 
-The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries**, in their respective README.md.
+## How do I get Started?
+
+Follow the link that matches your app:
+- [Traditional web app](lib/msal-browser/)
+- [Node.js app](lib/msal-node/)
+- Or explore our [samples](/tree/dev/samples)
+
+## Learn more
+
+MSAL.js is a collection of Javascript related libraries providing common AuthN methods across several frameworks and application types. The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries**, in their respective README.md.
 
 - [Microsoft Authentication Library for Node.js v1.x (Alpha)](lib/msal-node/): A [Node.js](https://nodejs.org/en/) library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the following OAuth 2.0 protocols and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc):
     - [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with [PKCE](https://oauth.net/2/pkce/)
@@ -19,10 +28,10 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 - [Microsoft Authentication Library for JavaScript v1.x](lib/msal-core/): A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 
 - [Microsoft Authentication Library for Angular](lib/msal-angular/) :
-A wrapper of the core 1.x library for apps using Angular framework.
+A wrapper of the MSAL.js 1.x library for apps using Angular framework.
 
 - [Microsoft Authentication Library for AngularJS](lib/msal-angularjs/) :
-A wrapper of the core 1.x library for apps using AngularJS framework.
+A wrapper of the MSAL.js 1.x library for apps using AngularJS framework.
 
 ### Package Structure
 
