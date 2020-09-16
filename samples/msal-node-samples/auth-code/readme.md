@@ -50,9 +50,10 @@ const config = {
 2. Update authority according to this [guidance](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-client-application-configuration#authority).  We recommend `https://login.microsoftonline.com/common/` for broad coverage and ease of use.
 3. Generate a client secret on Azure from within your app registration and include it here.
 
-#### Build and Test
-Follow the general [build and test](https://github.com/mvrak/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/README.md#build-and-test) directions for MSAL Node samples.
+#### Start the App
+
+From a command or powershell window, run `npm start` in the sample directory
 
 #### Running the sample
 
-- Navigate to `http://localhost:3000` to experience the sample.
+- Navigate to `http://localhost:3000` to experience the sample.  As the sample does not contain UX, you are directed immediately to the web login.  Use a browser not currently signed in to a Microsoft account to see the full login experience.
