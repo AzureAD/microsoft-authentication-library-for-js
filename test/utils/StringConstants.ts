@@ -109,7 +109,7 @@ export const TEST_CONFIG = {
     CODE_CHALLENGE_METHOD: "S256",
     TOKEN_TYPE_BEARER: "Bearer",
     DEFAULT_SCOPES: ["openid", "profile", "offline_access"],
-    DEFAULT_GRAPH_SCOPE: ["user.read"],
+    DEFAULT_GRAPH_SCOPE: ["User.Read"],
     LOGIN_HINT: "user@test.com",
     DOMAIN_HINT: "test.com",
     SID: "session-id",
