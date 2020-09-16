@@ -251,12 +251,12 @@ export abstract class CacheManager implements ICacheManager {
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(refreshTokenFilter);
-        const refreshTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.refreshTokens[key]);
+        const refreshTokens = Object.keys(credentialCache.refreshTokens).map((key) => credentialCache.refreshTokens[key]);
 
-        const numAccessTokens = refreshTokens.length;
-        if (numAccessTokens < 1) {
+        const numrefreshTokens = refreshTokens.length;
+        if (numrefreshTokens < 1) {
             return null;
-        } else if (numAccessTokens > 1) {
+        } else if (numrefreshTokens > 1) {
             throw ClientAuthError.createMultipleMatchingTokensInCacheError();
         }
 
