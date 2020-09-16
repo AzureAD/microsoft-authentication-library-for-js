@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Adding Cache refactor and appmetadata for FOCI",
+  "comment": "Scopes stored case sensitive, compared case insensitive",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",
