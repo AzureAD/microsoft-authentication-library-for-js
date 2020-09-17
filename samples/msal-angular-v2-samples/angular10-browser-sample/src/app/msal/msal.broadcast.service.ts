@@ -3,8 +3,6 @@ import { Observable, Subject } from 'rxjs';
 import { MsalBroadcastEvent } from './constants';
 import { AuthenticationResult, AuthError } from '@azure/msal-browser';
 
-export type MessageCallback = (payload: any) => void;
-
 export interface MsalBroadcastMessage {
   type: MsalBroadcastEvent;
   payload: AuthenticationResult | AuthError;
