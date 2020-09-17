@@ -18,7 +18,7 @@ export const Constants = {
     ENOENT_ERROR: "ENOENT",
 
     /**
-     * Operation not permitted. AN attempt was made to perform an operation taht requires 
+     * Operation not permitted. An attempt was made to perform an operation that requires 
      * elevated privileges. 
      */
     EPERM_ERROR: "EPERM",
