@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Realm should fallback to an empty string for non AAD scenarios",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-09-14T20:09:47.830Z"
+}

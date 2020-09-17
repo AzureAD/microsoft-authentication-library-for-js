@@ -25,6 +25,7 @@ testAccountEntity.localAccountId = "testId";
 testAccountEntity.environment = "login.windows.net";
 testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
+testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 
 const testIdToken: IdTokenEntity = new IdTokenEntity();
@@ -235,7 +236,8 @@ describe("SilentFlowClient unit tests", () => {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username
+            username: ID_TOKEN_CLAIMS.preferred_username,
+            name: ID_TOKEN_CLAIMS.name
         };
         
         beforeEach(async () => {
