@@ -232,6 +232,9 @@ FakesAssemblies/
 # Visual Studio 6 workspace options file
 *.opt
 
+# VS Code History Plugin
+.history
+
 # Visual Studio LightSwitch build output
 **/*.HTMLClient/GeneratedArtifacts
 **/*.DesktopClient/GeneratedArtifacts

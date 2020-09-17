@@ -1,5 +1,6 @@
 {
-  "include": ["src", "types", "test"],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"],
   "compilerOptions": {
     "target": "es5",
     "module": "esnext",
@@ -7,7 +8,8 @@
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "../msal-node/",
+    "rootDir": "./",
+    "outDir": "./dist",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -21,10 +23,6 @@
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
-    "baseUrl": "./",
-    "paths": {
-      "*": ["src/*", "node_modules/*"]
-    },
     "jsx": "react",
     "esModuleInterop": true
   }

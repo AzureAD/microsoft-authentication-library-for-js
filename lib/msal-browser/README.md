@@ -63,13 +63,13 @@ See [here](./docs/cdn-usage.md) for more info on how to use this package from th
 ### Compiled
 
 ```javascript
-<script src="https://alcdn.msauth.net/browser/2.0.1/js/msal-browser.js" integrity="sha384-knPh00kvaT+k3+4TCD5S2ORDNVc2I3RVbqI/ksbTlpdSBh8ZnyAPxW2kkTSG0+mT" crossorigin="anonymous"></script>
+<script src="https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.js" integrity="sha384-M9bRB06LdiYadS+F9rPQnntFCYR3UJvtb2Vr4Tmhw9WBwWUfxH8VDRAFKNn3VTc/" crossorigin="anonymous"></script>
 ```
 
 ### Minified
 
 ```javascript
-<script src="https://alcdn.msauth.net/browser/2.0.1/js/msal-browser.min.js" integrity="sha384-fbyYRj8H9iJU/JyncEbzW6WgVOaR5C+PU1dHsRBg2Ag2Q14F4IB8+T8BdknwjRQ8" crossorigin="anonymous"></script>
+<script src="https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.min.js" integrity="sha384-EmYPwkfj+VVmL1brMS1h6jUztl4QMS8Qq8xlZNgIT/luzg7MAzDVrRa2JxbNmk/e" crossorigin="anonymous"></script>
 ```
 
 ## Usage
@@ -100,6 +100,9 @@ The [`msal-browser-samples` folder](https://github.com/AzureAD/microsoft-authent
 - You can run any VanillaJSTestApp2.0 sample by changing the `authConfig.js` file in the respective folder to match your app registration and running the `npm` command `npm start -- -s <sample-name> -p <port>` in the VanillaJSTestApp2.0 folder. 
 - You can run the TypescriptTestApp2.0 sample by changing the `AuthModule.ts` file to match your app registration and running the `npm` command `npm start` in the TypescriptTestApp2.0 folder.
 
+Additionally, the `msal-angular-v2-samples` folder contains an Angular 10 sample app that uses msal-browser. 
+- You can run the angular10-browser sample by changing the `app.module.ts` file to match your app registration and running the `npm` command `npm start` in the angular-10-browser-sample folder.
+
 Here is a complete list of samples for the MSAL.js 2.x library:
 
 | Sample | Description | How to Run |
@@ -110,6 +113,7 @@ Here is a complete list of samples for the MSAL.js 2.x library:
 | [On Page Load Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad) | A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect. | `npm start -- -s onPageLoad` |
 | [ssoSilent() Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ssoSilent) | A vanilla JS sample showing usage of the ssoSilent API, allowing you to sign in a user silently if a context exists on the authentication server. | `npm start -- -s ssoSilent` |
 | [Internet Explorer 11 Sample]() | A vanilla JS sample showing usage of `@azure/msal-browser` in an application designed to run in Internet Explorer 11. | `npm start -- -s ie11-sample` |
+| [Angular 10 Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-browser-sample) | An Angular 10 sample showing usage of MSAL 2.0 with the Microsoft Graph API. | `npm start` |
 
 More instructions to run the samples can be found in the [`README.md` file](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/Readme.md) of the VanillaJSTestApp2.0 folder.
 

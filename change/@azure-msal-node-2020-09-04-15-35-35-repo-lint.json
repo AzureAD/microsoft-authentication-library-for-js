@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update msal node to use central eslint configuration",
+  "packageName": "@azure/msal-node",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-09-04T22:35:35.560Z"
+}

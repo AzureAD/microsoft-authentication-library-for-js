@@ -36,6 +36,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      clientInfo: Full base64 encoded client info received from ESTS
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp:
+ *      oboAssertion: access token passed in as part of OBO request
  * }
  */
 export class AccountEntity {
@@ -49,6 +50,7 @@ export class AccountEntity {
     clientInfo?: string;
     lastModificationTime?: string;
     lastModificationApp?: string;
+    oboAssertion?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -97,7 +99,8 @@ export class AccountEntity {
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
-            username: this.username
+            username: this.username,
+            name: this.name
         };
     }
 
@@ -126,7 +129,8 @@ export class AccountEntity {
         clientInfo: string,
         authority: Authority,
         idToken: IdToken,
-        crypto: ICrypto
+        crypto: ICrypto,
+        oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -142,7 +146,9 @@ export class AccountEntity {
         }
 
         account.environment = env;
-        account.realm = idToken.claims.tid;
+        // non AAD scenarios can have empty realm
+        account.realm = idToken.claims.tid || "";
+        account.oboAssertion = oboAssertion;
 
         if (idToken) {
             // How do you account for MSA CID here?
@@ -151,8 +157,10 @@ export class AccountEntity {
                 : idToken.claims.sid;
             account.localAccountId = localAccountId;
 
-            // In B2C scenarios the emails claim is used instead of preferred_username and it is an array. In most cases it will contain a single email.
-            // This field should not be relied upon if a custom policy is configured to return more than 1 email.
+            /*
+             * In B2C scenarios the emails claim is used instead of preferred_username and it is an array. In most cases it will contain a single email.
+             * This field should not be relied upon if a custom policy is configured to return more than 1 email.
+             */
             account.username = idToken.claims.preferred_username || (idToken.claims.emails? idToken.claims.emails[0]: "");
             account.name = idToken.claims.name;
         }
@@ -167,12 +175,16 @@ export class AccountEntity {
      */
     static createADFSAccount(
         authority: Authority,
-        idToken: IdToken
+        idToken: IdToken,
+        oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
+        // non AAD scenarios can have empty realm
+        account.realm = "";
+        account.oboAssertion = oboAssertion;
 
         const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
         const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
@@ -183,8 +195,10 @@ export class AccountEntity {
 
         account.environment = env;
         account.username = idToken.claims.upn;
-        // add uniqueName to claims
-        // account.name = idToken.claims.uniqueName;
+        /*
+         * add uniqueName to claims
+         * account.name = idToken.claims.uniqueName;
+         */
 
         return account;
     }
