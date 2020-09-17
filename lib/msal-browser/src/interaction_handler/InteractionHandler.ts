@@ -2,10 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 
 /**
  * Abstract class which defines operations for a browser interaction handling class.
@@ -37,9 +37,8 @@ export abstract class InteractionHandler {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
-        const hashUrlString = new UrlString(locationHash);
         // Deserialize hash fragment response parameters.
-        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hashUrlString.getHash());
+        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
 
         // Handle code response.
         const requestState = this.browserStorage.getItem(this.browserStorage.generateStateKey(serverParams.state), CacheSchemaType.TEMPORARY) as string;
