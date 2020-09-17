@@ -22,7 +22,7 @@ export class BrowserCacheUtils {
             return this.page.evaluate(() => Object.assign({}, window.sessionStorage))
         }
     }
-    
+
     async getTokens(): Promise<tokenMap> {
         const storage = await this.getWindowStorage();
         let tokenKeys: tokenMap = {
@@ -30,7 +30,7 @@ export class BrowserCacheUtils {
             accessTokens: [],
             refreshTokens: []
         }
-        
+
         Object.keys(storage).forEach(async key => {
             if (key.includes("idtoken") && BrowserCacheUtils.validateToken(storage[key], "IdToken")) {
                 tokenKeys.idTokens.push(key);
@@ -40,15 +40,15 @@ export class BrowserCacheUtils {
                 tokenKeys.refreshTokens.push(key)
             }
         });
-        
+
         return tokenKeys;
     }
-    
+
     static validateToken(rawTokenVal: string, tokenType: String): boolean {
         const tokenVal = JSON.parse(rawTokenVal);
-        
+
         if (
-            !BrowserCacheUtils.validateStringField(tokenVal.clientId) || 
+            !BrowserCacheUtils.validateStringField(tokenVal.clientId) ||
             !BrowserCacheUtils.validateStringField(tokenVal.credentialType) ||
             !BrowserCacheUtils.validateStringField(tokenVal.environment) ||
             !BrowserCacheUtils.validateStringField(tokenVal.homeAccountId) ||
@@ -57,7 +57,7 @@ export class BrowserCacheUtils {
             ) {
                 return false;
             }
-            
+
             if (tokenType === "IdToken" && !BrowserCacheUtils.validateStringField(tokenVal.realm)) {
                 return false;
             } else if (tokenType === "AccessToken") {
@@ -70,27 +70,27 @@ export class BrowserCacheUtils {
                         return false;
                     }
                 }
-                
+
                 return true;
             }
-            
+
     static validateStringField(field: any): boolean {
         return typeof(field) === "string" && field.length > 0;
     }
-            
+
     async accessTokenForScopesExists(accessTokenKeys: Array<string>, scopes: Array<String>): Promise<boolean> {
         const storage = await this.getWindowStorage();
-        
+
         return accessTokenKeys.some((key) => {
             const tokenVal = JSON.parse(storage[key]);
             const tokenScopes = tokenVal.target.split(' ');
-            
-            return scopes.every((scope) => {
+
+            return scopes.every((scope.toLowerCase()) => {
                 return tokenScopes.includes(scope.toLowerCase());
             });
         });
     }
-            
+
     async removeTokens(tokens: Array<string>): Promise<void> {
         if (this.storageType === "localStorage") {
             await Promise.all(tokens.map(async (tokenKey) => {
@@ -102,16 +102,16 @@ export class BrowserCacheUtils {
             }));
         }
     }
-            
+
     async getAccountFromCache(idTokenKey: string): Promise<Object|null> {
         const storage = await this.getWindowStorage();
         const tokenVal = JSON.parse(storage[idTokenKey]);
         const accountKey = tokenVal.homeAccountId + "-" + tokenVal.environment + "-" + tokenVal.realm;
-        
+
         if (Object.keys(storage).includes(accountKey)) {
             return JSON.parse(storage[accountKey]);
         }
-        
+
         return null
     }
 
