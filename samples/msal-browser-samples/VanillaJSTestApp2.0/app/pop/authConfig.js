@@ -39,6 +39,10 @@ const graphConfig = {
     graphMailEndpoint: "https://graph.microsoft-ppe.com/v1.0/me/messages"
 };
 
+const popConfig = {
+    endpoint: "https://signedhttprequest.azurewebsites.net/api/validateSHR"
+};
+
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
     scopes: ["User.Read"],
@@ -54,5 +58,8 @@ const tokenRequest = {
 };
 
 const silentRequest = {
-    scopes: ["openid", "profile", "User.Read", "Mail.Read"]
+    scopes: ["openid", "profile", "User.Read", "Mail.Read"],
+    authenticationScheme: msal.AuthenticationScheme.POP,
+    resourceRequestMethod: "POST",
+    resourceRequestUri: graphConfig.graphMeEndpoint
 };
