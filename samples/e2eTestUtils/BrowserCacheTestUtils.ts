@@ -83,7 +83,7 @@ export class BrowserCacheUtils {
 
         return accessTokenKeys.some((key) => {
             const tokenVal = JSON.parse(storage[key]);
-            const tokenScopes = tokenVal.target.split(" ");
+            const tokenScopes = tokenVal.target.toLowerCase().split(" ");
 
             return scopes.every((scope) => {
                 return tokenScopes.includes(scope.toLowerCase());
