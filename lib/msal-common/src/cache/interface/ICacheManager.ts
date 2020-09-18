@@ -37,7 +37,7 @@ export interface ICacheManager {
      * retrieve a credential - accessToken, idToken or refreshToken; given the cache key
      * @param key
      */
-    getCredential(key: string): CredentialEntity;
+    getCredential(key: string): CredentialEntity | null;
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
