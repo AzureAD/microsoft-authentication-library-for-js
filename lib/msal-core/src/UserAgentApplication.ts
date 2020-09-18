@@ -46,7 +46,6 @@ import { Constants,
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
-import { server } from 'sinon';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -797,7 +796,7 @@ export class UserAgentApplication {
                     logMessage = "No token found in cache lookup";
                 }
                 this.logger.verbose(logMessage);
-
+                
                 // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the API.
                 if (!serverAuthenticationRequest.authorityInstance) {
                     serverAuthenticationRequest.authorityInstance = request.authority ? 
@@ -828,7 +827,7 @@ export class UserAgentApplication {
                         if (request.scopes && ScopeSet.onlyContainsOidcScopes(request.scopes)) {
                             /*
                              * App uses idToken to send to api endpoints
-                             * Default scope is tracked as clientId to store this token
+                             * Default scope is tracked as OIDC scopes to store this token
                              */
                             this.logger.verbose("OpenID Connect scopes only, renewing idToken");
                             this.silentLogin = true;
@@ -1358,18 +1357,59 @@ export class UserAgentApplication {
         this.logger.verbose("GetCachedToken has been called");
         const scopes = serverAuthenticationRequest.scopes;
 
-        let authResponse: AuthResponse = null;
-        // Id Token will be returned in every acquireTokenSilentCall regardless of response_type
+        /**
+         * Id Token should be returned in every acquireTokenSilent call. The only exception is a response_type = token
+         * request when a valid ID Token is not present in the cache.
+         */
         const idToken = this.getCachedIdToken(serverAuthenticationRequest, account);
-        
-        // Look in cache for access token in case of token or id_token token response_type
-        if (serverAuthenticationRequest.responseType !== ResponseTypes.id_token) {
-            // If getCachedAccessToken returns null, ResponseUtils.setResponseIdToken will also return null
-            authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
-        } else {
-            // Build an ID Token only AuthResponse when response_type = id_token
+        switch(serverAuthenticationRequest.responseType) {
+            case ResponseTypes.id_token:
+                this.logger.verbose("Returning ID Token AuthResponse cache result");
+                return this.buildIdTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
+            case ResponseTypes.id_token_token:
+                this.logger.verbose("Returning Access Token and ID Token AuthResponse cache result");
+               return this.buildIdTokenTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
+            default: // ResponseTypes.token
+                this.logger.verbose("Returning Access Token AuthResponse cache result");
+                return this.buildTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
+        }
+    }
+
+    private buildTokenAuthResponse(idToken: IdToken, serverAuthenticationRequest: ServerRequestParameters, scopes: Array<string>, account: Account): AuthResponse {
+        const authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
+        return ResponseUtils.setResponseIdToken(authResponse, idToken);
+    }
+
+    /**
+     * Returns an AuthResponse object that includes both a valid AccessToken and IdToken or null if either is 
+     * missing or expired.
+     * @param idToken 
+     * @param serverAuthenticationRequest 
+     * @param scopes 
+     * @param account 
+     */
+    private buildIdTokenTokenAuthResponse(idToken: IdToken, serverAuthenticationRequest: ServerRequestParameters, scopes: Array<string>, account: Account) : AuthResponse {
+        const authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
+
+        // For id_token_token, either both are returned from the cache or both are requested from the server
+        if (authResponse  && idToken) {
+            return ResponseUtils.setResponseIdToken(authResponse, idToken);
+        }
+        return null;
+    }
+
+    /**
+     * Returns an AuthResponse object that includes a valid IdToken or null if no valid
+     * IdToken is passed in (found in the cache).
+     * @param idToken 
+     * @param serverAuthenticationRequest 
+     * @param scopes 
+     * @param account 
+     */
+    private buildIdTokenAuthResponse(idToken: IdToken, serverAuthenticationRequest: ServerRequestParameters, scopes: Array<string>, account: Account): AuthResponse {
+        if(idToken) {
             const aState = this.getAccountState(serverAuthenticationRequest.state);
-            authResponse = {
+            const authResponse: AuthResponse = {
                 uniqueId: "",
                 tenantId: "",
                 tokenType: ServerHashParamKeys.ID_TOKEN,
@@ -1382,11 +1422,12 @@ export class UserAgentApplication {
                 accountState: aState,
                 fromCache: true
             };
-
+    
             this.logger.verbose("Response generated and token set");
+            return ResponseUtils.setResponseIdToken(authResponse, idToken);
         }
-
-        return (idToken) ? ResponseUtils.setResponseIdToken(authResponse, idToken) : authResponse;
+        // If no access token is found in cache, return null to trigger token renewal`
+        return null;
     }
 
     /**
@@ -1426,6 +1467,7 @@ export class UserAgentApplication {
     private getCachedAccessToken(serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: string[]): AuthResponse {
         // filter by clientId and account
         const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : null);
+        
         this.logger.verbose("Getting all cached access tokens");
 
         // No match found after initial filtering
@@ -1445,7 +1487,17 @@ export class UserAgentApplication {
             for (let i = 0; i < tokenCacheItems.length; i++) {
                 const cacheItem = tokenCacheItems[i];
                 const cachedScopes = cacheItem.key.scopes.split(" ");
-                if (ScopeSet.containsScope(cachedScopes, scopes)) {
+
+                /**
+                 * Ignore OIDC scopes in the request for lookup in case of an id_token token response type, which would have a scopes
+                 * array including openid and profile. This method is guaranteed to be called with at least one resource scope
+                 * in the scopes list, given the scope validations for non id_token response type requests.
+                 * */
+                const searchScopes = ScopeSet.removeDefaultScopes(scopes);
+
+                if (searchScopes.length === 0 && ScopeSet.containsScope(cachedScopes, scopes)) {
+                    filteredItems.push(cacheItem);
+                } else if (ScopeSet.containsScope(cachedScopes, searchScopes)) {
                     filteredItems.push(cacheItem);
                 }
             }

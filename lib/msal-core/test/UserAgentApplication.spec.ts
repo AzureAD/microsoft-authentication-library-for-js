@@ -1490,6 +1490,343 @@ describe("UserAgentApplication.ts Class", function () {
                 throw `Shouldn't have response here. Data: ${JSON.stringify(response)}`;
             }).catch(done);
         });
+        
+        describe("Response Type based AuthResponse", () => {
+            describe("response_type = token", () => {
+                let tokenRequest : AuthenticationParameters;
+                beforeEach(() => {
+                    tokenRequest = {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: ["S1"],
+                        account: account
+                    };
+                    setAuthInstanceStubs();
+                    sinon.stub(msal, "getAccount").returns(account);
+                    sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+                });
+
+                afterEach(() => {
+                    cacheStorage.clear();
+                    sinon.reset();
+                })
+
+                it("should return null if there is no cached access token", (done) => {
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=S1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+                
+                it("should return access token if there is a valid matching access token in the cache", (done) => {
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+                    msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                        expect(response.scopes).to.be.deep.eq(["s1"]);
+                        expect(response.account).to.be.eq(account);
+                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        done();
+                    }).catch(done);
+                });
+
+                it("should return null if there is an expired matching access token in the cache", (done) => {
+                    accessTokenValue.expiresIn = "0";
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=S1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should return access token with null id token if there is a valid matching access token in the cache but no matching id token", (done) => {
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+                    msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                        expect(response.scopes).to.be.deep.eq(["s1"]);
+                        expect(response.account).to.be.eq(account);
+                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        expect(response.idToken).to.be.null;
+                        expect(response.idTokenClaims).to.be.null;
+                        done();
+                    }).catch(done);
+                });
+
+                it("should return access token with null id token if there is a valid matching access token in the cache and an expired id token", (done) => {
+                    idToken.expiresIn = "0";
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+                    msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                        expect(response.scopes).to.be.deep.eq(["s1"]);
+                        expect(response.account).to.be.eq(account);
+                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        expect(response.idToken).to.be.null;
+                        expect(response.idTokenClaims).to.be.null;
+                        done();
+                    }).catch(done);
+                });
+
+
+                it("should return access token with id token if there are valid matching access token and id token in the cache", (done) => {
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+                    msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                        expect(response.scopes).to.be.deep.eq(["s1"]);
+                        expect(response.account).to.be.eq(account);
+                        expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        done();
+                    }).catch(done);
+                });
+            });
+
+            describe("response_type = id_token", () => {
+                let tokenRequest : AuthenticationParameters;
+                beforeEach(() => {
+                    tokenRequest = {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: ["openid", "profile"],
+                        account: account
+                    };
+                    setAuthInstanceStubs();
+                    sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+                });
+
+                afterEach(() => {
+                    cacheStorage.clear();
+                    sinon.reset();
+                });
+
+                it("should return null if there is no cached id token", (done) => {
+                    const renewIdTokenSpy = sinon.spy(msal, <any>"renewIdToken");
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewIdTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should return null if there is a matching but expired id token in the cache", (done) => {
+                    const renewIdTokenSpy = sinon.spy(msal, <any>"renewIdToken");
+
+                    idToken.expiresIn = "0";
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewIdTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+                
+                it("should return ID token if there is a valid matching ID token in the cache", (done) => {
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+                    msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                        expect(response.scopes).to.be.deep.eq(["openid", "profile"]);
+                        expect(response.account).to.be.eq(account);
+                        expect(response.idToken.rawIdToken).to.eq(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                        done();
+                    }).catch(done);
+                });
+            });
+
+            describe("response_type = id_token_token", () => {
+                let tokenRequest : AuthenticationParameters;
+                beforeEach(() => {
+                    tokenRequest = {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: ["S1", "openid", "profile"],
+                        account: account
+                    };
+                    setAuthInstanceStubs();
+                    sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+                });
+
+                afterEach(() => {
+                    cacheStorage.clear();
+                    sinon.reset();
+                });
+
+                it("should return null if there is no cached id token or access token", (done) => {
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should return null if there is a valid cached access token but no cached id token", (done) => {
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should return null if there is a valid cached id token but no cached access token", (done) => {
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should return null if cached id token and access token are expired", (done) => {
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+                    accessTokenValue.expiresIn = "0";
+                    idToken.expiresIn = "0";
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should return null if there is a valid cached access token but the cached id token is expired", (done) => {
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+                    idToken.expiresIn = "0";
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should return null if there is a valid id token but the cached access token is expired", (done) => {
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+                    accessTokenValue.expiresIn = "0";
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should return valid id_token_token response if valid access and id token are found in the cache", (done) => {
+                    cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+                    msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                        expect(response.scopes).to.be.deep.eq(["s1"]);
+                        expect(response.account).to.be.eq(account);
+                        expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        done();
+                    }).catch(done);
+                });
+            });
+        });
     });
 
     describe("Processing Authentication Responses", function() {
