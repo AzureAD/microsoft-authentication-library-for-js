@@ -74,7 +74,7 @@ export class MsalService implements IMsalService {
         const loggedInAccounts = this.msalInstance.getAllAccounts();
         return from(
             this.msalInstance.handleRedirectPromise()
-                .then((authResponse) => {
+                .then((authResponse: AuthenticationResult) => {
                     if (authResponse) {
                         const loggedInAccount = loggedInAccounts.find((account) => account.username === authResponse.account.username);
                         if (loggedInAccount) {
@@ -84,6 +84,14 @@ export class MsalService implements IMsalService {
                         }
                     }
                     return authResponse;
+                })
+                .catch((error: AuthError) => {
+                    if (this.getAllAccounts().length > 0) {
+                        this.broadcastService.broadcast(MsalBroadcastEvent.ACQUIRE_TOKEN_FAILURE, error);
+                    } else {
+                        this.broadcastService.broadcast(MsalBroadcastEvent.LOGIN_FAILURE, error);
+                    }
+                    throw error;
                 })
 
         );
@@ -96,7 +104,7 @@ export class MsalService implements IMsalService {
                     return authResponse;
                 })
                 .catch((error: AuthError) => {
-                    this.broadcastService.broadcast(MsalBroadcastEvent.ACQUIRE_TOKEN_SUCCESS, error);
+                    this.broadcastService.broadcast(MsalBroadcastEvent.LOGIN_FAILURE, error);
                     throw error;
                 })
         );
