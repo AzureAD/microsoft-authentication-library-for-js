@@ -2,6 +2,45 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "msal_v1.4.0",
+      "version": "1.4.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update core, browser, common to use central eslint configuration",
+            "author": "janutter@microsoft.com",
+            "commit": "fc49c6f16b3f7a62a67d249107fc484272133305",
+            "package": "msal"
+          },
+          {
+            "comment": "Doc updates",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a89fcea6df5c806a99de9e38ca67816910c93883",
+            "package": "msal"
+          },
+          {
+            "comment": "update package-lock.json",
+            "author": "prkanher@microsoft.com",
+            "commit": "0b296f957303031552a8b768f56310488a9e63d2",
+            "package": "msal"
+          },
+          {
+            "comment": "Updating CDN docs",
+            "author": "prkanher@microsoft.com",
+            "commit": "f831b9f079665b839168a27badd2f9dcbe884214",
+            "package": "msal"
+          },
+          {
+            "comment": "Change files",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9760b6ff6c0ad403ac1b26968cb10d3d7e72a6fd",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 25 Aug 2020 00:40:45 GMT",
       "tag": "msal_v1.4.0",
       "version": "1.4.0",
