@@ -423,7 +423,6 @@ describe("CacheManager.ts test cases", () => {
         cacheManager.removeAllAccounts();
 
         // Only app metadata remaining
-        console.log(cacheManager.getKeys());
         expect(cacheManager.getKeys().length === 1).to.be.true;
     });
 
@@ -487,4 +486,36 @@ describe("CacheManager.ts test cases", () => {
         expect(idToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID);
     });
 
+    it("readRefreshTokenFromCache", () => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+        const refreshToken = cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false);
+        expect(refreshToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID);
+    });
+
+    it("readRefreshTokenFromCache Error", () => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+        const refreshToken = cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
+        expect(refreshToken).to.equal(null);
+    });
+
+    it("readRefreshTokenFromCache with familyId", () => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+        const refreshToken = cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
+        expect(refreshToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID_1);
+    });
+
+    it("readRefreshTokenFromCache with environment aliases", () => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            environment: "login.windows.net",
+            tenantId: "mocked_tid",
+            username: "mocked_username"
+        };
+
+        const cachedToken = cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, false);
+        console.log(cachedToken);
+        expect(cachedToken.homeAccountId).to.equal("uid.utid");
+        expect(cachedToken.environment).to.equal("login.microsoftonline.com");
+    });
 });

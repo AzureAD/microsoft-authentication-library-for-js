@@ -13,7 +13,6 @@ import {AADServerParamKeys, GrantType, Constants, CredentialType} from "../../sr
 import {ClientTestUtils} from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
-import { IdTokenClaims } from "../../src/account/IdTokenClaims";
 import { IdToken } from "../../src/account/IdToken";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
