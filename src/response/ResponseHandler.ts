@@ -141,7 +141,7 @@ export class ResponseHandler {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
-        // IdToken
+        // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity = null;
         let cachedAccount: AccountEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
@@ -150,7 +150,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                idTokenObj.claims.tid,
+                idTokenObj.claims.tid || "",
                 oboAssertion
             );
 
@@ -177,12 +177,13 @@ export class ResponseHandler {
             const tokenExpirationSeconds = timestamp + serverTokenResponse.expires_in;
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
 
+            // non AAD scenarios can have empty realm
             cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                idTokenObj ? idTokenObj.claims.tid : authority.tenant,
+                idTokenObj ? idTokenObj.claims.tid || "" : authority.tenant,
                 responseScopes.printScopesLowerCase(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
