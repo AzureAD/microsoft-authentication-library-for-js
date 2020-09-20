@@ -465,7 +465,7 @@ describe("CacheManager.ts test cases", () => {
         expect(() => cacheManager.getAccessTokenEntity("client_id", mockedAccountInfo, new ScopeSet(["openid"]))).to.throw(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
-    it.only("getRefreshTokenEntity", () => {
+    it("getRefreshTokenEntity", () => {
         ClientTestUtils.setCloudDiscoveryMetadataStubs();
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
