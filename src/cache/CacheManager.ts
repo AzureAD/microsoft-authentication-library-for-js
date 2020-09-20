@@ -203,7 +203,7 @@ export abstract class CacheManager implements ICacheManager {
         const matchingAccounts: AccountCache = {};
 
         allCacheKeys.forEach((cacheKey) => {
-            const entity: AccountEntity | null = this.getAccountEntity(cacheKey);
+            const entity: AccountEntity | null = this.getAccount(cacheKey);
 
             if (!entity) {
                 return null;
@@ -225,32 +225,6 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         return matchingAccounts;
-    }
-
-    /**
-     * Returns a valid AccountEntity if key and object contain correct values, null otherwise.
-     * @param key
-     */
-    private getAccountEntity(key: string): AccountEntity | null {
-        // don't parse any non-account type cache entities
-        if (CredentialEntity.getCredentialType(key) !== Constants.NOT_DEFINED || this.isAppMetadata(key)) {
-            return null;
-        }
-
-        // Attempt retrieval
-        let entity: AccountEntity;
-        try {
-            entity = this.getItem(key, CacheSchemaType.ACCOUNT) as AccountEntity;
-        } catch (e) {
-            return null;
-        }
-
-        // Authority type is required for accounts, return if it is not available (not an account entity)
-        if (!AccountEntity.isAccountEntity(entity)) {
-            return null;
-        }
-
-        return entity;
     }
 
     /**
@@ -368,7 +342,7 @@ export abstract class CacheManager implements ICacheManager {
     removeAllAccounts(): boolean {
         const allCacheKeys = this.getKeys();
         allCacheKeys.forEach((cacheKey) => {
-            const entity: AccountEntity | null = this.getAccountEntity(cacheKey);
+            const entity: AccountEntity | null = this.getAccount(cacheKey);
             if (!entity) {
                 return;
             }
