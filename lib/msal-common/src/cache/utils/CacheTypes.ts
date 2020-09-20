@@ -41,6 +41,7 @@ export type CredentialFilter = {
     environment?: string;
     credentialType?: string;
     clientId?: string;
+    familyId?: string;
     realm?: string;
     target?: string;
     oboAssertion?: string;

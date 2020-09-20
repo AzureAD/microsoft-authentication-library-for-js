@@ -10,7 +10,7 @@ import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType } from "../utils/Constants";
+import { GrantType, Errors } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
@@ -19,6 +19,7 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { ServerError } from "../error/ServerError";
 
 /**
  * OAuth2.0 refresh token client
@@ -64,18 +65,62 @@ export class RefreshTokenClient extends BaseClient {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
 
-        const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account);
-        // no refresh Token
-        if (!refreshToken) {
-            throw ClientAuthError.createNoTokensFoundError();
+        // try checking if Family Refresh Token (FRT) is available
+        const familyRTResult = await this.acquireFamilyRefreshToken(request);
+        if (familyRTResult) {
+            return familyRTResult;
+        }
+        // fetch application Refresh Token (ART)
+        else {
+            const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, false);
+            // no refresh Token
+            if (!refreshToken) {
+                throw ClientAuthError.createNoTokensFoundError();
+            }
+
+            const refreshTokenRequest: RefreshTokenRequest = {
+                ...request,
+                refreshToken: refreshToken.secret
+            };
+
+            const refreshTokenResult = await this.acquireToken(refreshTokenRequest);
+            return refreshTokenResult;
         }
 
-        const refreshTokenRequest: RefreshTokenRequest = {
-            ...request,
-            refreshToken: refreshToken.secret
-        };
+    }
 
-        return this.acquireToken(refreshTokenRequest);
+    /**
+     * retrive a Family refresh token if present and make a refreshTokenRequest
+     * @param request
+     */
+    private async acquireFamilyRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        const isFOCI = this.cacheManager.isAppMetadataFOCI(request.account.environment, this.config.authOptions.clientId);
+
+        // if the app is part of the family
+        if (isFOCI) {
+            const familyRefreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, true);
+            // no family refresh Token
+            if (!familyRefreshToken) {
+                return null;
+            } else {
+                const refreshTokenRequest: RefreshTokenRequest = {
+                    ...request,
+                    refreshToken: familyRefreshToken.secret
+                };
+
+                try {
+                    return this.acquireToken(refreshTokenRequest);
+                } catch (e) {
+                    // if client_mismatch, retry with ART and hence we return null
+                    if (e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR) {
+                        return null;
+                    } else {
+                        throw e;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
