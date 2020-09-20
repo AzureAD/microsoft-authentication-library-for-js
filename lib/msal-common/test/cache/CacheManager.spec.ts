@@ -435,17 +435,17 @@ describe("CacheManager.ts test cases", () => {
         const atKey = at.generateCredentialKey();
         expect(store[atKey]).to.eql(undefined);
     });
-    
+
     it("getAccessTokenEntity matches multiple tokens, throws error", () => {
-        
+
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "mocked_homeaccountid", "login.microsoftonline.com", "an_access_token", "client_id", TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
-            
+
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "mocked_homeaccountid", "login.microsoftonline.com", "an_access_token", "client_id", TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
-            
+
         const mockedCredentialCache: CredentialCache = {
-            accessTokens: { 
+            accessTokens: {
                 "key1": mockedAtEntity,
                 "key2": mockedAtEntity2
             },
@@ -463,5 +463,21 @@ describe("CacheManager.ts test cases", () => {
         };
 
         expect(() => cacheManager.getAccessTokenEntity("client_id", mockedAccountInfo, new ScopeSet(["openid"]))).to.throw(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+    });
+
+    it.only("getRefreshTokenEntity", () => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            environment: "login.windows.net",
+            tenantId: "mocked_tid",
+            username: "mocked_username"
+        };
+
+        const cachedToken = cacheManager.getRefreshTokenEntity("mock_client_id", mockedAccountInfo);
+        console.log(cachedToken);
+        expect(cachedToken.homeAccountId).to.equal("uid.utid");
+        expect(cachedToken.environment).to.equal("login.microsoftonline.com");
+
     });
 });

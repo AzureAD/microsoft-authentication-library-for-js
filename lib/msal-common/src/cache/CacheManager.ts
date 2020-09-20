@@ -256,9 +256,8 @@ export abstract class CacheManager implements ICacheManager {
         const numrefreshTokens = refreshTokens.length;
         if (numrefreshTokens < 1) {
             return null;
-        } else if (numrefreshTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
         }
+        // Handle this case later - after modifying removeAccount based on environment aliases
 
         return refreshTokens[0] as RefreshTokenEntity;
     }
