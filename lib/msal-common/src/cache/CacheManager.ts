@@ -192,9 +192,9 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Helper function to retrieve IdTokenEntity from cache
-     * @param clientId 
-     * @param account 
-     * @param inputRealm 
+     * @param clientId
+     * @param account
+     * @param inputRealm
      */
     getIdTokenEntity(clientId: string, account: AccountInfo): IdTokenEntity | null {
         const idTokenKey: string = CredentialEntity.generateCredentialCacheKey(
@@ -210,10 +210,10 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Helper function to retrieve AccessTokenEntity from cache
-     * @param clientId 
-     * @param account 
-     * @param scopes 
-     * @param inputRealm 
+     * @param clientId
+     * @param account
+     * @param scopes
+     * @param inputRealm
      */
     getAccessTokenEntity(clientId: string, account: AccountInfo, scopes: ScopeSet): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
@@ -239,8 +239,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Helper function to retrieve RefreshTokenEntity from cache
-     * @param clientId 
-     * @param account 
+     * @param clientId
+     * @param account
      */
     getRefreshTokenEntity(clientId: string, account: AccountInfo): RefreshTokenEntity | null {
         const refreshTokenKey: string = CredentialEntity.generateCredentialCacheKey(

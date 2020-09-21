@@ -376,11 +376,16 @@ describe("CacheManager.ts test cases", () => {
             expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
 
             const filterOidcscopes = { target: "scope1 scope2 scope3 offline_access openid profile" };
-            const filteredCredentials = cacheManager.getCredentialsFilteredBy(filterOidcscopes);
-            expect(Object.keys(filteredCredentials.idTokens).length).to.eql(0);
-            expect(Object.keys(filteredCredentials.accessTokens).length).to.eql(1);
-            expect(Object.keys(filteredCredentials.refreshTokens).length).to.eql(0);
+            credentials = cacheManager.getCredentialsFilteredBy(filterOidcscopes);
+            expect(Object.keys(credentials.idTokens).length).to.eql(0);
+            expect(Object.keys(credentials.accessTokens).length).to.eql(1);
+            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
 
+            const filterScopesCase = { target: "scope1 scope2 SCOPE3 offline_access openid profile" };
+            credentials = cacheManager.getCredentialsFilteredBy(filterScopesCase);
+            expect(Object.keys(credentials.idTokens).length).to.eql(0);
+            expect(Object.keys(credentials.accessTokens).length).to.eql(1);
+            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
         });
     });
 
@@ -435,17 +440,17 @@ describe("CacheManager.ts test cases", () => {
         const atKey = at.generateCredentialKey();
         expect(store[atKey]).to.eql(undefined);
     });
-    
+
     it("getAccessTokenEntity matches multiple tokens, throws error", () => {
-        
+
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "mocked_homeaccountid", "login.microsoftonline.com", "an_access_token", "client_id", TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
-            
+
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "mocked_homeaccountid", "login.microsoftonline.com", "an_access_token", "client_id", TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
-            
+
         const mockedCredentialCache: CredentialCache = {
-            accessTokens: { 
+            accessTokens: {
                 "key1": mockedAtEntity,
                 "key2": mockedAtEntity2
             },
