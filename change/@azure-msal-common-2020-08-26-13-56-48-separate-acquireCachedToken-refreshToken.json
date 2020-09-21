@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Separate cache lookup from token refresh (#2189)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-26T20:56:48.140Z"
-}

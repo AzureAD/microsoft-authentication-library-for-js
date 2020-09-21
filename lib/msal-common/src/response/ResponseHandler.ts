@@ -91,7 +91,7 @@ export class ResponseHandler {
      * @param authority
      */
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string, requestScopes?: string[], oboAssertion?: string): AuthenticationResult {
-        
+
         // generate homeAccountId
         if (serverTokenResponse.client_info) {
             this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
@@ -142,7 +142,7 @@ export class ResponseHandler {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
-        // IdToken
+        // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity = null;
         let cachedAccount: AccountEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
@@ -151,7 +151,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                idTokenObj.claims.tid,
+                idTokenObj.claims.tid || "",
                 oboAssertion
             );
 
@@ -166,7 +166,7 @@ export class ResponseHandler {
         // AccessToken
         let cachedAccessToken: AccessTokenEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
-            
+
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
 
@@ -178,13 +178,14 @@ export class ResponseHandler {
             const tokenExpirationSeconds = timestamp + serverTokenResponse.expires_in;
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
 
+            // non AAD scenarios can have empty realm
             cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                idTokenObj ? idTokenObj.claims.tid : authority.tenant,
-                responseScopes.printScopesLowerCase(),
+                idTokenObj ? idTokenObj.claims.tid || "" : authority.tenant,
+                responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
                 oboAssertion
