@@ -37,6 +37,9 @@
 
 1. [My application has multiple resources it needs to access to. How should I handle scopes for access tokens?](#my-application-has-multiple-resources-it-needs-to-access-to-how-should-i-handle-scopes-for-access-tokens)
 
+**[B2C](#B2C)**
+1. [Why is getAccountByUsername returning null, even though I'm signed in?](#why-is-getaccountbyusername-returning-null-even-though-im-signed-in)
+1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 
 **Common Issues**
 1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/errors.md)
@@ -78,6 +81,8 @@ The redirect flow can be confusing, as redirecting away from the page means you 
 If `navigateToRequestUrl` property in MSAL configuration parameters is set to **true**, you will be redirected again to the page you were on when you called `loginRedirect`, unless that page was also set as your `redirectUri`. On the final page your application must call `handleRedirectPromise()` in order to process the hash and cache tokens in local/session storage.
 
 As this function returns a promise you can call `.then` and `.catch`, similar to `loginPopup`.
+
+Please ensure `handleRedirectPromise` has resolved before invoking any other MSAL method. If your app was not loaded as a result of a redirect operation `handleRedirectPromise` will immediately return `null`.
 
 Please review one of our samples ([for instance](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default)) to see the redirect flow in action.
 
@@ -156,3 +161,17 @@ Please see the documentation on [Tenancy in Azure Active Directory](https://docs
 ## My application has multiple resources it needs to access to. How should I handle scopes for access tokens?
 
 Please see the doc about resources and scopes [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md)
+
+# B2C
+
+## Why is `getAccountByUsername()` returning null, even though I'm signed in?
+
+In order to use `getAccountByUsername()` in B2C scenarios you must enable your `idTokens` to return the `emails` claim in your B2C tenant. MSAL will fill the `username` field on the `AccountInfo` object with the first element of the array returned on the `emails` claim. In most cases this array will only have one element, however, if you notice that your idTokens are returning more than one email on this claim, ensure you are calling `getAccountByUsername` with the first email.
+
+To enable this claim open up your User Flow configuration in the Azure Portal. Click the `User Attributes` tab and make sure `Email Address` is checked. Then click the `Application Claims` tab and make sure `Email Addresses` is checked. You can verify that the `emails` claim is now being returned by acquiring an `idToken` and inspecting its contents.
+
+## I logged out of my application. Why am I not asked for credentials when I try to log back in?
+
+When you log out of a B2C application by calling MSAL's `logout()` API, MSAL.js will first clear browser storage of your user's tokens then redirect you to the Azure B2C logout endpoint. The B2C service will then close your session but may not log you out of your federated IDP. This happens because the service does not make any assumptions about other apps you may want to log out of. What this means in practice is that when a user attempts to login again the B2C service will prompt the user to select which Social IDP they would like to sign in with. When the user makes their selection, they may be signed back in without interaction.
+
+You can read more about this behavior [here](https://docs.microsoft.com/azure/active-directory-b2c/session-overview#sign-out)

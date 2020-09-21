@@ -1,11 +1,13 @@
 import { expect } from "chai";
+import "mocha";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult, CacheManager, AuthorizationCodeClient, CacheSchemaType } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 class TestInteractionHandler extends InteractionHandler {
 
@@ -18,15 +20,15 @@ class TestInteractionHandler extends InteractionHandler {
     }
 
     initiateAuthRequest(requestUrl: string): Window | Promise<HTMLIFrameElement> {
-		this.authCodeRequest = testAuthCodeRequest;
-		return null;
+        this.authCodeRequest = testAuthCodeRequest;
+        return null;
     }
 }
 
 const testAuthCodeRequest: AuthorizationCodeRequest = {
-	redirectUri: TEST_URIS.TEST_REDIR_URI,
-	scopes: ["scope1", "scope2"],
-	code: ""
+    redirectUri: TEST_URIS.TEST_REDIR_URI,
+    scopes: ["scope1", "scope2"],
+    code: ""
 };
 
 const testPkceCodes = {
@@ -41,18 +43,18 @@ const testNetworkResult = {
 const testKeySet = ["testKey1", "testKey2"];
 
 const networkInterface = {
-	sendGetRequestAsync<T>(
-		url: string,
-		options?: NetworkRequestOptions
-	): T {
-		return null;
-	},
-	sendPostRequestAsync<T>(
-		url: string,
-		options?: NetworkRequestOptions
-	): T {
-		return null;
-	},
+    sendGetRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): T {
+        return null;
+    },
+    sendPostRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): T {
+        return null;
+    },
 };
 
 class TestStorageInterface extends CacheManager {
@@ -80,19 +82,21 @@ describe("InteractionHandler.ts Unit Tests", () => {
 
     let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserStorage;
+    const cyrptoOpts = new CryptoOps();
+
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-		const configObj = buildConfiguration(appConfig);
-		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
+        const configObj = buildConfiguration(appConfig);
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
         authCodeModule = new AuthorizationCodeClient({
             authOptions: {
-				...configObj.auth,
-				authority: authorityInstance,
-			},
+                ...configObj.auth,
+                authority: authorityInstance,
+            },
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds
             },
@@ -128,7 +132,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true
             }
         });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cyrptoOpts);
     });
 
     afterEach(() => {
@@ -185,14 +189,16 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState"
-			};
-			sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-			const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+            };
+            browserStorage.setItem(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE, CacheSchemaType.TEMPORARY);
+            browserStorage.setItem(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), idTokenClaims.nonce, CacheSchemaType.TEMPORARY);
+            sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
-			interactionHandler.initiateAuthRequest("testNavUrl");
+            interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-			expect(tokenResponse).to.deep.eq(testTokenResponse);
-			expect(acquireTokenSpy.calledWith(testAuthCodeRequest, null, null)).to.be.true;
+            expect(tokenResponse).to.deep.eq(testTokenResponse);
+            expect(acquireTokenSpy.calledWith(testAuthCodeRequest, idTokenClaims.nonce, TEST_STATE_VALUES.TEST_STATE)).to.be.true;
         });
     });
 });
