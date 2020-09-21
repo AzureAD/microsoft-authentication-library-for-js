@@ -185,7 +185,7 @@ export class ResponseHandler {
                 serverTokenResponse.access_token,
                 this.clientId,
                 idTokenObj ? idTokenObj.claims.tid || "" : authority.tenant,
-                responseScopes.printScopesLowerCase(),
+                responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
                 oboAssertion
