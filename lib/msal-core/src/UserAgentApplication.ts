@@ -46,7 +46,6 @@ import { Constants,
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
-import { server } from 'sinon';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -1363,10 +1362,9 @@ export class UserAgentApplication {
          * request when a valid ID Token is not present in the cache.
          */
         const idToken = this.getCachedIdToken(serverAuthenticationRequest, account);
-        let authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
+        const authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
         const accountState = this.getAccountState(serverAuthenticationRequest.state);
-        authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
-        return ResponseUtils.validateAuthResponse(authResponse, serverAuthenticationRequest, account, accountState);
+        return ResponseUtils.buildAuthResponse(idToken, authResponse, serverAuthenticationRequest, account, scopes, accountState);
     }
 
     /**
