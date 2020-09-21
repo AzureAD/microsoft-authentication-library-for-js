@@ -1,6 +1,5 @@
 # Microsoft Authentication Extensions for Node
-The Microsoft Authentication Extensions for Node offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. It gives additional support to the Microsoft Authentication Library for Node (MSAL).
-
+The Microsoft Authentication Extensions for Node offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence.
 
 ## Overview
 MSAL Node requires developers to implement their own logic for persisting the token cache. The MSAL Node extensions aim to provide a robust, secure, and configurable token cache peristence implementation across Windows, Mac, and Linux for public client applications (Desktop clients, CLI applications , etc). It provides mechanisms for encrypting as well as accessing the token cache by multiple processess concurrently. 
@@ -15,7 +14,7 @@ Supported platforms are Windows, Mac and Linux:
 ### Creating the persistence layer
 Creating the persistence will differ based on what platform you are targeting.
 
-##### Windows: 
+#### Windows: 
 ```js
 import { FilePersistenceWithDataProtection, DataProtectionScope } from "@azure/msal-node-extensions";
 
@@ -29,9 +28,9 @@ const windowsPersistence = FilePersistenceWithDataProtection.create(cachePath, d
 - dataProtectionScope specifies the scope fo the data protection - either the current user or the local machine. You do not need a key to protect or unprotect the data. If you set the scope to CurrentUser, only applications running on your credentials can unprotect the data; howerver, that mean that any application running on your credentials can access the protected data. If you set the scope to LocalMachine, any full-trust application on the computer can unprotect, access, and modify the data.
 - optionalEntoropy specifies password or other additional entropy used to encrypt the data.
 
-The FilePersistenceWithDataProtection use the Win32 CryptProtectData and CryptUnprotectData APIs. For more information on the possible dataProtectionScope, or optionalEntropy, reference the documentation for those APIs.  
+The FilePersistenceWithDataProtection use the Win32 CryptProtectData and CryptUnprotectData APIs. For more information on dataProtectionScope, or optionalEntropy, reference the documentation for those APIs.  
 
-##### Mac: 
+#### Mac: 
 ```js
 import { KeychainPersistence } from "@azure/msal-node-extensions";
 
@@ -45,7 +44,7 @@ const macPersistence = KeychainPersistence.create(cachePath, serviceName, accoun
 - service name under which the cache is stored the keychain.
 - account name under which the cache is stored in the keychain.
 
-##### Linux: 
+#### Linux: 
 ```js
 import { LibSecretPersistence } from "@azure/msal-node-extensions";
 
@@ -60,7 +59,7 @@ const linuxPersistence = LibSecretPersistence.create(cachePath, serviceName, acc
 - service name under which the cache is stored the secret service.
 - account name under which the cache is stored in the secret service.
 
-##### All platforms
+#### All platforms
 An unencrypted file persistence, which works across all platforms, is provided for convenience, although not recommended.
 
 ```js
