@@ -66,4 +66,18 @@ const config = {
 
 ### Executing the application
 
+Once you are in the sample application directory and you've configured the sample application to match your case, you can install all of the dependencies by running:
+
+```bash
+$ npm install
+```
+
 Each sample also includes a `package.json` file that defines a `start` script, meaning you can execute each sample by running `npm start` from it's root folder (i.e. any of the subdirectories contained under `standalone-samples`). Depending on the application type and the flow the sample is written for, the `npm start` command will either start a Node.js web application (using Express.js) or a Node CLI (Command Line Interface) app. Either way, the console will instruct you on how to interact with the sample next.
+
+Once the dependencies are installed, you can run the sample application by using the following command:
+
+```bash
+$ npm start
+```
+
+Once the sample app is running, just follow the instructions in the terminal or the browser UI to execute the sample's authorization flow.
