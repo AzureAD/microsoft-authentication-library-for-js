@@ -377,11 +377,16 @@ describe("CacheManager.ts test cases", () => {
             expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
 
             const filterOidcscopes = { target: "scope1 scope2 scope3 offline_access openid profile" };
-            const filteredCredentials = cacheManager.getCredentialsFilteredBy(filterOidcscopes);
-            expect(Object.keys(filteredCredentials.idTokens).length).to.eql(0);
-            expect(Object.keys(filteredCredentials.accessTokens).length).to.eql(1);
-            expect(Object.keys(filteredCredentials.refreshTokens).length).to.eql(0);
+            credentials = cacheManager.getCredentialsFilteredBy(filterOidcscopes);
+            expect(Object.keys(credentials.idTokens).length).to.eql(0);
+            expect(Object.keys(credentials.accessTokens).length).to.eql(1);
+            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
 
+            const filterScopesCase = { target: "scope1 scope2 SCOPE3 offline_access openid profile" };
+            credentials = cacheManager.getCredentialsFilteredBy(filterScopesCase);
+            expect(Object.keys(credentials.idTokens).length).to.eql(0);
+            expect(Object.keys(credentials.accessTokens).length).to.eql(1);
+            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
         });
     });
 
