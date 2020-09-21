@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
+This log was last generated on Thu, 17 Sep 2020 23:16:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.3.0
+
+Thu, 17 Sep 2020 23:16:22 GMT
+
+### Minor changes
+
+- Add support for On-behalf-of flow (sagonzal@microsoft.com)
+- ValidCacheType adds ServerTelemetryEntity (sameera.gajjarapu@microsoft.com)
+- Added client-side throttling to enhance server stability (#1907) (jamckenn@microsoft.com)
+
+### Patches
+
+- Add name field to AccountInfo (#2288) (jamckenn@microsoft.com)
+- Realm should fallback to an empty string for non AAD scenarios (sameera.gajjarapu@microsoft.com)
+- Add default scopes in all requests and ignore in cache lookups (#2267) (thomas.norling@microsoft.com)
+- Move refreshToken API to RefreshTokenClient (#2264) (thomas.norling@microsoft.com)
+- Track Suberrors in Telemetry (#1921) (thomas.norling@microsoft.com)
+- Separate cache lookup from token refresh (#2189) (thomas.norling@microsoft.com)
 
 ## 1.2.0
 
