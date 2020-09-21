@@ -2,7 +2,7 @@
   "type": "none",
   "comment": "Restructure samples into a single script that supports multiple authorization scenarios through .json configuration files",
   "packageName": "vanilla-js-node-test-app",
-  "email": "hectormgdev@gmail.com",
+  "email": "hemoral@microsoft.com",
   "dependentChangeType": "none",
   "date": "2020-09-10T05:34:06.498Z"
 }
