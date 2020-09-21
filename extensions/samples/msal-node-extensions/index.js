@@ -6,7 +6,6 @@
 const express = require("express");
 const msal = require('@azure/msal-node');
 const extensions = require("@azure/msal-node-extensions");
-const { promises: fs } = require("fs");
 const process = require("process");
 const path = require("path");
 
@@ -19,7 +18,6 @@ createPersistence().then((filePersistence) => {
                 auth: {
                     clientId: "99cab759-2aab-420b-91d8-5e3d8d4f063b",
                     authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
-                    redirectUri: "http://localhost:3000/redirect",
                 },
                 cache: {
                     cachePlugin: new extensions.PersistenceCachePlugin(filePersistence)
@@ -33,7 +31,7 @@ createPersistence().then((filePersistence) => {
 
             app.get('/', (req, res) => {
                 const authCodeUrlParameters = {
-                    scopes: ["openid"],
+                    scopes: ["user.read"],
                     redirectUri: "http://localhost:3000/redirect",
                 };
 
@@ -47,7 +45,7 @@ createPersistence().then((filePersistence) => {
                 const tokenRequest = {
                     code: req.query.code,
                     redirectUri: "http://localhost:3000/redirect",
-                    scopes: ["openid"],
+                    scopes: ["user.read"],
                 };
 
                 pca.acquireTokenByCode(tokenRequest).then((response) => {
@@ -72,19 +70,18 @@ createPersistence().then((filePersistence) => {
 async function createPersistence(){
     // On Windows, uses a DPAPI encrypted file
     if(process.platform === "win32"){
-        return extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataProtectionScope.LocalMachine);
+        return extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataProtectionScope.CurrentUser);
     }
 
     // On Mac, uses keychain.
     if(process.platform === "darwin"){
-        return extensions.KeychainPersistence.create(cachePath, "serviceName", "accountName");
+        return extensions.KeychainPersistence.create(cachePath, "serviceName", "accountName"); // Replace serviceName and accountName
     }
 
     // On Linux, uses  libsecret to store to secret service. Libsecret has to be installed.
     if(process.platform === "linux"){
-        return extensions.LibSecretPersistence.create(cachePath, "serviceName", "accountName");
+        return extensions.LibSecretPersistence.create(cachePath, "serviceName", "accountName"); // Replace serviceName and accountName
     }
 
-    // fall back to using plain text file. Not recommended for storing secrets.
-    return extensions.FilePersistence.create(cachePath);
+    throw new Error("Could not create perrsistence. Platform not supported");
 }
