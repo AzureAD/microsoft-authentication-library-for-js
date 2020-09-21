@@ -1,3 +1,67 @@
+# Change Log - @azure/msal-browser
+
+This log was last generated on Thu, 17 Sep 2020 23:16:22 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+## 2.2.0
+
+Thu, 17 Sep 2020 23:16:22 GMT
+
+### Minor changes
+
+- Added client-side throttling to enhance server stability (#1907) (jamckenn@microsoft.com)
+
+### Patches
+
+- Fix issue with base64 encoding of spaces (#2248) (prkanher@microsoft.com)
+- Properly support multiple concurrent RT requests (#2290) (janutter@microsoft.com)
+- Default scope addition done in msal-common (#2267) (thomas.norling@microsoft.com)
+- acquireTokenSilent calls ssoSilent (#2264) (thomas.norling@microsoft.com)
+- Check for interaction in progress when processing redirect hash (#2183) (thomas.norling@microsoft.com)
+- Creating ClientApplication.ts subclass (#2199) (prkanher@microsoft.com)
+- Add SsoSilentRequest for ssoSilent, update tests and samples (joarroyo@microsoft.com)
+- Add Angular 10 browser sample, update documentation (joarroyo@microsoft.com)
+
+## 2.1.0
+
+Tue, 25 Aug 2020 00:40:45 GMT
+
+### Minor changes
+
+- Client Capabilities Support (#2169) (thomas.norling@microsoft.com)
+
+### Patches
+
+- update APP_META_DATA to APP_METADATA (sameera.gajjarapu@microsoft.com)
+- Add getAccountByHomeId API (#2114) (thomas.norling@microsoft.com)
+- Change msal-browser loginPopup and openPopup, add ability to configure popup delay (#2132) (joarroyo@microsoft.com)
+- Update POST header to type Record (#2128) (thomas.norling@microsoft.com)
+
+## 2.0.2
+
+Thu, 13 Aug 2020 02:20:48 GMT
+
+### Patches
+
+- Fix hash parsing issue from #2118 and back button cache clearing (#2129) (prkanher@microsoft.com)
+
+# 2.0.1
+## Breaking Changes
+* None
+
+## Features and Fixes
+* Make request object optional for login APIs in PublicClientApplication (#2061)
+* Fix `getAccountByUsername()` API signatures to return null (#2059)
+* (#2078) Fix issues with `handleRedirectPromise()` where:
+    * state mismatches occur if `handleRedirectPromise()` is called multiple times.
+    * `currentUrl` and `loginRequestUrl` being evaluated as not equal if one has a trailing slash and the other does not
+    * When `loginRequestUrl` is not in the cache, msal redirects to the homepage but would not process the hash
+* Add `sid` from `AuthorizationUrlRequest` to SSO check in `ssoSilent()` (#2030)
+* Add interaction type to platform state and check before processing hash (#2045)
+* Implements telemetry error calculation and caching for server telemetry information in browser scenarios (#1918)
+* Fix promise handling in PublicClientApplication (#2091)
+
 # 2.0.0
 ## Breaking Changes
 * None

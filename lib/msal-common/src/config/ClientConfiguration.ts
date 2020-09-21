@@ -11,6 +11,7 @@ import { Constants } from "../utils/Constants";
 import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -26,6 +27,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - networkInterface           - Network implementation
  * - storageInterface           - Storage implementation
  * - systemOptions              - Additional library options
+ * - clientCredentials          - Credentials options for confidential clients
  */
 export type ClientConfiguration = {
     authOptions: AuthOptions,
@@ -34,7 +36,9 @@ export type ClientConfiguration = {
     storageInterface?: CacheManager,
     networkInterface?: INetworkModule,
     cryptoInterface?: ICrypto,
+    clientCredentials?: ClientCredentials,
     libraryInfo?: LibraryInfo
+    serverTelemetryManager?: ServerTelemetryManager
 };
 
 /**
@@ -44,12 +48,14 @@ export type ClientConfiguration = {
  * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
  * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
+ * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  */
 export type AuthOptions = {
     clientId: string;
     authority?: Authority;
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
+    clientCapabilities?: Array<string>;
 };
 
 /**
@@ -63,7 +69,7 @@ export type SystemOptions = {
 
 /**
  *  Use this to configure the logging that MSAL does, by configuring logger options in the Configuration object
- * 
+ *
  * - loggerCallback                - Callback for logger
  * - piiLoggingEnabled             - Sets whether pii logging is enabled
  * - logLevel                      - Sets the level at which logging happens
@@ -84,11 +90,23 @@ export type LibraryInfo = {
     os: string
 };
 
+/**
+ * Credentials for confidential clients
+ */
+export type ClientCredentials = {
+    clientSecret?: string,
+    clientAssertion? : {
+        assertion: string,
+        assertionType: string
+    };
+};
+
 const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     clientId: "",
     authority: null,
     knownAuthorities: [],
-    cloudDiscoveryMetadata: ""
+    cloudDiscoveryMetadata: "",
+    clientCapabilities: []
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
@@ -140,6 +158,11 @@ const DEFAULT_LIBRARY_INFO: LibraryInfo = {
     os: ""
 };
 
+const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
+    clientSecret: "",
+    clientAssertion: null
+};
+
 /**
  * Function that sets the default options when not explicitly configured from app developer
  *
@@ -155,7 +178,9 @@ export function buildClientConfiguration(
         storageInterface: storageImplementation,
         networkInterface: networkImplementation,
         cryptoInterface: cryptoImplementation,
-        libraryInfo: libraryInfo
+        clientCredentials: clientCredentials,
+        libraryInfo: libraryInfo,
+        serverTelemetryManager: serverTelemetryManager
     } : ClientConfiguration): ClientConfiguration {
     return {
         authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
@@ -164,6 +189,8 @@ export function buildClientConfiguration(
         storageInterface: storageImplementation || new DefaultStorageClass(),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
-        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo }
+        clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
+        libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
+        serverTelemetryManager: serverTelemetryManager || null
     };
 }

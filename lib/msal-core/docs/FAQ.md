@@ -47,10 +47,12 @@
 
 1. [My B2C application has more than one user-flow/policy. How do I work with multiple policies in MSAL.js?](#my-b2c-application-has-more-than-one-user-flowpolicy-how-do-i-work-with-multiple-policies-in-msaljs)
 1. [How can I implement password reset user flow in my B2C application with MSAL.js?](#how-can-i-implement-password-reset-user-flow-in-my-b2c-application-with-msaljs)
+1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 
 **[Common Issues](#common-issues)**
 1. [How to avoid page reloads when acquiring and renewing tokens silently?](#how-to-avoid-page-reloads-when-acquiring-and-renewing-tokens-silently)
 1. [Why is my application stuck in an infinite redirect loop?](#why-is-my-application-stuck-in-an-infinite-redirect-loop)
+1. [I'm using one of your samples on Internet Explorer and I get the error SignIn() is not defined](#im-using-one-of-your-samples-on-internet-explorer-and-i-get-the-error-signin-is-not-defined)
 1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core/docs/errors.md)
 
 ***
@@ -346,25 +348,31 @@ Please see the documentation on [Tenancy in Azure Active Directory](https://docs
 
 ## My B2C application has more than one user-flow/policy. How do I work with multiple policies in MSAL.js?
 
-Unfortunately, MSAL.js does not support multiple B2C policies _out-of-the-box_ at this moment. Nevertheless, you can still utilize the library to workaround this limitation. For instance, review our sample [here](https://github.com/Azure-Samples/active-directory-b2c-javascript-msal-singlepageapp) to see how to implement **sign-up/sign-in** and **password reset** user flows.
+MSAL.js allows you to provide an authority on a per-request basis. To acquire an access token for a different policy than the one you signed in with, simply pass the relevant authority as a part of the request object.
+
+```javascript
+const request = {
+scopes: ["https://b2ctenant.onmicrosoft.com/exampleApi/exampleScope"],
+authority: "https://b2ctenant.b2clogin.com/b2ctenant.onmicrosoft.com/examplePolicy"
+}
+
+msal.acquireTokenPopup(request);
+```
+
+A few additional things to keep in mind regarding multiple policy scenarios:
+
+- MSAL.js 1.x is only able to cache one id_token at a time, which means that obtaining an id_token for a different policy will overwrite the cached id_token from the previous policy.
+- Some policies, such as profile_edit and password_reset, require interaction and cannot be used to renew tokens silently. Obtaining a cached access token via `acquireTokenSilent` is still possible, however, if the token is expired the service will throw an "X-Frame Options DENY" error when MSAL attempts to renew it. When this happens your application must catch this error and fallback to calling an interactive method (`acquireTokenRedirect` or `acquireTokenPopup`)
 
 ## How can I implement password reset user flow in my B2C application with MSAL.js?
 
-Please review our sample [here](https://github.com/Azure-Samples/active-directory-b2c-javascript-msal-singlepageapp) to see how to implement the **password reset** user flow.
+Please checkout our sample [here](https://github.com/Azure-Samples/active-directory-b2c-javascript-msal-singlepageapp) to see how to implement the **password reset** user flow.
 
-## I'm using one of your samples on Internet Explorer and I get the error "SignIn() is not defined"
+## I logged out of my application. Why am I not asked for credentials when I try to log back in?
 
-Our samples use [ES6](http://www.ecma-international.org/ecma-262/6.0/) conventions, in particular **promises**, **arrow functions** and **template literals**. As such, they will **not** work on Internet Explorer out-of-the-box. For **promises**, you need to add a polyfill, i.e.:
+When you log out of a B2C application by calling MSAL's `logout()` API, MSAL.js will first clear browser storage of your user's tokens then redirect you to the Azure B2C logout endpoint. The B2C service will then close your session but may not log you out of your federated IDP. This happens because the service does not make any assumptions about other apps you may want to log out of. What this means in practice is that when a user attempts to login again the B2C service will prompt the user to select which Social IDP they would like to sign in with. When the user makes their selection, they may be signed back in without interaction.
 
-```html
-<head>
-   <!-- adding pollyfil for promises on IE11  -->
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-polyfills/0.1.42/polyfill.min.js"> 
-   </script>
-</head>
-```
-
-For **arrow functions** and **template literals**, you need to transpile them to old JavaScript. You can use [this tool](https://babeljs.io/repl) to help with the process.
+You can read more about this behavior [here](https://docs.microsoft.com/azure/active-directory-b2c/session-overview#sign-out)
 
 # Common Issues
 
@@ -534,3 +542,17 @@ msal = new Msal.UserAgentApplication({
     }
 })
 ```
+
+## I'm using one of your samples on Internet Explorer and I get the error "SignIn() is not defined"
+
+Our samples use [ES6](http://www.ecma-international.org/ecma-262/6.0/) conventions, in particular **promises**, **arrow functions** and **template literals**. As such, they will **not** work on Internet Explorer out-of-the-box. For **promises**, you need to add a polyfill, i.e.:
+
+```html
+<head>
+   <!-- adding pollyfil for promises on IE11  -->
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-polyfills/0.1.42/polyfill.min.js"> 
+   </script>
+</head>
+```
+
+For **arrow functions** and **template literals**, you need to transpile them to old JavaScript. You can use [this tool](https://babeljs.io/repl) to help with the process.

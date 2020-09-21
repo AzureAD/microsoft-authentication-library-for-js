@@ -3,9 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult } from '@azure/msal-common';
-import { Configuration } from '../config/Configuration';
-import { ClientApplication } from './ClientApplication';
+import { ApiId } from "../utils/Constants";
+import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult } from "@azure/msal-common";
+import { Configuration } from "../config/Configuration";
+import { ClientApplication } from "./ClientApplication";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -44,11 +45,19 @@ export class PublicClientApplication extends ClientApplication {
      */
     public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByDeviceCode called");
-        const deviceCodeConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        this.logger.verbose("Auth client config generated");
-        const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
-        return deviceCodeClient.acquireToken(this.initializeRequestScopes(request) as DeviceCodeRequest);
+        const validRequest = this.initializeRequest(request) as DeviceCodeRequest;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
+        try {
+            const deviceCodeConfig = await this.buildOauthClientConfiguration(
+                request.authority,
+                serverTelemetryManager
+            );
+            this.logger.verbose("Auth client config generated");
+            const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
+            return deviceCodeClient.acquireToken(validRequest);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 }

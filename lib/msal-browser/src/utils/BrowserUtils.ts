@@ -61,6 +61,15 @@ export class BrowserUtils {
     }
 
     /**
+     * Gets the homepage url for the current window location.
+     */
+    static getHomepage(): string {
+        const currentUrl = new UrlString(window.location.href);
+        const urlComponents = currentUrl.getUrlComponents();
+        return `${urlComponents.Protocol}//${urlComponents.HostNameAndPort}/`;
+    }
+
+    /**
      * Returns best compatible network client object. 
      */
     static getBrowserNetworkClient(): INetworkModule {

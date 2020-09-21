@@ -6,21 +6,31 @@ import {
     LoggerOptions,
     INetworkModule,
     LogLevel
-} from '@azure/msal-common';
-import { NetworkUtils } from '../utils/NetworkUtils';
-import debug from 'debug';
+} from "@azure/msal-common";
+import { NetworkUtils } from "../utils/NetworkUtils";
+import debug from "debug";
 import { ICachePlugin } from "../cache/ICachePlugin";
 
 /**
  * - clientId               - Client id of the application.
  * - authority              - Url of the authority. If no value is set, defaults to https://login.microsoftonline.com/common.
- * - knownAuthorities       - Needed for Azure B2C. All authorities that will be used in the client application.
+ * - knownAuthorities       - Needed for Azure B2C and ADFS. All authorities that will be used in the client application. Only the host of the authority should be passed in.  
+ * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal. 
+ * - clientAssertion        - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
+ * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  */
 export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
+    clientSecret?: string;
+    clientAssertion?:string;
+    clientCertificate?: {
+        thumbprint: string,
+        privateKey: string,
+    };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
+    clientCapabilities?: []
 };
 
 /**
@@ -57,10 +67,17 @@ export type Configuration = {
 };
 
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
-    clientId: '',
-    authority: '',
+    clientId: "",
+    authority: "",
+    clientSecret: "",
+    clientAssertion: "",
+    clientCertificate: {
+        thumbprint: "",
+        privateKey: "",
+    },
     knownAuthorities: [],
-    cloudDiscoveryMetadata: ""
+    cloudDiscoveryMetadata: "",
+    clientCapabilities: []
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
@@ -71,7 +88,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         message: string,
         containsPii: boolean
     ) => {
-        debug(`msal:${LogLevel[level]}${containsPii ? '-Pii' : ''}`)(message);
+        debug(`msal:${LogLevel[level]}${containsPii ? "-Pii" : ""}`)(message);
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,

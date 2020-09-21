@@ -1,14 +1,4 @@
-// Browser check variables
-// If you support IE, our recommendation is that you sign-in using Redirect APIs
-// If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
-const ua = window.navigator.userAgent;
-const msie = ua.indexOf("MSIE ");
-const msie11 = ua.indexOf("Trident/");
-const msedge = ua.indexOf("Edge/");
-const isIE = msie > 0 || msie11 > 0;
-const isEdge = msedge > 0;
-
-let username = "";
+let accountId = "";
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
@@ -21,8 +11,8 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(function (err) {
 
 function handleResponse(resp) {
     if (resp !== null) {
-        username = resp.account.username;
-        showWelcomeMessage();
+        accountId = resp.account.homeAccountId;
+        showWelcomeMessage(resp.account);
 
         if (resp.accessToken) {
             callMSGraph(graphConfig.graphMeEndpoint, resp.accessToken, updateUI);
@@ -31,14 +21,13 @@ function handleResponse(resp) {
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
-        if (currentAccounts === null) {
+        if (!currentAccounts || currentAccounts.length < 1) {
             return;
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
-            username = currentAccounts[0].username;
-            console.log(username)
-            showWelcomeMessage();
+            accountId = currentAccounts[0].homeAccountId;
+            showWelcomeMessage(currentAccounts[0]);
         }
     }
 }
@@ -49,7 +38,7 @@ function signIn() {
 
 function signOut() {
     const logoutRequest = {
-        account: myMSALObj.getAccountByUsername(username)
+        account: myMSALObj.getAccountByHomeId(accountId)
     };
 
     myMSALObj.logout(logoutRequest);

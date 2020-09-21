@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.6",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -35,18 +35,13 @@
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
-    "lint": "tsdx lint",
-    "lint:fix": "tsdx lint --fix",
-    "prepack": "npm run build"
+    "lint": "cd ../../ && npm run lint:node",
+    "lint:fix": "npm run lint -- -- --fix",
+    "build:all": "npm run build:common && npm run build",
+    "build:common": "cd ../msal-common && npm run build",
+    "prepack": "npm run build:all"
   },
   "peerDependencies": {},
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5",
-    "endOfLine": "lf"
-  },
   "jest": {
     "verbose": true,
     "moduleFileExtensions": [
@@ -67,6 +62,7 @@
     "@types/jest": "^25.1.2",
     "@types/node": "^13.13.4",
     "@types/uuid": "^7.0.0",
+    "@types/jsonwebtoken": "^8.5.0",
     "gh-pages": "^3.1.0",
     "husky": "^4.2.3",
     "tsdx": "^0.13.2",
@@ -75,8 +71,9 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^1.0.0",
+    "@azure/msal-common": "^1.3.0",
     "axios": "^0.19.2",
-    "debug": "^4.1.1"
+    "debug": "^4.1.1",
+    "jsonwebtoken": "^8.5.1"
   }
 }

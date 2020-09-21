@@ -43,13 +43,14 @@ export class Constants {
     static get renewToken(): string { return "RENEW_TOKEN"; }
     static get unknown(): string { return "UNKNOWN"; }
 
-    static get ADFS(): string { return "adfs"; };
+    static get ADFS(): string { return "adfs"; }
 
     static get homeAccountIdentifier(): string { return "homeAccountIdentifier"; }
 
     static get common(): string { return "common"; }
     static get openidScope(): string { return "openid"; }
     static get profileScope(): string { return "profile"; }
+    static get oidcScopes(): Array<string> { return [this.openidScope, this.profileScope] ;}
 
     static get interactionTypeRedirect(): InteractionType { return "redirectInteraction"; }
     static get interactionTypePopup(): InteractionType { return "popupInteraction"; }
@@ -70,6 +71,19 @@ export enum ServerHashParamKeys {
     EXPIRES_IN = "expires_in",
     SESSION_STATE = "session_state",
     CLIENT_INFO = "client_info"
+}
+
+/**
+ * @hidden
+ * @ignore
+ * response_type from OpenIDConnect
+ * References: https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html & https://tools.ietf.org/html/rfc6749#section-4.2.1
+ *
+ */
+export const ResponseTypes = {
+    id_token: "id_token",
+    token: "token",
+    id_token_token: "id_token token"
 };
 
 /**
@@ -104,6 +118,7 @@ export enum ErrorCacheKeys {
 
 export const DEFAULT_AUTHORITY: string = "https://login.microsoftonline.com/common/";
 export const AAD_INSTANCE_DISCOVERY_ENDPOINT: string = `${DEFAULT_AUTHORITY}/discovery/instance?api-version=1.1&authorization_endpoint=`;
+export const WELL_KNOWN_SUFFIX: string = ".well-known/openid-configuration";
 
 /**
  * @hidden
@@ -117,7 +132,7 @@ export enum SSOTypes {
     ID_TOKEN ="id_token",
     ACCOUNT_ID = "accountIdentifier",
     HOMEACCOUNT_ID = "homeAccountIdentifier"
-};
+}
 
 /**
  * @hidden
@@ -159,5 +174,5 @@ export const FramePrefix = {
  * MSAL JS Library Version
  */
 export function libraryVersion(): string {
-    return "1.3.3";
+    return "1.4.0";
 }

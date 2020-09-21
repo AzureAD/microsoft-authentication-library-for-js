@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Sample app written in typescript that shows how to use the @azure/msal-browser package",
   "main": "server.js",
+  "private": true,
   "scripts": {
     "clean": "npm run clean:build && rimraf dist",
     "clean:build": "rimraf build-tsc build-babel",
@@ -22,7 +23,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-browser": "^2.0.0",
+    "@azure/msal-browser": "^2.2.0",
     "@babel/runtime": "^7.10.4",
     "express": "^4.17.1",
     "fs": "0.0.1-security",

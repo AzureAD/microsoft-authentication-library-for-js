@@ -1,0 +1,68 @@
+{
+  "name": "@azure/msal-angular",
+  "entries": [
+    {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "@azure/msal-angular_v1.1.1",
+      "version": "1.1.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update MSAL Angular to use central lint configuration",
+            "author": "janutter@microsoft.com",
+            "commit": "fc49c6f16b3f7a62a67d249107fc484272133305",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "update package-lock.json",
+            "author": "prkanher@microsoft.com",
+            "commit": "0b296f957303031552a8b768f56310488a9e63d2",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "package.lock changes",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9760b6ff6c0ad403ac1b26968cb10d3d7e72a6fd",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 25 Aug 2020 00:40:45 GMT",
+      "tag": "@azure/msal-angular_v1.1.0",
+      "version": "1.1.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Update protectedResources with wildcard, remove unprotectedResources from msal-angular (#2029)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "1485f29f10687f05aca3d8cbe8185de47e08a40a",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 13 Aug 2020 02:20:48 GMT",
+      "tag": "@azure/msal-angular_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Improved documentation of handleRedirectCallback in msal-angular (#2032)",
+            "author": "jamckenn@microsoft.com",
+            "commit": "7868d2f99313d1ffe943c28f3516dd0a92fa33ba",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "updating files for automated release steps",
+            "author": "prkanher@microsoft.com",
+            "commit": "2c937a52cef36cbc84231f8868b4251529fa38c9",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    }
+  ]
+}

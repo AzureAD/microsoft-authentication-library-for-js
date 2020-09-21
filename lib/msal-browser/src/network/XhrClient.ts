@@ -49,7 +49,7 @@ export class XhrClient implements INetworkModule {
                 try {
                     const jsonResponse = JSON.parse(xhr.responseText) as T;
                     const networkResponse: NetworkResponse<T> = {
-                        headers: this.getHeaderMap(xhr),
+                        headers: this.getHeaderDict(xhr),
                         body: jsonResponse,
                         status: xhr.status
                     };
@@ -80,8 +80,8 @@ export class XhrClient implements INetworkModule {
      */
     private setXhrHeaders(xhr: XMLHttpRequest, options?: NetworkRequestOptions): void {
         if (options && options.headers) {
-            options.headers.forEach((value, key) => {
-                xhr.setRequestHeader(key, value);
+            Object.keys(options.headers).forEach((key: string) => {
+                xhr.setRequestHeader(key, options.headers[key]);
             });
         }
     }
@@ -92,17 +92,17 @@ export class XhrClient implements INetworkModule {
      * Algorithm comes from https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/getAllResponseHeaders
      * @param xhr 
      */
-    private getHeaderMap(xhr: XMLHttpRequest): Map<string, string> {
+    private getHeaderDict(xhr: XMLHttpRequest): Record<string, string> {
         const headerString = xhr.getAllResponseHeaders();
         const headerArr = headerString.trim().split(/[\r\n]+/);
-        const headerMap = new Map<string, string>();
+        const headerDict: Record<string, string> = {};
         headerArr.forEach((value: string) => {
             const parts = value.split(": ");
             const headerName = parts.shift();
             const headerVal = parts.join(": ");
-            headerMap.set(headerName, headerVal);
+            headerDict[headerName] = headerVal;
         });
 
-        return headerMap;
+        return headerDict;
     }
 }

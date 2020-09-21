@@ -1,0 +1,35 @@
+{
+  "name": "@azure/msal-node-extensions",
+  "entries": [
+    {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0",
+      "version": "1.0.0-alpha.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update msal-node-extensionst to use central eslint configuration",
+            "author": "janutter@microsoft.com",
+            "commit": "fc49c6f16b3f7a62a67d249107fc484272133305",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 13 Aug 2020 02:20:48 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.2",
+      "version": "1.0.0-alpha.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "updating files for automated release steps",
+            "author": "prkanher@microsoft.com",
+            "commit": "791409e7c9975218ae2b3a91e6a6a190b59474b1",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    }
+  ]
+}

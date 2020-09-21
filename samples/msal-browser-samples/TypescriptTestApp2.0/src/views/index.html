@@ -12,14 +12,22 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
       <a class="navbar-brand" href="/">MS Identity Platform</a>
-      <div class="btn-group ml-auto dropleft">
-          <button type="button" id="SignIn" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Sign In
+      <div class="navbar-expand-lg">
+        <div class="btn-group ml-auto dropleft">
+            <button type="button" id="SignIn" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Sign In
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" id="loginPopup" onclick="App.signIn(this.id)">Sign in using Popup</button>
+              <button class="dropdown-item" id="loginRedirect" onclick="App.signIn(this.id)">Sign in using Redirect</button>
+            </div>
+        </div>
+        <div class="btn-group ml-auto">
+          <button type="button" id="ssoSilent" class="btn btn-secondary" onclick="App.attemptSsoSilent()">
+            Attempt SsoSilent
           </button>
-          <div class="dropdown-menu">
-            <button class="dropdown-item" id="loginPopup" onclick="App.signIn(this.id)">Sign in using Popup</button>
-            <button class="dropdown-item" id="loginRedirect" onclick="App.signIn(this.id)">Sign in using Redirect</button>
-          </div>
+        </div>
+
       </div>
     </nav>
     <br>
