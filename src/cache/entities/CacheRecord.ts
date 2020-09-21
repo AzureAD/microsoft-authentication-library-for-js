@@ -7,7 +7,7 @@ import { IdTokenEntity } from "./IdTokenEntity";
 import { AccessTokenEntity } from "./AccessTokenEntity";
 import { RefreshTokenEntity } from "./RefreshTokenEntity";
 import { AccountEntity } from "./AccountEntity";
-import { AppMetadataEntity } from './AppMetadataEntity';
+import { AppMetadataEntity } from "./AppMetadataEntity";
 
 export class CacheRecord {
     account: AccountEntity;
