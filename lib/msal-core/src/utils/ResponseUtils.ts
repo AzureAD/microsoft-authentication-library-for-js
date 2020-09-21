@@ -1,7 +1,8 @@
 import { AuthResponse } from "../AuthResponse";
 import { Account } from "../Account";
 import { IdToken } from "../IdToken";
-import { ServerHashParamKeys } from "./Constants";
+import { ResponseTypes, ServerHashParamKeys } from "./Constants";
+import { ServerRequestParameters } from "../ServerRequestParameters";
 
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -34,58 +35,22 @@ export class ResponseUtils {
         };
     }
 
-    /**
-     * Adds ID Token data to Access Token auth response. Returns null if access token is null.
-     * @param idToken 
-     * @param authResponse 
-     */
-    static buildTokenAuthResponse(idToken: IdToken, authResponse: AuthResponse): AuthResponse {
-        return ResponseUtils.setResponseIdToken(authResponse, idToken);
-    }
-
-    /**
-     * Returns an AuthResponse object that includes both a valid AccessToken and IdToken or null if either is 
-     * missing or expired.
-     * @param idToken 
-     * @param serverAuthenticationRequest 
-     * @param scopes 
-     * @param account 
-     */
-    static buildIdTokenTokenAuthResponse(idToken: IdToken, authResponse: AuthResponse) : AuthResponse {
-        // For id_token_token, either both are returned from the cache or both are requested from the server
-        if (authResponse  && idToken) {
-            return ResponseUtils.setResponseIdToken(authResponse, idToken);
+    static validateAuthResponse(authResponse: AuthResponse, serverAuthenticationRequest: ServerRequestParameters, account: Account, accountState: string): AuthResponse {
+        switch(serverAuthenticationRequest.responseType) {
+            case ResponseTypes.id_token:
+                authResponse = {
+                    ...authResponse,
+                    tokenType: ServerHashParamKeys.ID_TOKEN,
+                    account: account,
+                    accountState: accountState
+                }
+                return (authResponse.idToken) ? authResponse : null;
+            case ResponseTypes.id_token_token:
+                return (authResponse && authResponse.idToken) ? authResponse : null;
+            case ResponseTypes.token:
+                return authResponse;
+            default: 
+                return null;
         }
-        return null;
-    }
-
-    /**
-     * Returns an AuthResponse object that includes a valid IdToken or null if no valid
-     * IdToken is passed in (found in the cache).
-     * @param idToken 
-     * @param serverAuthenticationRequest 
-     * @param scopes 
-     * @param account 
-     */
-    static buildIdTokenAuthResponse(idToken: IdToken, accountState: string, scopes: Array<string>, account: Account): AuthResponse {
-        if(idToken) {
-            const authResponse: AuthResponse = {
-                uniqueId: "",
-                tenantId: "",
-                tokenType: ServerHashParamKeys.ID_TOKEN,
-                idToken: null,
-                idTokenClaims: null,
-                accessToken: null,
-                scopes: scopes,
-                expiresOn: null,
-                account: account,
-                accountState: accountState,
-                fromCache: true
-            };
-    
-            return ResponseUtils.setResponseIdToken(authResponse, idToken);
-        }
-        // If no access token is found in cache, return null to trigger token renewal`
-        return null;
     }
 }

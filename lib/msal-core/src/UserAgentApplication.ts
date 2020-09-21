@@ -46,6 +46,7 @@ import { Constants,
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
+import { server } from 'sinon';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -1362,21 +1363,10 @@ export class UserAgentApplication {
          * request when a valid ID Token is not present in the cache.
          */
         const idToken = this.getCachedIdToken(serverAuthenticationRequest, account);
-        let authResponse: AuthResponse = null;
-        switch(serverAuthenticationRequest.responseType) {
-            case ResponseTypes.id_token:
-                this.logger.verbose("Returning ID Token AuthResponse cache result");
-                const accountState = this.getAccountState(serverAuthenticationRequest.state);
-                return ResponseUtils.buildIdTokenAuthResponse(idToken, accountState, scopes, account);
-            case ResponseTypes.id_token_token:
-                this.logger.verbose("Returning Access Token and ID Token AuthResponse cache result");
-                authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
-                return ResponseUtils.buildIdTokenTokenAuthResponse(idToken, authResponse);
-            default: // ResponseTypes.token
-                this.logger.verbose("Returning Access Token AuthResponse cache result");
-                authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
-                return ResponseUtils.buildTokenAuthResponse(idToken, authResponse);
-        }
+        let authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
+        const accountState = this.getAccountState(serverAuthenticationRequest.state);
+        authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
+        return ResponseUtils.validateAuthResponse(authResponse, serverAuthenticationRequest, account, accountState);
     }
 
     /**
