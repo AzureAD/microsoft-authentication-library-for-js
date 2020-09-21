@@ -543,33 +543,6 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * Helper to retrieve the appropriate refresh token from cache
-     * @param clientId
-     * @param account
-     * @param familyRT
-     */
-    readRefreshTokenFromCacheHelper(clientId: string, account: AccountInfo, familyRT: boolean): RefreshTokenEntity | null {
-        const id = familyRT ? THE_FAMILY_ID : clientId;
-        const refreshTokenFilter: CredentialFilter = {
-            homeAccountId: account.homeAccountId,
-            environment: account.environment,
-            credentialType: CredentialType.REFRESH_TOKEN,
-            clientId: id
-        };
-
-        const credentialCache: CredentialCache = this.getCredentialsFilteredBy(refreshTokenFilter);
-        const refreshTokens = Object.keys(credentialCache.refreshTokens).map((key) => credentialCache.refreshTokens[key]);
-
-        const numRefreshTokens = refreshTokens.length;
-        if (numRefreshTokens < 1) {
-            return null;
-        }
-        // address the else case after remove functions address environment aliases
-
-        return refreshTokens[0] as RefreshTokenEntity;
-    }
-
-    /**
      * Retrieve AppMetadataEntity from cache
      */
     readAppMetadataFromCache(environment: string, clientId: string): AppMetadataEntity {
