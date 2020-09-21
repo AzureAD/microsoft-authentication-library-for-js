@@ -210,7 +210,7 @@ export class ScopeSet {
         return extendedScopes;
     }
 
-      /**
+    /**
      * @ignore
      * Removes present OIDC scopes from scopes array.
      */

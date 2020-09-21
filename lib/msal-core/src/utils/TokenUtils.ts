@@ -1,5 +1,3 @@
-import { AuthResponse } from '../AuthResponse';
-import { AccessTokenCacheItem } from '../cache/AccessTokenCacheItem';
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
@@ -7,7 +5,7 @@ import { AccessTokenCacheItem } from '../cache/AccessTokenCacheItem';
 
 import { CryptoUtils } from "./CryptoUtils";
 import { StringUtils } from "./StringUtils";
-import { TimeUtils } from './TimeUtils';
+import { TimeUtils } from "./TimeUtils";
 
 /**
  * @hidden

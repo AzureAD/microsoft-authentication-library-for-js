@@ -1368,7 +1368,7 @@ export class UserAgentApplication {
                 return this.buildIdTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
             case ResponseTypes.id_token_token:
                 this.logger.verbose("Returning Access Token and ID Token AuthResponse cache result");
-               return this.buildIdTokenTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
+                return this.buildIdTokenTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
             default: // ResponseTypes.token
                 this.logger.verbose("Returning Access Token AuthResponse cache result");
                 return this.buildTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
@@ -1492,7 +1492,8 @@ export class UserAgentApplication {
                  * Ignore OIDC scopes in the request for lookup in case of an id_token token response type, which would have a scopes
                  * array including openid and profile. This method is guaranteed to be called with at least one resource scope
                  * in the scopes list, given the scope validations for non id_token response type requests.
-                 * */
+                 *
+                 */
                 const searchScopes = ScopeSet.removeDefaultScopes(scopes);
 
                 if (searchScopes.length === 0 && ScopeSet.containsScope(cachedScopes, scopes)) {
