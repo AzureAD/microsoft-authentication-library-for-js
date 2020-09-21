@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
+This log was last generated on Thu, 17 Sep 2020 23:16:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.6
+
+Thu, 17 Sep 2020 23:16:22 GMT
+
+### Changes
+
+- Address tsdx warnings (#2202) (thomas.norling@microsoft.com)
+- Implement Telemetry in msal-node (#1921) (thomas.norling@microsoft.com)
+- Changes node storage: getItem(), setItem() and removeItem() simplified and no longer need a 'type' (sameera.gajjarapu@microsoft.com)
+- Add support for on-behalf-of flow (sagonzal@microsoft.com)
 
 ## 1.0.0-alpha.5
 

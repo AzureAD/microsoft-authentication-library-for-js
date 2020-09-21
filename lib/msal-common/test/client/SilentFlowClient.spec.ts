@@ -25,6 +25,7 @@ testAccountEntity.localAccountId = "testId";
 testAccountEntity.environment = "login.windows.net";
 testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
+testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 
 const testIdToken: IdTokenEntity = new IdTokenEntity();
@@ -88,10 +89,6 @@ describe("SilentFlowClient unit tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: null
             })).to.be.rejectedWith(ClientAuthErrorMessage.NoAccountInSilentRequest.desc);
-            await expect(client.refreshToken({
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: null
-            })).to.be.rejectedWith(ClientAuthErrorMessage.NoAccountInSilentRequest.desc);
             expect(() => client.acquireCachedToken({
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: null
@@ -104,8 +101,6 @@ describe("SilentFlowClient unit tests", () => {
             const client = new SilentFlowClient(config);
             await expect(client.acquireToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
             await expect(client.acquireToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
-            await expect(client.refreshToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
-            await expect(client.refreshToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
             expect(() => client.acquireCachedToken(null)).to.throw(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
             expect(() => client.acquireCachedToken(undefined)).to.throw(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
         });
@@ -241,7 +236,8 @@ describe("SilentFlowClient unit tests", () => {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
-            username: ID_TOKEN_CLAIMS.preferred_username
+            username: ID_TOKEN_CLAIMS.preferred_username,
+            name: ID_TOKEN_CLAIMS.name
         };
         
         beforeEach(async () => {
@@ -301,22 +297,6 @@ describe("SilentFlowClient unit tests", () => {
             
             await client.acquireToken(silentFlowRequest);
             expect(refreshTokenClientSpy.called).to.be.true;
-            expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).to.be.true;
-        });
-        
-        it("refreshToken refreshes a token", async () => {            
-            const silentFlowRequest: SilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount
-            };
-
-            const expectedRefreshRequest: RefreshTokenRequest = {
-                ...silentFlowRequest,
-                refreshToken: testRefreshTokenEntity.secret
-            };
-            const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
-
-            await client.refreshToken(silentFlowRequest);
             expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).to.be.true;
         });
     

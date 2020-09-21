@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Added client-side throttling to enhance server stability (#1907)",
-  "packageName": "@azure/msal-browser",
-  "email": "jamckenn@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-11T19:04:58.604Z"
-}

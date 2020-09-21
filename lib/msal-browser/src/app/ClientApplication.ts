@@ -5,9 +5,9 @@
 
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserStorage } from "../cache/BrowserStorage";
-import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
-import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, DEFAULT_REQUEST } from "../utils/BrowserConstants";
+import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -75,7 +75,7 @@ export abstract class ClientApplication {
         this.networkClient = this.config.system.networkClient;
 
         // Initialize the browser storage class.
-        this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache);
+        this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache, this.browserCrypto);
 
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions);
@@ -177,7 +177,10 @@ export abstract class ClientApplication {
             }
         }
 
-        this.browserStorage.cleanRequest();
+        // Deserialize hash fragment response parameters.
+        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(hash);
+
+        this.browserStorage.cleanRequest(serverParams.state);
         return null;
     }
 
@@ -191,15 +194,19 @@ export abstract class ClientApplication {
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
+        const hashUrlString = new UrlString(responseHash);
+        // Deserialize hash fragment response parameters.
+        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(responseHash);
+
         try {
             // Hash contains known properties - handle and return in callback
-            const currentAuthority = this.browserStorage.getCachedAuthority();
+            const currentAuthority = this.browserStorage.getCachedAuthority(serverParams.state);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
             return await interactionHandler.handleCodeResponse(responseHash, this.browserCrypto, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest();
+            this.browserStorage.cleanRequest(serverParams.state);
             throw e;
         }
     }
@@ -236,7 +243,7 @@ export abstract class ClientApplication {
             interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest();
+            this.browserStorage.cleanRequest(validRequest.state);
             throw e;
         }
     }
@@ -299,7 +306,7 @@ export abstract class ClientApplication {
             return await interactionHandler.handleCodeResponse(hash);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest();
+            this.browserStorage.cleanRequest(validRequest.state);
             throw e;
         }
     }
@@ -328,7 +335,7 @@ export abstract class ClientApplication {
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Check that we have some SSO data
-        if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid)) {
+        if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
         }
 
@@ -349,19 +356,16 @@ export abstract class ClientApplication {
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
-            // Get scopeString for iframe ID
-            const scopeString = silentRequest.scopes ? silentRequest.scopes.join(" ") : "";
-
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
 
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
+            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest();
+            this.browserStorage.cleanRequest(silentRequest.state);
             throw e;
         }
     }
@@ -378,50 +382,25 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+    protected async acquireTokenByRefreshToken(request: SilentRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
-        let serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
         try {
-            const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
+            const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await silentAuthClient.acquireToken(silentRequest);
+            return await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                const silentAuthUrlRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
-                    ...silentRequest,
-                    redirectUri: request.redirectUri,
-                    prompt: PromptValue.NONE
-                }, InteractionType.SILENT);
-                serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_authCode, silentAuthUrlRequest.correlationId);
-
-                try {
-                    // Create auth code request and generate PKCE params
-                    const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentAuthUrlRequest);
-
-                    // Initialize the client
-                    const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentAuthUrlRequest.authority);
-
-                    // Create authorize request url
-                    const navigateUrl = await authClient.getAuthCodeUrl(silentAuthUrlRequest);
-
-                    // Get scopeString for iframe ID
-                    const scopeString = silentAuthUrlRequest.scopes ? silentAuthUrlRequest.scopes.join(" ") : "";
-
-                    return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, scopeString);
-                } catch (e) {
-                    serverTelemetryManager.cacheFailedRequest(e);
-                    this.browserStorage.cleanRequest();
-                    throw e;
-                }
+                return await this.ssoSilent(request);
             }
 
             throw e;
@@ -434,11 +413,11 @@ export abstract class ClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient, userRequestScopes: string): Promise<AuthenticationResult> {
+    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.loadFrameTimeout);
         // Get the frame handle for the silent request
-        const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest, userRequestScopes);
+        const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
         // Handle response from hash string
@@ -569,6 +548,16 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Creates a Refresh Client with the given authority, or the default authority.
+     * @param authorityUrl 
+     */
+    protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
+        // Create auth module.
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        return new RefreshTokenClient(clientConfig);
+    }
+
+    /**
      * Creates a Client Configuration object with the given request authority, or the default authority.
      * @param requestAuthority 
      */
@@ -655,7 +644,7 @@ export abstract class ClientApplication {
     protected setDefaultScopes(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest): AuthorizationUrlRequest {
         return {
             ...request,
-            scopes: [...((request && request.scopes) || []), ...DEFAULT_REQUEST.scopes]
+            scopes: [...((request && request.scopes) || [])]
         };
     }
 
@@ -700,16 +689,14 @@ export abstract class ClientApplication {
 
         validatedRequest.responseMode = ResponseMode.FRAGMENT;
 
-        validatedRequest = {
-            ...validatedRequest,
-            ...this.initializeBaseRequest(validatedRequest)
+        validatedRequest = {	
+            ...validatedRequest,	
+            ...this.initializeBaseRequest(validatedRequest)	
         };
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
-        return {
-            ...validatedRequest
-        };
+        return validatedRequest;
     }
 
     /**
