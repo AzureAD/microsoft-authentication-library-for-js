@@ -1362,72 +1362,21 @@ export class UserAgentApplication {
          * request when a valid ID Token is not present in the cache.
          */
         const idToken = this.getCachedIdToken(serverAuthenticationRequest, account);
+        let authResponse: AuthResponse = null;
         switch(serverAuthenticationRequest.responseType) {
             case ResponseTypes.id_token:
                 this.logger.verbose("Returning ID Token AuthResponse cache result");
-                return this.buildIdTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
+                const accountState = this.getAccountState(serverAuthenticationRequest.state);
+                return ResponseUtils.buildIdTokenAuthResponse(idToken, accountState, scopes, account);
             case ResponseTypes.id_token_token:
                 this.logger.verbose("Returning Access Token and ID Token AuthResponse cache result");
-                return this.buildIdTokenTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
+                authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
+                return ResponseUtils.buildIdTokenTokenAuthResponse(idToken, authResponse);
             default: // ResponseTypes.token
                 this.logger.verbose("Returning Access Token AuthResponse cache result");
-                return this.buildTokenAuthResponse(idToken, serverAuthenticationRequest, scopes, account);
+                authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
+                return ResponseUtils.buildTokenAuthResponse(idToken, authResponse);
         }
-    }
-
-    private buildTokenAuthResponse(idToken: IdToken, serverAuthenticationRequest: ServerRequestParameters, scopes: Array<string>, account: Account): AuthResponse {
-        const authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
-        return ResponseUtils.setResponseIdToken(authResponse, idToken);
-    }
-
-    /**
-     * Returns an AuthResponse object that includes both a valid AccessToken and IdToken or null if either is 
-     * missing or expired.
-     * @param idToken 
-     * @param serverAuthenticationRequest 
-     * @param scopes 
-     * @param account 
-     */
-    private buildIdTokenTokenAuthResponse(idToken: IdToken, serverAuthenticationRequest: ServerRequestParameters, scopes: Array<string>, account: Account) : AuthResponse {
-        const authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
-
-        // For id_token_token, either both are returned from the cache or both are requested from the server
-        if (authResponse  && idToken) {
-            return ResponseUtils.setResponseIdToken(authResponse, idToken);
-        }
-        return null;
-    }
-
-    /**
-     * Returns an AuthResponse object that includes a valid IdToken or null if no valid
-     * IdToken is passed in (found in the cache).
-     * @param idToken 
-     * @param serverAuthenticationRequest 
-     * @param scopes 
-     * @param account 
-     */
-    private buildIdTokenAuthResponse(idToken: IdToken, serverAuthenticationRequest: ServerRequestParameters, scopes: Array<string>, account: Account): AuthResponse {
-        if(idToken) {
-            const aState = this.getAccountState(serverAuthenticationRequest.state);
-            const authResponse: AuthResponse = {
-                uniqueId: "",
-                tenantId: "",
-                tokenType: ServerHashParamKeys.ID_TOKEN,
-                idToken: null,
-                idTokenClaims: null,
-                accessToken: null,
-                scopes: scopes,
-                expiresOn: null,
-                account: account,
-                accountState: aState,
-                fromCache: true
-            };
-    
-            this.logger.verbose("Response generated and token set");
-            return ResponseUtils.setResponseIdToken(authResponse, idToken);
-        }
-        // If no access token is found in cache, return null to trigger token renewal`
-        return null;
     }
 
     /**
