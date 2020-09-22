@@ -91,7 +91,6 @@ export class ResponseHandler {
      * @param authority
      */
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string, requestScopes?: string[], oboAssertion?: string): AuthenticationResult {
-        
         // generate homeAccountId
         if (serverTokenResponse.client_info) {
             this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
@@ -185,7 +184,7 @@ export class ResponseHandler {
                 serverTokenResponse.access_token,
                 this.clientId,
                 idTokenObj ? idTokenObj.claims.tid || "" : authority.tenant,
-                responseScopes.printScopesLowerCase(),
+                responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
                 oboAssertion
