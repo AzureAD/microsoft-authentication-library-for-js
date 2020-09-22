@@ -227,12 +227,12 @@ export class TokenCache {
         const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
 
         return {
+            ...oldState,
             Account: accounts,
             AccessToken: accessTokens,
             RefreshToken: refreshTokens,
             IdToken: idTokens,
-            AppMetadata: appMetadata,
-            ...oldState
+            AppMetadata: appMetadata
         };
     }
 

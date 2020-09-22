@@ -46,7 +46,7 @@ export class FilePersistenceWithDataProtection implements IPersistence {
                 this.scope.toString());
             await this.filePersistence.saveBuffer(encryptedContents);
         } catch (err) {
-            throw PersistenceError.createFilePersistenceWithDPAPIError(err.code, err.message);
+            throw PersistenceError.createFilePersistenceWithDPAPIError(err.message);
         }
     }
 
@@ -62,7 +62,7 @@ export class FilePersistenceWithDataProtection implements IPersistence {
                 this.optionalEntropy,
                 this.scope.toString()).toString();
         } catch (err) {
-            throw PersistenceError.createFilePersistenceWithDPAPIError(err.code, err.message);
+            throw PersistenceError.createFilePersistenceWithDPAPIError(err.message);
         }
     }
 
