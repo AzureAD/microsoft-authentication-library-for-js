@@ -42,7 +42,7 @@ export class LibSecretPersistence implements IPersistence {
         try {
             await setPassword(this.serviceName, this.accountName, contents);
         } catch (err) {
-            throw PersistenceError.createLibSecretError(err.code, err.message);
+            throw PersistenceError.createLibSecretError(err.message);
         }
         // Write dummy data to update file mtime
         await this.filePersistence.save("{}");
@@ -52,7 +52,7 @@ export class LibSecretPersistence implements IPersistence {
         try {
             return await getPassword(this.serviceName, this.accountName);
         } catch (err) {
-            throw PersistenceError.createLibSecretError(err.code, err.message);
+            throw PersistenceError.createLibSecretError(err.message);
         }
     }
 
@@ -61,7 +61,7 @@ export class LibSecretPersistence implements IPersistence {
             await this.filePersistence.delete();
             return await deletePassword(this.serviceName, this.accountName);
         } catch (err) {
-            throw PersistenceError.createLibSecretError(err.code, err.message);
+            throw PersistenceError.createLibSecretError(err.message);
         }
     }
 
