@@ -9,7 +9,6 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { ScopeSet } from "../request/ScopeSet";
 import { GrantType, Errors } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -18,7 +17,7 @@ import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ClientAuthError } from "../error/ClientAuthError";
+import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
 
 /**
@@ -53,7 +52,6 @@ export class RefreshTokenClient extends BaseClient {
      * Gets cached refresh token and attaches to request, then calls acquireToken API
      * @param request
      */
-
     public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
@@ -65,64 +63,55 @@ export class RefreshTokenClient extends BaseClient {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
 
-        // try checking if Family Refresh Token (FRT) is available
-        const familyRTResult = await this.acquireFamilyRefreshToken(request);
-        if (familyRTResult) {
-            return familyRTResult;
-        }
-        // fetch application Refresh Token (ART)
-        else {
-            const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, false);
-            // no refresh Token
-            if (!refreshToken) {
-                throw ClientAuthError.createNoTokensFoundError();
+        // try checking if FOCI is enabled for the given application
+        const isFOCI = this.cacheManager.isAppMetadataFOCI(request.account.environment, this.config.authOptions.clientId);
+
+        // if the app is part of the family, retrive a Family refresh token if present and make a refreshTokenRequest
+        if (isFOCI) {
+            try {
+                return this.acquireTokenWithCachedRefreshToken(request, true);
             }
-
-            const refreshTokenRequest: RefreshTokenRequest = {
-                ...request,
-                refreshToken: refreshToken.secret
-            };
-
-            const refreshTokenResult = await this.acquireToken(refreshTokenRequest);
-            return refreshTokenResult;
+            catch (e) {
+                // if family Refresh Token (FRT) cache acquisition fails, reattempt with application Refresh Token (ART)
+                if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.noTokensFoundError.code) {
+                    return this.acquireTokenWithCachedRefreshToken(request, false);
+                }
+                // if client_mismatch, retry with ART
+                if (!(e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR)) {
+                    throw e;
+                }
+            }
         }
+        return this.acquireTokenWithCachedRefreshToken(request, false);
 
     }
 
     /**
-     * retrive a Family refresh token if present and make a refreshTokenRequest
+     * makes a network call to acquire tokens by exchanging RefreshToken available in userCache; throws if refresh token is not cached
      * @param request
      */
-    private async acquireFamilyRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
-        const isFOCI = this.cacheManager.isAppMetadataFOCI(request.account.environment, this.config.authOptions.clientId);
+    private async acquireTokenWithCachedRefreshToken(request: SilentFlowRequest, foci: boolean) {
+        // fetches family RT or application RT based on FOCI value
+        const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
 
-        // if the app is part of the family
-        if (isFOCI) {
-            const familyRefreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, true);
-            // no family refresh Token
-            if (!familyRefreshToken) {
-                return null;
-            } else {
-                const refreshTokenRequest: RefreshTokenRequest = {
-                    ...request,
-                    refreshToken: familyRefreshToken.secret
-                };
-
-                try {
-                    return this.acquireToken(refreshTokenRequest);
-                } catch (e) {
-                    // if client_mismatch, retry with ART and hence we return null
-                    if (e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR) {
-                        return null;
-                    } else {
-                        throw e;
-                    }
-                }
-            }
+        // no refresh Token
+        if (!refreshToken) {
+            throw ClientAuthError.createNoTokensFoundError();
         }
-        return null;
+
+        const refreshTokenRequest: RefreshTokenRequest = {
+            ...request,
+            refreshToken: refreshToken.secret
+        };
+
+        return this.acquireToken(refreshTokenRequest);
     }
 
+    /**
+     *
+     * @param request
+     * @param authority
+     */
     private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
