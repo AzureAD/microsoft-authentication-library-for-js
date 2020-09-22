@@ -6,6 +6,7 @@ build
 dist
 
 # Logs
+test/test-logs
 logs
 *.log
 npm-debug.log*
