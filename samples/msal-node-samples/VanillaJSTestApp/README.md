@@ -1,6 +1,7 @@
 # MSAL Node Vanilla JS Sample
 
 ## About this sample
+
 This developer sample application is used to run a variety of use cases for the MSAL Node library. You can also customize the JSON configuration files in `./app/scenarios/<scenario-name>/` or create your own scenario configuration based on the scenario template (`./app/scenarios/scenario-template`) to execute other behaviors and scenarios.
 
 **Note: This unified sample application is optimized for end-to-end test automation. We currently also offer [standalone versions](../standalone-samples) of `msal-node` usage samples which are tailored to each specific authorization flow that msal-node supports. We are working towards keeping a single set of usage samples, so it is likely that the standalone samples will be removed once this Vanilla JS multi-flow sample application is stable enough.**
@@ -102,14 +103,14 @@ Open the `./app/scenarios/<scenario-name>/` directory corresponding to your scen
 - In a command prompt, run `npm install`.
 
 #### Running the sample application
-1. In a command prompt, run `npm start`. The default scenario is the `auth-code-aad` scenario.
+1. In a command prompt, run `npm start`. The default scenario is the `silent-flow-aad` scenario.
     - If you wish to specify a different sample than the default, you may provide the sample name in the command prompt:
     ```bash
-    npm start -- -scenario <scenario-name> # defaults to vanilla sample in `auth-code-aad` folder
+    npm start -- -scenario <scenario-name> # defaults to scenario sample in `silent-flow-aad` directory
     ```
 
     ```bash
-    npm start -- -s <scenario-name> # defaults to vanilla sample in 'auth-code-aad' folder
+    npm start -- -s <scenario-name> # defaults to scenario sample in 'silent-flow-aad' directory
     ```
 
     - If you wish to specify the port for scenarios with the `web` appType, you can provide the `-p` or `-port` flag:

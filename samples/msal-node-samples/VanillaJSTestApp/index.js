@@ -9,7 +9,7 @@ const argv = require('yargs')
     .usage('Usage: $0 -scenario [scenario-name] -p [PORT]')
     .alias('p', 'port')
     .alias('s', 'scenario')
-    .describe('scenario', '(Optional) Name of scenario to run')
+    .describe('scenario', '(Optional) Name of scenario to run - default is silent-flow-aad')
     .describe('port', '(Optional) Port Number - default is 3000')
     .strict()
     .argv;
