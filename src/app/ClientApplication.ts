@@ -272,7 +272,13 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        this.preflightBrowserEnvironmentCheck();
+        try {
+            this.preflightBrowserEnvironmentCheck();
+        } catch (e) {
+            // Since this function is syncronous we need to reject
+            return Promise.reject(e);
+        }
+
         // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
         if (this.config.system.asyncPopups) {
             return this.acquireTokenPopupAsync(request);
@@ -466,7 +472,7 @@ export abstract class ClientApplication {
      * @returns {@link AccountInfo[]} - Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
-        return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts() : null;
+        return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts() : [];
     }
 
     /**
