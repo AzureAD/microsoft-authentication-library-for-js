@@ -12,7 +12,7 @@ import { HomeComponent } from './home/home.component';
 import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { MsalService, MSAL_INSTANCE, MsalGuard, MsalInterceptor } from './msal';
+import { MsalService, MSAL_INSTANCE, MsalGuard, MsalInterceptor, MsalBroadcastService } from './msal';
 import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
 import { MSAL_GUARD_CONFIG, InteractionType, MSAL_INTERCEPTOR_CONFIG } from './msal/constants';
 import { MsalGuardConfiguration } from './msal/msal.guard.config';
@@ -28,13 +28,13 @@ function MSALInstanceFactory(): IPublicClientApplication {
 }
 
 function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
-  const protectedResourceMap = new Map<string, Array<string>>()
-  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read'])
+  const protectedResourceMap = new Map<string, Array<string>>();
+  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
 
   return {
     interactionType: InteractionType.POPUP,
-    protectedResourceMap: protectedResourceMap,
-  }
+    protectedResourceMap,
+  };
 }
 
 @NgModule({
@@ -73,7 +73,8 @@ function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
       useFactory: MSALInterceptorConfigFactory
     },
     MsalService,
-    MsalGuard
+    MsalGuard,
+    MsalBroadcastService
   ],
   bootstrap: [AppComponent]
 })
