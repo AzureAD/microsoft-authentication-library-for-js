@@ -25,10 +25,10 @@ const windowsPersistence = FilePersistenceWithDataProtection.create(cachePath, d
 ```
 
 - cachePath is the path in the file system where the encrypted cache file will be stored. 
-- dataProtectionScope specifies the scope fo the data protection - either the current user or the local machine. You do not need a key to protect or unprotect the data. If you set the scope to CurrentUser, only applications running on your credentials can unprotect the data; howerver, that mean that any application running on your credentials can access the protected data. If you set the scope to LocalMachine, any full-trust application on the computer can unprotect, access, and modify the data.
-- optionalEntoropy specifies password or other additional entropy used to encrypt the data.
+- dataProtectionScope specifies the scope of the data protection - either the current user or the local machine. You do not need a key to protect or unprotect the data. If you set the scope to CurrentUser, only applications running on your credentials can unprotect the data; however, that means that any application running on your credentials can access the protected data. If you set the scope to LocalMachine, any full-trust application on the computer can unprotect, access, and modify the data.
+- optionalEntropy specifies password or other additional entropy used to encrypt the data.
 
-The FilePersistenceWithDataProtection use the Win32 CryptProtectData and CryptUnprotectData APIs. For more information on dataProtectionScope, or optionalEntropy, reference the documentation for those APIs.  
+The FilePersistenceWithDataProtection uses the Win32 CryptProtectData and CryptUnprotectData APIs. For more information on dataProtectionScope, or optionalEntropy, reference the documentation for those APIs.  
 
 #### Mac: 
 ```js

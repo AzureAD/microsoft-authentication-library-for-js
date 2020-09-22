@@ -4,7 +4,7 @@
  */
 
 const express = require("express");
-const msal = require('@azure/msal-node');
+const msal = require("@azure/msal-node");
 const extensions = require("@azure/msal-node-extensions");
 const process = require("process");
 const path = require("path");
@@ -85,5 +85,5 @@ async function createPersistence() {
         return extensions.LibSecretPersistence.create(cachePath, "serviceName", "accountName"); // Replace serviceName and accountName
     }
 
-    throw new Error("Could not create perrsistence. Platform not supported");
+    throw new Error("Could not create persistence. Platform not supported");
 }
