@@ -35,7 +35,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      name: Full name for the account, including given name and family name,
  *      clientInfo: Full base64 encoded client info received from ESTS
  *      lastModificationTime: last time this entity was modified in the cache
- *      lastModificationApp: 
+ *      lastModificationApp:
  *      oboAssertion: access token passed in as part of OBO request
  * }
  */
@@ -99,7 +99,8 @@ export class AccountEntity {
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
-            username: this.username
+            username: this.username,
+            name: this.name
         };
     }
 
@@ -116,7 +117,7 @@ export class AccountEntity {
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
-    
+
     /**
      * Build Account cache from IdToken, clientInfo and authority/policy
      * @param clientInfo
