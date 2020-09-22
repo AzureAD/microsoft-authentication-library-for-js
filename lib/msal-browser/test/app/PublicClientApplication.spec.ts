@@ -196,9 +196,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // @ts-ignore
             global.window.parent = oldWindow;
-        })
+        });
 
-        it("Constructor doesnt throw is window is undefined", () => {
+        it("Constructor doesnt throw if window is undefined", () => {
             const instance = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
@@ -206,104 +206,96 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        it("acquireTokenSilent throws", done => {
+        it("acquireTokenSilent throws", (done) => {
             const instance = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
 
-            // @ts-ignore
-            instance.acquireTokenSilent()
+            instance.acquireTokenSilent({scopes: ["openid"], account: null})
                 .catch(error => {
                     expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
                 });
         });
 
-        it("ssoSilent throws", done => {
+        it("ssoSilent throws", (done) => {
             const instance = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
 
-            // @ts-ignore
-            instance.ssoSilent()
+            instance.ssoSilent({})
                 .catch(error => {
                     expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
                 });
         });
 
-        it("acquireTokenPopup throws", done => {
+        it("acquireTokenPopup throws", (done) => {
             const instance = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
 
-            // @ts-ignore
-            instance.acquireTokenPopup()
+            instance.acquireTokenPopup({scopes: ["openid"]}).catch((error) => {
+                expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
+                done();
+            });
+        });
+
+        it("acquireTokenRedirect throws", (done) => {
+            const instance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+
+            instance.acquireTokenRedirect({scopes: ["openid"]})
                 .catch(error => {
                     expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
                 });
         });
 
-        it("acquireTokenRedirect throws", done => {
+        it("loginPopup throws", (done) => {
             const instance = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
 
-            // @ts-ignore
-            instance.acquireTokenRedirect()
+            instance.loginPopup({scopes: ["openid"]})
                 .catch(error => {
                     expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
                 });
         });
 
-        it("loginPopup throws", done => {
+        it("loginRedirect throws", (done) => {
             const instance = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
 
-            // @ts-ignore
-            instance.loginPopup()
+            instance.loginRedirect({scopes: ["openid"]})
                 .catch(error => {
                     expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
                 });
         });
 
-        it("loginRedirect throws", done => {
+        it("logout throws", (done) => {
             const instance = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
 
-            // @ts-ignore
-            instance.loginRedirect()
-                .catch(error => {
-                    expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-                    done();
-                });
-        });
-
-        it("logout throws", done => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            // @ts-ignore
             instance.logout()
                 .catch(error => {
                     expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
@@ -333,7 +325,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).to.equal(null);
         });
 
-        it("handleRedirectPromise returns null", done => {
+        it("handleRedirectPromise returns null", (done) => {
             const instance = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
@@ -344,7 +336,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(result).to.be.null;
                 done();
             });
-        })
+        });
     });
 
     describe("Redirect Flow Unit tests", () => {
