@@ -151,7 +151,7 @@ export abstract class CacheManager implements ICacheManager {
      * retrieve an account entity given the cache key
      * @param key
      */
-    getAccount(key: string): AccountEntity {
+    getAccount(key: string): AccountEntity | null {
         // don't parse any non-account type cache entities
         if (CredentialEntity.getCredentialType(key) !== Constants.NOT_DEFINED || this.isAppMetadata(key)) {
             return null;
@@ -177,7 +177,7 @@ export abstract class CacheManager implements ICacheManager {
      * retrieve a credential - accessToken, idToken or refreshToken; given the cache key
      * @param key
      */
-    getCredential(key: string): CredentialEntity {
+    getCredential(key: string): CredentialEntity | null {
         return this.getItem(key, CacheSchemaType.CREDENTIAL) as CredentialEntity;
     }
 
@@ -185,7 +185,7 @@ export abstract class CacheManager implements ICacheManager {
      * retrieve an appmetadata entity given the cache key
      * @param key
      */
-    getAppMetadata(key: string): AppMetadataEntity {
+    getAppMetadata(key: string): AppMetadataEntity | null {
         return this.getItem(key, CacheSchemaType.APP_METADATA) as AppMetadataEntity;
     }
 
