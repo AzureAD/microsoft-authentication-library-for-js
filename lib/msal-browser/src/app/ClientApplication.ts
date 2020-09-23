@@ -74,28 +74,29 @@ export abstract class ClientApplication {
          * This is to support server-side rendering environments.
          */
         this.isBrowserEnvironment = typeof window !== "undefined";
-
-        if (this.isBrowserEnvironment) {
-            // Set the configuration.
-            this.config = buildConfiguration(configuration);
-
-            // Initialize the crypto class.
-            this.browserCrypto = new CryptoOps();
-
-            // Initialize the network module class.
-            this.networkClient = this.config.system.networkClient;
-
-            // Initialize the browser storage class.
-            this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache, this.browserCrypto);
-
-            // Initialize logger
-            this.logger = new Logger(this.config.system.loggerOptions);
-
-            // Initialize default authority instance
-            TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
-
-            this.defaultAuthority = null;
+        if (!this.isBrowserEnvironment) {
+            return;
         }
+
+        // Set the configuration.
+        this.config = buildConfiguration(configuration);
+
+        // Initialize the crypto class.
+        this.browserCrypto = new CryptoOps();
+
+        // Initialize the network module class.
+        this.networkClient = this.config.system.networkClient;
+
+        // Initialize the browser storage class.
+        this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache, this.browserCrypto);
+
+        // Initialize logger
+        this.logger = new Logger(this.config.system.loggerOptions);
+
+        // Initialize default authority instance
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
+
+        this.defaultAuthority = null;
     }
 
     // #region Redirect Flow
