@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Make network interface public",
+  "comment": "Make network interface public (#2335)",
   "packageName": "@azure/msal-node",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",

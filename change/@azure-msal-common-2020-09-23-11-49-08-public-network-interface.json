@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Remove null in function return types to be compatible with ICacheManager.ts",
+  "comment": "Remove null in function return types to be compatible with ICacheManager.ts (#2335)",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",
