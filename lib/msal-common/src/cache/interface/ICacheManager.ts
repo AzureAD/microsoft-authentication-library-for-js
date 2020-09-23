@@ -13,6 +13,7 @@ import {
 import { CacheRecord } from "../entities/CacheRecord";
 import { AccountEntity } from "../entities/AccountEntity";
 import { AccountInfo } from "../../account/AccountInfo";
+import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 
 export interface ICacheManager {
 
@@ -38,6 +39,12 @@ export interface ICacheManager {
      * @param key
      */
     getCredential(key: string): CredentialEntity;
+
+    /**
+    * retrieve appMetadata, given the cache key
+    * @param key
+    */
+    getAppMetadata(key: string): AppMetadataEntity;
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
