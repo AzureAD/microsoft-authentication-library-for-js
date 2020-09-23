@@ -72,16 +72,21 @@ export class RefreshTokenClient extends BaseClient {
                 return this.acquireTokenWithCachedRefreshToken(request, true);
             }
             catch (e) {
-                // if family Refresh Token (FRT) cache acquisition fails, reattempt with application Refresh Token (ART)
-                if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.noTokensFoundError.code) {
+                const noFamilyRTInCache = e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.noTokensFoundError.code;
+                const clientMismatchErrorWithFamilyRT = e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR;
+
+                // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
+                if (noFamilyRTInCache || clientMismatchErrorWithFamilyRT) {
                     return this.acquireTokenWithCachedRefreshToken(request, false);
-                }
-                // if client_mismatch, retry with ART
-                if (!(e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR)) {
+                // throw in all other cases
+                } else {
                     throw e;
                 }
+
             }
         }
+
+        // fall back to application refresh token acquisition
         return this.acquireTokenWithCachedRefreshToken(request, false);
 
     }
@@ -108,7 +113,7 @@ export class RefreshTokenClient extends BaseClient {
     }
 
     /**
-     *
+     * Constructs the network message and makes a NW call to the underlying secure token service
      * @param request
      * @param authority
      */
@@ -125,6 +130,10 @@ export class RefreshTokenClient extends BaseClient {
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
     }
 
+    /**
+     * Helper function to create the token request body
+     * @param request
+     */
     private createTokenRequestBody(request: RefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
