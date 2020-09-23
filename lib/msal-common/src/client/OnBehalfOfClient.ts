@@ -74,7 +74,8 @@ export class OnBehalfOfClient extends BaseClient {
             account: cachedAccount,
             accessToken: cachedAccessToken,
             idToken: cachedIdToken,
-            refreshToken: null
+            refreshToken: null,
+            appMetadata: null,
         }, idTokenObject, true);
     }
 
