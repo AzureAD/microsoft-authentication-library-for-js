@@ -2,9 +2,42 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 23 Sep 2020 21:13:48 GMT",
+      "tag": "@azure/msal-node_v1.0.0-alpha.7",
+      "version": "1.0.0-alpha.7",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Make network interface public (#2335)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "aecc41e9f23b350a25bba9dd23e739627e61f8ab",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Rename TokenCache.cacheHasChanged to TokenCache.hasChanged (#2332)",
+            "author": "sagonzal@microsoft.com",
+            "commit": "536a335dd405c5ce070461a302d9a6ed24067b2b",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "FOCI - Family of Client IDs feature (#2201)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "209789cdffdfd38087819cbb23688bcd5ce47b60",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Fix issue with token cache not removing old cache entities (#2304)",
+            "author": "sagonzal@microsoft.com",
+            "commit": "efd00413c32c6c4ac36eaeaaf8b9de33c4839484",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
-      "tag": "@azure/msal-node_v1.0.0",
-      "version": "1.0.0",
+      "tag": "@azure/msal-node_v1.0.0-alpha.6 (#)",
+      "version": "1.0.0-alpha.6",
       "comments": {
         "none": [
           {
