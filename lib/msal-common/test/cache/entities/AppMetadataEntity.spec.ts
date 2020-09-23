@@ -10,22 +10,22 @@ describe("AppMetadataEntity.ts Unit Tests", () => {
     });
 
     it("Create an AppMetadataEntity", () => {
-        let appM = new AppMetadataEntity();
+        const appM = new AppMetadataEntity();
         Object.assign(appM, mockAppMetaDataEntity);
-        expect(appM.generateAppMetaDataEntityKey()).to.eql(
+        expect(appM.generateAppMetadataKey()).to.eql(
             "appmetadata-login.microsoftonline.com-mock_client_id"
         );
     });
 
     it("verify if an object is an appMetadata  entity", () => {
-        let appM = new AppMetadataEntity();
+        const appM = new AppMetadataEntity();
         Object.assign(appM, mockAppMetaDataEntity);
-        const key = appM.generateAppMetaDataEntityKey();
+        const key = appM.generateAppMetadataKey();
         expect(AppMetadataEntity.isAppMetadataEntity(key, mockAppMetaDataEntity)).to.eql(true);
     });
 
     it("verify if an object is not an appMetadata entity", () => {
-        let idT = new IdTokenEntity();
+        const idT = new IdTokenEntity();
         Object.assign(idT, mockIdTokenEntity);
         const key = idT.generateCredentialKey();
         expect(AppMetadataEntity.isAppMetadataEntity(key, mockIdTokenEntity)).to.eql(false);
