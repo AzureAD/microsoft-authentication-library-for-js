@@ -24,13 +24,13 @@ const defaultSerializedCache: JsonCache = {
 export class TokenCache {
 
     private storage: Storage;
-    private _hasChanged: boolean;
+    private cacheHasChanged: boolean;
     private cacheSnapshot: string;
     private readonly persistence: ICachePlugin;
     private logger: Logger;
 
     constructor(storage: Storage, logger: Logger, cachePlugin?: ICachePlugin) {
-        this._hasChanged = false;
+        this.cacheHasChanged = false;
         this.storage = storage;
         this.storage.registerChangeEmitter(this.handleChangeEvent.bind(this));
         if (cachePlugin) {
@@ -42,8 +42,8 @@ export class TokenCache {
     /**
      * Set to true if cache state has changed since last time serialize or writeToPersistence was called
      */
-    hasChanged(): boolean {
-        return this._hasChanged;
+    get hasChanged(): boolean {
+        return this.cacheHasChanged;
     }
 
     /**
@@ -65,7 +65,7 @@ export class TokenCache {
         } else {
             this.logger.verbose("No cache snapshot to merge");
         }
-        this._hasChanged = false;
+        this.cacheHasChanged = false;
 
         return JSON.stringify(finalState);
     }
@@ -110,7 +110,7 @@ export class TokenCache {
             };
 
             await this.persistence.writeToStorage(getMergedState);
-            this._hasChanged = false;
+            this.cacheHasChanged = false;
         } else {
             throw ClientAuthError.createCachePluginError();
         }
@@ -166,7 +166,7 @@ export class TokenCache {
      * Called when the cache has changed state.
      */
     private handleChangeEvent() {
-        this._hasChanged = true;
+        this.cacheHasChanged = true;
     }
 
     /**
