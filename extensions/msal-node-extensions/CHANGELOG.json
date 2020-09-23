@@ -3,7 +3,7 @@
   "entries": [
     {
       "date": "Wed, 23 Sep 2020 21:13:48 GMT",
-      "tag": "@azure/msal-node-extensions_v1.0.0",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.3",
       "version": "1.0.0-alpha.3",
       "comments": {
         "prerelease": [
