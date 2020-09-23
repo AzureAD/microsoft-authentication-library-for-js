@@ -195,4 +195,13 @@ export class Authority {
         const response = await this.discoverEndpoints(openIdConfigEndpoint);
         this.tenantDiscoveryResponse = response.body;
     }
+
+    /**
+     * helper function to generate environment from authority object
+     * @param authority
+     */
+    static generateEnvironmentFromAuthority(authority: Authority): string {
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        return TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+    }
 }

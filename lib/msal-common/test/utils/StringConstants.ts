@@ -119,7 +119,8 @@ export const TEST_CONFIG = {
     TEST_VERSION: "1.1.0",
     TEST_OS: "win32",
     TEST_CPU: "x86",
-    TEST_ASSERTION_TYPE: "jwt_bearer"
+    TEST_ASSERTION_TYPE: "jwt_bearer",
+    THE_FAMILY_ID: "1"
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
@@ -242,6 +243,21 @@ export const AUTHENTICATION_RESULT = {
     }
 };
 
+export const AUTHENTICATION_RESULT_WITH_FOCI = {
+    status: 200,
+    body: {
+        "token_type": "Bearer",
+        "scope": "openid profile User.Read email",
+        "expires_in": 3599,
+        "ext_expires_in": 3599,
+        "access_token": "thisIs.an.accessT0ken",
+        "refresh_token": "thisIsARefreshT0ken",
+        "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjFMVE16YWtpaGlSbGFfOHoyQkVKVlhlV01xbyJ9.eyJ2ZXIiOiIyLjAiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vOTE4ODA0MGQtNmM2Ny00YzViLWIxMTItMzZhMzA0YjY2ZGFkL3YyLjAiLCJzdWIiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFJa3pxRlZyU2FTYUZIeTc4MmJidGFRIiwiYXVkIjoiNmNiMDQwMTgtYTNmNS00NmE3LWI5OTUtOTQwYzc4ZjVhZWYzIiwiZXhwIjoxNTM2MzYxNDExLCJpYXQiOjE1MzYyNzQ3MTEsIm5iZiI6MTUzNjI3NDcxMSwibmFtZSI6IkFiZSBMaW5jb2xuIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiQWJlTGlAbWljcm9zb2Z0LmNvbSIsIm9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC02NmYzLTMzMzJlY2E3ZWE4MSIsInRpZCI6IjMzMzgwNDBkLTZjNjctNGM1Yi1iMTEyLTM2YTMwNGI2NmRhZCIsIm5vbmNlIjoiMTIzNTIzIiwiYWlvIjoiRGYyVVZYTDFpeCFsTUNXTVNPSkJjRmF0emNHZnZGR2hqS3Y4cTVnMHg3MzJkUjVNQjVCaXN2R1FPN1lXQnlqZDhpUURMcSFlR2JJRGFreXA1bW5PcmNkcUhlWVNubHRlcFFtUnA2QUlaOGpZIn0=.1AFWW-Ck5nROwSlltm7GzZvDwUkqvhSQpm55TQsmVo9Y59cLhRXpvB8n-55HCr9Z6G_31_UbeUkoz612I2j_Sm9FFShSDDjoaLQr54CreGIJvjtmS3EkK9a7SJBbcpL1MpUtlfygow39tFjY7EVNW9plWUvRrTgVk7lYLprvfzw-CIqw3gHC-T7IK_m_xkr08INERBtaecwhTeN4chPC4W3jdmw_lIxzC48YoQ0dB1L9-ImX98Egypfrlbm0IBL5spFzL6JDZIRRJOu8vecJvj1mq-IUhGt0MacxX8jdxYLP-KUu2d9MbNKpCKJuZ7p8gwTL5B7NlUdh_dmSviPWrw",
+        "client_info": `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
+        "foci": "1"
+    }
+};
+
 export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     status: 200,
     body: {
@@ -326,4 +342,15 @@ export const THROTTLING_ENTITY: ThrottlingEntity = {
 export const NETWORK_REQUEST_OPTIONS: NetworkRequestOptions = {
     headers: { },
     body: ""
+};
+
+export const CACHE_MOCKS = {
+    MOCK_CLIENT_ID: "mock_client_id",
+    MOCK_CLIENT_ID_1: "mock_client_id_1",
+    MOCK_ACCOUNT_INFO: {
+        homeAccountId: "uid.utid",
+        environment: "login.microsoftonline.com",
+        tenantId: "microsoft",
+        username: "mocked_username"
+    },
 };
