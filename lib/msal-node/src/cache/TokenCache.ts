@@ -42,7 +42,7 @@ export class TokenCache {
     /**
      * Set to true if cache state has changed since last time serialize or writeToPersistence was called
      */
-    get hasChanged(): boolean {
+    hasChanged(): boolean {
         return this.cacheHasChanged;
     }
 
