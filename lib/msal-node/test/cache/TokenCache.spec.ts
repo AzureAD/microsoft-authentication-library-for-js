@@ -27,7 +27,7 @@ describe("TokenCache tests", () => {
         let storage: Storage = new Storage(logger);
         const tokenCache = new TokenCache(storage, logger);
         expect(tokenCache).toBeInstanceOf(TokenCache);
-        expect(tokenCache.cacheHasChanged()).toEqual(false);
+        expect(tokenCache.hasChanged()).toEqual(false);
         expect(tokenCache.getAllAccounts()).toEqual([]);
     });
 
@@ -37,11 +37,11 @@ describe("TokenCache tests", () => {
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(JSON.stringify(cache));
-        expect(tokenCache.cacheHasChanged()).toEqual(true);
+        expect(tokenCache.hasChanged()).toEqual(true);
 
         const tokenCacheAfterSerialization = tokenCache.serialize();
         expect(JSON.parse(tokenCacheAfterSerialization)).toEqual(cache);
-        expect(tokenCache.cacheHasChanged()).toEqual(false);
+        expect(tokenCache.hasChanged()).toEqual(false);
     });
 
     it("TokenCache serialize/deserialize, does not remove unrecognized entities", () => {
@@ -52,11 +52,11 @@ describe("TokenCache tests", () => {
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(JSON.stringify(cache));
-        expect(tokenCache.cacheHasChanged()).toEqual(true);
+        expect(tokenCache.hasChanged()).toEqual(true);
 
         const tokenCacheAfterSerialization = tokenCache.serialize();
         expect(JSON.parse(tokenCacheAfterSerialization)).toEqual(cache);
-        expect(tokenCache.cacheHasChanged()).toEqual(false);
+        expect(tokenCache.hasChanged()).toEqual(false);
     });
 
     it("TokenCache.mergeRemovals removes entities from the cache, but does not remove other entities", () => {
@@ -68,10 +68,10 @@ describe("TokenCache tests", () => {
 
         tokenCache.deserialize(JSON.stringify(cache));
         tokenCache.removeAccount(tokenCache.getAllAccounts()[0]);
-        expect(tokenCache.cacheHasChanged()).toEqual(true);
+        expect(tokenCache.hasChanged()).toEqual(true);
 
         const tokenCacheAfterSerialization = JSON.parse(tokenCache.serialize());
-        expect(tokenCache.cacheHasChanged()).toEqual(false);
+        expect(tokenCache.hasChanged()).toEqual(false);
         expect(tokenCacheAfterSerialization.Account).toEqual({});
         expect(tokenCacheAfterSerialization.RefreshToken).toEqual({});
         expect(tokenCacheAfterSerialization.AccessToken).toEqual({});
@@ -108,11 +108,11 @@ describe("TokenCache tests", () => {
         const tokenCache = new TokenCache(storage, logger, cachePlugin);
 
         await tokenCache.readFromPersistence()
-        expect(tokenCache.cacheHasChanged()).toBe(true);
+        expect(tokenCache.hasChanged()).toBe(true);
         expect(tokenCache.getAllAccounts().length).toBe(1);
 
         await tokenCache.writeToPersistence();
-        expect(tokenCache.cacheHasChanged()).toBe(false);
+        expect(tokenCache.hasChanged()).toBe(false);
         expect(require('./cache-test-files/temp-cache.json')).toEqual(require('./cache-test-files/cache-unrecognized-entities.json'));
 
         // try and clean up

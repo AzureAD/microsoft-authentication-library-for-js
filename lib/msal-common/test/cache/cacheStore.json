@@ -19,7 +19,7 @@
         "environment": "login.microsoftonline.com",
         "credentialType": "RefreshToken",
         "secret": "a refresh token",
-        "clientId": "mock_client_id",
+        "clientId": "mock_client_id_1",
         "homeAccountId": "uid.utid",
         "familyId": "1"
     },
@@ -55,9 +55,9 @@
         "clientId": "mock_client_id",
         "homeAccountId": "uid.utid"
     },
-    "appmetadata-login.microsoftonline.com-mock_client_id": {
+    "appmetadata-login.microsoftonline.com-mock_client_id_1": {
         "environment": "login.microsoftonline.com",
         "familyId": "1",
-        "clientId": "mock_client_id"
+        "clientId": "mock_client_id_1"
     }
 }
