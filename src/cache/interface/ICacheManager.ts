@@ -41,9 +41,9 @@ export interface ICacheManager {
     getCredential(key: string): CredentialEntity | null;
 
     /**
-    * retrieve appMetadata, given the cache key
-    * @param key
-    */
+     * retrieve appMetadata, given the cache key
+     * @param key
+     */
     getAppMetadata(key: string): AppMetadataEntity | null;
 
     /**
