@@ -140,5 +140,5 @@ export const MockCache = {
     acc: mockCache.createMockAcc(),
     accKey: mockCache.createMockAcc().generateAccountKey(),
     amdt: mockCache.createMockAmdt(),
-    amdtKey: mockCache.createMockAmdt().generateAppMetaDataEntityKey()
+    amdtKey: mockCache.createMockAmdt().generateAppMetadataKey()
 };
