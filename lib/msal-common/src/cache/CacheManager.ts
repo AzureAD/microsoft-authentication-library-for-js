@@ -185,7 +185,7 @@ export abstract class CacheManager implements ICacheManager {
      * retrieve an appmetadata entity given the cache key
      * @param key
      */
-    getAppMetadata(key: string): AppMetadataEntity {
+    getAppMetadata(key: string): AppMetadataEntity | null {
         return this.getItem(key, CacheSchemaType.APP_METADATA) as AppMetadataEntity;
     }
 
