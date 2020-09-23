@@ -2,6 +2,35 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 23 Sep 2020 21:13:48 GMT",
+      "tag": "@azure/msal-common_v1.4.0",
+      "version": "1.4.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove null in function return types to be compatible with ICacheManager.ts (#2335)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "aecc41e9f23b350a25bba9dd23e739627e61f8ab",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Scopes stored case sensitive, compared case insensitive (#2302)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "60fe1e6b2e4c3fdd1f7ce0dd0fbee0febed6d0d2",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "FOCI - Family of Client IDs feature (#2201)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "209789cdffdfd38087819cbb23688bcd5ce47b60",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
       "tag": "@azure/msal-common_v1.3.0",
       "version": "1.3.0",
