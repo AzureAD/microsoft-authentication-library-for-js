@@ -50,7 +50,7 @@ export class ResponseUtils {
                 return (authResponse.idToken) ? authResponse : null;
             case ResponseTypes.id_token_token:
                 authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
-                return (authResponse && authResponse.idToken) ? authResponse : null;
+                return (authResponse && authResponse.accessToken && authResponse.idToken) ? authResponse : null;
             case ResponseTypes.token:
                 authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
                 return authResponse;
