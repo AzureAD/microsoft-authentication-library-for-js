@@ -1,5 +1,5 @@
-import { Observable, Subject } from 'rxjs';
-import { AuthenticationResult, AuthError } from '@azure/msal-common';
+import { Observable, Subject } from "rxjs";
+import { AuthenticationResult, AuthError } from "@azure/msal-common";
 
 export enum BroadcastEvent {
     LOGIN_START = "msal:loginStart",
@@ -17,20 +17,20 @@ export enum BroadcastEvent {
 }
 
 export interface BroadcastMessage {
-  type: BroadcastEvent;
-  payload: AuthenticationResult | AuthError | null;
+    type: BroadcastEvent;
+    payload: AuthenticationResult | AuthError | null;
 }
 
 export class BroadcastService {
-  private _msalSubject: Subject<any>;
-  public msalSubject$: Observable<any>;
+    private _msalSubject: Subject<any>;
+    public msalSubject$: Observable<any>;
 
-  constructor() {
-    this._msalSubject = new Subject<BroadcastMessage>();
-    this.msalSubject$  = this._msalSubject.asObservable();
-  }
+    constructor() {
+        this._msalSubject = new Subject<BroadcastMessage>();
+        this.msalSubject$  = this._msalSubject.asObservable();
+    }
 
-  broadcast(type: BroadcastEvent, payload: AuthenticationResult | AuthError) {
-    this._msalSubject.next({type , payload});
-  }
+    broadcast(type: BroadcastEvent, payload: AuthenticationResult | AuthError) {
+        this._msalSubject.next({type , payload});
+    }
 }
