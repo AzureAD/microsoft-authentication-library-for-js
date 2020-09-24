@@ -1,4 +1,4 @@
-* @jasonnutter @tnorling @sameerag @pkanher617 @DarylThayil @jo-arroyo @jmckennon @technical-boy
+* @jasonnutter @tnorling @sameerag @pkanher617 @DarylThayil @jo-arroyo @jmckennon @hectormmg
 
 # MSAL Angular
 /lib/msal-angular/ @jasonnutter @jo-arroyo
@@ -18,13 +18,13 @@
 /samples/msal-core-samples/ @jasonnutter @sameerag @tnorling
 
 # MSAL Node
-/lib/msal-node/ @sameerag @technical-boy
-/samples/msal-node-samples/ @sameerag @technical-boy
-/extensions/msal-node-extensions/ @sameerag @technical-boy
+/lib/msal-node/ @sameerag @hectormmg
+/samples/msal-node-samples/ @sameerag @hectormmg
+/extensions/msal-node-extensions/ @sameerag @hectormmg
 
 # MSAL Electron POC
-/experimental/msal-electron-proof-of-concept/ @technical-boy
-/samples/msal-electron-sample-app/ @technical-boy
+/experimental/msal-electron-proof-of-concept/ @hectormmg
+/samples/msal-electron-sample-app/ @hectormmg
 
 # Build
 /build/ @pkanher617 @jasonnutter
