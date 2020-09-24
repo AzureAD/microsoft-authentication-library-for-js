@@ -48,6 +48,10 @@ export abstract class ClientApplication {
     // Broadcast service
     public broadcastService: BroadcastService;
 
+    // Flag to indicate if in browser environment
+    protected isBrowserEnvironment: boolean;
+
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -70,6 +74,16 @@ export abstract class ClientApplication {
      * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
      */
     constructor(configuration: Configuration) {
+        /*
+         * If loaded in an environment where window is not available,
+         * set internal flag to false so that further requests fail.
+         * This is to support server-side rendering environments.
+         */
+        this.isBrowserEnvironment = typeof window !== "undefined";
+        if (!this.isBrowserEnvironment) {
+            return;
+        }
+
         // Set the configuration.
         this.config = buildConfiguration(configuration);
 
@@ -103,7 +117,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
-        return this.handleRedirectResponse();
+        return this.isBrowserEnvironment ? this.handleRedirectResponse() : null;
     }
 
     /**
@@ -232,7 +246,8 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_START);
-        
+        this.preflightBrowserEnvironmentCheck();
+
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
@@ -272,6 +287,13 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        try {
+            this.preflightBrowserEnvironmentCheck();
+        } catch (e) {
+            // Since this function is syncronous we need to reject
+            return Promise.reject(e);
+        }
+
         // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
         if (this.config.system.asyncPopups) {
             return this.acquireTokenPopupAsync(request);
@@ -348,9 +370,7 @@ export abstract class ClientApplication {
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.broadcast(BroadcastEvent.SSO_SILENT_START);
-
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
+        this.preflightBrowserEnvironmentCheck();
 
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
@@ -455,6 +475,7 @@ export abstract class ClientApplication {
      * @param {@link (EndSessionRequest:type)} 
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+        this.preflightBrowserEnvironmentCheck();
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
         // create logout string and navigate user window to logout. Auth module will clear cache.
@@ -473,7 +494,7 @@ export abstract class ClientApplication {
      * @returns {@link AccountInfo[]} - Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
-        return this.browserStorage.getAllAccounts();
+        return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts() : [];
     }
 
     /**
@@ -627,6 +648,18 @@ export abstract class ClientApplication {
         }
         
         return this.initializeAuthorizationRequest(request, interactionType);
+    }
+
+    /**
+     * Helper to validate app environment before making a silent request
+     * * @param request 
+     */
+    protected preflightBrowserEnvironmentCheck(): void {
+        // Block request if not in browser environment
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+
+        // block the reload if it occurred inside a hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
     }
 
     /**
