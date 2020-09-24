@@ -53,12 +53,6 @@ describe("BrowserStorage() tests", () => {
 
     describe("Constructor", () => {
 
-        it("Throws an error if window object is null", () => {
-            window = null;
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto)).to.throw(BrowserAuthErrorMessage.noWindowObjectError.desc);
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto)).to.throw(BrowserAuthError);
-        });
-
         it("Throws an error if cache location string does not match localStorage or sessionStorage", () => {
             cacheConfig.cacheLocation = "notALocation";
             expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto)).to.throw(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc);
