@@ -3,6 +3,8 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { BroadcastEvent } from "../event/EventConstants";
+import { BroadcastService } from "../event/BroadcastService";
 
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -20,4 +22,6 @@ export interface IPublicClientApplication {
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+    broadcast(type: BroadcastEvent, payload?: any): any;
+    broadcastService: BroadcastService;
 }

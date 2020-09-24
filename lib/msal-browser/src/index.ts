@@ -14,7 +14,8 @@ export { SilentRequest } from "./request/SilentRequest";
 export { SsoSilentRequest } from "./request/SsoSilentRequest";
 
 // Events
-export { BroadcastService, BroadcastMessage, BroadcastEvent } from "./event/BroadcastService";
+export { BroadcastService } from "./event/BroadcastService";
+export { BroadcastEvent } from "./event/EventConstants";
 
 // Common Object Formats
 export {

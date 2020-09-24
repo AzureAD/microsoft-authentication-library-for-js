@@ -34,7 +34,7 @@ export class AppComponent implements OnInit, OnDestroy {
         takeUntil(this._destroying$)
       )
       .subscribe((result) => {
-        console.log("APP COMPONENT - BROWSER BROADCAST: ", result);
+        console.log("EVENT: ", result);
         this.checkAccount();
       });
   }
