@@ -24,13 +24,13 @@ const defaultSerializedCache: JsonCache = {
 export class TokenCache {
 
     private storage: Storage;
-    private hasChanged: boolean;
+    private cacheHasChanged: boolean;
     private cacheSnapshot: string;
     private readonly persistence: ICachePlugin;
     private logger: Logger;
 
     constructor(storage: Storage, logger: Logger, cachePlugin?: ICachePlugin) {
-        this.hasChanged = false;
+        this.cacheHasChanged = false;
         this.storage = storage;
         this.storage.registerChangeEmitter(this.handleChangeEvent.bind(this));
         if (cachePlugin) {
@@ -40,10 +40,10 @@ export class TokenCache {
     }
 
     /**
-     * Set to true if cache state has changed since last time serialized() or writeToPersistence was called
+     * Set to true if cache state has changed since last time serialize or writeToPersistence was called
      */
-    cacheHasChanged(): boolean {
-        return this.hasChanged;
+    hasChanged(): boolean {
+        return this.cacheHasChanged;
     }
 
     /**
@@ -65,7 +65,7 @@ export class TokenCache {
         } else {
             this.logger.verbose("No cache snapshot to merge");
         }
-        this.hasChanged = false;
+        this.cacheHasChanged = false;
 
         return JSON.stringify(finalState);
     }
@@ -110,7 +110,7 @@ export class TokenCache {
             };
 
             await this.persistence.writeToStorage(getMergedState);
-            this.hasChanged = false;
+            this.cacheHasChanged = false;
         } else {
             throw ClientAuthError.createCachePluginError();
         }
@@ -166,7 +166,7 @@ export class TokenCache {
      * Called when the cache has changed state.
      */
     private handleChangeEvent() {
-        this.hasChanged = true;
+        this.cacheHasChanged = true;
     }
 
     /**
@@ -227,12 +227,12 @@ export class TokenCache {
         const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
 
         return {
+            ...oldState,
             Account: accounts,
             AccessToken: accessTokens,
             RefreshToken: refreshTokens,
             IdToken: idTokens,
-            AppMetadata: appMetadata,
-            ...oldState
+            AppMetadata: appMetadata
         };
     }
 
