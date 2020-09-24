@@ -13,6 +13,9 @@ export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";
 export { SsoSilentRequest } from "./request/SsoSilentRequest";
 
+// Events
+export { BroadcastService, BroadcastMessage, BroadcastEvent } from "./event/BroadcastService";
+
 // Common Object Formats
 export {
     // Account

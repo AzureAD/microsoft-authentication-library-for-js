@@ -1,9 +1,10 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
-import { MsalService, MsalBroadcastService } from './msal';
-import { MSAL_GUARD_CONFIG, InteractionType, MsalBroadcastEvent } from './msal/constants';
+import { MsalService, BrowserBroadcastService } from './msal';
+import { MSAL_GUARD_CONFIG, InteractionType } from './msal/constants';
 import { MsalGuardConfiguration } from './msal/msal.guard.config';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
+import { BroadcastEvent } from '@azure/msal-browser';
 
 @Component({
   selector: 'app-root',
@@ -19,7 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
     private authService: MsalService,
-    private broadcastService: MsalBroadcastService
+    private browserBroadcastService: BrowserBroadcastService
   ) {}
 
   ngOnInit(): void {
@@ -27,12 +28,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.checkAccount();
 
-    this.broadcastService.msalSubject$
+    this.browserBroadcastService.msalSubject$
       .pipe(
-        filter(msg => msg.type === MsalBroadcastEvent.LOGIN_SUCCESS || msg.type === MsalBroadcastEvent.ACQUIRE_TOKEN_SUCCESS),
+        filter(msg => msg.type === BroadcastEvent.LOGIN_SUCCESS || msg.type === BroadcastEvent.ACQUIRE_TOKEN_SUCCESS),
         takeUntil(this._destroying$)
       )
       .subscribe((result) => {
+        console.log("APP COMPONENT - BROWSER BROADCAST: ", result);
         this.checkAccount();
       });
   }

@@ -12,7 +12,7 @@ import { HomeComponent } from './home/home.component';
 import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { MsalService, MSAL_INSTANCE, MsalGuard, MsalInterceptor, MsalBroadcastService } from './msal';
+import { MsalService, MSAL_INSTANCE, MsalGuard, MsalInterceptor, BrowserBroadcastService } from './msal';
 import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
 import { MSAL_GUARD_CONFIG, InteractionType, MSAL_INTERCEPTOR_CONFIG } from './msal/constants';
 import { MsalGuardConfiguration } from './msal/msal.guard.config';
@@ -74,7 +74,7 @@ function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
     },
     MsalService,
     MsalGuard,
-    MsalBroadcastService
+    BrowserBroadcastService
   ],
   bootstrap: [AppComponent]
 })

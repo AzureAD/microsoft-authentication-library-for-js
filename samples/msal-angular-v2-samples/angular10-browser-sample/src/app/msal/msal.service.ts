@@ -8,11 +8,11 @@ import {
     PopupRequest,
     RedirectRequest,
     SilentRequest,
-    AuthError
+    AuthError, BroadcastEvent
 } from "@azure/msal-browser";
-import { MSAL_INSTANCE, MsalBroadcastEvent } from "./constants";
+import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from 'rxjs';
-import { MsalBroadcastService } from './msal.broadcast.service';
+import { BrowserBroadcastService } from './msal.broadcast.service';
 
 interface IMsalService {
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult>;
@@ -32,34 +32,35 @@ export class MsalService implements IMsalService {
 
     constructor(
         @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
-        private broadcastService: MsalBroadcastService
+        private browserBroadcastService: BrowserBroadcastService
     ) {}
 
     acquireTokenPopup(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
         return from(
             this.msalInstance.acquireTokenPopup(request)
                 .then((authResponse) => {
-                    this.broadcastService.broadcast(MsalBroadcastEvent.ACQUIRE_TOKEN_SUCCESS, authResponse);
+                    this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, authResponse);
                     return authResponse;
                 })
                 .catch((error: AuthError) => {
-                    this.broadcastService.broadcast(MsalBroadcastEvent.ACQUIRE_TOKEN_FAILURE, error);
+                    this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, error);
                     throw error;
                 })
         );
     }
     acquireTokenRedirect(request: RedirectRequest): Observable<void> {
+        this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_START, null);
         return from(this.msalInstance.acquireTokenRedirect(request));
     }
     acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult> {
         return from(
             this.msalInstance.acquireTokenSilent(silentRequest)
                 .then((authResponse: AuthenticationResult) => {
-                    this.broadcastService.broadcast(MsalBroadcastEvent.ACQUIRE_TOKEN_SUCCESS, authResponse);
+                    this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, authResponse);
                     return authResponse;
                 })
                 .catch((error: AuthError) => {
-                    this.broadcastService.broadcast(MsalBroadcastEvent.ACQUIRE_TOKEN_FAILURE, error);
+                    this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, error);
                     throw error;
                 })
         );
@@ -71,6 +72,7 @@ export class MsalService implements IMsalService {
         return this.msalInstance.getAllAccounts();
     }
     handleRedirectObservable(): Observable<AuthenticationResult> {
+        this.browserBroadcastService.broadcast(BroadcastEvent.HANDLE_REDIRECT_START, null);
         const loggedInAccounts = this.msalInstance.getAllAccounts();
         return from(
             this.msalInstance.handleRedirectPromise()
@@ -78,18 +80,18 @@ export class MsalService implements IMsalService {
                     if (authResponse) {
                         const loggedInAccount = loggedInAccounts.find((account) => account.username === authResponse.account.username);
                         if (loggedInAccount) {
-                            this.broadcastService.broadcast(MsalBroadcastEvent.ACQUIRE_TOKEN_SUCCESS, authResponse);
+                            this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, authResponse);
                         } else {
-                            this.broadcastService.broadcast(MsalBroadcastEvent.LOGIN_SUCCESS, authResponse);
+                            this.browserBroadcastService.broadcast(BroadcastEvent.LOGIN_SUCCESS, authResponse);
                         }
                     }
                     return authResponse;
                 })
                 .catch((error: AuthError) => {
                     if (this.getAllAccounts().length > 0) {
-                        this.broadcastService.broadcast(MsalBroadcastEvent.ACQUIRE_TOKEN_FAILURE, error);
+                        this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, error);
                     } else {
-                        this.broadcastService.broadcast(MsalBroadcastEvent.LOGIN_FAILURE, error);
+                        this.browserBroadcastService.broadcast(BroadcastEvent.LOGIN_FAILURE, error);
                     }
                     throw error;
                 })
@@ -100,11 +102,11 @@ export class MsalService implements IMsalService {
         return from(
             this.msalInstance.loginPopup(request)
                 .then((authResponse: AuthenticationResult) => {
-                    this.broadcastService.broadcast(MsalBroadcastEvent.LOGIN_SUCCESS, authResponse);
+                    this.browserBroadcastService.broadcast(BroadcastEvent.LOGIN_SUCCESS, authResponse);
                     return authResponse;
                 })
                 .catch((error: AuthError) => {
-                    this.broadcastService.broadcast(MsalBroadcastEvent.LOGIN_FAILURE, error);
+                    this.browserBroadcastService.broadcast(BroadcastEvent.LOGIN_FAILURE, error);
                     throw error;
                 })
         );
@@ -119,11 +121,11 @@ export class MsalService implements IMsalService {
         return from(
             this.msalInstance.ssoSilent(request)
                 .then((authResponse: AuthenticationResult) => {
-                    this.broadcastService.broadcast(MsalBroadcastEvent.SSO_SILENT_SUCCESS, authResponse);
+                    this.browserBroadcastService.broadcast(BroadcastEvent.SSO_SILENT_SUCCESS, authResponse);
                     return authResponse;
                 })
                 .catch((error: AuthError) => {
-                    this.broadcastService.broadcast(MsalBroadcastEvent.SSO_SILENT_FAILURE, error);
+                    this.browserBroadcastService.broadcast(BroadcastEvent.SSO_SILENT_FAILURE, error);
                     throw error;
                 })
         );

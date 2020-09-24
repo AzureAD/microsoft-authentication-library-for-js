@@ -1,25 +1,16 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-import { MsalBroadcastEvent } from './constants';
-import { AuthenticationResult, AuthError } from '@azure/msal-browser';
+import { BroadcastService, BroadcastMessage, BroadcastEvent } from '@azure/msal-browser';
 
-export interface MsalBroadcastMessage {
-  type: MsalBroadcastEvent;
-  payload: AuthenticationResult | AuthError;
-}
-
+// Broadcast service from msal-browser
 @Injectable()
-export class MsalBroadcastService {
-  private _msalSubject: Subject<any>;
-  public msalSubject$: Observable<any>;
+export class BrowserBroadcastService extends BroadcastService {
 
-  constructor() {
-    this._msalSubject = new Subject<MsalBroadcastMessage>();
-    this.msalSubject$  = this._msalSubject.asObservable();
-  }
-
-  broadcast(type: MsalBroadcastEvent, payload: AuthenticationResult | AuthError) {
-
-    this._msalSubject.next({type , payload});
-  }
 }
+
+// export interface BrowserBroadcastMessage extends BroadcastMessage {
+
+// }
+
+// export enum BrowserBroadcastEvent {
+//   BroadcastEvent = BroadcastEvent,
+// }
