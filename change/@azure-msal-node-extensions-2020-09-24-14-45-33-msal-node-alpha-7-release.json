@@ -2,7 +2,7 @@
   "type": "none",
   "comment": "Update changelog versions for msal-node and extensions (#2336)",
   "packageName": "@azure/msal-node-extensions",
-  "email": "hectormgdev@gmail.com",
+  "email": "hemoral@microsoft.com",
   "dependentChangeType": "none",
   "date": "2020-09-24T21:44:35.873Z"
 }
