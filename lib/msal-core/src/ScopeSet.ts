@@ -99,7 +99,7 @@ export class ScopeSet {
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
      * @ignore
      */
-    static validateInputScope(scopes: Array<string>, scopesRequired: boolean, clientId: string): void {
+    static validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
         if (!scopes) {
             if (scopesRequired) {
                 throw ClientConfigurationError.createScopesRequiredError(scopes);

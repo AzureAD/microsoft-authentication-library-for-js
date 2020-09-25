@@ -1,5 +1,5 @@
-import { TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
 import {
+    TELEMETRY_BLOB_EVENT_NAMES,
     EVENT_NAME_KEY,
     START_TIME_KEY,
     ELAPSED_TIME_KEY

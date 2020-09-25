@@ -39,7 +39,7 @@ export class MsalService extends UserAgentApplication {
     ) {
         super(buildMsalConfig(msalConfig));
 
-        window.addEventListener("msal:popUpHashChanged", (e: CustomEvent) => {
+        window.addEventListener("msal:popUpHashChanged", () => {
             this.getLogger().verbose("popUpHashChanged ");
         });
 

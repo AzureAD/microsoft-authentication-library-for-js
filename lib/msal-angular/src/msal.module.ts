@@ -1,4 +1,4 @@
-import { Injectable, ModuleWithProviders, NgModule } from "@angular/core";
+import { ModuleWithProviders, NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MsalService } from "./msal.service";
 import { MsalGuard } from "./msal-guard.service";

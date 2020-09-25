@@ -45,7 +45,7 @@ export class MsalInterceptor implements HttpInterceptor {
             .pipe(
                 mergeMap(nextReq => next.handle(nextReq)),
                 tap(
-                    event => {}, // tslint:disable-line
+                    () => {},
                     err => {
                         if (err instanceof HttpErrorResponse && err.status === 401) {
                             this.auth.clearCacheForScope(token);

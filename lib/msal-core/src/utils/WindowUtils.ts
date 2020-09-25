@@ -2,7 +2,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlUtils } from "./UrlUtils";
 import { Logger } from "../Logger";
 import { AuthCache } from "../cache/AuthCache";
-import { TemporaryCacheKeys, Constants } from "../utils/Constants";
+import { TemporaryCacheKeys, Constants } from "./Constants";
 import { TimeUtils } from "./TimeUtils";
 
 export class WindowUtils {

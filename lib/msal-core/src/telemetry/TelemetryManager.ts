@@ -14,10 +14,6 @@ import ApiEvent, { API_EVENT_IDENTIFIER } from "./ApiEvent";
 import { Logger } from "../Logger";
 import HttpEvent from "./HttpEvent";
 
-// for use in cache events
-const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
-const MSAL_CACHE_EVENT_NAME = "msal.cache_event";
-
 export default class TelemetryManager {
 
     // correlation Id to list of events
