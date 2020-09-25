@@ -13,6 +13,7 @@ import {
 import { CacheRecord } from "../entities/CacheRecord";
 import { AccountEntity } from "../entities/AccountEntity";
 import { AccountInfo } from "../../account/AccountInfo";
+import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 
 export interface ICacheManager {
 
@@ -31,13 +32,19 @@ export interface ICacheManager {
      * Given account key retrieve an account
      * @param key
      */
-    getAccount(key: string): AccountEntity;
+    getAccount(key: string): AccountEntity | null;
 
     /**
      * retrieve a credential - accessToken, idToken or refreshToken; given the cache key
      * @param key
      */
-    getCredential(key: string): CredentialEntity;
+    getCredential(key: string): CredentialEntity | null;
+
+    /**
+     * retrieve appMetadata, given the cache key
+     * @param key
+     */
+    getAppMetadata(key: string): AppMetadataEntity | null;
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
