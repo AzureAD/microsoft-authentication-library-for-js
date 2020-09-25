@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { AuthorityType } from "./AuthorityType";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
 import { UrlString } from "../url/UrlString";

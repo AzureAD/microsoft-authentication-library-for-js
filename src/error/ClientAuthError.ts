@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { AuthError } from "./AuthError";
 import { IdToken } from "../account/IdToken";
 import { ScopeSet } from "../request/ScopeSet";
