@@ -4,8 +4,8 @@
  */
 import { Authority } from "./Authority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { INetworkModule } from "./../network/INetworkModule";
-import { StringUtils } from "./../utils/StringUtils";
+import { INetworkModule } from "../network/INetworkModule";
+import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 export class AuthorityFactory {
