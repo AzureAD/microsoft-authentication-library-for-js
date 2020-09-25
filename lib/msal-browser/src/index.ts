@@ -1,4 +1,8 @@
-// App and config
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration } from "./config/Configuration";
 

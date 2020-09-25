@@ -9,7 +9,8 @@
     "plugins": [
         "@typescript-eslint/eslint-plugin-tslint",
         "security",
-        "import"
+        "import",
+        "header"
     ],
     "extends": [
         "plugin:@typescript-eslint/eslint-recommended",
@@ -35,6 +36,7 @@
         "@typescript-eslint/semi": 2,
         "@typescript-eslint/type-annotation-spacing": 0,
         "eol-last": 2,
+        "header/header": [2, "block", [ "", " * Copyright (c) Microsoft Corporation. All rights reserved.", " * Licensed under the MIT License.", " " ], 2],
         "import/first": 2,
         "import/no-unresolved": 2,
         "import/no-useless-path-segments": 2,

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     TELEMETRY_BLOB_EVENT_NAMES,
     EVENT_NAME_KEY,

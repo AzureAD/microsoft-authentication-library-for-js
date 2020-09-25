@@ -15,6 +15,7 @@
     "beachball": "^1.33.0",
     "coveralls": "3.0.9",
     "eslint": "^7.8.1",
+    "eslint-plugin-header": "^3.1.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-security": "^1.4.0",
     "lerna": "^3.20.2",

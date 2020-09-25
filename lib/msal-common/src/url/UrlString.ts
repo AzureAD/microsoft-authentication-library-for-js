@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
