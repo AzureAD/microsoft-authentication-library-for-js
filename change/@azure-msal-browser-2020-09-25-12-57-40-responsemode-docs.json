@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Add enhanced documentation about responseMode in browser",
+  "comment": "Add enhanced documentation about responseMode in browser (#2228)",
   "packageName": "@azure/msal-browser",
   "email": "jamckenn@microsoft.com",
   "dependentChangeType": "none",
