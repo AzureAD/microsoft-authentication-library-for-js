@@ -28,11 +28,11 @@
 **[Tokens](#Tokens)**
 
 1. [How do I acquire an access token? How do I use it?](#how-do-i-acquire-an-access-token-how-do-i-use-it)
-2. [How do I renew tokens with MSAL.js?](#how-do-i-renew-tokens-with-msaljs)
-3. [How can I acquire tokens faster?](#how-can-i-acquire-tokens-faster)
-4. [I'm seeing scopes openid, profile, email, offline_access in my tokens, even though I haven't requested them. What are they?](#im-seeing-scopes-openid-profile-email-offline_access-and-userread-in-my-tokens-even-though-i-havent-requested-them-what-are-they)
-5. [How long do tokens last? How long are they valid for?](#how-long-do-tokens-last-how-long-are-they-valid-for)
-6. [What are the differences between supported audiences and account types?](#what-are-the-differences-between-supported-audiences-and-account-types)
+1. [How do I renew tokens with MSAL.js?](#how-do-i-renew-tokens-with-msaljs)
+1. [How can I acquire tokens faster?](#how-can-i-acquire-tokens-faster)
+1. [I'm seeing scopes openid, profile, email, offline_access in my tokens, even though I haven't requested them. What are they?](#im-seeing-scopes-openid-profile-email-offline_access-and-userread-in-my-tokens-even-though-i-havent-requested-them-what-are-they)
+1. [How long do tokens last? How long are they valid for?](#how-long-do-tokens-last-how-long-are-they-valid-for)
+1. [What are the differences between supported audiences and account types?](#what-are-the-differences-between-supported-audiences-and-account-types)
 
 **[Scopes & Resources](#Scopes-&-Resources)**
 
