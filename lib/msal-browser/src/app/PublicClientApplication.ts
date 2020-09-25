@@ -67,6 +67,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck();
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
