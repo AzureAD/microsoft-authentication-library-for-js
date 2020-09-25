@@ -23,15 +23,16 @@
 1. [What is the difference between sessionStorage and localStorage?](#what-is-the-difference-between-sessionstorage-and-localstorage)
 1. [What are the possible configuration options?](#what-are-the-possible-configuration-options)
 1. [Where is the authority string on Azure AD Portal?](#where-is-the-authority-domain-string-on-azure-ad-portal)
+1. [Why is fragment the only valid field for responseMode in msal-browser?](#why-is-fragment-the-only-valid-field-for-responsemode-in-msal-browser)
 
 **[Tokens](#Tokens)**
 
 1. [How do I acquire an access token? How do I use it?](#how-do-i-acquire-an-access-token-how-do-i-use-it)
-1. [How do I renew tokens with MSAL.js?](#how-do-i-renew-tokens-with-msaljs)
-1. [How can I acquire tokens faster?](#how-can-i-acquire-tokens-faster)
-1. [I'm seeing scopes openid, profile, email, offline_access in my tokens, even though I haven't requested them. What are they?](#im-seeing-scopes-openid-profile-email-offline_access-and-userread-in-my-tokens-even-though-i-havent-requested-them-what-are-they)
-1. [How long do tokens last? How long are they valid for?](#how-long-do-tokens-last-how-long-are-they-valid-for)
-1. [What are the differences between supported audiences and account types?](#what-are-the-differences-between-supported-audiences-and-account-types)
+2. [How do I renew tokens with MSAL.js?](#how-do-i-renew-tokens-with-msaljs)
+3. [How can I acquire tokens faster?](#how-can-i-acquire-tokens-faster)
+4. [I'm seeing scopes openid, profile, email, offline_access in my tokens, even though I haven't requested them. What are they?](#im-seeing-scopes-openid-profile-email-offline_access-and-userread-in-my-tokens-even-though-i-havent-requested-them-what-are-they)
+5. [How long do tokens last? How long are they valid for?](#how-long-do-tokens-last-how-long-are-they-valid-for)
+6. [What are the differences between supported audiences and account types?](#what-are-the-differences-between-supported-audiences-and-account-types)
 
 **[Scopes & Resources](#Scopes-&-Resources)**
 
@@ -123,6 +124,10 @@ For MSAL.js 2.x, please review [this document](https://github.com/AzureAD/micros
 ## Where is the `authority` domain string on Azure AD Portal?
 
 The `authority` string that you need to supplant to MSAL app configuration is not explicitly listed among the **Endpoint** links on `Azure Portal/AzureAD/App Registration/Overview` page. It is simply the domain part of a `/token` or `/authorize` endpoint, followed by the tenant name or ID e.g. `https://login.microsoftonline.com/common`.
+
+## Why is `fragment` the only valid field for `responseMode` in `msal-browser`?
+
+The library is built to specifically use the fragment response mode. This is a security consideration as the fragment of the URL is not sent to the server and modifying/clearing the fragment does not result in a new page load. We are considering implementing support for other `responseMode` types in the future, specifically to use multiple libraries in the same app.
 
 # Tokens
 
