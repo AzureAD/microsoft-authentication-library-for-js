@@ -139,8 +139,7 @@ export class AccountEntity {
         const clientInfoObj = buildClientInfo(clientInfo, crypto);
         account.homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
 
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+        const env = Authority.generateEnvironmentFromAuthority(authority);
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
@@ -186,8 +185,7 @@ export class AccountEntity {
         account.realm = "";
         account.oboAssertion = oboAssertion;
 
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+        const env = Authority.generateEnvironmentFromAuthority(authority);
 
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
