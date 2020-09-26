@@ -5,6 +5,8 @@ export enum BroadcastEvent {
     ACQUIRE_TOKEN_START = "msal:acquireTokenStart",
     ACQUIRE_TOKEN_SUCCESS = "msal:acquireTokenSuccess",
     ACQUIRE_TOKEN_FAILURE = "msal:acquireTokenFailure",
+    ACQUIRE_TOKEN_NETWORK_START = "msal:acquireTokenFromNetworkStart",
+    ACQUIRE_TOKEN_NETWORK_END = "msal:acquireTokenFromNetworkEnd",
     SSO_SILENT_START = "msal:ssoSilentStart",
     SSO_SILENT_SUCCESS = "msal:ssoSilentSuccess",
     SSO_SILENT_FAILURE = "msal:ssoSilentFailure",

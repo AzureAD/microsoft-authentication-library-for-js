@@ -51,6 +51,8 @@ export abstract class ClientApplication {
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
 
+    // Callback for subscribing to events
+    private subscribeCallback: Function;
 
     /**
      * @constructor
@@ -126,8 +128,6 @@ export abstract class ClientApplication {
      * - if false, handles hash string and parses response
      */
     private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
-        this.broadcast(BroadcastEvent.HANDLE_REDIRECT_START);
-
         if (!this.interactionInProgress()) {
             this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
             return null;
@@ -138,6 +138,8 @@ export abstract class ClientApplication {
             // Not a recognized server response hash or hash not associated with a redirect request
             return null;
         }
+
+        this.broadcast(BroadcastEvent.HANDLE_REDIRECT_START);
 
         // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
@@ -269,7 +271,7 @@ export abstract class ClientApplication {
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
-            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE);
+            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, e);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
             throw e;
@@ -340,9 +342,11 @@ export abstract class ClientApplication {
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
 
             // Handle response from hash string.
-            return await interactionHandler.handleCodeResponse(hash);
+            const result = await interactionHandler.handleCodeResponse(hash);
+            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, result);
+            return result;
         } catch (e) {
-            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE);
+            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, e);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
             throw e;
@@ -402,9 +406,11 @@ export abstract class ClientApplication {
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
+            const silentTokenResult = await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
+            this.broadcast(BroadcastEvent.SSO_SILENT_SUCCESS, silentTokenResult);
+            return silentTokenResult;
         } catch (e) {
-            this.broadcast(BroadcastEvent.SSO_SILENT_FAILURE);
+            this.broadcast(BroadcastEvent.SSO_SILENT_FAILURE, e);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(silentRequest.state);
             throw e;
@@ -424,6 +430,7 @@ export abstract class ClientApplication {
      *
      */
     protected async acquireTokenByRefreshToken(request: SilentRequest): Promise<AuthenticationResult> {
+        this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_NETWORK_START);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
         const silentRequest: SilentFlowRequest = {
@@ -436,6 +443,7 @@ export abstract class ClientApplication {
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
             return await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
         } catch (e) {
+            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_NETWORK_END, e);
             serverTelemetryManager.cacheFailedRequest(e);
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
@@ -799,6 +807,18 @@ export abstract class ClientApplication {
      */
     broadcast(type: BroadcastEvent, payload?: any) {
         this.broadcastService.broadcast(type, payload);
+
+        if(this.subscribeCallback) {
+            this.subscribeCallback(type, payload);
+        }
+    }
+
+    /**
+     * Subscribe function for events
+     * @param callback 
+     */
+    subscribe(callback: Function) {
+        this.subscribeCallback = callback;
     }
 
     // #endregion

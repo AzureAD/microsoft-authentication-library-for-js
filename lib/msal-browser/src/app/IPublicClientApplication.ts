@@ -22,6 +22,7 @@ export interface IPublicClientApplication {
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
-    broadcast(type: BroadcastEvent, payload?: any): any;
+    broadcast(type: BroadcastEvent, payload?: any): void;
+    subscribe(callback: Function): void;
     broadcastService: BroadcastService;
 }

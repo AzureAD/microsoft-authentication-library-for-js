@@ -10,6 +10,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
+import { BroadcastEvent } from '../event/EventConstants';
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -52,6 +53,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (RedirectRequest:type)}
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
+        this.broadcast(BroadcastEvent.LOGIN_START);
         return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
     }
 
@@ -63,10 +65,20 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
+        this.broadcast(BroadcastEvent.LOGIN_START);
+        return this.acquireTokenPopup(request || DEFAULT_REQUEST)
+            .then((result) => {
+                this.broadcast(BroadcastEvent.LOGIN_SUCCESS, result);
+                return result;
+            })
+            .catch((error) => {
+                this.broadcast(BroadcastEvent.LOGIN_FAILURE, error);
+                throw error;
+            })
     }
 
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_START);
         this.preflightBrowserEnvironmentCheck();
         const silentRequest: SilentFlowRequest = {
             ...request,
@@ -76,8 +88,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
-            return silentAuthClient.acquireCachedToken(silentRequest);
+            const cachedToken = silentAuthClient.acquireCachedToken(silentRequest);
+            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS);
+            return cachedToken;
         } catch (e) {
+            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, e);
             return this.acquireTokenByRefreshToken(request);
         }
     }

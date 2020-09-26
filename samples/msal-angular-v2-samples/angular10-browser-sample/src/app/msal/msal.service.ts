@@ -36,25 +36,13 @@ export class MsalService implements IMsalService {
     ) {}
 
     acquireTokenPopup(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
-        return from(
-            this.msalInstance.acquireTokenPopup(request)
-                // .then((authResponse) => {
-                //     this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, authResponse);
-                //     return authResponse;
-                // })
-        );
+        return from(this.msalInstance.acquireTokenPopup(request));
     }
     acquireTokenRedirect(request: RedirectRequest): Observable<void> {
         return from(this.msalInstance.acquireTokenRedirect(request));
     }
     acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult> {
-        return from(
-            this.msalInstance.acquireTokenSilent(silentRequest)
-                // .then((authResponse: AuthenticationResult) => {
-                //     this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, authResponse);
-                //     return authResponse;
-                // })
-        );
+        return from(this.msalInstance.acquireTokenSilent(silentRequest));
     }
     getAccountByUsername(userName: string): AccountInfo {
         return this.msalInstance.getAccountByUsername(userName);
@@ -63,39 +51,10 @@ export class MsalService implements IMsalService {
         return this.msalInstance.getAllAccounts();
     }
     handleRedirectObservable(): Observable<AuthenticationResult> {
-        const loggedInAccounts = this.msalInstance.getAllAccounts();
-        return from(
-            this.msalInstance.handleRedirectPromise()
-                // .then((authResponse: AuthenticationResult) => {
-                //     if (authResponse) {
-                //         const loggedInAccount = loggedInAccounts.find((account) => account.username === authResponse.account.username);
-                //         if (loggedInAccount) {
-                //             this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, authResponse);
-                //         } else {
-                //             this.browserBroadcastService.broadcast(BroadcastEvent.LOGIN_SUCCESS, authResponse);
-                //         }
-                //     }
-                //     return authResponse;
-                // })
-                // .catch((error: AuthError) => {
-                //     if (this.getAllAccounts().length > 0) {
-                //         this.browserBroadcastService.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, error);
-                //     } else {
-                //         this.browserBroadcastService.broadcast(BroadcastEvent.LOGIN_FAILURE, error);
-                //     }
-                //     throw error;
-                // })
-
-        );
+        return from(this.msalInstance.handleRedirectPromise());
     }
     loginPopup(request?: AuthorizationUrlRequest): Observable<AuthenticationResult> {
-        return from(
-            this.msalInstance.loginPopup(request)
-                // .then((authResponse: AuthenticationResult) => {
-                //     this.browserBroadcastService.broadcast(BroadcastEvent.LOGIN_SUCCESS, authResponse);
-                //     return authResponse;
-                // })
-        );
+        return from(this.msalInstance.loginPopup(request));
     }
     loginRedirect(request?: RedirectRequest): Observable<void> {
         return from(this.msalInstance.loginRedirect(request));
@@ -104,13 +63,7 @@ export class MsalService implements IMsalService {
         return from(this.msalInstance.logout(logoutRequest));
     }
     ssoSilent(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
-        return from(
-            this.msalInstance.ssoSilent(request)
-                // .then((authResponse: AuthenticationResult) => {
-                //     this.browserBroadcastService.broadcast(BroadcastEvent.SSO_SILENT_SUCCESS, authResponse);
-                //     return authResponse;
-                // })
-        );
+        return from(this.msalInstance.ssoSilent(request));
     }
 
 }

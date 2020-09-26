@@ -37,6 +37,11 @@ export class AppComponent implements OnInit, OnDestroy {
         console.log("EVENT: ", result);
         this.checkAccount();
       });
+
+    this.browserBroadcastService.localMsalSubject$
+      .subscribe((result) => {
+        console.log("LOCAL EVENT: ", result);
+      });
   }
 
   checkAccount() {
