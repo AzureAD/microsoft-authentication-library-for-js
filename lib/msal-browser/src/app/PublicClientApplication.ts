@@ -10,7 +10,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
-import { BroadcastEvent } from '../event/EventConstants';
+import { BroadcastEvent } from "../event/EventConstants";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -74,7 +74,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             .catch((error) => {
                 this.broadcast(BroadcastEvent.LOGIN_FAILURE, error);
                 throw error;
-            })
+            });
     }
 
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
