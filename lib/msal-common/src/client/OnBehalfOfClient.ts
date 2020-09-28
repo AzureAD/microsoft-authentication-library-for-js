@@ -74,7 +74,8 @@ export class OnBehalfOfClient extends BaseClient {
             account: cachedAccount,
             accessToken: cachedAccessToken,
             idToken: cachedIdToken,
-            refreshToken: null
+            refreshToken: null,
+            appMetadata: null,
         }, idTokenObject, true);
     }
 
@@ -156,7 +157,7 @@ export class OnBehalfOfClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        parameterBuilder.addScopes(this.scopeSet);
+        parameterBuilder.addScopes(request.scopes);
 
         parameterBuilder.addGrantType(GrantType.JWT_BEARER);
 

@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
+import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient, RequestThumbprint, Constants } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -21,7 +21,7 @@ export class SilentHandler extends InteractionHandler {
      * @param urlNavigate 
      * @param userRequestScopes
      */
-    async initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, userRequestScopes?: string): Promise<HTMLIFrameElement> {
+    async initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Promise<HTMLIFrameElement> {
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");
@@ -29,8 +29,8 @@ export class SilentHandler extends InteractionHandler {
         }
         // Save auth code request
         this.authCodeRequest = authCodeRequest;
-        const frameName = userRequestScopes ? `msalTokenFrame${userRequestScopes}` : "msalTokenFrame";
-        return this.loadFrameTimeout ? await this.loadFrame(requestUrl, frameName) : this.loadFrameSync(requestUrl, frameName);
+
+        return this.loadFrameTimeout ? await this.loadFrame(requestUrl) : this.loadFrameSync(requestUrl);
     }
 
     /**
@@ -86,7 +86,7 @@ export class SilentHandler extends InteractionHandler {
      * Loads iframe with authorization endpoint URL
      * @ignore
      */
-    private loadFrame(urlNavigate: string, frameName: string): Promise<HTMLIFrameElement> {
+    private loadFrame(urlNavigate: string): Promise<HTMLIFrameElement> {
         /*
          * This trick overcomes iframe navigation in IE
          * IE does not load the page consistently in iframe
@@ -94,10 +94,10 @@ export class SilentHandler extends InteractionHandler {
 
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                const frameHandle = this.loadFrameSync(urlNavigate, frameName);
+                const frameHandle = this.loadFrameSync(urlNavigate);
 
                 if (!frameHandle) {
-                    reject(`Unable to load iframe with name: ${frameName}`);
+                    reject("Unable to load iframe");
                     return;
                 }
 
@@ -113,16 +113,10 @@ export class SilentHandler extends InteractionHandler {
      * @param frameName
      * @param logger
      */
-    private loadFrameSync(urlNavigate: string, frameName: string): HTMLIFrameElement{
-        const frameHandle = this.getHiddenIframe(frameName);
+    private loadFrameSync(urlNavigate: string): HTMLIFrameElement{
+        const frameHandle = this.createHiddenIframe();
 
-        // returning to handle null in loadFrame, also to avoid null object access errors
-        if (!frameHandle) {
-            return null;
-        }
-        else if (frameHandle.src === "" || frameHandle.src === "about:blank") {
-            frameHandle.src = urlNavigate;
-        }
+        frameHandle.src = urlNavigate;
 
         return frameHandle;
     }
@@ -132,32 +126,15 @@ export class SilentHandler extends InteractionHandler {
      * Creates a new hidden iframe or gets an existing one for silent token renewal.
      * @ignore
      */
-    private getHiddenIframe(iframeId: string): HTMLIFrameElement {
-        if (typeof iframeId === "undefined") {
-            return null;
-        }
+    private createHiddenIframe(): HTMLIFrameElement {
+        const authFrame = document.createElement("iframe");
 
-        let authFrame = document.getElementById(iframeId) as HTMLIFrameElement;
-        if (!authFrame) {
-            if (document.createElement &&
-            document.documentElement &&
-            (window.navigator.userAgent.indexOf("MSIE 5.0") === -1)) {
-                const ifr = document.createElement("iframe");
-                ifr.setAttribute("id", iframeId);
-                ifr.style.visibility = "hidden";
-                ifr.style.position = "absolute";
-                ifr.style.width = ifr.style.height = "0";
-                ifr.style.border = "0";
-                ifr.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
-                authFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
-            } else if (document.body && document.body.insertAdjacentHTML) {
-                document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
-            }
-
-            if (window.frames && window.frames[iframeId]) {
-                authFrame = window.frames[iframeId];
-            }
-        }
+        authFrame.style.visibility = "hidden";
+        authFrame.style.position = "absolute";
+        authFrame.style.width = authFrame.style.height = "0";
+        authFrame.style.border = "0";
+        authFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
+        document.getElementsByTagName("body")[0].appendChild(authFrame);
 
         return authFrame;
     }

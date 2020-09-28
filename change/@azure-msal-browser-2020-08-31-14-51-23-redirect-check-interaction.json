@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Check for interaction in progress when processing redirect hash (#2183)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-31T21:51:23.221Z"
-}

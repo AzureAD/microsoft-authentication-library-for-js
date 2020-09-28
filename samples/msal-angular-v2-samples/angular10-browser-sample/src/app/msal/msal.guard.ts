@@ -40,15 +40,16 @@ export class MsalGuard implements CanActivate {
 
     private loginInteractively(url: string): Observable<boolean> {
         if (this.msalGuardConfig.interactionType === InteractionType.POPUP) {
-            return this.authService.loginPopup()
+            return this.authService.loginPopup({...this.msalGuardConfig.authRequest})
                 .pipe(
                     map(() => true),
                     catchError(() => of(false))
-                )
+                );
         }
 
         const redirectStartPage = this.getDestinationUrl(url);
         this.authService.loginRedirect({
+            ...this.msalGuardConfig.authRequest,
             redirectStartPage,
             scopes: [],
         });
@@ -60,12 +61,12 @@ export class MsalGuard implements CanActivate {
             .pipe(
                 concatMap(() => {
                     if (!this.authService.getAllAccounts().length) {
-                        return this.loginInteractively(state.url)
+                        return this.loginInteractively(state.url);
                     }
                     return of(true);
                 }),
                 catchError(() => console.log)
-            )
+            );
     }
 
 }

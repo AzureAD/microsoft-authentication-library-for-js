@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update MSAL Angular to use central lint configuration",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-09-04T22:35:09.208Z"
-}
