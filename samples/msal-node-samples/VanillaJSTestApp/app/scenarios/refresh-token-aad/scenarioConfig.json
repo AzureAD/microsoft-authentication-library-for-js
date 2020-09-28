@@ -1,5 +1,0 @@
-{
-    "appType": "cli",
-    "flow": "refreshToken",
-    "clientType": "public"
-}

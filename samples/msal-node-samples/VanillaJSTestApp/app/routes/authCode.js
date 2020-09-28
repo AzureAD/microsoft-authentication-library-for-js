@@ -3,24 +3,19 @@
 *  See LICENSE in the source repository root for complete license information.
 */
 
-module.exports = function(app, clientApplication, msalTokenCache) {
+module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig) {
+    const requestConfig = scenarioConfig.request;
     app.get('/', (req, res) => {
-        const authCodeUrlParameters = {
-            scopes: ["user.read"],
-            redirectUri: "http://localhost:3000/redirect",
-        };
-    
         // get url to sign user in and consent to scopes needed for applicatio
-        clientApplication.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+        clientApplication.getAuthCodeUrl(requestConfig.authCodeUrlParameters).then((response) => {
             res.redirect(response);
         }).catch((error) => console.log(JSON.stringify(error)));
     });
     
     app.get('/redirect', (req, res) => {
         const tokenRequest = {
-            code: req.query.code,
-            scopes: ["user.read"],
-            redirectUri: "http://localhost:3000/redirect",
+            ...requestConfig.tokenRequest,
+            code: req.query.code
         };
     
         clientApplication.acquireTokenByCode(tokenRequest).then((response) => {

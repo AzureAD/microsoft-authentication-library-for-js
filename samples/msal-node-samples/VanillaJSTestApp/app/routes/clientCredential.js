@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-module.exports = function(scenarioPath, clientApplication) {
-    const requestConfig = require(`${scenarioPath}/requestConfig.json`);
+module.exports = function(scenarioConfig, clientApplication) {
+    const requestConfig = scenarioConfig.request;
 
     // With client credentials flows permissions need to be granted in the portal by a tenant administrator. 
     // The scope is always in the format "<resource>/.default"

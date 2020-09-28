@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
- module.exports = function(scenarioPath, clientApplication) {
-    const requestConfig = require(`${scenarioPath}/requestConfig.json`);
+ module.exports = function(scenarioConfig, clientApplication) {
+    const requestConfig = scenarioConfig.request;
 
     const deviceCodeRequest = { 
         ...requestConfig.deviceCodeUrlParameters,

@@ -22,7 +22,7 @@
     "resourceApi":
     {
         "endpoint": "https://graph.microsoft.com/v1.0/me"
-      },
+    },
     "sample": 
     {
         "appType": "web",
