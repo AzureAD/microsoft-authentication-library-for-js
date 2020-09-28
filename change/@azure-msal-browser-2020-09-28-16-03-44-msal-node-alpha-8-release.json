@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Updating dependency versions and package-lock.json(#2342)",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-09-28T23:02:09.558Z"
+}
