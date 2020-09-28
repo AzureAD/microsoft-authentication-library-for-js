@@ -58,5 +58,8 @@
     "tsdx": "^0.13.2",
     "tslib": "^2.0.0",
     "typescript": "^3.9.7"
+  },
+  "dependencies": {
+    "@storybook/addon-storysource": "^5.3.19"
   }
 }

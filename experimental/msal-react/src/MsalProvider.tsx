@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useContext } from 'react';
 import {
     IPublicClientApplication,
     AccountInfo,
@@ -18,11 +19,13 @@ export const MsalProvider: React.FunctionComponent<MsalProviderProps> = ({
 }) => {
     // State hook to store accounts
     const [accounts, setAccounts] = React.useState<AccountInfo[]>(
+        // TODO: Remove the `|| []` hack when PR is finally merged to msal/browser
         instance.getAllAccounts() || []
     );
 
     // Callback to update accounts after MSAL APIs are invoked
     const updateContextState = React.useCallback(() => {
+        // TODO: Remove the `|| []` hack when PR is finally merged to msal/browser
         setAccounts(instance.getAllAccounts() || []);
     }, [instance]);
 
@@ -76,14 +79,15 @@ export const MsalProvider: React.FunctionComponent<MsalProviderProps> = ({
     }, [instance, updateContextState]);
 
     // Memoized context value
-    const contextValue = React.useMemo<IMsalContext>(() => {
-        return {
+    const contextValue = React.useMemo<IMsalContext>(
+        () => ({
             instance: wrappedInstance,
             state: {
                 accounts,
             },
-        };
-    }, [wrappedInstance, accounts]);
+        }),
+        [wrappedInstance, accounts]
+    );
 
     return (
         <MsalContext.Provider value={contextValue}>
@@ -91,3 +95,5 @@ export const MsalProvider: React.FunctionComponent<MsalProviderProps> = ({
         </MsalContext.Provider>
     );
 };
+
+export const useMsal = () => useContext(MsalContext);

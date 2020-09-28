@@ -1,56 +1,58 @@
 import React from 'react';
-import { MsalProvider, MsalConsumer } from '../src';
-import { PublicClientApplication } from '@azure/msal-browser';
+import { MsalProvider, MsalConsumer, useMsal, useIsAuthenticated, AuthenticatedTemplate, UnauthenticatedTemplate } from '../src';
+
+import { msalInstance } from './msalInstance';
 
 export default {
-  title: 'MSAL React/Login & Logout',
+    title: 'MSAL React/Login & Logout',
 };
 
-const msalInstance = new PublicClientApplication({
-    auth: {
-        clientId: "0a61c279-646b-4055-a5f1-1c3da7f70f18",
-        redirectUri: "http://localhost:6006/"
-    }
-});
+export const LoginPopup = () => (
+    <MsalProvider instance={msalInstance}>
+        <PopupExample />
+    </MsalProvider>
+);
 
-// By passing optional props to this story, you can control the props of the component when
-// you consume the story in a test.
-export const LoginPopup = (props?: Partial<Props>) => {
+export const Logout = () => (
+    <MsalProvider instance={msalInstance}>
+        <UnauthenticatedTemplate>
+            <p>You must be logged in to be able to logout.</p>
+        </UnauthenticatedTemplate>
+        <LogoutExample />
+    </MsalProvider>
+);
+
+
+const PopupExample = () => {
+    const { instance, state } = useMsal();
+
+    const accounts = state.accounts;
+
     return (
-        <MsalProvider instance={msalInstance}>
-            <MsalConsumer>
-                {msalContext => (
-                    <div>
-                        {msalContext.state.accounts.length ? (
-                            <div>
-                                <p>
-                                    Account: {msalContext.state.accounts[0].username}
-                                </p>
-                                <button
-                                    onClick={() => {
-                                        msalContext.instance.logout();
-                                    }}
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        ) : (
-                            <div>
-                                <button 
-                                    onClick={() => {
-                                        msalContext.instance.loginPopup({
-                                            scopes: []
-                                        });
-                                    }}
-                                >
-                                    Login
-                                </button>
-                            </div>
-                        )}
+        <React.Fragment>
+            <AuthenticatedTemplate>
+                <p>Accounts: {accounts.map(a => a.username).join(', ')}</p>
+                <button onClick={() => instance.logout()}>Logout</button>
+            </AuthenticatedTemplate>
+            <button onClick={() => instance.loginPopup({ scopes: ['user.read'], prompt: 'select_account' })}>Login</button>
+        </React.Fragment>
+    );
+};
 
-                    </div>
-                )}
-            </MsalConsumer>
-        </MsalProvider>
-    )
+
+const LogoutExample = () => {
+    const { instance, state } = useMsal();
+    
+    const accounts = state.accounts;
+
+    return (
+        <React.Fragment>
+            {accounts.map((account) => (
+                <div key={account.homeAccountId}>
+                    <span>{account.username}</span>
+                    <button onClick={() => instance.logout({ account })} style={{ marginLeft: 20 }}>Logout</button>
+                </div>
+            ))}
+        </React.Fragment>
+    );
 };
