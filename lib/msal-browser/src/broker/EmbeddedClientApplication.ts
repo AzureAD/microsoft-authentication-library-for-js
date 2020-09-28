@@ -135,6 +135,10 @@ export class EmbeddedClientApplication {
                 reject(BrowserAuthError.createMessageBrokerTimeoutError());
             }, timeoutMs);
 
+            /*
+             * MessageChannel API listens on port1 and passes port2 up to the broker.
+             * Broker will use port2 to message back down to the embedded client.
+             */
             const messageChannel = new MessageChannel();
             messageChannel.port1.onmessage = ((message: MessageEvent): void => {
                 this.logger.verbose(`in messageBroker<T> w/ origin: ${message}`);

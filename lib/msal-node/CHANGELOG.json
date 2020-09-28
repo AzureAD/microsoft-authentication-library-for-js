@@ -2,6 +2,47 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "@azure/msal-node_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update msal node to use central eslint configuration",
+            "author": "janutter@microsoft.com",
+            "commit": "fc49c6f16b3f7a62a67d249107fc484272133305",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Address tsdx warnings (#2202)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d147c4053cced20f0b1964f01dba02b3eba644cd",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Implement Telemetry in msal-node (#1921)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "1872900d149b60436ef59fd41ab542c58c32e8f1",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Changes node storage: getItem(), setItem() and removeItem() simplified and no longer need a 'type'",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9760b6ff6c0ad403ac1b26968cb10d3d7e72a6fd",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add support for on-behalf-of flow",
+            "author": "sagonzal@microsoft.com",
+            "commit": "53c018c8ea0d1877c12641fc1a749e6d66e7ff78",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 25 Aug 2020 00:40:45 GMT",
       "tag": "@azure/msal-node_v1.0.0-alpha.5",
       "version": "1.0.0-alpha.5",

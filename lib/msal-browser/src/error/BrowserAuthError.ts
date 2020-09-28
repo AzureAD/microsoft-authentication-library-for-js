@@ -8,10 +8,6 @@ import { AuthError, StringUtils } from "@azure/msal-common";
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
  */
 export const BrowserAuthErrorMessage = {
-    noWindowObjectError: {
-        code: "no_window_object",
-        desc: "No window object detected."
-    },
     pkceNotGenerated: {
         code: "pkce_not_created",
         desc: "The PKCE code challenge and verifier could not be generated."
@@ -99,6 +95,10 @@ export const BrowserAuthErrorMessage = {
     brokeringDisabledError: {
         code: "brokering_disabled",
         desc: "Brokering is not enabled for the client application. Please check logs to see if handshake was performed."
+    },
+    notInBrowserEnvironment: {
+        code: "non_browser_environment",
+        desc: "Login and token requests are not supported in non-browser environments."
     }
 };
 
@@ -112,13 +112,6 @@ export class BrowserAuthError extends AuthError {
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
         this.name = "BrowserAuthError";
-    }
-
-    /**
-     * Creates error thrown when no window object can be found.
-     */
-    static createNoWindowObjectError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.noWindowObjectError.code, BrowserAuthErrorMessage.noWindowObjectError.desc);
     }
 
     /**
@@ -277,5 +270,12 @@ export class BrowserAuthError extends AuthError {
 
     static createBrokeringDisabledError(innerError: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.brokeringDisabledError.code, `${BrowserAuthErrorMessage.brokeringDisabledError.desc} Inner Error: ${innerError}`);
+    }
+    
+    /**
+     * Create an error thrown when login and token requests are made from a non-browser environment
+     */
+    static createNonBrowserEnvironmentError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.notInBrowserEnvironment.code, BrowserAuthErrorMessage.notInBrowserEnvironment.desc);
     }
 }

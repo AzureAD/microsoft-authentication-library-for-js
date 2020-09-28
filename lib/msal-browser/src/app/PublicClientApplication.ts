@@ -53,6 +53,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * 
      */
     async initializeBrokering(): Promise<void> {     
+        if (!this.isBrowserEnvironment) {
+            return;
+        }
+        
         if (this.config.system.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
             if(this.config.system.brokerOptions.allowBrokering) {
                 this.logger.verbose("Broker options actAsBroker and allowBrokering both set to true. Preferring to act as broker.");
@@ -128,6 +132,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     // #endregion
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck();
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)

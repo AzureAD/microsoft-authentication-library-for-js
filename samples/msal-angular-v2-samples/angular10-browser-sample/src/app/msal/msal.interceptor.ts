@@ -33,20 +33,20 @@ export class MsalInterceptor implements HttpInterceptor {
             .pipe(
                 catchError(() => {
                     if (this.msalInterceptorConfig.interactionType === InteractionType.POPUP) {
-                        return this.authService.acquireTokenPopup({scopes})
+                        return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes});
                     }
                     const redirectStartPage = window.location.href;
-                    this.authService.acquireTokenRedirect({scopes, redirectStartPage});
+                    this.authService.acquireTokenRedirect({...this.msalInterceptorConfig.authRequest, scopes, redirectStartPage});
                     return EMPTY;
                 }),
                 switchMap((result: AuthenticationResult) => {
                     const headers = req.headers
-                        .set('Authorization', `Bearer ${result.accessToken}`)
+                        .set('Authorization', `Bearer ${result.accessToken}`);
 
                     const requestClone = req.clone({headers});
                     return next.handle(requestClone);
                 })
-            )
+            );
 
     }
 
@@ -56,16 +56,16 @@ export class MsalInterceptor implements HttpInterceptor {
             const minimatch = new Minimatch(key);
             return minimatch.match(endpoint) || endpoint.indexOf(key) > -1;
         });
-        
+
         // process all protected resources and send the first matched resource
         if (keyMatchesEndpointArray.length > 0) {
             const keyForEndpoint = keyMatchesEndpointArray[0];
             if (keyForEndpoint) {
                 return this.msalInterceptorConfig.protectedResourceMap.get(keyForEndpoint);
             }
-        } 
+        }
 
         return null;
     }
-    
+
 }

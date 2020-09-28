@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add angularjs to central eslint configuration",
-  "packageName": "@azure/msal-angularjs",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-09-04T22:35:14.456Z"
-}
