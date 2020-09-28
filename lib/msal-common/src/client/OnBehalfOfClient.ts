@@ -136,7 +136,9 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         responseHandler.validateTokenResponse(response.body);

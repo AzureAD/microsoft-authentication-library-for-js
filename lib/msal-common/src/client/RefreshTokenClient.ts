@@ -36,16 +36,21 @@ export class RefreshTokenClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(
+        return responseHandler.handleServerTokenResponse(
             response.body,
-            this.authority
+            this.authority,
+            null,
+            null,
+            null,
+            null,
+            true
         );
-
-        return tokenResponse;
     }
 
     /**

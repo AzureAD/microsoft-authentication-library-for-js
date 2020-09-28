@@ -97,8 +97,8 @@ describe("ResponseHandler.ts", () => {
         sinon.restore();
     })
 
-    describe("generateCacheRecord", () => {
-        it("throws invalid cache environment error", (done) => {
+    describe("generateCacheRecord", async () => {
+        it("throws invalid cache environment error", async () => {
             sinon.restore();
             sinon.stub(IdToken, "extractIdToken").callsFake((encodedIdToken, crypto) => {
                 return ID_TOKEN_CLAIMS as IdTokenClaims;
@@ -116,12 +116,11 @@ describe("ResponseHandler.ts", () => {
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
 
             try {
-                responseHandler.handleServerTokenResponse(testResponse, authority);
+                await responseHandler.handleServerTokenResponse(testResponse, authority);
             } catch(e) {
                 expect(e).to.be.instanceOf(ClientAuthError);
                 expect(e.errorCode).to.be.eq(ClientAuthErrorMessage.invalidCacheEnvironment.code);
                 expect(e.errorMessage).to.be.eq(ClientAuthErrorMessage.invalidCacheEnvironment.desc);
-                done();
             }
         });
 
@@ -176,13 +175,13 @@ describe("ResponseHandler.ts", () => {
         });
     });
 
-    describe("generateAuthenticationResult", () => {
-        it("sets default values if access_token not in cacheRecord", () => {
+    describe("generateAuthenticationResult", async () => {
+        it("sets default values if access_token not in cacheRecord", async () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.access_token = null;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
-            const result = responseHandler.handleServerTokenResponse(testResponse, authority);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, authority);
 
             expect(result.accessToken).to.be.eq("");
             expect(result.scopes).to.be.length(0);
@@ -190,12 +189,12 @@ describe("ResponseHandler.ts", () => {
             expect(result.extExpiresOn).to.be.null;
         });
 
-        it("sets default values if refresh_token not in cacheRecord", () => {
+        it("sets default values if refresh_token not in cacheRecord", async () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.refresh_token = null;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
-            const result = responseHandler.handleServerTokenResponse(testResponse, authority);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, authority);
 
             expect(result.familyId).to.be.null;
         });
