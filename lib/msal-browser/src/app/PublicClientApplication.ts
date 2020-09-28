@@ -53,16 +53,18 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * 
      */
     private initializeBrokering(): void {
+        if (!this.isBrowserEnvironment) {
+            return;
+        }
+
         if (this.config.system.brokerOptions.actAsBroker) {
             this.broker = new BrokerClientApplication(this.config);
         } else if (this.config.system.brokerOptions.allowBrokering) {
             this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
-            try {
-                this.embeddedApp.initiateHandshake();
-            } catch (e) {
+            this.embeddedApp.initiateHandshake().catch((e) => {
                 this.logger.error(`Broker handshake failed: ${e}`);
-            }
+            });
         }
     }
 
@@ -137,6 +139,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
             return silentAuthClient.acquireCachedToken(silentRequest);
         } catch (e) {
+            if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+                return this.embeddedApp.sendSilentRefreshRequest(request);
+            }
             return this.acquireTokenByRefreshToken(request);
         }
     }

@@ -4,7 +4,7 @@
  */
 
 import { Configuration } from "../config/Configuration";
-import { Logger, AuthenticationResult, CacheRecord, CacheManager, AccessTokenEntity, IdTokenEntity, AccountEntity } from "@azure/msal-common";
+import { Logger, AuthenticationResult } from "@azure/msal-common";
 import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
 import { PopupRequest } from "../request/PopupRequest";
@@ -12,9 +12,10 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { BrokerAuthRequest } from "./BrokerAuthRequest";
 import { InteractionType } from "../utils/BrowserConstants";
 import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
-import { BrokerAuthResult } from "./BrokerAuthResult";
+import { BrokerAuthResponse } from "./BrokerAuthResponse";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { SilentRequest } from "../request/SilentRequest";
 import { version } from "../../package.json";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
@@ -74,24 +75,7 @@ export class EmbeddedClientApplication {
         await this.preflightBrokerRequest();
 
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.POPUP, DEFAULT_POPUP_MESSAGE_TIMEOUT);
-        const brokerAuthResult = BrokerAuthResult.validate(brokerAuthResultMessage);
-        if (brokerAuthResult.error) {
-            throw brokerAuthResult.error;
-        }
-        const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-        const idTokenEntity: IdTokenEntity = new IdTokenEntity();
-        const accountEntity: AccountEntity = new AccountEntity();
-        const cacheRecord: CacheRecord = {
-            accessToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.accessToken, accessTokenEntity) as AccessTokenEntity,
-            idToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.idToken, idTokenEntity) as IdTokenEntity,
-            account: CacheManager.toObject(brokerAuthResult.result.tokensToCache.account, accountEntity) as AccountEntity,
-            refreshToken: null
-        };
-        this.browserStorage.saveCacheRecord(cacheRecord);
-        delete brokerAuthResult.result.tokensToCache;
-        return {
-            ...brokerAuthResult.result
-        };
+        return BrokerAuthResponse.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
     }
 
     async sendRedirectRequest(request: RedirectRequest): Promise<void> {
@@ -99,6 +83,13 @@ export class EmbeddedClientApplication {
 
         const message = await this.sendRequest(request, InteractionType.REDIRECT, DEFAULT_MESSAGE_TIMEOUT);
         BrokerRedirectResponse.validate(message);
+    }
+
+    async sendSilentRefreshRequest(request: SilentRequest): Promise<AuthenticationResult> {
+        await this.preflightBrokerRequest();
+
+        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.SILENT, DEFAULT_MESSAGE_TIMEOUT);
+        return BrokerAuthResponse.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
     }
 
     private async sendRequest(request: PopupRequest|RedirectRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
@@ -145,10 +136,15 @@ export class EmbeddedClientApplication {
                 reject(BrowserAuthError.createMessageBrokerTimeoutError());
             }, timeoutMs);
 
+            /*
+             * MessageChannel API listens on port1 and passes port2 up to the broker.
+             * Broker will use port2 to message back down to the embedded client.
+             */
             const messageChannel = new MessageChannel();
             messageChannel.port1.onmessage = ((message: MessageEvent): void => {
                 this.logger.verbose(`in messageBroker<T> w/ origin: ${message}`);
                 clearTimeout(timeoutId);
+                messageChannel.port1.close();
                 resolve(message);
             });
             // Message top frame window

@@ -268,7 +268,7 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.noTrustedBrokersProvided.code, BrowserAuthErrorMessage.noTrustedBrokersProvided.desc);
     }
 
-    static createBrokeringDisabledError(innerError: string) {
+    static createBrokeringDisabledError(innerError: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.brokeringDisabledError.code, `${BrowserAuthErrorMessage.brokeringDisabledError.desc} Inner Error: ${innerError}`);
     }
     

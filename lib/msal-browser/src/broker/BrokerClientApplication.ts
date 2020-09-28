@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { version } from "../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient } from "@azure/msal-common";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { Configuration } from "../config/Configuration";
@@ -12,9 +12,10 @@ import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
 import { BrokerAuthRequest } from "./BrokerAuthRequest";
 import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
 import { RedirectRequest } from "../request/RedirectRequest";
-import { BrokerAuthResult } from "./BrokerAuthResult";
+import { BrokerAuthResponse } from "./BrokerAuthResponse";
 import { ClientApplication } from "../app/ClientApplication";
 import { PopupRequest } from "../request/PopupRequest";
+import { SilentRequest } from "../request/SilentRequest";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -83,6 +84,8 @@ export class BrokerClientApplication extends ClientApplication {
                     return this.brokeredRedirectRequest(validMessage, clientMessage.ports[0]);
                 case InteractionType.POPUP:
                     return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
+                case InteractionType.SILENT:
+                    return this.brokeredSilentRequest(validMessage, clientMessage.ports[0]);
                 default:
                     return;
             }
@@ -93,6 +96,7 @@ export class BrokerClientApplication extends ClientApplication {
         const brokerRedirectResp = new BrokerRedirectResponse();
         // @ts-ignore
         clientPort.postMessage(brokerRedirectResp);
+        clientPort.close();
         this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
 
         // Call loginRedirect
@@ -102,13 +106,30 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredPopupRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const response: BrokerAuthenticationResult = (await this.acquireTokenPopup(validMessage.request as PopupRequest)) as BrokerAuthenticationResult;
-            const brokerAuthResponse: BrokerAuthResult = new BrokerAuthResult(InteractionType.POPUP, response);
+            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.POPUP, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
         } catch (err) {
-            const brokerAuthResponse = new BrokerAuthResult(InteractionType.POPUP, null, err);
+            const brokerAuthResponse = new BrokerAuthResponse(InteractionType.POPUP, null, err);
             this.logger.info(`Found auth error: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
+        }
+    }
+
+    private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
+        try {
+            const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(validMessage.request as SilentRequest)) as BrokerAuthenticationResult;
+            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.SILENT, response);
+            this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+            clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
+        } catch (err) {
+            const brokerAuthResponse = new BrokerAuthResponse(InteractionType.SILENT, null, err);
+            this.logger.info(`Found auth error: ${err}`);
+            clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
         }
     }
 
@@ -121,5 +142,15 @@ export class BrokerClientApplication extends ClientApplication {
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         
         return new BrokerAuthorizationCodeClient(clientConfig);
+    }
+
+    /**
+     * Creates a Refresh Client with the given authority, or the default authority.
+     * @param authorityUrl 
+     */
+    protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
+        // Create auth module.
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        return new BrokerRefreshTokenClient(clientConfig);
     }
 }

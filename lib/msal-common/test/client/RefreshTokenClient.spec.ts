@@ -80,7 +80,6 @@ describe("RefreshTokenClient unit tests", () => {
     describe("acquireToken APIs", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
-
         const testAccount: AccountInfo = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
@@ -88,7 +87,6 @@ describe("RefreshTokenClient unit tests", () => {
             username: ID_TOKEN_CLAIMS.preferred_username,
             name: ID_TOKEN_CLAIMS.name
         };
-
         beforeEach(async () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
@@ -104,8 +102,8 @@ describe("RefreshTokenClient unit tests", () => {
         afterEach(() => {
             sinon.restore();
         });
-
-        it("acquires a token", async () => {
+        
+        it("acquireToken acquires a token", async () => {            
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
 
             const config = await ClientTestUtils.createTestClientConfiguration();
@@ -142,13 +140,11 @@ describe("RefreshTokenClient unit tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: testAccount
             };
-
             const expectedRefreshRequest: RefreshTokenRequest = {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret
             };
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
-
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).to.be.true;
         });

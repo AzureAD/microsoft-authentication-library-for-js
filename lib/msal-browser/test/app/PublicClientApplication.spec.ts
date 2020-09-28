@@ -1559,7 +1559,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
         });
 
-        it("throws error that SilentFlowClient.acquireToken() throws", async () => {
+        it("throws error that RefreshTokenClient.acquireTokenByRefreshToken() throws", async () => {
             const testError = {
                 errorCode: "create_login_url_error",
                 errorMessage: "Error in creating a login url"

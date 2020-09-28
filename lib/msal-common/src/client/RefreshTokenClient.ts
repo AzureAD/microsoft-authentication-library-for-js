@@ -47,7 +47,6 @@ export class RefreshTokenClient extends BaseClient {
 
         return tokenResponse;
     }
-
     /**
      * Gets cached refresh token and attaches to request, then calls acquireToken API
      * @param request
@@ -57,7 +56,7 @@ export class RefreshTokenClient extends BaseClient {
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
         }
-
+        
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
@@ -117,7 +116,7 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      * @param authority
      */
-    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
+    protected async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
@@ -134,7 +133,7 @@ export class RefreshTokenClient extends BaseClient {
      * Helper function to create the token request body
      * @param request
      */
-    private createTokenRequestBody(request: RefreshTokenRequest): string {
+    protected createTokenRequestBody(request: RefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);

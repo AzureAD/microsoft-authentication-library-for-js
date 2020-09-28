@@ -127,10 +127,21 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         piiLoggingEnabled: false
     };
 
+    // Default broker options for browser
+    const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
+        actAsBroker: false,
+        allowLogout: false,
+        preferredInteractionType: null,
+        allowBrokering: false,
+        trustedBrokerDomains: [],
+        brokeredRedirectUri: "",
+    };
+
     // Default system options for browser
     const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
+        brokerOptions: DEFAULT_BROKER_OPTIONS,
         networkClient: BrowserUtils.getBrowserNetworkClient(),
         windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
