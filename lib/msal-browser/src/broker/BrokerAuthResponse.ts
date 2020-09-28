@@ -38,11 +38,14 @@ export class BrokerAuthResponse extends BrokerMessage {
         const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
         const idTokenEntity: IdTokenEntity = new IdTokenEntity();
         const accountEntity: AccountEntity = new AccountEntity();
+
+        const tokensToCache = brokerAuthResult.result.tokensToCache;
         const cacheRecord: CacheRecord = {
-            accessToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.accessToken, accessTokenEntity) as AccessTokenEntity,
-            idToken: CacheManager.toObject(brokerAuthResult.result.tokensToCache.idToken, idTokenEntity) as IdTokenEntity,
-            account: CacheManager.toObject(brokerAuthResult.result.tokensToCache.account, accountEntity) as AccountEntity,
-            refreshToken: null
+            accessToken: CacheManager.toObject(tokensToCache.accessToken, accessTokenEntity) as AccessTokenEntity,
+            idToken: CacheManager.toObject(tokensToCache.idToken, idTokenEntity) as IdTokenEntity,
+            account: CacheManager.toObject(tokensToCache.account, accountEntity) as AccountEntity,
+            refreshToken: null,
+            appMetadata: null
         };
         browserStorage.saveCacheRecord(cacheRecord);
         delete brokerAuthResult.result.tokensToCache;
