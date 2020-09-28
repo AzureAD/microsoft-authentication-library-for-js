@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Updating the pre-release version",
+  "comment": "Updating the pre-release version(#2342)",
   "packageName": "@azure/msal-node-extensions",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",
