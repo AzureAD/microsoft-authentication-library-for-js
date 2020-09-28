@@ -108,6 +108,7 @@ export enum AADServerParamKeys {
     OBO_ASSERTION = "assertion",
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
+    FOCI = "foci"
 }
 
 /**
@@ -205,7 +206,7 @@ export enum GrantType {
     RESOURCE_OWNER_PASSWORD_GRANT = "password",
     REFRESH_TOKEN_GRANT = "refresh_token",
     DEVICE_CODE_GRANT = "device_code",
-    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer" 
+    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer"
 }
 
 /**
@@ -271,6 +272,7 @@ export enum CacheType {
  */
 export const APP_METADATA = "appmetadata";
 export const ClientInfo = "client_info";
+export const THE_FAMILY_ID = "1";
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
@@ -290,4 +292,9 @@ export const ThrottlingConstants = {
     DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600,
     // Prefix for storing throttling entries
     THROTTLING_PREFIX: "throttling"
+};
+
+export const Errors = {
+    INVALID_GRANT_ERROR: "invalid_grant",
+    CLIENT_MISMATCH_ERROR: "client_mismatch",
 };

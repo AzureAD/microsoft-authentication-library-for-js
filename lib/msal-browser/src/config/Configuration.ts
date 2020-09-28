@@ -92,54 +92,6 @@ export type Configuration = {
     system?: BrowserSystemOptions
 };
 
-// Default auth options for browser
-const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
-    clientId: "",
-    authority: `${Constants.DEFAULT_AUTHORITY}`,
-    knownAuthorities: [],
-    cloudDiscoveryMetadata: "",
-    redirectUri: "",
-    postLogoutRedirectUri: "",
-    navigateToLoginRequestUrl: true,
-    clientCapabilities: []
-};
-
-// Default cache options for browser
-const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-    cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
-    storeAuthStateInCookie: false
-};
-
-// Default logger options for browser
-const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
-    loggerCallback: (): void => {
-        // Default logger does nothing.
-    },
-    piiLoggingEnabled: false
-};
-
-// Default broker options for browser
-const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
-    actAsBroker: false,
-    allowLogout: false,
-    preferredInteractionType: null,
-    allowBrokering: false,
-    trustedBrokerDomains: [],
-    brokeredRedirectUri: "",
-};
-
-// Default system options for browser
-const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
-    ...DEFAULT_SYSTEM_OPTIONS,
-    loggerOptions: DEFAULT_LOGGER_OPTIONS,
-    brokerOptions: DEFAULT_BROKER_OPTIONS,
-    networkClient: BrowserUtils.getBrowserNetworkClient(),
-    windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
-    iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
-    loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
-    asyncPopups: false
-};
-
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
  *
@@ -150,6 +102,53 @@ const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
  * @returns Configuration object
  */
 export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration): Configuration {
+
+    // Default auth options for browser
+    const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
+        clientId: "",
+        authority: `${Constants.DEFAULT_AUTHORITY}`,
+        knownAuthorities: [],
+        cloudDiscoveryMetadata: "",
+        redirectUri: "",
+        postLogoutRedirectUri: "",
+        navigateToLoginRequestUrl: true,
+        clientCapabilities: []
+    };
+
+    // Default cache options for browser
+    const DEFAULT_CACHE_OPTIONS: CacheOptions = {
+        cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
+        storeAuthStateInCookie: false
+    };
+
+    // Default logger options for browser
+    const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
+        loggerCallback: (): void => {},
+        piiLoggingEnabled: false
+    };
+
+    // Default broker options for browser
+    const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
+        actAsBroker: false,
+        allowLogout: false,
+        preferredInteractionType: null,
+        allowBrokering: false,
+        trustedBrokerDomains: [],
+        brokeredRedirectUri: "",
+    };
+
+    // Default system options for browser
+    const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
+        ...DEFAULT_SYSTEM_OPTIONS,
+        loggerOptions: DEFAULT_LOGGER_OPTIONS,
+        brokerOptions: DEFAULT_BROKER_OPTIONS,
+        networkClient: BrowserUtils.getBrowserNetworkClient(),
+        windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
+        iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
+        loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
+        asyncPopups: false
+    };
+
     const overlayedConfig: Configuration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },

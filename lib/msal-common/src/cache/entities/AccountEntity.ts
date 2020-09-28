@@ -35,7 +35,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      name: Full name for the account, including given name and family name,
  *      clientInfo: Full base64 encoded client info received from ESTS
  *      lastModificationTime: last time this entity was modified in the cache
- *      lastModificationApp: 
+ *      lastModificationApp:
  *      oboAssertion: access token passed in as part of OBO request
  * }
  */
@@ -99,7 +99,8 @@ export class AccountEntity {
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
-            username: this.username
+            username: this.username,
+            name: this.name
         };
     }
 
@@ -116,7 +117,7 @@ export class AccountEntity {
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
-    
+
     /**
      * Build Account cache from IdToken, clientInfo and authority/policy
      * @param clientInfo
@@ -138,14 +139,14 @@ export class AccountEntity {
         const clientInfoObj = buildClientInfo(clientInfo, crypto);
         account.homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
 
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+        const env = Authority.generateEnvironmentFromAuthority(authority);
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
         account.environment = env;
-        account.realm = idToken.claims.tid;
+        // non AAD scenarios can have empty realm
+        account.realm = idToken.claims.tid || "";
         account.oboAssertion = oboAssertion;
 
         if (idToken) {
@@ -180,10 +181,11 @@ export class AccountEntity {
 
         account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
+        // non AAD scenarios can have empty realm
+        account.realm = "";
         account.oboAssertion = oboAssertion;
 
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+        const env = Authority.generateEnvironmentFromAuthority(authority);
 
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();

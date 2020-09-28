@@ -57,7 +57,8 @@ export class ClientCredentialClient extends BaseClient {
             account: null,
             accessToken: cachedAccessToken,
             idToken: null,
-            refreshToken: null
+            refreshToken: null,
+            appMetadata: null
         }, null, true);
     }
 
@@ -117,7 +118,7 @@ export class ClientCredentialClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        parameterBuilder.addScopes(this.scopeSet);
+        parameterBuilder.addScopes(request.scopes, false);
 
         parameterBuilder.addGrantType(GrantType.CLIENT_CREDENTIALS_GRANT);
 
