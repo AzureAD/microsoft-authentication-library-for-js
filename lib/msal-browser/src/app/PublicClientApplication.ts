@@ -53,6 +53,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * 
      */
     private initializeBrokering(): void {
+        if (!this.isBrowserEnvironment) {
+            this.logger.verbose("Not in browser environment. Do nothing.");
+            return;
+        }
+
         if (this.config.system.brokerOptions.actAsBroker) {
             this.broker = new BrokerClientApplication(this.config);
         } else if (this.config.system.brokerOptions.allowBrokering) {
