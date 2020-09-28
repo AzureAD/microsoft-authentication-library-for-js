@@ -7,7 +7,7 @@ module.exports = function(scenarioConfiguration, clientApplication) {
     const requestConfig = scenarioConfiguration.request;
     
     const refreshTokenRequest = requestConfig.refreshTokenRequestParameters;
-    
+
     clientApplication.acquireTokenByRefreshToken(refreshTokenRequest).then((response) => {
         console.log(JSON.stringify(response));
     }).catch((error) => {
