@@ -4,10 +4,9 @@
  */
 const axios = require('axios');
 
-module.exports = function(scenarioPath) {
+module.exports = function(resourceApiConfig) {
     // Get authority type specific Resource API Config
-    const resourceApiConfig = require(`${scenarioPath}/resourceApiConfig`);
-    const endpoint = resourceApiConfig.resourceEndpoint;
+    const endpoint = resourceApiConfig.endpoint;
     
     return {
         call: function(accessToken, callback) {

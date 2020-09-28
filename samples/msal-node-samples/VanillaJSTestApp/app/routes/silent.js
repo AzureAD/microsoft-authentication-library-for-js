@@ -13,9 +13,9 @@ function configureExpressApp(app) {
     app.set('view engine', '.hbs');
 }
 
-function handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache, scenarioPath) {
+function handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache, scenarioConfig) {
     // Get scenario specific resource API
-    const resourceApi = require(RESOURCE_API_PATH)(scenarioPath);
+    const resourceApi = require(RESOURCE_API_PATH)(scenarioConfig.resourceApi);
 
     console.log("\nSuccessful silent token acquisition:\nResponse: \n:", authResponse);
     const username = authResponse.account.username;
@@ -32,9 +32,9 @@ function handleAuthorizationResponse(res, authResponse, templateParams, msalToke
     });
 }
 
-module.exports = function(app, clientApplication, msalTokenCache, scenarioPath)  {
+module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig)  {
     configureExpressApp(app);
-    const requestConfig = require(`${scenarioPath}/requestConfig.json`);
+    const requestConfig = scenarioConfig.request;
     /**
      * App Routes
      */
@@ -82,7 +82,7 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioPath) 
         // Acquire Token Silently to be used in MS Graph call
         clientApplication.acquireTokenSilent(silentRequest)
             .then((authResponse) => {
-                return handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache, scenarioPath);
+                return handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache, scenarioConfig);
             })
             .catch((error) => {
                 console.log(error);

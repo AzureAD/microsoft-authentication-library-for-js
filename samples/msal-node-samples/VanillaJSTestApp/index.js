@@ -17,24 +17,34 @@ const argv = require('yargs')
 // Constants
 const DEFAULT_PORT = 3000;
 const APP_DIR = `${__dirname}/app`;
+const MSAL_CLIENT_APP_CONFIG_PATH = `${APP_DIR}/msalClientAppConfig.js`;
 const SCENARIOS_DIR = `${APP_DIR}/scenarios`;
 const ROUTES_DIR = `${APP_DIR}/routes`;
-const  DEFAULT_SCENARIO_NAME = `silent-flow-aad`;
+const DEFAULT_SCENARIO_NAME = `silent-flow-aad`;
 const WEB_APP_TYPE = "web";
 const CLI_APP_TYPE = "cli";
+const SCENARIO_EXTENSION = "json";
 
 // Loads the names of the application directories containing the sample code
 function readScenarios() {
     return fs.readdirSync(SCENARIOS_DIR, { withFileTypes: true }).filter(function(file) {
-        return file.isDirectory() && file.name !== "sample_template";
+        const fileExtension = file.name.split(".").pop();
+        const isScenarioConfigFile = fileExtension === SCENARIO_EXTENSION;
+        return isScenarioConfigFile && file.name !== "scenario-template.json";
     }).map(function(file) {
         return file.name;
     });
 }
 
+// Check if scenario name already has extension or add it
+function generateScenarioFileName(scenario) {
+     return (!scenario || scenario.split(".").pop() === SCENARIO_EXTENSION) ? scenario : `${scenario}.${SCENARIO_EXTENSION}`;
+}
+
 // Validates that the input sample exists or defaults to auth-code
 function validateScenario(scenarios, scenario) {
-    const isSample = scenarios.includes(scenario);
+    const scenarioFileName = generateScenarioFileName(scenario);
+    const isSample = scenarios.includes(scenarioFileName);
     if (scenario && isSample) {
         console.log(`Starting scenario ${scenario}`);
         return scenario;
@@ -52,7 +62,7 @@ function buildRoutesPath(flow) {
 }
 
 // Initializes express server with scenario routes when scenario is web app type
-function initializeWebApp(scenarioPath, inputPort, clientApplication, routesPath) {
+function initializeWebApp(scenarioConfig, inputPort, clientApplication, routesPath) {
     // Initialize MSAL Token Cache
     const msalTokenCache = clientApplication.getTokenCache();
 
@@ -64,13 +74,13 @@ function initializeWebApp(scenarioPath, inputPort, clientApplication, routesPath
         app.listen(port, () => console.log(`Msal Node Sample App listening on port ${port}!`));
         // Load sample routes
         const sampleRoutes = require(routesPath);
-        sampleRoutes(app, clientApplication, msalTokenCache, scenarioPath);
+        sampleRoutes(app, clientApplication, msalTokenCache, scenarioConfig);
     })
 }
 
 // Executes CLI script with scenario configuration when scenario is of CLI app type
-function executeCliApp(scenarioPath, clientApplication, routesPath) {
-    require(routesPath)(scenarioPath, clientApplication);
+function executeCliApp(scenarioConfig, clientApplication, routesPath) {
+    require(routesPath)(scenarioConfig, clientApplication);
 }
 
 // Main script
@@ -80,22 +90,25 @@ const scenarios = readScenarios();
 const scenario = validateScenario(scenarios, argv.scenario);
 const scenarioPath = `${SCENARIOS_DIR}/${scenario}`;
 
-// App type selection
-const scenarioConfig = require(`${scenarioPath}/scenarioConfig.json`);
+// Load all configuration for scenario
+const scenarioConfig = require(scenarioPath);
 
 // Build client application
-const clientApplication = require(`${APP_DIR}/clientApplication`)(scenarioPath, scenarioConfig.clientType);
+const clientApplication = require(MSAL_CLIENT_APP_CONFIG_PATH)(scenarioConfig);
 
-const routesPath = buildRoutesPath(scenarioConfig.flow);
+// Get sample metaconfig
+const sampleConfig = scenarioConfig.sample;
 
-switch(scenarioConfig.appType) {
+const routesPath = buildRoutesPath(sampleConfig.flow);
+
+switch(sampleConfig.appType) {
     case WEB_APP_TYPE:
-        initializeWebApp(scenarioPath, argv.port, clientApplication, routesPath);
+        initializeWebApp(scenarioConfig, argv.port, clientApplication, routesPath);
         break;
     case CLI_APP_TYPE:
-        executeCliApp(scenarioPath, clientApplication, routesPath);
+        executeCliApp(scenarioConfig, clientApplication, routesPath);
         break;
     default:
-        console.log("Unsupported appType: ", scenarioConfig.appType, clientApplication);
+        console.log("Unsupported appType: ", sampleConfig.appType, clientApplication);
         break;
 }
