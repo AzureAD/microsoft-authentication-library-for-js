@@ -56,10 +56,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (!this.isBrowserEnvironment) {
             return;
         }
-        
+
         if (this.config.system.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
             if(this.config.system.brokerOptions.allowBrokering) {
-                this.logger.verbose("Broker options actAsBroker and allowBrokering both set to true. Preferring to act as broker.");
+                this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
             }
             
             this.broker = new BrokerClientApplication(this.config);
