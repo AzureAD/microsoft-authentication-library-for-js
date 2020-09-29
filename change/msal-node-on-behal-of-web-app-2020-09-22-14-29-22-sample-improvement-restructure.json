@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Bump msal-node versions to alpha.6 on msal-node samples",
+  "comment": "Bump msal-node versions to alpha.8 on msal-node samples",
   "packageName": "msal-node-on-behal-of-web-app",
   "email": "hectormgdev@gmail.com",
   "dependentChangeType": "patch",
