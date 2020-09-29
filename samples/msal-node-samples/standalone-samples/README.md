@@ -48,6 +48,7 @@ const config = {
     auth: {
         clientId: "YOUR_CLIENT_ID",
         authority: "YOUR_AUTHORITY_URL",
+        knownAuthorities: ["YOUR_KNOWN_AUTHORITY"],
         clientSecret: "YOUR_CLIENT_SECRET" // only applies to Confidential Client applications, such as desktop and backend web applications
     },
     system: {
