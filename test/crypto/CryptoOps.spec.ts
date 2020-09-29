@@ -100,5 +100,6 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(generateKeyPairSpy.calledWith(true, ["sign", "verify"]));
         expect(exportJwkSpy.calledWith((await generateKeyPairSpy.returnValues[0]).publicKey));
         expect(regExp.test(pkThumbprint)).to.be.true;
+        expect(dbStorage[pkThumbprint]).to.be.not.empty;
     }).timeout(0);
 });
