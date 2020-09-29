@@ -1,5 +1,5 @@
 import chai from "chai";
-import chaiAsPromised from "chai-as-promised"
+import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
@@ -11,6 +11,7 @@ import sinon from "sinon";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 class TestStorageInterface extends CacheManager {
     setItem(key: string, value: string | object, type?: string): void {
@@ -45,37 +46,38 @@ const testNetworkResult = {
 const testKeySet = ["testKey1", "testKey2"];
 
 const networkInterface = {
-	sendGetRequestAsync<T>(
-		url: string,
-		options?: NetworkRequestOptions
-	): T {
-		return null;
-	},
-	sendPostRequestAsync<T>(
-		url: string,
-		options?: NetworkRequestOptions
-	): T {
-		return null;
-	},
+    sendGetRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): T {
+        return null;
+    },
+    sendPostRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): T {
+        return null;
+    },
 };
 
 describe("PopupHandler.ts Unit Tests", () => {
 
     let browserStorage: BrowserStorage;
     let popupHandler: PopupHandler;
+    const cryptoOps = new CryptoOps();
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-		const configObj = buildConfiguration(appConfig);
-		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
+        const configObj = buildConfiguration(appConfig);
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
         const authCodeModule = new AuthorizationCodeClient({
             authOptions: {
-				...configObj.auth,
-				authority: authorityInstance,
-			},
+                ...configObj.auth,
+                authority: authorityInstance,
+            },
             systemOptions: {
                 tokenRenewalOffsetSeconds:
                     configObj.system.tokenRenewalOffsetSeconds
@@ -128,7 +130,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true,
             },
         });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps);
         popupHandler = new PopupHandler(authCodeModule, browserStorage);
     });
 
@@ -147,14 +149,14 @@ describe("PopupHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if request uri is empty", () => {
-			const testTokenReq: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-				code: "thisIsATestCode",
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
-				correlationId: RANDOM_TEST_GUID
-			};
+            const testTokenReq: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
             expect(() => popupHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
             expect(() => popupHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthError);
 
@@ -163,14 +165,14 @@ describe("PopupHandler.ts Unit Tests", () => {
         });
 
         it("opens a popup window", () => {
-			const testTokenReq: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-				code: "thisIsATestCode",
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
-				correlationId: RANDOM_TEST_GUID
-			};
+            const testTokenReq: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
             // sinon.stub(window, "open").returns(window);
             window.focus = (): void => {
                 return;
@@ -239,7 +241,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             // @ts-ignore
             popupHandler.monitorPopupForHash(popup, 1000)
                 .catch((error) => {
-                    expect(error.errorCode).to.equal('user_cancelled');
+                    expect(error.errorCode).to.equal("user_cancelled");
                     done();
                 });
 
@@ -258,7 +260,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             const assignSpy = sinon.spy();
             const focusSpy = sinon.spy();
 
-            let windowObject = {
+            const windowObject = {
                 location: {
                     assign: assignSpy
                 },
@@ -266,12 +268,12 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             const testRequest: AuthorizationCodeRequest = {
-				redirectUri: "",
-				code: "thisIsATestCode",
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
-				correlationId: RANDOM_TEST_GUID
+                redirectUri: "",
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
             };
 
             // @ts-ignore
@@ -286,12 +288,12 @@ describe("PopupHandler.ts Unit Tests", () => {
             sinon.stub(window, "focus");
 
             const testRequest: AuthorizationCodeRequest = {
-				redirectUri: "",
-				code: "thisIsATestCode",
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
-				correlationId: RANDOM_TEST_GUID
+                redirectUri: "",
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
             };
 
             const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest);
@@ -303,12 +305,12 @@ describe("PopupHandler.ts Unit Tests", () => {
             sinon.stub(window, "open").returns(null);
 
             const testRequest: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-				code: "thisIsATestCode",
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
-				correlationId: RANDOM_TEST_GUID
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
             };
 
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
@@ -316,12 +318,12 @@ describe("PopupHandler.ts Unit Tests", () => {
 
         it("throws error if popup passed in is null", () => {
             const testRequest: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-				code: "thisIsATestCode",
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
-				correlationId: RANDOM_TEST_GUID
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
             };
 
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, null)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);

@@ -801,6 +801,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "upn": "AbeLincoln@contoso.com"
                 };
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+                const browserCrypto = new CryptoOps();
                 const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
                 const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
@@ -847,7 +848,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "ver": "1.0",
                     "upn": "AbeLincoln@contoso.com"
                 };
-                sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+                sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
                 const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
@@ -1009,7 +1010,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "ver": "1.0",
                     "upn": "AbeLincoln@contoso.com"
                 };
-                sinon.stub(TokenClaims, "extractIdToken").returns(idTokenClaims);
+                sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
                 const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
@@ -1057,7 +1058,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "ver": "1.0",
                     "upn": "AbeLincoln@contoso.com"
                 };
-                sinon.stub(TokenClaims, "extractIdToken").returns(idTokenClaims);
+                sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
                 const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
