@@ -1,7 +1,7 @@
-import { AuthenticationResult } from '@azure/msal-browser';
-import { useState, useEffect } from 'react';
+import { AuthenticationResult } from "@azure/msal-browser";
+import { useState, useEffect } from "react";
 
-import { useMsal } from './MsalProvider';
+import { useMsal } from "./MsalProvider";
 
 export function useHandleRedirect(): AuthenticationResult | null {
     const { instance } = useMsal();

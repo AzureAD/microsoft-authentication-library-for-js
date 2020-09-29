@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { MsalProvider, MsalAuthentication } from '../src';
+import * as React from "react";
+import { MsalProvider, MsalAuthentication } from "../src";
 
-import { msalInstance } from './msalInstance';
+import { msalInstance } from "./msalInstance";
 
 export default {
-    title: 'MSAL React/MsalAuthentication',
+    title: "MSAL React/MsalAuthentication",
 };
 
 export const Example = () => {
@@ -15,9 +15,9 @@ export const Example = () => {
                 <ProtectedComponent />
             </MsalAuthentication>
         </MsalProvider>
-    )
+    );
 };
 
 const ProtectedComponent: React.FunctionComponent = () => {
-    return <b>You are authenticated, which means you can see this content.</b>
-}
+    return <b>You are authenticated, which means you can see this content.</b>;
+};

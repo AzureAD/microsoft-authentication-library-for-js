@@ -1,11 +1,11 @@
-import React, {  useState, useCallback } from 'react';
-import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from '../src';
+import React, {  useState, useCallback } from "react";
+import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from "../src";
 
-import { msalInstance } from './msalInstance';
-import { AccountInfo } from '@azure/msal-browser';
+import { msalInstance } from "./msalInstance";
+import { AccountInfo } from "@azure/msal-browser";
 
 export default {
-    title: 'MSAL React/Acquire Tokens',
+    title: "MSAL React/Acquire Tokens",
 };
 
 export const AcquireTokenSilent = () => (
@@ -32,7 +32,7 @@ const AcquireTokenSilentExample = () => {
     const getTokenClick = useCallback(async (setter: React.Dispatch<React.SetStateAction<string>>, account: AccountInfo) => {
         const tokenResponse = await instance.acquireTokenSilent({
             account,
-            scopes: ['user.read']
+            scopes: ["user.read"]
         });
 
         if (tokenResponse) {
@@ -47,7 +47,7 @@ const AcquireTokenSilentExample = () => {
             ))}
         </React.Fragment>
         
-    )
+    );
 };
 
 const AcquireTokenPopupExample = () => {
@@ -55,7 +55,7 @@ const AcquireTokenPopupExample = () => {
 
     const getTokenClick = useCallback(async (setter: React.Dispatch<React.SetStateAction<string>>, account: AccountInfo) => {
         const tokenResponse = await instance.acquireTokenPopup({
-            scopes: ['user.read'],
+            scopes: ["user.read"],
             loginHint: account.username
         });
 
@@ -71,7 +71,7 @@ const AcquireTokenPopupExample = () => {
             ))}
         </React.Fragment>
         
-    )
+    );
 };
 
 interface IAccountTokenFetcherProps {
@@ -89,4 +89,4 @@ const AccountTokenFetcher: React.FunctionComponent<IAccountTokenFetcherProps> = 
             <div><pre>{JSON.stringify(accessToken, null, 4)}</pre></div>
         </div>
     );
-}
+};

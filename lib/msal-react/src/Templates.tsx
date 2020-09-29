@@ -1,17 +1,18 @@
-import React from 'react';
+import React from "react";
 
-import { useMsal } from './MsalProvider';
-import { getChildrenOrFunction } from './utilities';
-import { useIsAuthenticated } from './useIsAuthenticated';
+import { useMsal } from "./MsalProvider";
+import { getChildrenOrFunction } from "./utilities";
+import { useIsAuthenticated } from "./useIsAuthenticated";
+import { AccountInfo } from "@azure/msal-browser";
 
 export interface IMsalTemplateProps {
-    username?: string;
+    account?: Partial<AccountInfo>
 }
 
 export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
-    const { children, username } = props;
+    const { children, account } = props;
     const context = useMsal();
-    const isAuthenticated = useIsAuthenticated(username);
+    const isAuthenticated = useIsAuthenticated(account);
 
     if (!isAuthenticated) {
         return (
@@ -24,9 +25,9 @@ export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps
 };
 
 export const AuthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
-    const { children, username } = props;
+    const { children, account } = props;
     const context = useMsal();
-    const isAuthenticated = useIsAuthenticated(username);
+    const isAuthenticated = useIsAuthenticated(account);
 
     if (isAuthenticated) {
         return (

@@ -1,11 +1,21 @@
 {
+  "name": "@azure/msal-react",
   "version": "0.0.1",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "description": "Microsoft Authentication Library for React",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "engines": {
     "node": ">=10"
@@ -13,32 +23,24 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "test": "tsdx test --passWithNoTests",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build",
+    "build:modules:watch": "tsdx watch --verbose",
+    "test": "tsdx test .*.spec.*",
+    "lint": "cd ../../ && npm run lint:react",
+    "lint:fix": "npm run lint -- -- --fix",
+    "build:all": "npm run build:common && npm run build:browser && npm run build",
+    "build:browser": "cd ../msal-browser && npm run build",
+    "build:common": "cd ../msal-common && npm run build",
+    "prepack": "npm run build:all",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.0.0",
+    "@azure/msal-browser": "^2.2.0",
     "react": ">=16"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
-  "name": "@azure/msal-react",
-  "author": "Jason Nutter",
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
-    "@azure/msal-browser": "^2.0.0",
+    "@azure/msal-browser": "^2.2.0",
     "@babel/core": "^7.10.5",
     "@storybook/addon-actions": "^5.3.19",
     "@storybook/addon-docs": "^5.3.19",
