@@ -58,7 +58,6 @@ export class AuthorityFactory {
             // todo: log statements
             this.saveMetadataFromConfig(authorityUrl, authorityMetadata);
         }
-
         return new Authority(authorityUrl, validateAuthority, this.metadataMap.get(authorityUrl));
     }
 }
