@@ -22,11 +22,11 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
 import { AuthenticationScheme } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
+import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
 
 /**
  * Class that handles response parsing.
@@ -136,9 +136,9 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: AuthToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
+
+        const env = Authority.generateEnvironmentFromAuthority(authority);
 
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -187,7 +187,7 @@ export class ResponseHandler {
                 serverTokenResponse.access_token,
                 this.clientId,
                 idTokenObj ? idTokenObj.claims.tid || "" : authority.tenant,
-                responseScopes.printScopesLowerCase(),
+                responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
                 serverTokenResponse.token_type,
@@ -208,7 +208,13 @@ export class ResponseHandler {
             );
         }
 
-        return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken);
+        // appMetadata
+        let cachedAppMetadata: AppMetadataEntity = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.foci)) {
+            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(this.clientId, env, serverTokenResponse.foci);
+        }
+
+        return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken, cachedAppMetadata);
     }
 
     /**
@@ -259,9 +265,8 @@ export class ResponseHandler {
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
         }
-
-        if (cacheRecord.refreshToken) {
-            familyId = cacheRecord.refreshToken.familyId || null;
+        if (cacheRecord.appMetadata) {
+            familyId = cacheRecord.appMetadata.familyId || null;
         }
         const uid = idTokenObj ? idTokenObj.claims.oid || idTokenObj.claims.sub : "";
         const tid = idTokenObj ? idTokenObj.claims.tid : "";

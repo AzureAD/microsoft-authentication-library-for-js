@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Changes node storage: getItem(), setItem() and removeItem() simplified and no longer need a 'type'",
-  "packageName": "@azure/msal-node",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-22T03:58:37.520Z"
-}

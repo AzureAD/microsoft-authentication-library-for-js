@@ -60,7 +60,8 @@ export class ClientCredentialClient extends BaseClient {
                 account: null,
                 accessToken: cachedAccessToken,
                 idToken: null,
-                refreshToken: null
+                refreshToken: null,
+                appMetadata: null
             }, 
             null, 
             true
