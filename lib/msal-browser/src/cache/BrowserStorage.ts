@@ -49,10 +49,6 @@ export class BrowserStorage extends CacheManager {
      * @param cacheLocation
      */
     private validateWindowStorage(cacheLocation: string): void {
-        if (typeof window === "undefined" || !window) {
-            throw BrowserAuthError.createNoWindowObjectError();
-        }
-
         if (cacheLocation !== BrowserConstants.CACHE_LOCATION_LOCAL && cacheLocation !== BrowserConstants.CACHE_LOCATION_SESSION) {
             throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
         }
