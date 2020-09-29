@@ -26,8 +26,8 @@ import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
-import { TokenCacheContext } from '../cache/persistence/TokenCacheContext';
-import { ISerializableTokenCache } from '../cache/interface/ISerializableTokenCache';
+import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
+import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 
 /**
  * Class that handles response parsing.
@@ -142,9 +142,11 @@ export class ResponseHandler {
                 cacheContext = new TokenCacheContext(this.serializableCache, true);
                 await this.persistencePlugin.beforeCacheAccess(cacheContext);
             }
-            // When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
-            // If not present, we should return null, as it's the case that another application called removeAccount in between
-            // the calls to getAccount and acquireTokenSilent. We should not overwrite that removal. 
+            /*
+             * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
+             * If not present, we should return null, as it's the case that another application called removeAccount in between
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal. 
+             */
             if (handlingRefreshTokenResponse && cacheRecord.account) {
                 const key = cacheRecord.account.generateAccountKey();
                 const account = this.cacheStorage.getAccount(key);
