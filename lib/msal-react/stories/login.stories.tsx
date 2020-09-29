@@ -1,10 +1,10 @@
-import React from 'react';
-import { MsalProvider, MsalConsumer, useMsal, useIsAuthenticated, AuthenticatedTemplate, UnauthenticatedTemplate } from '../src';
+import React from "react";
+import { MsalProvider, MsalConsumer, useMsal, useIsAuthenticated, AuthenticatedTemplate, UnauthenticatedTemplate } from "../src";
 
-import { msalInstance } from './msalInstance';
+import { msalInstance } from "./msalInstance";
 
 export default {
-    title: 'MSAL React/Login & Logout',
+    title: "MSAL React/Login & Logout",
 };
 
 export const LoginPopup = () => (
@@ -22,7 +22,6 @@ export const Logout = () => (
     </MsalProvider>
 );
 
-
 const PopupExample = () => {
     const { instance, state } = useMsal();
 
@@ -31,14 +30,13 @@ const PopupExample = () => {
     return (
         <React.Fragment>
             <AuthenticatedTemplate>
-                <p>Accounts: {accounts.map(a => a.username).join(', ')}</p>
+                <p>Accounts: {accounts.map(a => a.username).join(", ")}</p>
                 <button onClick={() => instance.logout()}>Logout</button>
             </AuthenticatedTemplate>
-            <button onClick={() => instance.loginPopup({ scopes: ['user.read'], prompt: 'select_account' })}>Login</button>
+            <button onClick={() => instance.loginPopup({ scopes: ["user.read"], prompt: "select_account" })}>Login</button>
         </React.Fragment>
     );
 };
-
 
 const LogoutExample = () => {
     const { instance, state } = useMsal();

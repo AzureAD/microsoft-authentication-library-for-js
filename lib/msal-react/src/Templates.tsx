@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 
-import { useMsal } from './MsalProvider';
-import { getChildrenOrFunction } from './utilities';
-import { useIsAuthenticated } from './useIsAuthenticated';
+import { useMsal } from "./MsalProvider";
+import { getChildrenOrFunction } from "./utilities";
+import { useIsAuthenticated } from "./useIsAuthenticated";
 
 export interface IMsalTemplateProps {
     username?: string;

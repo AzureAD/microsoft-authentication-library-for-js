@@ -23,17 +23,6 @@
     "@azure/msal-browser": "^2.0.0",
     "react": ">=16"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
   "name": "@azure/msal-react",
   "author": "Jason Nutter",
   "module": "dist/msal-react.esm.js",

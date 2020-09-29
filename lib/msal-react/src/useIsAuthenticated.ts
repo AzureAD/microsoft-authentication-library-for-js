@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-import { useMsal } from './MsalProvider';
-import { isAuthenticated } from './utilities';
+import { useMsal } from "./MsalProvider";
+import { isAuthenticated } from "./utilities";
 
 export function useIsAuthenticated(username?: string): boolean {
     const {

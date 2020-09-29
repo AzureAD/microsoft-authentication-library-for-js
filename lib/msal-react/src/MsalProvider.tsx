@@ -1,13 +1,13 @@
-import * as React from 'react';
-import { useContext } from 'react';
+import * as React from "react";
+import { useContext } from "react";
 import {
     IPublicClientApplication,
     AccountInfo,
     AuthenticationResult,
     AuthorizationUrlRequest,
     EndSessionRequest,
-} from '@azure/msal-browser';
-import { MsalContext, IMsalContext } from './MsalContext';
+} from "@azure/msal-browser";
+import { MsalContext, IMsalContext } from "./MsalContext";
 
 export type MsalProviderProps = {
     instance: IPublicClientApplication;
