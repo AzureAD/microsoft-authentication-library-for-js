@@ -9,6 +9,8 @@ import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestUtils } from "../utils/RequestUtils";
+import { AccessTokenValue } from "./AccessTokenValue";
+import { AccessTokenKey } from "./AccessTokenKey";
 
 /**
  * @hidden
@@ -207,7 +209,39 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
+     * Returns an IdToken retrieved from the cache in the form of a AccessTokenCacheItem object so it is 
+     * in a normalized format and can make use of the existing cached access token validation logic
+     */
+    getIdToken(clientId: string, homeAccountIdentifier: string, authority: string): AccessTokenCacheItem {
+        const idTokenKey: AccessTokenKey = {
+            authority: authority,
+            clientId: clientId,
+            scopes: undefined,
+            homeAccountIdentifier: homeAccountIdentifier
+        };
+
+        const idTokenKeyString = JSON.stringify(idTokenKey);
+        const idToken = this.getItem(idTokenKeyString);
+        
+        if (idToken) {
+            try {
+                const idTokenValue = JSON.parse(idToken) as AccessTokenValue;
+                /**
+                 * Return an AccessTokenCacheItem because the class already exists and the logic to validate access tokens that
+                 * depends on it can be reused for ID token validation
+                 */
+                return new AccessTokenCacheItem(idTokenKey, idTokenValue);
+            } catch (e) {
+                throw ClientAuthError.createCacheParseError(idTokenKeyString);
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Return if the token renewal is still in progress
+     * 
      * @param stateValue
      */
     private tokenRenewalInProgress(stateValue: string): boolean {
