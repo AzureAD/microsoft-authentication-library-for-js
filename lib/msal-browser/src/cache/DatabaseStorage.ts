@@ -23,11 +23,13 @@ export class DatabaseStorage<T>{
     private dbName: string;
     private tableName: string;
     private version: number;
+    private dbOpen: boolean;
 
     constructor(dbName: string, tableName: string, version: number) {
         this.dbName = dbName;
         this.tableName = tableName;
         this.version = version;
+        this.dbOpen = false;
     }
 
     /**
@@ -42,6 +44,7 @@ export class DatabaseStorage<T>{
             });
             openDB.addEventListener("success", (e: IDBOpenDBRequestEvent) => {
                 this.db = e.target.result;
+                this.dbOpen = true;
                 resolve();
             });
 
@@ -54,6 +57,10 @@ export class DatabaseStorage<T>{
      * @param key 
      */
     async get(key: string): Promise<T> {
+        if (!this.dbOpen) {
+            await this.open();
+        }
+
         return new Promise<T>((resolve, reject) => {
             // TODO: Add timeouts?
             const transaction = this.db.transaction([this.tableName], "readonly");
@@ -71,6 +78,10 @@ export class DatabaseStorage<T>{
      * @param payload 
      */
     async put(key: string, payload: T): Promise<T> {
+        if (!this.dbOpen) {
+            await this.open();
+        }
+
         return new Promise<T>((resolve: any, reject: any) => {
             // TODO: Add timeouts?
             const transaction = this.db.transaction([this.tableName], "readwrite");

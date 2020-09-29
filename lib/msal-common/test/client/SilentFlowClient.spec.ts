@@ -165,7 +165,7 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: true
             };
 
-            expect(() => client.acquireCachedToken(silentFlowRequest)).to.throw(ClientAuthErrorMessage.tokenRefreshRequired.desc);
+            await expect(client.acquireCachedToken(silentFlowRequest)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRefreshRequired.desc);
         });
 
         it("acquireCachedToken throws refresh requiredError if claims included on request", async () => {
@@ -186,7 +186,7 @@ describe("SilentFlowClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS
             };
 
-            expect(() => client.acquireCachedToken(silentFlowRequest)).to.throw(ClientAuthErrorMessage.tokenRefreshRequired.desc);
+            await expect(client.acquireCachedToken(silentFlowRequest)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRefreshRequired.desc);
         });
 
         it("acquireCachedToken throws refresh requiredError if access token is expired", async () => {
@@ -206,7 +206,7 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false
             };
 
-            expect(() => client.acquireCachedToken(silentFlowRequest)).to.throw(ClientAuthErrorMessage.tokenRefreshRequired.desc);
+            await expect(client.acquireCachedToken(silentFlowRequest)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRefreshRequired.desc);
         });
 
         it("acquireCachedToken throws refresh requiredError if no access token is cached", async () => {
@@ -226,7 +226,7 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false
             };
 
-            expect(() => client.acquireCachedToken(silentFlowRequest)).to.throw(ClientAuthErrorMessage.tokenRefreshRequired.desc);
+            await expect(client.acquireCachedToken(silentFlowRequest)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRefreshRequired.desc);
         });
     });
 
@@ -329,63 +329,10 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.state).to.be.empty;
         });
 
-        it("acquireCachedToken throws refresh requiredError if forceRefresh set to true", async () => {
-            const config = await ClientTestUtils.createTestClientConfiguration();
-            const client = new SilentFlowClient(config);
-            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
-
-            const silentFlowRequest: SilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
-                forceRefresh: true
-            };
-            
-            await expect(client.acquireCachedToken(silentFlowRequest)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRefreshRequired.desc);
-        });
-
-        it("acquireCachedToken throws refresh requiredError if claims included on request", async () => {
-            const config = await ClientTestUtils.createTestClientConfiguration();
-            const client = new SilentFlowClient(config);
-            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
-
-            const silentFlowRequest: SilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
-                forceRefresh: false,
-                claims: TEST_CONFIG.CLAIMS
-            };
-            
-            await expect(client.acquireCachedToken(silentFlowRequest)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRefreshRequired.desc);
-        });
-
         it("acquireCachedToken throws refresh requiredError if access token is expired", async () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config);
             sinon.stub(TimeUtils, "isTokenExpired").returns(true);
-
-            const silentFlowRequest: SilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
-                forceRefresh: false
-            };
-            
-            await expect(client.acquireCachedToken(silentFlowRequest)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRefreshRequired.desc);
-        });
-
-        it("acquireCachedToken throws refresh requiredError if no access token is cached", async () => {
-            sinon.restore();
-            ClientTestUtils.setCloudDiscoveryMetadataStubs();
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
-            sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
-            const config = await ClientTestUtils.createTestClientConfiguration();
-            const client = new SilentFlowClient(config);
-            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
             const silentFlowRequest: SilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
