@@ -95,6 +95,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^1.4.0"
+    "@azure/msal-common": "^1.4.0",
+    "rxjs": "6.5.5"
   }
 }
