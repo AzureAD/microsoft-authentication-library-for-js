@@ -2,6 +2,27 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "@azure/msal-common_v1.4.0",
+      "version": "1.4.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updating dependency versions(#2342)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "bc3f324edd6cf83937c31f73d3aefc6dbaf5f748",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Update changelog versions for msal-node and extensions (#2336)",
+            "author": "hectormgdev@gmail.com",
+            "commit": "323875a725e0d5049ff6742a9ca5160c2d4b7d0d",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 23 Sep 2020 21:13:48 GMT",
       "tag": "@azure/msal-common_v1.4.0",
       "version": "1.4.0",

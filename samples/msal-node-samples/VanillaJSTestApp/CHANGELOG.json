@@ -1,0 +1,20 @@
+{
+  "name": "vanilla-js-node-test-app",
+  "entries": [
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "vanilla-js-node-test-app_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Restructure samples into a single script that supports multiple authorization scenarios through .json configuration files",
+            "author": "hemoral@microsoft.com",
+            "commit": "dc8641667c475b36937f597c97d99241427f68cd",
+            "package": "vanilla-js-node-test-app"
+          }
+        ]
+      }
+    }
+  ]
+}
