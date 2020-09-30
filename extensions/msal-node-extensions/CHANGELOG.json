@@ -2,6 +2,21 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Wed, 23 Sep 2020 21:13:48 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.3",
+      "version": "1.0.0-alpha.3",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Update error message (#2265)",
+            "author": "sagonzal@microsoft.com",
+            "commit": "81d044a2a4640ebfa8b3bd80cb30cc2c602bbef1",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0",
       "version": "1.0.0-alpha.2",
