@@ -1,8 +1,16 @@
 # Change Log - msal
 
-This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
+This log was last generated on Wed, 30 Sep 2020 17:58:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.1
+
+Wed, 30 Sep 2020 17:58:33 GMT
+
+### Patches
+
+- Fix ID Token cache lookup. PR #2206 (hemoral@microsoft.com)
 
 ## 1.4.0
 

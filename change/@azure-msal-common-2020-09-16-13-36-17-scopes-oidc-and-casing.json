@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Scopes stored case sensitive, compared case insensitive",
-  "packageName": "@azure/msal-common",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-09-15T18:50:28.962Z"
-}

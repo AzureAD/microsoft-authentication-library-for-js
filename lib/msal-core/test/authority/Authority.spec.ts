@@ -191,21 +191,21 @@ describe("Authority.ts Class", function () {
         it("returns well-known endpoint", () => {
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.equal(TEST_CONFIG.validAuthority + "/v2.0/.well-known/openid-configuration");
+            expect(endpoint).to.equal(TEST_CONFIG.validAuthority + "v2.0/.well-known/openid-configuration");
         });
     
         it("returns well-known endpoint, alternate authority", () => {
             authority = new Authority(TEST_CONFIG.alternateValidAuthority, true);
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.equal(TEST_CONFIG.alternateValidAuthority + "/v2.0/.well-known/openid-configuration");
+            expect(endpoint).to.equal(TEST_CONFIG.alternateValidAuthority + "v2.0/.well-known/openid-configuration");
         });
 
         it("returns v1 well-known endpoint, ADFS scenario", () => {
             authority = new Authority(ADFS_TEST_CONFIG.validAuthority, true);
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.equal(ADFS_TEST_CONFIG.validAuthority + "/.well-known/openid-configuration");
+            expect(endpoint).to.equal(ADFS_TEST_CONFIG.validAuthority + ".well-known/openid-configuration");
         });
     });
 });

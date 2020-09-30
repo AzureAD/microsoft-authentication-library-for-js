@@ -42,7 +42,7 @@ describe("TrustedAuthority.ts Class", function () {
     describe("setTrustedAuthoritiesFromNetwork", () => {
         it("Sets TrustedHostList with Authorities known to Microsoft via Instance Discovery Network Call", async () => {
             const countBefore = TrustedAuthority.getTrustedHostList().length;
-            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(TEST_CONFIG.validAuthority + "/", stubbedTelemetryManager);
+            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(TEST_CONFIG.validAuthority, stubbedTelemetryManager);
             const countAfter = TrustedAuthority.getTrustedHostList().length;
             expect(countBefore).to.be.lessThan(countAfter);
         });
