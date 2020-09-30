@@ -264,7 +264,7 @@ export class ResponseHandler {
 
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
-            this.logger.verbose("Authority type is ADFS, creating ADFS account")
+            this.logger.verbose("Authority type is ADFS, creating ADFS account");
             return AccountEntity.createADFSAccount(authority, idToken, oboAssertion);
         }
 
