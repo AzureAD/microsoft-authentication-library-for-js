@@ -3,11 +3,9 @@ import { useState, useEffect } from "react";
 
 import { useMsal } from "./MsalProvider";
 
-function isAuthenticated(instance: IPublicClientApplication, account?: Partial<AccountInfo>): boolean {
-    /*
-     * TODO Move this to msal-browser
-     * Would we want to treat this like a filter? i.e. account must match all fields provided?
-     */
+export type AccountIdentifiers = Partial<Pick<AccountInfo, "homeAccountId"|"username">>;
+
+function isAuthenticated(instance: IPublicClientApplication, account?: AccountIdentifiers): boolean {
     if (account?.homeAccountId) {
         return !!instance.getAccountByHomeId(account.homeAccountId);
     } else if (account?.username) {
@@ -17,7 +15,7 @@ function isAuthenticated(instance: IPublicClientApplication, account?: Partial<A
     return instance.getAllAccounts().length > 0;
 }
 
-export function useIsAuthenticated(account?: Partial<AccountInfo>): boolean {
+export function useIsAuthenticated(account?: AccountIdentifiers): boolean {
     const {
         state: { accounts },
         instance,
