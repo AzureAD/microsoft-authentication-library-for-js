@@ -1,6 +1,5 @@
 import * as React from "react";
-import { IPublicClientApplication, AccountInfo } from "@azure/msal-browser";
-import { PublicClientApplication } from "../../msal-browser/dist/src";
+import { PublicClientApplication, IPublicClientApplication, AccountInfo } from "@azure/msal-browser";
 
 type MsalState = {
     accounts: AccountInfo[];
