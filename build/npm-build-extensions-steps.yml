@@ -7,6 +7,14 @@ steps:
       displayName: 'Install Node.js'
       
     - task: Npm@1
+      displayName: 'npm ci'
+      inputs:
+          command: 'custom'
+          workingDir: '$(Build.SourcesDirectory)/extensions/msal-node-extensions'
+          customCommand: 'ci'
+          verbose: true
+
+    - task: Npm@1
       displayName: 'build common'
       inputs:
           command: 'custom'
@@ -20,14 +28,6 @@ steps:
           command: 'custom'
           workingDir: '$(Build.SourcesDirectory)/extensions/msal-node-extensions'
           customCommand: 'run link:common'
-          verbose: true
-
-    - task: Npm@1
-      displayName: 'npm ci'
-      inputs:
-          command: 'custom'
-          workingDir: '$(Build.SourcesDirectory)/extensions/msal-node-extensions'
-          customCommand: 'ci'
           verbose: true
 
     - task: Npm@1
