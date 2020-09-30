@@ -11,6 +11,7 @@ export class BrowserBroadcastService {
   constructor(
     @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
   ) {
+    // Converting simple callback from msal-browser to observable
     this._msalSubject = new Subject<BroadcastMessage>();
     this.localMsalSubject$  = this._msalSubject.asObservable();
     this.msalInstance.subscribe((type: BroadcastEvent, payload: AuthenticationResult | AuthError) => {
@@ -18,6 +19,7 @@ export class BrowserBroadcastService {
     })
   }
 
+  // Subject from msal-browser
   get msalSubject$(): Observable<any> {
     return this.msalInstance.broadcastService.msalSubject$;
   }

@@ -4,13 +4,14 @@
  */
 import { AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, ApiId } from "../utils/BrowserConstants";
+import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
 import { BroadcastEvent } from "../event/EventConstants";
+import { EventStartObject } from "../event/BroadcastService";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -53,7 +54,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (RedirectRequest:type)}
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
-        this.broadcast(BroadcastEvent.LOGIN_START);
+        this.broadcast(BroadcastEvent.LOGIN_START, new EventStartObject(InteractionType.REDIRECT));
         return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
     }
 
@@ -65,7 +66,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        this.broadcast(BroadcastEvent.LOGIN_START);
+        this.broadcast(BroadcastEvent.LOGIN_START, new EventStartObject(InteractionType.POPUP));
         return this.acquireTokenPopup(request || DEFAULT_REQUEST)
             .then((result) => {
                 this.broadcast(BroadcastEvent.LOGIN_SUCCESS, result);
@@ -78,7 +79,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_START);
+        this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_START, new EventStartObject(InteractionType.SILENT));
         this.preflightBrowserEnvironmentCheck();
         const silentRequest: SilentFlowRequest = {
             ...request,
@@ -89,7 +90,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
             const cachedToken = silentAuthClient.acquireCachedToken(silentRequest);
-            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS);
+            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, cachedToken);
             return cachedToken;
         } catch (e) {
             this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, e);
