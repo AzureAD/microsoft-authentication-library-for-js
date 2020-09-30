@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 17 Sep 2020 23:16:22 GMT and should not be manually modified.
+This log was last generated on Wed, 30 Sep 2020 17:58:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.2.1
+
+Wed, 30 Sep 2020 17:58:33 GMT
+
+### Patches
+
+- Support SSR in msal-browser (#2073) (thomas.norling@microsoft.com)
 
 ## 2.2.0
 
