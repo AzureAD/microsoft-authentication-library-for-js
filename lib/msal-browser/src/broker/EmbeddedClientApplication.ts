@@ -55,7 +55,6 @@ export class EmbeddedClientApplication {
         } catch (e) {
             this.logger.error(e);
             this.brokerConnectionEstablished = false;
-            throw e;
         }
     }
 

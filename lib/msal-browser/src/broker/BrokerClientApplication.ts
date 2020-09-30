@@ -24,14 +24,12 @@ export class BrokerClientApplication extends ClientApplication {
 
     constructor(configuration: Configuration) {
         super(configuration);
-        this.logger.verbose("Acting as Broker");
-        this.listenForBrokerMessage();
     }
 
     /**
      * 
      */
-    private listenForBrokerMessage(): void {
+    listenForBrokerMessage(): void {
         window.addEventListener("message", this.handleBrokerMessage.bind(this));
     }
 
