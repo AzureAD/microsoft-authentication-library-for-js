@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update changelog versions for msal-node and extensions (#2336)",
-  "packageName": "@azure/msal-common",
-  "email": "hectormgdev@gmail.com",
-  "dependentChangeType": "none",
-  "date": "2020-09-24T21:45:01.058Z"
-}
