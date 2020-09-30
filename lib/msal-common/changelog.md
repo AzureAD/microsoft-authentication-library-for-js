@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 17 Sep 2020 23:16:22 GMT and should not be manually modified.
+This log was last generated on Wed, 23 Sep 2020 21:13:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.0
+
+Wed, 23 Sep 2020 21:13:48 GMT
+
+### Minor changes
+
+- FOCI - Family of Client IDs feature (#2201) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Remove null in function return types to be compatible with ICacheManager.ts (#2335) (sameera.gajjarapu@microsoft.com)
+- Scopes stored case sensitive, compared case insensitive (#2302) (sameera.gajjarapu@microsoft.com)
 
 ## 1.3.0
 
@@ -10,7 +23,7 @@ Thu, 17 Sep 2020 23:16:22 GMT
 
 ### Minor changes
 
-- Add support for On-behalf-of flow (sagonzal@microsoft.com)
+- Add support for On-behalf-of flow (#2157) (sagonzal@microsoft.com)
 - ValidCacheType adds ServerTelemetryEntity (sameera.gajjarapu@microsoft.com)
 - Added client-side throttling to enhance server stability (#1907) (jamckenn@microsoft.com)
 
