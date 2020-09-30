@@ -1,5 +1,4 @@
 export enum BroadcastEvent {
-    MSAL_INSTANCE_CREATED = "msal:instanceCreated",
     LOGIN_START = "msal:loginStart",
     LOGIN_SUCCESS = "msal:loginSuccess",
     LOGIN_FAILURE = "msal:loginFailure",
@@ -7,15 +6,11 @@ export enum BroadcastEvent {
     ACQUIRE_TOKEN_SUCCESS = "msal:acquireTokenSuccess",
     ACQUIRE_TOKEN_FAILURE = "msal:acquireTokenFailure",
     ACQUIRE_TOKEN_NETWORK_START = "msal:acquireTokenFromNetworkStart",
-    ACQUIRE_TOKEN_NETWORK_SUCCESS = "msal:acquireTokenFromNetworkSuccess",
-    ACQUIRE_TOKEN_NETWORK_FAILURE = "msal:acquireTokenFromNetworkFailure",
+    ACQUIRE_TOKEN_NETWORK_END = "msal:acquireTokenFromNetworkEnd",
     SSO_SILENT_START = "msal:ssoSilentStart",
     SSO_SILENT_SUCCESS = "msal:ssoSilentSuccess",
     SSO_SILENT_FAILURE = "msal:ssoSilentFailure",
     HANDLE_REDIRECT_START = "msal:handleRedirectStart",
     HANDLE_REDIRECT_SUCCESS = "msal:handleRedirectSuccess",
-    HANDLE_REDIRECT_FAILURE = "msal:handleRedirectFailure",
-    LOGOUT_START = "msal:logoutStart",
-    LOGOUT_SUCCESS = "msal:logoutSuccess",
-    LOGOUT_FAILURE = "msal:logoutFailure"
+    HANDLE_REDIRECT_FAILURE = "msal:handleRedirectFailure"
 }
