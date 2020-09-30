@@ -1,6 +1,6 @@
 {
   "name": "msal-node-on-behalf-of-web-app",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "sample app for msal-node showing on-behalf-of flow",
   "main": "index.js",
   "scripts": {
