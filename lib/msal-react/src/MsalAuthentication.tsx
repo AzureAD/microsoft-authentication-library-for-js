@@ -1,13 +1,13 @@
-import { AccountInfo, AuthenticationResult } from "@azure/msal-browser";
+import { AuthenticationResult } from "@azure/msal-browser";
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 
 import { IMsalContext } from "./MsalContext";
 import { useMsal } from "./MsalProvider";
 import { getChildrenOrFunction, defaultLoginHandler } from "./utilities";
-import { useIsAuthenticated } from "./useIsAuthenticated";
+import { AccountIdentifiers, useIsAuthenticated } from "./useIsAuthenticated";
 
 export interface IMsalAuthenticationProps {
-    account?: Partial<AccountInfo>
+    accountIdentifier?: AccountIdentifiers
     loginHandler?: (context: IMsalContext) => Promise<AuthenticationResult>;
 }
 
@@ -18,9 +18,9 @@ type MsalAuthenticationResult = {
 
 // TODO: Add optional argument for the `request` object?
 export function useMsalAuthentication(args: IMsalAuthenticationProps = {}): MsalAuthenticationResult {
-    const { account, loginHandler = defaultLoginHandler } = args;
+    const { accountIdentifier, loginHandler = defaultLoginHandler } = args;
     const msal = useMsal();
-    const isAuthenticated = useIsAuthenticated(account);
+    const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     const [error, setError] = useState<Error | null>(null);
 
@@ -61,9 +61,9 @@ export function useMsalAuthentication(args: IMsalAuthenticationProps = {}): Msal
 }
 
 export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProps> = props => {
-    const { account, loginHandler, children } = props;
-    const { msal } = useMsalAuthentication({ account, loginHandler });
-    const isAuthenticated = useIsAuthenticated(account);
+    const { accountIdentifier, loginHandler, children } = props;
+    const { msal } = useMsalAuthentication({ accountIdentifier, loginHandler });
+    const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     // TODO: What if the user authentiction is InProgress? How will user show a loading state?
     if (isAuthenticated) {
