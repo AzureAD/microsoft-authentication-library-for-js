@@ -113,6 +113,7 @@ export class ResponseHandler {
                 this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
             }
         } else {
+            this.logger.verbose("No client info in response");
             this.homeAccountIdentifier = "";
         }
 
@@ -139,6 +140,7 @@ export class ResponseHandler {
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
+                this.logger.verbose("Persistence enabled, calling beforeCacheAccess");
                 cacheContext = new TokenCacheContext(this.serializableCache, true);
                 await this.persistencePlugin.beforeCacheAccess(cacheContext);
             }
@@ -151,12 +153,14 @@ export class ResponseHandler {
                 const key = cacheRecord.account.generateAccountKey();
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
+                    this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
                     return null;
                 }
             }
             this.cacheStorage.saveCacheRecord(cacheRecord);
         } finally {
             if (this.persistencePlugin && this.serializableCache && cacheContext) {
+                this.logger.verbose("Persistence enabled, calling afterCacheAccess");
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
@@ -260,6 +264,7 @@ export class ResponseHandler {
 
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
+            this.logger.verbose("Authority type is ADFS, creating ADFS account")
             return AccountEntity.createADFSAccount(authority, idToken, oboAssertion);
         }
 
