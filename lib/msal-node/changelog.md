@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 17 Sep 2020 23:16:22 GMT and should not be manually modified.
+This log was last generated on Wed, 23 Sep 2020 21:13:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.7
+
+Wed, 23 Sep 2020 21:13:48 GMT
+
+### Changes
+- Make network interface public (#2335) (sameera.gajjarapu@microsoft.com)
+- Rename TokenCache.cacheHasChanged to TokenCache.hasChanged (#2332) (sagonzal@microsoft.com)
+- FOCI - Family of Client IDs feature (#2201) (sameera.gajjarapu@microsoft.com)
+- Fix issue with token cache not removing old cache entities (#2304) (sagonzal@microsoft.com)
 
 ## 1.0.0-alpha.6
 
