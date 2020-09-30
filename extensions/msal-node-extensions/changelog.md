@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Fri, 07 Aug 2020 21:19:23 GMT and should not be manually modified.
+This log was last generated on Wed, 23 Sep 2020 21:13:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.3
+
+Wed, 23 Sep 2020 21:13:48 GMT
+
+### Changes
+
+- Update error message (#2265) (sagonzal@microsoft.com)
 
 # 1.0.0-alpha.2
 - Fix issue where binding.gyp was not being uploaded to npm

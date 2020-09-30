@@ -2,6 +2,29 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "@azure/msal-browser_v2.2.1",
+      "version": "2.2.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Support SSR in msal-browser (#2073)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e697ad8b77313a7f01d21f71f1ca841af87c2459",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Updating dependency versions and package-lock.json(#2342)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "bc3f324edd6cf83937c31f73d3aefc6dbaf5f748",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
       "tag": "@azure/msal-browser_v2.2.0",
       "version": "2.2.0",

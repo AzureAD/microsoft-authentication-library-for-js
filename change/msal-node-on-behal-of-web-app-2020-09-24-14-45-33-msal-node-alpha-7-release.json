@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update changelog versions for msal-node and extensions (#2336)",
+  "packageName": "msal-node-on-behal-of-web-app",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-09-24T21:45:24.629Z"
+}
