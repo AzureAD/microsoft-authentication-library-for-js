@@ -28,7 +28,6 @@
     "test": "tsdx test",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
-    "prepare": "tsdx build",
     "prepack": "npm run build"
   },
   "author": {
