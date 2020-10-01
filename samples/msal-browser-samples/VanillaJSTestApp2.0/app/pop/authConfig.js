@@ -48,7 +48,7 @@ const loginRequest = {
     scopes: ["User.Read"],
     authenticationScheme: msal.AuthenticationScheme.POP,
     resourceRequestMethod: "POST",
-    resourceRequestUri: graphConfig.graphMeEndpoint
+    resourceRequestUri: popConfig.endpoint
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.

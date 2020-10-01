@@ -5,7 +5,7 @@
 
 export type SignedHttpRequest = {
     at?: string;
-    cnf?: string;
+    cnf?: object;
     m?: string;
     u?: string;
     p?: string;
