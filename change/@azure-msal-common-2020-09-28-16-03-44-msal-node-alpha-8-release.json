@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Updating dependency versions(#2342)",
-  "packageName": "@azure/msal-common",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-09-28T23:02:42.383Z"
-}
