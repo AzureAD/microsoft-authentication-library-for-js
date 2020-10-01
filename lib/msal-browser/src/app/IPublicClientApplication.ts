@@ -23,6 +23,6 @@ export interface IPublicClientApplication {
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     broadcast(type: BroadcastEvent, payload?: any): void;
-    subscribe(callback: Function): void;
+    subscribe(callback: Function, eventTypesArray?: Array<BroadcastEvent>): void;
     broadcastService: BroadcastService;
 }

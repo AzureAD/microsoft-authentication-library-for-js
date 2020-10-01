@@ -54,6 +54,9 @@ export abstract class ClientApplication {
     // Callback for subscribing to events
     private subscribeCallback: Function;
 
+    // Array of events subscribed to
+    private subscribedEvents: Array<BroadcastEvent>;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -459,7 +462,7 @@ export abstract class ClientApplication {
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
             return await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
         } catch (e) {
-            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_NETWORK_END, e);
+            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_NETWORK_FAILURE, e);
             serverTelemetryManager.cacheFailedRequest(e);
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
@@ -828,7 +831,15 @@ export abstract class ClientApplication {
 
         // Uses simple callback events
         if (this.subscribeCallback) {
-            this.subscribeCallback(type, payload);
+            if (this.subscribedEvents) {
+                this.subscribedEvents.forEach(subscribedEvent => {
+                    if (subscribedEvent === type) {
+                        this.subscribeCallback(type, payload);
+                    }
+                })
+            } else {
+                this.subscribeCallback(type, payload);
+            }
         }
     }
 
@@ -836,8 +847,9 @@ export abstract class ClientApplication {
      * Subscribe function for simple callback events
      * @param callback 
      */
-    subscribe(callback: Function) {
+    subscribe(callback: Function, eventTypesArray?: Array<BroadcastEvent>) {
         this.subscribeCallback = callback;
+        this.subscribedEvents = eventTypesArray;
     }
 
     // #endregion
