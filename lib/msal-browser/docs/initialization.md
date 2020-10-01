@@ -93,7 +93,7 @@ msalInstance.handleRedirectPromise().then((tokenResponse) => {
     // handle error, either in the library or coming back from the server
 });
 ```
-This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
+This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
 
 It is not recommended to use both interaction types in a single application.
 
