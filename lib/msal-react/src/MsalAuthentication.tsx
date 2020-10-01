@@ -1,11 +1,10 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { PopupRequest, RedirectRequest, SsoSilentRequest } from "@azure/msal-browser";
+import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType } from "@azure/msal-browser";
 
 import { IMsalContext } from "./MsalContext";
 import { useMsal } from "./MsalProvider";
 import { getChildrenOrFunction } from "./utilities";
 import { useIsAuthenticated } from "./useIsAuthenticated";
-import { InteractionType } from "Constants";
 
 export interface IMsalAuthenticationProps {
     username?: string;
