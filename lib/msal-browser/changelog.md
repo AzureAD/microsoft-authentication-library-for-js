@@ -1,8 +1,35 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
+This log was last generated on Wed, 30 Sep 2020 17:58:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.2.1
+
+Wed, 30 Sep 2020 17:58:33 GMT
+
+### Patches
+
+- Support SSR in msal-browser (#2073) (thomas.norling@microsoft.com)
+
+## 2.2.0
+
+Thu, 17 Sep 2020 23:16:22 GMT
+
+### Minor changes
+
+- Added client-side throttling to enhance server stability (#1907) (jamckenn@microsoft.com)
+
+### Patches
+
+- Fix issue with base64 encoding of spaces (#2248) (prkanher@microsoft.com)
+- Properly support multiple concurrent RT requests (#2290) (janutter@microsoft.com)
+- Default scope addition done in msal-common (#2267) (thomas.norling@microsoft.com)
+- acquireTokenSilent calls ssoSilent (#2264) (thomas.norling@microsoft.com)
+- Check for interaction in progress when processing redirect hash (#2183) (thomas.norling@microsoft.com)
+- Creating ClientApplication.ts subclass (#2199) (prkanher@microsoft.com)
+- Add SsoSilentRequest for ssoSilent, update tests and samples (joarroyo@microsoft.com)
+- Add Angular 10 browser sample, update documentation (joarroyo@microsoft.com)
 
 ## 2.1.0
 

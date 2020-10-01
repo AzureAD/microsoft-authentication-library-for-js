@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { Storage } from './Storage';
-import { ClientAuthError, StringUtils, AccountEntity, AccountInfo, Logger} from '@azure/msal-common';
-import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity } from './serializer/SerializerTypes';
-import { ICachePlugin } from './ICachePlugin';
-import { Deserializer } from './serializer/Deserializer';
-import { Serializer } from './serializer/Serializer';
+import { Storage } from "./Storage";
+import { ClientAuthError, StringUtils, AccountEntity, AccountInfo, Logger} from "@azure/msal-common";
+import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity } from "./serializer/SerializerTypes";
+import { ICachePlugin } from "./ICachePlugin";
+import { Deserializer } from "./serializer/Deserializer";
+import { Serializer } from "./serializer/Serializer";
 
 const defaultSerializedCache: JsonCache = {
     Account: {},
@@ -24,13 +24,13 @@ const defaultSerializedCache: JsonCache = {
 export class TokenCache {
 
     private storage: Storage;
-    private hasChanged: boolean;
+    private cacheHasChanged: boolean;
     private cacheSnapshot: string;
     private readonly persistence: ICachePlugin;
     private logger: Logger;
 
     constructor(storage: Storage, logger: Logger, cachePlugin?: ICachePlugin) {
-        this.hasChanged = false;
+        this.cacheHasChanged = false;
         this.storage = storage;
         this.storage.registerChangeEmitter(this.handleChangeEvent.bind(this));
         if (cachePlugin) {
@@ -40,10 +40,10 @@ export class TokenCache {
     }
 
     /**
-     * Set to true if cache state has changed since last time serialized() or writeToPersistence was called
+     * Set to true if cache state has changed since last time serialize or writeToPersistence was called
      */
-    cacheHasChanged(): boolean {
-        return this.hasChanged;
+    hasChanged(): boolean {
+        return this.cacheHasChanged;
     }
 
     /**
@@ -65,7 +65,7 @@ export class TokenCache {
         } else {
             this.logger.verbose("No cache snapshot to merge");
         }
-        this.hasChanged = false;
+        this.cacheHasChanged = false;
 
         return JSON.stringify(finalState);
     }
@@ -110,7 +110,7 @@ export class TokenCache {
             };
 
             await this.persistence.writeToStorage(getMergedState);
-            this.hasChanged = false;
+            this.cacheHasChanged = false;
         } else {
             throw ClientAuthError.createCachePluginError();
         }
@@ -143,7 +143,6 @@ export class TokenCache {
         }
     }
 
-
     /**
      * API that retrieves all accounts currently in cache to the user
      */
@@ -167,7 +166,7 @@ export class TokenCache {
      * Called when the cache has changed state.
      */
     private handleChangeEvent() {
-        this.hasChanged = true;
+        this.cacheHasChanged = true;
     }
 
     /**
@@ -177,7 +176,7 @@ export class TokenCache {
      */
     private mergeState(oldState: JsonCache, currentState: JsonCache): JsonCache {
         this.logger.verbose("Merging in-memory cache with cache snapshot");
-        let stateAfterRemoval = this.mergeRemovals(oldState, currentState);
+        const stateAfterRemoval = this.mergeRemovals(oldState, currentState);
         return this.mergeUpdates(stateAfterRemoval, currentState);
     }
 
@@ -188,7 +187,7 @@ export class TokenCache {
      */
     private mergeUpdates(oldState: any, newState: any): JsonCache {
         Object.keys(newState).forEach((newKey: string) => {
-            let newValue = newState[newKey];
+            const newValue = newState[newKey];
 
             // if oldState does not contain value but newValue does, add it
             if (!oldState.hasOwnProperty(newKey)) {
@@ -197,10 +196,10 @@ export class TokenCache {
                 }
             } else {
                 // both oldState and newState contain the key, do deep update
-                let newValueNotNull = newValue !== null;
-                let newValueIsObject = typeof newValue === 'object';
-                let newValueIsNotArray = !Array.isArray(newValue);
-                let oldStateNotUndefinedOrNull = typeof oldState[newKey] !== 'undefined' && oldState[newKey] !== null;
+                const newValueNotNull = newValue !== null;
+                const newValueIsObject = typeof newValue === "object";
+                const newValueIsNotArray = !Array.isArray(newValue);
+                const oldStateNotUndefinedOrNull = typeof oldState[newKey] !== "undefined" && oldState[newKey] !== null;
 
                 if (newValueNotNull && newValueIsObject && newValueIsNotArray && oldStateNotUndefinedOrNull) {
                     this.mergeUpdates(oldState[newKey], newValue);
@@ -228,17 +227,17 @@ export class TokenCache {
         const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
 
         return {
+            ...oldState,
             Account: accounts,
             AccessToken: accessTokens,
             RefreshToken: refreshTokens,
             IdToken: idTokens,
-            AppMetadata: appMetadata,
-            ...oldState
+            AppMetadata: appMetadata
         };
     }
 
     private mergeRemovalsDict<T>(oldState: Record<string, T>, newState?: Record<string, T>): Record<string, T> {
-        let finalState = {...oldState};
+        const finalState = {...oldState};
         Object.keys(oldState).forEach((oldKey) => {
             if (!newState || !(newState.hasOwnProperty(oldKey))) {
                 delete finalState[oldKey];

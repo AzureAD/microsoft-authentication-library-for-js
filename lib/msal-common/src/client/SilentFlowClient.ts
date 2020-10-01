@@ -11,12 +11,12 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { IdToken } from "../account/IdToken";
 import { TimeUtils } from "../utils/TimeUtils";
-import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
+import { Authority } from "../authority/Authority";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -34,7 +34,8 @@ export class SilentFlowClient extends BaseClient {
             return this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
-                return this.refreshToken(request);
+                const refreshTokenClient = new RefreshTokenClient(this.config);
+                return refreshTokenClient.acquireTokenByRefreshToken(request);
             } else {
                 throw e;
             }
@@ -43,21 +44,22 @@ export class SilentFlowClient extends BaseClient {
 
     /**
      * Retrieves token from cache or throws an error if it must be refreshed.
-     * @param request 
+     * @param request
      */
     acquireCachedToken(request: SilentFlowRequest): AuthenticationResult {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
         }
-        
+
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
-        } 
+        }
 
         const requestScopes = new ScopeSet(request.scopes || []);
-        const cacheRecord = this.cacheManager.getCacheRecord(request.account, this.config.authOptions.clientId, requestScopes);
+        const environment = request.authority || Authority.generateEnvironmentFromAuthority(this.authority);
+        const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment);
 
         if (this.isRefreshRequired(request, cacheRecord.accessToken)) {
             throw ClientAuthError.createRefreshRequiredError();
@@ -70,38 +72,8 @@ export class SilentFlowClient extends BaseClient {
     }
 
     /**
-     * Gets cached refresh token and uses RefreshTokenClient to refresh tokens
-     * @param request 
-     */
-    async refreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
-        // Cannot renew token if no request object is given.
-        if (!request) {
-            throw ClientConfigurationError.createEmptyTokenRequestError();
-        }
-        
-        // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
-        if (!request.account) {
-            throw ClientAuthError.createNoAccountInSilentRequestError();
-        } 
-
-        const refreshToken = this.cacheManager.getRefreshTokenEntity(this.config.authOptions.clientId, request.account);
-        // no refresh Token
-        if (!refreshToken) {
-            throw ClientAuthError.createNoTokensFoundError();
-        }
-
-        const refreshTokenClient = new RefreshTokenClient(this.config);
-        const refreshTokenRequest: RefreshTokenRequest = {
-            ...request,
-            refreshToken: refreshToken.secret
-        };
-
-        return refreshTokenClient.acquireToken(refreshTokenRequest);
-    }
-
-    /**
      * Helper function to build response object from the CacheRecord
-     * @param cacheRecord 
+     * @param cacheRecord
      */
     private generateResultFromCacheRecord(cacheRecord: CacheRecord): AuthenticationResult {
         const idTokenObj = new IdToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
@@ -110,8 +82,8 @@ export class SilentFlowClient extends BaseClient {
 
     /**
      * Given a request object and an accessTokenEntity determine if the accessToken needs to be refreshed
-     * @param request 
-     * @param cachedAccessToken 
+     * @param request
+     * @param cachedAccessToken
      */
     private isRefreshRequired(request: SilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
         if (request.forceRefresh || request.claims) {

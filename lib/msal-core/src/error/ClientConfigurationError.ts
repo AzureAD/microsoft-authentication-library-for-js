@@ -10,7 +10,7 @@ import { TelemetryOptions } from "../Configuration";
 interface IClientConfigurationErrorMessage {
     code: string,
     desc: string
-};
+}
 
 export const ClientConfigurationErrorMessage: Record<string, IClientConfigurationErrorMessage> = {
     configurationNotSet: {

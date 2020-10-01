@@ -1,12 +1,12 @@
-export { PublicClientApplication } from './client/PublicClientApplication';
-export { ConfidentialClientApplication } from './client/ConfidentialClientApplication';
-export { Configuration, buildAppConfiguration } from './config/Configuration';
-export { Storage } from './cache/Storage';
-export { TokenCache } from './cache/TokenCache';
-export { ICachePlugin } from './cache/ICachePlugin';
+export { PublicClientApplication } from "./client/PublicClientApplication";
+export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
+export { Configuration, buildAppConfiguration } from "./config/Configuration";
+export { Storage } from "./cache/Storage";
+export { TokenCache } from "./cache/TokenCache";
+export { ICachePlugin } from "./cache/ICachePlugin";
 
 // crypto
-export { CryptoProvider } from './crypto/CryptoProvider';
+export { CryptoProvider } from "./crypto/CryptoProvider";
 
 // Common Object Formats
 export {
@@ -23,7 +23,10 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
+    // Network Interface
     INetworkModule,
+    NetworkRequestOptions,
+    NetworkResponse,
     // Logger
     LogLevel,
-} from '@azure/msal-common';
+} from "@azure/msal-common";

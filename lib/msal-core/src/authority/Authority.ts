@@ -42,7 +42,7 @@ export class Authority {
 
     public get AuthorityType(): AuthorityType {
         return Authority.isAdfs(this.canonicalAuthority)? AuthorityType.Adfs : AuthorityType.Default;
-    };
+    }
 
     public IsValidationEnabled: boolean;
 

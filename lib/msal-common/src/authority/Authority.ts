@@ -37,7 +37,7 @@ export class Authority {
         }
 
         return AuthorityType.Default;
-    };
+    }
 
     /**
      * A URL that is the authority set by the developer
@@ -194,5 +194,14 @@ export class Authority {
         const openIdConfigEndpoint = this.defaultOpenIdConfigurationEndpoint;
         const response = await this.discoverEndpoints(openIdConfigEndpoint);
         this.tenantDiscoveryResponse = response.body;
+    }
+
+    /**
+     * helper function to generate environment from authority object
+     * @param authority
+     */
+    static generateEnvironmentFromAuthority(authority: Authority): string {
+        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
+        return TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
     }
 }

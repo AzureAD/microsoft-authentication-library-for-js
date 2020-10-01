@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update msal-node version in the samples(#2342)",
+  "packageName": "msal-node-on-behal-of-web-api",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-09-28T23:03:44.264Z"
+}

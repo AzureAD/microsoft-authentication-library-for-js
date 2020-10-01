@@ -43,7 +43,7 @@ export class Constants {
     static get renewToken(): string { return "RENEW_TOKEN"; }
     static get unknown(): string { return "UNKNOWN"; }
 
-    static get ADFS(): string { return "adfs"; };
+    static get ADFS(): string { return "adfs"; }
 
     static get homeAccountIdentifier(): string { return "homeAccountIdentifier"; }
 
@@ -71,7 +71,7 @@ export enum ServerHashParamKeys {
     EXPIRES_IN = "expires_in",
     SESSION_STATE = "session_state",
     CLIENT_INFO = "client_info"
-};
+}
 
 /**
  * @hidden
@@ -132,7 +132,7 @@ export enum SSOTypes {
     ID_TOKEN ="id_token",
     ACCOUNT_ID = "accountIdentifier",
     HOMEACCOUNT_ID = "homeAccountIdentifier"
-};
+}
 
 /**
  * @hidden

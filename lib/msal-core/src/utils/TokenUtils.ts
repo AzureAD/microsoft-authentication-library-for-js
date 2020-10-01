@@ -5,6 +5,7 @@
 
 import { CryptoUtils } from "./CryptoUtils";
 import { StringUtils } from "./StringUtils";
+import { TimeUtils } from "./TimeUtils";
 
 /**
  * @hidden
@@ -32,6 +33,15 @@ export class TokenUtils {
             JWSSig: matches[3]
         };
         return crackedToken;
+    }
+
+    /**
+     * Evaluates whether token cache item expiration is within expiration offset range
+     * @param tokenCacheItem 
+     */
+    static validateExpirationIsWithinOffset(expiration: number, tokenRenewalOffsetSeconds: number): Boolean {
+        const offset = tokenRenewalOffsetSeconds || 300;
+        return expiration && (expiration > TimeUtils.now() + offset);
     }
 
     /**

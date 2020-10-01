@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { promises as fs } from "fs"
+import { promises as fs } from "fs";
 import { dirname } from "path";
 import { IPersistence } from "./IPersistence";
 import { Constants } from "../utils/Constants";
@@ -52,7 +52,7 @@ export class FilePersistence implements IPersistence {
         } catch (err) {
             throw PersistenceError.createFileSystemError(err.code, err.message);
         }
-    };
+    }
 
     public async loadBuffer(): Promise<Uint8Array> {
         try {
@@ -60,7 +60,7 @@ export class FilePersistence implements IPersistence {
         } catch (err) {
             throw PersistenceError.createFileSystemError(err.code, err.message);
         }
-    };
+    }
 
     public async delete(): Promise<boolean> {
         try {
@@ -95,7 +95,7 @@ export class FilePersistence implements IPersistence {
             },
             piiLoggingEnabled: false,
             logLevel: LogLevel.Info
-        }
+        };
     }
 
     private async timeLastModified(): Promise<number> {
