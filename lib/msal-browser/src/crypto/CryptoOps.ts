@@ -102,6 +102,7 @@ export class CryptoOps implements ICrypto {
 
         // Generate Thumbprint for Private Key
         const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
+        // Re-import private key to make it unextractable
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
