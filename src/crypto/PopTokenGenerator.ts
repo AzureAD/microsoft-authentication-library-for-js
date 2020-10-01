@@ -55,7 +55,7 @@ export class PopTokenGenerator {
             u: resourceUrlComponents.HostNameAndPort || "",
             nonce: this.cryptoUtils.createNewGuid(),
             p: resourceUrlComponents.AbsolutePath,
-            q: [[], resourceUrlComponents.QueryString]
+            q: [[], resourceUrlComponents.QueryString],
         }, tokenClaims.cnf.kid);
     }
 }
