@@ -29,12 +29,6 @@ function callPopResource(endpoint, method, accessToken, callback) {
     const authHeader = `PoP ${accessToken}`;
 
     headers.append("Authorization", authHeader);
-    headers.append("Content-Type", "text/plain");
-    headers.append("Secret", "da95c040-20bd-40bc-9548-7eeef460ba87");
-    headers.append("Authority", "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca/");
-    headers.append("ClientId", "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0");
-    headers.append("ShrUri", "https://signedhttprequest.azurewebsites.net/api/validateSHR");
-    headers.append("ShrMethod", "POST");
 
     const options = {
         method: method,
