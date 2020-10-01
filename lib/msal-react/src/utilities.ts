@@ -1,8 +1,4 @@
-import { IMsalContext } from "./MsalContext";
-import {
-    IPublicClientApplication,
-    AuthenticationResult,
-} from "@azure/msal-browser";
+import { IPublicClientApplication } from "@azure/msal-browser";
 
 type FaaCFunction = <T>(args: T) => React.ReactNode;
 
@@ -24,14 +20,4 @@ export function isAuthenticated(
     return username
         ? !!instance.getAccountByUsername(username)
         : (instance.getAllAccounts() || []).length > 0;
-}
-
-export function defaultLoginHandler(
-    context: IMsalContext
-): Promise<AuthenticationResult> {
-    const { instance } = context;
-    return instance.loginPopup({
-        scopes: ["user.read"],
-        prompt: "select_account",
-    });
 }

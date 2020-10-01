@@ -1,14 +1,16 @@
-import { AuthenticationResult } from "@azure/msal-browser";
 import React, { useState, useCallback, useEffect, useMemo } from "react";
+import { PopupRequest, RedirectRequest, SsoSilentRequest } from "@azure/msal-browser";
 
 import { IMsalContext } from "./MsalContext";
 import { useMsal } from "./MsalProvider";
-import { getChildrenOrFunction, defaultLoginHandler } from "./utilities";
+import { getChildrenOrFunction } from "./utilities";
 import { useIsAuthenticated } from "./useIsAuthenticated";
+import { InteractionType } from "Constants";
 
 export interface IMsalAuthenticationProps {
     username?: string;
-    loginHandler?: (context: IMsalContext) => Promise<AuthenticationResult>;
+    interactionType?: string;
+    authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest
 }
 
 type MsalAuthenticationResult = {
@@ -16,11 +18,8 @@ type MsalAuthenticationResult = {
     msal: IMsalContext;
 };
 
-// TODO: Add optional argument for the `request` object?
-export function useMsalAuthentication(
-    args: IMsalAuthenticationProps = {}
-): MsalAuthenticationResult {
-    const { username, loginHandler = defaultLoginHandler } = args;
+export function useMsalAuthentication(args: IMsalAuthenticationProps = {}): MsalAuthenticationResult {
+    const { username, interactionType = InteractionType.POPUP, authenticationRequest } = args;
     const msal = useMsal();
     const isAuthenticated = useIsAuthenticated(username);
 
@@ -33,24 +32,32 @@ export function useMsalAuthentication(
          *  Additionally, other authentication components or hooks won't have access to the errors.
          *  May be better to lift this state into the the MsalProvider
          */
-        return loginHandler(msal).catch(error => {
-            setError(error);
-        });
-    }, [msal, loginHandler]);
+        if (interactionType === InteractionType.POPUP) {
+            return msal.instance.loginPopup(authenticationRequest as PopupRequest).catch(error => {
+                setError(error);
+            });
+        } else if (interactionType === InteractionType.REDIRECT) {
+            return msal.instance.loginRedirect(authenticationRequest as RedirectRequest).catch(error => {
+                setError(error);
+            });
+        } else if (interactionType === InteractionType.SILENT) {
+            return msal.instance.ssoSilent(authenticationRequest as SsoSilentRequest).catch(error => {
+                setError(error);
+            }); 
+        } else {
+            return null;
+        }
+    }, [msal, authenticationRequest, interactionType]);
 
     useEffect(() => {
         /*
          * TODO: What if there is an error? How do errors get cleared?
          * TODO: What if user cancels the flow?
+         * TODO: Check whether login is already in progress
          */
         if (!isAuthenticated) {
             login();
         }
-        /*
-         * TODO: the `login` function needs to be added to the deps array.
-         *  Howevever, when it's added it will cause a double login issue because we're not
-         *  currently tracking when an existing login is InProgress
-         */
     }, [isAuthenticated]);
 
     return useMemo(
@@ -63,8 +70,8 @@ export function useMsalAuthentication(
 }
 
 export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProps> = props => {
-    const { username, loginHandler, children } = props;
-    const { msal } = useMsalAuthentication({ username, loginHandler });
+    const { username, interactionType, authenticationRequest, children } = props;
+    const { msal } = useMsalAuthentication({ username, interactionType, authenticationRequest });
     const isAuthenticated = useIsAuthenticated(username);
 
     // TODO: What if the user authentiction is InProgress? How will user show a loading state?
