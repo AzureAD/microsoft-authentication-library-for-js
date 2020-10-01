@@ -33,7 +33,6 @@ export class CryptoOps implements ICrypto {
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
-    private static POP_HASH_LENGTH = 43; // 256 bit digest / 6 bits per char = 43
 
     private static DB_VERSION = 1;
     private static DB_NAME = "msal.db";
@@ -87,21 +86,33 @@ export class CryptoOps implements ICrypto {
      * @param resourceRequestUri 
      */
     async getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+        // Generate Keypair
         const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
+
+        // Generate Thumbprint for Public Key
         const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
-        const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
-        const publicJwkString: string = BrowserCrypto.getJwkString(publicKeyJwk);
+        const pubKeyThumprintObj: JsonWebKey = {
+            e: publicKeyJwk.e,
+            kty: publicKeyJwk.kty,
+            n: publicKeyJwk.n
+        };
+        const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
         const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
-        const publicJwkDigest: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
+        const publicJwkHash: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
+
+        // Generate Thumbprint for Private Key
+        const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
-        const publicKeyHash = this.base64Encode(publicJwkDigest).substr(0, CryptoOps.POP_HASH_LENGTH);
-        this.cache.put(publicKeyHash, {
+
+        // Store Keypair data in keystore
+        this.cache.put(publicJwkHash, {
             privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
             requestMethod: resourceRequestMethod,
             requestUri: resourceRequestUri
         });
-        return publicKeyHash;
+
+        return publicJwkHash;
     }
 
     /**
@@ -110,22 +121,33 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
+        // Get keypair from cache
         const cachedKeyPair: CachedKeyPair = await this.cache.get(kid);
+
+        // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
         const publicKeyJwkString = BrowserCrypto.getJwkString(publicKeyJwk);
 
+        // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            type: KEY_FORMAT_JWK,
+            type: KEY_FORMAT_JWK
+        };
+        const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
+
+        // Generate payload
+        payload.cnf = {
             jwk: JSON.parse(publicKeyJwkString)
         };
-
-        const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
         const encodedPayload = this.b64Encode.urlEncode(JSON.stringify(payload));
+
+        // Form token string
         const tokenString = `${encodedHeader}.${encodedPayload}`;
+
+        // Sign token
         const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
         const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer);
-        const encodedSignature = this.b64Encode.urlEncode(BrowserStringUtils.utf8ArrToString(new Uint8Array(signatureBuffer)));
+        const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
         return `${tokenString}.${encodedSignature}`;
     }
