@@ -11,10 +11,11 @@ module.exports = function (scenarioConfig, port, clientApplication, routesPath) 
     // Initialize express app
     const app = express();
 
-    msalTokenCache.readFromPersistence().then(() => {
-        app.listen(port, () => console.log(`Msal Node Sample App listening on port ${port}!`));
+    return msalTokenCache.readFromPersistence().then(() => {
+        const server = app.listen(port, () => console.log(`Msal Node Sample App listening on port ${port}!`));
         // Load sample routes
         const sampleRoutes = require(routesPath);
         sampleRoutes(app, clientApplication, msalTokenCache, scenarioConfig);
+        return server;
     });
 }

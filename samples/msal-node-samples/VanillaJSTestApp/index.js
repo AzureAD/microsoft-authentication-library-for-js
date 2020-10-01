@@ -16,35 +16,62 @@ const argv = require('yargs')
     .strict()
     .argv;
 
+// Make server variable global so server can be closed from an outside script
+let server;
 
-// Sample selection
-const scenarios = SampleUtils.readScenarios();
-const scenario = SampleUtils.validateScenario(scenarios, argv.scenario);
-const scenarioPath = `${Constants.SCENARIOS_DIR}/${scenario}`;
-
-// Load all configuration for scenario
-const scenarioConfig = require(scenarioPath);
-
-// Build client application
-const clientApplication = require(Constants.MSAL_CLIENT_APP_CONFIG_PATH)(scenarioConfig);
-
-// Get sample metaconfig
-const sampleConfig = scenarioConfig.sample;
-
-// Get app routes file path
-const routesPath = SampleUtils.buildRoutesPath(sampleConfig.flow);
-
-switch(sampleConfig.appType) {
-    case Constants.WEB_APP_TYPE:
-        // Web app types use an express app
-        const port = (argv.port) ? argv.port : Constants.DEFAULT_PORT;
-        initializeWebApp(scenarioConfig, port, clientApplication, routesPath);
-        break;
-    case Constants.CLI_APP_TYPE:
-        // CLI app types only need to be required to execute
-        require(routesPath)(scenarioConfig, clientApplication);
-        break;
-    default:
-        console.log("Unsupported appType: ", sampleConfig.appType, clientApplication);
-        break;
+function terminateServer() {
+    if(server) {
+        console.log("Closing server");
+        server.close();
+    }
 }
+
+// Main Script
+function runSample(scenario, port) {
+    // Sample selection
+    const scenarios = SampleUtils.readScenarios();
+    scenario = SampleUtils.validateScenario(scenarios, scenario);
+    const scenarioPath = `${Constants.SCENARIOS_DIR}/${scenario}`;
+
+    // Load all configuration for scenario
+    const scenarioConfig = require(scenarioPath);
+
+    // Build client application
+    const clientApplication = require(Constants.MSAL_CLIENT_APP_CONFIG_PATH)(scenarioConfig);
+
+    // Get sample metaconfig
+    const sampleConfig = scenarioConfig.sample;
+
+    // Get app routes file path
+    const routesPath = SampleUtils.buildRoutesPath(sampleConfig.flow);
+
+    switch(sampleConfig.appType) {
+        case Constants.WEB_APP_TYPE:
+            // Web app types use an express app
+            port = port || Constants.DEFAULT_PORT;
+            server = initializeWebApp(scenarioConfig, port, clientApplication, routesPath);
+            break;
+        case Constants.CLI_APP_TYPE:
+            // CLI app types only need to be required to execute
+            require(routesPath)(scenarioConfig, clientApplication);
+            break;
+        default:
+            console.log("Unsupported appType: ", sampleConfig.appType, clientApplication);
+            break;
+    }
+}
+
+// If the app is executed manually, the $0 argument in argv will correspond to this index.js file
+if(argv.$0 === "index.js") {
+    console.log("Vanilla JS Test App is being executed manually.");
+    runSample(argv.s, argv.p);
+} else {
+    // Whenever argv.$0 is not index.js, it means it was required and executed in an external script
+    console.log("Vanilla JS Test App is being executed from an external script.");
+}
+
+// Export the main script as a function so it can be executed programatically to enable E2E Test automation
+module.exports = { 
+    runSample: runSample,
+    terminateServer: terminateServer
+};
