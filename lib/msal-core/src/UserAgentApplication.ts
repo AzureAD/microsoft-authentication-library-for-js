@@ -46,6 +46,7 @@ import { Constants,
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
+import { server } from 'sinon';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -1373,8 +1374,87 @@ export class UserAgentApplication {
      * @param account 
      */
     private getCachedIdToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): IdToken {
-        const authority = serverAuthenticationRequest.authority || this.authority;
-        const idTokenCacheItem = this.cacheStorage.getIdToken(this.clientId, account ? account.homeAccountIdentifier : null, authority);
+        this.logger.verbose("Getting all cached ID tokens");
+        const idTokenCacheItems = this.cacheStorage.getAllIdTokens(this.clientId, account ? account.homeAccountIdentifier : null);
+        let idTokenCacheItem: AccessTokenCacheItem;
+
+        // No match found after filtering by clientId and account
+        if (idTokenCacheItems.length === 0) {
+            this.logger.verbose("No matching ID tokens found when filtered by clientId and account");
+            return null;
+        }
+
+        // No request authority or request authority is common or organizations
+        if (!serverAuthenticationRequest.authority || UrlUtils.isCommonAuthority(serverAuthenticationRequest.authority) || UrlUtils.isOrganizationsAuthority(serverAuthenticationRequest.authority)) {
+            this.logger.verbose("No authority passed into ID token request, filtering ID tokens by Client Application configuration authority");
+
+            // if only one cached token found
+            if (idTokenCacheItems.length === 1) {
+                this.logger.verbose("One matching ID token found in cache");
+                idTokenCacheItem = idTokenCacheItems[0];
+            }
+            // if more than one cached token is found
+            else if (idTokenCacheItems.length > 1) {
+                const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
+                let filteredAuthorityItems;
+                // serverAuthenticationRequest.authority can only be common or organizations if not null
+                if (matchAuthority) {
+                    if (UrlUtils.isCommonAuthority(matchAuthority) || UrlUtils.isOrganizationsAuthority(matchAuthority)) {
+                        // Find an exact match for domain
+                        const requestDomain = UrlUtils.GetUrlComponents(matchAuthority).HostNameAndPort;
+                        filteredAuthorityItems = idTokenCacheItems.filter(idTokenCacheItem => {
+                            const domain = UrlUtils.GetUrlComponents(idTokenCacheItem.key.authority).HostNameAndPort;
+                            return domain === requestDomain;
+                        });
+                    } else {
+                        filteredAuthorityItems = idTokenCacheItems.filter(idTokenCacheItem => {
+                            return matchAuthority === idTokenCacheItem.key.authority;
+                        });
+                    }
+                    // Single cache item remains after filtering
+                    if (filteredAuthorityItems.length === 1) {
+                        idTokenCacheItem = filteredAuthorityItems[0];
+                    }
+                    // Multiple matching tokens after authority filtering
+                    else if (filteredAuthorityItems.length > 1) {
+                        throw ClientAuthError.createMultipleMatchingIdTokensInCacheError();
+                    }
+                    // No matching ID tokens in cache
+                    else {
+                        this.logger.verbose("No matching ID token found");
+                        return null;
+                    }  
+                }
+                else { // if not common or organizations authority, throw error
+                    throw ClientAuthError.createMultipleMatchingIdTokensInCacheError();
+                }
+            } 
+        } 
+        // Authority passed into request and it is not common or organizations
+        else {
+            let filteredItems: Array<AccessTokenCacheItem> = [];
+            this.logger.verbose("Authority passed into ID token request, filtering ID tokens by request authority");
+            for (let i = 0; i < idTokenCacheItems.length; i++) {
+                const cacheItem = idTokenCacheItems[i];
+                if (UrlUtils.CanonicalizeUri(cacheItem.key.authority) === serverAuthenticationRequest.authority) {
+                    filteredItems.push(cacheItem);
+                }
+            }
+            // no match
+            if (filteredItems.length === 0) {
+                this.logger.verbose("No matching ID tokens found");
+                return null;
+            }
+            // if only one cachedToken Found
+            else if (filteredItems.length === 1) {
+                this.logger.verbose("One matching ID token found in cache");
+                idTokenCacheItem = filteredItems[0];
+            }
+            else {
+                // If more than one cached token is found
+                throw ClientAuthError.createMultipleMatchingIdTokensInCacheError();
+            }
+        }
 
         if (idTokenCacheItem != null) {
             this.logger.verbose("Evaluating ID token found");
@@ -1384,9 +1464,9 @@ export class UserAgentApplication {
                 this.logger.verbose("ID token expiration is within offset, using ID token found in cache");
                 const idTokenValue = idTokenCacheItem.value;
                 if (idTokenValue) {
-                    this.logger.verbose("Matching ID Token found in cache");
+                    this.logger.verbose("ID Token found in cache is valid and unexpired");
                 } else {
-                    this.logger.verbose("No matching ID Token found in cache");
+                    this.logger.verbose("ID Token found in cache is invalid");
                 }
         
                 return (idTokenValue) ? new IdToken(idTokenValue.idToken) : null;
@@ -1402,7 +1482,7 @@ export class UserAgentApplication {
     }
 
     private getCachedAccessToken(serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: string[]): AuthResponse {
-        // filter by clientId and account
+        // Filter by clientId and account
         const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : null);
         
         this.logger.verbose("Getting all cached access tokens");
@@ -1416,6 +1496,7 @@ export class UserAgentApplication {
         const filteredItems: Array<AccessTokenCacheItem> = [];
 
         let accessTokenCacheItem: AccessTokenCacheItem = null;
+        const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
 
         // if no authority passed or authority is common/organizations
         if (!serverAuthenticationRequest.authority || UrlUtils.isCommonAuthority(serverAuthenticationRequest.authority) || UrlUtils.isOrganizationsAuthority(serverAuthenticationRequest.authority)) {
@@ -1448,14 +1529,21 @@ export class UserAgentApplication {
             }
             // if more than one cached token is found
             else if (filteredItems.length > 1) {
+                let filteredAuthorityItems;
                 // serverAuthenticationRequest.authority can only be common or organizations if not null
-                if (serverAuthenticationRequest.authority) {
-                    // find an exact match for domain
-                    const requestDomain = UrlUtils.GetUrlComponents(serverAuthenticationRequest.authority).HostNameAndPort;
-                    const filteredAuthorityItems = filteredItems.filter(filteredItem => {
-                        const domain = UrlUtils.GetUrlComponents(filteredItem.key.authority).HostNameAndPort;
-                        return domain === requestDomain;
-                    });
+                if (matchAuthority) {
+                    if (UrlUtils.isCommonAuthority(matchAuthority) || UrlUtils.isOrganizationsAuthority(matchAuthority)) {
+                        // find an exact match for domain
+                        const requestDomain = UrlUtils.GetUrlComponents(matchAuthority).HostNameAndPort;
+                        filteredAuthorityItems = filteredItems.filter(filteredItem => {
+                            const domain = UrlUtils.GetUrlComponents(filteredItem.key.authority).HostNameAndPort;
+                            return domain === requestDomain;
+                        });
+                    } else {
+                        filteredAuthorityItems = filteredItems.filter(filteredItem => {
+                            return matchAuthority === filteredItem.key.authority;
+                        });
+                    }
                     
                     if (filteredAuthorityItems.length === 1) {
                         accessTokenCacheItem = filteredAuthorityItems[0];
@@ -1498,12 +1586,12 @@ export class UserAgentApplication {
             }
             // no match
             if (filteredItems.length === 0) {
-                this.logger.verbose("No matching tokens found");
+                this.logger.verbose("No matching access tokens found");
                 return null;
             }
             // if only one cachedToken Found
             else if (filteredItems.length === 1) {
-                this.logger.verbose("Single token found");
+                this.logger.verbose("Single access token found");
                 accessTokenCacheItem = filteredItems[0];
             }
             else {
