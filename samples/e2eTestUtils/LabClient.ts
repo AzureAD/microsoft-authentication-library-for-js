@@ -24,6 +24,9 @@ export class LabClient {
             }
         }
         this.currentToken = await this.credentials.getToken(LAB_SCOPE);
+        if (!this.currentToken || !this.currentToken.token) {
+            throw "Unable to retrieve access token from lab API";
+        }
         return this.currentToken.token;
     }
 
