@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 02 Oct 2020 17:42:35 GMT",
+      "tag": "@azure/msal-browser_v2.3.0",
+      "version": "2.3.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Implementation of Access Token Proof-of-Possession Flow (#2151, #2153, #2154, #2209, #2289)",
+            "author": "prkanher@microsoft.com",
+            "commit": "3cffbc99730532bbd0b35f2e3a9df17f032c0675",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 30 Sep 2020 17:58:33 GMT",
       "tag": "@azure/msal-browser_v2.2.1",
       "version": "2.2.1",
