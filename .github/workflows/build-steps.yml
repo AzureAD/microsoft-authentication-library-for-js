@@ -35,7 +35,7 @@ jobs:
       if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event.push.head.repo.full_name == github.repository))
       run: npm run test:report
     - name: E2E Tests
-      timeout-minutes: 1
+      timeout-minutes: 5
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
