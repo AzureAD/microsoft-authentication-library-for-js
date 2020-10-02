@@ -31,13 +31,13 @@ jobs:
     - name: Unit Tests
       run: npm run test:coverage
     - name: Coveralls
-      if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository)
+      if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event.push.head.repo.full_name == github.repository))
       env: 
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         COVERALLS_SERVICE_NAME: ${{ secrets.COVERALLS_SERVICE_NAME }}
       run: npm run test:report
     - name: E2E Tests
-      if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository)
+      if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event.push.head.repo.full_name == github.repository))
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
