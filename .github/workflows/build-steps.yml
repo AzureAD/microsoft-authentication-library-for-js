@@ -17,10 +17,11 @@ jobs:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
-      env:
-        RUNNING_NODE_CI: 1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Run CI
+      env:
+        RUNNING_NODE_CI: 1
       run: npm ci
     - name: Build packages
       run: npm run build
