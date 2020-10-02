@@ -9,9 +9,11 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, Errors } from "../utils/Constants";
+import { ScopeSet } from "../request/ScopeSet";
+import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -40,12 +42,12 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(
+        return await responseHandler.handleServerTokenResponse(
             response.body,
-            this.authority
+            this.authority,
+            request.resourceRequestMethod,
+            request.resourceRequestUri
         );
-
-        return tokenResponse;
     }
     /**
      * Gets cached refresh token and attaches to request, then calls acquireToken API
@@ -118,7 +120,8 @@ export class RefreshTokenClient extends BaseClient {
      */
     protected async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const requestBody = this.createTokenRequestBody(request);
+
+        const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
@@ -133,7 +136,7 @@ export class RefreshTokenClient extends BaseClient {
      * Helper function to create the token request body
      * @param request
      */
-    protected createTokenRequestBody(request: RefreshTokenRequest): string {
+    private async createTokenRequestBody(request: RefreshTokenRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -159,6 +162,11 @@ export class RefreshTokenClient extends BaseClient {
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
+        }
+        
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }

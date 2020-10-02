@@ -89,3 +89,6 @@ export enum BrokerMessageType {
 export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
+
+// JWK Key Format string (Type MUST be defined for window crypto APIs)
+export const KEY_FORMAT_JWK = "jwk";
