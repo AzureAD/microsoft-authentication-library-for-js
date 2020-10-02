@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Implementation of Access Token Proof-of-Possession Flow (#2151, #2153, #2154, #2209, #2289)",
+  "packageName": "@azure/msal-browser",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-10-01T22:25:49.045Z"
+}
