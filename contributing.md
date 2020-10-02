@@ -117,12 +117,7 @@ $ git config --global user.name "J. Random User"
 $ git config --global user.email "j.random.user@example.com"
 ```
 
-Writing good commit logs is important.  A commit log should describe what changed and why.  Follow these guidelines when writing one:
-
-- 50 characters or less 
-- contain a short description of the change prefixed with the name of the changed subsystem (e.g. "net: add localAddress and localPort to Socket").
-
-A good commit log looks like this:
+Writing good commit logs is important.  A commit log should describe what changed and why. A good commit log looks like this:
 
 ```
 fix: explaining the commit in one line
