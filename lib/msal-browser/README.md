@@ -119,29 +119,45 @@ More instructions to run the samples can be found in the [`README.md` file](http
 
 ## Build and Test
 
-### Build Library
-```javascript
-// Change to the root of the msal repo
-cd microsoft-authentication-library-for-js/
-// Install npm dependencies and bootstrap packages
-npm install
-// Build library
-npm run build
-// To run build only for the browser package
-npm run build -- --scope @azure/msal-browser
-```
+See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information. 
 
-#### Alternate Build Instructions
-If you are having issues with `lerna`, you can try the following:
+### Linking local package dependencies
+
+If you are having issues with `lerna` and wish to use the local version of the `@azure/msal-common` library (to reflect changes made in both repositories) you can run do the following:
 
 ```javascript
 // Change to the msal-browser package directory
 cd lib/msal-browser/
-// Ensure you are using the local build of msal-common
+// Install package dependencies
+npm install
+// Change to the msal-common package directory
+cd ../msal-common/
+// Install package dependencies
+npm install
+// Prepare the local msal-common package for linking
+npm link
+// Change back to the msal-browser package directory
+cd ../msal-browser/
+// Link to the local build of msal-common
 npm link @azure/msal-common
+```
+
+### Building the package
+
+To build the `@azure/msal-browser` library, you can do the following:
+
+```javascript
+// Change to the msal-browser package directory
+cd lib/msal-browser/
 // To run build only for browser package
 npm run build
-// To run build for common and browser package
+```
+
+To build both the `@azure/msal-browser` library and `@azure/msal-common` libraries, you can do the following:
+```javascript
+// Change to the msal-browser package directory
+cd lib/msal-browser/
+// To run build only for browser package
 npm run build:all
 ```
 
@@ -154,8 +170,6 @@ npm test
 // To run tests with code coverage
 npm run test:coverage:only
 ```
-
-- If you are having issues with `lerna`, change to the `msal-browser` directory and run the commands directly there.
 
 ## Implicit Flow vs Authorization Code Flow with PKCE
 MSAL.js 1.x implemented the [Implicit Grant Flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the OAuth 2.0 protocol and [OpenID](https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc).
