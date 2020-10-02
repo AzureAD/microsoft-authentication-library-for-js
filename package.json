@@ -42,8 +42,8 @@
     "lint:node:extensions": "eslint extensions/msal-node-extensions/src --ext .ts",
     "clean": "lerna run clean --no-private && lerna clean",
     "clean:coverage": "rimraf ./.nyc_output/*",
-    "beachball:check": "beachball check",
-    "beachball:change": "beachball change",
+    "beachball:check": "beachball check --branch origin/dev",
+    "beachball:change": "beachball change --branch origin/dev",
     "beachball:bump": "beachball bump",
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN"
   },
