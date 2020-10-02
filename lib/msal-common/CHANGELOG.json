@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 02 Oct 2020 17:42:35 GMT",
+      "tag": "@azure/msal-common_v1.5.0",
+      "version": "1.5.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Implementation of Access Token Proof-of-Possession Flow (#2151, #2153, #2154, #2209, #2289)",
+            "author": "prkanher@microsoft.com",
+            "commit": "3cffbc99730532bbd0b35f2e3a9df17f032c0675",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 30 Sep 2020 17:58:33 GMT",
       "tag": "@azure/msal-common_v1.4.0",
       "version": "1.4.0",
