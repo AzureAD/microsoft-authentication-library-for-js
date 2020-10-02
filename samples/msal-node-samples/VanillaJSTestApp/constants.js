@@ -10,6 +10,7 @@ module.exports = {
     SCENARIOS_DIR: `${__dirname}/app/scenarios`,
     ROUTES_DIR: `${__dirname}/app/routes`,
     DEFAULT_SCENARIO_NAME: `silent-flow-aad`,
+    DEFAULT_CACHE_LOCATION: `${__dirname}/data/cache.json`,
     WEB_APP_TYPE: "web",
     CLI_APP_TYPE: "cli",
     SCENARIO_EXTENSION: "json"

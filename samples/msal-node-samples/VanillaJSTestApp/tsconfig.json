@@ -17,13 +17,14 @@
     },
     "include": [
         "./e2eTests/*.ts",
-        "./app/test/**/*.ts"
+        "./app/test/**/*.ts",
+        "../../../e2eTestUtils/*.ts"
     ],
     "exclude": [
         "node_modules"
     ],
     "types": [
         "node",
-        "mocha"
+        "jest"
     ]
 }

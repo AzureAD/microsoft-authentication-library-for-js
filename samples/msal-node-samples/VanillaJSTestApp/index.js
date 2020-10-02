@@ -5,6 +5,7 @@
 const Constants = require('./constants');
 const SampleUtils = require('./sampleUtils');
 const initializeWebApp = require('./app');
+const { DEFAULT_CACHE_LOCATION } = require('./constants');
 
 // Command line argument configuration
 const argv = require('yargs')
@@ -16,18 +17,8 @@ const argv = require('yargs')
     .strict()
     .argv;
 
-// Make server variable global so server can be closed from an outside script
-let server;
-
-function terminateServer() {
-    if(server) {
-        console.log("Closing server");
-        server.close();
-    }
-}
-
 // Main Script
-function runSample(scenario, port) {
+function runSample(scenario, port, cacheLocation) {
     // Sample selection
     const scenarios = SampleUtils.readScenarios();
     scenario = SampleUtils.validateScenario(scenarios, scenario);
@@ -49,8 +40,7 @@ function runSample(scenario, port) {
         case Constants.WEB_APP_TYPE:
             // Web app types use an express app
             port = port || Constants.DEFAULT_PORT;
-            server = initializeWebApp(scenarioConfig, port, clientApplication, routesPath);
-            break;
+            return initializeWebApp(scenarioConfig, port, clientApplication, routesPath);
         case Constants.CLI_APP_TYPE:
             // CLI app types only need to be required to execute
             require(routesPath)(scenarioConfig, clientApplication);
@@ -64,7 +54,7 @@ function runSample(scenario, port) {
 // If the app is executed manually, the $0 argument in argv will correspond to this index.js file
 if(argv.$0 === "index.js") {
     console.log("Vanilla JS Test App is being executed manually.");
-    runSample(argv.s, argv.p);
+    runSample(argv.s, argv.p, DEFAULT_CACHE_LOCATION);
 } else {
     // Whenever argv.$0 is not index.js, it means it was required and executed in an external script
     console.log("Vanilla JS Test App is being executed from an external script.");
@@ -72,6 +62,5 @@ if(argv.$0 === "index.js") {
 
 // Export the main script as a function so it can be executed programatically to enable E2E Test automation
 module.exports = { 
-    runSample: runSample,
-    terminateServer: terminateServer
+    runSample: runSample
 };

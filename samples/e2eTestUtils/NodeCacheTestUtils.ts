@@ -1,23 +1,6 @@
 import puppeteer from "puppeteer";
-import msal from "@azure/msal-node";
-
-
-// export async function setupCredentials(envName: string, usertype?: string, federationprovider?:string): Promise<[string, string]> {
-//     let username = "";
-//     let accountPwd = "";
-//     const testCreds = new LabClient();
-//     const envResponse = await testCreds.getUserVarsByCloudEnvironment(envName, usertype, federationprovider);
-//     const testEnv = envResponse[0];
-//     if (testEnv.upn) {
-//         username = testEnv.upn;
-//     }
-
-//     const testPwdSecret = await testCreds.getSecret(testEnv.labName);
-
-//     accountPwd = testPwdSecret.value;
-
-//     return [username, accountPwd];
-// }
+import { Deserializer } from "../../lib/msal-node";
+import { JsonCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
 
 export type tokenMap = {
     idTokens: string[],
@@ -25,29 +8,15 @@ export type tokenMap = {
     refreshTokens: string[]
 }
 
-export async function getTokens(page: puppeteer.Page): Promise<tokenMap> {
-    const cacheJson = require("../data/cache.json");
-    // const cache = JSON.stringify(cacheJson);
-    // const jsonCache: JsonCache = Deserializer.deserializeJSONBlob(cache);
-    // inMemoryCache = Deserializer.deserializeAllCache(jsonCache);
+export async function getTokens(jsonCache: JsonCache): Promise<tokenMap> {
+    const cache = Deserializer.deserializeAllCache(jsonCache);
+    console.log(cache);
 
-    const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
     let tokenKeys: tokenMap = {
         idTokens: [],
         accessTokens: [],
         refreshTokens: []
     }
-
-    Object.keys(storage).forEach(async key => {
-        console.log(key);
-        if (key.includes("idtoken") && validateToken(page, storage[key], "IdToken")) {
-            tokenKeys.idTokens.push(key);
-        } else if (key.includes("accesstoken") && validateToken(page, storage[key], "AccessToken")) {
-            tokenKeys.accessTokens.push(key);
-        } else if (key.includes("refreshtoken") && validateToken(page, storage[key], "RefreshToken")) {
-            tokenKeys.refreshTokens.push(key)
-        }
-    });
 
     return tokenKeys;
 }

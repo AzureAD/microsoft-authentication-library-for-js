@@ -1,19 +1,23 @@
 import "jest";
 import puppeteer from "puppeteer";
-import { getTokens, getAccountFromCache, accessTokenForScopesExists } from "../../../e2eTests/TestUtils"
+import { Screenshot, createFolder, } from "../../../../e2eTestUtils/TestUtils";
+import { getTokens } from "../../../../e2eTestUtils/NodeCacheTestUtils";
 
 const SAMPLE_HOME_URL = 'http://localhost:3000/';
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 
 let username = ""; // TODO:
 let accountPwd = ""; // TODO:
 
-async function enterCredentials(page: puppeteer.Page): Promise<void> {
+async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0116");
+    await screenshot.takeScreenshot(page, `loginPage`);
     await page.type("#i0116", username);
     await page.click("#idSIButton9");
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0118");
+    await screenshot.takeScreenshot(page, `pwdInputPage`);
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
 }
@@ -25,6 +29,7 @@ describe('Silent Flow', () => {
             headless: false,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
+        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
     })
 
     let context: puppeteer.BrowserContext;
@@ -47,16 +52,21 @@ describe('Silent Flow', () => {
 
     it("Performs acquire token", async ()=> {
         jest.setTimeout(30000);
+        
+        const testName = "silent-flow-aad-acquireToken";
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await page.click("#SignIn");
-        await enterCredentials(page);
+        await enterCredentials(page, screenshot);
         await page.waitForNavigation({ waitUntil: "networkidle0"});
-        let tokenStore = await getTokens(page);
+        const jsonCache = require('../../data/testCache.json');
+        let tokenStore = await getTokens();
+        console.log(tokenStore);
         // expect(tokenStore.idTokens).toHaveLength(1);
         // expect(tokenStore.accessTokens).toHaveLength(1);
         // expect(tokenStore.refreshTokens).toHaveLength(1);
         // expect(getAccountFromCache(page, tokenStore.idTokens[0])).not.toBeNull();
         // expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBe(true);
         // const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(Object.keys(storage).length).to.Be(4);
+        expect(Object.keys(tokenStore).length).toBe(4);
     });
 });

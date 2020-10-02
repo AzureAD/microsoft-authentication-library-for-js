@@ -10,7 +10,7 @@ const msal = require('@azure/msal-node');
  */
 const cachePath = "./data/cache.json"; // Replace this string with the path to your valid cache file.
 
-const readFromStorage = () => {
+const readFromStorage = (cachePath) => {
     return fs.readFileSync(cachePath, "utf-8");
 };
 
