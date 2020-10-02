@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { DecodedJwt } from "../account/DecodedJwt";
+import { DecodedAuthToken } from "../account/DecodedAuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
@@ -13,18 +13,18 @@ export class StringUtils {
     /**
      * decode a JWT
      *
-     * @param jwtToken
+     * @param authToken
      */
-    static decodeJwt(jwtToken: string): DecodedJwt {
-        if (StringUtils.isEmpty(jwtToken)) {
-            throw ClientAuthError.createIdTokenNullOrEmptyError(jwtToken);
+    static decodeAuthToken(authToken: string): DecodedAuthToken {
+        if (StringUtils.isEmpty(authToken)) {
+            throw ClientAuthError.createTokenNullOrEmptyError(authToken);
         }
-        const idTokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
-        const matches = idTokenPartsRegex.exec(jwtToken);
+        const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
+        const matches = tokenPartsRegex.exec(authToken);
         if (!matches || matches.length < 4) {
-            throw ClientAuthError.createIdTokenParsingError(`Given token is malformed: ${JSON.stringify(jwtToken)}`);
+            throw ClientAuthError.createTokenParsingError(`Given token is malformed: ${JSON.stringify(authToken)}`);
         }
-        const crackedToken: DecodedJwt = {
+        const crackedToken: DecodedAuthToken = {
             header: matches[1],
             JWSPayload: matches[2],
             JWSSig: matches[3]

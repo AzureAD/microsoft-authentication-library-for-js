@@ -4,8 +4,9 @@
  */
 
 import { CredentialEntity } from "./CredentialEntity";
-import { CredentialType } from "../../utils/Constants";
+import { CredentialType, AuthenticationScheme } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
+import { StringUtils } from "../../utils/StringUtils";
 
 /**
  * ACCESS_TOKEN Credential Type
@@ -61,6 +62,7 @@ export class AccessTokenEntity extends CredentialEntity {
         scopes: string,
         expiresOn: number,
         extExpiresOn: number,
+        tokenType?: string,
         oboAssertion?: string
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
@@ -85,6 +87,7 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.target = scopes;
         atEntity.oboAssertion = oboAssertion;
 
+        atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
         return atEntity;
     }
 
