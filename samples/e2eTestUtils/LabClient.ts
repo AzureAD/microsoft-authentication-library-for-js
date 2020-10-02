@@ -8,7 +8,13 @@ export class LabClient {
     private credentials: ClientSecretCredential;
     private currentToken: AccessToken;
     constructor() {
-        this.credentials = new ClientSecretCredential(process.env[ENV_VARIABLES.TENANT], process.env[ENV_VARIABLES.CLIENT_ID], process.env[ENV_VARIABLES.SECRET]);
+        const tenant = process.env[ENV_VARIABLES.TENANT];
+        const clientId = process.env[ENV_VARIABLES.CLIENT_ID];
+        const client_secret = process.env[ENV_VARIABLES.SECRET];
+        if (!tenant || !clientId || !client_secret) {
+            throw "Environment variables not set!";
+        }
+        this.credentials = new ClientSecretCredential(tenant, clientId, client_secret);
     }
 
     private async getCurrentToken(): Promise<string> {
@@ -38,8 +44,7 @@ export class LabClient {
 
     async getVarsByCloudEnvironment(labApiParams: LabApiQueryParams): Promise<any> {
         const accessToken = await this.getCurrentToken();
-        let apiParams: Array<string> = [];
-
+        const apiParams: Array<string> = [];
 
         if (labApiParams.azureEnvironment) {
             apiParams.push(`${ParamKeys.AZURE_ENVIRONMENT}=${labApiParams.azureEnvironment}`);
@@ -66,7 +71,7 @@ export class LabClient {
         if (apiParams.length <= 0) {
             throw "Must provide at least one param to getVarsByCloudEnvironment";
         }
-        const apiUrl = '/Config?' + apiParams.join("&");
+        const apiUrl = "/Config?" + apiParams.join("&");
 
         return await this.requestLabApi(apiUrl, accessToken);
     }
