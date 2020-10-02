@@ -38,17 +38,9 @@ $ git checkout -b my-feature-branch
 
 ## Installation and Bootstrapping
 
-This repository is a monorepo for all packages maintained by the MSAL.js team. It contains the following public npm packages:
+This repository is a monorepo for all packages maintained by the MSAL.js team. It contains public `npm` packages in the [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder as well as some additional libraries in the [`extensions`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions) folder.
 
-- [msal](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core)
-- [@azure/msal](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core) (same package as above)
-- [@azure/msal-angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular)
-- [@azure/msal-common](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-common)
-- [@azure/msal-browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser)
-- [@azure/msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node)
-- [@azure/msal-node-extensions](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/msal-node-extensions)
-
-If you would like to build a specific package, you can visit the README.md for that specific folder to see how the build process is done. The instructions here are specific to the monorepo. 
+If you would like to build a specific package, you can visit the `README.md` for that specific folder to review the build process. The instructions here are specific to the monorepo. 
 
 After you have cloned the repository, run `npm install` in the root folder. This will install the depedencies for all of the libraries and samples in the repo, create linkages between packages that have depedencies on each other, and run the build process for each of the libraries.
 
