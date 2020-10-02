@@ -1,0 +1,43 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      env:
+        RUNNING_NODE_CI: 1
+      with:
+        node-version: ${{ matrix.node-version }}
+      run: npm ci
+    - name: Build packages
+      run: npm run build
+    - name: Lint
+      run: npm run lint
+    - name: Unit Tests
+      run: npm test:coverage
+    - name: Coveralls
+      if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository)
+      env: 
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        COVERALLS_SERVICE_NAME: ${{ secrets.COVERALLS_SERVICE_NAME }}
+      run: npm run test:report
+    - name: E2E Tests
+      if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository)
+      env:
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      run: npm run test:e2e
