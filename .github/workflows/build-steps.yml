@@ -35,10 +35,16 @@ jobs:
       if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event.push.head.repo.full_name == github.repository))
       run: npm run test:report
     - name: E2E Tests
-      timeout-minutes: 5
+      timeout-minutes: 1
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event.push.head.repo.full_name == github.repository))
       run: npm run test:e2e
+    - name: Upload E2E Test Screenshots
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: e2e-test-screenshots
+        path: samples/**/screenshots
