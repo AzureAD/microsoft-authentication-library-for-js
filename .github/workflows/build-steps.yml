@@ -9,10 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [10.x]
-
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
@@ -28,7 +24,7 @@ jobs:
     - name: Lint
       run: npm run lint
     - name: Unit Tests
-      run: npm test:coverage
+      run: npm run test:coverage
     - name: Coveralls
       if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository)
       env: 
