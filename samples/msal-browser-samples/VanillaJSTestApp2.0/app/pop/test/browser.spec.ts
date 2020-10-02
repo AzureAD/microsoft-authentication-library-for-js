@@ -6,6 +6,7 @@ import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestU
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
+import { JWK, JWT } from "jose";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = "http://localhost:30662/";
@@ -73,5 +74,41 @@ describe("Browser tests", function () {
     after(async () => {
         await context.close();
         await browser.close();
+    });
+
+    it("Performs loginRedirect", async () => {
+        const testName = "redirectBaseCase";
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        // Home Page
+        await screenshot.takeScreenshot(page, "samplePageInit");
+        // Click Sign In
+        await page.click("#SignIn");
+        await screenshot.takeScreenshot(page, "signInClicked");
+        // Click Sign In With Redirect
+        await page.click("#loginRedirect");
+        // Enter credentials
+        await enterCredentials(page, screenshot);
+        // Wait for return to page
+        await page.waitForNavigation({ waitUntil: "networkidle0"});
+        await screenshot.takeScreenshot(page, "samplePageLoggedIn");
+        await page.click("#popRequest");
+        const tokenStore = await BrowserCache.getTokens();
+        expect(tokenStore.idTokens).to.be.length(1);
+        expect(tokenStore.accessTokens).to.be.length(1);
+        expect(tokenStore.refreshTokens).to.be.length(1);
+        const cachedAccount = await BrowserCache.getAccountFromCache(tokenStore.idTokens[0]);
+        const defaultCachedToken = await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
+        expect(cachedAccount).to.not.be.null;
+        expect(defaultCachedToken).to.be.true;
+        // Check pop token
+        const token: string = await page.evaluate(() => window.eval("popToken"));
+        const decodedToken: any = JWT.decode(token);
+        const pubKey = decodedToken.cnf.jwk;
+        const pubKeyJwk = JWK.asKey(pubKey);
+        expect(JWT.verify(token, pubKeyJwk)).to.deep.eq(decodedToken);
+        
+        // Expected 5 since the pop request will fail
+        const storage = await BrowserCache.getWindowStorage();
+        expect(Object.keys(storage).length).to.be.eq(5);
     });
 });

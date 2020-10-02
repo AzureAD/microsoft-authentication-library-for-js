@@ -24,6 +24,7 @@ function callMSGraph(endpoint, accessToken, callback) {
         .catch(error => console.log(error));
 }
 
+let popToken = "";
 function callPopResource(endpoint, method, accessToken, callback) {
     const headers = new Headers();
     const authHeader = `PoP ${accessToken}`;
@@ -49,6 +50,7 @@ async function popRequest() {
         const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
             console.log(error);
         });
+        popToken = response.accessToken;
         callPopResource(popConfig.endpoint, "POST", response.accessToken, updateUI);
     }
 }
@@ -59,6 +61,7 @@ async function seeProfile() {
         const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
             console.log(error);
         });
+        popToken = response.accessToken;
         callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
         profileButton.style.display = "none";
     }
@@ -70,6 +73,7 @@ async function readMail() {
         const response = await getTokenPopup(tokenRequest, currentAcc).catch(error => {
             console.log(error);
         });
+        popToken = response.accessToken;
         callMSGraph(graphConfig.graphMailEndpoint, response.accessToken, updateUI);
         mailButton.style.display = "none";
     }
@@ -81,6 +85,7 @@ async function seeProfileRedirect() {
         const response = await getTokenRedirect(loginRequest, currentAcc).catch(error => {
             console.log(error);
         });
+        popToken = response.accessToken;
         callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
         profileButton.style.display = "none";
     }
@@ -92,6 +97,7 @@ async function readMailRedirect() {
         const response = await getTokenRedirect(tokenRequest, currentAcc).catch(error => {
             console.log(error);
         });
+        popToken = response.accessToken;
         callMSGraph(graphConfig.graphMailEndpoint, response.accessToken, updateUI);
         mailButton.style.display = "none";
     }
