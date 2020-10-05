@@ -16,25 +16,32 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Use Node.js
       uses: actions/setup-node@v1
+
     - name: Run CI
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
+
     - name: Build packagess
       run: npm run build
+
     - name: Lint
       run: npm run lint
+
     - name: Unit Tests
-      run: npm run test:coverage
+      run: |
+        npm run test:coverage
+        npm run test:report
+
     - name: Coveralls
-      env: 
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-        COVERALLS_SERVICE_NAME: ${{ secrets.COVERALLS_SERVICE_NAME }}
-        COVERALLS_GIT_BRANCH: ${{ github.ref }}
       if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event.push.head.repo.full_name == github.repository))
-      run: npm run test:report
+      uses: coverallsapp/github-action@master
+      with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: E2E Tests
       timeout-minutes: 5
       env:
@@ -43,6 +50,7 @@ jobs:
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event.push.head.repo.full_name == github.repository))
       run: npm run test:e2e
+      
     - name: Upload E2E Test Screenshots
       uses: actions/upload-artifact@v2
       if: failure()
