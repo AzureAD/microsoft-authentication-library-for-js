@@ -9,7 +9,7 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
-import { IdToken } from "../account/IdToken";
+import { AuthToken } from "../account/AuthToken";
 import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenClient } from "./RefreshTokenClient";
 import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
@@ -31,7 +31,7 @@ export class SilentFlowClient extends BaseClient {
      */
     async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         try {
-            return this.acquireCachedToken(request);
+            return await this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
                 const refreshTokenClient = new RefreshTokenClient(this.config);
@@ -46,7 +46,7 @@ export class SilentFlowClient extends BaseClient {
      * Retrieves token from cache or throws an error if it must be refreshed.
      * @param request
      */
-    acquireCachedToken(request: SilentFlowRequest): AuthenticationResult {
+    async acquireCachedToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -67,7 +67,7 @@ export class SilentFlowClient extends BaseClient {
             if (this.config.serverTelemetryManager) {
                 this.config.serverTelemetryManager.incrementCacheHits();
             }
-            return this.generateResultFromCacheRecord(cacheRecord);
+            return await this.generateResultFromCacheRecord(cacheRecord, request.resourceRequestMethod, request.resourceRequestUri);
         }
     }
 
@@ -75,9 +75,17 @@ export class SilentFlowClient extends BaseClient {
      * Helper function to build response object from the CacheRecord
      * @param cacheRecord
      */
-    private generateResultFromCacheRecord(cacheRecord: CacheRecord): AuthenticationResult {
-        const idTokenObj = new IdToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
-        return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, true);
+    private async generateResultFromCacheRecord(cacheRecord: CacheRecord, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
+        const idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
+        return await ResponseHandler.generateAuthenticationResult(
+            this.cryptoUtils,
+            cacheRecord,
+            idTokenObj, 
+            true,
+            null,
+            resourceRequestMethod,
+            resourceRequestUri
+        );
     }
 
     /**

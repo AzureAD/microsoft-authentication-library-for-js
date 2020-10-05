@@ -19,6 +19,7 @@ export { BroadcastEvent } from "./event/EventConstants";
 
 // Common Object Formats
 export {
+    AuthenticationScheme,
     // Account
     AccountInfo,
     // Request

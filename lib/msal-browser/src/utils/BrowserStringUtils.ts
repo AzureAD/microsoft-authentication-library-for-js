@@ -69,6 +69,19 @@ export class BrowserStringUtils {
     }
 
     /**
+     * Converst string to ArrayBuffer
+     * @param dataString 
+     */
+    static stringToArrayBuffer(dataString: string): ArrayBuffer {
+        const data = new ArrayBuffer(dataString.length);
+        const dataView = new Uint8Array(data);
+        for (let i: number = 0; i < dataString.length; i++) {
+            dataView[i] = dataString.charCodeAt(i);
+        }
+        return data;
+    }
+
+    /**
      * Converts Uint8Array to a string
      * @param aBytes 
      */
