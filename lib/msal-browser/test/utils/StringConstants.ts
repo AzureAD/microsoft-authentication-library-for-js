@@ -15,7 +15,8 @@ export const TEST_URIS = {
     TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI: "https://localhost:8081/%D1%80/index.html",    
     TEST_ALTERNATE_REDIR_URI: "https://localhost:8081/index2.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
-    TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+    TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    TEST_AUTH_ENDPT_WITH_PARAMS: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
 };
 
 // Test MSAL config params
@@ -70,6 +71,12 @@ export const TEST_DATA_CLIENT_INFO = {
     TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
     TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA=="
+};
+
+export const TEST_POP_VALUES = {
+    KID: "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+    ENCODED_REQ_CNF: "eyJraWQiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwieG1zX2tzbCI6InN3In0=",
+    DECODED_REQ_CNF: `{"kid":"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs","xms_ksl":"sw"}`
 };
 
 export const TEST_STATE_VALUES = {

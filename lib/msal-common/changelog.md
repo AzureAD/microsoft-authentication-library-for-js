@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 23 Sep 2020 21:13:48 GMT and should not be manually modified.
+This log was last generated on Fri, 02 Oct 2020 17:42:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.5.0
+
+Fri, 02 Oct 2020 17:42:35 GMT
+
+### Minor changes
+
+- Implementation of Access Token Proof-of-Possession Flow (#2151, #2153, #2154, #2209, #2289) (prkanher@microsoft.com)
 
 ## 1.4.0
 

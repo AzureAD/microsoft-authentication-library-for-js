@@ -1,10 +1,11 @@
 import { expect } from "chai";
-import {Constants, SSOTypes, PromptValue, AADServerParamKeys, ResponseMode, GrantType} from "../../src/utils/Constants";
+import {Constants, SSOTypes, PromptValue, AADServerParamKeys, ResponseMode, GrantType, AuthenticationScheme} from "../../src/utils/Constants";
 import {
     TEST_CONFIG,
     TEST_URIS,
     TEST_TOKENS,
-    DEVICE_CODE_RESPONSE
+    DEVICE_CODE_RESPONSE,
+    TEST_POP_VALUES
 } from "../utils/StringConstants";
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
 import { ScopeSet } from "../../src/request/ScopeSet";
@@ -58,6 +59,26 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(requestQueryString).to.contain(`${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(DEVICE_CODE_RESPONSE.deviceCode)}`);
         expect(requestQueryString).to.contain(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(TEST_CONFIG.TEST_VERIFIER)}`);
         expect(requestQueryString).to.contain(`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`);
+    });
+
+    it("Adds token type and req_cnf correctly for proof-of-possession tokens", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addPopToken(TEST_POP_VALUES.ENCODED_REQ_CNF);
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`);
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(TEST_POP_VALUES.ENCODED_REQ_CNF)}`);
+    });
+
+    it("Does not add token type or req_cnf if req_cnf is undefined or empty", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addPopToken("");
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString).to.be.empty;
+        
+        const requestParameterBuilder2 = new RequestParameterBuilder();
+        requestParameterBuilder.addPopToken(undefined);
+        const requestQueryString2 = requestParameterBuilder2.createQueryString();
+        expect(requestQueryString2).to.be.empty;
     });
 
     it("addScopes appends oidc scopes by default", () => {
