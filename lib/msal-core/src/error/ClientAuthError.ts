@@ -129,7 +129,7 @@ export class ClientAuthError extends AuthError {
     }
 
     static createMultipleMatchingIdTokensInCacheError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code, ClientAuthErrorMessage.multipleMatchingIdTokens.desc);
+        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingIdTokens.code, ClientAuthErrorMessage.multipleMatchingIdTokens.desc);
     }
 
     static createMultipleAuthoritiesInCacheError(scope: string): ClientAuthError {
