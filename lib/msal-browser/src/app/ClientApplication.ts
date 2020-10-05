@@ -52,7 +52,7 @@ export abstract class ClientApplication {
     protected isBrowserEnvironment: boolean;
 
     // Callback for subscribing to events
-    private subscribeCallback: Function;
+    private subscribeCallbacks: Function[];
 
     // Array of events subscribed to
     private subscribedEvents: Array<BroadcastEvent>;
@@ -106,6 +106,8 @@ export abstract class ClientApplication {
         
         // Initialize broadcast service
         this.broadcastService = new BroadcastService();
+
+        this.subscribeCallbacks = [];
 
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
@@ -830,17 +832,22 @@ export abstract class ClientApplication {
         this.broadcastService.broadcast(type, payload);
 
         // Uses simple callback events
-        if (this.subscribeCallback) {
-            if (this.subscribedEvents) {
-                this.subscribedEvents.forEach(subscribedEvent => {
-                    if (subscribedEvent === type) {
-                        this.subscribeCallback(type, payload);
-                    }
-                })
-            } else {
-                this.subscribeCallback(type, payload);
-            }
-        }
+        this.subscribeCallbacks.forEach((callback) => {
+            callback.apply(null, [type, payload]);
+        });
+
+        // TODO: Filtering using Map
+        // if (this.subscribeCallbacks) {
+        //     if (this.subscribedEvents) {
+        //         this.subscribedEvents.forEach(subscribedEvent => {
+        //             if (subscribedEvent === type) {
+        //                 this.subscribeCallbacks(type, payload);
+        //             }
+        //         })
+        //     } else {
+        //         this.subscribeCallbacks(type, payload);
+        //     }
+        // }
     }
 
     /**
@@ -848,8 +855,8 @@ export abstract class ClientApplication {
      * @param callback 
      */
     subscribe(callback: Function, eventTypesArray?: Array<BroadcastEvent>) {
-        this.subscribeCallback = callback;
-        this.subscribedEvents = eventTypesArray;
+        this.subscribeCallbacks.push(callback);
+        // this.subscribedEvents = eventTypesArray; TODO: filtering
     }
 
     // #endregion
