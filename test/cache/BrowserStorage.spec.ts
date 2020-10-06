@@ -1,13 +1,15 @@
 import { expect } from "chai";
 import sinon from "sinon";
+import "mocha";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
-import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, TEST_HASHES } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
-import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType } from "@azure/msal-common";
+import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType, ProtocolUtils } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 class TestCacheStorage extends CacheManager {
     setItem(key: string, value: string): void {
@@ -27,13 +29,14 @@ class TestCacheStorage extends CacheManager {
     }
     clear(): void {
         throw new Error("Method not implemented.");
-	}
+    }
 }
 
 describe("BrowserStorage() tests", () => {
 
     let cacheConfig: CacheOptions;
     let windowRef: Window & typeof globalThis;
+    const browserCrypto = new CryptoOps();
     beforeEach(() => {
         cacheConfig = {
             cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
@@ -51,30 +54,24 @@ describe("BrowserStorage() tests", () => {
 
     describe("Constructor", () => {
 
-        it("Throws an error if window object is null", () => {
-            window = null;
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig)).to.throw(BrowserAuthErrorMessage.noWindowObjectError.desc);
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig)).to.throw(BrowserAuthError);
-        });
-
         it("Throws an error if cache location string does not match localStorage or sessionStorage", () => {
             cacheConfig.cacheLocation = "notALocation";
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig)).to.throw(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc);
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig)).to.throw(BrowserConfigurationAuthError);
+            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto)).to.throw(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc);
+            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto)).to.throw(BrowserConfigurationAuthError);
         });
 
         it("Throws an error if storage is not supported", () => {
             sinon.stub(window, "sessionStorage").value(null);
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig)).to.throw(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc);
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig)).to.throw(BrowserConfigurationAuthError);
+            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto)).to.throw(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc);
+            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto)).to.throw(BrowserConfigurationAuthError);
             sinon.stub(window, "localStorage").value(null);
             cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig)).to.throw(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc);
-            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig)).to.throw(BrowserConfigurationAuthError);
+            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto)).to.throw(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc);
+            expect(() => new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto)).to.throw(BrowserConfigurationAuthError);
         });
 
         it("Creates a BrowserStorage object that implements the ICacheStorage interface", () => {
-            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             expect(browserStorage.setItem).to.be.not.null;
             expect(browserStorage.getItem).to.be.not.null;
             expect(browserStorage.removeItem).to.be.not.null;
@@ -95,7 +92,7 @@ describe("BrowserStorage() tests", () => {
             window.sessionStorage.setItem(errorKey, errorKeyVal);
             window.sessionStorage.setItem(errorDescKey, errorDescVal);
 
-            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             expect(window.sessionStorage.getItem(idTokenKey)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
             expect(window.sessionStorage.getItem(clientInfoKey)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             expect(window.sessionStorage.getItem(errorKey)).to.be.eq(errorKeyVal);
@@ -103,8 +100,8 @@ describe("BrowserStorage() tests", () => {
             expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ID_TOKEN), CacheSchemaType.TEMPORARY)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.CLIENT_INFO), CacheSchemaType.TEMPORARY)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ERROR), CacheSchemaType.TEMPORARY)).to.be.eq(errorKeyVal);
-			expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ERROR_DESC), CacheSchemaType.TEMPORARY)).to.be.eq(errorDescVal);
-		});
+            expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ERROR_DESC), CacheSchemaType.TEMPORARY)).to.be.eq(errorDescVal);
+        });
     });
 
     describe("Interface functions", () => {
@@ -114,9 +111,9 @@ describe("BrowserStorage() tests", () => {
         let cacheVal: string;
         let msalCacheKey: string;
         beforeEach(() => {
-            browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
-            browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
@@ -197,9 +194,9 @@ describe("BrowserStorage() tests", () => {
         let msalCacheKey: string;
         beforeEach(() => {
             cacheConfig.storeAuthStateInCookie = true;
-            browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
-            browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
@@ -319,9 +316,9 @@ describe("BrowserStorage() tests", () => {
         let cacheVal: string;
         let msalCacheKey: string;
         beforeEach(() => {
-            browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            browserSessionStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             cacheConfig.cacheLocation = BrowserConstants.CACHE_LOCATION_LOCAL;
-            browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
+            browserLocalStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
@@ -351,18 +348,15 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("clearMsalCookie()", () => {
-            const nonceKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}|${RANDOM_TEST_GUID}`;
-            const stateKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`;
+            const stateString = TEST_STATE_VALUES.TEST_STATE;
+            const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
+            const nonceKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`;
+            const stateKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`;
             const originUriKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
             browserSessionStorage.setItemCookie(nonceKey, "thisIsANonce");
-            browserSessionStorage.setItemCookie(stateKey, RANDOM_TEST_GUID);
+            browserSessionStorage.setItemCookie(stateKey, stateString);
             browserSessionStorage.setItemCookie(originUriKey, "https://contoso.com");
-            browserSessionStorage.clearMsalCookie(RANDOM_TEST_GUID);
-            expect(document.cookie).to.be.empty;
-            browserSessionStorage.setItemCookie(nonceKey, "thisIsANonce");
-            browserSessionStorage.setItemCookie(stateKey, RANDOM_TEST_GUID);
-            browserSessionStorage.setItemCookie(originUriKey, "https://contoso.com");
-            browserSessionStorage.clearMsalCookie(RANDOM_TEST_GUID);
+            browserSessionStorage.clearMsalCookie(stateString);
             expect(document.cookie).to.be.empty;
         });
 
@@ -374,127 +368,136 @@ describe("BrowserStorage() tests", () => {
             const expectedDate = new Date(currentTime + (cookieLifeDays * COOKIE_LIFE_MULTIPLIER));
             expect(browserLocalStorage.getCookieExpirationTime(cookieLifeDays)).to.be.eq(expectedDate.toUTCString());
         });
-	});
+    });
 
-	describe("Helpers", () => {
+    describe("Helpers", () => {
 
-		it("generateAuthorityKey() creates a valid cache key for authority strings", () => {
-			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-            const authorityKey = browserStorage.generateAuthorityKey(RANDOM_TEST_GUID);
-            expect(authorityKey).to.be.eq(`${TemporaryCacheKeys.AUTHORITY}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`);
+        it("generateAuthorityKey() creates a valid cache key for authority strings", () => {
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE);
+            expect(authorityKey).to.be.eq(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${RANDOM_TEST_GUID}`);
         });
 
         it("generateNonceKey() create a valid cache key for nonce strings", () => {
-			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-            const nonceKey = browserStorage.generateNonceKey(RANDOM_TEST_GUID);
-            expect(nonceKey).to.be.eq(`${TemporaryCacheKeys.NONCE_IDTOKEN}${Constants.RESOURCE_DELIM}${RANDOM_TEST_GUID}`);
-		});
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const nonceKey = browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE);
+            expect(nonceKey).to.be.eq(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${RANDOM_TEST_GUID}`);
+        });
 
-		it("updateCacheEntries() correctly updates the authority, state and nonce in the cache", () => {
-			const authorityCacheSpy = sinon.spy(BrowserStorage.prototype, "setAuthorityCache");
-			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-			const testNonce = "testNonce";
-            browserStorage.updateCacheEntries(RANDOM_TEST_GUID, testNonce, `${Constants.DEFAULT_AUTHORITY}/`);
+        it("updateCacheEntries() correctly updates the authority, state and nonce in the cache", () => {
+            const authorityCacheSpy = sinon.spy(BrowserStorage.prototype, "setAuthorityCache");
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const testNonce = "testNonce";
+            const stateString = TEST_STATE_VALUES.TEST_STATE;
+            const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
+            browserStorage.updateCacheEntries(stateString, testNonce, `${Constants.DEFAULT_AUTHORITY}/`);
 
             expect(authorityCacheSpy.calledOnce).to.be.true;
-            const nonceKey = browserStorage.generateNonceKey(RANDOM_TEST_GUID);
-            const authorityKey = browserStorage.generateAuthorityKey(RANDOM_TEST_GUID);
+            const nonceKey = browserStorage.generateNonceKey(stateString);
+            const authorityKey = browserStorage.generateAuthorityKey(stateString);
 
-            expect(window.sessionStorage[`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`]).to.be.eq(RANDOM_TEST_GUID);
-            expect(window.sessionStorage[`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${nonceKey}`]).to.be.eq(testNonce);
-            expect(window.sessionStorage[`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${authorityKey}`]).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
+            expect(window.sessionStorage[browserStorage.generateStateKey(stateString)]).to.be.eq(stateString);
+            expect(window.sessionStorage[`${nonceKey}`]).to.be.eq(testNonce);
+            expect(window.sessionStorage[`${authorityKey}`]).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
         it("resetTempCacheItems() resets all temporary cache items with the given state", () => {
-			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-            browserStorage.updateCacheEntries(RANDOM_TEST_GUID, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`);
+            const stateString = TEST_STATE_VALUES.TEST_STATE;
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            browserStorage.updateCacheEntries(stateString, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`);
             browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams", CacheSchemaType.TEMPORARY);
             browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI, CacheSchemaType.TEMPORARY);
 
-            browserStorage.resetRequestCache(RANDOM_TEST_GUID);
-            const nonceKey = browserStorage.generateNonceKey(RANDOM_TEST_GUID);
-            const authorityKey = browserStorage.generateAuthorityKey(RANDOM_TEST_GUID);
+            browserStorage.resetRequestCache(stateString);
+            const nonceKey = browserStorage.generateNonceKey(stateString);
+            const authorityKey = browserStorage.generateAuthorityKey(stateString);
             expect(window.sessionStorage[`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${nonceKey}`]).to.be.undefined;
             expect(window.sessionStorage[`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${authorityKey}`]).to.be.undefined;
             expect(window.sessionStorage[`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`]).to.be.undefined;
             expect(window.sessionStorage[`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`]).to.be.undefined;
             expect(window.sessionStorage[`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`]).to.be.undefined;
-		});
-
-		it("Successfully retrieves and decodes response from cache", async () => {
-			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-			const cryptoObj = new CryptoOps();
-            const tokenRequest: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-				scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
-				code: "thisIsAnAuthCode",
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: `${RANDOM_TEST_GUID}`
-			};
-
-			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), cryptoObj.base64Encode(JSON.stringify(tokenRequest)), CacheSchemaType.TEMPORARY);
-
-			const cachedRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj);
-			expect(cachedRequest).to.be.deep.eq(tokenRequest);
-
-			// expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
-		});
-
-		it("Throws error if request cannot be retrieved from cache", async () => {
-			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-			const cryptoObj = new CryptoOps();
-            const tokenRequest: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-				scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
-				code: "thisIsAnAuthCode",
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: `${RANDOM_TEST_GUID}`
-			};
-
-			// browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
-
-			expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
-		});
-
-		it("Throws error if cached request cannot be parsed correctly", async () => {
-			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-			const cryptoObj = new CryptoOps();
-			const tokenRequest: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-				scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
-				code: "thisIsAnAuthCode",
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: `${RANDOM_TEST_GUID}`
-			};
-			const stringifiedRequest = JSON.stringify(tokenRequest);
-			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), stringifiedRequest.substring(0, stringifiedRequest.length / 2), CacheSchemaType.TEMPORARY);
-			expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
-		});
-
-		it("Uses authority from cache if not present in cached request", async () => {
-			const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig);
-			// Set up cache
-			const browserCrypto = new CryptoOps();
-			const authorityKey = browserStorage.generateAuthorityKey(RANDOM_TEST_GUID);
-			const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;
-			browserStorage.setItem(browserStorage.generateCacheKey(authorityKey), alternateAuthority, CacheSchemaType.TEMPORARY);
-
-			const cachedRequest: AuthorizationCodeRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				code: "thisIsACode",
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				correlationId: RANDOM_TEST_GUID,
-				scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-			};
-			const stringifiedRequest = browserCrypto.base64Encode(JSON.stringify(cachedRequest));
-			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), stringifiedRequest, CacheSchemaType.TEMPORARY);
-
-			// Perform test
-			const tokenRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, browserCrypto);
-			expect(tokenRequest.authority).to.be.eq(alternateAuthority);
         });
-	});
+
+        it("Successfully retrieves and decodes response from cache", async () => {
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const tokenRequest: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
+                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
+                code: "thisIsAnAuthCode",
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: `${RANDOM_TEST_GUID}`
+            };
+
+            browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(tokenRequest)), CacheSchemaType.TEMPORARY);
+
+            const cachedRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, browserCrypto);
+            expect(cachedRequest).to.be.deep.eq(tokenRequest);
+
+            // expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+        });
+
+        it("Throws error if request cannot be retrieved from cache", async () => {
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const cryptoObj = new CryptoOps();
+            const tokenRequest: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
+                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
+                code: "thisIsAnAuthCode",
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: `${RANDOM_TEST_GUID}`
+            };
+
+            // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
+
+            expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+        });
+
+        it("Throws error if cached request cannot be parsed correctly", async () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const cryptoObj = new CryptoOps();
+            const tokenRequest: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
+                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
+                code: "thisIsAnAuthCode",
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: `${RANDOM_TEST_GUID}`
+            };
+            const stringifiedRequest = JSON.stringify(tokenRequest);
+            browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), stringifiedRequest.substring(0, stringifiedRequest.length / 2), CacheSchemaType.TEMPORARY);
+            expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+        });
+
+        it("Uses authority from cache if not present in cached request", async () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            // Set up cache
+            const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE);
+            const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;
+            browserStorage.setItem(authorityKey, alternateAuthority, CacheSchemaType.TEMPORARY);
+
+            const cachedRequest: AuthorizationCodeRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                code: "thisIsACode",
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                correlationId: RANDOM_TEST_GUID,
+                scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+            };
+            const stringifiedRequest = browserCrypto.base64Encode(JSON.stringify(cachedRequest));
+            browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), stringifiedRequest, CacheSchemaType.TEMPORARY);
+
+            // Perform test
+            const tokenRequest = browserStorage.getCachedRequest(TEST_STATE_VALUES.TEST_STATE, browserCrypto);
+            expect(tokenRequest.authority).to.be.eq(alternateAuthority);
+        });
+    });
 });
