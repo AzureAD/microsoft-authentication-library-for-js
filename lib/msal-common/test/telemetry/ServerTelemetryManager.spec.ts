@@ -2,6 +2,7 @@ import * as Mocha from "mocha";
 import { expect } from "chai";
 import { ServerTelemetryManager, CacheManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity } from "../../src";
 import { TEST_CONFIG } from "../utils/StringConstants";
+import sinon from "sinon";
 
 let store = {};
 class TestCacheManager extends CacheManager {
@@ -51,6 +52,7 @@ const testTelemetryPayload: ServerTelemetryRequest = {
 describe("ServerTelemetryManager.ts", () => {
     afterEach(() => {
         store = {};
+        sinon.restore();
     });
 
     describe("cacheFailedRequest", () => {
@@ -76,6 +78,20 @@ describe("ServerTelemetryManager.ts", () => {
             const failures = {
                 failedRequests: [testApiCode, testCorrelationId, testApiCode, testCorrelationId],
                 errors: [testError, testError],
+                cacheHits: 0
+            };
+
+            const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
+            expect(cacheValue).to.deep.eq(failures);
+        });
+
+        it("Adds suberror if present on the error object", () => {
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
+            telemetryManager.cacheFailedRequest(new AuthError(testError, testError, "sub_error"));
+
+            const failures = {
+                failedRequests: [testApiCode, testCorrelationId],
+                errors: ["sub_error"],
                 cacheHits: 0
             };
 
@@ -125,6 +141,81 @@ describe("ServerTelemetryManager.ts", () => {
             const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
             expect(lastHeaderVal).to.eq(`2|${testCacheHits}|${testApiCode},${testCorrelationId},${testApiCode},${testCorrelationId}|${testError},${testError}|2,0`);
         });
+
+        it("Adds partial telemetry data if max size is reached and sets overflow flag to 1", () => {
+            sinon.stub(ServerTelemetryManager, "maxErrorsToSend").returns(1);
+            const testCacheHits = 3;
+            const failures = {
+                failedRequests: [testApiCode, testCorrelationId, testApiCode, testCorrelationId],
+                errors: [testError, testError],
+                cacheHits: testCacheHits
+            };
+            store[cacheKey] = JSON.stringify(failures);
+
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
+            const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
+            expect(lastHeaderVal).to.eq(`2|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|2,1`);
+        });
+    });
+
+    describe("clear telemetry cache tests", () => {
+        it("Removes telemetry cache entry if all errors were sent to server", () => {
+            sinon.stub(ServerTelemetryManager, "maxErrorsToSend").returns(1);
+            const failures = {
+                failedRequests: [testApiCode, testCorrelationId],
+                errors: [testError],
+                cacheHits: 3
+            };
+            store[cacheKey] = JSON.stringify(failures);
+
+            expect(testCacheManager.getItem(cacheKey)).to.deep.eq(failures);
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
+            telemetryManager.clearTelemetryCache();
+            expect(testCacheManager.getItem(cacheKey)).to.be.null;
+        });
+
+        it("Removes partial telemetry data from cache if partial data was sent to server", () => {
+            sinon.stub(ServerTelemetryManager, "maxErrorsToSend").returns(1);
+            const failures = {
+                failedRequests: [testApiCode, testCorrelationId, testApiCode, testCorrelationId, testApiCode, testCorrelationId],
+                errors: [testError, testError, testError],
+                cacheHits: 3
+            };
+            store[cacheKey] = JSON.stringify(failures);
+
+            const expectedCacheEntry = {
+                failedRequests: [testApiCode, testCorrelationId, testApiCode, testCorrelationId],
+                errors: [testError, testError],
+                cacheHits: 0
+            };
+
+            expect(testCacheManager.getItem(cacheKey)).to.deep.eq(failures);
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
+            telemetryManager.clearTelemetryCache();
+            expect(testCacheManager.getItem(cacheKey)).to.deep.eq(expectedCacheEntry);
+        });
+    });
+
+    it("maxErrorsToSend returns a number smaller than length of error array when size limit reached", () => {
+        const failures = {
+            failedRequests: [],
+            errors: [],
+            cacheHits: 0
+        };
+
+        let dataSize = 0;
+        while (dataSize < 4000) {
+            failures.failedRequests.push(testApiCode, testCorrelationId);
+            failures.errors.push(testError);
+            dataSize += testApiCode.toString().length + testCorrelationId.toString().length + testError.length;
+        }
+        // Add a couple more to go over max size
+        failures.failedRequests.push(testApiCode, testCorrelationId);
+        failures.errors.push(testError);
+        failures.failedRequests.push(testApiCode, testCorrelationId);
+        failures.errors.push(testError);
+
+        expect(ServerTelemetryManager.maxErrorsToSend(failures)).to.be.lessThan(failures.errors.length);
     });
 
     it("incrementCacheHits", () => {
