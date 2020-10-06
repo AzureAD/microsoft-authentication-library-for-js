@@ -10,7 +10,7 @@ import { Constants } from "../utils/Constants";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
- * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings in intersection and union functions 
+ * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings in intersection and union functions
  * to ensure uniqueness of strings.
  */
 export class ScopeSet {
@@ -58,7 +58,10 @@ export class ScopeSet {
      * @param scope
      */
     containsScope(scope: string): boolean {
-        return !StringUtils.isEmpty(scope) ? this.scopes.has(scope) : false;
+        const lowerCaseScopes = this.printScopesLowerCase().split(" ");
+        const lowerCaseScopesSet = new ScopeSet(lowerCaseScopes);
+        // compare lowercase scopes
+        return !StringUtils.isEmpty(scope) ? lowerCaseScopesSet.scopes.has(scope.toLowerCase()) : false;
     }
 
     /**
@@ -80,7 +83,7 @@ export class ScopeSet {
         let defaultScopeCount = 0;
         if (this.containsScope(Constants.OPENID_SCOPE)) {
             defaultScopeCount += 1;
-        } 
+        }
         if (this.containsScope(Constants.PROFILE_SCOPE)) {
             defaultScopeCount += 1;
         }
@@ -143,14 +146,14 @@ export class ScopeSet {
             throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
         }
         const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
-        otherScopes.scopes.forEach(scope => unionScopes.add(scope));
-        this.scopes.forEach(scope => unionScopes.add(scope));
+        otherScopes.scopes.forEach(scope => unionScopes.add(scope.toLowerCase()));
+        this.scopes.forEach(scope => unionScopes.add(scope.toLowerCase()));
         return unionScopes;
     }
 
     /**
      * Check if scopes intersect between this set and another.
-     * @param otherScopes 
+     * @param otherScopes
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
         if (!otherScopes) {
