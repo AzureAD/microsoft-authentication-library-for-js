@@ -10,7 +10,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
-import { IdToken } from "../account/IdToken";
+import { AuthToken } from "../account/AuthToken";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AuthenticationResult } from "./AuthenticationResult";
@@ -24,6 +24,8 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
+import { AuthenticationScheme } from "../utils/Constants";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
 
 /**
@@ -90,8 +92,9 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string, requestScopes?: string[], oboAssertion?: string): AuthenticationResult {
-
+    async handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, resourceRequestMethod?: string, 
+        resourceRequestUri?: string, cachedNonce?: string, cachedState?: string, requestScopes?: string[], oboAssertion?: string): Promise<AuthenticationResult> {
+        
         // generate homeAccountId
         if (serverTokenResponse.client_info) {
             this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
@@ -102,10 +105,10 @@ export class ResponseHandler {
             this.homeAccountIdentifier = "";
         }
 
-        let idTokenObj: IdToken = null;
+        let idTokenObj: AuthToken = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
             // create an idToken object (not entity)
-            idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
+            idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (!StringUtils.isEmpty(cachedNonce)) {
@@ -124,7 +127,7 @@ export class ResponseHandler {
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState, requestScopes, oboAssertion);
         this.cacheStorage.saveCacheRecord(cacheRecord);
 
-        return ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
+        return await ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
     /**
@@ -133,7 +136,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: AuthToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
 
         const env = Authority.generateEnvironmentFromAuthority(authority);
 
@@ -141,7 +144,7 @@ export class ResponseHandler {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
-        // IdToken
+        // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity = null;
         let cachedAccount: AccountEntity = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
@@ -150,7 +153,7 @@ export class ResponseHandler {
                 env,
                 serverTokenResponse.id_token,
                 this.clientId,
-                idTokenObj.claims.tid,
+                idTokenObj.claims.tid || "",
                 oboAssertion
             );
 
@@ -177,15 +180,17 @@ export class ResponseHandler {
             const tokenExpirationSeconds = timestamp + serverTokenResponse.expires_in;
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
 
+            // non AAD scenarios can have empty realm
             cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.access_token,
                 this.clientId,
-                idTokenObj ? idTokenObj.claims.tid : authority.tenant,
-                responseScopes.printScopesLowerCase(),
+                idTokenObj ? idTokenObj.claims.tid || "" : authority.tenant,
+                responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
+                serverTokenResponse.token_type,
                 oboAssertion
             );
         }
@@ -218,7 +223,7 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority, oboAssertion?: string): AccountEntity {
+    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority, oboAssertion?: string): AccountEntity {
         const authorityType = authority.authorityType;
 
         // ADFS does not require client_info in the response
@@ -243,14 +248,19 @@ export class ResponseHandler {
      * @param fromTokenCache
      * @param stateString
      */
-    static generateAuthenticationResult(cacheRecord: CacheRecord, idTokenObj: IdToken, fromTokenCache: boolean, requestState?: RequestStateObject): AuthenticationResult {
+    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, idTokenObj: AuthToken, fromTokenCache: boolean, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date = null;
         let extExpiresOn: Date = null;
         let familyId: string = null;
         if (cacheRecord.accessToken) {
-            accessToken = cacheRecord.accessToken.secret;
+            if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
+                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
+                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, resourceRequestMethod, resourceRequestUri);
+            } else {
+                accessToken = cacheRecord.accessToken.secret;
+            }
             responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target).asArray();
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
@@ -265,13 +275,14 @@ export class ResponseHandler {
             tenantId: tid,
             scopes: responseScopes,
             account: cacheRecord.account ? cacheRecord.account.getAccountInfo() : null,
-            idToken: idTokenObj ? idTokenObj.rawIdToken : "",
+            idToken: idTokenObj ? idTokenObj.rawToken : "",
             idTokenClaims: idTokenObj ? idTokenObj.claims : null,
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
+            tokenType: cacheRecord.accessToken ? cacheRecord.accessToken.tokenType : "",
             state: requestState ? requestState.userRequestState : ""
         };
     }

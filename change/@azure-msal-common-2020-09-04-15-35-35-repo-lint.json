@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update core, browser, common to use central eslint configuration",
-  "packageName": "@azure/msal-common",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-09-04T22:35:25.156Z"
-}

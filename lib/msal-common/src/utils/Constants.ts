@@ -105,29 +105,17 @@ export enum AADServerParamKeys {
     CLIENT_SECRET = "client_secret",
     CLIENT_ASSERTION = "client_assertion",
     CLIENT_ASSERTION_TYPE = "client_assertion_type",
+    TOKEN_TYPE = "token_type",
+    REQ_CNF = "req_cnf",
     OBO_ASSERTION = "assertion",
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
+    FOCI = "foci"
 }
 
 /**
- * IdToken claim string constants
+ * Claims request keys
  */
-export enum IdTokenClaimName {
-    ISSUER = "iss",
-    OBJID = "oid",
-    SUBJECT = "sub",
-    TENANTID = "tid",
-    VERSION = "ver",
-    PREF_USERNAME = "preferred_username",
-    NAME = "name",
-    NONCE = "nonce",
-    EXPIRATION = "exp",
-    HOME_OBJID = "home_oid",
-    SESSIONID = "sid",
-    CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
-}
-
 export enum ClaimsRequestKeys {
     ACCESS_TOKEN = "access_token",
     XMS_CC = "xms_cc"
@@ -205,7 +193,7 @@ export enum GrantType {
     RESOURCE_OWNER_PASSWORD_GRANT = "password",
     REFRESH_TOKEN_GRANT = "refresh_token",
     DEVICE_CODE_GRANT = "device_code",
-    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer" 
+    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer"
 }
 
 /**
@@ -271,6 +259,7 @@ export enum CacheType {
  */
 export const APP_METADATA = "appmetadata";
 export const ClientInfo = "client_info";
+export const THE_FAMILY_ID = "1";
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
@@ -279,6 +268,14 @@ export const SERVER_TELEM_CONSTANTS = {
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
 };
+
+/**
+ * Type of the authentication request
+ */
+export enum AuthenticationScheme {
+    POP = "pop",
+    BEARER = "Bearer"
+}
 
 /**
  * Constants related to throttling
@@ -290,4 +287,9 @@ export const ThrottlingConstants = {
     DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600,
     // Prefix for storing throttling entries
     THROTTLING_PREFIX: "throttling"
+};
+
+export const Errors = {
+    INVALID_GRANT_ERROR: "invalid_grant",
+    CLIENT_MISMATCH_ERROR: "client_mismatch",
 };

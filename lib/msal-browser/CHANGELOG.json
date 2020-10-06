@@ -2,6 +2,159 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 02 Oct 2020 17:42:35 GMT",
+      "tag": "@azure/msal-browser_v2.3.0",
+      "version": "2.3.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Implementation of Access Token Proof-of-Possession Flow (#2151, #2153, #2154, #2209, #2289)",
+            "author": "prkanher@microsoft.com",
+            "commit": "3cffbc99730532bbd0b35f2e3a9df17f032c0675",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "@azure/msal-browser_v2.2.1",
+      "version": "2.2.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Support SSR in msal-browser (#2073)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e697ad8b77313a7f01d21f71f1ca841af87c2459",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Updating dependency versions and package-lock.json(#2342)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "bc3f324edd6cf83937c31f73d3aefc6dbaf5f748",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "@azure/msal-browser_v2.2.0",
+      "version": "2.2.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix issue with base64 encoding of spaces (#2248)",
+            "author": "prkanher@microsoft.com",
+            "commit": "",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Properly support multiple concurrent RT requests (#2290)",
+            "author": "janutter@microsoft.com",
+            "commit": "5956762593a9d0d2b23a33d8ad9f94eb5d2342dd",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Default scope addition done in msal-common (#2267)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3a18b100f38149a35c01cc491a9de78ea505d771",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "acquireTokenSilent calls ssoSilent (#2264)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6923e66fc9ca44c460489b41ff6a4d104ebde864",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Check for interaction in progress when processing redirect hash (#2183)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "40458a19510286c3ad7eba566bdd283d7ba83bfa",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Creating ClientApplication.ts subclass (#2199)",
+            "author": "prkanher@microsoft.com",
+            "commit": "6750c4f1aa6a230bac76c37aab185aa04b894a2c",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add SsoSilentRequest for ssoSilent, update tests and samples",
+            "author": "joarroyo@microsoft.com",
+            "commit": "a7e1bb304b93509400405915a4df32e651ec16bf",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add Angular 10 browser sample, update documentation",
+            "author": "joarroyo@microsoft.com",
+            "commit": "98e1960987d13950d080ba5e15b0b17260ec47e2",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add name field to AccountInfo (#2288)",
+            "author": "jamckenn@microsoft.com",
+            "commit": "d917d6a91987522f1c4390817966945ce18fa099",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update core, browser, common to use central eslint configuration",
+            "author": "janutter@microsoft.com",
+            "commit": "fc49c6f16b3f7a62a67d249107fc484272133305",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Doc updates (#2215)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b50572c407dbe3a5f61ebde7d50171e9044cb894",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Doc updates",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a89fcea6df5c806a99de9e38ca67816910c93883",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "update cdn hash for v2.1.0",
+            "author": "prkanher@microsoft.com",
+            "commit": "14acf773f07700f8dd9bac1459e204d97385eb84",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix Unit Tests (#2191)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f0f2d5c884431a93f32e50d78b2f29b83e6f0449",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Updating CDN docs",
+            "author": "prkanher@microsoft.com",
+            "commit": "f831b9f079665b839168a27badd2f9dcbe884214",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "none",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9760b6ff6c0ad403ac1b26968cb10d3d7e72a6fd",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Added client-side throttling to enhance server stability (#1907)",
+            "author": "jamckenn@microsoft.com",
+            "commit": "91a1dba29dbfb8f6fc329c0381767d6b6f661281",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 25 Aug 2020 00:40:45 GMT",
       "tag": "@azure/msal-browser_v2.1.0",
       "version": "2.1.0",

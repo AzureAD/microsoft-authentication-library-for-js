@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { buildClientInfo } from "../../src/account/ClientInfo";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import sinon from "sinon";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
@@ -16,6 +16,8 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 },
                 base64Decode(input: string): string {
                     switch (input) {
+                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                            return TEST_POP_VALUES.DECODED_REQ_CNF;
                         case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                             return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                         default:
@@ -28,8 +30,8 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                             return "MTIzLXRlc3QtdWlk";
                         case "456-test-uid":
                             return "NDU2LXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
+                        case TEST_POP_VALUES.DECODED_REQ_CNF:
+                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
                         default:
                             return input;
                     }
@@ -39,6 +41,12 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                         challenge: TEST_CONFIG.TEST_CHALLENGE,
                         verifier: TEST_CONFIG.TEST_VERIFIER
                     }
+                },
+                async getPublicKeyThumbprint(): Promise<string> {
+                    return TEST_POP_VALUES.KID;
+                },
+                async signJwt(): Promise<string> {
+                    return "";
                 }
             };
         });
