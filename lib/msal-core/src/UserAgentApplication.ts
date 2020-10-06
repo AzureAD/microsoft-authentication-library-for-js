@@ -793,7 +793,7 @@ export class UserAgentApplication {
                 } else if (request.forceRefresh) {
                     logMessage = "Skipped cache lookup since request.forceRefresh option was set to true";
                 } else {
-                    logMessage = "No token found in cache lookup";
+                    logMessage = "No valid token found in cache lookup";
                 }
                 this.logger.verbose(logMessage);
                 

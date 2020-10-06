@@ -1066,7 +1066,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
     });
 
-    describe("Cache Storage Unit Tests", function () {
+    describe.only("Cache Storage Unit Tests", function () {
 
         beforeEach(function () {
             cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
@@ -1415,6 +1415,50 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
+        it("tests getCachedToken returns correct Id Token when authority is passed and there are multiple ID tokens in the cache for the same account", (done) => {
+            const tokenRequest : AuthenticationParameters = {
+                authority: 'https://login.onmicrosoft.com/common/',
+                scopes: ["S1"],
+                account: account
+            };
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+            idTokenKey.authority = 'https://login.onmicrosoft.com/common/';
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                expect(response.idToken).to.not.be.null;
+                done();
+            }).catch(function(err: AuthError) {
+                console.log("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+        });
+
+        it("tests getCachedToken throws error when authority is not passed and there are multiple ID tokens in the cache for the same account", (done) => {
+            const tokenRequest : AuthenticationParameters = {
+                scopes: ["S1"],
+                account: account
+            };
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+            idTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                console.log("Shouldn't have response here. Data: " + JSON.stringify(response));
+            }).catch(function(err: AuthError) {
+                expect(err).to.be.instanceOf(ClientAuthError);
+                expect(err.errorCode).to.be.eq(ClientAuthErrorMessage.multipleMatchingIdTokens.code);
+                done();
+            });
+        });
+
         it("tests getCachedToken is skipped when claims are passed in", function (done) {
             const claimsRequestObj: any = {
                 "accessToken": {
@@ -1490,7 +1534,7 @@ describe("UserAgentApplication.ts Class", function () {
                 throw `Shouldn't have response here. Data: ${JSON.stringify(response)}`;
             }).catch(done);
         });
-        
+
         describe("Response Type based AuthResponse", () => {
             describe("response_type = token", () => {
                 let tokenRequest : AuthenticationParameters;
@@ -1508,7 +1552,7 @@ describe("UserAgentApplication.ts Class", function () {
                 afterEach(() => {
                     cacheStorage.clear();
                     sinon.reset();
-                })
+                });
 
                 it("should return null if there is no cached access token", (done) => {
                     const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
