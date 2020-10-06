@@ -46,7 +46,7 @@ export class ServerTelemetryManager {
         const maxErrors = ServerTelemetryManager.maxErrorsToSend(lastRequests);
         const failedRequests = lastRequests.failedRequests.slice(0, 2*maxErrors).join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
         const errors = lastRequests.errors.slice(0, maxErrors).join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
-        const errorCount = errors.length;
+        const errorCount = lastRequests.errors.length;
 
         // Indicate whether this header contains all data or partial data
         const overflow = maxErrors < errorCount ? "1" : "0";
