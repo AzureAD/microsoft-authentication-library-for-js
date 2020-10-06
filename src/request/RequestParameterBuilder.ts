@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, ClaimsRequestKeys } from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, AuthenticationScheme, ClaimsRequestKeys } from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
@@ -40,10 +40,13 @@ export class RequestParameterBuilder {
     }
 
     /**
-     * add scopes
+     * add scopes. set addOidcScopes to false to prevent default scopes in non-user scenarios
      * @param scopeSet
+     * @param addOidcScopes
      */
-    addScopes(scopeSet: ScopeSet): void {
+    addScopes(scopes: string[], addOidcScopes: boolean = true): void {
+        const requestScopes = addOidcScopes ? [...scopes || [], Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE] : scopes || [];
+        const scopeSet = new ScopeSet(requestScopes);
         this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
 
@@ -290,6 +293,17 @@ export class RequestParameterBuilder {
         }
 
         return JSON.stringify(mergedClaims);
+    }
+
+    /**
+     * add pop_jwk to query params
+     * @param cnfString 
+     */
+    addPopToken(cnfString: string): void {
+        if (!StringUtils.isEmpty(cnfString)) {
+            this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
+            this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(cnfString));
+        }
     }
 
     /**

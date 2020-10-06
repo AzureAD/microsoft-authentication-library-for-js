@@ -8,11 +8,10 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AADServerParamKeys } from "../utils/Constants";
+import { GrantType, AADServerParamKeys, AuthenticationScheme } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
-import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
@@ -22,6 +21,7 @@ import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorization
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
@@ -70,9 +70,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(response.body, this.authority, cachedNonce, cachedState);
-
-        return tokenResponse;
+        return await responseHandler.handleServerTokenResponse(response.body, this.authority, request.resourceRequestMethod, request.resourceRequestUri, cachedNonce, cachedState);
     }
 
     /**
@@ -137,7 +135,7 @@ export class AuthorizationCodeClient extends BaseClient {
             scopes: request.scopes
         };
         
-        const requestBody = this.createTokenRequestBody(request);
+        const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
@@ -147,7 +145,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private createTokenRequestBody(request: AuthorizationCodeRequest): string {
+    private async createTokenRequestBody(request: AuthorizationCodeRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -155,8 +153,8 @@ export class AuthorizationCodeClient extends BaseClient {
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        parameterBuilder.addScopes(scopeSet);
+        // Add scope array, parameter builder will add default scopes and dedupe
+        parameterBuilder.addScopes(request.scopes);
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
@@ -179,6 +177,12 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
         parameterBuilder.addClientInfo();
 
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
+            parameterBuilder.addPopToken(cnfString);
+        }
+
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
@@ -198,11 +202,8 @@ export class AuthorizationCodeClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        if (request.extraScopesToConsent) {
-            scopeSet.appendScopes(request.extraScopesToConsent);
-        }
-        parameterBuilder.addScopes(scopeSet);
+        const requestScopes = [...request.scopes || [], ...request.extraScopesToConsent || []];
+        parameterBuilder.addScopes(requestScopes);
 
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);
@@ -231,16 +232,17 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addPrompt(request.prompt);
         }
 
-        if (request.loginHint) {
-            parameterBuilder.addLoginHint(request.loginHint);
-        }
-
         if (request.domainHint) {
             parameterBuilder.addDomainHint(request.domainHint);
         }
 
+        // Add sid or loginHint with preference for sid -> loginHint -> username of AccountInfo object
         if (request.sid) {
             parameterBuilder.addSid(request.sid);
+        } else if (request.loginHint) {
+            parameterBuilder.addLoginHint(request.loginHint);
+        } else if (request.account && request.account.username) {
+            parameterBuilder.addLoginHint(request.account.username);
         }
 
         if (request.nonce) {

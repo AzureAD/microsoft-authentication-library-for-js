@@ -18,7 +18,7 @@ import { CredentialType } from "../utils/Constants";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccountEntity } from "../cache/entities/AccountEntity";
-import { IdToken } from "../account/IdToken";
+import { AuthToken } from "../account/AuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 
@@ -48,7 +48,7 @@ export class OnBehalfOfClient extends BaseClient {
         }
     }
 
-    private getCachedAuthenticationResult(request: OnBehalfOfRequest): AuthenticationResult {
+    private async getCachedAuthenticationResult(request: OnBehalfOfRequest): Promise<AuthenticationResult> {
         const cachedAccessToken = this.readAccessTokenFromCache(request);
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
@@ -56,10 +56,10 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         const cachedIdToken = this.readIdTokenFromCache(request);
-        let idTokenObject: IdToken = null;
+        let idTokenObject: AuthToken = null;
         let cachedAccount: AccountEntity = null;
         if (cachedIdToken) {
-            idTokenObject = new IdToken(cachedIdToken.secret, this.config.cryptoInterface);
+            idTokenObject = new AuthToken(cachedIdToken.secret, this.config.cryptoInterface);
             const accountKey = AccountEntity.generateAccountCacheKey({
                 homeAccountId: cachedIdToken.homeAccountId,
                 environment: cachedIdToken.environment,
@@ -70,12 +70,15 @@ export class OnBehalfOfClient extends BaseClient {
             cachedAccount = this.cacheManager.getAccount(accountKey);
         }
 
-        return ResponseHandler.generateAuthenticationResult({
-            account: cachedAccount,
-            accessToken: cachedAccessToken,
-            idToken: cachedIdToken,
-            refreshToken: null
-        }, idTokenObject, true);
+        return await ResponseHandler.generateAuthenticationResult(
+            this.cryptoUtils,
+            {
+                account: cachedAccount,
+                accessToken: cachedAccessToken,
+                idToken: cachedIdToken,
+                refreshToken: null,
+                appMetadata: null,
+            }, idTokenObject, true);
     }
 
     private readAccessTokenFromCache(request: OnBehalfOfRequest): AccessTokenEntity {
@@ -139,9 +142,11 @@ export class OnBehalfOfClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(
+        const tokenResponse = await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
+            request.resourceRequestMethod,
+            request.resourceRequestUri,
             null,
             null,
             request.scopes,
@@ -156,7 +161,7 @@ export class OnBehalfOfClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        parameterBuilder.addScopes(this.scopeSet);
+        parameterBuilder.addScopes(request.scopes);
 
         parameterBuilder.addGrantType(GrantType.JWT_BEARER);
 
