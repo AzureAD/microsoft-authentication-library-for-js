@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add SsoSilentRequest for ssoSilent, update tests and samples",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-08-26T00:29:46.459Z"
-}

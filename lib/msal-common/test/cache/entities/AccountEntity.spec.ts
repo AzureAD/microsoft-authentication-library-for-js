@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
-import { mockAccountEntity, mockIdTokenEntity} from "./cacheConstants";
-import { IdToken } from "../../../src/account/IdToken";
+import { mockAccountEntity, mockIdTokenEntity } from "./cacheConstants";
+import { AuthToken } from "../../../src/account/AuthToken";
 import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { Constants } from "../../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
-import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS } from "../../utils/StringConstants";
+import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../../utils/StringConstants";
 import sinon from "sinon";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { ClientTestUtils } from "../../client/ClientTestUtils";
@@ -17,6 +17,8 @@ const cryptoInterface: ICrypto = {
     },
     base64Decode(input: string): string {
         switch (input) {
+            case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                return TEST_POP_VALUES.DECODED_REQ_CNF;
             case TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO:
                 return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO;
             default:
@@ -25,6 +27,8 @@ const cryptoInterface: ICrypto = {
     },
     base64Encode(input: string): string {
         switch (input) {
+            case TEST_POP_VALUES.DECODED_REQ_CNF:
+                TEST_POP_VALUES.ENCODED_REQ_CNF;
             case "uid":
                 return "dWlk";
             case "utid":
@@ -39,6 +43,12 @@ const cryptoInterface: ICrypto = {
             verifier: TEST_CONFIG.TEST_VERIFIER,
         };
     },
+    async getPublicKeyThumbprint(): Promise<string> {
+        return TEST_POP_VALUES.KID;
+    },
+    async signJwt(): Promise<string> {
+        return "";
+    }
 };
 
 const networkInterface: INetworkModule = {
@@ -95,7 +105,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(ac.generateType()).to.eql(1003);
     });
 
-    it("create an Account", () => {        
+    it("create an Account", () => {
         // Set up stubs
         const idTokenClaims = {
             "ver": "2.0",
@@ -108,8 +118,8 @@ describe("AccountEntity.ts Unit Tests", () => {
             "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
         };
-        sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-		const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
@@ -135,8 +145,8 @@ describe("AccountEntity.ts Unit Tests", () => {
             "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
         };
-        sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-		const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
@@ -166,8 +176,8 @@ describe("AccountEntity.ts Unit Tests", () => {
             "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
         };
-        sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
-		const idToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,

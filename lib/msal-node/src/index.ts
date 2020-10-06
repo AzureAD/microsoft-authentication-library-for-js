@@ -23,7 +23,10 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
+    // Network Interface
     INetworkModule,
+    NetworkRequestOptions,
+    NetworkResponse,
     // Logger
     LogLevel,
 } from "@azure/msal-common";
