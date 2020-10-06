@@ -11,8 +11,8 @@ const SERVER_PORT = process.env.PORT || 3000;
 // including the clientSecret
 const config = {
     auth: {
-        clientId: "12d77c73-d09d-406a-ae0d-3d4e576f7d9b",
-        authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
+        clientId: "",
+        authority: "https://login.microsoftonline.com/common",
         clientSecret: ""
     },
     system: {
@@ -38,7 +38,7 @@ app.get('/', (req, res) => {
         redirectUri: "http://localhost:3000/redirect",
     };
 
-    // get url to sign user in and consent to scopes needed for applicatio
+    // get url to sign user in and consent to scopes needed for application
     pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
         res.redirect(response);
     }).catch((error) => console.log(JSON.stringify(error)));

@@ -1,12 +1,16 @@
 # MSAL Node Standalone Samples
 
-The sample applications contained in this directory are independent samples of MSAL Node usage, covering all of the authorization flows that MSAL Node currently supports. While all the samples include default configuration values that work out-of-the-box, their configuration is easily customizable to use your own Azure AD app registration.
+The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. While all the samples include default configuration values that work out-of-the-box, their configuration is easily customizable to use your own Azure AD app registration.
+
+## Should I use this sample:
+
+Use these samples to get an idea of the flows that work for you.
 
 ## How to run the samples:
 
 ### Clone this repository
 
-There are several options to download the sample code. The first is to clone the root repository (microsoft-auhtentication-library-for-js) using SSH or HTTP:
+The first is to clone the root repository (microsoft-auhtentication-library-for-js):
 
 SSH:
 
@@ -22,20 +26,38 @@ $ git clone https://github.com/AzureAD/microsoft-authentication-library-for-js.g
 
 Another option is to download the repository as a zip file by selecting "Download ZIP" from the root repository's dropdown "Code" menu. Once you've downloaded the ZIP file, you can decompress it locally and explore the code.
 
-Once you've successfully cloned the source code, which includes the samples, you can go through the pre-requisites list below in order to make sure you have all of the dependencies required to run these samples. 
-
 ### Pre-requisites
-- Ensure [all pre-requisites](../../../lib/msal-node/README.md#prerequisites) have been completed to run msal-node.
-- Install Node.js if needed (https://nodejs.org/en/).
-- Build the `msal-node` project with instructions provided in the [`README.md`](../../../lib/msal-node/README.md) or using the command `npm run build:package`.
+- By using MSAL Node, you are working with the Microsoft Identity ecosystem.  Read about [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) and register one for use with this code.
+- Install [Node.js](https://nodejs.org/en/) if needed
+- Install the MSAL Node package:  
+```bash
+npm install @azure/msal-node
+```
+- If you are customizing or building locally:
+```bash
+npm run build:package
+```
 
-Once you've completed all the pre-requisites, you can navigate to any of the sample application directories under `standalone-samples` and either execute each sample as-is, or customize it to use your own AzureAD app registration.
+Next, we navigate to the sample application directories under `standalone-samples` and either execute each sample as-is, or customize it to use your own [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2).
 
-From the repository's root directory, navigate to a sample application (for example, the auth-code sample):
+From the repository's root directory, navigate to a sample application:
 
 ```bash
 $ cd samples/msal-node-samples/standalone-samples/auth-code
 ```
+
+### Which sample should I review?
+
+Review our [scenario docs](https://docs.microsoft.com/en-us/azure/active-directory/develop/authentication-flows-app-scenarios) to pick a sample. 
+
+Continue to the appropriate sample to learn how it works, or to build it in to your existing app.
+
+- [Auth Code](auth-code/readme.md)
+- [Client Credentials](client-credentials/readme.md)
+- [Device Code](device-code/readme.md)
+- [On Behalf Of](on-behalf-of/readme.md)
+- [Refresh Token](refresh-token/readme.md)
+- [Silent Flow](silent-flow/readme.md)
 
 ### Configure the application
 
