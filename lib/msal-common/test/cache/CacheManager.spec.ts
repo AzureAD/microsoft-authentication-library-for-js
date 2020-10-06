@@ -1,16 +1,13 @@
 import { expect } from "chai";
 import { CacheManager } from "../../src/cache/CacheManager";
-import { CacheSchemaType, CredentialType } from "../../src/utils/Constants";
-import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
+import { CredentialType } from "../../src/utils/Constants";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
 import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
 import sinon from "sinon";
 import { CredentialEntity } from "../../src/cache/entities/CredentialEntity";
-import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { ClientTestUtils } from "../client/ClientTestUtils";
 import { ScopeSet } from "../../src/request/ScopeSet";
 import {
@@ -21,132 +18,61 @@ import {
 import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
+import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity";
+import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 
-const cacheJson = require("./cacheStore.json");
+import cacheJson from "./cacheStore.json";
 
 let store = {};
 class TestStorageManager extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
-        // save the cacheItem
-        switch (type) {
-            case CacheSchemaType.ACCOUNT: {
-                store[key] = value as AccountEntity;
-                break;
-            }
-            case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CredentialEntity.getCredentialType(
-                    key
-                );
-                switch (credentialType) {
-                    case CredentialType.ID_TOKEN: {
-                        store[key] = value as IdTokenEntity;
-                        break;
-                    }
-                    case CredentialType.ACCESS_TOKEN: {
-                        store[key] = value as AccessTokenEntity;
-                        break;
-                    }
-                    case CredentialType.REFRESH_TOKEN: {
-                        store[key] = value as RefreshTokenEntity;
-                        break;
-                    }
-                }
-                break;
-            }
-            case CacheSchemaType.APP_METADATA: {
-                store[key] = value as AppMetadataEntity;
-                break;
-            }
-            default: {
-                throw ClientAuthError.createInvalidCacheTypeError();
-            }
-        }
+    // Accounts
+    setAccount(key: string, value: AccountEntity): void {
+        store[key] = value;
     }
-    getItem(key: string, type?: string): string | object {
-        // save the cacheItem
-        switch (type) {
-            case CacheSchemaType.ACCOUNT: {
-                return CacheManager.toObject(new AccountEntity(), store[key]) as AccountEntity;
-            }
-            case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CredentialEntity.getCredentialType(key);
-                switch (credentialType) {
-                    case CredentialType.ID_TOKEN: {
-                        return CacheManager.toObject(new IdTokenEntity(), store[key]) as IdTokenEntity;
-                    }
-                    case CredentialType.ACCESS_TOKEN: {
-                        return CacheManager.toObject(new AccessTokenEntity(), store[key]) as AccessTokenEntity;
-                    }
-                    case CredentialType.REFRESH_TOKEN: {
-                        return CacheManager.toObject(new RefreshTokenEntity(), store[key]) as RefreshTokenEntity;
-                    }
-                }
-                break;
-            }
-            case CacheSchemaType.APP_METADATA: {
-                return CacheManager.toObject(new AppMetadataEntity(), store[key]) as AppMetadataEntity;
-            }
-            default: {
-                throw ClientAuthError.createInvalidCacheTypeError();
-            }
-        }
+    getAccount(key: string): AccountEntity {
+        return store[key] as AccountEntity;
     }
-    removeItem(key: string, type?: string): boolean {
+    // Credentials (idtokens, accesstokens, refreshtokens)
+    setCredential(key: string, value: CredentialEntity): void {
+        store[key] = value;
+    }
+    getCredential(key: string): CredentialEntity {
+        return store[key] as CredentialEntity;
+    }
+
+    // AppMetadata
+    setAppMetadata(key: string, value: AppMetadataEntity): void {
+        store[key] = value;
+    }
+    getAppMetadata(key: string): AppMetadataEntity {
+        return store[key] as AppMetadataEntity;
+    }
+
+    // Telemetry cache
+    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
+        store[key] = value;
+    }
+    getServerTelemetry(key: string): ServerTelemetryEntity {
+        return store[key] as ServerTelemetryEntity;
+    }
+
+    // Throttling cache
+    setThrottlingCache(key: string, value: ThrottlingEntity): void {
+        store[key] = value;
+    }
+    getThrottlingCache(key: string): ThrottlingEntity {
+        return store[key] as ThrottlingEntity;
+    }
+
+    removeItem(key: string): boolean {
         let result: boolean = false;
-
-        // save the cacheItem
-        switch (type) {
-            case CacheSchemaType.ACCOUNT: {
-                if (!!store[key]) {
-                    delete store[key];
-                    result = true;
-                }
-                break;
-            }
-            case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CredentialEntity.getCredentialType(
-                    key
-                );
-                switch (credentialType) {
-                    case CredentialType.ID_TOKEN: {
-                        if (!!store[key]) {
-                            delete store[key];
-                            result = true;
-                        }
-                        break;
-                    }
-                    case CredentialType.ACCESS_TOKEN: {
-                        if (!!store[key]) {
-                            delete store[key];
-                            result = true;
-                        }
-                        break;
-                    }
-                    case CredentialType.REFRESH_TOKEN: {
-                        if (!!store[key]) {
-                            delete store[key];
-                            result = true;
-                        }
-                        break;
-                    }
-                }
-                break;
-            }
-            case CacheSchemaType.APP_METADATA: {
-                if (!!store[key]) {
-                    delete store[key];
-                    result = true;
-                }
-                break;
-            }
-            default: {
-                throw ClientAuthError.createInvalidCacheTypeError();
-            }
+        if(!!store[key]) {
+            delete store[key];
+            result = true;
         }
-
         return result;
     }
-    containsKey(key: string, type?: string): boolean {
+    containsKey(key: string): boolean {
         return !!store[key];
     }
     getKeys(): string[] {

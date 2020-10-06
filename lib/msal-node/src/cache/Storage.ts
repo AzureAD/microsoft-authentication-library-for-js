@@ -11,6 +11,7 @@ import {
     CacheManager,
     Logger,
     ValidCacheType,
+    CredentialEntity,
 } from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -34,7 +35,7 @@ export class Storage extends CacheManager {
         this.changeEmitters.push(func);
     }
 
-    emitChange() {
+    emitChange(): void {
         this.changeEmitters.forEach(func => func.call(null));
     }
 
@@ -53,7 +54,7 @@ export class Storage extends CacheManager {
         };
 
         for (const key in cache) {
-            if (cache[key] instanceof AccountEntity) {
+            if (cache[key as string] instanceof AccountEntity) {
                 inMemoryCache.accounts[key] = cache[key] as AccountEntity;
             } else if (cache[key] instanceof IdTokenEntity) {
                 inMemoryCache.idTokens[key] = cache[key] as IdTokenEntity;
@@ -139,7 +140,7 @@ export class Storage extends CacheManager {
      * @param key
      * @param value
      */
-    setItem(key: string, value: ValidCacheType) {
+    setItem(key: string, value: ValidCacheType): void {
         this.logger.verbosePii(`Item key: ${key}`);
 
         // read cache
@@ -160,6 +161,14 @@ export class Storage extends CacheManager {
         // read cache
         const cache = this.getCache();
         return cache[key];
+    }
+
+    /**
+     * Fetch the credential type
+     * @param key
+     */
+    getCredential(key: string): CredentialEntity {
+        return this.getItem(key) as CredentialEntity;
     }
 
     /**
