@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SERVER_TELEM_CONSTANTS, CacheSchemaType, Separators } from "../../utils/Constants";
+import { SERVER_TELEM_CONSTANTS, Separators } from "../../utils/Constants";
 import { CacheManager } from "../../cache/CacheManager";
 import { ServerTelemetryCacheValue } from "./ServerTelemetryCacheValue";
 import { AuthError } from "../../error/AuthError";
@@ -38,7 +38,7 @@ export class ServerTelemetryManager {
     // API to add MSER Telemetry for the last failed request
     generateLastRequestHeaderValue(): string {
         const lastRequests = this.getLastRequests();
-        
+
         const failedRequests = lastRequests.failedRequests.join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
         const errors = lastRequests.errors.join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
         const platformFields = lastRequests.errorCount;
@@ -60,7 +60,7 @@ export class ServerTelemetryManager {
             lastRequests.errors.shift();
         }
 
-        this.cacheManager.setItem(this.telemetryCacheKey, lastRequests, CacheSchemaType.TELEMETRY);
+        this.cacheManager.setServerTelemetry(this.telemetryCacheKey, lastRequests);
 
         return;
     }
@@ -69,19 +69,19 @@ export class ServerTelemetryManager {
         const lastRequests = this.getLastRequests();
         lastRequests.cacheHits += 1;
 
-        this.cacheManager.setItem(this.telemetryCacheKey, lastRequests, CacheSchemaType.TELEMETRY);
+        this.cacheManager.setServerTelemetry(this.telemetryCacheKey, lastRequests);
         return lastRequests.cacheHits;
     }
 
-    getLastRequests(): ServerTelemetryCacheValue { 
+    getLastRequests(): ServerTelemetryCacheValue {
         const initialValue: ServerTelemetryCacheValue = {
             failedRequests: [],
             errors: [],
             errorCount: 0,
-            cacheHits: 0            
+            cacheHits: 0
         };
-        const lastRequests = this.cacheManager.getItem(this.telemetryCacheKey, CacheSchemaType.TELEMETRY) as ServerTelemetryCacheValue;
-        
+        const lastRequests = this.cacheManager.getServerTelemetry(this.telemetryCacheKey);
+
         return lastRequests || initialValue;
     }
 

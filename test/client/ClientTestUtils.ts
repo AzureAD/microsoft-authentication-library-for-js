@@ -1,19 +1,55 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError} from "../../src";
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError, AccountEntity, ValidCacheType, CredentialEntity, AppMetadataEntity, ThrottlingEntity} from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG } from "../utils/StringConstants";
 import { AuthorityFactory } from "../../src";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 import sinon from "sinon";
 import { CloudDiscoveryMetadata } from "../../src/authority/CloudDiscoveryMetadata";
 import { CacheManager } from "../../src/cache/CacheManager";
+import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 
 export class MockStorageClass extends CacheManager {
-    store = {};
-    setItem(key: string, value: string | object, type?: string): void {
+    store: Record<string, ValidCacheType>;
+
+    // Accounts
+    setAccount(key: string, value: AccountEntity): void {
         this.store[key] = value;
     }
-    getItem(key: string, type?: string): string | object {
-        return this.store[key];
+    getAccount(key: string): AccountEntity {
+        return this.store[key] as AccountEntity;
     }
+
+    // Credentials (idtokens, accesstokens, refreshtokens)
+    setCredential(key: string, value: CredentialEntity): void {
+        this.store[key] = value;
+    }
+    getCredential(key: string): CredentialEntity {
+        return this.store[key] as CredentialEntity;
+    }
+
+    // AppMetadata
+    setAppMetadata(key: string, value: AppMetadataEntity): void {
+        this.store[key] = value;
+    }
+    getAppMetadata(key: string): AppMetadataEntity {
+        return this.store[key] as AppMetadataEntity;
+    }
+
+    // Telemetry cache
+    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
+        this.store[key] = value;
+    }
+    getServerTelemetry(key: string): ServerTelemetryEntity {
+        return this.store[key] as ServerTelemetryEntity;
+    }
+
+    // Throttling cache
+    setThrottlingCache(key: string, value: ThrottlingEntity): void {
+        this.store[key] = value;
+    }
+    getThrottlingCache(key: string): ThrottlingEntity {
+        return this.store[key] as ThrottlingEntity;
+    }
+
     removeItem(key: string, type?: string): boolean {
         delete this.store[key];
         return true;
