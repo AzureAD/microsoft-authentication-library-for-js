@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 23 Sep 2020 21:13:48 GMT and should not be manually modified.
+This log was last generated on Fri, 02 Oct 2020 17:42:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.9
+
+Fri, 02 Oct 2020 17:42:35 GMT
+
+### Changes
+
+- Dummy implementation of access token proof-of-possession (prkanher@microsoft.com)
 
 ## 1.0.0-alpha.7
 
