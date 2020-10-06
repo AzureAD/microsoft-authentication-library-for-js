@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Add uuid as dependency in msal-node package.json so it is installed with the library",
+  "packageName": "@azure/msal-node",
+  "email": "hectormgdev@gmail.com",
+  "dependentChangeType": "patch",
+  "date": "2020-09-30T17:14:35.282Z"
+}
