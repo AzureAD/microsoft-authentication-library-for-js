@@ -7,19 +7,13 @@ import { SERVER_TELEM_CONSTANTS } from "../../utils/Constants";
 export class ServerTelemetryEntity {
     public failedRequests: Array<string|number>;
     public errors: string[];
-    public errorCount: number;
     public cacheHits: number;
-    public maxErrorsToSend: number;
-    public dataSize: number;
 
     static initializeServerTelemetryEntity(): ServerTelemetryEntity {
         const serverTelemEntity = new ServerTelemetryEntity();
         serverTelemEntity.failedRequests = [];
         serverTelemEntity.errors = [];
-        serverTelemEntity.errorCount = 0;
         serverTelemEntity.cacheHits = 0;
-        serverTelemEntity.maxErrorsToSend = 0;
-        serverTelemEntity.dataSize = 0;
 
         return serverTelemEntity;
     }
