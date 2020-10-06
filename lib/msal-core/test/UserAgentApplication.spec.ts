@@ -1066,7 +1066,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
     });
 
-    describe.only("Cache Storage Unit Tests", function () {
+    describe("Cache Storage Unit Tests", function () {
 
         beforeEach(function () {
             cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
