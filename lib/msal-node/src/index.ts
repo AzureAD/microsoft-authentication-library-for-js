@@ -29,4 +29,6 @@ export {
     NetworkResponse,
     // Logger
     LogLevel,
+    // ProtocolMode enum
+    ProtocolMode
 } from "@azure/msal-common";
