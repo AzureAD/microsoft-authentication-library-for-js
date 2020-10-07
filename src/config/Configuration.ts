@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
@@ -31,6 +31,7 @@ export type BrowserAuthOptions = {
     postLogoutRedirectUri?: string;
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
+    protocolMode: ProtocolMode;
 };
 
 /**
@@ -98,7 +99,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         redirectUri: "",
         postLogoutRedirectUri: "",
         navigateToLoginRequestUrl: true,
-        clientCapabilities: []
+        clientCapabilities: [],
+        protocolMode: ProtocolMode.AAD
     };
 
     // Default cache options for browser
