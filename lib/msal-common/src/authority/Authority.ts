@@ -12,7 +12,7 @@ import { NetworkResponse } from "./../network/NetworkManager";
 import { Constants } from "./../utils/Constants";
 import { TrustedAuthority } from "./TrustedAuthority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ProtocolMode } from './ProtocolMode';
+import { ProtocolMode } from "./ProtocolMode";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
