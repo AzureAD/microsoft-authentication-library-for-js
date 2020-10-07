@@ -27,7 +27,7 @@ jobs:
         RUNNING_NODE_CI: 1
       run: npm ci
 
-    - name: Build packagess
+    - name: Build packages
       run: npm run build
 
     - name: Lint
@@ -39,7 +39,7 @@ jobs:
         npm run test:report
 
     - name: Coveralls
-      if: env.NOT_FROM_FORK
+      if: env.NOT_FROM_FORK == 'true'
       uses: coverallsapp/github-action@master
       with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -50,7 +50,7 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      if: env.NOT_FROM_FORK
+      if: env.NOT_FROM_FORK == 'true'
       run: npm run test:e2e
 
     - name: Upload E2E Test Screenshots
