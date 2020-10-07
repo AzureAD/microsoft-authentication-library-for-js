@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Adds support for any OIDC-compliant authority.",
+  "packageName": "@azure/msal-node",
+  "email": "jamckenn@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-10-07T22:38:49.070Z"
+}
