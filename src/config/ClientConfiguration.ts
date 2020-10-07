@@ -58,7 +58,7 @@ export type AuthOptions = {
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
     clientCapabilities?: Array<string>;
-    protocolMode: ProtocolMode;
+    protocolMode?: ProtocolMode;
 };
 
 /**
