@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Adds support for any OIDC-compliant authority.",
+  "comment": "Adds support for any OIDC-compliant authority (#1824, #2120).",
   "packageName": "@azure/msal-common",
   "email": "jamckenn@microsoft.com",
   "dependentChangeType": "patch",
