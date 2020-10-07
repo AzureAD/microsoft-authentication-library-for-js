@@ -1739,6 +1739,13 @@ export class UserAgentApplication {
         this.loadIframeTimeout(urlNavigate, frameName, requestSignature).catch(error => reject(error));
     }
 
+    /** */
+    private saveToken(authority: string, accessToken: string, idToken: string, scopes: string, clientInfo: ClientInfo, expiration: Number): void {
+        const accessTokenKey = new AccessTokenKey(authority, this.clientId, scopes, clientInfo.uid, clientInfo.utid);
+        const accessTokenValue = new AccessTokenValue(accessToken, idToken, expiration.toString(), clientInfo.encodeClientInfo());
+        this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+    }
+
     /**
      * @hidden
      *
@@ -1754,27 +1761,28 @@ export class UserAgentApplication {
     /* tslint:disable:no-string-literal */
     private saveIdToken(response: AuthResponse, authority: string, parameters: any, clientInfo: ClientInfo, idTokenObj: IdToken): AuthResponse {
         this.logger.verbose("SaveIdToken has been called");
-        const accessTokenResponse = { ...response };
-        let expiration: number;
+        const idTokenResponse = { ...response };
         this.logger.verbose("Response parameters does not contain scope, OIDC scopes set as scope");
+        // Scopes are undefined so they don't show up in ID token cache key
+        let scopes: string;
 
-        // Generate and cache accessTokenKey and accessTokenValue
-        const accessTokenKey = new AccessTokenKey(authority, this.clientId, undefined, clientInfo.uid, clientInfo.utid);
-        expiration = Number(idTokenObj.expiration);
-        const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ID_TOKEN], parameters[ServerHashParamKeys.ID_TOKEN], expiration.toString(), clientInfo.encodeClientInfo());
-        this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+        idTokenResponse.scopes = Constants.oidcScopes;
+        idTokenResponse.accessToken = parameters[ServerHashParamKeys.ID_TOKEN];
+
+        const expiration = Number(idTokenObj.expiration);
+
+        // Set ID Token item in cache
         this.logger.verbose("Saving ID token to cache");
-        accessTokenResponse.scopes = Constants.oidcScopes;
-        accessTokenResponse.accessToken = parameters[ServerHashParamKeys.ID_TOKEN];
+        this.saveToken(authority, idTokenResponse.accessToken, idTokenResponse.accessToken, scopes, clientInfo, expiration);
 
         if (expiration) {
             this.logger.verbose("New expiration set for ID token");
-            accessTokenResponse.expiresOn = new Date(expiration * 1000);
+            idTokenResponse.expiresOn = new Date(expiration * 1000);
         } else {
             this.logger.error("Could not parse expiresIn for ID token parameter");
         }
 
-        return accessTokenResponse;
+        return idTokenResponse;
     }
 
     /**
@@ -1821,15 +1829,11 @@ export class UserAgentApplication {
         const expiresIn = TimeUtils.parseExpiresIn(parameters[ServerHashParamKeys.EXPIRES_IN]);
         const parsedState = RequestUtils.parseLibraryState(parameters[ServerHashParamKeys.STATE]);
         expiration = parsedState.ts + expiresIn;
-        const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientInfo.uid, clientInfo.utid);
-        const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ACCESS_TOKEN], idTokenObj.rawIdToken, expiration.toString(), clientInfo.encodeClientInfo());
-
-        this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-        this.logger.verbose("Saving access token to cache");
-
         accessTokenResponse.accessToken  = parameters[ServerHashParamKeys.ACCESS_TOKEN];
         accessTokenResponse.scopes = consentedScopes;
-        // if the response does not contain "scope" - scope is set to OIDC scopes by default and the token will be id_token
+
+        this.logger.verbose("Saving access token to cache");
+        this.saveToken(authority, accessTokenResponse.accessToken, idTokenObj.rawIdToken, scope, clientInfo, expiration);
 
         if (expiration) {
             this.logger.verbose("New expiration set for access token");
