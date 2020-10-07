@@ -10,5 +10,5 @@ Tenant Profile Support |Not Started|December 2020|Support for tenant profiles in
 Msal Angular 2.0 [Support for Auth Code Flow]|In Progress|December 2020|Upgrading our msal angular library to use the msal-browser lib we recently GA'd to support the Auth Code Flow in the browser.  Helps alleviate some issues caused by blocked 3p cookies. 
 Msal React Private Preview|In Progress|November 2020|Release our Msal React wrapper preview, using auth code flow in browser. 
 Msal React Public Preview|Not Started|TBD|Once we are ready to support out msal react library in production we will move to public preview. 
-Msal Node GA|Not Started|January 2021|After public preview, we will work to resolve issues and stabilize the library to be able to announce General Availibilty 
+Msal Node GA|Not Started|January 2021|After public preview, we will work to resolve issues and stabilize the library to be able to announce General Availability. 
 Msal Node Middleware Design|Not Started|December 2020|Work to understand the middleware asks and requirements and then come up with a plan moving forward. 
