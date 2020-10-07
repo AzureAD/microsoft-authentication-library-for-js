@@ -5,17 +5,14 @@
 import { SERVER_TELEM_CONSTANTS } from "../../utils/Constants";
 
 export class ServerTelemetryEntity {
-    public failedRequests: Array<string|number>;
-    public errors: string[];
-    public cacheHits: number;
+    failedRequests: Array<string|number>;
+    errors: string[];
+    cacheHits: number;
 
-    static initializeServerTelemetryEntity(): ServerTelemetryEntity {
-        const serverTelemEntity = new ServerTelemetryEntity();
-        serverTelemEntity.failedRequests = [];
-        serverTelemEntity.errors = [];
-        serverTelemEntity.cacheHits = 0;
-
-        return serverTelemEntity;
+    constructor() {
+        this.failedRequests = [];
+        this.errors = [];
+        this.cacheHits = 0;
     }
 
     /**
