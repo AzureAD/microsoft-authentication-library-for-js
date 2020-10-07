@@ -5,7 +5,7 @@
 import {
     LoggerOptions,
     INetworkModule,
-    LogLevel
+    LogLevel, ProtocolMode
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 import debug from "debug";
@@ -18,6 +18,7 @@ import { ICachePlugin } from "../cache/ICachePlugin";
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal. 
  * - clientAssertion        - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
+ * - protocolMode               - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  */
 export type NodeAuthOptions = {
     clientId: string;
@@ -30,7 +31,8 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
-    clientCapabilities?: []
+    clientCapabilities?: [],
+    protocolMode: ProtocolMode
 };
 
 /**
@@ -77,7 +79,8 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
-    clientCapabilities: []
+    clientCapabilities: [],
+    protocolMode: ProtocolMode.AAD
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};

@@ -246,7 +246,7 @@ export abstract class ClientApplication {
         let authority: Authority;
         if (authorityString) {
             this.logger.verbose("Authority passed in, creating authority instance");
-            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!);
+            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!, this.config.auth.protocolMode);
         } else {
             this.logger.verbose("No authority passed in request, defaulting to authority set on application object");
             authority = this.authority;
@@ -271,7 +271,8 @@ export abstract class ClientApplication {
 
         this._authority = AuthorityFactory.createInstance(
             this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
-            this.config.system!.networkClient!
+            this.config.system!.networkClient!,
+            this.config.auth.protocolMode
         );
 
         return this._authority;
