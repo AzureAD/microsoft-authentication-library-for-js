@@ -1431,7 +1431,7 @@ export class UserAgentApplication {
         } 
         // Authority passed into request and it is not common or organizations
         else {
-            let filteredItems: Array<AccessTokenCacheItem> = [];
+            const filteredItems: Array<AccessTokenCacheItem> = [];
             this.logger.verbose("Authority passed into ID token request, filtering ID tokens by request authority");
             for (let i = 0; i < idTokenCacheItems.length; i++) {
                 const cacheItem = idTokenCacheItems[i];
@@ -1800,14 +1800,11 @@ export class UserAgentApplication {
     /* tslint:disable:no-string-literal */
     private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: ClientInfo, idTokenObj: IdToken): AuthResponse {
         this.logger.verbose("SaveAccessToken has been called");
-        let scope: string;
         const accessTokenResponse = { ...response };
-        let expiration: number;
-
 
         this.logger.verbose("Response parameters contains scope");
         // read the scopes
-        scope = parameters[ServerHashParamKeys.SCOPE];
+        const scope = parameters[ServerHashParamKeys.SCOPE];
         const consentedScopes = scope.split(" ");
 
         // retrieve all access tokens from the cache, remove the dup scores
@@ -1828,7 +1825,7 @@ export class UserAgentApplication {
         // Generate and cache accessTokenKey and accessTokenValue
         const expiresIn = TimeUtils.parseExpiresIn(parameters[ServerHashParamKeys.EXPIRES_IN]);
         const parsedState = RequestUtils.parseLibraryState(parameters[ServerHashParamKeys.STATE]);
-        expiration = parsedState.ts + expiresIn;
+        const expiration = parsedState.ts + expiresIn;
         accessTokenResponse.accessToken  = parameters[ServerHashParamKeys.ACCESS_TOKEN];
         accessTokenResponse.scopes = consentedScopes;
 

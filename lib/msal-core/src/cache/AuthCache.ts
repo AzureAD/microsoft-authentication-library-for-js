@@ -209,7 +209,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param homeAccountIdentifier 
      * @param tokenType
      */
-     getAllTokensByType(clientId: string, homeAccountIdentifier: string, tokenType: string): Array<AccessTokenCacheItem> {
+    getAllTokensByType(clientId: string, homeAccountIdentifier: string, tokenType: string): Array<AccessTokenCacheItem> {
         const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
             const keyMatches = this.matchKeyForType(key, clientId, homeAccountIdentifier, tokenType);
             if ( keyMatches ) {
@@ -229,7 +229,7 @@ export class AuthCache extends BrowserStorage {// Singleton
         }, []);
 
         return results;
-     }
+    }
 
     /**
      * Get all access tokens in the cache
