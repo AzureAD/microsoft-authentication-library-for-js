@@ -19,6 +19,7 @@ export class AuthorityFactory {
      * 
      * @param authorityUri
      * @param networkClient
+     * @param protocolMode
      */
     static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, protocolMode: ProtocolMode): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
@@ -44,6 +45,7 @@ export class AuthorityFactory {
      * 
      * @param authorityUrl 
      * @param networkInterface 
+     * @param protocolMode
      */
     static createInstance(authorityUrl: string, networkInterface: INetworkModule, protocolMode: ProtocolMode): Authority {
         // Throw error if authority url is empty
