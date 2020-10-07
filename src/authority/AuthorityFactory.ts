@@ -7,6 +7,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { INetworkModule } from "./../network/INetworkModule";
 import { StringUtils } from "./../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { ProtocolMode } from "./ProtocolMode";
 
 export class AuthorityFactory {
 
@@ -19,9 +20,9 @@ export class AuthorityFactory {
      * @param authorityUri
      * @param networkClient
      */
-    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule): Promise<Authority> {
+    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, protocolMode: ProtocolMode): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
-        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient);
+        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient, protocolMode);
 
         if (acquireTokenAuthority.discoveryComplete()) {
             return acquireTokenAuthority;
@@ -44,12 +45,12 @@ export class AuthorityFactory {
      * @param authorityUrl 
      * @param networkInterface 
      */
-    static createInstance(authorityUrl: string, networkInterface: INetworkModule): Authority {
+    static createInstance(authorityUrl: string, networkInterface: INetworkModule, protocolMode: ProtocolMode): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface);
+        return new Authority(authorityUrl, networkInterface, protocolMode);
     }
 }
