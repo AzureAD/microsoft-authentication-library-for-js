@@ -32,7 +32,7 @@ export type BrowserAuthOptions = {
     postLogoutRedirectUri?: string;
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
-    protocolMode: ProtocolMode;
+    protocolMode?: ProtocolMode;
 };
 
 /**
