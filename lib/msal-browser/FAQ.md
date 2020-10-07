@@ -40,6 +40,7 @@
 **[B2C](#B2C)**
 1. [Why is getAccountByUsername returning null, even though I'm signed in?](#why-is-getaccountbyusername-returning-null-even-though-im-signed-in)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
+1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
 
 **Common Issues**
 1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/errors.md)
@@ -175,3 +176,7 @@ To enable this claim open up your User Flow configuration in the Azure Portal. C
 When you log out of a B2C application by calling MSAL's `logout()` API, MSAL.js will first clear browser storage of your user's tokens then redirect you to the Azure B2C logout endpoint. The B2C service will then close your session but may not log you out of your federated IDP. This happens because the service does not make any assumptions about other apps you may want to log out of. What this means in practice is that when a user attempts to login again the B2C service will prompt the user to select which Social IDP they would like to sign in with. When the user makes their selection, they may be signed back in without interaction.
 
 You can read more about this behavior [here](https://docs.microsoft.com/azure/active-directory-b2c/session-overview#sign-out)
+
+## Why am I not signed in when returning from an invite link?
+
+MSAL.js will only process tokens which it originally requested. If your flow requires that you send a user a link they can use to sign up, you will need to ensure that the link points to your app, not the B2C service directly. An example flow can be seen in the [working with B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/working-with-b2c.md) doc.
