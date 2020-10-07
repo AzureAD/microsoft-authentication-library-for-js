@@ -12,6 +12,7 @@ import { NetworkResponse } from "./../network/NetworkManager";
 import { Constants } from "./../utils/Constants";
 import { TrustedAuthority } from "./TrustedAuthority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { ProtocolMode } from './ProtocolMode';
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -27,6 +28,15 @@ export class Authority {
     private tenantDiscoveryResponse: OpenIdConfigResponse;
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
+    // Protocol mode to construct endpoints
+    private protocolMode: ProtocolMode;
+
+    constructor(authority: string, networkInterface: INetworkModule, protocolMode: ProtocolMode) {
+        this.canonicalAuthority = authority;
+        this._canonicalAuthority.validateAsUri();
+        this.networkInterface = networkInterface;
+        this.protocolMode = protocolMode;
+    }
 
     // See above for AuthorityType
     public get authorityType(): AuthorityType {
@@ -137,17 +147,10 @@ export class Authority {
      * The default open id configuration endpoint for any canonical authority.
      */
     protected get defaultOpenIdConfigurationEndpoint(): string {
-        if (this.authorityType === AuthorityType.Adfs) {
+        if (this.authorityType === AuthorityType.Adfs || this.protocolMode === ProtocolMode.OIDC) {
             return `${this.canonicalAuthority}.well-known/openid-configuration`;
         }
         return `${this.canonicalAuthority}v2.0/.well-known/openid-configuration`;
-    }
-
-    constructor(authority: string, networkInterface: INetworkModule) {
-        this.canonicalAuthority = authority;
-
-        this._canonicalAuthority.validateAsUri();
-        this.networkInterface = networkInterface;
     }
 
     /**

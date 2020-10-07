@@ -39,13 +39,6 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
     });
 
-    it("validateAsUri throws error if uri is not valid", () => {
-        const shortPathUrlString = "https://login.microsoft.com";
-        let urlObj = new UrlString(shortPathUrlString);
-        expect(() => urlObj.validateAsUri()).to.throw(`${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: Given url string: ${shortPathUrlString}/`);
-        expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
-    });
-
     it("urlRemoveQueryStringParameter removes required path components",() => {
         let urlObj1 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS1);
         expect(urlObj1.urlString).to.contain("param1=value1");

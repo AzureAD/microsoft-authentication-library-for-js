@@ -19,6 +19,7 @@ export { CloudDiscoveryMetadata } from "./authority/CloudDiscoveryMetadata";
 export { TrustedAuthority } from "./authority/TrustedAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
+export { ProtocolMode } from "./authority/ProtocolMode";
 // Cache
 export { CacheManager } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType } from "./cache/utils/CacheTypes";
