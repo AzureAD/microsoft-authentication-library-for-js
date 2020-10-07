@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Fix issues with ID token caching and cache lookup (#2376)",
+  "packageName": "msal",
+  "email": "hectormgdev@gmail.com",
+  "dependentChangeType": "patch",
+  "date": "2020-10-07T21:20:34.100Z"
+}
