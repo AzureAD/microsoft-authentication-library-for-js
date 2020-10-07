@@ -1,0 +1,61 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Run CI (Build and Test)
+
+on:
+  push:
+    branches:
+      - 'dev'
+      - 'master'
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env: 
+      NOT_FROM_FORK: ${{ (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event.push.head.repo.full_name == github.repository)) }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+
+    - name: Clean Install
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Build packages
+      run: npm run build
+
+    - name: Lint
+      run: npm run lint
+
+    - name: Unit Tests
+      run: |
+        npm run test:coverage
+        npm run test:report
+
+    - name: Coveralls
+      if: env.NOT_FROM_FORK == 'true'
+      uses: coverallsapp/github-action@master
+      with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: E2E Tests
+      timeout-minutes: 5
+      env:
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      if: env.NOT_FROM_FORK == 'true'
+      run: npm run test:e2e
+
+    - name: Upload E2E Test Screenshots
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: e2e-test-screenshots
+        path: samples/**/screenshots

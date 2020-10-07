@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "e2eTestUtils": "file:../../.",
-    "@azure/msal-node": "^1.0.0-alpha.8",
+    "@azure/msal-node": "^1.0.0-alpha.9",
     "express": "^4.17.1",
     "express-handlebars": "^5.1.0"
   },

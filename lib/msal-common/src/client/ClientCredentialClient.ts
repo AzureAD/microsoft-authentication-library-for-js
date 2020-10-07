@@ -39,7 +39,7 @@ export class ClientCredentialClient extends BaseClient {
             return await this.executeTokenRequest(request, this.authority);
         }
 
-        const cachedAuthenticationResult = this.getCachedAuthenticationResult();
+        const cachedAuthenticationResult = await this.getCachedAuthenticationResult();
         if (cachedAuthenticationResult != null) {
             return cachedAuthenticationResult;
         } else {
@@ -47,19 +47,25 @@ export class ClientCredentialClient extends BaseClient {
         }
     }
 
-    private getCachedAuthenticationResult(): AuthenticationResult {
+    private async getCachedAuthenticationResult(): Promise<AuthenticationResult> {
         const cachedAccessToken = this.readAccessTokenFromCache();
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             return null;
         }
-        return ResponseHandler.generateAuthenticationResult({
-            account: null,
-            accessToken: cachedAccessToken,
-            idToken: null,
-            refreshToken: null,
-            appMetadata: null
-        }, null, true);
+
+        return await ResponseHandler.generateAuthenticationResult(
+            this.cryptoUtils,
+            {
+                account: null,
+                accessToken: cachedAccessToken,
+                idToken: null,
+                refreshToken: null,
+                appMetadata: null
+            }, 
+            null, 
+            true
+        );
     }
 
     private readAccessTokenFromCache(): AccessTokenEntity {
@@ -102,9 +108,11 @@ export class ClientCredentialClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(
+        const tokenResponse = await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
+            request.resourceRequestMethod,
+            request.resourceRequestUri,
             null,
             null,
             request.scopes
