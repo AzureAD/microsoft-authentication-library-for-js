@@ -3,7 +3,7 @@
 **Deliverable**|**Status**|**Expected Delivery**|**Description**
 :-----:|:-----:|:-----:|:-----:
 Broker In Browser |In Progress|TBD|Application model for application nested in iframes, to support silent token acquisition where 3p cookies are blocked. 
-Msal Node Public Preview|In Progress|October 2020|Our Msal Node library is currently in private preview.  Public preview should include full Public Client and Confidential Client support.  When released, we will be commiting to supporting this library at a production level, resolving bugs in a timely mananer. 
+Msal Node Public Preview|In Progress|October 2020|Our Msal Node library is currently in private preview.  Public preview should include full Public Client and Confidential Client support.  When released, we will be committing to supporting this library at a production level, resolving bugs in a timely manner. 
 SN + I Support In Msal Node |Not Started|December 2020|Explanation of the flow from our python library: https://github.com/AzureAD/microsoft-authentication-library-for-python/issues/60
 Refresh Token Proof of Possesion [Browser]|Not started|December 2020|Proof of Possesion is a feature that enables cryptographically locking a token to a browser.  This feature has already been shipped for Access Tokens.
 Tenant Profile Support |Not Started|December 2020|Support for tenant profiles in our cache and account management
