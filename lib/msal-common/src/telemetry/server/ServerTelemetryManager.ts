@@ -49,7 +49,7 @@ export class ServerTelemetryManager {
         const errorCount = lastRequests.errors.length;
 
         // Indicate whether this header contains all data or partial data
-        const overflow = maxErrors < errorCount ? "1" : "0";
+        const overflow = maxErrors < errorCount ? SERVER_TELEM_CONSTANTS.OVERFLOW_TRUE : SERVER_TELEM_CONSTANTS.OVERFLOW_FALSE;
         const platformFields = [errorCount, overflow].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
 
         return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, lastRequests.cacheHits, failedRequests, errors, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
@@ -84,7 +84,7 @@ export class ServerTelemetryManager {
      * Get the server telemetry entity from cache or initialize a new one
      */
     getLastRequests(): ServerTelemetryEntity { 
-        const initialValue: ServerTelemetryEntity = ServerTelemetryEntity.initializeServerTelemetryEntity();
+        const initialValue: ServerTelemetryEntity = new ServerTelemetryEntity();
         const lastRequests = this.cacheManager.getItem(this.telemetryCacheKey, CacheSchemaType.TELEMETRY) as ServerTelemetryEntity;
         
         return lastRequests || initialValue;
@@ -102,8 +102,8 @@ export class ServerTelemetryManager {
             this.cacheManager.removeItem(this.telemetryCacheKey);
         } else {
             // Partial data was flushed to server, construct a new telemetry cache item with errors that were not flushed
-            const serverTelemEntity = ServerTelemetryEntity.initializeServerTelemetryEntity();
-            serverTelemEntity.failedRequests = lastRequests.failedRequests.slice(numErrorsFlushed*2);
+            const serverTelemEntity = new ServerTelemetryEntity();
+            serverTelemEntity.failedRequests = lastRequests.failedRequests.slice(numErrorsFlushed*2); // failedRequests contains 2 items for each error
             serverTelemEntity.errors = lastRequests.errors.slice(numErrorsFlushed);
             
             this.cacheManager.setItem(this.telemetryCacheKey, serverTelemEntity, CacheSchemaType.TELEMETRY);
@@ -120,12 +120,16 @@ export class ServerTelemetryManager {
         let dataSize = 0;
         const errorCount = serverTelemetryEntity.errors.length;
         for (i = 0; i < errorCount; i++) {
+            // failedRequests parameter contains pairs of apiId and correlationId, multiply index by 2 to preserve pairs
             const apiId = serverTelemetryEntity.failedRequests[2*i];
             const correlationId = serverTelemetryEntity.failedRequests[2*i + 1];
             const errorCode = serverTelemetryEntity.errors[i];
-            dataSize += apiId.toString().length + correlationId.toString().length + errorCode.length + 3; // Add 3 to account for commas
+
+            // Count number of characters that would be added to header, each character is 1 byte. Add 3 at the end to account for separators
+            dataSize += apiId.toString().length + correlationId.toString().length + errorCode.length + 3;
 
             if (dataSize < SERVER_TELEM_CONSTANTS.MAX_HEADER_BYTES) {
+                // Adding this entry to the header would still keep header size below the limit
                 maxErrors += 1;
             } else {
                 break;
