@@ -31,8 +31,8 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
-    clientCapabilities?: [],
-    protocolMode?: ProtocolMode
+    clientCapabilities?: [];
+    protocolMode?: ProtocolMode;
 };
 
 /**
