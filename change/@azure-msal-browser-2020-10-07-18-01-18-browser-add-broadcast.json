@@ -1,5 +1,6 @@
 {
   "type": "minor",
+  "comment": "Add event api to msal-browser (#2394)",
   "packageName": "@azure/msal-browser",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch",
