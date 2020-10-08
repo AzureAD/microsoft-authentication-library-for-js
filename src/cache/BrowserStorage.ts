@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, AppMetadataEntity, CacheManager, CredentialEntity, ThrottlingEntity, ServerTelemetryEntity, ProtocolUtils} from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, AppMetadataEntity, CacheManager, CredentialEntity, ThrottlingEntity, ServerTelemetryEntity, ProtocolUtils} from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
