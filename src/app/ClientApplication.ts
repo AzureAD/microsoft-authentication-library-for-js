@@ -593,7 +593,7 @@ export abstract class ClientApplication {
                 knownAuthorities: this.config.auth.knownAuthorities,
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
                 clientCapabilities: this.config.auth.clientCapabilities,
-                protocolMode: ProtocolMode.AAD
+                protocolMode: this.config.auth.protocolMode
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds
