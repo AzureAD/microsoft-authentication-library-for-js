@@ -7,6 +7,6 @@
  * Protocol modes supported by MSAL.
  */
 export enum ProtocolMode {
-    AAD,
-    OIDC
+    AAD = "AAD",
+    OIDC = "OIDC"
 }
