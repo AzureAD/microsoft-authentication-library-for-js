@@ -1,10 +1,10 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
-import { MsalService, BrowserBroadcastService } from './msal';
+import { MsalService, MsalBroadcastService } from './msal';
 import { MSAL_GUARD_CONFIG, InteractionType } from './msal/constants';
 import { MsalGuardConfiguration } from './msal/msal.guard.config';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
-import { BroadcastEvent } from '@azure/msal-browser';
+import { BroadcastEvent, BroadcastMessage } from '@azure/msal-browser';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
     private authService: MsalService,
-    private browserBroadcastService: BrowserBroadcastService
+    private msalBroadcastService: MsalBroadcastService
   ) {}
 
   ngOnInit(): void {
@@ -28,19 +28,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.checkAccount();
 
-    this.browserBroadcastService.msalSubject$
+    this.msalBroadcastService.msalSubject$
       .pipe(
-        filter(msg => msg.type === BroadcastEvent.LOGIN_SUCCESS || msg.type === BroadcastEvent.ACQUIRE_TOKEN_SUCCESS),
+        filter((msg: BroadcastMessage) => msg.type === BroadcastEvent.LOGIN_SUCCESS || msg.type === BroadcastEvent.ACQUIRE_TOKEN_SUCCESS),
         takeUntil(this._destroying$)
       )
       .subscribe((result) => {
         console.log("EVENT: ", result);
         this.checkAccount();
-      });
-
-    this.browserBroadcastService.localMsalSubject$
-      .subscribe((result) => {
-        console.log("LOCAL EVENT: ", result);
       });
   }
 

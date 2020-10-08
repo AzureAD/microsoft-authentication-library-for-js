@@ -8,11 +8,10 @@ import {
     PopupRequest,
     RedirectRequest,
     SilentRequest,
-    AuthError, BroadcastEvent
 } from "@azure/msal-browser";
 import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from 'rxjs';
-import { BrowserBroadcastService } from './msal.broadcast.service';
+import { MsalBroadcastService } from './msal.broadcast.service';
 
 interface IMsalService {
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult>;
@@ -32,7 +31,7 @@ export class MsalService implements IMsalService {
 
     constructor(
         @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
-        private browserBroadcastService: BrowserBroadcastService
+        private msalBroadcastService: MsalBroadcastService
     ) {}
 
     acquireTokenPopup(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {

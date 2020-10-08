@@ -19,8 +19,8 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../../package.json";
-import { BroadcastService, EventStartObject } from "../event/BroadcastService";
-import { BroadcastEvent } from "../event/EventConstants";
+import { BroadcastError, BroadcastMessage, BroadcastPayload } from "../event/BroadcastMessage";
+import { BroadcastEvent } from "../event/BroadcastEvent";
 
 export abstract class ClientApplication {
 
@@ -45,14 +45,11 @@ export abstract class ClientApplication {
     // Logger
     protected logger: Logger;
 
-    // Broadcast service
-    public broadcastService: BroadcastService;
-
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
 
     // Callback for subscribing to events
-    private subscribeCallbacks: Function[];
+    private eventCallbacks: Function[];
 
     // Array of events subscribed to
     private subscribedEvents: Array<BroadcastEvent>;
@@ -103,11 +100,9 @@ export abstract class ClientApplication {
 
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions);
-        
-        // Initialize broadcast service
-        this.broadcastService = new BroadcastService();
 
-        this.subscribeCallbacks = [];
+        // Array of events
+        this.eventCallbacks = [];
 
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
@@ -128,12 +123,12 @@ export abstract class ClientApplication {
             return this.handleRedirectResponse()
                 .then((result: AuthenticationResult) => {
                     if (result) {
-                        this.broadcast(BroadcastEvent.HANDLE_REDIRECT_SUCCESS, result);
+                        this.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_SUCCESS, InteractionType.REDIRECT, result);
                     }
                     return result;
                 })
                 .catch((e) => {
-                    this.broadcast(BroadcastEvent.HANDLE_REDIRECT_FAILURE, e);
+                    this.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_FAILURE, InteractionType.REDIRECT, null, e);
                     throw e;
                 });
         }
@@ -157,7 +152,7 @@ export abstract class ClientApplication {
             return null;
         }
 
-        this.broadcast(BroadcastEvent.HANDLE_REDIRECT_START);
+        this.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_START);
 
         // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
@@ -234,7 +229,7 @@ export abstract class ClientApplication {
      * @param interactionHandler
      */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
-        this.broadcast(BroadcastEvent.HANDLE_REDIRECT_START);
+        this.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_START, InteractionType.REDIRECT);
         const encodedTokenRequest = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string;
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
@@ -266,7 +261,7 @@ export abstract class ClientApplication {
      * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-        this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_START, new EventStartObject(InteractionType.REDIRECT));
+        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.REDIRECT, request);
         this.preflightBrowserEnvironmentCheck();
 
         // Preflight request
@@ -290,7 +285,7 @@ export abstract class ClientApplication {
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
-            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, e);
+            this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, InteractionType.REDIRECT, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
             throw e;
@@ -332,7 +327,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
-        this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_START, new EventStartObject(InteractionType.POPUP));
+        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.POPUP, request);
 
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
@@ -362,10 +357,10 @@ export abstract class ClientApplication {
 
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponse(hash);
-            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, result);
+            this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, InteractionType.POPUP, result);
             return result;
         } catch (e) {
-            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, e);
+            this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, InteractionType.POPUP, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
             throw e;
@@ -392,20 +387,20 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.broadcast(BroadcastEvent.SSO_SILENT_START, new EventStartObject(InteractionType.SILENT));
+        this.broadcastEvent(BroadcastEvent.SSO_SILENT_START, InteractionType.SILENT, request);
         this.preflightBrowserEnvironmentCheck();
 
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             const error = BrowserAuthError.createSilentSSOInsufficientInfoError();
-            this.broadcast(BroadcastEvent.SSO_SILENT_FAILURE, error);
+            this.broadcastEvent(BroadcastEvent.SSO_SILENT_FAILURE, InteractionType.SILENT, null, error);
             throw error;
         }
 
         // Check that prompt is set to none, throw error if it is set to anything else.
         if (request.prompt && request.prompt !== PromptValue.NONE) {
             const error = BrowserAuthError.createSilentPromptValueError(request.prompt);
-            this.broadcast(BroadcastEvent.SSO_SILENT_FAILURE, error);
+            this.broadcastEvent(BroadcastEvent.SSO_SILENT_FAILURE, InteractionType.SILENT, null, error);
             throw error;
         }
 
@@ -428,10 +423,10 @@ export abstract class ClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
             const silentTokenResult = await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
-            this.broadcast(BroadcastEvent.SSO_SILENT_SUCCESS, silentTokenResult);
+            this.broadcastEvent(BroadcastEvent.SSO_SILENT_SUCCESS, InteractionType.SILENT, silentTokenResult);
             return silentTokenResult;
         } catch (e) {
-            this.broadcast(BroadcastEvent.SSO_SILENT_FAILURE, e);
+            this.broadcastEvent(BroadcastEvent.SSO_SILENT_FAILURE, InteractionType.SILENT, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(silentRequest.state);
             throw e;
@@ -451,7 +446,7 @@ export abstract class ClientApplication {
      *
      */
     protected async acquireTokenByRefreshToken(request: SilentRequest): Promise<AuthenticationResult> {
-        this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_NETWORK_START, new EventStartObject(InteractionType.SILENT));
+        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_NETWORK_START, InteractionType.SILENT, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
         const silentRequest: SilentFlowRequest = {
@@ -464,7 +459,6 @@ export abstract class ClientApplication {
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
             return await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
         } catch (e) {
-            this.broadcast(BroadcastEvent.ACQUIRE_TOKEN_NETWORK_FAILURE, e);
             serverTelemetryManager.cacheFailedRequest(e);
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
@@ -504,7 +498,7 @@ export abstract class ClientApplication {
      * @param {@link (EndSessionRequest:type)} 
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        this.broadcast(BroadcastEvent.LOGOUT_START, logoutRequest);
+        this.broadcastEvent(BroadcastEvent.LOGOUT_START, null, logoutRequest);
         this.preflightBrowserEnvironmentCheck();
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
@@ -823,40 +817,32 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Broadcast function for events
+     * Broadcasts events by calling callback with broadcast message
      * @param type 
+     * @param interactionType 
      * @param payload 
+     * @param error 
      */
-    broadcast(type: BroadcastEvent, payload?: any) {
-        // Uses subject from broadcastService
-        this.broadcastService.broadcast(type, payload);
+    protected broadcastEvent(type: BroadcastEvent, interactionType?: InteractionType, payload?: BroadcastPayload, error?: BroadcastError) {
+        const message: BroadcastMessage = {
+            type,
+            interactionType: interactionType || null,
+            payload: payload || null,
+            error: error || null,
+            timestamp: Date.now()
+        };
 
-        // Uses simple callback events
-        this.subscribeCallbacks.forEach((callback) => {
-            callback.apply(null, [type, payload]);
+        this.eventCallbacks.forEach((callback) => {
+            callback(message);
         });
-
-        // TODO: Filtering using Map
-        // if (this.subscribeCallbacks) {
-        //     if (this.subscribedEvents) {
-        //         this.subscribedEvents.forEach(subscribedEvent => {
-        //             if (subscribedEvent === type) {
-        //                 this.subscribeCallbacks(type, payload);
-        //             }
-        //         })
-        //     } else {
-        //         this.subscribeCallbacks(type, payload);
-        //     }
-        // }
     }
 
     /**
-     * Subscribe function for simple callback events
+     * Adds event callbacks to array
      * @param callback 
      */
-    subscribe(callback: Function, eventTypesArray?: Array<BroadcastEvent>) {
-        this.subscribeCallbacks.push(callback);
-        // this.subscribedEvents = eventTypesArray; TODO: filtering
+    addEventCallback(callback: Function) {
+        this.eventCallbacks.push(callback);
     }
 
     // #endregion
