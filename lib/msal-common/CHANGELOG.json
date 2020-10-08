@@ -2,6 +2,71 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 02 Oct 2020 17:42:35 GMT",
+      "tag": "@azure/msal-common_v1.5.0",
+      "version": "1.5.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Implementation of Access Token Proof-of-Possession Flow (#2151, #2153, #2154, #2209, #2289)",
+            "author": "prkanher@microsoft.com",
+            "commit": "3cffbc99730532bbd0b35f2e3a9df17f032c0675",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "@azure/msal-common_v1.4.0",
+      "version": "1.4.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updating dependency versions(#2342)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "bc3f324edd6cf83937c31f73d3aefc6dbaf5f748",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Update changelog versions for msal-node and extensions (#2336)",
+            "author": "hectormgdev@gmail.com",
+            "commit": "323875a725e0d5049ff6742a9ca5160c2d4b7d0d",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 23 Sep 2020 21:13:48 GMT",
+      "tag": "@azure/msal-common_v1.4.0",
+      "version": "1.4.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove null in function return types to be compatible with ICacheManager.ts (#2335)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "aecc41e9f23b350a25bba9dd23e739627e61f8ab",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Scopes stored case sensitive, compared case insensitive (#2302)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "60fe1e6b2e4c3fdd1f7ce0dd0fbee0febed6d0d2",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "FOCI - Family of Client IDs feature (#2201)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "209789cdffdfd38087819cbb23688bcd5ce47b60",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
       "tag": "@azure/msal-common_v1.3.0",
       "version": "1.3.0",

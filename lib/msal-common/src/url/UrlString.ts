@@ -131,12 +131,17 @@ export class UrlString {
         const urlComponents = {
             Protocol: match[1],
             HostNameAndPort: match[4],
-            AbsolutePath: match[5]
+            AbsolutePath: match[5],
+            QueryString: match[7]
         } as IUri;
 
         let pathSegments = urlComponents.AbsolutePath.split("/");
         pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
         urlComponents.PathSegments = pathSegments;
+
+        if (!StringUtils.isEmpty(urlComponents.QueryString) && urlComponents.QueryString.endsWith("/")) {
+            urlComponents.QueryString = urlComponents.QueryString.substring(0, urlComponents.QueryString.length-1);
+        }
         return urlComponents;
     }
 
