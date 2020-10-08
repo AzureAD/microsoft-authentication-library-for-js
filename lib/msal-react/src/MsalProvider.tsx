@@ -3,7 +3,7 @@ import { useContext } from "react";
 import {
     IPublicClientApplication,
     AccountInfo,
-    BroadcastEvent, BroadcastMessage
+    BroadcastEvent, BroadcastMessage, AuthError
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 
@@ -18,33 +18,47 @@ export const MsalProvider: React.FunctionComponent<MsalProviderProps> = ({instan
         instance.getAllAccounts() || []
     );
 
-    // Callback to update accounts after MSAL APIs are invoked
-    const updateContextState = () => {
-        // TODO: Remove the `|| []` hack when PR is finally merged to msal/browser
-        setAccounts(instance.getAllAccounts() || []);
-    };
+    const [error, setError] = React.useState<Error|AuthError|null>(null);
+    const [loginInProgress, setLoginInProgress] = React.useState<boolean>(false);
 
     React.useEffect(() => {
         instance.addEventCallback((message: BroadcastMessage) => {
-            const eventTypes = [
-                BroadcastEvent.LOGIN_SUCCESS,
-                BroadcastEvent.ACQUIRE_TOKEN_SUCCESS,
-                BroadcastEvent.HANDLE_REDIRECT_SUCCESS,
-                BroadcastEvent.SSO_SILENT_SUCCESS,
-                BroadcastEvent.LOGOUT_SUCCESS
-            ];
-    
-            if (eventTypes.indexOf(message.type) > -1) {
-                updateContextState();
+            switch (message.type) {
+                case BroadcastEvent.LOGIN_START:
+                    setLoginInProgress(true);
+                    break;
+                case BroadcastEvent.LOGIN_SUCCESS:
+                    setLoginInProgress(false);
+                    setAccounts(instance.getAllAccounts());
+                    setError(null);
+                    break;
+                case BroadcastEvent.LOGIN_FAILURE:
+                    setLoginInProgress(false);
+                    setError(message.error);
+                    break;
+                case BroadcastEvent.ACQUIRE_TOKEN_SUCCESS:
+                case BroadcastEvent.HANDLE_REDIRECT_SUCCESS:
+                case BroadcastEvent.SSO_SILENT_SUCCESS:
+                case BroadcastEvent.LOGOUT_SUCCESS:
+                    setAccounts(instance.getAllAccounts());
+                    setError(null);
+                    break;
+                case BroadcastEvent.ACQUIRE_TOKEN_FAILURE:
+                case BroadcastEvent.HANDLE_REDIRECT_FAILURE:
+                case BroadcastEvent.SSO_SILENT_FAILURE:
+                case BroadcastEvent.LOGOUT_FAILURE:
+                    setError(message.error);
+                    break;
             }
         });
     }, [instance]);
 
-    // Memoized context value
     const contextValue: IMsalContext = {
         instance,
         state: {
-            accounts
+            loginInProgress,
+            accounts, 
+            error
         }
     };
 

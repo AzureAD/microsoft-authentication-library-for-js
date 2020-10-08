@@ -1,8 +1,10 @@
 import * as React from "react";
-import { IPublicClientApplication, AccountInfo } from "@azure/msal-browser";
+import { IPublicClientApplication, AccountInfo, AuthError } from "@azure/msal-browser";
 
 type MsalState = {
+    loginInProgress: boolean;
     accounts: AccountInfo[];
+    error: Error|AuthError|null;
 };
 
 export interface IMsalContext {
@@ -58,7 +60,9 @@ const defaultMsalContext: IMsalContext = {
         }
     },
     state: {
+        loginInProgress: false,
         accounts: [],
+        error: null
     },
 };
 
