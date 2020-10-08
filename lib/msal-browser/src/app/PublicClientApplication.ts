@@ -92,7 +92,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, InteractionType.SILENT, cachedToken);
             return cachedToken;
         } catch (e) {
-            this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, InteractionType.SILENT, null, e);
             return this.acquireTokenByRefreshToken(request);
         }
     }

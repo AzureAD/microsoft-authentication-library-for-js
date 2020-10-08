@@ -460,7 +460,7 @@ export abstract class ClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 return await this.ssoSilent(request);
             }
-
+            this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, InteractionType.SILENT, null, e);
             throw e;
         }
     }
