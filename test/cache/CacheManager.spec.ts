@@ -26,42 +26,43 @@ import cacheJson from "./cacheStore.json";
 let store = {};
 class TestStorageManager extends CacheManager {
     // Accounts
+    getAccount(key: string): AccountEntity | null {
+        return store[key] as AccountEntity;
+    }
     setAccount(key: string, value: AccountEntity): void {
         store[key] = value;
     }
-    getAccount(key: string): AccountEntity {
-        return store[key] as AccountEntity;
-    }
+
     // Credentials (idtokens, accesstokens, refreshtokens)
+    getCredential(key: string): CredentialEntity | null {
+        return store[key] as CredentialEntity;
+    }
     setCredential(key: string, value: CredentialEntity): void {
         store[key] = value;
     }
-    getCredential(key: string): CredentialEntity {
-        return store[key] as CredentialEntity;
-    }
 
     // AppMetadata
+    getAppMetadata(key: string): AppMetadataEntity | null {
+        return store[key] as AppMetadataEntity;
+    }
     setAppMetadata(key: string, value: AppMetadataEntity): void {
         store[key] = value;
     }
-    getAppMetadata(key: string): AppMetadataEntity {
-        return store[key] as AppMetadataEntity;
-    }
 
     // Telemetry cache
+    getServerTelemetry(key: string): ServerTelemetryEntity | null {
+        return store[key] as ServerTelemetryEntity;
+    }
     setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
         store[key] = value;
     }
-    getServerTelemetry(key: string): ServerTelemetryEntity {
-        return store[key] as ServerTelemetryEntity;
-    }
 
     // Throttling cache
+    getThrottlingCache(key: string): ThrottlingEntity | null {
+        return store[key] as ThrottlingEntity;
+    }
     setThrottlingCache(key: string, value: ThrottlingEntity): void {
         store[key] = value;
-    }
-    getThrottlingCache(key: string): ThrottlingEntity {
-        return store[key] as ThrottlingEntity;
     }
 
     removeItem(key: string): boolean {
