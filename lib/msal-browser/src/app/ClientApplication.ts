@@ -149,8 +149,6 @@ export abstract class ClientApplication {
             return null;
         }
 
-        this.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_START, InteractionType.REDIRECT);
-
         // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
@@ -814,14 +812,14 @@ export abstract class ClientApplication {
 
     /**
      * Broadcasts events by calling callback with broadcast message
-     * @param type 
+     * @param eventType 
      * @param interactionType 
      * @param payload 
      * @param error 
      */
-    broadcastEvent(type: BroadcastEvent, interactionType?: InteractionType, payload?: BroadcastPayload, error?: BroadcastError) {
+    broadcastEvent(eventType: BroadcastEvent, interactionType?: InteractionType, payload?: BroadcastPayload, error?: BroadcastError) {
         const message: BroadcastMessage = {
-            type,
+            eventType: eventType,
             interactionType: interactionType || null,
             payload: payload || null,
             error: error || null,
