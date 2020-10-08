@@ -13,6 +13,10 @@ export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";
 export { SsoSilentRequest } from "./request/SsoSilentRequest";
 
+// Events
+export { BroadcastMessage } from "./event/BroadcastMessage";
+export { BroadcastEvent } from "./event/BroadcastEvent";
+
 // Common Object Formats
 export {
     AuthenticationScheme,
