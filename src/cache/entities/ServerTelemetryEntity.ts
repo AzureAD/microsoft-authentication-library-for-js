@@ -7,8 +7,13 @@ import { SERVER_TELEM_CONSTANTS } from "../../utils/Constants";
 export class ServerTelemetryEntity {
     failedRequests: Array<string|number>;
     errors: string[];
-    errorCount: number;
     cacheHits: number;
+
+    constructor() {
+        this.failedRequests = [];
+        this.errors = [];
+        this.cacheHits = 0;
+    }
 
     /**
      * validates if a given cache entry is "Telemetry", parses <key,value>
