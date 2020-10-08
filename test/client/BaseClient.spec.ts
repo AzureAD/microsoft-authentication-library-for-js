@@ -1,12 +1,11 @@
 import { expect } from "chai";
 import { BaseClient } from "../../src/client/BaseClient";
-import { Authority, Constants, ServerTelemetryManager } from "../../src";
+import { Authority, Constants, ServerTelemetryManager, ServerTelemetryRequest } from "../../src";
 import { AADServerParamKeys, HeaderNames } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import sinon from "sinon";
 import { DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONFIG } from "../utils/StringConstants";
-import { IdToken, ServerTelemetryRequest } from "../../dist/src";
 
 class TestClient extends BaseClient {
 

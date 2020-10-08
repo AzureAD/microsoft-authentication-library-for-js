@@ -51,12 +51,12 @@ export class DeviceCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response);
-        const tokenResponse = responseHandler.handleServerTokenResponse(
+        return await responseHandler.handleServerTokenResponse(
             response,
-            this.authority
+            this.authority,
+            request.resourceRequestMethod,
+            request.resourceRequestUri
         );
-
-        return tokenResponse;
     }
 
     /**
