@@ -6,7 +6,7 @@ import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
 import { Constants } from "../../src";
 import { version } from "../../package.json";
-import {TEST_CONFIG} from "../utils/StringConstants";
+import {TEST_CONFIG, TEST_POP_VALUES} from "../utils/StringConstants";
 import { MockStorageClass } from "../client/ClientTestUtils";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
@@ -79,7 +79,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
 
     const testKeySet = ["testKey1", "testKey2"];
 
-    it("buildConfiguration correctly assigns new values", () => {
+    it("buildConfiguration correctly assigns new values", async () => {
         const newConfig: ClientConfiguration = buildClientConfiguration({
 			authOptions: {
 				clientId: TEST_CONFIG.MSAL_CLIENT_ID
@@ -96,6 +96,12 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
                     return testPkceCodes;
+                },
+                async getPublicKeyThumbprint(): Promise<string> {
+                    return TEST_POP_VALUES.KID;
+                },
+                async signJwt(): Promise<string> {
+                    return "signedJwt";
                 }
             },
             storageInterface: cacheStorageMock,
@@ -130,7 +136,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.cryptoInterface.base64Encode).to.be.not.null;
         expect(newConfig.cryptoInterface.base64Encode("testString")).to.be.eq("testEncodedString");
         expect(newConfig.cryptoInterface.generatePkceCodes).to.be.not.null;
-        expect(newConfig.cryptoInterface.generatePkceCodes()).to.eventually.eq(testPkceCodes);
+        await expect(newConfig.cryptoInterface.generatePkceCodes()).to.eventually.eq(testPkceCodes);
         // Storage interface tests
         expect(newConfig.storageInterface).to.be.not.null;
         expect(newConfig.storageInterface.clear).to.be.not.null;
@@ -148,9 +154,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Network interface tests
         expect(newConfig.networkInterface).to.be.not.null;
         expect(newConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
-        expect(newConfig.networkInterface.sendGetRequestAsync("", null)).to.eventually.eq(testNetworkResult);
+        await expect(newConfig.networkInterface.sendGetRequestAsync("", null)).to.eventually.eq(testNetworkResult);
         expect(newConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
-        expect(newConfig.networkInterface.sendPostRequestAsync("", null)).to.eventually.eq(testNetworkResult);
+        await expect(newConfig.networkInterface.sendPostRequestAsync("", null)).to.eventually.eq(testNetworkResult);
         // Logger option tests
         expect(newConfig.loggerOptions).to.be.not.null;
         expect(newConfig.loggerOptions.loggerCallback).to.be.not.null;

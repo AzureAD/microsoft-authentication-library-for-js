@@ -9,6 +9,7 @@ import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } f
 import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType, ProtocolUtils } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 class TestCacheStorage extends CacheManager {
     setItem(key: string, value: string): void {
@@ -454,6 +455,10 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("Throws error if cached request cannot be parsed correctly", async () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
             const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             const cryptoObj = new CryptoOps();
             const tokenRequest: AuthorizationCodeRequest = {
@@ -470,6 +475,10 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("Uses authority from cache if not present in cached request", async () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
             const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             // Set up cache
             const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE);
