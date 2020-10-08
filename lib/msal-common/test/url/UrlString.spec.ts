@@ -39,6 +39,12 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
     });
 
+    it("validateAsUri validates any valid URI", () => {
+        const insecureUrlString = "https://example.com/";
+        let urlObj = new UrlString(insecureUrlString);
+        expect(() => urlObj.validateAsUri()).to.not.throw;
+    });
+
     it("urlRemoveQueryStringParameter removes required path components",() => {
         let urlObj1 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS1);
         expect(urlObj1.urlString).to.contain("param1=value1");
