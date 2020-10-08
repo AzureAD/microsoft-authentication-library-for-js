@@ -1792,7 +1792,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe.only("broadcastEvent and addEventCallback tests", () => {
+    describe("broadcastEvent and addEventCallback tests", () => {
         it("can add an event callback and broadcast to it", () => {
             let receivedMessage: BroadcastMessage;
             const subscriber = (message) => {receivedMessage = message};
