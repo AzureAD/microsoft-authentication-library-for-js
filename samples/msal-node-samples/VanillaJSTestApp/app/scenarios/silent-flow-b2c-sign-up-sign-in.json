@@ -1,0 +1,36 @@
+{
+    "authOptions":
+    {
+        "clientId": "57eeeaa5-2ff7-497e-84bb-b45fe138ad58",
+        "authority": "https://SAMEERAB2C.b2clogin.com/SAMEERAB2C.onmicrosoft.com/B2C_1_signup_signin",
+        "knownAuthorities": ["SAMEERAB2C.b2clogin.com"],
+        "redirectUri":"http://localhost:3000/redirect"
+    },    
+    "request":
+    {
+        "authCodeUrlParameters": {
+            "scopes": ["https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read"],
+            "redirectUri": "http://localhost:3000/redirect",
+            "prompt": "consent"
+        },
+        "tokenRequest": {
+            "code": "",
+            "redirectUri": "http://localhost:3000/redirect",
+            "scopes": ["https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read"]
+        },
+        "silentRequest": {
+           "account": "",
+            "scopes": ["https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read"]
+        }
+    },
+    "resourceApi":
+    {
+        "endpoint": "https://fabrikamb2chello.azurewebsites.net/hello"
+    },
+    "sample": 
+    {
+        "appType": "web",
+        "flow": "silent",
+       "clientType": "public"
+    } 
+}

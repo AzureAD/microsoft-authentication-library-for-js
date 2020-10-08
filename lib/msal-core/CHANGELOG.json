@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "msal_v1.4.1",
+      "version": "1.4.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix ID Token cache lookup. PR #2206",
+            "author": "hemoral@microsoft.com",
+            "commit": "23ddd4ab6632d932a8fd4dd276b39c7c8202ff6c",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
       "tag": "msal_v1.4.0",
       "version": "1.4.0",

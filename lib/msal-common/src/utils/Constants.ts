@@ -105,6 +105,8 @@ export enum AADServerParamKeys {
     CLIENT_SECRET = "client_secret",
     CLIENT_ASSERTION = "client_assertion",
     CLIENT_ASSERTION_TYPE = "client_assertion_type",
+    TOKEN_TYPE = "token_type",
+    REQ_CNF = "req_cnf",
     OBO_ASSERTION = "assertion",
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
@@ -112,23 +114,8 @@ export enum AADServerParamKeys {
 }
 
 /**
- * IdToken claim string constants
+ * Claims request keys
  */
-export enum IdTokenClaimName {
-    ISSUER = "iss",
-    OBJID = "oid",
-    SUBJECT = "sub",
-    TENANTID = "tid",
-    VERSION = "ver",
-    PREF_USERNAME = "preferred_username",
-    NAME = "name",
-    NONCE = "nonce",
-    EXPIRATION = "exp",
-    HOME_OBJID = "home_oid",
-    SESSIONID = "sid",
-    CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
-}
-
 export enum ClaimsRequestKeys {
     ACCESS_TOKEN = "access_token",
     XMS_CC = "xms_cc"
@@ -281,6 +268,14 @@ export const SERVER_TELEM_CONSTANTS = {
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ","
 };
+
+/**
+ * Type of the authentication request
+ */
+export enum AuthenticationScheme {
+    POP = "pop",
+    BEARER = "Bearer"
+}
 
 /**
  * Constants related to throttling

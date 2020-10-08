@@ -2,6 +2,21 @@
   "name": "typescript-test-app-2.0",
   "entries": [
     {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "typescript-test-app-2.0_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "add beachball config",
+            "author": "prkanher@microsoft.com",
+            "commit": "50d9a9533b07a4a5bf7833bd6a5d0d35798c4903",
+            "package": "typescript-test-app-2.0"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
       "tag": "typescript-test-app-2.0_v1.0.0",
       "version": "1.0.0",

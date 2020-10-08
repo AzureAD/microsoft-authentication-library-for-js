@@ -1,0 +1,27 @@
+<div id="card-div" class="col-md-3">
+  <div class="card text-center">
+    <div class="card-body">
+      {{#if couldNotAcquireToken}}
+        <h5 class="card-title">Could not acquire token silently. Please double check your configuration</h5>
+      {{else }}
+            <h5 class="card-title">Welcome, {{username}}, you have signed in successfully!</h5>
+      {{/if}}
+      <br>
+      <br>
+      <a class="btn btn-primary" href="/graphCall">See Profile</a>
+  </div>
+  </div>
+</div>
+<br>
+<br>
+<div class="col-md-4">
+  <div class="list-group" id="list-tab" role="tablist">
+  </div>
+</div>
+<div class="col-md-5">
+  <div class="tab-content" id="nav-tabContent">
+    {{#if profile}}
+      <pre>{{profile}}</pre>
+    {{/if}}
+  </div>
+</div>
