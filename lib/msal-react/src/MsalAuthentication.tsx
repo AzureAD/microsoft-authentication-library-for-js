@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect } from "react";
 import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType } from "@azure/msal-browser";
 
 import { IMsalContext } from "./MsalContext";
@@ -7,43 +7,28 @@ import { getChildrenOrFunction } from "./utilities";
 import { useIsAuthenticated } from "./useIsAuthenticated";
 
 export interface IMsalAuthenticationProps {
+    interactionType: string;
     username?: string;
-    interactionType?: string;
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest
 }
 
 type MsalAuthenticationResult = {
-    error: Error | null;
     msal: IMsalContext;
 };
 
-export function useMsalAuthentication(args: IMsalAuthenticationProps = {}): MsalAuthenticationResult {
-    const { username, interactionType = InteractionType.POPUP, authenticationRequest } = args;
+export function useMsalAuthentication(msalProps: IMsalAuthenticationProps): MsalAuthenticationResult {
+    const { interactionType, username, authenticationRequest } = msalProps;
     const msal = useMsal();
     const isAuthenticated = useIsAuthenticated(username);
 
-    const [error, setError] = useState<Error | null>(null);
-
-    // TODO: How are we passing errors down?
     const login = useCallback(() => {
-        /*
-         * TODO: This is error prone because it asynchronously sets state, but the component may be unmounted before the process completes.
-         *  Additionally, other authentication components or hooks won't have access to the errors.
-         *  May be better to lift this state into the the MsalProvider
-         */
         switch (interactionType) {
             case InteractionType.POPUP:
-                return msal.instance.loginPopup(authenticationRequest as PopupRequest).catch(error => {
-                    setError(error);
-                });
+                return msal.instance.loginPopup(authenticationRequest as PopupRequest);
             case InteractionType.REDIRECT:
-                return msal.instance.loginRedirect(authenticationRequest as RedirectRequest).catch(error => {
-                    setError(error);
-                });
+                return msal.instance.loginRedirect(authenticationRequest as RedirectRequest);
             case InteractionType.SILENT:
-                return msal.instance.ssoSilent(authenticationRequest as SsoSilentRequest).catch(error => {
-                    setError(error);
-                }); 
+                return msal.instance.ssoSilent(authenticationRequest as SsoSilentRequest);
             default:
                 return null;
         }
@@ -60,18 +45,11 @@ export function useMsalAuthentication(args: IMsalAuthenticationProps = {}): Msal
         }
     }, [isAuthenticated]);
 
-    return useMemo(
-        () => ({
-            error,
-            msal,
-        }),
-        [error, msal]
-    );
+    return { msal };
 }
 
-export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProps> = props => {
-    const { username, interactionType, authenticationRequest, children } = props;
-    const { msal } = useMsalAuthentication({ username, interactionType, authenticationRequest });
+export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProps> = ({ interactionType, username, authenticationRequest, children }) => {
+    const { msal } = useMsalAuthentication({ interactionType, username, authenticationRequest });
     const isAuthenticated = useIsAuthenticated(username);
 
     // TODO: What if the user authentiction is InProgress? How will user show a loading state?

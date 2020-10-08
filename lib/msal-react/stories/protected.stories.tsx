@@ -11,7 +11,7 @@ export const Example = () => {
     return (
         <MsalProvider instance={msalInstance}>
             <p>This page has a component that will only render if you are authenticated.</p>
-            <MsalAuthentication>
+            <MsalAuthentication interactionType='popup'>
                 <ProtectedComponent />
             </MsalAuthentication>
         </MsalProvider>
