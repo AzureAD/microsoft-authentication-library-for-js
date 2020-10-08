@@ -19,6 +19,8 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../../package.json";
+import { BroadcastError, BroadcastMessage, BroadcastPayload } from "../event/BroadcastMessage";
+import { BroadcastEvent } from "../event/BroadcastEvent";
 
 export abstract class ClientApplication {
 
@@ -45,6 +47,9 @@ export abstract class ClientApplication {
 
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
+
+    // Callback for subscribing to events
+    private eventCallbacks: Function[];
 
     /**
      * @constructor
@@ -93,6 +98,9 @@ export abstract class ClientApplication {
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions);
 
+        // Array of events
+        this.eventCallbacks = [];
+
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
@@ -108,7 +116,20 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
-        return this.isBrowserEnvironment ? this.handleRedirectResponse() : null;
+        if (this.isBrowserEnvironment) {
+            return this.handleRedirectResponse()
+                .then((result: AuthenticationResult) => {
+                    if (result) {
+                        this.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_SUCCESS, InteractionType.REDIRECT, result);
+                    }
+                    return result;
+                })
+                .catch((e) => {
+                    this.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_FAILURE, InteractionType.REDIRECT, null, e);
+                    throw e;
+                });
+        }
+        return null;
     }
 
     /**
@@ -127,6 +148,8 @@ export abstract class ClientApplication {
             // Not a recognized server response hash or hash not associated with a redirect request
             return null;
         }
+
+        this.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_START, InteractionType.REDIRECT);
 
         // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
         const loginRequestUrl = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY) as string;
@@ -203,6 +226,7 @@ export abstract class ClientApplication {
      * @param interactionHandler
      */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
+        this.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_START, InteractionType.REDIRECT);
         const encodedTokenRequest = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string;
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
@@ -234,6 +258,7 @@ export abstract class ClientApplication {
      * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.REDIRECT, request);
         this.preflightBrowserEnvironmentCheck();
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
@@ -256,6 +281,7 @@ export abstract class ClientApplication {
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
+            this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, InteractionType.REDIRECT, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
             throw e;
@@ -297,6 +323,8 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
+        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.POPUP, request);
+
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
@@ -324,8 +352,11 @@ export abstract class ClientApplication {
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
 
             // Handle response from hash string.
-            return await interactionHandler.handleCodeResponse(hash);
+            const result = await interactionHandler.handleCodeResponse(hash);
+            this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_SUCCESS, InteractionType.POPUP, result);
+            return result;
         } catch (e) {
+            this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_FAILURE, InteractionType.POPUP, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
             throw e;
@@ -352,16 +383,21 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        this.broadcastEvent(BroadcastEvent.SSO_SILENT_START, InteractionType.SILENT, request);
         this.preflightBrowserEnvironmentCheck();
 
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
-            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+            const error = BrowserAuthError.createSilentSSOInsufficientInfoError();
+            this.broadcastEvent(BroadcastEvent.SSO_SILENT_FAILURE, InteractionType.SILENT, null, error);
+            throw error;
         }
 
         // Check that prompt is set to none, throw error if it is set to anything else.
         if (request.prompt && request.prompt !== PromptValue.NONE) {
-            throw BrowserAuthError.createSilentPromptValueError(request.prompt);
+            const error = BrowserAuthError.createSilentPromptValueError(request.prompt);
+            this.broadcastEvent(BroadcastEvent.SSO_SILENT_FAILURE, InteractionType.SILENT, null, error);
+            throw error;
         }
 
         // Create silent request
@@ -382,8 +418,11 @@ export abstract class ClientApplication {
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
+            const silentTokenResult = await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
+            this.broadcastEvent(BroadcastEvent.SSO_SILENT_SUCCESS, InteractionType.SILENT, silentTokenResult);
+            return silentTokenResult;
         } catch (e) {
+            this.broadcastEvent(BroadcastEvent.SSO_SILENT_FAILURE, InteractionType.SILENT, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(silentRequest.state);
             throw e;
@@ -403,6 +442,7 @@ export abstract class ClientApplication {
      *
      */
     protected async acquireTokenByRefreshToken(request: SilentRequest): Promise<AuthenticationResult> {
+        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_NETWORK_START, InteractionType.SILENT, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
         const silentRequest: SilentFlowRequest = {
@@ -454,6 +494,7 @@ export abstract class ClientApplication {
      * @param {@link (EndSessionRequest:type)} 
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+        this.broadcastEvent(BroadcastEvent.LOGOUT_START, null, logoutRequest);
         this.preflightBrowserEnvironmentCheck();
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
@@ -769,6 +810,35 @@ export abstract class ClientApplication {
         validLogoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
         
         return validLogoutRequest;
+    }
+
+    /**
+     * Broadcasts events by calling callback with broadcast message
+     * @param type 
+     * @param interactionType 
+     * @param payload 
+     * @param error 
+     */
+    broadcastEvent(type: BroadcastEvent, interactionType?: InteractionType, payload?: BroadcastPayload, error?: BroadcastError) {
+        const message: BroadcastMessage = {
+            type,
+            interactionType: interactionType || null,
+            payload: payload || null,
+            error: error || null,
+            timestamp: Date.now()
+        };
+
+        this.eventCallbacks.forEach((callback) => {
+            callback(message);
+        });
+    }
+
+    /**
+     * Adds event callbacks to array
+     * @param callback 
+     */
+    addEventCallback(callback: Function) {
+        this.eventCallbacks.push(callback);
     }
 
     // #endregion
