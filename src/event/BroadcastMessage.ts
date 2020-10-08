@@ -4,7 +4,7 @@ import { InteractionType } from "../utils/BrowserConstants";
 import { PopupRequest, RedirectRequest, SilentRequest, SsoSilentRequest } from "..";
 
 export type BroadcastMessage = {
-    type: BroadcastEvent;
+    eventType: BroadcastEvent;
     interactionType: InteractionType | null;
     payload: BroadcastPayload;
     error: BroadcastError;
