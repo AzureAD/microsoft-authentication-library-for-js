@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import "mocha";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult, CacheManager, AuthorizationCodeClient, CacheSchemaType } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult, CacheManager, AuthorizationCodeClient, AuthenticationScheme, CacheSchemaType } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_STATE_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
@@ -112,6 +112,12 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
                     return testPkceCodes;
+                },
+                getPublicKeyThumbprint: async (): Promise<string> => {
+                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                },
+                signJwt: async (): Promise<string> => {
+                    return "signedJwt";
                 }
             },
             storageInterface: new TestStorageInterface(),
@@ -188,7 +194,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
-                state: "testState"
+                state: "testState",
+                tokenType: AuthenticationScheme.BEARER
             };
             browserStorage.setItem(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE, CacheSchemaType.TEMPORARY);
             browserStorage.setItem(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), idTokenClaims.nonce, CacheSchemaType.TEMPORARY);
