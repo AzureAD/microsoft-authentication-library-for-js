@@ -823,7 +823,7 @@ export abstract class ClientApplication {
      * @param payload 
      * @param error 
      */
-    protected broadcastEvent(type: BroadcastEvent, interactionType?: InteractionType, payload?: BroadcastPayload, error?: BroadcastError) {
+    broadcastEvent(type: BroadcastEvent, interactionType?: InteractionType, payload?: BroadcastPayload, error?: BroadcastError) {
         const message: BroadcastMessage = {
             type,
             interactionType: interactionType || null,
