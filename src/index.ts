@@ -28,6 +28,7 @@ export { AccountEntity } from "./cache/entities/AccountEntity";
 export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
 export { AccessTokenEntity } from "./cache/entities/AccessTokenEntity";
 export { RefreshTokenEntity } from "./cache/entities/RefreshTokenEntity";
+export { ServerTelemetryEntity } from "./cache/entities/ServerTelemetryEntity";
 export { ThrottlingEntity } from "./cache/entities/ThrottlingEntity";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";

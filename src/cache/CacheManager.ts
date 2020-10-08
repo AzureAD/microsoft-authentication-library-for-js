@@ -28,6 +28,12 @@ import { ThrottlingEntity } from "./entities/ThrottlingEntity";
 export abstract class CacheManager implements ICacheManager {
 
     /**
+     * fetch the account entity from the platform cache
+     * @param key
+     */
+    abstract getAccount(key: string): AccountEntity | null;
+
+    /**
      * set account entity in the platform cache
      * @param key
      * @param value
@@ -35,10 +41,10 @@ export abstract class CacheManager implements ICacheManager {
     abstract setAccount(key: string, value: AccountEntity): void;
 
     /**
-     * fetch the account entity from the platform cache
+     * fetch the credential entity (IdToken/AccessToken/RefreshToken) from the platform cache
      * @param key
      */
-    abstract getAccount(key: string): AccountEntity;
+    abstract getCredential(key: string): CredentialEntity | null;
 
     /**
      * set credential entity (IdToken/AccessToken/RefreshToken) to the platform cache
@@ -48,10 +54,10 @@ export abstract class CacheManager implements ICacheManager {
     abstract setCredential(key: string, value: CredentialEntity): void;
 
     /**
-     * fetch the credential entity (IdToken/AccessToken/RefreshToken) from the platform cache
+     * fetch appMetadata entity from the platform cache
      * @param key
      */
-    abstract getCredential(key: string): CredentialEntity;
+    abstract getAppMetadata(key: string): AppMetadataEntity | null;
 
     /**
      * set appMetadata entity to the platform cache
@@ -61,10 +67,10 @@ export abstract class CacheManager implements ICacheManager {
     abstract setAppMetadata(key: string, value: AppMetadataEntity): void;
 
     /**
-     * fetch appMetadata entity from the platform cache
+     * fetch server telemetry entity from the platform cache
      * @param key
      */
-    abstract getAppMetadata(key: string): AppMetadataEntity;
+    abstract getServerTelemetry(key: string): ServerTelemetryEntity | null;
 
     /**
      * set server telemetry entity to the platform cache
@@ -74,10 +80,10 @@ export abstract class CacheManager implements ICacheManager {
     abstract setServerTelemetry(key: string, value: ServerTelemetryEntity): void;
 
     /**
-     * fetch server telemetry entity from the platform cache
+     * fetch throttling entity from the platform cache
      * @param key
      */
-    abstract getServerTelemetry(key: string): ServerTelemetryEntity;
+    abstract getThrottlingCache(key: string): ThrottlingEntity | null;
 
     /**
      * set throttling entity to the platform cache
@@ -85,12 +91,6 @@ export abstract class CacheManager implements ICacheManager {
      * @param value
      */
     abstract setThrottlingCache(key: string, value: ThrottlingEntity): void;
-
-    /**
-     * fetch throttling entity from the platform cache
-     * @param key
-     */
-    abstract getThrottlingCache(key: string): ThrottlingEntity;
 
     /**
      * Function to remove an item from cache given its key.
@@ -206,19 +206,14 @@ export abstract class CacheManager implements ICacheManager {
      * retrieve an account entity given the cache key
      * @param key
      */
-    getAccount(key: string): AccountEntity | null {
+    getAccountEntity(key: string): AccountEntity | null {
         // don't parse any non-account type cache entities
         if (CredentialEntity.getCredentialType(key) !== Constants.NOT_DEFINED || this.isAppMetadata(key)) {
             return null;
         }
 
         // Attempt retrieval
-        let entity: AccountEntity;
-        try {
-            entity = this.getItem(key, CacheSchemaType.ACCOUNT) as AccountEntity;
-        } catch (e) {
-            return null;
-        }
+        const entity = this.getAccount(key) as AccountEntity;
 
         // Authority type is required for accounts, return if it is not available (not an account entity)
         if (!entity || StringUtils.isEmpty(entity.authorityType)) {
@@ -229,23 +224,6 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * retrieve a credential - accessToken, idToken or refreshToken; given the cache key
-     * @param key
-     */
-    getCredential(key: string): CredentialEntity | null {
-        return this.getItem(key, CacheSchemaType.CREDENTIAL) as CredentialEntity;
-    }
-
-    /**
-     * retrieve an appmetadata entity given the cache key
-     * @param key
-     */
-    getAppMetadata(key: string): AppMetadataEntity | null {
-        return this.getItem(key, CacheSchemaType.APP_METADATA) as AppMetadataEntity;
-    }
-
-    /**
-     *>>>>>>> dev
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
      * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
      * @param homeAccountId

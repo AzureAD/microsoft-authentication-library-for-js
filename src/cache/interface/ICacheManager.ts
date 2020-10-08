@@ -14,8 +14,75 @@ import { CacheRecord } from "../entities/CacheRecord";
 import { AccountEntity } from "../entities/AccountEntity";
 import { AccountInfo } from "../../account/AccountInfo";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
+import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
+import { ThrottlingEntity } from "../entities/ThrottlingEntity";
 
 export interface ICacheManager {
+
+    /**
+     * fetch the account entity from the platform cache
+     * @param key
+     */
+    getAccount(key: string): AccountEntity | null;
+
+    /**
+     * set account entity in the platform cache
+     * @param key
+     * @param value
+     */
+    setAccount(key: string, value: AccountEntity): void;
+
+    /**
+     * fetch the credential entity (IdToken/AccessToken/RefreshToken) from the platform cache
+     * @param key
+     */
+    getCredential(key: string): CredentialEntity | null;
+
+    /**
+     * set credential entity (IdToken/AccessToken/RefreshToken) to the platform cache
+     * @param key
+     * @param value
+     */
+    setCredential(key: string, value: CredentialEntity): void;
+
+    /**
+     * fetch appMetadata entity from the platform cache
+     * @param key
+     */
+    getAppMetadata(key: string): AppMetadataEntity | null;
+
+    /**
+     * set appMetadata entity to the platform cache
+     * @param key
+     * @param value
+     */
+    setAppMetadata(key: string, value: AppMetadataEntity): void;
+
+    /**
+     * fetch server telemetry entity from the platform cache
+     * @param key
+     */
+    getServerTelemetry(key: string): ServerTelemetryEntity | null;
+
+    /**
+     * set server telemetry entity to the platform cache
+     * @param key
+     * @param value
+     */
+    setServerTelemetry(key: string, value: ServerTelemetryEntity): void;
+
+    /**
+     * fetch throttling entity from the platform cache
+     * @param key
+     */
+    getThrottlingCache(key: string): ThrottlingEntity | null;
+
+    /**
+     * set throttling entity to the platform cache
+     * @param key
+     * @param value
+     */
+    setThrottlingCache(key: string, value: ThrottlingEntity): void;
 
     /**
      * Returns all accounts in cache
@@ -27,24 +94,6 @@ export interface ICacheManager {
      * @param cacheRecord
      */
     saveCacheRecord(cacheRecord: CacheRecord): void;
-
-    /**
-     * Given account key retrieve an account
-     * @param key
-     */
-    getAccount(key: string): AccountEntity | null;
-
-    /**
-     * retrieve a credential - accessToken, idToken or refreshToken; given the cache key
-     * @param key
-     */
-    getCredential(key: string): CredentialEntity | null;
-
-    /**
-     * retrieve appMetadata, given the cache key
-     * @param key
-     */
-    getAppMetadata(key: string): AppMetadataEntity | null;
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
