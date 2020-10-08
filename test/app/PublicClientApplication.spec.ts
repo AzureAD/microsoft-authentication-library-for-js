@@ -8,7 +8,7 @@ import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryCacheValue, AuthenticationScheme, RefreshTokenClient } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
-import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
 import { XhrClient } from "../../src/network/XhrClient";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -18,6 +18,8 @@ import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+import { BroadcastEvent } from "../../src/event/BroadcastEvent";
+import { BroadcastMessage } from "../../src/event/BroadcastMessage";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -1787,6 +1789,82 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("getAccountByHomeId returns null if passed id is null", () => {
             const account = pca.getAccountByHomeId(null);
             expect(account).to.be.null;
+        });
+    });
+
+    describe.only("broadcastEvent and addEventCallback tests", () => {
+        it("can add an event callback and broadcast to it", () => {
+            let receivedMessage: BroadcastMessage;
+            const subscriber = (message) => {receivedMessage = message};
+            pca.addEventCallback(subscriber);
+            pca.broadcastEvent(BroadcastEvent.LOGIN_START, InteractionType.POPUP);
+
+            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_START);
+            expect(receivedMessage.interactionType).to.deep.eq(InteractionType.POPUP);
+        });
+
+        it("can add multiple callbacks and broadcast to all", () => {
+            let receivedMessage1: BroadcastMessage;
+            let receivedMessage2: BroadcastMessage;
+            const subscriber1 = (message) => {receivedMessage1 = message};
+            const subscriber2 = (message) => {receivedMessage2 = message};
+            pca.addEventCallback(subscriber1);
+            pca.addEventCallback(subscriber2);
+            pca.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.REDIRECT);
+
+            expect(receivedMessage1.type).to.deep.eq(BroadcastEvent.ACQUIRE_TOKEN_START);
+            expect(receivedMessage1.interactionType).to.deep.eq(InteractionType.REDIRECT);
+
+            expect(receivedMessage2.type).to.deep.eq(BroadcastEvent.ACQUIRE_TOKEN_START);
+            expect(receivedMessage2.interactionType).to.deep.eq(InteractionType.REDIRECT);
+        });
+
+        it("updates when new event broadcast", () => {
+            let receivedMessage: BroadcastMessage;
+            const subscriber = (message) => {receivedMessage = message};
+            pca.addEventCallback(subscriber);
+
+            pca.broadcastEvent(BroadcastEvent.LOGIN_START);
+            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_START);
+
+            pca.broadcastEvent(BroadcastEvent.LOGIN_SUCCESS);
+            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_SUCCESS);
+        });
+
+        it("only returns the most recently broadcasted event", () => {
+            let receivedMessage: BroadcastMessage;
+            const subscriber = (message) => {receivedMessage = message};
+            pca.addEventCallback(subscriber);
+
+            pca.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_START);
+            pca.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_FAILURE);
+            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.HANDLE_REDIRECT_FAILURE);
+        });
+
+        it("sets interactionType, payload, and error to null by default", () => {
+            let receivedMessage: BroadcastMessage;
+            const subscriber = (message) => {receivedMessage = message};
+            pca.addEventCallback(subscriber);
+            pca.broadcastEvent(BroadcastEvent.LOGIN_START);
+
+            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_START);
+            expect(receivedMessage.interactionType).to.be.null;
+            expect(receivedMessage.payload).to.be.null;
+            expect(receivedMessage.error).to.be.null;
+            expect(receivedMessage.timestamp).to.not.be.null;
+        });
+
+        it("sets all expected fields on event", () => {
+            let receivedMessage: BroadcastMessage;
+            const subscriber = (message) => {receivedMessage = message};
+            pca.addEventCallback(subscriber);
+            pca.broadcastEvent(BroadcastEvent.LOGIN_START, InteractionType.SILENT, {scopes: ["user.read"]}, null);
+
+            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_START);
+            expect(receivedMessage.interactionType).to.deep.eq(InteractionType.SILENT);
+            expect(receivedMessage.payload).to.deep.eq({scopes: ["user.read"]});
+            expect(receivedMessage.error).to.be.null;
+            expect(receivedMessage.timestamp).to.not.be.null;
         });
     });
 });
