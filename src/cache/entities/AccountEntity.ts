@@ -13,10 +13,9 @@ import { AuthToken } from "../../account/AuthToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
-import { TrustedAuthority } from "../../authority/TrustedAuthority";
 import { AccountInfo } from "../../account/AccountInfo";
 import { ClientAuthError } from "../../error/ClientAuthError";
-import { AuthorityType } from '../../authority/AuthorityType';
+import { AuthorityType } from "../../authority/AuthorityType";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).

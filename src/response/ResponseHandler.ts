@@ -27,8 +27,6 @@ import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/
 import { AuthenticationScheme } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
-import { config } from 'chai';
-import { ProtocolMode } from '../authority/ProtocolMode';
 
 /**
  * Class that handles response parsing.
