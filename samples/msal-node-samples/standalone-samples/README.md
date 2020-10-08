@@ -55,8 +55,7 @@ Continue to the appropriate sample to learn how it works, or to build it in to y
 - [Auth Code](auth-code/readme.md)
 - [Client Credentials](client-credentials/readme.md)
 - [Device Code](device-code/readme.md)
-- [On Behalf Of](on-behalf-of/readme.md)
-- [Refresh Token](refresh-token/readme.md)
+- [On Behalf Of](on-behalf-of/web-app/readme.md)
 - [Silent Flow](silent-flow/readme.md)
 
 ### Configure the application
