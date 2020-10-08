@@ -16,6 +16,7 @@ import { StringUtils } from "../../utils/StringUtils";
 import { TrustedAuthority } from "../../authority/TrustedAuthority";
 import { AccountInfo } from "../../account/AccountInfo";
 import { ClientAuthError } from "../../error/ClientAuthError";
+import { AuthorityType } from '../../authority/AuthorityType';
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -172,14 +173,15 @@ export class AccountEntity {
      * @param authority
      * @param idToken
      */
-    static createADFSAccount(
+    static createGenericAccount(
         authority: Authority,
         idToken: AuthToken,
-        oboAssertion?: string
+        oboAssertion?: string,
+        authorityType?: AuthorityType
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
-
-        account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
+        
+        account.authorityType = (authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
         // non AAD scenarios can have empty realm
         account.realm = "";

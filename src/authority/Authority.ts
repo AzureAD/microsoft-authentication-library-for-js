@@ -29,13 +29,13 @@ export class Authority {
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
     // Protocol mode to construct endpoints
-    private protocolMode: ProtocolMode;
+    private _protocolMode: ProtocolMode;
 
     constructor(authority: string, networkInterface: INetworkModule, protocolMode: ProtocolMode) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
-        this.protocolMode = protocolMode;
+        this._protocolMode = protocolMode;
     }
 
     // See above for AuthorityType
@@ -47,6 +47,13 @@ export class Authority {
         }
 
         return AuthorityType.Default;
+    }
+
+    /**
+     * ProtocolMode enum representing the way endpoints are constructed.
+     */
+    public get protocolMode(): ProtocolMode {
+        return this._protocolMode;
     }
 
     /**

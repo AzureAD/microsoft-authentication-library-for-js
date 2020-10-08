@@ -27,6 +27,8 @@ import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/
 import { AuthenticationScheme } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
+import { config } from 'chai';
+import { ProtocolMode } from '../authority/ProtocolMode';
 
 /**
  * Class that handles response parsing.
@@ -227,15 +229,17 @@ export class ResponseHandler {
         const authorityType = authority.authorityType;
 
         // ADFS does not require client_info in the response
-        if(authorityType === AuthorityType.Adfs){
-            return AccountEntity.createADFSAccount(authority, idToken, oboAssertion);
+        if(authorityType === AuthorityType.Adfs) {
+            return AccountEntity.createGenericAccount(authority, idToken, oboAssertion, AuthorityType.Adfs);
         }
 
-        if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
+        if (StringUtils.isEmpty(serverTokenResponse.client_info) && authority.protocolMode === "AAD") {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
         }
 
-        return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion);
+        return serverTokenResponse.client_info ?
+            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion) :
+            AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
     }
 
     /**
