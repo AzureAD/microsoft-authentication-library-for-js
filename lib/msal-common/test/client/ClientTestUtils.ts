@@ -7,61 +7,65 @@ import { CloudDiscoveryMetadata } from "../../src/authority/CloudDiscoveryMetada
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 
+let store: Record<string, ValidCacheType> = {};
 export class MockStorageClass extends CacheManager {
-    store: Record<string, ValidCacheType>;
 
     // Accounts
-    setAccount(key: string, value: AccountEntity): void {
-        this.store[key] = value;
+    getAccount(key: string): AccountEntity | null {
+        return store[key] as AccountEntity;
     }
-    getAccount(key: string): AccountEntity {
-        return this.store[key] as AccountEntity;
+    setAccount(key: string, value: AccountEntity): void {
+        store[key] = value;
     }
 
     // Credentials (idtokens, accesstokens, refreshtokens)
-    setCredential(key: string, value: CredentialEntity): void {
-        this.store[key] = value;
+    getCredential(key: string): CredentialEntity | null {
+        return store[key] as CredentialEntity;
     }
-    getCredential(key: string): CredentialEntity {
-        return this.store[key] as CredentialEntity;
+    setCredential(key: string, value: CredentialEntity): void {
+        store[key] = value;
     }
 
     // AppMetadata
-    setAppMetadata(key: string, value: AppMetadataEntity): void {
-        this.store[key] = value;
+    getAppMetadata(key: string): AppMetadataEntity | null {
+        return store[key] as AppMetadataEntity;
     }
-    getAppMetadata(key: string): AppMetadataEntity {
-        return this.store[key] as AppMetadataEntity;
+    setAppMetadata(key: string, value: AppMetadataEntity): void {
+        store[key] = value;
     }
 
     // Telemetry cache
-    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
-        this.store[key] = value;
+    getServerTelemetry(key: string): ServerTelemetryEntity | null {
+        return store[key] as ServerTelemetryEntity;
     }
-    getServerTelemetry(key: string): ServerTelemetryEntity {
-        return this.store[key] as ServerTelemetryEntity;
+    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
+        store[key] = value;
     }
 
     // Throttling cache
-    setThrottlingCache(key: string, value: ThrottlingEntity): void {
-        this.store[key] = value;
+    getThrottlingCache(key: string): ThrottlingEntity | null {
+        return store[key] as ThrottlingEntity;
     }
-    getThrottlingCache(key: string): ThrottlingEntity {
-        return this.store[key] as ThrottlingEntity;
+    setThrottlingCache(key: string, value: ThrottlingEntity): void {
+        store[key] = value;
     }
 
-    removeItem(key: string, type?: string): boolean {
-        delete this.store[key];
-        return true;
+    removeItem(key: string): boolean {
+        let result: boolean = false;
+        if (!!store[key]) {
+            delete store[key];
+            result = true;
+        }
+        return result;
     }
-    containsKey(key: string, type?: string): boolean {
-        return !!this.store[key];
+    containsKey(key: string): boolean {
+        return !!store[key];
     }
     getKeys(): string[] {
-        return Object.keys(this.store);
+        return Object.keys(store);
     }
     clear(): void {
-        this.store = {};
+        store = {};
     }
 }
 
