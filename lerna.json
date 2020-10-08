@@ -6,6 +6,7 @@
         "msal",
         "@azure/msal-common",
         "@azure/msal-browser",
+        "@azure/msal-react",
         "@azure/msal-angular",
         "@azure/msal-node",
         "vanilla-js-test-app",

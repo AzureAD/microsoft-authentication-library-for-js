@@ -37,6 +37,7 @@ export const MsalProvider: React.FunctionComponent<MsalProviderProps> = ({
             acquireTokenSilent: instance.acquireTokenSilent.bind(instance),
             getAllAccounts: instance.getAllAccounts.bind(instance),
             getAccountByUsername: instance.getAccountByUsername.bind(instance),
+            getAccountByHomeId: instance.getAccountByHomeId.bind(instance),
             handleRedirectPromise: async (): Promise<AuthenticationResult | null> => {
                 const response = await instance.handleRedirectPromise.call(
                     instance
