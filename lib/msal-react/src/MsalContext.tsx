@@ -35,6 +35,9 @@ const defaultMsalContext: IMsalContext = {
              */
             return (null as unknown) as AccountInfo;
         },
+        getAccountByHomeId: () => {
+            return null;
+        },
         handleRedirectPromise: () => {
             return Promise.reject(null);
         },
@@ -50,6 +53,9 @@ const defaultMsalContext: IMsalContext = {
         ssoSilent: () => {
             return Promise.reject();
         },
+        addEventCallback: () => {
+            return;
+        }
     },
     state: {
         accounts: [],
