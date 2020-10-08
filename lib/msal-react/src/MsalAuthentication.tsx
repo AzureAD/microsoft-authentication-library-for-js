@@ -31,20 +31,21 @@ export function useMsalAuthentication(args: IMsalAuthenticationProps = {}): Msal
          *  Additionally, other authentication components or hooks won't have access to the errors.
          *  May be better to lift this state into the the MsalProvider
          */
-        if (interactionType === InteractionType.POPUP) {
-            return msal.instance.loginPopup(authenticationRequest as PopupRequest).catch(error => {
-                setError(error);
-            });
-        } else if (interactionType === InteractionType.REDIRECT) {
-            return msal.instance.loginRedirect(authenticationRequest as RedirectRequest).catch(error => {
-                setError(error);
-            });
-        } else if (interactionType === InteractionType.SILENT) {
-            return msal.instance.ssoSilent(authenticationRequest as SsoSilentRequest).catch(error => {
-                setError(error);
-            }); 
-        } else {
-            return null;
+        switch (interactionType) {
+            case InteractionType.POPUP:
+                return msal.instance.loginPopup(authenticationRequest as PopupRequest).catch(error => {
+                    setError(error);
+                });
+            case InteractionType.REDIRECT:
+                return msal.instance.loginRedirect(authenticationRequest as RedirectRequest).catch(error => {
+                    setError(error);
+                });
+            case InteractionType.SILENT:
+                return msal.instance.ssoSilent(authenticationRequest as SsoSilentRequest).catch(error => {
+                    setError(error);
+                }); 
+            default:
+                return null;
         }
     }, [msal, authenticationRequest, interactionType]);
 
