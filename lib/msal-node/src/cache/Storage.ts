@@ -12,7 +12,9 @@ import {
     Logger,
     ValidCacheType,
     CredentialEntity,
+    Constants as CommonConstants, ThrottlingEntity
 } from "@azure/msal-common";
+import { ServerTelemetryEntity } from "@azure/msal-common/dist/src/cache/entities/ServerTelemetryEntity";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerTypes";
@@ -136,6 +138,18 @@ export class Storage extends CacheManager {
     }
 
     /**
+     * Gets cache item with given key.
+     * @param key
+     */
+    getItem(key: string): ValidCacheType {
+        this.logger.verbosePii(`Item key: ${key}`);
+
+        // read cache
+        const cache = this.getCache();
+        return cache[key];
+    }
+
+    /**
      * Gets cache item with given <key, value>
      * @param key
      * @param value
@@ -152,23 +166,108 @@ export class Storage extends CacheManager {
     }
 
     /**
-     * Gets cache item with given key.
+     * fetch the account entity
      * @param key
      */
-    getItem(key: string): ValidCacheType {
-        this.logger.verbosePii(`Item key: ${key}`);
-
-        // read cache
-        const cache = this.getCache();
-        return cache[key];
+    getAccount(key: string): AccountEntity | null {
+        const account: AccountEntity = this.getItem(key) as AccountEntity;
+        if (AccountEntity.isAccountEntity(account)) {
+            return account;
+        }
+        return null;
     }
 
     /**
-     * Fetch the credential type
+     * set account entity
+     * @param key
+     * @param value
+     */
+    setAccount(key: string, value: AccountEntity): void {
+        this.setItem(key, value);
+    }
+
+    /**
+     * fetch the credential entity (IdToken/AccessToken/RefreshToken)
      * @param key
      */
-    getCredential(key: string): CredentialEntity {
-        return this.getItem(key) as CredentialEntity;
+    getCredential(key: string): CredentialEntity | null {
+        const credential: CredentialEntity = this.getItem(key) as CredentialEntity;
+        if (CredentialEntity.getCredentialType(key) !== CommonConstants.NOT_DEFINED) {
+            return credential;
+        }
+        return null;
+    }
+
+    /**
+     * set credential entity (IdToken/AccessToken/RefreshToken)
+     * @param key
+     * @param value
+     */
+    setCredential(key: string, value: CredentialEntity): void {
+        this.setItem(key, value);
+    }
+
+    /**
+     * fetch appMetadata entity from the platform cache
+     * @param key
+     */
+    getAppMetadata(key: string): AppMetadataEntity | null {
+        const appMetadata: AppMetadataEntity = this.getItem(key) as AppMetadataEntity;
+        if (AppMetadataEntity.isAppMetadataEntity(key, appMetadata)) {
+            return appMetadata;
+        }
+        return null;
+    }
+
+    /**
+     * set appMetadata entity to the platform cache
+     * @param key
+     * @param value
+     */
+    setAppMetadata(key: string, value: AppMetadataEntity): void {
+        this.setItem(key, value);
+    }
+
+    /**
+     * fetch server telemetry entity from the platform cache
+     * @param key
+     */
+    getServerTelemetry(key: string): ServerTelemetryEntity | null {
+        const serverTelemetryEntity: ServerTelemetryEntity = this.getItem(key) as ServerTelemetryEntity;
+        if (ServerTelemetryEntity.isServerTelemetryEntity(key, serverTelemetryEntity)) {
+            return serverTelemetryEntity;
+        }
+        return null;
+    }
+
+    /**
+     * set server telemetry entity to the platform cache
+     * @param key
+     * @param value
+     */
+    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
+        this.setItem(key, value);
+    }
+
+    /**
+     * fetch throttling entity from the platform cache
+     * @param key
+     */
+    getThrottlingCache(key: string): ThrottlingEntity | null {
+        const throttlingCache: ThrottlingEntity = this.getItem(key) as ThrottlingEntity;
+        if (ThrottlingEntity.isThrottlingEntity(key, throttlingCache)) {
+            return throttlingCache;
+        }
+        return null;
+    }
+
+    /**
+     * set throttling entity to the platform cache
+     * @param key
+     * @param value
+     */
+    setThrottlingCache(key: string, value: ThrottlingEntity): void {
+        this.setItem(key, value);
     }
 
     /**

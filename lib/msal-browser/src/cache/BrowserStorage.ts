@@ -88,7 +88,7 @@ export class BrowserStorage extends CacheManager {
      */
     private migrateCacheEntry(newKey: string, value: string): void {
         if (value) {
-            this.setItem(this.generateCacheKey(newKey), value, CacheSchemaType.TEMPORARY);
+            this.setTemporaryCache(this.generateCacheKey(newKey), value);
         }
     }
 
@@ -101,11 +101,19 @@ export class BrowserStorage extends CacheManager {
     }
 
     /**
-     * set account entity in the platform cache
+     * fetches the entry from the browser storage based off the key
+     * @param key
+     */
+    getItem(key: string): string {
+        return this.windowStorage.getItem(key);
+    }
+
+    /**
+     * sets the entry in the browser storage
      * @param key
      * @param value
      */
-    setAccount(key: string, value: AccountEntity): void {
+    setItem(key: string, value: string): void {
         this.windowStorage.setItem(key, JSON.stringify(value));
     }
 
@@ -113,13 +121,42 @@ export class BrowserStorage extends CacheManager {
      * fetch the account entity from the platform cache
      * @param key
      */
-    getAccount(key: string): AccountEntity {
-        const value = this.windowStorage.getItem(key);
+    getAccount(key: string): AccountEntity | null {
+        const value = this.getItem(key);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const account = new AccountEntity();
-        return (CacheManager.toObject(account, JSON.parse(value)) as AccountEntity);
+        const account = CacheManager.toObject(new AccountEntity(), JSON.parse(value));
+        if (AccountEntity.isAccountEntity(account)) {
+            return account;
+        }
+        return null;
+    }
+
+    /**
+     * set account entity in the platform cache
+     * @param key
+     * @param value
+     */
+    setAccount(key: string, value: AccountEntity): void {
+        this.setItem(key, JSON.stringify(value));
+    }
+
+    /**
+     * fetch the credential entity (IdToken/AccessToken/RefreshToken) from the platform cache
+     * @param key
+     */
+    getCredential(key: string): CredentialEntity | null {
+        const value = this.getItem(key);
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
+        const credentialEntity: CredentialEntity = CacheManager.toObject(new CredentialEntity(), JSON.parse(value));
+        if (CredentialEntity.getCredentialType(key) !== Constants.NOT_DEFINED) {
+            return credentialEntity;
+        }
+        return null;
+
     }
 
     /**
@@ -128,20 +165,24 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setCredential(key: string, value: CredentialEntity): void {
-        this.windowStorage.setItem(key, JSON.stringify(value));
+        this.setItem(key, JSON.stringify(value));
     }
 
     /**
-     * fetch the credential entity (IdToken/AccessToken/RefreshToken) from the platform cache
+     * fetch appMetadata entity from the platform cache
      * @param key
      */
-    getCredential(key: string): CredentialEntity {
-        const value = this.windowStorage.getItem(key);
+    getAppMetadata(key: string): AppMetadataEntity {
+        const value = this.getItem(key);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const credential: CredentialEntity = new CredentialEntity();
-        return (CacheManager.toObject(credential, JSON.parse(value)) as CredentialEntity);
+        const appMetadata: AppMetadataEntity = CacheManager.toObject(new AppMetadataEntity(), JSON.parse(value));
+        if (AppMetadataEntity.isAppMetadataEntity(key, appMetadata)) {
+            return appMetadata;
+        }
+        return null;
+
     }
 
     /**
@@ -150,20 +191,23 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setAppMetadata(key: string, value: AppMetadataEntity): void {
-        this.windowStorage.setItem(key, JSON.stringify(value));
+        this.setItem(key, JSON.stringify(value));
     }
 
     /**
-     * fetch appMetadata entity from the platform cache
+     * fetch server telemetry entity from the platform cache
      * @param key
      */
-    getAppMetadata(key: string): AppMetadataEntity {
-        const value = this.windowStorage.getItem(key);
+    getServerTelemetry(key: string): ServerTelemetryEntity | null {
+        const value = this.getItem(key);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const appMetadata: AppMetadataEntity = new AppMetadataEntity();
-        return (CacheManager.toObject(appMetadata, JSON.parse(value)) as AppMetadataEntity);
+        const serverTelemetryEntity = CacheManager.toObject(new ServerTelemetryEntity(), JSON.parse(value));
+        if (ServerTelemetryEntity.isServerTelemetryEntity(key, serverTelemetryEntity)) {
+            return serverTelemetryEntity;
+        }
+        return null;
     }
 
     /**
@@ -172,20 +216,24 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
-        this.windowStorage.setItem(key, JSON.stringify(value));
+        this.setItem(key, JSON.stringify(value));
     }
 
     /**
-     * fetch server telemetry entity from the platform cache
+     * fetch throttling entity from the platform cache
      * @param key
      */
-    getServerTelemetry(key: string): ServerTelemetryEntity {
-        const value = this.windowStorage.getItem(key);
+    getThrottlingCache(key: string): ThrottlingEntity | null {
+        const value = this.getItem(key);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const serverTelemetry: ServerTelemetryEntity = new ServerTelemetryEntity();
-        return (CacheManager.toObject(serverTelemetry, JSON.parse(value)) as ServerTelemetryEntity);
+        const throttlingCache = CacheManager.toObject(new ThrottlingEntity(), JSON.parse(value));
+
+        if (ThrottlingEntity.isThrottlingEntity(key, throttlingCache)) {
+            return throttlingCache;
+        }
+        return null;
     }
 
     /**
@@ -194,20 +242,7 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setThrottlingCache(key: string, value: ThrottlingEntity): void {
-        this.windowStorage.setItem(key, JSON.stringify(value));
-    }
-
-    /**
-     * fetch throttling entity from the platform cache
-     * @param key
-     */
-    getThrottlingCache(key: string): ThrottlingEntity {
-        const value = this.windowStorage.getItem(key);
-        if (StringUtils.isEmpty(value)) {
-            return null;
-        }
-        const throttling: ThrottlingEntity = new ThrottlingEntity();
-        return (CacheManager.toObject(throttling, JSON.parse(value)) as ThrottlingEntity);
+        this.setItem(key, JSON.stringify(value));
     }
 
     /**
@@ -216,13 +251,11 @@ export class BrowserStorage extends CacheManager {
      * @param key
      */
     getTemporaryCache(key: string): string {
-
         if (this.cacheConfig.storeAuthStateInCookie) {
             const itemCookie = this.getItemCookie(key);
             return itemCookie;
         }
-
-        const value = this.windowStorage.getItem(key);
+        const value = this.getItem(key);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
@@ -238,7 +271,7 @@ export class BrowserStorage extends CacheManager {
      */
     setTemporaryCache(key: string, value: string): void {
         const stringVal = value as string;
-        this.windowStorage.setItem(key, stringVal);
+        this.setItem(key, stringVal);
         if (this.cacheConfig.storeAuthStateInCookie) {
             this.setItemCookie(key, stringVal);
         }
@@ -439,14 +472,14 @@ export class BrowserStorage extends CacheManager {
     /**
      * Gets the cached authority based on the cached state. Returns empty if no cached state found.
      */
-    getCachedAuthority(): string {
-        const stateCacheKey = this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE);
+    getCachedAuthority(cachedState: string): string {
+        const stateCacheKey = this.generateStateKey(cachedState);
         const state = this.getTemporaryCache(stateCacheKey);
         if (!state) {
             return null;
         }
 
-        const authorityCacheKey = this.generateCacheKey(this.generateAuthorityKey(state));
+        const authorityCacheKey = this.generateAuthorityKey(state);
         return this.getTemporaryCache(authorityCacheKey);
     }
 

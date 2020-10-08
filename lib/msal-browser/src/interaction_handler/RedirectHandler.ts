@@ -20,11 +20,11 @@ export class RedirectHandler extends InteractionHandler {
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             if (redirectStartPage) {
-                this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), redirectStartPage, CacheSchemaType.TEMPORARY);
+                this.browserStorage.setTemporaryCache(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), redirectStartPage);
             }
 
             // Set interaction status in the library.
-            this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
+            this.browserStorage.setTemporaryCache(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             this.browserStorage.cacheCodeRequest(authCodeRequest, browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             const isIframedApp = BrowserUtils.isInIframe();
@@ -60,11 +60,11 @@ export class RedirectHandler extends InteractionHandler {
         const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
 
         // Handle code response.
-        const requestState = this.browserStorage.getItem(this.browserStorage.generateStateKey(serverParams.state), CacheSchemaType.TEMPORARY) as string;
+        const requestState = this.browserStorage.getTemporaryCache(this.browserStorage.generateStateKey(serverParams.state)) as string;
         const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
-        const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateNonceKey(requestState), CacheSchemaType.TEMPORARY) as string;
+        const cachedNonce = this.browserStorage.getTemporaryCache(this.browserStorage.generateNonceKey(requestState)) as string;
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
         this.authCodeRequest.code = authCode;
 
@@ -72,7 +72,7 @@ export class RedirectHandler extends InteractionHandler {
         if (clientId) {
             ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes);
         }
-        
+
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
 
