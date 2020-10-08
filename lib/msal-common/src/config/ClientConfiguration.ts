@@ -12,7 +12,7 @@ import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
-import { ProtocolMode } from '../authority/ProtocolMode';
+import { ProtocolMode } from "../authority/ProtocolMode";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
