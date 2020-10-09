@@ -4,9 +4,8 @@
  */
 
 import { Storage } from "./Storage";
-import { ClientAuthError, StringUtils, AccountEntity, AccountInfo, Logger} from "@azure/msal-common";
+import { StringUtils, AccountEntity, AccountInfo, Logger, ISerializableTokenCache, ICachePlugin, TokenCacheContext } from "@azure/msal-common";
 import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity } from "./serializer/SerializerTypes";
-import { ICachePlugin } from "./ICachePlugin";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 
@@ -21,7 +20,7 @@ const defaultSerializedCache: JsonCache = {
 /**
  * In-memory token cache manager
  */
-export class TokenCache {
+export class TokenCache implements ISerializableTokenCache {
 
     private storage: Storage;
     private cacheHasChanged: boolean;
@@ -90,76 +89,43 @@ export class TokenCache {
     }
 
     /**
-     * Serializes cache into JSON and calls ICachePlugin.writeToStorage. ICachePlugin must be set on ClientApplication
-     */
-    async writeToPersistence(): Promise<void> {
-        this.logger.verbose("Writing to persistent cache");
-        if (this.persistence) {
-            this.logger.verbose("cachePlugin (persistent cache) not set by the user");
-            let cache = Serializer.serializeAllCache(this.storage.getInMemoryCache() as InMemoryCache);
-            const getMergedState = (stateFromDisk: string) => {
-                if (!StringUtils.isEmpty(stateFromDisk)) {
-                    this.logger.verbose("Reading state from disk");
-                    this.cacheSnapshot = stateFromDisk;
-                    cache = this.mergeState(JSON.parse(stateFromDisk), cache);
-                } else {
-                    this.logger.verbose("No state from disk");
-                }
-
-                return JSON.stringify(cache);
-            };
-
-            await this.persistence.writeToStorage(getMergedState);
-            this.cacheHasChanged = false;
-        } else {
-            throw ClientAuthError.createCachePluginError();
-        }
-    }
-
-    /**
-     * Calls ICachePlugin.readFromStorage and deserializes JSON to in-memory cache.
-     * ICachePlugin must be set on ClientApplication.
-     */
-    async readFromPersistence(): Promise<void> {
-        this.logger.verbose("Reading from persistent cache");
-        if (this.persistence) {
-            this.cacheSnapshot = await this.persistence.readFromStorage();
-
-            if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-                this.logger.verbose("Reading cache snapshot from disk");
-                const cache = this.overlayDefaults(
-                    JSON.parse(this.cacheSnapshot)
-                );
-                this.logger.verbose("Deserializing JSON");
-                const deserializedCache = Deserializer.deserializeAllCache(
-                    cache
-                );
-                this.storage.setInMemoryCache(deserializedCache);
-            } else {
-                this.logger.verbose("No cache snapshot to overlay and deserialize");
-            }
-        } else {
-            throw ClientAuthError.createCachePluginError();
-        }
-    }
-
-    /**
      * API that retrieves all accounts currently in cache to the user
      */
-    getAllAccounts(): AccountInfo[] {
+    async getAllAccounts(): Promise<AccountInfo[]> {
+
         this.logger.verbose("getAllAccounts called");
-        return this.storage.getAllAccounts();
+        let cacheContext;
+        try {
+            if (this.persistence) {
+                cacheContext = new TokenCacheContext(this, false);
+                await this.persistence.beforeCacheAccess(cacheContext);
+            }
+            return this.storage.getAllAccounts();
+        } finally {
+            if (this.persistence && cacheContext) {
+                await this.persistence.afterCacheAccess(cacheContext);
+            }
+        }
     }
 
     /**
      * API to remove a specific account and the relevant data from cache
      * @param account
      */
-    removeAccount(account: AccountInfo) {
+    async removeAccount(account: AccountInfo): Promise<void> {
         this.logger.verbose("removeAccount called");
-        this.storage.removeAccount(
-            AccountEntity.generateAccountCacheKey(account)
-        );
+        let cacheContext;
+        try {
+            if (this.persistence) {
+                cacheContext = new TokenCacheContext(this, true);
+                await this.persistence.beforeCacheAccess(cacheContext);
+            }
+            this.storage.removeAccount(AccountEntity.generateAccountCacheKey(account));
+        } finally {
+            if (this.persistence && cacheContext) {
+                await this.persistence.afterCacheAccess(cacheContext);
+            }
+        }
     }
 
     /**
@@ -237,7 +203,7 @@ export class TokenCache {
     }
 
     private mergeRemovalsDict<T>(oldState: Record<string, T>, newState?: Record<string, T>): Record<string, T> {
-        const finalState = {...oldState};
+        const finalState = { ...oldState };
         Object.keys(oldState).forEach((oldKey) => {
             if (!newState || !(newState.hasOwnProperty(oldKey))) {
                 delete finalState[oldKey];
