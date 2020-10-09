@@ -256,9 +256,9 @@ export abstract class ClientApplication {
      * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.REDIRECT, request);
         this.preflightBrowserEnvironmentCheck();
         // Preflight request
+        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.REDIRECT, request);
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
         
@@ -381,8 +381,8 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.broadcastEvent(BroadcastEvent.SSO_SILENT_START, InteractionType.SILENT, request);
         this.preflightBrowserEnvironmentCheck();
+        this.broadcastEvent(BroadcastEvent.SSO_SILENT_START, InteractionType.SILENT, request);
 
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
@@ -492,8 +492,8 @@ export abstract class ClientApplication {
      * @param {@link (EndSessionRequest:type)} 
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        this.broadcastEvent(BroadcastEvent.LOGOUT_START, null, logoutRequest);
         this.preflightBrowserEnvironmentCheck();
+        this.broadcastEvent(BroadcastEvent.LOGOUT_START, null, logoutRequest);
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
         // create logout string and navigate user window to logout. Auth module will clear cache.
@@ -836,7 +836,9 @@ export abstract class ClientApplication {
      * @param callback 
      */
     addEventCallback(callback: Function) {
-        this.eventCallbacks.push(callback);
+        if (this.isBrowserEnvironment) {
+            this.eventCallbacks.push(callback);
+        }
     }
 
     // #endregion
