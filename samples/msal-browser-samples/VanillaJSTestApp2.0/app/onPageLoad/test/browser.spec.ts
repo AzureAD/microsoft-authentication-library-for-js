@@ -43,7 +43,7 @@ describe("On Page Load tests", function () {
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
         
         browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
         });
     });
