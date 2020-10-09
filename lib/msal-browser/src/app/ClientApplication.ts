@@ -160,6 +160,9 @@ export abstract class ClientApplication {
                 // Navigate to page that initiated the redirect request
                 BrowserUtils.navigateWindow(loginRequestUrl, true);
             }
+
+            // Due to navigation this should not resolve, delay to ensure code dependant on handleRedirectPromise doesn't run before navigation
+            return new Promise(resolve => setTimeout(resolve, 5000, null));
         }
 
         return null;
