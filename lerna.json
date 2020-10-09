@@ -17,5 +17,5 @@
     "experimental/*"
   ],
   "version": "independent",
-  "concurrency": 2
+  "concurrency": 3
 }

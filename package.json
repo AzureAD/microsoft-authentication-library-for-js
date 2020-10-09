@@ -24,9 +24,9 @@
   },
   "scripts": {
     "postinstall": "node build/postinstall.js",
-    "build": "lerna run --concurrency 1 build",
+    "build": "lerna run build",
     "build:extensions": "cd extensions/msal-node-extensions/ && npm ci && npm run build",
-    "test": "lerna run --concurrency 1 test",
+    "test": "lerna run test",
     "test:coverage": "npm run clean:coverage && lerna run test:coverage",
     "test:report": "nyc report",
     "test:e2e": "lerna run --concurrency 1 test:e2e",
