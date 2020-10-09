@@ -4,6 +4,7 @@ import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TEST_URIS } from "./StringConstants";
 import { XhrClient } from "../../src/network/XhrClient";
 import { FetchClient } from "../../src/network/FetchClient";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
 
@@ -20,6 +21,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     });
 
     it("navigateWindow() with noHistory false or not set will call location.assign", (done) => {
+        sinon.useFakeTimers();
         const oldWindowLocation = window.location;
         delete window.location;
         window.location = {
@@ -39,6 +41,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     });
 
     it("navigateWindow() with noHistory true will call location.replace", (done) => {
+        sinon.useFakeTimers();
         const oldWindowLocation = window.location;
         delete window.location;
         window.location = {
@@ -55,6 +58,32 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         const windowReplaceSpy = sinon.spy(window.location, "replace");
         BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, true);
         expect(windowReplaceSpy.calledOnce).to.be.true;
+    });
+
+    it("navigateWindow() throws if navigation does not take place within 5 seconds", (done) => {
+        const clock = sinon.useFakeTimers();
+        const oldWindowLocation = window.location;
+        delete window.location;
+        window.location = {
+            ...oldWindowLocation,
+            replace: function (url) {
+                try {
+                    expect(url).to.include(TEST_URIS.TEST_REDIR_URI);
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        };
+        const windowReplaceSpy = sinon.spy(window.location, "replace");
+        try {
+            BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, true);
+            expect(windowReplaceSpy.calledOnce).to.be.true;
+            clock.next();
+        } catch (e) {
+            expect(e).to.be.instanceOf(BrowserAuthError);
+            expect(e.errorCode).to.eq(BrowserAuthErrorMessage.navigationFailedError.code);
+            done();
+        }
     });
 
     it("clearHash() clears the window hash", () => {
