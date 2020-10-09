@@ -3,6 +3,6 @@
   "comment": "Update PersistenceCachePlugin (#2348)",
   "packageName": "@azure/msal-node-extensions",
   "email": "email not defined",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-09-29T17:19:57.159Z"
 }
