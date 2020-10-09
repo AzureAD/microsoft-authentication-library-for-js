@@ -59,9 +59,3 @@ jobs:
       with:
         name: e2e-test-screenshots
         path: samples/**/screenshots
-
-  e2e-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Msal-browser E2E Tests
-        uses: ../test-workflows/msal-browser-e2e.yml
