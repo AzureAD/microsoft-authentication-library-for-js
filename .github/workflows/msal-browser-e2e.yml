@@ -4,6 +4,10 @@
 name: msal-browser E2E Tests
 
 on:
+  push:
+    branches: 
+      - dev
+      - master
   pull_request:
     paths: 
       - 'msal-browser/**/*' 
@@ -29,6 +33,7 @@ jobs:
     - name: Build packages
       run: |
         cd samples/msal-browser-samples/VanillaJSTestApp2.0
+        npm install
         npm run build:packages
 
     - name: E2E Tests
