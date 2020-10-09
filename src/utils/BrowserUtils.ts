@@ -6,6 +6,7 @@ import { INetworkModule, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserConstants } from "./BrowserConstants";
 
 /**
  * Utility class for browser specific functions
@@ -25,6 +26,11 @@ export class BrowserUtils {
         } else {
             window.location.assign(urlNavigate);
         }
+
+        // To block code from running after navigation, this should not throw if navigation succeeds
+        setTimeout(() => {
+            throw BrowserAuthError.createNavigationFailedError();
+        }, BrowserConstants.NAVIGATION_TIMEOUT_MS);
     }
 
     /**
