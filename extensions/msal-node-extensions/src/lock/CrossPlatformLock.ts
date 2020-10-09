@@ -73,7 +73,7 @@ export class CrossPlatformLock {
             }
         } catch (err) {
             if (err.code == Constants.ENOENT_ERROR) {
-                this.logger.warning("Tried to unlock but lockfile does not exist");
+                this.logger.info("Tried to unlock but lockfile does not exist");
             } else {
                 this.logger.error(`${pid} was not able to release lock. Ran into error: ${err.message}`);
                 throw PersistenceError.createCrossPlatformLockError(err.message);

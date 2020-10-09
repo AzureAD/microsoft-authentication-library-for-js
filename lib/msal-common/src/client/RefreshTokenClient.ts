@@ -38,15 +38,22 @@ export class RefreshTokenClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(
+        return responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
             request.resourceRequestMethod,
-            request.resourceRequestUri
+            request.resourceRequestUri,
+            null,
+            null,
+            null,
+            null,
+            true
         );
     }
 
