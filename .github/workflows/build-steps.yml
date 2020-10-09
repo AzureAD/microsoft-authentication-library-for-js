@@ -11,9 +11,18 @@ on:
   pull_request:
 
 jobs:
-  msal-core:
+  build-test:
     runs-on: ubuntu-latest
-
+    strategy:
+        fail-fast: false
+        matrix:
+          library:
+            - msal-core
+            - msal-angular
+            - msal-common
+            - msal-browser
+            - msal-node
+  
     steps:
     - uses: actions/checkout@v2
 
@@ -23,116 +32,16 @@ jobs:
     - name: Clean Install
       env:
         RUNNING_NODE_CI: 1
-      run: |
-        cd lib/msal-core
-        npm ci
+      run: npm ci
 
     - name: Build packages
-      run: npm run build
-
-    - name: Lint
-      run: npm run lint
-
-    - name: Unit Tests
-      run: npm run test:coverage
-
-  msal-angular:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Use Node.js
-      uses: actions/setup-node@v1
-
-    - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
-      run: |
-        cd lib/msal-core
-        npm ci
-
-    - name: Build packages
+      working-directory: lib/${{ matrix.library }}
       run: npm run build:all
 
     - name: Lint
+      working-directory: lib/${{ matrix.library }}
       run: npm run lint
 
     - name: Unit Tests
-      run: npm run test
-
-  msal-common:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Use Node.js
-      uses: actions/setup-node@v1
-
-    - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
-      run: |
-        cd lib/msal-common
-        npm ci
-
-    - name: Build packages
-      run: npm run build
-
-    - name: Lint
-      run: npm run lint
-
-    - name: Unit Tests
+      working-directory: lib/${{ matrix.library }}
       run: npm run test:coverage
-
-  msal-browser:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Use Node.js
-      uses: actions/setup-node@v1
-
-    - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
-      run: npm ci
-
-    - name: Build packages
-      run: |
-        cd lib/msal-browser
-        npm run build:all
-
-    - name: Lint
-      run: npm run lint
-
-    - name: Unit Tests
-      run: npm run test:coverage
-
-  msal-node:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Use Node.js
-      uses: actions/setup-node@v1
-
-    - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
-      run: npm ci
-
-    - name: Build packages
-      run: |
-        cd lib/msal-node
-        npm run build:all
-
-    - name: Lint
-      run: npm run lint
-
-    - name: Unit Tests
-      run: npm run test:coverage
-
