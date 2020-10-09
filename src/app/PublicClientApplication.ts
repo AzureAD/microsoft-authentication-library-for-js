@@ -53,7 +53,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (RedirectRequest:type)}
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
-        this.broadcastEvent(BroadcastEvent.LOGIN_START, InteractionType.REDIRECT, request);
+        if (this.isBrowserEnvironment) {
+            this.broadcastEvent(BroadcastEvent.LOGIN_START, InteractionType.REDIRECT, request);
+        }
         return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
     }
 
@@ -65,25 +67,28 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        this.broadcastEvent(BroadcastEvent.LOGIN_START, InteractionType.POPUP, request);
-        return this.acquireTokenPopup(request || DEFAULT_REQUEST)
-            .then((result) => {
-                this.broadcastEvent(BroadcastEvent.LOGIN_SUCCESS, InteractionType.POPUP, result);
-                return result;
-            })
-            .catch((e) => {
-                this.broadcastEvent(BroadcastEvent.LOGIN_FAILURE, InteractionType.POPUP, null, e);
-                throw e;
-            });
+        if (this.isBrowserEnvironment) {
+            this.broadcastEvent(BroadcastEvent.LOGIN_START, InteractionType.POPUP, request);
+            return this.acquireTokenPopup(request || DEFAULT_REQUEST)
+                .then((result) => {
+                    this.broadcastEvent(BroadcastEvent.LOGIN_SUCCESS, InteractionType.POPUP, result);
+                    return result;
+                })
+                .catch((e) => {
+                    this.broadcastEvent(BroadcastEvent.LOGIN_FAILURE, InteractionType.POPUP, null, e);
+                    throw e;
+                });
+        }
+        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.SILENT, request);
         this.preflightBrowserEnvironmentCheck();
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
+        this.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.SILENT, request);
         try {
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);

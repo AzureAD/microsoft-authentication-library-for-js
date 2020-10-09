@@ -342,6 +342,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
             });
         });
+
+        it("addEventCallback does not throw", (done) => {
+            const instance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+
+            expect(() => instance.addEventCallback(() => {})).to.not.throw();
+            done();
+        });
     });
 
     describe("Redirect Flow Unit tests", () => {
