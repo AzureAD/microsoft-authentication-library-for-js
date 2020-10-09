@@ -64,4 +64,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Msal-browser E2E Tests
-        uses: ./test-workflows/msal-browser-e2e.yml
+        uses: ../test-workflows/msal-browser-e2e.yml
