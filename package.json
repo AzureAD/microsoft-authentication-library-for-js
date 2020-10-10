@@ -43,7 +43,7 @@
     "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --out ./ref ./src/ --gitRevision dev",
     "doc:deploy": "gh-pages -d ref -a -e ref/msal-browser",
     "test": "mocha",
-    "test:coverage": "nyc --reporter=text mocha",
+    "test:coverage": "nyc mocha",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
     "build:all": "npm run build:common && npm run build",
     "build:common": "cd ../msal-common && npm run build",
