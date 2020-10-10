@@ -23,6 +23,7 @@
 1. [What is the difference between sessionStorage and localStorage?](#what-is-the-difference-between-sessionstorage-and-localstorage)
 1. [What are the possible configuration options?](#what-are-the-possible-configuration-options)
 1. [Where is the authority string on Azure AD Portal?](#where-is-the-authority-domain-string-on-azure-ad-portal)
+1. [Why is fragment the only valid field for responseMode in msal-browser?](#why-is-fragment-the-only-valid-field-for-responsemode-in-msal-browser)
 
 **[Tokens](#Tokens)**
 
@@ -124,6 +125,10 @@ For MSAL.js 2.x, please review [this document](https://github.com/AzureAD/micros
 ## Where is the `authority` domain string on Azure AD Portal?
 
 The `authority` string that you need to supplant to MSAL app configuration is not explicitly listed among the **Endpoint** links on `Azure Portal/AzureAD/App Registration/Overview` page. It is simply the domain part of a `/token` or `/authorize` endpoint, followed by the tenant name or ID e.g. `https://login.microsoftonline.com/common`.
+
+## Why is `fragment` the only valid field for `responseMode` in `msal-browser`?
+
+The library is built to specifically use the fragment response mode. This is a security consideration as the fragment of the URL is not sent to the server and modifying/clearing the fragment does not result in a new page load. We are considering implementing support for other `responseMode` types in the future, specifically to use multiple libraries in the same app.
 
 # Tokens
 
