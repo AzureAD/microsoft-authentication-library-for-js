@@ -18,7 +18,6 @@ jobs:
         matrix:
           library:
             - msal-angular
-            - msal-angularjs
   
     steps:
     - uses: actions/checkout@v2
@@ -76,11 +75,6 @@ jobs:
     - name: Unit Tests with coverage
       working-directory: lib/${{ matrix.library }}
       run: npm run test:coverage
-
-    - name: Build Coverage Report
-      if: success()
-      working-directory: lib/${{ matrix.library }}
-      run: npm run test:report
 
     - name: Coveralls
       if: success()
