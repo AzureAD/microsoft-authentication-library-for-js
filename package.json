@@ -48,7 +48,7 @@
     "lint": "cd ../../ && npm run lint:common",
     "lint:fix": "npm run lint -- -- --fix",
     "test": "mocha",
-    "test:coverage": "nyc --reporter=text mocha --exit",
+    "test:coverage": "nyc mocha",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
     "build:modules": "rollup -c",
     "build:modules:watch": "rollup -cw",
