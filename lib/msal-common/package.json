@@ -53,6 +53,7 @@
     "build:modules": "rollup -c",
     "build:modules:watch": "rollup -cw",
     "build": "npm run clean && npm run build:modules",
+    "build:all": "npm run build",
     "prepack": "npm run build"
   },
   "devDependencies": {

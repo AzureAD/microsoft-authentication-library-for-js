@@ -36,6 +36,7 @@
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6 && npm run build:webpack",
     "build:modules:watch": "tsc -m es6 --outDir lib-es6 --watch",
     "build": "npm run clean && npm run build:modules",
+    "build:all": "npm run build",
     "sri": "npm run build:webpack && npm run sri:msal && npm run sri:msalmin",
     "sri:msal": "openssl dgst -sha384 -binary dist/msal.js | openssl base64 -A",
     "sri:msalmin": "openssl dgst -sha384 -binary dist/msal.min.js | openssl base64 -A",
