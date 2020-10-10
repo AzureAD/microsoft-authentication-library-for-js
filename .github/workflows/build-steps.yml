@@ -83,7 +83,6 @@ jobs:
         github-token: ${{ secrets.github_token }}
         flag-name: ${{ matrix.library }}
         path-to-lcov: lib/${{ matrix.library }}/coverage/lcov.info
-        base-path: lib/${{ matrix.library }}
         parallel: true
 
   Coveralls:
