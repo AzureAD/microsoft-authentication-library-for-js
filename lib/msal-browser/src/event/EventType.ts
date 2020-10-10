@@ -1,4 +1,4 @@
-export enum BroadcastEvent {
+export enum EventType {
     LOGIN_START = "msal:loginStart",
     LOGIN_SUCCESS = "msal:loginSuccess",
     LOGIN_FAILURE = "msal:loginFailure",
