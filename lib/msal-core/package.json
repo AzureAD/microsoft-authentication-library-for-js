@@ -41,7 +41,7 @@
     "sri:msal": "openssl dgst -sha384 -binary dist/msal.js | openssl base64 -A",
     "sri:msalmin": "openssl dgst -sha384 -binary dist/msal.min.js | openssl base64 -A",
     "test": "mocha",
-    "test:coverage": "nyc --reporter=text mocha",
+    "test:coverage": "nyc mocha",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
     "lint": "cd ../../ && npm run lint:core",
     "lint:fix": "npm run lint -- -- --fix",

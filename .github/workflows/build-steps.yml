@@ -11,14 +11,45 @@ on:
   pull_request:
 
 jobs:
-  build-test:
+  build-test-no-coverage:
+    runs-on: ubuntu-latest
+    strategy:
+        fail-fast: false
+        matrix:
+          library:
+            - msal-angular
+            - msal-angularjs
+  
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+
+    - name: Clean Install
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Build packages
+      working-directory: lib/${{ matrix.library }}
+      run: npm run build:all
+
+    - name: Lint
+      working-directory: lib/${{ matrix.library }}
+      run: npm run lint
+
+    - name: Unit Tests without coverage
+      working-directory: lib/${{ matrix.library }}
+      run: npm run test
+
+  build-test-with-coverage:
     runs-on: ubuntu-latest
     strategy:
         fail-fast: false
         matrix:
           library:
             - msal-core
-            - msal-angular
             - msal-common
             - msal-browser
             - msal-node
@@ -43,11 +74,30 @@ jobs:
       run: npm run lint
 
     - name: Unit Tests with coverage
-      if: matrix.library != 'msal-angular'
       working-directory: lib/${{ matrix.library }}
       run: npm run test:coverage
 
-    - name: Unit Tests without coverage
-      if: matrix.library == 'msal-angular'
+    - name: Build Coverage Report
+      if: success()
       working-directory: lib/${{ matrix.library }}
-      run: npm run test
+      run: npm run test:report
+
+    - name: Coveralls
+      if: success()
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        flag-name: ${{ matrix.library }}
+        path-to-lcov: lib/${{ matrix.library }}/coverage/lcov.info
+        base-path: lib/${{ matrix.library }}
+        parallel: true
+
+  Coveralls:
+    needs: build-test-with-coverage
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
