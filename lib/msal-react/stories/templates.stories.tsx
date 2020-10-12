@@ -50,10 +50,10 @@ export const SpecificUser = () => {
             <button onClick={(e) => setCurrentUser(username)}>Check status</button>
             <p>Authentication status templates can be scoped to a specific username.</p>
 
-            <UnauthenticatedTemplate account={{username: currentUser}}>
+            <UnauthenticatedTemplate username={currentUser}>
                 <p>The user <b>{currentUser}</b> is <b>unauthenticated</b>.</p>
             </UnauthenticatedTemplate>
-            <AuthenticatedTemplate account={{username: currentUser}}>
+            <AuthenticatedTemplate username={currentUser}>
                 <p>The user <b>{currentUser}</b> is <b>authenticated</b>.</p>
             </AuthenticatedTemplate>
         </MsalProvider>

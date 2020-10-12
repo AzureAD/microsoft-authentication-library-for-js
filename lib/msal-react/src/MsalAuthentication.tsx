@@ -7,7 +7,8 @@ import { getChildrenOrFunction, defaultLoginHandler } from "./utilities";
 import { AccountIdentifiers, useIsAuthenticated } from "./useIsAuthenticated";
 
 export interface IMsalAuthenticationProps {
-    accountIdentifier?: AccountIdentifiers
+    username?: string;
+    homeAccountId?: string;
     loginHandler?: (context: IMsalContext) => Promise<AuthenticationResult>;
 }
 
@@ -18,8 +19,12 @@ type MsalAuthenticationResult = {
 
 // TODO: Add optional argument for the `request` object?
 export function useMsalAuthentication(args: IMsalAuthenticationProps = {}): MsalAuthenticationResult {
-    const { accountIdentifier, loginHandler = defaultLoginHandler } = args;
+    const { username, homeAccountId, loginHandler = defaultLoginHandler } = args;
     const msal = useMsal();
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     const [error, setError] = useState<Error | null>(null);
@@ -61,8 +66,12 @@ export function useMsalAuthentication(args: IMsalAuthenticationProps = {}): Msal
 }
 
 export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProps> = props => {
-    const { accountIdentifier, loginHandler, children } = props;
-    const { msal } = useMsalAuthentication({ accountIdentifier, loginHandler });
+    const { username, homeAccountId, loginHandler, children } = props;
+    const { msal } = useMsalAuthentication({ username, homeAccountId, loginHandler });
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     // TODO: What if the user authentiction is InProgress? How will user show a loading state?

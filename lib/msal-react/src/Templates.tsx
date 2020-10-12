@@ -5,12 +5,17 @@ import { getChildrenOrFunction } from "./utilities";
 import { AccountIdentifiers, useIsAuthenticated } from "./useIsAuthenticated";
 
 export interface IMsalTemplateProps {
-    accountIdentifier?: AccountIdentifiers
+    username?: string,
+    homeAccountId?: string
 }
 
 export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
-    const { children, accountIdentifier } = props;
+    const { children, username, homeAccountId } = props;
     const context = useMsal();
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     if (!isAuthenticated) {
@@ -24,8 +29,12 @@ export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps
 };
 
 export const AuthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
-    const { children, accountIdentifier } = props;
+    const { children, username, homeAccountId } = props;
     const context = useMsal();
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     if (isAuthenticated) {
