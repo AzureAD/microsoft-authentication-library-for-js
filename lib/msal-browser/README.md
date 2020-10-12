@@ -125,7 +125,7 @@ See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-
 
 If you are having issues with `lerna` and wish to use the local version of the `@azure/msal-common` library (to reflect changes made in both repositories) you can run do the following:
 
-```javascript
+```bash
 // Change to the msal-browser package directory
 cd lib/msal-browser/
 // Install package dependencies
@@ -146,7 +146,7 @@ npm link @azure/msal-common
 
 To build the `@azure/msal-browser` library, you can do the following:
 
-```javascript
+```bash
 // Change to the msal-browser package directory
 cd lib/msal-browser/
 // To run build only for browser package
@@ -154,7 +154,7 @@ npm run build
 ```
 
 To build both the `@azure/msal-browser` library and `@azure/msal-common` libraries, you can do the following:
-```javascript
+```bash
 // Change to the msal-browser package directory
 cd lib/msal-browser/
 // To run build only for browser package
@@ -164,7 +164,7 @@ npm run build:all
 ### Running Tests
 `@azure/msal-browser` uses [mocha](https://mochajs.org/) and [chai](https://www.chaijs.com/) to run unit tests, as well as Istanbul's [nyc](https://github.com/istanbuljs/nyc) tool for code coverage.
 
-```javascript
+```bash
 // To run tests
 npm test
 // To run tests with code coverage

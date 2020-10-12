@@ -42,18 +42,18 @@ This repository is a monorepo for all packages maintained by the MSAL.js team. I
 
 If you would like to build a specific package, you can visit the `README.md` for that specific folder to review the build process. The instructions here are specific to the monorepo. 
 
-After you have cloned the repository, run `npm install` in the root folder. This will install the depedencies for all of the libraries and samples in the repo, create linkages between packages that have depedencies on each other, and run the build process for each of the libraries.
+After you have cloned the repository, run `npm install` in the root folder. This will install the dependencies for all of the libraries and samples in the repo, create links between packages depend on each other, and run the build process for each of the libraries.
 
 > **NOTE**: This requires the installation of the `lerna` package to successfully run. You can find more information about `lerna` [here](https://www.npmjs.com/package/lerna).
 
-To reset each of the libraries, run `npm run clean` in the root folder, which will remove the `node_modules` folders and built files for each repo and sample.
+To reset each of the libraries, run `npm run clean` in the root folder, which will remove the `node_modules` folders and build files for each subrepo and sample.
 
 If you run `npm install` in any of the libraries individually, you may find that your packages are no longer referencing the local files, but instead looking for the ones available publicly on `npm`. You can resolve this by running `lerna bootstrap`.
 
 ## Build and Test
 
 ### Build Library
-```javascript
+```bash
 // Change to the root of the msal repo
 cd microsoft-authentication-library-for-js/
 // Install npm dependencies and bootstrap packages
@@ -66,14 +66,14 @@ npm run build -- --scope <package-name>
 
 ### Test and Test Coverage
 
-Bug fixes and features should come with tests.  Add your tests in the
+Bug fixes and features should come with automated tests.  Add your tests in the
 test directory. This varies by repository but often follows the same convention of /src/test.  Look at other tests to see how they should be
 structured (license boilerplate, common includes, etc.).
 
-Make sure that all tests pass. You can run the tests as described below.
+Make sure that all previously passing and new tests pass before submitting your change. You can run the tests as described below.
 
 #### Unit tests without coverage:
-```javascript
+```bash
 // Change to the root of the msal repo
 cd microsoft-authentication-library-for-js/
 // Install npm dependencies and bootstrap packages
@@ -83,7 +83,7 @@ npm test
 ```
 
 #### Unit tests with coverage (no reporting):
-```javascript
+```bash
 // Change to the root of the msal repo
 cd microsoft-authentication-library-for-js/
 // Install npm dependencies and bootstrap packages
@@ -162,7 +162,7 @@ You will need to add the changefiles to your branch before it can be merged. The
 
 - `npm run beachball:change`
 
-Generates a changefile based on the `master` branch. This should be run on your PR before merging to `dev`. When this command is run, the type of change needs to be selected:
+Generates a changefile based on the `master` branch. This should be run on your PR before merging to `dev`, **AFTER** you have created your PR. When this command is run, the type of change needs to be selected:
 
 ![Select Change Type](./docs/images/beachball-changetype.png)
 
@@ -173,7 +173,7 @@ Here are the criteria for each type of change:
 - `Minor`: Used for new features and major bug fixes.
 - `Major`: Used for new major library changes. Should almost never be used.
 
-`beachball` will then ask for the changelog message. Please enter a short description of the change as well as the PR number in parentheses at the end of the message. This does not need to be a verbose message.
+`beachball` will then ask for the changelog message. Please enter a short description of the change as well as the PR number in parentheses at the end of the message. This does not need to be a verbose message. 
 
 ![Enter changelog message](./docs/images/beachball-changemessage.png)
 
@@ -184,6 +184,8 @@ Checks that changefiles have been generated for relevant changed packages. Used 
 - `npm run beachball:bump`
 
 Bumps versions for packages with relevant changefiles. Run on `master` branch to check which packages are slated for release.
+
+**IMPORTANT NOTE**: This should **NOT** be done when merging a PR. You should ONLY do this on your local branch to ensure there are no unexpected changes.
 
 ## Drafting a release
 
