@@ -67,7 +67,7 @@ const UseIsAuthenticatedExample = () => {
 };
 
 const UseMsalAuthenticationEample = () => {
-    useMsalAuthentication();
+    useMsalAuthentication({interactionType: "popup"});
     
     return (
         <React.Fragment>
