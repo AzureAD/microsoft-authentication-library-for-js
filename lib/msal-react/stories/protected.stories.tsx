@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MsalProvider, MsalAuthentication } from "../src";
+import { MsalProvider, MsalAuthenticationTemplate, InteractionType } from "../src";
 
 import { msalInstance } from "./msalInstance";
 
@@ -11,9 +11,9 @@ export const Example = () => {
     return (
         <MsalProvider instance={msalInstance}>
             <p>This page has a component that will only render if you are authenticated.</p>
-            <MsalAuthentication interactionType='popup'>
+            <MsalAuthenticationTemplate interactionType={InteractionType.Popup}>
                 <ProtectedComponent />
-            </MsalAuthentication>
+            </MsalAuthenticationTemplate>
         </MsalProvider>
     );
 };

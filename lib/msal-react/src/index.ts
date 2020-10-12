@@ -5,6 +5,8 @@
  *      This will be important for showing intermediary UI such as loading or error components
  */
 
+export { InteractionType } from "@azure/msal-browser";
+
 export type { IMsalContext } from "./MsalContext";
 export type { MsalProviderProps } from "./MsalProvider";
 export type { IMsalAuthenticationProps } from "./Templates";

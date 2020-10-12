@@ -18,11 +18,11 @@ export function useMsalAuthentication(
 
     const login = useCallback(() => {
         switch (interactionType) {
-            case InteractionType.POPUP:
+            case InteractionType.Popup:
                 return msal.instance.loginPopup(authenticationRequest as PopupRequest);
-            case InteractionType.REDIRECT:
+            case InteractionType.Redirect:
                 return msal.instance.loginRedirect(authenticationRequest as RedirectRequest);
-            case InteractionType.SILENT:
+            case InteractionType.Silent:
                 return msal.instance.ssoSilent(authenticationRequest as SsoSilentRequest);
             default:
                 return null;
