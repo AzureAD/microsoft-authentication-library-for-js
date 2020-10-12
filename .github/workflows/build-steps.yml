@@ -11,38 +11,8 @@ on:
   pull_request:
 
 jobs:
-  build-test-no-coverage:
-    runs-on: ubuntu-latest
-    strategy:
-        fail-fast: false
-        matrix:
-          library:
-            - msal-angular
-  
-    steps:
-    - uses: actions/checkout@v2
 
-    - name: Use Node.js
-      uses: actions/setup-node@v1
-
-    - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
-      run: npm ci
-
-    - name: Build packages
-      working-directory: lib/${{ matrix.library }}
-      run: npm run build:all
-
-    - name: Lint
-      working-directory: lib/${{ matrix.library }}
-      run: npm run lint
-
-    - name: Unit Tests without coverage
-      working-directory: lib/${{ matrix.library }}
-      run: npm run test
-
-  build-test-with-coverage:
+  build-test:
     runs-on: ubuntu-latest
     strategy:
         fail-fast: false
@@ -52,6 +22,7 @@ jobs:
             - msal-common
             - msal-browser
             - msal-node
+            - msal-angular
   
     steps:
     - uses: actions/checkout@v2
