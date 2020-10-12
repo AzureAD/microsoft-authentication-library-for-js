@@ -3,6 +3,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -22,3 +23,42 @@ export interface IPublicClientApplication {
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): void;
 }
+
+export const stubbedPublicClientApplication: IPublicClientApplication = {
+    acquireTokenPopup: () => {
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);
+    },
+    acquireTokenRedirect: () => {	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+    },	
+    acquireTokenSilent: () => {	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+    },	
+    getAllAccounts: () => {
+        return [];	
+    },	
+    getAccountByHomeId: () => {
+        return null;
+    },
+    getAccountByUsername: () => {	
+        return null;	
+    },	
+    handleRedirectPromise: () => {	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+    },	
+    loginPopup: () => {	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+    },	
+    loginRedirect: () => {	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+    },	
+    logout: () => {	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+    },	
+    ssoSilent: () => {	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+    },
+    addEventCallback: () => {
+        return;
+    }
+};

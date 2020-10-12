@@ -1,23 +1,24 @@
-import { AuthenticationResult } from "@azure/msal-browser";
+import { AuthenticationResult, AuthError } from "@azure/msal-browser";
 import { useState, useEffect } from "react";
 
 import { useMsal } from "./MsalProvider";
 
-export function useHandleRedirect(): AuthenticationResult | null {
+export function useHandleRedirect(): [AuthenticationResult|null, AuthError|null] {
     const { instance } = useMsal();
     const [
-        redirectResponse,
+        [redirectResponse, redirectError],
         setRedirectResponse,
-    ] = useState<AuthenticationResult | null>(null);
+    ] = useState<[AuthenticationResult|null, AuthError|null]>([null, null]);
 
     useEffect(() => {
         instance.handleRedirectPromise().then(response => {
             if (response) {
-                setRedirectResponse(response);
+                setRedirectResponse([response, null]);
             }
+        }).catch(e => {
+            setRedirectResponse([null, e]);
         });
-        // TODO: error handling
     }, [instance]);
 
-    return redirectResponse;
+    return [redirectResponse, redirectError];
 }

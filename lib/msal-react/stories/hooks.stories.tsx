@@ -1,5 +1,14 @@
 import * as React from "react";
-import { MsalProvider, useMsal, useIsAuthenticated, UnauthenticatedTemplate, AuthenticatedTemplate, IMsalContext, useMsalAuthentication } from "../src";
+import { 
+    MsalProvider, 
+    useMsal, 
+    useIsAuthenticated, 
+    UnauthenticatedTemplate, 
+    AuthenticatedTemplate, 
+    IMsalContext, 
+    useMsalAuthentication, 
+    InteractionType 
+} from "../src";
 
 import { msalInstance } from "./msalInstance";
 import { useState } from "react";
@@ -42,9 +51,9 @@ const UseIsAuthenticatedExample = () => {
     const isAuthenticated = useIsAuthenticated();
 
     const [username, setUsername] = useState(isAuthenticated ? state.accounts[0].username : "user@example.com");
-    const [currentUser, setCurrentUser] = useState(username);
+    const [currentUser, setCurrentUser] = useState(isAuthenticated ? state.accounts[0].username : "user@example.com");
     
-    const isSpecificUserAuthenticated = useIsAuthenticated(currentUser);
+    const isSpecificUserAuthenticated = useIsAuthenticated({username: currentUser});
     
     return (
         <React.Fragment>
@@ -67,7 +76,7 @@ const UseIsAuthenticatedExample = () => {
 };
 
 const UseMsalAuthenticationEample = () => {
-    useMsalAuthentication();
+    useMsalAuthentication(InteractionType.Popup);
     
     return (
         <React.Fragment>

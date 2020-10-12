@@ -14,8 +14,7 @@ export type MsalProviderProps = {
 export const MsalProvider: React.FunctionComponent<MsalProviderProps> = ({instance, children}) => {
     // State hook to store accounts
     const [accounts, setAccounts] = React.useState<AccountInfo[]>(
-        // TODO: Remove the `|| []` hack when PR is finally merged to msal/browser
-        instance.getAllAccounts() || []
+        instance.getAllAccounts()
     );
 
     const [error, setError] = React.useState<Error|AuthError|null>(null);
