@@ -15,7 +15,7 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     env: 
-      NOT_FROM_FORK: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository || (github.event_name == 'push'))
+      NOT_FROM_FORK: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
 
     strategy:
         fail-fast: false
@@ -63,7 +63,7 @@ jobs:
   Coveralls:
     needs: build-test
     runs-on: ubuntu-latest
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
 
     steps:
     - name: Coveralls Finished
