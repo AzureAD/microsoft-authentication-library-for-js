@@ -15,8 +15,8 @@ on:
       - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
 
 jobs:
-  build:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository)
+  run-e2e:
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
 
     steps:
@@ -43,7 +43,6 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      if: env.NOT_FROM_FORK == 'true'
       run: npm run test:e2e
 
     - name: Upload E2E Test Screenshots
