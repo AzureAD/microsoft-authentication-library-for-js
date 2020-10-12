@@ -36,7 +36,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             }
         };
         const windowAssignSpy = sinon.spy(window.location, "assign");
-        BrowserUtils.navigateWindow(TEST_URIS.TEST_LOGOUT_URI);
+        BrowserUtils.navigateWindow(TEST_URIS.TEST_LOGOUT_URI, 10000);
         expect(windowAssignSpy.calledOnce).to.be.true;
     });
 
@@ -56,7 +56,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             }
         };
         const windowReplaceSpy = sinon.spy(window.location, "replace");
-        BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, true);
+        BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, 10000, true);
         expect(windowReplaceSpy.calledOnce).to.be.true;
     });
 
@@ -76,7 +76,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         };
         const windowReplaceSpy = sinon.spy(window.location, "replace");
         try {
-            BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, true);
+            BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, 10000, true);
             expect(windowReplaceSpy.calledOnce).to.be.true;
             clock.next();
         } catch (e) {

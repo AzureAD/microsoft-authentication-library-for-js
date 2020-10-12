@@ -15,7 +15,7 @@ export class RedirectHandler extends InteractionHandler {
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectStartPage?: string, browserCrypto?: ICrypto): Window {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectStartPage?: string, timeout?: number, browserCrypto?: ICrypto): Window {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
@@ -33,7 +33,7 @@ export class RedirectHandler extends InteractionHandler {
                 throw BrowserAuthError.createRedirectInIframeError(isIframedApp);
             }
             // Navigate window to request URL
-            BrowserUtils.navigateWindow(requestUrl);
+            BrowserUtils.navigateWindow(requestUrl, timeout);
         } else {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");

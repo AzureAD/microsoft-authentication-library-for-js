@@ -9,6 +9,7 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 // Default timeout for popup windows and iframes in milliseconds
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
+const DEFAULT_REDIRECT_TIMEOUT_MS = 10000;
 
 /**
  * Use this to configure the auth options in the Configuration object
@@ -52,6 +53,7 @@ export type CacheOptions = {
  * - networkClient                - Network interface implementation
  * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup
  * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe
+ * - navigationTimeout            - Sets the timeout to wait for redirection to occur. This prevents code from being run after initiating redirect
  * - loadFrameTimeout             - Maximum time the library should wait for a frame to load
  * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
  */
@@ -60,6 +62,7 @@ export type BrowserSystemOptions = SystemOptions & {
     networkClient?: INetworkModule;
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
+    redirectTimeout?: number;
     loadFrameTimeout?: number;
     asyncPopups?: boolean;
 };
@@ -120,6 +123,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         networkClient: BrowserUtils.getBrowserNetworkClient(),
         windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
+        redirectTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
         asyncPopups: false
     };

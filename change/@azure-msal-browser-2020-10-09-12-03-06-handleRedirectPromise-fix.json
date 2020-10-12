@@ -3,6 +3,6 @@
   "comment": "Fix unexpected interaction_required error in redirect flow (#2404)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-10-09T19:03:06.035Z"
 }

@@ -6,7 +6,6 @@ import { INetworkModule, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants } from "./BrowserConstants";
 
 /**
  * Utility class for browser specific functions
@@ -20,7 +19,7 @@ export class BrowserUtils {
      * @param {string} urlNavigate - URL of the authorization endpoint
      * @param {boolean} noHistory - boolean flag, uses .replace() instead of .assign() if true
      */
-    static navigateWindow(urlNavigate: string, noHistory?: boolean): void {
+    static navigateWindow(urlNavigate: string, timeout: number, noHistory?: boolean): void {
         if (noHistory) {
             window.location.replace(urlNavigate);
         } else {
@@ -30,7 +29,7 @@ export class BrowserUtils {
         // To block code from running after navigation, this should not throw if navigation succeeds
         setTimeout(() => {
             throw BrowserAuthError.createNavigationFailedError();
-        }, BrowserConstants.NAVIGATION_TIMEOUT_MS);
+        }, timeout);
     }
 
     /**
