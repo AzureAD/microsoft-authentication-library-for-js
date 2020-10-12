@@ -3,7 +3,6 @@ export { ConfidentialClientApplication } from "./client/ConfidentialClientApplic
 export { Configuration, buildAppConfiguration } from "./config/Configuration";
 export { Storage } from "./cache/Storage";
 export { TokenCache } from "./cache/TokenCache";
-export { ICachePlugin } from "./cache/ICachePlugin";
 
 // crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";
@@ -30,5 +29,8 @@ export {
     // Logger
     LogLevel,
     // ProtocolMode enum
-    ProtocolMode
+    ProtocolMode,
+    ICachePlugin,
+    TokenCacheContext,
+    ISerializableTokenCache
 } from "@azure/msal-common";

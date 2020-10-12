@@ -201,6 +201,8 @@ export abstract class ClientApplication {
                 cpu: process.arch || "",
                 os: process.platform || "",
             },
+            persistencePlugin: this.config.cache!.cachePlugin,
+            serializableCache: this.tokenCache,
         };
     }
 
