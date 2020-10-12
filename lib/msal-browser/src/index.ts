@@ -8,7 +8,7 @@ export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthEr
 export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } from "./error/BrowserConfigurationAuthError";
 
 // Interfaces
-export { IPublicClientApplication } from "./app/IPublicClientApplication";
+export { IPublicClientApplication, stubbedPublicClientApplication } from "./app/IPublicClientApplication";
 export { PopupRequest } from "./request/PopupRequest";
 export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";

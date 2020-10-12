@@ -21,4 +21,5 @@ export { withMsal } from "./withMsal";
 
 export { useHandleRedirect } from "./useHandleRedirect";
 
+export type { AccountIdentifiers } from "./useIsAuthenticated";
 export { useIsAuthenticated } from "./useIsAuthenticated";

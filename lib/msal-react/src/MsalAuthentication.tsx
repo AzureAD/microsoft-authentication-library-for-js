@@ -4,11 +4,12 @@ import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType } from
 import { IMsalContext } from "./MsalContext";
 import { useMsal } from "./MsalProvider";
 import { getChildrenOrFunction } from "./utilities";
-import { useIsAuthenticated } from "./useIsAuthenticated";
+import { AccountIdentifiers, useIsAuthenticated } from "./useIsAuthenticated";
 
 export interface IMsalAuthenticationProps {
     interactionType: string;
     username?: string;
+    homeAccountId?: string;
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest
 }
 
@@ -17,9 +18,13 @@ type MsalAuthenticationResult = {
 };
 
 export function useMsalAuthentication(msalProps: IMsalAuthenticationProps): MsalAuthenticationResult {
-    const { interactionType, username, authenticationRequest } = msalProps;
+    const { interactionType, username, homeAccountId, authenticationRequest } = msalProps;
     const msal = useMsal();
-    const isAuthenticated = useIsAuthenticated(username);
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
+    const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     const login = useCallback(() => {
         switch (interactionType) {
@@ -48,9 +53,19 @@ export function useMsalAuthentication(msalProps: IMsalAuthenticationProps): Msal
     return { msal };
 }
 
-export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProps> = ({ interactionType, username, authenticationRequest, children }) => {
-    const { msal } = useMsalAuthentication({ interactionType, username, authenticationRequest });
-    const isAuthenticated = useIsAuthenticated(username);
+export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProps> = ({ 
+    interactionType, 
+    username, 
+    homeAccountId, 
+    authenticationRequest, 
+    children 
+}) => {
+    const { msal } = useMsalAuthentication({ interactionType, username, homeAccountId, authenticationRequest });
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
+    const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     // TODO: What if the user authentiction is InProgress? How will user show a loading state?
     if (isAuthenticated) {
