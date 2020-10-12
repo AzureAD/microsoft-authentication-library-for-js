@@ -58,7 +58,7 @@ jobs:
         parallel: true
 
   Coveralls:
-    needs: build-test-with-coverage
+    needs: build-test
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
