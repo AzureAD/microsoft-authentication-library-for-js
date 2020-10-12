@@ -175,12 +175,11 @@ export class AccountEntity {
     static createGenericAccount(
         authority: Authority,
         idToken: AuthToken,
-        oboAssertion?: string,
-        authorityType?: AuthorityType
+        oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
         
-        account.authorityType = (authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        account.authorityType = (authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
         // non AAD scenarios can have empty realm
         account.realm = "";

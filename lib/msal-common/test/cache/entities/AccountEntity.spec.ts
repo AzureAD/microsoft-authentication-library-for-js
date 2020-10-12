@@ -227,7 +227,7 @@ describe("AccountEntity.ts Unit Tests", () => {
 
     it("creates a generic ADFS account", () => {
         const authority =  AuthorityFactory.createInstance(
-            Constants.DEFAULT_AUTHORITY,
+            "https://myadfs.com/adfs",
             networkInterface,
             ProtocolMode.AAD
 		);
@@ -249,9 +249,7 @@ describe("AccountEntity.ts Unit Tests", () => {
 
         const acc = AccountEntity.createGenericAccount(
             authority,
-            idToken,
-            null,
-            AuthorityType.Adfs
+            idToken
         );
 
         expect(acc.generateAccountKey()).to.eql(`${idTokenClaims.sub.toLowerCase()}-login.windows.net-`);

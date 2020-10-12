@@ -228,7 +228,7 @@ export class ResponseHandler {
 
         // ADFS does not require client_info in the response
         if(authorityType === AuthorityType.Adfs) {
-            return AccountEntity.createGenericAccount(authority, idToken, oboAssertion, AuthorityType.Adfs);
+            return AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
         }
 
         if (StringUtils.isEmpty(serverTokenResponse.client_info) && authority.protocolMode === "AAD") {
