@@ -30,6 +30,10 @@ export const BrowserConfigurationAuthErrorMessage = {
         desc: "The object passed for the callback was invalid. " +
           "More information is available here: https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-basics."
     },
+    stubPcaInstanceCalled: {
+        code: "stubbed_public_client_application_called",
+        desc: "Stub instance of Public Client Application was called. If using msal-react, please ensure context is not used without a provider."
+    }
 };
 
 /**
@@ -83,5 +87,13 @@ export class BrowserConfigurationAuthError extends AuthError {
     static createRedirectCallbacksNotSetError(): BrowserConfigurationAuthError {
         return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.code, 
             BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc);
+    }
+
+    /**
+     * Creates error thrown when the stub instance of PublicClientApplication is called.
+     */
+    static createStubPcaInstanceCalledError(): BrowserConfigurationAuthError {
+        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code,
+            BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.desc);
     }
 }

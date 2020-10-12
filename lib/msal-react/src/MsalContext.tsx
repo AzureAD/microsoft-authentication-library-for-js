@@ -1,5 +1,5 @@
 import * as React from "react";
-import { PublicClientApplication, IPublicClientApplication, AccountInfo } from "@azure/msal-browser";
+import { IPublicClientApplication, stubbedPublicClientApplication, AccountInfo } from "@azure/msal-browser";
 
 type MsalState = {
     accounts: AccountInfo[];
@@ -15,7 +15,7 @@ export interface IMsalContext {
  * Only used when there is no provider, which is an unsupported scenario
  */
 const defaultMsalContext: IMsalContext = {
-    instance: new PublicClientApplication({}),
+    instance: stubbedPublicClientApplication,
     state: {
         accounts: [],
     },
