@@ -51,7 +51,7 @@ jobs:
       run: npm run test:coverage
 
     - name: Coveralls
-      if: success() && ${{ NOT_FROM_FORK == 'true' }}
+      if: success() && ${{ env.NOT_FROM_FORK == 'true' }}
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.github_token }}
