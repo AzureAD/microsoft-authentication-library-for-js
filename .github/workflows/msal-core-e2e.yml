@@ -10,9 +10,8 @@ on:
       - master
   pull_request:
     paths: 
-      - 'msal-browser/**/*' 
-      - 'msal-common/**/*'
-      - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
+      - 'msal-core/**/*'
+      - 'samples/msal-core-samples/VanillaJSTestApp/**/*'
 
 jobs:
   build:
@@ -31,13 +30,13 @@ jobs:
       run: npm ci
 
     - name: Build packages
-      working-directory: samples/msal-browser-samples/VanillaJSTestApp2.0
+      working-directory: samples/msal-core-samples/VanillaJSTestApp
       run: |
         npm install
-        npm run build:packages
+        npm run build:package
 
     - name: E2E Tests
-      working-directory: samples/msal-browser-samples/VanillaJSTestApp2.0
+      working-directory: samples/msal-core-samples/VanillaJSTestApp
       timeout-minutes: 5
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
