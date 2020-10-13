@@ -38,7 +38,7 @@ CDN Domain          | Region       | Example
 
 ### CDN fallback
 
-In the unlikely event that a CDN build is broken or the CDN itself in inaccessible, an application can use the other CDN region as a fallback:
+In the unlikely event that a CDN build is broken or the CDN itself is inaccessible, an application can use the other CDN region as a fallback:
 
 ```html
 <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.0/js/msal.js"></script>
