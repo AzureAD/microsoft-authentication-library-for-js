@@ -16,20 +16,19 @@ const SERVER_PORT = process.env.PORT || 3000;
  */
 const cachePath = "./data/example.cache.json"; // Replace this string with the path to your valid cache file.
 
-const readFromStorage = () => {
-    return fs.readFile(cachePath, "utf-8");
+const beforeCacheAccess = async (cacheContext) => {
+    cacheContext.tokenCache.deserialize(await fs.readFile(cachePath, "utf-8"));
 };
 
-const writeToStorage = (getMergedState) => {
-    return readFromStorage().then(oldFile =>{
-        const mergedState = getMergedState(oldFile);
-        return fs.writeFile(cachePath, mergedState);
-    })
+const afterCacheAccess = async (cacheContext) => {
+    if(cacheContext.cacheHasChanged){
+        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());
+    }
 };
 
 const cachePlugin = {
-    readFromStorage,
-    writeToStorage
+    beforeCacheAccess,
+    afterCacheAccess
 };
 
 
@@ -70,14 +69,14 @@ let accounts;
 const app = express();
 
 // Set handlebars view engine
-app.engine('.hbs', exphbs({extname: '.hbs'}));
+app.engine('.hbs', exphbs({ extname: '.hbs' }));
 app.set('view engine', '.hbs');
 
 /**
  * App Routes
  */
 app.get('/', (req, res) => {
-    res.render("login", { showSignInButton: true});
+    res.render("login", { showSignInButton: true });
 });
 
 // Initiates Auth Code Grant
@@ -100,9 +99,8 @@ app.get('/redirect', (req, res) => {
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
-        const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
+        const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
         res.render("graph", templateParams);
-        return msalTokenCache.writeToPersistence();
     }).catch((error) => {
         console.log(error);
         res.status(500).send(error);
@@ -110,9 +108,9 @@ app.get('/redirect', (req, res) => {
 });
 
 // Initiates Acquire Token Silent flow
-app.get('/graphCall', (req, res) => {
+app.get('/graphCall', async (req, res) => {
     // get Accounts
-    accounts = msalTokenCache.getAllAccounts();
+    accounts = await msalTokenCache.getAllAccounts();
     console.log("Accounts: ", accounts);
 
     // Build silent request
@@ -136,7 +134,6 @@ app.get('/graphCall', (req, res) => {
                     profile: JSON.stringify(response, null, 4)
                 };
                 res.render("graph", templateParams);
-                return msalTokenCache.writeToPersistence();
             });
         })
         .catch((error) => {
@@ -146,7 +143,5 @@ app.get('/graphCall', (req, res) => {
         });
 });
 
-msalTokenCache.readFromPersistence().then(() => {
-    app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
-});
+app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
 
