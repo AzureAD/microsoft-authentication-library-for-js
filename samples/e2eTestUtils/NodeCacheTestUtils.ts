@@ -1,87 +1,43 @@
-import puppeteer from "puppeteer";
-import { Deserializer } from "../../lib/msal-node";
-import { JsonCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
+import { Deserializer, Serializer } from "../../lib/msal-node";
+import { InMemoryCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
+import fs from "fs";
 
 export type tokenMap = {
     idTokens: string[],
     accessTokens: string[],
     refreshTokens: string[]
-}
+};
 
-export async function getTokens(jsonCache: JsonCache): Promise<tokenMap> {
-    const cache = Deserializer.deserializeAllCache(jsonCache);
-    console.log(cache);
+export class NodeCacheTestUtils {
+    static async getTokens(cacheLocation: string): Promise<tokenMap> {
+        const cache = fs.readFileSync(cacheLocation, { encoding: 'utf-8' });
+        const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
 
-    let tokenKeys: tokenMap = {
-        idTokens: [],
-        accessTokens: [],
-        refreshTokens: []
+        const tokenCache: tokenMap = {
+            idTokens: [],
+            accessTokens: [],
+            refreshTokens: []
+        };
+
+        Object.keys(tokenCache).forEach((cacheSectionKey: string) => {
+            Object.keys(deserializedCache[cacheSectionKey]).map((cacheKey) => {
+                tokenCache[cacheSectionKey].push(cacheKey);
+            })
+        });
+
+        return tokenCache;
     }
 
-    return tokenKeys;
-}
+    static async resetCache(cacheLocation: string) {
+        const jsonCache = require(cacheLocation);
+        const cache: InMemoryCache = Deserializer.deserializeAllCache(jsonCache);
+        Object.keys(cache).forEach( key => cache[key] = []);
+        const serializedCache = Serializer.serializeAllCache(cache);
 
-export function validateToken(page: puppeteer.Page, rawTokenVal: string, tokenType: String): boolean {
-    const tokenVal = JSON.parse(rawTokenVal);
-    
-    if (
-        !validateStringField(tokenVal.clientId) || 
-        !validateStringField(tokenVal.credentialType) ||
-        !validateStringField(tokenVal.environment) ||
-        !validateStringField(tokenVal.homeAccountId) ||
-        !validateStringField(tokenVal.secret) ||
-        tokenVal.credentialType !== tokenType
-    ) {
-        return false;
-    }
-
-    if (tokenType === "IdToken" && !validateStringField(tokenVal.realm)) {
-            return false;
-    } else if (tokenType === "AccessToken") {
-        if (
-            !validateStringField(tokenVal.cachedAt) ||
-            !validateStringField(tokenVal.expiresOn) ||
-            !validateStringField(tokenVal.extendedExpiresOn) ||
-            !validateStringField(tokenVal.target)
-        ) {
-            return false;
+        try {
+            fs.writeFileSync(cacheLocation, JSON.stringify(serializedCache, null, 1));
+        } catch (error) {
+            console.error("Error writing to cache file in resetCache: ", error);
         }
     }
-
-    return true;
-}
-
-function validateStringField(field: any): boolean {
-    return typeof(field) === "string" && field.length > 0;
-}
-
-export async function accessTokenForScopesExists(page: puppeteer.Page, accessTokenKeys: Array<string>, scopes: Array<String>): Promise<boolean> {
-    const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-
-    return accessTokenKeys.some((key) => {
-        const tokenVal = JSON.parse(storage[key]);
-        const tokenScopes = tokenVal.target.split(' ');
-        
-        return scopes.every((scope) => {
-            return tokenScopes.includes(scope.toLowerCase());
-        });
-    });
-}
-
-export async function removeTokens(page: puppeteer.Page, tokens: Array<string>) {
-    tokens.forEach(async (key) => {
-        await page.evaluate((key) => window.localStorage.removeItem(key))
-    });
-}
-
-export async function getAccountFromCache(page: puppeteer.Page, idTokenKey: string): Promise<Object|null> {
-    const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-    const tokenVal = JSON.parse(storage[idTokenKey]);
-    const accountKey = tokenVal.homeAccountId + "-" + tokenVal.environment + "-" + tokenVal.realm;
-
-    if (Object.keys(storage).includes(accountKey)) {
-        return JSON.parse(storage[accountKey]);
-    }
-
-    return null
 }

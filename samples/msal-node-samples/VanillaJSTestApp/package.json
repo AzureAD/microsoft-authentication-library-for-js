@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "ts-node ./e2eTests/testRunner.ts"
+    "test": "ts-node ./testRunner.ts"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "e2eTestUtils": "file:../../.",
     "@azure/msal-node": "^1.0.0-alpha.9",
+    "axios": "^0.20.0",
+    "e2eTestUtils": "file:../../.",
     "express": "^4.17.1",
     "express-handlebars": "^5.1.0"
   },
@@ -33,6 +34,7 @@
     "typescript": "^4.0.2"
   },
   "jest": {
-    "preset": "ts-jest"
+    "preset": "ts-jest",
+    "testEnvironment": "node"
   }
 }

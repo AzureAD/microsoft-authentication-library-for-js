@@ -16,7 +16,7 @@
         "resolveJsonModule": true
     },
     "include": [
-        "./e2eTests/*.ts",
+        "./*.ts",
         "./app/test/**/*.ts",
         "../../../e2eTestUtils/*.ts"
     ],

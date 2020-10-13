@@ -46,7 +46,6 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
     app.get('/login', (req, res) => {
         clientApplication.getAuthCodeUrl(requestConfig.authCodeUrlParameters)
             .then((response) => {
-                console.log(response);
                 res.redirect(response);
             })
             .catch((error) => console.log(JSON.stringify(error)));
@@ -55,7 +54,6 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
     // Second leg of Auth Code grant
     app.get('/redirect', (req, res) => {
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
-    
         clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
             const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
             res.render("graph", templateParams);
@@ -70,7 +68,6 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
     app.get('/graphCall', (req, res) => {
         // get Accounts
         const accounts = msalTokenCache.getAllAccounts();
-        console.log("Accounts: ", accounts);
 
         /** 
          * Account index must match the account's position in the cache. The sample cache file contains a dummy account

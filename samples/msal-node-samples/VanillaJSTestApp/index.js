@@ -28,7 +28,7 @@ function runSample(scenario, port, cacheLocation) {
     const scenarioConfig = require(scenarioPath);
 
     // Build client application
-    const clientApplication = require(Constants.MSAL_CLIENT_APP_CONFIG_PATH)(scenarioConfig);
+    const clientApplication = require(Constants.MSAL_CLIENT_APP_CONFIG_PATH)(scenarioConfig, cacheLocation);
 
     // Get sample metaconfig
     const sampleConfig = scenarioConfig.sample;

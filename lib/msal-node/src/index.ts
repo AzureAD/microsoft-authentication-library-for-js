@@ -2,6 +2,7 @@ export { PublicClientApplication } from "./client/PublicClientApplication";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
 export { Configuration, buildAppConfiguration } from "./config/Configuration";
 export { Storage } from "./cache/Storage";
+export { Serializer } from "./cache/serializer/Serializer";
 export { Deserializer } from "./cache/serializer/Deserializer";
 export { TokenCache } from "./cache/TokenCache";
 export { ICachePlugin } from "./cache/ICachePlugin";

@@ -1,13 +1,17 @@
 import "jest";
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, } from "../../../../e2eTestUtils/TestUtils";
-import { getTokens } from "../../../../e2eTestUtils/NodeCacheTestUtils";
+import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
+import { LabClient } from "../../../../../e2eTestUtils/LabClient";
+import { LabApiQueryParams } from '../../../../../e2eTestUtils/LabApiQueryParams';
+import { AppTypes, AzureEnvironments } from '../../../../../e2eTestUtils/Constants';
 
-const SAMPLE_HOME_URL = 'http://localhost:3000/';
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+const SAMPLE_HOME_URL = 'http://localhost:3000/';
+const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
-let username = ""; // TODO:
-let accountPwd = ""; // TODO:
+let username: string;
+let accountPwd: string;
 
 async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
@@ -25,11 +29,20 @@ async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): P
 describe('Silent Flow', () => {
     let browser: puppeteer.Browser;
     beforeAll(async () => {
+        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        const labApiParms: LabApiQueryParams = {
+            azureEnvironment: AzureEnvironments.PPE,
+            appType: AppTypes.CLOUD
+        }
+
+        const labClient = new LabClient();
+        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
+        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+
         browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
     })
 
     let context: puppeteer.BrowserContext;
@@ -43,6 +56,7 @@ describe('Silent Flow', () => {
 
     afterEach(async () => {
         await page.close();
+        NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
     });
 
     afterAll(async () => {
@@ -52,21 +66,20 @@ describe('Silent Flow', () => {
 
     it("Performs acquire token", async ()=> {
         jest.setTimeout(30000);
-        
+        const cacheBeforeAuth = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
         const testName = "silent-flow-aad-acquireToken";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        await screenshot.takeScreenshot(page, "samplePageInit");
         await page.click("#SignIn");
         await enterCredentials(page, screenshot);
         await page.waitForNavigation({ waitUntil: "networkidle0"});
-        const jsonCache = require('../../data/testCache.json');
-        let tokenStore = await getTokens();
-        console.log(tokenStore);
-        // expect(tokenStore.idTokens).toHaveLength(1);
-        // expect(tokenStore.accessTokens).toHaveLength(1);
-        // expect(tokenStore.refreshTokens).toHaveLength(1);
-        // expect(getAccountFromCache(page, tokenStore.idTokens[0])).not.toBeNull();
-        // expect(await accessTokenForScopesExists(page, tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBe(true);
-        // const storage = await page.evaluate(() =>  Object.assign({}, window.sessionStorage));
-        expect(Object.keys(tokenStore).length).toBe(4);
+        await screenshot.takeScreenshot(page, "rememberPage");
+        const cacheAfterAuth = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+        expect(cacheBeforeAuth.accessTokens.length).toBe(0);
+        expect(cacheBeforeAuth.idTokens.length).toBe(0);
+        expect(cacheBeforeAuth.refreshTokens.length).toBe(0);
+        expect(cacheAfterAuth.accessTokens.length).toBe(1);
+        expect(cacheAfterAuth.idTokens.length).toBe(1);
+        expect(cacheAfterAuth.refreshTokens.length).toBe(1);
     });
 });
