@@ -112,7 +112,7 @@ We add our sign in code to the default route.
 app.get('/', (req, res) => {
 ```
 
-Next we have to pick the `scopes` related to the user.  If we are logging in a user, then we must at least request access to basic user information.  The default scope of `user.read` grants that basic access.  To learn more see the [Microsoft Graph permissions reference](https://docs.microsoft.com/en-us/graph/permissions-reference).
+Next, we have to pick the `scopes` related to the user.  If we are logging in a user, then we must at least request access to basic user information.  The default scope of `user.read` grants that basic access.  To learn more see the [Microsoft Graph permissions reference](https://docs.microsoft.com/en-us/graph/permissions-reference).
 
 ```js
     const authCodeUrlParameters = {
