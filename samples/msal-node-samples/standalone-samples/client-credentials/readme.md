@@ -5,7 +5,7 @@ The sample applications contained in this directory are independent samples of M
 Once MSAL Node is installed, and you have the right files, come here to learn about this scenario.
 
 ### How is this scenario used?
-The Client Credentials flow is most commonly used for a daemon app that calls web apis and does not have any user interaction.  General information about this scenario is available [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow).
+The Client Credentials flow is most commonly used for a daemon or command line app that calls web apis and does not have any user interaction.  General information about this scenario is available [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow).
 
 ## Prerequisite
 
