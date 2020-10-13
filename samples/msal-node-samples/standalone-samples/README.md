@@ -1,6 +1,6 @@
 # MSAL Node Standalone Samples
 
-The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. While all the samples include default configuration values that work out-of-the-box, their configuration is easily customizable to use your own Azure AD app registration.
+The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. MSAL Node covers many situations, and most developers will only need one of these samples.
 
 ## Should I use this sample:
 
@@ -10,7 +10,7 @@ Use these samples to get an idea of the flows that work for you.
 
 ### Clone this repository
 
-The first is to clone the root repository (microsoft-auhtentication-library-for-js):
+First, get the sample files:
 
 SSH:
 
@@ -24,7 +24,7 @@ HTTP:
 $ git clone https://github.com/AzureAD/microsoft-authentication-library-for-js.git
 ```
 
-Another option is to download the repository as a zip file by selecting "Download ZIP" from the root repository's dropdown "Code" menu. Once you've downloaded the ZIP file, you can decompress it locally and explore the code.
+You can also download the repository as a zip file by selecting "Download ZIP" from the root repository's dropdown "Code" menu. Once you've downloaded the ZIP file, you can decompress it locally and explore the code.
 
 ### Pre-requisites
 - By using MSAL Node, you are working with the Microsoft Identity ecosystem.  Read about [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) and register one for use with this code.
