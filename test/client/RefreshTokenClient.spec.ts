@@ -96,10 +96,10 @@ describe("RefreshTokenClient unit tests", () => {
             AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
             sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface.setAccount(testAccountEntity.generateAccountKey(), testAccountEntity);
             client = new RefreshTokenClient(config);
         });
 
@@ -173,11 +173,11 @@ describe("RefreshTokenClient unit tests", () => {
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_WITH_FOCI);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "getAppMetadata").returns(testAppMetadata);
             sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface.setAccount(testAccountEntity.generateAccountKey(), testAccountEntity);
+            config.storageInterface.setAppMetadata(testAppMetadata.generateAppMetadataKey(), testAppMetadata);
             client = new RefreshTokenClient(config);
         });
 
