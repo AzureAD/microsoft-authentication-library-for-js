@@ -233,7 +233,7 @@ export class Storage extends CacheManager {
      * fetch the refreshToken credential
      * @param key
      */
-    getrefreshTokenCredential(key: string): RefreshTokenEntity | null {
+    getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
         const credType = CredentialEntity.getCredentialType(key);
         if (credType === CredentialType.REFRESH_TOKEN) {
             return this.getItem(key) as RefreshTokenEntity;
