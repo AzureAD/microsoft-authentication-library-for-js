@@ -183,7 +183,9 @@ The web api receives a web request with a bearer token in the request header:
 'Authorization': 'Bearer ' + accessToken,
 ```
 
-The web api should first use the validateJwt function to process and validate the incoming request.  That function also calls the getSigningKeys function to do signature validation.
+The web api should first use the `validateJwt` function to process and validate the incoming request.  That function also calls the `getSigningKeys` function to do signature validation.  Most apps can use these functions as is from the sample.  Some apps may do additional validations on the JWT claims.
+
+
 
 ### The User Experience
 
