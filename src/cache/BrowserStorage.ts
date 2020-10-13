@@ -114,7 +114,7 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string): void {
-        this.windowStorage.setItem(key, JSON.stringify(value));
+        this.windowStorage.setItem(key, value);
     }
 
     /**
@@ -126,6 +126,7 @@ export class BrowserStorage extends CacheManager {
         if (StringUtils.isEmpty(value)) {
             return null;
         }
+
         const account = CacheManager.toObject(new AccountEntity(), JSON.parse(value));
         if (AccountEntity.isAccountEntity(account)) {
             return account;
