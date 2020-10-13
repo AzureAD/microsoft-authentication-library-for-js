@@ -27,21 +27,21 @@ describe("NetworkManager", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: { },
+                headers: {},
                 body: AUTHENTICATION_RESULT.body,
                 status: 200
-            }
+            };
             const networkStub = sinon.stub(networkInterface, "sendPostRequestAsync").returns(Promise.resolve(mockRes));
-            const getItemStub = sinon.stub(cache, "getItem");
-            const setItemStub = sinon.stub(cache, "setItem");
+            const getThrottlingStub = sinon.stub(cache, "getThrottlingCache");
+            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 1)
+            sinon.stub(Date, "now").callsFake(() => 1);
 
             const res = await networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options);
 
             sinon.assert.callCount(networkStub, 1);
-            sinon.assert.callCount(getItemStub, 1);
-            sinon.assert.callCount(setItemStub, 0);
+            sinon.assert.callCount(getThrottlingStub, 1);
+            sinon.assert.callCount(setThrottlingStub, 0);
             sinon.assert.callCount(removeItemStub, 0);
             expect(res).to.deep.eq(mockRes);
         });
@@ -54,18 +54,18 @@ describe("NetworkManager", () => {
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockThrottlingEntity = THROTTLING_ENTITY;
             const networkStub = sinon.stub(networkInterface, "sendPostRequestAsync");
-            const getItemStub = sinon.stub(cache, "getItem").returns(mockThrottlingEntity);
-            const setItemStub = sinon.stub(cache, "setItem");
+            const getThrottlingStub = sinon.stub(cache, "getThrottlingCache").returns(mockThrottlingEntity);
+            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 1)
+            sinon.stub(Date, "now").callsFake(() => 1);
 
             try {
                 await networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options);
             } catch { }
-            
+
             sinon.assert.callCount(networkStub, 0);
-            sinon.assert.callCount(getItemStub, 1);
-            sinon.assert.callCount(setItemStub, 0);
+            sinon.assert.callCount(getThrottlingStub, 1);
+            sinon.assert.callCount(setThrottlingStub, 0);
             sinon.assert.callCount(removeItemStub, 0);
             expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).to.throw(ServerError);
         });
@@ -80,19 +80,19 @@ describe("NetworkManager", () => {
                 headers: { },
                 body: AUTHENTICATION_RESULT.body,
                 status: 200
-            }
+            };
             const mockThrottlingEntity = THROTTLING_ENTITY;
             const networkStub = sinon.stub(networkInterface, "sendPostRequestAsync").returns(Promise.resolve(mockRes));
-            const getItemStub = sinon.stub(cache, "getItem").returns(mockThrottlingEntity);
-            const setItemStub = sinon.stub(cache, "setItem");
+            const getThrottlingStub = sinon.stub(cache, "getThrottlingCache").returns(mockThrottlingEntity);
+            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 10)
+            sinon.stub(Date, "now").callsFake(() => 10);
 
             const res = await networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options);
-            
+
             sinon.assert.callCount(networkStub, 1);
-            sinon.assert.callCount(getItemStub, 1);
-            sinon.assert.callCount(setItemStub, 0);
+            sinon.assert.callCount(getThrottlingStub, 1);
+            sinon.assert.callCount(setThrottlingStub, 0);
             sinon.assert.callCount(removeItemStub, 1);
             expect(res).to.deep.eq(mockRes);
         });
@@ -107,18 +107,18 @@ describe("NetworkManager", () => {
                 headers: { },
                 body: AUTHENTICATION_RESULT.body,
                 status: 500
-            }
+            };
             const networkStub = sinon.stub(networkInterface, "sendPostRequestAsync").returns(Promise.resolve(mockRes));
-            const getItemStub = sinon.stub(cache, "getItem");
-            const setItemStub = sinon.stub(cache, "setItem");
+            const getThrottlingStub = sinon.stub(cache, "getThrottlingCache");
+            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 1)
+            sinon.stub(Date, "now").callsFake(() => 1);
 
             const res = await networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options);
 
             sinon.assert.callCount(networkStub, 1);
-            sinon.assert.callCount(getItemStub, 1);
-            sinon.assert.callCount(setItemStub, 1);
+            sinon.assert.callCount(getThrottlingStub, 1);
+            sinon.assert.callCount(setThrottlingStub, 1);
             sinon.assert.callCount(removeItemStub, 0);
             expect(res).to.deep.eq(mockRes);
         });

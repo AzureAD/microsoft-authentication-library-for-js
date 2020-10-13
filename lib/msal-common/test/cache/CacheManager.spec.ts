@@ -5,7 +5,7 @@ import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
-import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
+import { AccountFilter, CredentialFilter, ValidCredentialType } from "../../src/cache/utils/CacheTypes";
 import sinon from "sinon";
 import { CredentialEntity } from "../../src/cache/entities/CredentialEntity";
 import { ClientTestUtils } from "../client/ClientTestUtils";
@@ -22,22 +22,56 @@ import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 
 import cacheJson from "./cacheStore.json";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 
 let store = {};
 class TestStorageManager extends CacheManager {
     // Accounts
     getAccount(key: string): AccountEntity | null {
-        return store[key] as AccountEntity;
+        const account: AccountEntity = store[key] as AccountEntity;
+        if (AccountEntity.isAccountEntity(account)) {
+            return account;
+        }
+        return null;
     }
     setAccount(key: string, value: AccountEntity): void {
         store[key] = value;
     }
 
-    // Credentials (idtokens, accesstokens, refreshtokens)
-    getCredential(key: string): CredentialEntity | null {
-        return store[key] as CredentialEntity;
+    // Credentials (idtokens)
+    getIdTokenCredential(key: string): IdTokenEntity| null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.ID_TOKEN) {
+            return store[key] as IdTokenEntity;
+        }
+        return null;
     }
-    setCredential(key: string, value: CredentialEntity): void {
+    setIdTokenCredential(key: string, value: CredentialEntity): void {
+        store[key] = value;
+    }
+
+    // Credentials (accesstokens)
+    getAccessTokenCredential(key: string): AccessTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.ACCESS_TOKEN) {
+            return store[key] as AccessTokenEntity;
+        }
+        return null;
+    }
+    setAccessTokenCredential(key: string, value: AccessTokenEntity): void {
+        store[key] = value;
+    }
+
+    // Credentials (accesstokens)
+    getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.REFRESH_TOKEN) {
+            return store[key] as RefreshTokenEntity;
+        }
+        return null;
+    }
+    setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void {
         store[key] = value;
     }
 
@@ -115,7 +149,7 @@ describe("CacheManager.ts test cases", () => {
         expect(store[accountKey].homeAccountId).to.eql("someUid.someUtid");
     });
 
-    it("save credential", () => {
+    it("save accessToken", () => {
         const at = new AccessTokenEntity();
         Object.assign(at, {
             homeAccountId: "someUid.someUtid",
@@ -134,8 +168,8 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
         cacheManager.saveCacheRecord(cacheRecord);
-        const accountObj = store[atKey] as AccessTokenEntity;
-        expect(store[atKey].homeAccountId).to.eql("someUid.someUtid");
+        const accessToken = store[atKey] as AccessTokenEntity;
+        expect(accessToken.homeAccountId).to.eql("someUid.someUtid");
     });
 
     it("getAccount", () => {
@@ -156,7 +190,7 @@ describe("CacheManager.ts test cases", () => {
         expect(cacheManager.getAccount(accountKey).homeAccountId).to.eql("someUid.someUtid");
     });
 
-    it("getCredential", () => {
+    it("getAccessTokenCredential", () => {
         const accessTokenEntity = new AccessTokenEntity();
         accessTokenEntity.homeAccountId = "someUid.someUtid";
         accessTokenEntity.environment = "login.microsoftonline.com";
@@ -169,7 +203,7 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = accessTokenEntity;
         cacheManager.saveCacheRecord(cacheRecord);
-        expect(cacheManager.getCredential(credKey).homeAccountId).to.eql("someUid.someUtid");
+        expect(cacheManager.getAccessTokenCredential(credKey).homeAccountId).to.eql("someUid.someUtid");
     });
 
     describe("getAccountsFilteredBy", () => {
@@ -446,7 +480,6 @@ describe("CacheManager.ts test cases", () => {
         };
 
         const cachedToken = cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, false);
-        console.log(cachedToken);
         expect(cachedToken.homeAccountId).to.equal("uid.utid");
         expect(cachedToken.environment).to.equal("login.microsoftonline.com");
     });

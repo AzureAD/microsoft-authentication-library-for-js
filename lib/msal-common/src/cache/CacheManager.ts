@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "./utils/CacheTypes";
+import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
 import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
@@ -41,17 +41,43 @@ export abstract class CacheManager implements ICacheManager {
     abstract setAccount(key: string, value: AccountEntity): void;
 
     /**
-     * fetch the credential entity (IdToken/AccessToken/RefreshToken) from the platform cache
+     * fetch the idToken entity from the platform cache
      * @param key
      */
-    abstract getCredential(key: string): CredentialEntity | null;
+    abstract getIdTokenCredential(key: string): IdTokenEntity | null;
 
     /**
-     * set credential entity (IdToken/AccessToken/RefreshToken) to the platform cache
+     * set idToken entity to the platform cache
      * @param key
      * @param value
      */
-    abstract setCredential(key: string, value: CredentialEntity): void;
+    abstract setIdTokenCredential(key: string, value: IdTokenEntity): void;
+
+    /**
+     * fetch the idToken entity from the platform cache
+     * @param key
+     */
+    abstract getAccessTokenCredential(key: string): AccessTokenEntity | null;
+
+    /**
+     * set idToken entity to the platform cache
+     * @param key
+     * @param value
+     */
+    abstract setAccessTokenCredential(key: string, value: AccessTokenEntity): void;
+
+    /**
+     * fetch the idToken entity from the platform cache
+     * @param key
+     */
+    abstract getRefreshTokenCredential(key: string): RefreshTokenEntity | null;
+
+    /**
+     * set idToken entity to the platform cache
+     * @param key
+     * @param value
+     */
+    abstract setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void;
 
     /**
      * fetch appMetadata entity from the platform cache
@@ -147,7 +173,7 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (!!cacheRecord.idToken) {
-            this.saveCredential(cacheRecord.idToken);
+            this.saveIdToken(cacheRecord.idToken);
         }
 
         if (!!cacheRecord.accessToken) {
@@ -155,7 +181,7 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (!!cacheRecord.refreshToken) {
-            this.saveCredential(cacheRecord.refreshToken);
+            this.saveRefreshToken(cacheRecord.refreshToken);
         }
     }
 
@@ -169,12 +195,12 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * saves credential - accessToken, idToken or refreshToken into cache
+     * saves idToken credential
      * @param credential
      */
-    private saveCredential(credential: CredentialEntity): void {
+    private saveIdToken(credential: IdTokenEntity): void {
         const key = credential.generateCredentialKey();
-        this.setCredential(key, credential);
+        this.setIdTokenCredential(key, credential);
     }
 
     /**
@@ -199,28 +225,17 @@ export abstract class CacheManager implements ICacheManager {
                 }
             });
         }
-        this.saveCredential(credential);
+        const key = credential.generateCredentialKey();
+        this.setAccessTokenCredential(key, credential);
     }
 
     /**
-     * retrieve an account entity given the cache key
-     * @param key
+     * saves accessToken credential
+     * @param credential
      */
-    getAccountEntity(key: string): AccountEntity | null {
-        // don't parse any non-account type cache entities
-        if (CredentialEntity.getCredentialType(key) !== Constants.NOT_DEFINED || this.isAppMetadata(key)) {
-            return null;
-        }
-
-        // Attempt retrieval
-        const entity = this.getAccount(key) as AccountEntity;
-
-        // Authority type is required for accounts, return if it is not available (not an account entity)
-        if (!entity || StringUtils.isEmpty(entity.authorityType)) {
-            return null;
-        }
-
-        return entity;
+    private saveRefreshToken(credential: RefreshTokenEntity): void {
+        const key = credential.generateCredentialKey();
+        this.setRefreshTokenCredential(key, credential);
     }
 
     /**
@@ -334,7 +349,8 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             // Attempt retrieval
-            const entity = this.getCredential(cacheKey) as CredentialEntity;
+            const entity = this.getSpecificCredential(cacheKey, credType);
+
             if (!entity) {
                 return;
             }
@@ -397,7 +413,7 @@ export abstract class CacheManager implements ICacheManager {
     removeAllAccounts(): boolean {
         const allCacheKeys = this.getKeys();
         allCacheKeys.forEach((cacheKey) => {
-            const entity: AccountEntity | null = this.getAccount(cacheKey);
+            const entity: AccountEntity = this.getAccount(cacheKey);
             if (!entity) {
                 return;
             }
@@ -429,12 +445,12 @@ export abstract class CacheManager implements ICacheManager {
 
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
-            if (CredentialEntity.getCredentialType(cacheKey) === Constants.NOT_DEFINED) {
+            const credType = CredentialEntity.getCredentialType(cacheKey);
+            if (credType === Constants.NOT_DEFINED) {
                 return;
             }
 
-            const cacheEntity: CredentialEntity = this.getCredential(cacheKey) as CredentialEntity;
-
+            const cacheEntity = this.getSpecificCredential(cacheKey, credType);
             if (!!cacheEntity && accountId === cacheEntity.generateAccountId()) {
                 this.removeCredential(cacheEntity);
             }
@@ -513,7 +529,7 @@ export abstract class CacheManager implements ICacheManager {
             account.tenantId
         );
 
-        return this.getCredential(idTokenKey) as IdTokenEntity;
+        return this.getIdTokenCredential(idTokenKey) as IdTokenEntity;
     }
 
     /**
@@ -688,6 +704,30 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * Returns the specific credential (IdToken/AccessToken/RefreshToken) from the cache
+     * @param key
+     * @param credType
+     */
+    private getSpecificCredential(key: string, credType: string): ValidCredentialType {
+        let entity: ValidCredentialType;
+        switch (credType) {
+            case CredentialType.ID_TOKEN: {
+                entity = this.getIdTokenCredential(key);
+                break;
+            }
+            case CredentialType.ACCESS_TOKEN: {
+                entity = this.getAccessTokenCredential(key);
+                break;
+            }
+            case CredentialType.REFRESH_TOKEN: {
+                entity = this.getRefreshTokenCredential(key);
+                break;
+            }
+        }
+        return entity;
+    }
+
+    /**
      * Helper to convert serialized data to object
      * @param obj
      * @param json
@@ -709,12 +749,28 @@ export class DefaultStorageClass extends CacheManager {
         const notImplErr = "Storage interface - getAccount() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    setCredential(): void {
-        const notImplErr = "Storage interface - setCredential() has not been implemented for the cacheStorage interface.";
+    setIdTokenCredential(): void {
+        const notImplErr = "Storage interface - setIdTokenCredential() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    getCredential(): CredentialEntity {
-        const notImplErr = "Storage interface - getCredential() has not been implemented for the cacheStorage interface.";
+    getIdTokenCredential(): IdTokenEntity {
+        const notImplErr = "Storage interface - getIdTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setAccessTokenCredential(): void {
+        const notImplErr = "Storage interface - setAccessTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getAccessTokenCredential(): AccessTokenEntity {
+        const notImplErr = "Storage interface - getAccessTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setRefreshTokenCredential(): void {
+        const notImplErr = "Storage interface - setRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getRefreshTokenCredential(): IdTokenEntity {
+        const notImplErr = "Storage interface - getRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
     setAppMetadata(): void {

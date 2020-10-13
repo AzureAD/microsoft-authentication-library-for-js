@@ -8,7 +8,7 @@ import {
     AccountCache,
     CredentialCache,
     AccountFilter,
-    CredentialFilter
+    CredentialFilter, ValidCredentialType
 } from "../utils/CacheTypes";
 import { CacheRecord } from "../entities/CacheRecord";
 import { AccountEntity } from "../entities/AccountEntity";
@@ -16,6 +16,9 @@ import { AccountInfo } from "../../account/AccountInfo";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "../entities/ThrottlingEntity";
+import { IdTokenEntity } from "../entities/IdTokenEntity";
+import { AccessTokenEntity } from "../entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 
 export interface ICacheManager {
 
@@ -33,17 +36,43 @@ export interface ICacheManager {
     setAccount(key: string, value: AccountEntity): void;
 
     /**
-     * fetch the credential entity (IdToken/AccessToken/RefreshToken) from the platform cache
+     * fetch the idToken entity from the platform cache
      * @param key
      */
-    getCredential(key: string): CredentialEntity | null;
+    getIdTokenCredential(key: string): IdTokenEntity | null;
 
     /**
-     * set credential entity (IdToken/AccessToken/RefreshToken) to the platform cache
+     * set idToken entity to the platform cache
      * @param key
      * @param value
      */
-    setCredential(key: string, value: CredentialEntity): void;
+    setIdTokenCredential(key: string, value: IdTokenEntity): void;
+
+    /**
+     * fetch the idToken entity from the platform cache
+     * @param key
+     */
+    getAccessTokenCredential(key: string): AccessTokenEntity | null;
+
+    /**
+     * set idToken entity to the platform cache
+     * @param key
+     * @param value
+     */
+    setAccessTokenCredential(key: string, value: AccessTokenEntity): void;
+
+    /**
+     * fetch the idToken entity from the platform cache
+     * @param key
+     */
+    getRefreshTokenCredential(key: string): RefreshTokenEntity | null;
+
+    /**
+     * set idToken entity to the platform cache
+     * @param key
+     * @param value
+     */
+    setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void;
 
     /**
      * fetch appMetadata entity from the platform cache

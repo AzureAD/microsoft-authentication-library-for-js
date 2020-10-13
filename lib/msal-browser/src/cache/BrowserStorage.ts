@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, AppMetadataEntity, CacheManager, CredentialEntity, ThrottlingEntity, ServerTelemetryEntity, ProtocolUtils} from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, AppMetadataEntity, CacheManager, CredentialEntity, ThrottlingEntity, ServerTelemetryEntity, ProtocolUtils, ValidCredentialType, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType} from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -143,28 +143,68 @@ export class BrowserStorage extends CacheManager {
     }
 
     /**
-     * fetch the credential entity (IdToken/AccessToken/RefreshToken) from the platform cache
-     * @param key
+     * generates idToken entity from a string
+     * @param value
      */
-    getCredential(key: string): CredentialEntity | null {
+    getIdTokenCredential(key: string): IdTokenEntity {
         const value = this.getItem(key);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const credentialEntity: CredentialEntity = CacheManager.toObject(new CredentialEntity(), JSON.parse(value));
-        if (CredentialEntity.getCredentialType(key) !== Constants.NOT_DEFINED) {
-            return credentialEntity;
-        }
-        return null;
-
+        const idToken: IdTokenEntity = CacheManager.toObject(new IdTokenEntity(), JSON.parse(value));
+        return idToken;
     }
 
     /**
-     * set credential entity (IdToken/AccessToken/RefreshToken) to the platform cache
+     * set IdToken credential to the platform cache
      * @param key
      * @param value
      */
-    setCredential(key: string, value: CredentialEntity): void {
+    setIdTokenCredential(key: string, value: IdTokenEntity): void {
+        this.setItem(key, JSON.stringify(value));
+    }
+
+    /**
+     * generates accessToken entity from a string
+     * @param value
+     */
+    getAccessTokenCredential(key: string): AccessTokenEntity {
+        const value = this.getItem(key);
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
+        const accessToken: AccessTokenEntity = CacheManager.toObject(new AccessTokenEntity(), JSON.parse(value));
+        return accessToken;
+    }
+
+    /**
+     * set accessToken credential to the platform cache
+     * @param key
+     * @param value
+     */
+    setAccessTokenCredential(key: string, value: AccessTokenEntity): void {
+        this.setItem(key, JSON.stringify(value));
+    }
+
+    /**
+     * generates refreshToken entity from a string
+     * @param value
+     */
+    getRefreshTokenCredential(key: string): RefreshTokenEntity {
+        const value = this.getItem(key);
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
+        const refreshToken: RefreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), JSON.parse(value));
+        return refreshToken;
+    }
+
+    /**
+     * set refreshToken credential to the platform cache
+     * @param key
+     * @param value
+     */
+    setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void {
         this.setItem(key, JSON.stringify(value));
     }
 

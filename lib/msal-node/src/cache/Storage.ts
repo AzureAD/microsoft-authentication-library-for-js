@@ -12,7 +12,8 @@ import {
     Logger,
     ValidCacheType,
     CredentialEntity,
-    Constants as CommonConstants, ThrottlingEntity
+    ThrottlingEntity,
+    CredentialType
 } from "@azure/msal-common";
 import { ServerTelemetryEntity } from "@azure/msal-common/dist/src/cache/entities/ServerTelemetryEntity";
 import { Deserializer } from "./serializer/Deserializer";
@@ -187,23 +188,65 @@ export class Storage extends CacheManager {
     }
 
     /**
-     * fetch the credential entity (IdToken/AccessToken/RefreshToken)
+     * fetch the idToken credential
      * @param key
      */
-    getCredential(key: string): CredentialEntity | null {
-        const credential: CredentialEntity = this.getItem(key) as CredentialEntity;
-        if (CredentialEntity.getCredentialType(key) !== CommonConstants.NOT_DEFINED) {
-            return credential;
+    getIdTokenCredential(key: string): IdTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.ID_TOKEN) {
+            return this.getItem(key) as IdTokenEntity;
         }
         return null;
     }
 
     /**
-     * set credential entity (IdToken/AccessToken/RefreshToken)
+     * set idToken credential
      * @param key
      * @param value
      */
-    setCredential(key: string, value: CredentialEntity): void {
+    setIdTokenCredential(key: string, value: IdTokenEntity): void {
+        this.setItem(key, value);
+    }
+
+    /**
+     * fetch the accessToken credential
+     * @param key
+     */
+    getAccessTokenCredential(key: string): AccessTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.ACCESS_TOKEN) {
+            return this.getItem(key) as AccessTokenEntity;
+        }
+        return null;
+    }
+
+    /**
+     * set accessToken credential
+     * @param key
+     * @param value
+     */
+    setAccessTokenCredential(key: string, value: AccessTokenEntity): void {
+        this.setItem(key, value);
+    }
+
+    /**
+     * fetch the refreshToken credential
+     * @param key
+     */
+    getrefreshTokenCredential(key: string): RefreshTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.REFRESH_TOKEN) {
+            return this.getItem(key) as RefreshTokenEntity;
+        }
+        return null;
+    }
+
+    /**
+     * set refreshToken credential
+     * @param key
+     * @param value
+     */
+    setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void {
         this.setItem(key, value);
     }
 

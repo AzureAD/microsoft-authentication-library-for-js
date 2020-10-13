@@ -1,33 +1,77 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
-import { ServerTelemetryManager, CacheManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity } from "../../src";
+import { ServerTelemetryManager, CacheManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ValidCredentialType, StringUtils } from "../../src";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import sinon from "sinon";
 
 let store = {};
 class TestCacheManager extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
-        store[key] = JSON.stringify(value) as string;
-    }
-    getItem(key: string, type?: string): string | object {
-        const value = store[key];
-        if (value) {
-            const serverTelemetryEntity: ServerTelemetryEntity = new ServerTelemetryEntity();
-            return (CacheManager.toObject(serverTelemetryEntity, JSON.parse(value)) as ServerTelemetryEntity);
-        } else {
-            return null;
+    // Accounts
+    getAccount(key: string): AccountEntity | null {
+        const account: AccountEntity = store[key] as AccountEntity;
+        if (AccountEntity.isAccountEntity(account)) {
+            return account;
         }
+        return null;
     }
-    removeItem(key: string, type?: string): boolean {
+    setAccount(key: string, value: AccountEntity): void {
+        store[key] = value;
+    }
+
+    // Credentials (idtokens, accesstokens, refreshtokens)
+    getCredential(key: string): ValidCredentialType | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        switch (credType) {
+            case CredentialType.ID_TOKEN:
+                return store[key] as IdTokenEntity;
+            case CredentialType.ACCESS_TOKEN:
+                return store[key] as AccessTokenEntity;
+            case CredentialType.REFRESH_TOKEN:
+                return store[key] as RefreshTokenEntity;
+        }
+        return null;
+    }
+    setCredential(key: string, value: CredentialEntity): void {
+        store[key] = value;
+    }
+
+    // AppMetadata
+    getAppMetadata(key: string): AppMetadataEntity | null {
+        return store[key] as AppMetadataEntity;
+    }
+    setAppMetadata(key: string, value: AppMetadataEntity): void {
+        store[key] = value;
+    }
+
+    // Telemetry cache
+    getServerTelemetry(key: string): ServerTelemetryEntity | null {
+        const serverTelemetryEntity: ServerTelemetryEntity = store[key] as ServerTelemetryEntity;
+        if (ServerTelemetryEntity.isServerTelemetryEntity(key, serverTelemetryEntity)) {
+            return serverTelemetryEntity;
+        }
+        return null;
+    }
+    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
+        store[key] = value;
+    }
+
+    // Throttling cache
+    getThrottlingCache(key: string): ThrottlingEntity | null {
+        return store[key] as ThrottlingEntity;
+    }
+    setThrottlingCache(key: string, value: ThrottlingEntity): void {
+        store[key] = value;
+    }
+
+    removeItem(key: string): boolean {
         let result: boolean = false;
         if (!!store[key]) {
             delete store[key];
             result = true;
         }
-
         return result;
     }
-    containsKey(key: string, type?: string): boolean {
+    containsKey(key: string): boolean {
         return !!store[key];
     }
     getKeys(): string[] {
@@ -66,7 +110,7 @@ describe("ServerTelemetryManager.ts", () => {
                 cacheHits: 0
             };
 
-            const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
+            const cacheValue = testCacheManager.getServerTelemetry(cacheKey) as ServerTelemetryEntity;
             expect(cacheValue).to.deep.eq(failures);
         });
 
@@ -81,7 +125,7 @@ describe("ServerTelemetryManager.ts", () => {
                 cacheHits: 0
             };
 
-            const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
+            const cacheValue = testCacheManager.getServerTelemetry(cacheKey) as ServerTelemetryEntity;
             expect(cacheValue).to.deep.eq(failures);
         });
 
@@ -95,7 +139,7 @@ describe("ServerTelemetryManager.ts", () => {
                 cacheHits: 0
             };
 
-            const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
+            const cacheValue = testCacheManager.getServerTelemetry(cacheKey) as ServerTelemetryEntity;
             expect(cacheValue).to.deep.eq(failures);
         });
     });
@@ -121,7 +165,7 @@ describe("ServerTelemetryManager.ts", () => {
                 errors: [testError],
                 cacheHits: testCacheHits
             };
-            store[cacheKey] = JSON.stringify(failures);
+            testCacheManager.setServerTelemetry(cacheKey, failures);
 
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
@@ -135,7 +179,7 @@ describe("ServerTelemetryManager.ts", () => {
                 errors: [testError, testError],
                 cacheHits: testCacheHits
             };
-            store[cacheKey] = JSON.stringify(failures);
+            testCacheManager.setServerTelemetry(cacheKey, failures);
 
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
@@ -150,7 +194,7 @@ describe("ServerTelemetryManager.ts", () => {
                 errors: [testError, testError],
                 cacheHits: testCacheHits
             };
-            store[cacheKey] = JSON.stringify(failures);
+            testCacheManager.setServerTelemetry(cacheKey, failures);
 
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
@@ -166,12 +210,12 @@ describe("ServerTelemetryManager.ts", () => {
                 errors: [testError],
                 cacheHits: 3
             };
-            store[cacheKey] = JSON.stringify(failures);
+            testCacheManager.setServerTelemetry(cacheKey, failures);
 
-            expect(testCacheManager.getItem(cacheKey)).to.deep.eq(failures);
+            expect(testCacheManager.getServerTelemetry(cacheKey)).to.deep.eq(failures);
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             telemetryManager.clearTelemetryCache();
-            expect(testCacheManager.getItem(cacheKey)).to.be.null;
+            expect(testCacheManager.getServerTelemetry(cacheKey)).to.be.undefined;
         });
 
         it("Removes partial telemetry data from cache if partial data was sent to server", () => {
@@ -181,7 +225,7 @@ describe("ServerTelemetryManager.ts", () => {
                 errors: [testError, testError, testError],
                 cacheHits: 3
             };
-            store[cacheKey] = JSON.stringify(failures);
+            testCacheManager.setServerTelemetry(cacheKey, failures);
 
             const expectedCacheEntry = {
                 failedRequests: [testApiCode, testCorrelationId, testApiCode, testCorrelationId],
@@ -189,10 +233,10 @@ describe("ServerTelemetryManager.ts", () => {
                 cacheHits: 0
             };
 
-            expect(testCacheManager.getItem(cacheKey)).to.deep.eq(failures);
+            expect(testCacheManager.getServerTelemetry(cacheKey)).to.deep.eq(failures);
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             telemetryManager.clearTelemetryCache();
-            expect(testCacheManager.getItem(cacheKey)).to.deep.eq(expectedCacheEntry);
+            expect(testCacheManager.getServerTelemetry(cacheKey)).to.deep.eq(expectedCacheEntry);
         });
     });
 
@@ -219,16 +263,14 @@ describe("ServerTelemetryManager.ts", () => {
     });
 
     it("incrementCacheHits", () => {
-        const initialCacheValue = {
-            failedRequests: [],
-            errors: [],
-            cacheHits: 1
-        };
-        store[cacheKey] = JSON.stringify(initialCacheValue);
+        const initialCacheValue = new ServerTelemetryEntity();
+        initialCacheValue.cacheHits = 1;
+        testCacheManager.setServerTelemetry(cacheKey, initialCacheValue);
         const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
         telemetryManager.incrementCacheHits();
 
-        const cacheValue = testCacheManager.getItem(cacheKey) as ServerTelemetryEntity;
+        const cacheValue = testCacheManager.getServerTelemetry(cacheKey) as ServerTelemetryEntity;
+        console.log("cacheValue", cacheValue);
         expect(cacheValue.cacheHits).to.eq(2);
     });
 });

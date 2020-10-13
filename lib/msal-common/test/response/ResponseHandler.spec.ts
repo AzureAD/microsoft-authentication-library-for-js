@@ -9,7 +9,7 @@ import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetwor
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientTestUtils } from "../client/ClientTestUtils";
-import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme } from "../../src";
+import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme, ValidCredentialType, CredentialEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity } from "../../src";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
 
 const networkInterface: INetworkModule = {
@@ -61,26 +61,91 @@ const cryptoInterface: ICrypto = {
     async signJwt(): Promise<string> {
         return signedJwt;
     }
-}
+};
 
 let store = {};
 class TestCacheManager extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
-        store[key] = value as string;
+    // Accounts
+    getAccount(key: string): AccountEntity | null {
+        const account: AccountEntity = store[key] as AccountEntity;
+        if (AccountEntity.isAccountEntity(account)) {
+            return account;
+        }
+        return null;
     }
-    getItem(key: string, type?: string): string | object {
-        return store[key];
+    setAccount(key: string, value: AccountEntity): void {
+        store[key] = value;
     }
-    removeItem(key: string, type?: string): boolean {
+
+    // Credentials (idtokens)
+    getIdTokenCredential(key: string): IdTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.ID_TOKEN) {
+            return store[key] as IdTokenEntity;
+        }
+        return null;
+    }
+    setIdTokenCredential(key: string, value: CredentialEntity): void {
+        store[key] = value;
+    }
+
+    // Credentials (accesstokens)
+    getAccessTokenCredential(key: string): AccessTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.ACCESS_TOKEN) {
+            return store[key] as AccessTokenEntity;
+        }
+        return null;
+    }
+    setAccessTokenCredential(key: string, value: AccessTokenEntity): void {
+        store[key] = value;
+    }
+
+    // Credentials (accesstokens)
+    getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.REFRESH_TOKEN) {
+            return store[key] as RefreshTokenEntity;
+        }
+        return null;
+    }
+    setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void {
+        store[key] = value;
+    }
+
+    // AppMetadata
+    getAppMetadata(key: string): AppMetadataEntity | null {
+        return store[key] as AppMetadataEntity;
+    }
+    setAppMetadata(key: string, value: AppMetadataEntity): void {
+        store[key] = value;
+    }
+
+    // Telemetry cache
+    getServerTelemetry(key: string): ServerTelemetryEntity | null {
+        return store[key] as ServerTelemetryEntity;
+    }
+    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
+        store[key] = value;
+    }
+
+    // Throttling cache
+    getThrottlingCache(key: string): ThrottlingEntity | null {
+        return store[key] as ThrottlingEntity;
+    }
+    setThrottlingCache(key: string, value: ThrottlingEntity): void {
+        store[key] = value;
+    }
+
+    removeItem(key: string): boolean {
         let result: boolean = false;
         if (!!store[key]) {
             delete store[key];
             result = true;
         }
-
         return result;
     }
-    containsKey(key: string, type?: string): boolean {
+    containsKey(key: string): boolean {
         return !!store[key];
     }
     getKeys(): string[] {
@@ -92,7 +157,7 @@ class TestCacheManager extends CacheManager {
 }
 const testCacheManager = new TestCacheManager;
 
-let authority = new Authority("https://login.microsoftonline.com/common", networkInterface);
+const authority = new Authority("https://login.microsoftonline.com/common", networkInterface);
 
 describe("ResponseHandler.ts", () => {
     beforeEach(() => {
@@ -111,7 +176,7 @@ describe("ResponseHandler.ts", () => {
 
     afterEach(() => {
         sinon.restore();
-    })
+    });
 
     describe("generateCacheRecord", () => {
         it("throws invalid cache environment error", async () => {
@@ -140,7 +205,7 @@ describe("ResponseHandler.ts", () => {
                     expect(e.errorMessage).to.be.eq(ClientAuthErrorMessage.invalidCacheEnvironment.desc);
                 } else {
                     throw e;
-                }                
+                }
             }
         });
 
@@ -234,7 +299,7 @@ describe("ResponseHandler.ts", () => {
                         };
                     default:
                         return null;
-                };
+                }
             });
             sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
             sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
@@ -244,7 +309,7 @@ describe("ResponseHandler.ts", () => {
                 username: "test@contoso.com"
             });
             ClientTestUtils.setCloudDiscoveryMetadataStubs();
-            
+
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
             const result = await responseHandler.handleServerTokenResponse(testResponse, authority, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
 
@@ -257,7 +322,7 @@ describe("ResponseHandler.ts", () => {
         afterEach(() => {
             sinon.restore();
         });
-        
+
         it("throws state mismatch error", (done) => {
             const testServerCodeResponse: ServerAuthorizationCodeResponse = {
                 code: "testCode",
