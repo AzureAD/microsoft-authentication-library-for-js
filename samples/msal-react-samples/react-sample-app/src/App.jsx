@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MsalProvider, AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
+import { MsalProvider, AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useHandleRedirect } from "@azure/msal-react";
 import { PublicClientApplication } from "@azure/msal-browser";
 import { msalConfig, loginRequest } from "./authConfig";
 import { PageLayout } from "./ui.jsx";
@@ -33,6 +33,8 @@ const ProfileContent = () => {
 };
 
 const MainContent = () => {
+    useHandleRedirect(); // Only needed if using redirect flow
+    
     return (
         <div className="App">
             <AuthenticatedTemplate>

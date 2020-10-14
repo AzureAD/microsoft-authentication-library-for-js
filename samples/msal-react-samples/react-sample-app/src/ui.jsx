@@ -1,8 +1,10 @@
 import React from "react";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
+import DropdownButton from "react-bootstrap/DropdownButton";
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
 import { loginRequest } from "./authConfig";
+import Dropdown from "react-bootstrap/esm/Dropdown";
 
 const SignInSignOutButton = () => {
     const { instance, state } = useMsal();
@@ -12,7 +14,10 @@ const SignInSignOutButton = () => {
                 <Button variant="secondary" onClick={() => instance.logout()} className="ml-auto">Sign Out</Button>
             </AuthenticatedTemplate>
             <UnauthenticatedTemplate>
-                <Button variant="secondary" onClick={() => instance.loginPopup(loginRequest)} className="ml-auto">Sign In</Button>
+                <DropdownButton variant="secondary" className="ml-auto" drop="left" title="Sign In">
+                    <Dropdown.Item as="button" onClick={() => instance.loginPopup(loginRequest)}>Sign in using Popup</Dropdown.Item>
+                    <Dropdown.Item as="button" onClick={() => instance.loginRedirect(loginRequest)}>Sign in using Redirect</Dropdown.Item>
+                </DropdownButton>
             </UnauthenticatedTemplate>
         </>
     );
