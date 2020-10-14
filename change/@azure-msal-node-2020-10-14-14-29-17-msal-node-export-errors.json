@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Export error types for msal-node",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-10-14T21:29:17.513Z"
+}
