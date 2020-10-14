@@ -66,7 +66,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    protected createTokenRequestBody(request: AuthorizationCodeRequest): string {
+    protected async createTokenRequestBody(request: AuthorizationCodeRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         // TODO: Add broker params

@@ -83,7 +83,8 @@ export enum BrokerMessageType {
     HANDSHAKE_RESPONSE = "BrokerHandshakeResponse",
     AUTH_REQUEST = "BrokerAuthRequest",
     REDIRECT_RESPONSE = "BrokerRedirectResponse",
-    AUTH_RESULT = "BrokerAuthResult"
+    HANDLE_REDIRECT_REQUEST = "BrokerHandleRedirectRequest",
+    AUTH_RESULT = "BrokerAuthResult",
 }
 
 export const DEFAULT_REQUEST: AuthorizationUrlRequest = {

@@ -30,8 +30,12 @@ export class BrokerAuthResponse extends BrokerMessage {
         return null;
     }
 
-    static processBrokerResponse(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserStorage): AuthenticationResult {
+    static processBrokerResponseMessage(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserStorage): AuthenticationResult {
         const brokerAuthResult = BrokerAuthResponse.validate(brokerAuthResultMessage);
+        return BrokerAuthResponse.processBrokerResponse(brokerAuthResult, browserStorage);
+    }
+
+    static processBrokerResponse(brokerAuthResult: BrokerAuthResponse, browserStorage: BrowserStorage): AuthenticationResult {
         if (brokerAuthResult.error) {
             throw brokerAuthResult.error;
         }

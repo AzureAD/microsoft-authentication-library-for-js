@@ -100,7 +100,7 @@ export abstract class ClientApplication {
     }
 
     // #region Redirect Flow
-    
+
     /**
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
@@ -116,7 +116,7 @@ export abstract class ClientApplication {
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
      */
-    private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
+    protected async handleRedirectResponse(): Promise<AuthenticationResult | null> {
         if (!this.interactionInProgress()) {
             this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
             return null;
@@ -170,7 +170,7 @@ export abstract class ClientApplication {
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
      * @returns {string}
      */
-    private getRedirectResponseHash(): string | null {
+    protected getRedirectResponseHash(): string | null {
         // Get current location hash from window or cache.
         const { location: { hash } } = window;
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
@@ -207,7 +207,6 @@ export abstract class ClientApplication {
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
-        const hashUrlString = new UrlString(responseHash);
         // Deserialize hash fragment response parameters.
         const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(responseHash);
 

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { version } from "../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthenticationResult, StringUtils, AuthError } from "@azure/msal-common";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { Configuration } from "../config/Configuration";
@@ -62,7 +62,21 @@ export class BrokerClientApplication extends ClientApplication {
     private async handleBrokerHandshake(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandshakeRequest.validate(clientMessage);
         this.logger.verbose(`Broker handshake validated: ${validMessage}`);
-        const brokerHandshakeResponse = new BrokerHandshakeResponse(version);
+        
+        let brokerAuthResponse = null;
+        let redirectResult: BrokerAuthenticationResult;
+        let authErr: AuthError;
+        try {
+            redirectResult = await this.handleRedirectPromise() as BrokerAuthenticationResult;
+        } catch (err) {
+            authErr = err;
+        }
+        
+        if (redirectResult) {
+            brokerAuthResponse = new BrokerAuthResponse(InteractionType.REDIRECT, redirectResult, authErr);
+        }
+
+        const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "", brokerAuthResponse);
 
         // @ts-ignore
         clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
@@ -90,6 +104,11 @@ export class BrokerClientApplication extends ClientApplication {
         }
     }
 
+    /**
+     * Send redirect request as the broker.
+     * @param validMessage 
+     * @param clientPort 
+     */
     private async brokeredRedirectRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         const brokerRedirectResp = new BrokerRedirectResponse();
         // @ts-ignore
@@ -101,6 +120,11 @@ export class BrokerClientApplication extends ClientApplication {
         this.acquireTokenRedirect(validMessage.request as RedirectRequest);
     }
 
+    /**
+     * Send popup request as the broker.
+     * @param validMessage 
+     * @param clientPort 
+     */
     private async brokeredPopupRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const response: BrokerAuthenticationResult = (await this.acquireTokenPopup(validMessage.request as PopupRequest)) as BrokerAuthenticationResult;
@@ -116,6 +140,11 @@ export class BrokerClientApplication extends ClientApplication {
         }
     }
 
+    /**
+     * Send silent renewal request as the broker.
+     * @param validMessage 
+     * @param clientPort 
+     */
     private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(validMessage.request as SilentRequest)) as BrokerAuthenticationResult;
