@@ -26,7 +26,7 @@ async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): P
 }
 
 describe('Silent Flow', () => {
-    jest.setTimeout(30000);
+    jest.setTimeout(60000);
     let browser: puppeteer.Browser;
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
@@ -76,6 +76,7 @@ describe('Silent Flow', () => {
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         await screenshot.takeScreenshot(page, "rememberPage");
         const cacheAfterAuth = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+        console.log(cacheAfterAuth);
         expect(cacheBeforeAuth.accessTokens.length).toBe(0);
         expect(cacheBeforeAuth.idTokens.length).toBe(0);
         expect(cacheBeforeAuth.refreshTokens.length).toBe(0);
