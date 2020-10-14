@@ -22,6 +22,12 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
+    InteractionRequiredAuthError,
+    ServerError,
+    ClientAuthError,
+    ClientAuthErrorMessage,
+    ClientConfigurationError,
+    ClientConfigurationErrorMessage,
     // Network Interface
     INetworkModule,
     NetworkRequestOptions,
