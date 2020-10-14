@@ -67,7 +67,7 @@ describe('Silent Flow', () => {
     });
 
     it("Performs acquire token", async ()=> {
-        const cacheBeforeAuth = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+        const cacheBeforeAuth = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
         const testName = "silent-flow-aad-acquireToken";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "samplePageInit");
@@ -75,8 +75,7 @@ describe('Silent Flow', () => {
         await enterCredentials(page, screenshot);
         await page.waitForNavigation({ waitUntil: "networkidle0"});
         await screenshot.takeScreenshot(page, "rememberPage");
-        const cacheAfterAuth = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-        console.log(cacheAfterAuth);
+        const cacheAfterAuth = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
         expect(cacheBeforeAuth.accessTokens.length).toBe(0);
         expect(cacheBeforeAuth.idTokens.length).toBe(0);
         expect(cacheBeforeAuth.refreshTokens.length).toBe(0);
