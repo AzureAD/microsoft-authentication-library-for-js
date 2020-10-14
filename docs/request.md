@@ -217,9 +217,8 @@ cca.acquireTokenByClientCredential(clientCredentialRequest).then((response) => {
 Please check the On behalf of flow [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/on-behalf-of) for the usage:
 
 * [WebAPI](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/on-behalf-of/web-api/index.js) sample code
-* [WebAPP](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/on-behalf-of/web-app/index.js) sample code
+* [WebApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/on-behalf-of/web-app/index.js) sample code
 
 ## Next Steps
 Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](./response.md)
-
 
