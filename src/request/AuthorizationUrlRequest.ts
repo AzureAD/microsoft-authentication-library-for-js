@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ResponseMode } from "../utils/Constants";
+import { ResponseMode, AuthenticationScheme } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 import { AccountInfo } from "../account/AccountInfo";
@@ -11,6 +11,7 @@ import { AccountInfo } from "../account/AccountInfo";
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
  * 
+ * - authenticationScheme       - The type of token retrieved. Defaults to "Bearer". Can also be type "pop".
  * - scopes                     - Array of scopes the application is requesting access to.
  * - claims                     - A stringified claims request which will be added to all /authorize and /token calls
  * - authority                  - Url of the authority which the application acquires tokens from.
@@ -32,8 +33,11 @@ import { AccountInfo } from "../account/AccountInfo";
  * - domainHint                 - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant.
  * - extraQueryParameters       - String to string map of custom query parameters.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
+ * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
+ * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type AuthorizationUrlRequest = BaseAuthRequest & {
+    authenticationScheme?: AuthenticationScheme,
     redirectUri?: string;
     extraScopesToConsent?: Array<string>;
     responseMode?: ResponseMode;

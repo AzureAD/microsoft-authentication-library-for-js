@@ -12,6 +12,8 @@ import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
+import { ICachePlugin } from "../cache/interface/ICachePlugin";
+import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -38,7 +40,9 @@ export type ClientConfiguration = {
     cryptoInterface?: ICrypto,
     clientCredentials?: ClientCredentials,
     libraryInfo?: LibraryInfo
-    serverTelemetryManager?: ServerTelemetryManager
+    serverTelemetryManager?: ServerTelemetryManager,
+    persistencePlugin?: ICachePlugin,
+    serializableCache?: ISerializableTokenCache
 };
 
 /**
@@ -148,6 +152,14 @@ const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     async generatePkceCodes(): Promise<PkceCodes> {
         const notImplErr = "Crypto interface - generatePkceCodes() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getPublicKeyThumbprint(): Promise<string> {
+        const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async signJwt(): Promise<string> {
+        const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 
@@ -180,7 +192,9 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation,
         clientCredentials: clientCredentials,
         libraryInfo: libraryInfo,
-        serverTelemetryManager: serverTelemetryManager
+        serverTelemetryManager: serverTelemetryManager, 
+        persistencePlugin: persistencePlugin,
+        serializableCache: serializableCache
     } : ClientConfiguration): ClientConfiguration {
     return {
         authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
@@ -191,6 +205,8 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
-        serverTelemetryManager: serverTelemetryManager || null
+        serverTelemetryManager: serverTelemetryManager || null,
+        persistencePlugin: persistencePlugin || null,
+        serializableCache: serializableCache || null
     };
 }
