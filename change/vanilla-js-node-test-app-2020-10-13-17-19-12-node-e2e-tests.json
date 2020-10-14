@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Add end-to-end testing framework over msal-node samples (#2414)",
+  "packageName": "vanilla-js-node-test-app",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-14T00:19:12.493Z"
+}
