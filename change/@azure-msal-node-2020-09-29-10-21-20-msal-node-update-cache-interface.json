@@ -2,7 +2,7 @@
   "type": "prerelease",
   "comment": "Update TokenCache interface (#2348)",
   "packageName": "@azure/msal-node",
-  "email": "email not defined",
+  "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "none",
   "date": "2020-09-29T17:21:20.636Z"
 }
