@@ -3,6 +3,6 @@
   "comment": "Add Telemetry header size limit (#2223)",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-09-10T22:48:23.279Z"
 }

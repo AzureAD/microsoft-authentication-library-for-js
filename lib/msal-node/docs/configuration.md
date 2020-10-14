@@ -16,24 +16,22 @@ The configuration object can be passed into the `PublicClientApplication` constr
 
 ```javascript
 
-// Call back API to read from the cache in .json format
-const readFromStorage = () => {
-    return fs.readFile("cache_file_path", "utf-8");
+// Call back APIs which automatically write and read into a .json file - example implementation
+const beforeCacheAccess = async (cacheContext) => {
+    cacheContext.tokenCache.deserialize(await fs.readFile(cachePath, "utf-8"));
 };
 
-// Call back API to write to the cache in .json format
-const writeToStorage = (getMergedState) => {
-    return readFromStorage().then(oldFile =>{
-        const mergedState = getMergedState(oldFile);
-        return fs.writeFile("cache_file_path", mergedState);
-    })
+const afterCacheAccess = async (cacheContext) => {
+    if(cacheContext.cacheHasChanged){
+        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());
+    }
 };
 
 // Cache Plugin
 const cachePlugin = {
-    readFromStorage,
-    writeToStorage
-};
+    beforeCacheAccess,
+    afterCacheAccess
+};;
 
 const msalConfig = {
     auth: {

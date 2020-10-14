@@ -1,8 +1,8 @@
 {
-  "type": "minor",
-  "comment": "Add support for persistence cache plugin (#2348)",
+  "type": "none",
+  "comment": "Docs updates for msal-node release",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "none",
-  "date": "2020-09-29T17:20:53.830Z"
+  "date": "2020-10-14T23:17:16.548Z"
 }

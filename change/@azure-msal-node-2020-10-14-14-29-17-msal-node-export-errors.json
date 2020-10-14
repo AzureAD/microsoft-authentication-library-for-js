@@ -1,8 +1,8 @@
 {
   "type": "prerelease",
-  "comment": "Update TokenCache interface (#2348)",
+  "comment": "Export error types for msal-node",
   "packageName": "@azure/msal-node",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "none",
-  "date": "2020-09-29T17:21:20.636Z"
+  "date": "2020-10-14T21:29:17.513Z"
 }
