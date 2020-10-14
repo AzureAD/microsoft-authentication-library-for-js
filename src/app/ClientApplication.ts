@@ -823,7 +823,7 @@ export abstract class ClientApplication {
      * @param payload 
      * @param error 
      */
-    emitEvent(eventType: EventType, interactionType?: InteractionType, payload?: EventPayload, error?: EventError) {
+    protected emitEvent(eventType: EventType, interactionType?: InteractionType, payload?: EventPayload, error?: EventError) {
         if (this.isBrowserEnvironment) {
             const message: EventMessage = {
                 eventType: eventType,
