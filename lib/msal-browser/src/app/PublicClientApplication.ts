@@ -74,7 +74,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
         if (this.broker) {
-            this.broker.handleRedirectPromise();
+            return this.broker.handleRedirectPromise();
+        } else if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+            return await this.embeddedApp.sendHandleRedirectRequest();
         }
         return super.handleRedirectPromise();
     }

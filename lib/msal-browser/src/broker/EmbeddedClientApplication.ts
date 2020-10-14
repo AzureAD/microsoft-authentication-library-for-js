@@ -17,6 +17,7 @@ import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
 import { version } from "../../package.json";
+import { BrokerHandleRedirectRequest } from "./BrokerHandleRedirectRequest";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
@@ -103,6 +104,14 @@ export class EmbeddedClientApplication {
 
         const message = await this.sendRequest(request, InteractionType.REDIRECT, DEFAULT_MESSAGE_TIMEOUT);
         BrokerRedirectResponse.validate(message);
+    }
+
+    async sendHandleRedirectRequest(): Promise<AuthenticationResult> {
+        await this.preflightBrokerRequest();
+        const brokerHandleRedirectRequest = new BrokerHandleRedirectRequest(this.config.auth.clientId, this.version);
+
+        const brokerRedirectResponse = await this.messageBroker<MessageEvent>(brokerHandleRedirectRequest, DEFAULT_MESSAGE_TIMEOUT);
+        return BrokerAuthResponse.processBrokerResponseMessage(brokerRedirectResponse, this.browserStorage);
     }
 
     /**

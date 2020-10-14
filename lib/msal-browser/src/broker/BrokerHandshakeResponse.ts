@@ -12,12 +12,11 @@ export class BrokerHandshakeResponse extends BrokerMessage {
     public readonly brokerOrigin: string;
     public readonly authResult: BrokerAuthResponse;
 
-    constructor(version: string, brokerOrigin?: string, authResult?: BrokerAuthResponse) {
+    constructor(version: string, brokerOrigin?: string) {
         super(BrokerMessageType.HANDSHAKE_RESPONSE);
 
         this.version = version;
         this.brokerOrigin = brokerOrigin;
-        this.authResult = authResult;
     }
 
     /**

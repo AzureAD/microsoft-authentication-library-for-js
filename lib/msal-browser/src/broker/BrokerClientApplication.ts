@@ -16,13 +16,14 @@ import { BrokerAuthResponse } from "./BrokerAuthResponse";
 import { ClientApplication } from "../app/ClientApplication";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
+import { BrokerHandleRedirectRequest } from "./BrokerHandleRedirectRequest";
 
 /**
  * Broker Application class to manage brokered requests.
  */
 export class BrokerClientApplication extends ClientApplication {
 
-    private cachedBrokerResponse: BrokerAuthenticationResult;
+    private cachedBrokerResponse: Promise<BrokerAuthenticationResult>;
 
     constructor(configuration: Configuration) {
         super(configuration);
@@ -47,6 +48,9 @@ export class BrokerClientApplication extends ClientApplication {
                 case BrokerMessageType.HANDSHAKE_REQUEST:
                     this.logger.verbose("Broker handshake request received");
                     return await this.handleBrokerHandshake(clientMessage);
+                case BrokerMessageType.HANDLE_REDIRECT_REQUEST:
+                    this.logger.verbose("Broker handle redirect request received");
+                    return await this.handleBrokerRedirectResponse(clientMessage);
                 case BrokerMessageType.AUTH_REQUEST:
                     this.logger.verbose("Broker auth request received");
                     return await this.handleBrokerAuthRequest(clientMessage);
@@ -65,24 +69,39 @@ export class BrokerClientApplication extends ClientApplication {
         const validMessage = BrokerHandshakeRequest.validate(clientMessage);
         this.logger.verbose(`Broker handshake validated: ${validMessage}`);
         
-        let brokerAuthResponse = null;
-        let redirectResult: BrokerAuthenticationResult;
-        let authErr: AuthError;
-        try {
-            redirectResult = await this.handleRedirectPromise() as BrokerAuthenticationResult;
-        } catch (err) {
-            authErr = err;
-        }
-
-        if (redirectResult) {
-            brokerAuthResponse = new BrokerAuthResponse(InteractionType.REDIRECT, redirectResult, authErr);
-        }
-
-        const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "", brokerAuthResponse);
+        const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "");
 
         // @ts-ignore
         clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
         this.logger.info(`Sending handshake response: ${brokerHandshakeResponse}`);
+    }
+
+    /**
+     * 
+     * @param clientMessage 
+     */
+    async handleBrokerRedirectResponse(clientMessage: MessageEvent): Promise<void> {
+        console.log("Broker handle redirect request");
+        const validMessage = BrokerHandleRedirectRequest.validate(clientMessage);
+        if (validMessage) {
+            // TODO: Calculate request thumbprint
+            const clientPort = clientMessage.ports[0];
+            const brokerResult = await this.cachedBrokerResponse;
+            if (brokerResult) {
+                // TODO: Replace with in-memory cache lookup
+                console.log(brokerResult);
+                this.cachedBrokerResponse = null;
+                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.REDIRECT, brokerResult);
+                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+                clientPort.postMessage(brokerAuthResponse);
+                clientPort.close();
+                return;
+            } else {
+                // TODO: Throw error or return null?
+                clientPort.postMessage(null);
+                clientPort.close();
+            }
+        }
     }
 
     /**
@@ -93,18 +112,6 @@ export class BrokerClientApplication extends ClientApplication {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
         if (validMessage) {
             this.logger.verbose(`Broker auth request validated: ${validMessage}`);
-            // TODO: Calculate request thumbprint
-            if (this.cachedBrokerResponse) {
-                // TODO: Replace with in-memory cache lookup
-                const brokerResult = this.cachedBrokerResponse;
-                this.cachedBrokerResponse = null;
-                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.POPUP, brokerResult);
-                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
-                const clientPort = clientMessage.ports[0];
-                clientPort.postMessage(brokerAuthResponse);
-                clientPort.close();
-                return;
-            }
             switch (validMessage.interactionType) {
                 case InteractionType.REDIRECT:
                     return this.brokeredRedirectRequest(validMessage, clientMessage.ports[0]);
@@ -119,8 +126,7 @@ export class BrokerClientApplication extends ClientApplication {
     }
 
     async handleRedirectPromise(): Promise<BrokerAuthenticationResult | null> {
-        this.cachedBrokerResponse = await super.handleRedirectPromise() as BrokerAuthenticationResult;
-        console.log(this.cachedBrokerResponse);
+        this.cachedBrokerResponse = super.handleRedirectPromise() as Promise<BrokerAuthenticationResult>;
         return null;
     }
 
