@@ -12,7 +12,17 @@ const testScenarios = scenarios.filter((scenario: string) => tests.includes(scen
 let testCacheLocation: string;
 
 async function runE2ETests() {
-  testScenarios.forEach((scenario: string) => testScenario(scenario));
+  const globalResults = testScenarios.map(async (scenario: string) => {
+      return testScenario(scenario);
+  });
+
+  Promise.all(globalResults).then(globalResults => {
+      const globalFailedTests = globalResults.reduce((totalFailedTests: number, scenarioResults: any) => {
+          return totalFailedTests + scenarioResults.results.numFailedTests;
+      }, 0);
+      // If any tests fail, exit with code 1 so CI/CD check fails
+      process.exitCode = (globalFailedTests > 0) ? 1 : 0;
+  })
 }
 
 async function testScenario (scenario: string): Promise<any> {
