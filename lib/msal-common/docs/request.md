@@ -184,7 +184,7 @@ pca.acquireTokenSilent(silentRequest).then((response) => {
 ## Client Credentials Flow
 
 ### Public APIs
-- [acquireTokenByClientCredential](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_confidentialclientapplication_.confidentialclientapplication.html#acquiretokenbyclientcredential): This API acquires a token (typically for a web service (confidential client) to use its own credentials, instead of impersonating a user,) to authenticate when calling another web service. In this scenario, the client is typically a middle-tier web service, a daemon service, or a web site. For a higher level of assurance, the Microsoft identity platform also allows the calling service to use a certificate (instead of a shared secret) as a credential. The request is of the type [ClientCredentialRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_clientcredentialrequest_.html#clientcredentialrequest).
+- [acquireTokenByClientCredential](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_confidentialclientapplication_.confidentialclientapplication.html#acquiretokenbyclientcredential): This API acquires a token using the confidential client application's credentials to authenticate (instead of impersonating a user) when calling another web service. In this scenario, the client is typically a middle-tier web service, a daemon service, or a back-end web application. For a higher level of assurance, the Microsoft identity platform also allows the calling service to use a certificate (instead of a shared secret) as a credential. The request is of the type [ClientCredentialRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_clientcredentialrequest_.html#clientcredentialrequest).
 
 ``` javascript
 const config = {
@@ -221,7 +221,6 @@ Please check the On behalf of flow [sample](https://github.com/AzureAD/microsoft
 
 ## Next Steps
 Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](./response.md)
-
 
 
 
