@@ -61,7 +61,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             if(this.config.system.brokerOptions.allowBrokering) {
                 this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
             }
-            
+
             this.broker = new BrokerClientApplication(this.config);
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
@@ -70,6 +70,13 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();
         }
+    }
+
+    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+        if (this.broker) {
+            this.broker.handleRedirectPromise();
+        }
+        return super.handleRedirectPromise();
     }
 
     /**
@@ -131,6 +138,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     // #endregion
+
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck();
         const silentRequest: SilentFlowRequest = {

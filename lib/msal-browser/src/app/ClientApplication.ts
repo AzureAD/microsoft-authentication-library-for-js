@@ -138,6 +138,7 @@ export abstract class ClientApplication {
                 // Replace current hash with non-msal hash, if present
                 BrowserUtils.replaceHash(loginRequestUrl);
             }
+
             // We are on the page we need to navigate to - handle hash
             return this.handleHash(responseHash);
         } else if (!this.config.auth.navigateToLoginRequestUrl) {
