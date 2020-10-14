@@ -67,7 +67,7 @@ pca.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
 ## Refresh Token Flow
 
 ### Public APIs
-- [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbyrefreshtoken): This API acquires a token by exchanging the refresh token provided for a new set of tokens. The request is of the type [RefreshTokenRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_refreshtokenrequest_.html). The `refresh token` is never returned to the user in a response, but can be accessed from the user cache. It is recommended that you use acquireTokenSilent() for silent scenarios. When using acquireTokenSilent(), MSAL will handle the caching and refreshing of tokens automatically.
+- [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbyrefreshtoken): This API acquires a token by exchanging the refresh token provided for a new set of tokens. The request is of the type [RefreshTokenRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_refreshtokenrequest_.html). The `refresh token` is never returned to the user in a response, but can be accessed from the user cache. It is recommended that you use `acquireTokenSilent()` for non-interactive scenarios. When using `acquireTokenSilent()`, MSAL will handle the caching and refreshing of tokens automatically.
 
 ``` javascript
 const config = {
@@ -221,7 +221,6 @@ Please check the On behalf of flow [sample](https://github.com/AzureAD/microsoft
 
 ## Next Steps
 Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](./response.md)
-
 
 
 
