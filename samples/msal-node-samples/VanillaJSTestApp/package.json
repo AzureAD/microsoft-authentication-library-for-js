@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "ts-node ./testRunner.ts"
+    "build:package": "cd ../../../lib/msal-node && npm run build:all",
+    "start:build": "npm run build:package && npm start",
+    "test:e2e": "ts-node ./testRunner.ts"
   },
   "author": "",
   "license": "MIT",
