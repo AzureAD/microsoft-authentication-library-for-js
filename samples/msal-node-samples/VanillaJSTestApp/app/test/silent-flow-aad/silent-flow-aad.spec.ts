@@ -65,7 +65,7 @@ describe('Silent Flow', () => {
     });
 
     it("Performs acquire token", async ()=> {
-        jest.setTimeout(30000);
+        jest.setTimeout(60000);
         const cacheBeforeAuth = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
         const testName = "silent-flow-aad-acquireToken";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
