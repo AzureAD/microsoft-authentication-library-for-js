@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Fri, 02 Oct 2020 17:42:35 GMT and should not be manually modified.
+This log was last generated on Wed, 14 Oct 2020 23:45:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.10
+
+Wed, 14 Oct 2020 23:45:07 GMT
+
+### Changes
+
+- Docs update for msal-node release (sameera.gajjarapu@microsoft.com)
+- Export error types for msal-node (sameera.gajjarapu@microsoft.com)
+- Add uuid as dependency in msal-node package.json so it is installed with the library (hectormgdev@gmail.com)
+- Update TokenCache interface (#2348) (sameera.gajjarapu@microsoft.com)
 
 ## 1.0.0-alpha.9
 

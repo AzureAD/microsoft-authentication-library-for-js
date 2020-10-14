@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add CDN doc for msal-core",
-  "packageName": "msal",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-12T23:13:04.846Z"
-}
