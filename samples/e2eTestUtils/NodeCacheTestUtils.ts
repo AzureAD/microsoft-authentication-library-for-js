@@ -9,7 +9,7 @@ export type tokenMap = {
 };
 
 export class NodeCacheTestUtils {
-    static async getTokens(cacheLocation: string): Promise<tokenMap> {
+    static getTokens(cacheLocation: string): tokenMap {
         const cache = fs.readFileSync(cacheLocation, { encoding: 'utf-8' });
         const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
 
@@ -28,7 +28,7 @@ export class NodeCacheTestUtils {
         return tokenCache;
     }
 
-    static async resetCache(cacheLocation: string) {
+    static resetCache(cacheLocation: string) {
         const jsonCache = require(cacheLocation);
         const cache: InMemoryCache = Deserializer.deserializeAllCache(jsonCache);
         Object.keys(cache).forEach( key => cache[key] = []);
