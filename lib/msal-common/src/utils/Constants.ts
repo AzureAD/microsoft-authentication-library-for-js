@@ -105,6 +105,8 @@ export enum AADServerParamKeys {
     CLIENT_SECRET = "client_secret",
     CLIENT_ASSERTION = "client_assertion",
     CLIENT_ASSERTION_TYPE = "client_assertion_type",
+    TOKEN_TYPE = "token_type",
+    REQ_CNF = "req_cnf",
     OBO_ASSERTION = "assertion",
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
@@ -112,23 +114,8 @@ export enum AADServerParamKeys {
 }
 
 /**
- * IdToken claim string constants
+ * Claims request keys
  */
-export enum IdTokenClaimName {
-    ISSUER = "iss",
-    OBJID = "oid",
-    SUBJECT = "sub",
-    TENANTID = "tid",
-    VERSION = "ver",
-    PREF_USERNAME = "preferred_username",
-    NAME = "name",
-    NONCE = "nonce",
-    EXPIRATION = "exp",
-    HOME_OBJID = "home_oid",
-    SESSIONID = "sid",
-    CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
-}
-
 export enum ClaimsRequestKeys {
     ACCESS_TOKEN = "access_token",
     XMS_CC = "xms_cc"
@@ -276,11 +263,21 @@ export const THE_FAMILY_ID = "1";
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
-    FAILURE_LIMIT: 3,
+    MAX_HEADER_BYTES: 4000, // Max is 4KB, 4000 Bytes provides 96 Byte buffer for separators, schema version, etc. 
     CACHE_KEY: "server-telemetry",
     CATEGORY_SEPARATOR: "|",
-    VALUE_SEPARATOR: ","
+    VALUE_SEPARATOR: ",",
+    OVERFLOW_TRUE: "1",
+    OVERFLOW_FALSE: "0"
 };
+
+/**
+ * Type of the authentication request
+ */
+export enum AuthenticationScheme {
+    POP = "pop",
+    BEARER = "Bearer"
+}
 
 /**
  * Constants related to throttling
