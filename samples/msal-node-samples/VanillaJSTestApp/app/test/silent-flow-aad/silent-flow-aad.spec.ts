@@ -27,6 +27,7 @@ async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): P
 }
 
 describe('Silent Flow', () => {
+    jest.setTimeout(30000);
     let browser: puppeteer.Browser;
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
@@ -51,6 +52,8 @@ describe('Silent Flow', () => {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
+        // Configure the navigation timeout
+        await page.setDefaultNavigationTimeout(0);
         await page.goto(SAMPLE_HOME_URL);
     });
 
@@ -65,7 +68,6 @@ describe('Silent Flow', () => {
     });
 
     it("Performs acquire token", async ()=> {
-        jest.setTimeout(60000);
         const cacheBeforeAuth = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
         const testName = "silent-flow-aad-acquireToken";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
