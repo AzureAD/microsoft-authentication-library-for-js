@@ -8,20 +8,29 @@ const fs = require('fs');
  * Cache Plugin configuration
  */
 
-module.exports = function(cacheLocation) {
-    const cachePath = cacheLocation;
-    const readFromStorage = () => {
-        return fs.readFileSync(cachePath, "utf-8");
+module.exports = async function(cacheLocation) {
+    const beforeCacheAccess = async (cacheContext) => {
+        cacheContext.tokenCache.deserialize(await fs.readFile(cacheLocation, "utf-8", (err, data) => {
+            if (err) {
+                console.log(err);
+            } else {
+                return data;
+            }
+        }));
     };
     
-    const writeToStorage = (getMergedState) => {
-        const oldFile = readFromStorage();
-        const mergedState = getMergedState(oldFile);
-        return fs.writeFileSync(cachePath, mergedState);
+    const afterCacheAccess = async (cacheContext) => {
+        if(cacheContext.cacheHasChanged){
+            await fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
+                if (err) {
+                    console.log(err);
+                }
+            });
+        }
     };
     
     return {
-        readFromStorage,
-        writeToStorage
+        beforeCacheAccess,
+        afterCacheAccess
     }
 }

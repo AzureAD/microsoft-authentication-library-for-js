@@ -18,7 +18,7 @@ const argv = require('yargs')
     .argv;
 
 // Main Script
-function runSample(scenario, port, cacheLocation) {
+async function runSample(scenario, port, cacheLocation) {
     // Sample selection
     const scenarios = SampleUtils.readScenarios();
     scenario = SampleUtils.validateScenario(scenarios, scenario);
@@ -28,7 +28,7 @@ function runSample(scenario, port, cacheLocation) {
     const scenarioConfig = require(scenarioPath);
 
     // Build client application
-    const clientApplication = require(Constants.MSAL_CLIENT_APP_CONFIG_PATH)(scenarioConfig, cacheLocation);
+    const clientApplication = await require(Constants.MSAL_CLIENT_APP_CONFIG_PATH)(scenarioConfig, cacheLocation);
 
     // Get sample metaconfig
     const sampleConfig = scenarioConfig.sample;

@@ -5,7 +5,7 @@
 const msal = require('@azure/msal-node');
 
 // Create msal application object
-module.exports = function(scenarioConfiguration, cacheLocation) {
+module.exports = async function(scenarioConfiguration, cacheLocation) {
 
     const loggerOptions = {
         loggerCallback(loglevel, message, containsPii) {
@@ -15,7 +15,7 @@ module.exports = function(scenarioConfiguration, cacheLocation) {
         logLevel: msal.LogLevel.Verbose,
     }
         
-    const cachePlugin = require('./cachePlugin')(cacheLocation);
+    const cachePlugin = await require('./cachePlugin')(cacheLocation);
 
     // Build full MSAL Client configuration object
     const clientConfig = {
