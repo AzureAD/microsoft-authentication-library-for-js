@@ -61,7 +61,7 @@ export class UrlString {
         }
 
         // Throw error if URI or path segments are not parseable.
-        if (!components.HostNameAndPort || !components.PathSegments || components.PathSegments.length < 1) {
+        if (!components.HostNameAndPort || !components.PathSegments) {
             throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
         }
 

@@ -1,8 +1,28 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Fri, 02 Oct 2020 17:42:35 GMT and should not be manually modified.
+This log was last generated on Thu, 15 Oct 2020 00:49:18 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.6.1
+
+Thu, 15 Oct 2020 00:49:18 GMT
+
+### Patches
+
+- Removing unused errors in msal-common and fixing possible build errors in @azure/msal-common@1.6.0 (#2432) (sameera.gajjarapu@microsoft.com)
+
+## 1.6.0
+
+Wed, 14 Oct 2020 23:45:07 GMT
+
+### Minor changes
+
+- Add support for persistence cache plugin (#2348) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Add Telemetry header size limit (#2223) (thomas.norling@microsoft.com)
 
 ## 1.5.0
 
