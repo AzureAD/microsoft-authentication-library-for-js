@@ -350,8 +350,8 @@ export abstract class ClientApplication {
      */
     private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
         // If logged in, emit acquire token events
-        const isLoggedIn = this.getAllAccounts().length > 0;
-        if (isLoggedIn) {
+        const loggedInAccounts = this.getAllAccounts();
+        if (loggedInAccounts.length > 0) {
             this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.POPUP, request);
         } else {
             this.emitEvent(EventType.LOGIN_START, InteractionType.POPUP, request);
@@ -387,15 +387,16 @@ export abstract class ClientApplication {
             const result = await interactionHandler.handleCodeResponse(hash);
 
             // If logged in, emit acquire token events
-            if (isLoggedIn) {
-                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.POPUP, result);
-            } else {
+            const isLoggingIn = loggedInAccounts.length > this.getAllAccounts().length;
+            if (isLoggingIn) {
                 this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.POPUP, result);
+            } else {
+                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.POPUP, result);
             }
 
             return result;
         } catch (e) {
-            if (isLoggedIn) {
+            if (loggedInAccounts.length > 0) {
                 this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.POPUP, null, e);
             } else {
                 this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.POPUP, null, e);
@@ -474,8 +475,7 @@ export abstract class ClientApplication {
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            const silentTokenResult = await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
-            return silentTokenResult;
+            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(silentRequest.state);
