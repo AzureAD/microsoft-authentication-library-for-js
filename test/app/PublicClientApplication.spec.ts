@@ -6,7 +6,7 @@ const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryCacheValue, AuthenticationScheme, RefreshTokenClient } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryCacheValue, AuthenticationScheme, RefreshTokenClient, Logger } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -73,9 +73,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
-                expect(timeout).to.be.eq(10000);
+                expect(logger).to.be.instanceOf(Logger);
                 expect(urlNavigate).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
             });
@@ -86,9 +86,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("navigates to root and caches hash if navigateToLoginRequestUri is true", (done) => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
-                expect(timeout).to.be.eq(10000);
+                expect(logger).to.be.instanceOf(Logger);
                 expect(urlNavigate).to.be.eq("https://localhost:8081/");
                 expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
                 done();
@@ -101,9 +101,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, "null");
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
-                expect(timeout).to.be.eq(10000);
+                expect(logger).to.be.instanceOf(Logger);
                 expect(urlNavigate).to.be.eq("https://localhost:8081/");
                 expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
                 done();
@@ -117,9 +117,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const loginRequestUrl = window.location.href + "?testQueryString=1";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
-                expect(timeout).to.be.eq(10000);
+                expect(logger).to.be.instanceOf(Logger);
                 expect(urlNavigate).to.be.eq(loginRequestUrl);
                 done();
             });
@@ -132,9 +132,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const loginRequestUrl = window.location.href + "?testQueryString=1#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
-                expect(timeout).to.be.eq(10000);
+                expect(logger).to.be.instanceOf(Logger);
                 expect(urlNavigate).to.be.eq(loginRequestUrl);
                 done();
             });
@@ -717,9 +717,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                     expect(noHistory).to.be.undefined;
-                    expect(timeout).to.be.eq(10000);
+                    expect(logger).to.be.instanceOf(Logger);
                     expect(urlNavigate).to.be.not.empty;
                 });
 
@@ -746,9 +746,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                     expect(noHistory).to.be.undefined;
-                    expect(timeout).to.be.eq(10000);
+                    expect(logger).to.be.instanceOf(Logger);
                     expect(urlNavigate).to.be.not.empty;
                 });
 
@@ -818,9 +818,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                     expect(noHistory).to.be.undefined;
-                    expect(timeout).to.be.eq(10000);
+                    expect(logger).to.be.instanceOf(Logger);
                     expect(urlNavigate).to.be.not.empty;
                 });
                 const emptyRequest: AuthorizationUrlRequest = {
@@ -867,9 +867,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                     expect(noHistory).to.be.undefined;
-                    expect(timeout).to.be.eq(10000);
+                    expect(logger).to.be.instanceOf(Logger);
                     expect(urlNavigate).to.be.not.empty;
                 });
                 const loginRequest: AuthorizationUrlRequest = {
@@ -935,9 +935,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                     expect(noHistory).to.be.undefined;
-                    expect(timeout).to.be.eq(10000);
+                    expect(logger).to.be.instanceOf(Logger);
                     expect(urlNavigate).to.be.not.empty;
                 });
                 const browserCrypto = new CryptoOps();
@@ -961,9 +961,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                     expect(noHistory).to.be.undefined;
-                    expect(timeout).to.be.eq(10000);
+                    expect(logger).to.be.instanceOf(Logger);
                     expect(urlNavigate).to.be.not.empty;
                 });
                 const browserCrypto = new CryptoOps();
@@ -1032,9 +1032,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                     expect(noHistory).to.be.undefined;
-                    expect(timeout).to.be.eq(10000);
+                    expect(logger).to.be.instanceOf(Logger);
                     expect(urlNavigate).to.be.not.empty;
                 });
                 const emptyRequest: AuthorizationUrlRequest = {
@@ -1081,9 +1081,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory?: boolean) => {
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory?: boolean) => {
                     expect(noHistory).to.be.undefined;
-                    expect(timeout).to.be.eq(10000);
+                    expect(logger).to.be.instanceOf(Logger);
                     expect(urlNavigate).to.be.not.empty;
                 });
                 const testScope = "testscope";
@@ -1689,9 +1689,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("passes logoutUri from authModule to window nav util", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, noHistory: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, logger: Logger, noHistory: boolean) => {
                 expect(urlNavigate).to.be.eq(testLogoutUrl);
-                expect(timeout).to.be.eq(10000);
+                expect(logger).to.be.instanceOf(Logger);
                 expect(noHistory).to.be.undefined;
                 done();
             });

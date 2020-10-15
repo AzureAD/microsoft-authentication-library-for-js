@@ -162,8 +162,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             });
             const browserCrypto = new CryptoOps();
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", 10000, browserCrypto)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", 10000, browserCrypto)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", browserCrypto)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", browserCrypto)).to.throw(BrowserAuthError);
         });
 
         it("navigates browser window to given window location", () => {
@@ -182,7 +182,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl) => {
                 expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             });
-            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", 10000, new CryptoOps());
+            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, "", new CryptoOps());
             expect(window).to.be.eq(windowObj);
             expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
