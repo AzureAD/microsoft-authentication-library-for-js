@@ -95,6 +95,6 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^1.5.0"
+    "@azure/msal-common": "C:\\Projects\\msaljs\\lib\\msal-common\\azure-msal-common-1.5.0.tgz"
   }
 }

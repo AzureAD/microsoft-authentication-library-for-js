@@ -115,7 +115,6 @@ export abstract class BaseClient {
             tokenEndpoint, 
             { body: queryString, headers: headers }
         );
-
         if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
             // Telemetry data successfully logged by server, clear Telemetry cache
             this.config.serverTelemetryManager.clearTelemetryCache();

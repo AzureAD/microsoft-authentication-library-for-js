@@ -31,6 +31,8 @@ export type BrowserAuthOptions = {
     postLogoutRedirectUri?: string;
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
+    nonPkceAuthCodeExchangeEndpoint?: string;    
+    useNonPkceAuthCodeExchangeEndpoint?: boolean,
 };
 
 /**

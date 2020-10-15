@@ -17,6 +17,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { Authority } from "../authority/Authority";
+import { RefreshTokenClientNonPkce } from './RefreshTokenClientNonPkce';
 
 export class SilentFlowClient extends BaseClient {
 
@@ -34,8 +35,9 @@ export class SilentFlowClient extends BaseClient {
             return await this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
-                const refreshTokenClient = new RefreshTokenClient(this.config);
-                return refreshTokenClient.acquireTokenByRefreshToken(request);
+                if (this.config.authOptions.useNonPkceAuthCodeExchangeEndpoint)                
+                    return new RefreshTokenClientNonPkce(this.config).acquireTokenByRefreshToken(request);
+                return new RefreshTokenClient(this.config).acquireTokenByRefreshToken(request);                
             } else {
                 throw e;
             }

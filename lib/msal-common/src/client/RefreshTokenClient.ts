@@ -9,7 +9,6 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { ScopeSet } from "../request/ScopeSet";
 import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
@@ -144,7 +143,7 @@ export class RefreshTokenClient extends BaseClient {
      * Helper function to create the token request body
      * @param request
      */
-    private async createTokenRequestBody(request: RefreshTokenRequest): Promise<string> {
+    protected async createTokenRequestBody(request: RefreshTokenRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);

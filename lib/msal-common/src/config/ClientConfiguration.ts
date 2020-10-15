@@ -60,6 +60,8 @@ export type AuthOptions = {
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
     clientCapabilities?: Array<string>;
+    nonPkceAuthCodeExchangeEndpoint?: string;
+    useNonPkceAuthCodeExchangeEndpoint?: boolean,
 };
 
 /**

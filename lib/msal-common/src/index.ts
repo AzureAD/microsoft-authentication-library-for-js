@@ -1,7 +1,9 @@
 // App Auth Modules and Configuration
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
+export { AuthorizationCodeClientNonPkce} from "./client/AuthorizationCodeClientNonPkce";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
+export { RefreshTokenClientNonPkce } from "./client/RefreshTokenClientNonPkce";
 export { ClientCredentialClient } from "./client/ClientCredentialClient";
 export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";

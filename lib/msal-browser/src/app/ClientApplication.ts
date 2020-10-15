@@ -5,7 +5,7 @@
 
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserStorage } from "../cache/BrowserStorage";
-import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClientNonPkce, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, RefreshTokenClientNonPkce } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -555,6 +555,8 @@ export abstract class ClientApplication {
     protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        if (clientConfig.authOptions.useNonPkceAuthCodeExchangeEndpoint)
+            return new AuthorizationCodeClientNonPkce(clientConfig);
         return new AuthorizationCodeClient(clientConfig);
     }
 
@@ -575,6 +577,8 @@ export abstract class ClientApplication {
     protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        if (clientConfig.authOptions.useNonPkceAuthCodeExchangeEndpoint)
+            return new RefreshTokenClientNonPkce(clientConfig); 
         return new RefreshTokenClient(clientConfig);
     }
 
@@ -592,7 +596,9 @@ export abstract class ClientApplication {
                 authority: discoveredAuthority,
                 knownAuthorities: this.config.auth.knownAuthorities,
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-                clientCapabilities: this.config.auth.clientCapabilities
+                clientCapabilities: this.config.auth.clientCapabilities,
+                nonPkceAuthCodeExchangeEndpoint: this.config.auth.nonPkceAuthCodeExchangeEndpoint,
+                useNonPkceAuthCodeExchangeEndpoint: this.config.auth.useNonPkceAuthCodeExchangeEndpoint,
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds
