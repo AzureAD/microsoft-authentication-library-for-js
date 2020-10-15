@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Check for Headers class when configuring network client",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-08T00:32:50.617Z"
-}
