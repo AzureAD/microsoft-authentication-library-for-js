@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 15 Oct 2020 00:49:18 GMT",
+      "tag": "@azure/msal-common_v1.6.1",
+      "version": "1.6.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Removing unused errors in msal-common and fixing possible build errors in @azure/msal-common@1.6.0 (#2432)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "c752e512993dc3a294b51fe0849c70e3cfeafa3e",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Oct 2020 23:45:07 GMT",
       "tag": "@azure/msal-common_v1.6.0",
       "version": "1.6.0",
