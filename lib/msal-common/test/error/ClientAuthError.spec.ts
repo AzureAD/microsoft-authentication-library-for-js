@@ -84,19 +84,6 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });
 
-    it("createInvalidAuthorityTypeError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createInvalidAuthorityTypeError("Given url.");
-
-        expect(err instanceof ClientAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.invalidAuthorityType.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.invalidAuthorityType.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.invalidAuthorityType.desc);
-        expect(err.name).to.equal("ClientAuthError");
-        expect(err.stack).to.include("ClientAuthError.spec.ts");
-    });
-
     it("createHashNotDeserializedError creates a ClientAuthError object", () => {
         const err: ClientAuthError = ClientAuthError.createHashNotDeserializedError("Couldn't deserialize hash object correctly");
 
@@ -136,19 +123,6 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });
 
-    it("createAccountMismatchError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createAccountMismatchError();
-
-        expect(err instanceof ClientAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.accountMismatchError.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.accountMismatchError.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.accountMismatchError.desc);
-        expect(err.name).to.equal("ClientAuthError");
-        expect(err.stack).to.include("ClientAuthError.spec.ts");
-    });
-
     it("createNoTokensFoundError creates a ClientAuthError object", () => {
         const err: ClientAuthError = ClientAuthError.createNoTokensFoundError();
 
@@ -158,32 +132,6 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.errorCode).to.equal(ClientAuthErrorMessage.noTokensFoundError.code);
         expect(err.errorMessage).to.include(ClientAuthErrorMessage.noTokensFoundError.desc);
         expect(err.message).to.include(ClientAuthErrorMessage.noTokensFoundError.desc);
-        expect(err.name).to.equal("ClientAuthError");
-        expect(err.stack).to.include("ClientAuthError.spec.ts");
-    });
-
-    it("createCacheParseError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createCacheParseError("Couldn't parse key");
-
-        expect(err instanceof ClientAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.cacheParseError.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.cacheParseError.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.cacheParseError.desc);
-        expect(err.name).to.equal("ClientAuthError");
-        expect(err.stack).to.include("ClientAuthError.spec.ts");
-    });
-
-    it("createUserLoginRequiredError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createUserLoginRequiredError();
-
-        expect(err instanceof ClientAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.userLoginRequiredError.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.userLoginRequiredError.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.userLoginRequiredError.desc);
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("ClientAuthError.spec.ts");
     });

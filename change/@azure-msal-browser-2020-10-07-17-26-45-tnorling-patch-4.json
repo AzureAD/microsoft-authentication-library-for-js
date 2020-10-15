@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update docs to explain B2C invite flow (#2392)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-08T00:26:32.304Z"
-}
