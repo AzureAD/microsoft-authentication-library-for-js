@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Remove rogue console.log() in the BrowserCrypto.ts file and add a lint rule to prevent future issues (#2410)",
-  "packageName": "@azure/msal-angularjs",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-12T19:06:57.153Z"
-}

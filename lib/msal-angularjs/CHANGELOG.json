@@ -2,6 +2,21 @@
   "name": "@azure/msal-angularjs",
   "entries": [
     {
+      "date": "Wed, 14 Oct 2020 23:45:07 GMT",
+      "tag": "@azure/msal-angularjs_v0.1.2",
+      "version": "0.1.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Remove rogue console.log() in the BrowserCrypto.ts file and add a lint rule to prevent future issues (#2410)",
+            "author": "prkanher@microsoft.com",
+            "commit": "d2fc6bb778a79d9160474cebfc6c5a52bcf464ff",
+            "package": "@azure/msal-angularjs"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
       "tag": "@azure/msal-angularjs_v0.1.2",
       "version": "0.1.2",

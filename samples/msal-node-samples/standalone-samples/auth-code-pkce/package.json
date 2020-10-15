@@ -1,7 +1,7 @@
 {
-  "name": "msal-node-on-behalf-of-web-app",
+  "name": "msal-node-auth-code-pkce",
   "version": "1.0.0",
-  "description": "sample app for msal-node showing on-behalf-of flow",
+  "description": "sample app for msal-node",
   "main": "index.js",
   "private": true,
   "scripts": {
@@ -13,8 +13,6 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^1.0.0-alpha.11",
-    "express": "^4.17.1",
-    "jsonwebtoken": "^8.5.1",
-    "jwks-rsa": "^1.8.1"
+    "express": "^4.17.1"
   }
 }

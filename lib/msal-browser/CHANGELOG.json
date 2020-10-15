@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 14 Oct 2020 23:45:07 GMT",
+      "tag": "@azure/msal-browser_v2.3.1",
+      "version": "2.3.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove rogue console.log() in the BrowserCrypto.ts file and add a lint rule to prevent future issues (#2410)",
+            "author": "prkanher@microsoft.com",
+            "commit": "d2fc6bb778a79d9160474cebfc6c5a52bcf464ff",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Check for Headers class when configuring network client",
+            "author": "janutter@microsoft.com",
+            "commit": "15798f723cd9beb8f6160703168f3ff63bcb8793",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update getItem to return ServerTelemetryEntity (#2223)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "82b982ba38d70d9060e3cf5d9c38e0203b60d963",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update docs to explain B2C invite flow (#2392)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "319fe7bb2f6e2c7ea905d1df10ed7665d64264f3",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update README.md",
+            "author": "prkanher@microsoft.com",
+            "commit": "8f5e957039dfbfb0ecfa42a2f1244873d2f4b5b1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add enhanced documentation about responseMode in browser (#2228)",
+            "author": "jamckenn@microsoft.com",
+            "commit": "1c098e24d82c19f32dc5c493b76f46a89eca1828",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Oct 2020 17:42:35 GMT",
       "tag": "@azure/msal-browser_v2.3.0",
       "version": "2.3.0",
