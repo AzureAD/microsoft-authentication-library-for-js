@@ -24,10 +24,6 @@ export const BrowserAuthErrorMessage = {
         code: "empty_navigate_uri",
         desc: "Navigation URI is empty. Please check stack trace for more info."
     },
-    navigationFailedError: {
-        code: "navigation_failed_error",
-        desc: "Expected to navigate away from the current page"
-    },
     hashEmptyError: {
         code: "hash_empty_error",
         desc: "Hash value cannot be processed because it is empty."
@@ -130,13 +126,6 @@ export class BrowserAuthError extends AuthError {
      */
     static createEmptyNavigationUriError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.emptyNavigateUriError.code, BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-    }
-
-    /**
-     * Creates an error thrown when the navigation does not occur within a certain length of time
-     */
-    static createNavigationFailedError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.navigationFailedError.code, BrowserAuthErrorMessage.navigationFailedError.desc);
     }
 
     /**

@@ -155,10 +155,10 @@ export abstract class ClientApplication {
                 // Cache the homepage under ORIGIN_URI to ensure cached hash is processed on homepage
                 this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), homepage, CacheSchemaType.TEMPORARY);
                 this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
-                BrowserUtils.navigateWindow(homepage, this.config.system.redirectTimeout, true);
+                BrowserUtils.navigateWindow(homepage, this.logger, true);
             } else {
                 // Navigate to page that initiated the redirect request
-                BrowserUtils.navigateWindow(loginRequestUrl, this.config.system.redirectTimeout, true);
+                BrowserUtils.navigateWindow(loginRequestUrl, this.logger, true);
             }
         }
 
@@ -254,7 +254,7 @@ export abstract class ClientApplication {
 
             const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.config.system.redirectTimeout, this.browserCrypto);
+            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
@@ -459,7 +459,7 @@ export abstract class ClientApplication {
         const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
         // create logout string and navigate user window to logout. Auth module will clear cache.
         const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-        BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectTimeout);
+        BrowserUtils.navigateWindow(logoutUri, this.logger);
     }
 
     // #endregion
