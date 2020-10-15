@@ -36,5 +36,7 @@ export {
     // Logger Object
     ILoggerCallback,
     Logger,
-    LogLevel
+    LogLevel,
+    // Protocol Mode
+    ProtocolMode
 } from "@azure/msal-common";
