@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Docs update for msal-node release",
-  "packageName": "@azure/msal-node",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-14T23:17:24.460Z"
-}

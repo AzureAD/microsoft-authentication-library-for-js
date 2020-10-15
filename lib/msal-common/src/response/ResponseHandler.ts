@@ -270,14 +270,17 @@ export class ResponseHandler {
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
             this.logger.verbose("Authority type is ADFS, creating ADFS account");
-            return AccountEntity.createADFSAccount(authority, idToken, oboAssertion);
+            return AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
         }
 
-        if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
+        // This fallback applies to B2C as well as they fall under an AAD account type.
+        if (StringUtils.isEmpty(serverTokenResponse.client_info) && authority.protocolMode === "AAD") {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
         }
 
-        return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion);
+        return serverTokenResponse.client_info ?
+            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion) :
+            AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
     }
 
     /**

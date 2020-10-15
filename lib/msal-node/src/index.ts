@@ -11,8 +11,12 @@ export { CryptoProvider } from "./crypto/CryptoProvider";
 export {
     // Request
     AuthorizationCodeRequest,
+    AuthorizationUrlRequest,
+    SilentFlowRequest,
     DeviceCodeRequest,
     RefreshTokenRequest,
+    ClientCredentialRequest,
+    OnBehalfOfRequest,
     PromptValue,
     ResponseMode,
     // Response
@@ -34,6 +38,8 @@ export {
     NetworkResponse,
     // Logger
     LogLevel,
+    // ProtocolMode enum
+    ProtocolMode,
     ICachePlugin,
     TokenCacheContext,
     ISerializableTokenCache

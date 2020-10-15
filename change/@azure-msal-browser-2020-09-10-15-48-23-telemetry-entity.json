@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update getItem to return ServerTelemetryEntity (#2223)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-09-10T22:48:03.404Z"
-}

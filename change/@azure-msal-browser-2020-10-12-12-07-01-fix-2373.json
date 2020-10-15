@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Remove rogue console.log() in the BrowserCrypto.ts file and add a lint rule to prevent future issues (#2410)",
-  "packageName": "@azure/msal-browser",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-12T19:07:01.696Z"
-}

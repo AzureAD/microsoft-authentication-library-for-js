@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add uuid as dependency in msal-node package.json so it is installed with the library",
-  "packageName": "@azure/msal-node",
-  "email": "hectormgdev@gmail.com",
-  "dependentChangeType": "none",
-  "date": "2020-09-30T17:14:35.282Z"
-}
