@@ -113,7 +113,7 @@ describe("ResponseHandler.ts", () => {
         sinon.restore();
     })
 
-    describe("generateCacheRecord", () => {
+    describe("generateCacheRecord", async () => {
         it("throws invalid cache environment error", async () => {
             sinon.restore();
             sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedIdToken, crypto) => {
@@ -195,7 +195,7 @@ describe("ResponseHandler.ts", () => {
         });
     });
 
-    describe("generateAuthenticationResult", () => {
+    describe("generateAuthenticationResult", async () => {
         it("sets default values if access_token not in cacheRecord", async () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.access_token = null;

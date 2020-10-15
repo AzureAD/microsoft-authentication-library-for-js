@@ -5,11 +5,12 @@
 import {
     LoggerOptions,
     INetworkModule,
-    LogLevel, ProtocolMode
+    LogLevel, 
+    ProtocolMode,
+    ICachePlugin
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 import debug from "debug";
-import { ICachePlugin } from "../cache/ICachePlugin";
 
 /**
  * - clientId               - Client id of the application.
