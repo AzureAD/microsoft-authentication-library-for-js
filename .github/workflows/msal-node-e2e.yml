@@ -31,9 +31,13 @@ jobs:
       run: npm ci
 
     - name: Build packages
-      run: npm run build
+      working-directory: samples/msal-node-samples/VanillaJSTestApp
+      run: |
+        npm run build:package
+        npm run build
         
     - name: E2E Tests
+      working-directory: samples/msal-node-samples/VanillaJSTestApp
       timeout-minutes: 5
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
