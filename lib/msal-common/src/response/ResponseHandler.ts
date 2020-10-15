@@ -27,6 +27,9 @@ import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/
 import { AuthenticationScheme } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
+import { ICachePlugin } from "../cache/interface/ICachePlugin";
+import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
+import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 
 /**
  * Class that handles response parsing.
@@ -38,12 +41,16 @@ export class ResponseHandler {
     private logger: Logger;
     private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
+    private serializableCache: ISerializableTokenCache;
+    private persistencePlugin: ICachePlugin;
 
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache?: ISerializableTokenCache, persistencePlugin?: ICachePlugin) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
+        this.serializableCache = serializableCache;
+        this.persistencePlugin = persistencePlugin;
     }
 
     /**
@@ -92,9 +99,17 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    async handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, resourceRequestMethod?: string, 
-        resourceRequestUri?: string, cachedNonce?: string, cachedState?: string, requestScopes?: string[], oboAssertion?: string): Promise<AuthenticationResult> {
-        
+    async handleServerTokenResponse(
+        serverTokenResponse: ServerAuthorizationTokenResponse,
+        authority: Authority,
+        resourceRequestMethod?: string,
+        resourceRequestUri?: string,
+        cachedNonce?: string,
+        cachedState?: string,
+        requestScopes?: string[],
+        oboAssertion?: string,
+        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
+
         // generate homeAccountId
         if (serverTokenResponse.client_info) {
             this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
@@ -102,6 +117,7 @@ export class ResponseHandler {
                 this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
             }
         } else {
+            this.logger.verbose("No client info in response");
             this.homeAccountIdentifier = "";
         }
 
@@ -125,9 +141,34 @@ export class ResponseHandler {
         }
 
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState, requestScopes, oboAssertion);
-        this.cacheStorage.saveCacheRecord(cacheRecord);
-
-        return await ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
+        let cacheContext;
+        try {
+            if (this.persistencePlugin && this.serializableCache) {
+                this.logger.verbose("Persistence enabled, calling beforeCacheAccess");
+                cacheContext = new TokenCacheContext(this.serializableCache, true);
+                await this.persistencePlugin.beforeCacheAccess(cacheContext);
+            }
+            /*
+             * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
+             * If not present, we should return null, as it's the case that another application called removeAccount in between
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal. 
+             */
+            if (handlingRefreshTokenResponse && cacheRecord.account) {
+                const key = cacheRecord.account.generateAccountKey();
+                const account = this.cacheStorage.getAccount(key);
+                if (!account) {
+                    this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
+                    return null;
+                }
+            }
+            this.cacheStorage.saveCacheRecord(cacheRecord);
+        } finally {
+            if (this.persistencePlugin && this.serializableCache && cacheContext) {
+                this.logger.verbose("Persistence enabled, calling afterCacheAccess");
+                await this.persistencePlugin.afterCacheAccess(cacheContext);
+            }
+        }
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
     /**
@@ -227,15 +268,19 @@ export class ResponseHandler {
         const authorityType = authority.authorityType;
 
         // ADFS does not require client_info in the response
-        if(authorityType === AuthorityType.Adfs){
-            return AccountEntity.createADFSAccount(authority, idToken, oboAssertion);
+        if (authorityType === AuthorityType.Adfs) {
+            this.logger.verbose("Authority type is ADFS, creating ADFS account");
+            return AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
         }
 
-        if (StringUtils.isEmpty(serverTokenResponse.client_info)) {
+        // This fallback applies to B2C as well as they fall under an AAD account type.
+        if (StringUtils.isEmpty(serverTokenResponse.client_info) && authority.protocolMode === "AAD") {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
         }
 
-        return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion);
+        return serverTokenResponse.client_info ?
+            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion) :
+            AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
     }
 
     /**

@@ -3,7 +3,6 @@ export { ConfidentialClientApplication } from "./client/ConfidentialClientApplic
 export { Configuration, buildAppConfiguration } from "./config/Configuration";
 export { Storage } from "./cache/Storage";
 export { TokenCache } from "./cache/TokenCache";
-export { ICachePlugin } from "./cache/ICachePlugin";
 
 // crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";
@@ -12,8 +11,12 @@ export { CryptoProvider } from "./crypto/CryptoProvider";
 export {
     // Request
     AuthorizationCodeRequest,
+    AuthorizationUrlRequest,
+    SilentFlowRequest,
     DeviceCodeRequest,
     RefreshTokenRequest,
+    ClientCredentialRequest,
+    OnBehalfOfRequest,
     PromptValue,
     ResponseMode,
     // Response
@@ -23,10 +26,21 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
+    InteractionRequiredAuthError,
+    ServerError,
+    ClientAuthError,
+    ClientAuthErrorMessage,
+    ClientConfigurationError,
+    ClientConfigurationErrorMessage,
     // Network Interface
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
     // Logger
     LogLevel,
+    // ProtocolMode enum
+    ProtocolMode,
+    ICachePlugin,
+    TokenCacheContext,
+    ISerializableTokenCache
 } from "@azure/msal-common";

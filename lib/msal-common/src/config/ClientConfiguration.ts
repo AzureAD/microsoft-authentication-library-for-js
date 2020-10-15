@@ -12,6 +12,9 @@ import { version } from "../../package.json";
 import { Authority } from "../authority/Authority";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
+import { ProtocolMode } from "../authority/ProtocolMode";
+import { ICachePlugin } from "../cache/interface/ICachePlugin";
+import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -38,7 +41,9 @@ export type ClientConfiguration = {
     cryptoInterface?: ICrypto,
     clientCredentials?: ClientCredentials,
     libraryInfo?: LibraryInfo
-    serverTelemetryManager?: ServerTelemetryManager
+    serverTelemetryManager?: ServerTelemetryManager,
+    persistencePlugin?: ICachePlugin,
+    serializableCache?: ISerializableTokenCache
 };
 
 /**
@@ -49,6 +54,7 @@ export type ClientConfiguration = {
  * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
  * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
+ * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  */
 export type AuthOptions = {
     clientId: string;
@@ -56,6 +62,7 @@ export type AuthOptions = {
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
     clientCapabilities?: Array<string>;
+    protocolMode?: ProtocolMode;
 };
 
 /**
@@ -106,7 +113,8 @@ const DEFAULT_AUTH_OPTIONS: AuthOptions = {
     authority: null,
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
-    clientCapabilities: []
+    clientCapabilities: [],
+    protocolMode: ProtocolMode.AAD
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: SystemOptions = {
@@ -188,7 +196,9 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation,
         clientCredentials: clientCredentials,
         libraryInfo: libraryInfo,
-        serverTelemetryManager: serverTelemetryManager
+        serverTelemetryManager: serverTelemetryManager, 
+        persistencePlugin: persistencePlugin,
+        serializableCache: serializableCache
     } : ClientConfiguration): ClientConfiguration {
     return {
         authOptions: { ...DEFAULT_AUTH_OPTIONS, ...userAuthOptions },
@@ -199,6 +209,8 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
-        serverTelemetryManager: serverTelemetryManager || null
+        serverTelemetryManager: serverTelemetryManager || null,
+        persistencePlugin: persistencePlugin || null,
+        serializableCache: serializableCache || null
     };
 }
