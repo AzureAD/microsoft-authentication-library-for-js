@@ -3,6 +3,6 @@
   "comment": "Export InteractionType (#2438)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-10-15T22:36:17.244Z"
 }
