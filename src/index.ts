@@ -1,6 +1,7 @@
 // App and config
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration } from "./config/Configuration";
+export { InteractionType } from "./utils/BrowserConstants";
 
 // Browser Errors
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
