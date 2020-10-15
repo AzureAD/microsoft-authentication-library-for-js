@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Export all \"Request\" types in msal-node",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-15T00:21:30.328Z"
+}
