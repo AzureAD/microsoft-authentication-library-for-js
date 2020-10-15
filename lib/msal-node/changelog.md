@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 14 Oct 2020 23:45:07 GMT and should not be manually modified.
+This log was last generated on Thu, 15 Oct 2020 00:49:18 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.11
+
+Thu, 15 Oct 2020 00:49:18 GMT
+
+### Changes
+
+- Export all "Request" types in msal-node (sameera.gajjarapu@microsoft.com)
 
 ## 1.0.0-alpha.10
 

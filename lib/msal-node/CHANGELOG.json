@@ -2,6 +2,21 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 15 Oct 2020 00:49:18 GMT",
+      "tag": "@azure/msal-node_v1.0.0-alpha.11",
+      "version": "1.0.0-alpha.11",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Export all \"Request\" types in msal-node",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "145602c7ced2c9f77a249f0abdca76f3358bd7db",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Oct 2020 23:45:07 GMT",
       "tag": "@azure/msal-node_v1.0.0-alpha.10",
       "version": "1.0.0-alpha.10",
