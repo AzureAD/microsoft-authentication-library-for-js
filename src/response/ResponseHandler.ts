@@ -231,6 +231,7 @@ export class ResponseHandler {
             return AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
         }
 
+        // This fallback applies to B2C as well as they fall under an AAD account type.
         if (StringUtils.isEmpty(serverTokenResponse.client_info) && authority.protocolMode === "AAD") {
             throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
         }

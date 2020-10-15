@@ -119,7 +119,7 @@ export class AccountEntity {
     }
 
     /**
-     * Build Account cache from IdToken, clientInfo and authority/policy
+     * Build Account cache from IdToken, clientInfo and authority/policy. Associated with AAD.
      * @param clientInfo
      * @param authority
      * @param idToken
@@ -168,7 +168,7 @@ export class AccountEntity {
     }
 
     /**
-     * Build ADFS account type
+     * Builds non-AAD/ADFS account.
      * @param authority
      * @param idToken
      */
