@@ -48,6 +48,7 @@
 1. [My B2C application has more than one user-flow/policy. How do I work with multiple policies in MSAL.js?](#my-b2c-application-has-more-than-one-user-flowpolicy-how-do-i-work-with-multiple-policies-in-msaljs)
 1. [How can I implement password reset user flow in my B2C application with MSAL.js?](#how-can-i-implement-password-reset-user-flow-in-my-b2c-application-with-msaljs)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
+1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
 
 **[Common Issues](#common-issues)**
 1. [How to avoid page reloads when acquiring and renewing tokens silently?](#how-to-avoid-page-reloads-when-acquiring-and-renewing-tokens-silently)
@@ -373,6 +374,10 @@ Please checkout our sample [here](https://github.com/Azure-Samples/active-direct
 When you log out of a B2C application by calling MSAL's `logout()` API, MSAL.js will first clear browser storage of your user's tokens then redirect you to the Azure B2C logout endpoint. The B2C service will then close your session but may not log you out of your federated IDP. This happens because the service does not make any assumptions about other apps you may want to log out of. What this means in practice is that when a user attempts to login again the B2C service will prompt the user to select which Social IDP they would like to sign in with. When the user makes their selection, they may be signed back in without interaction.
 
 You can read more about this behavior [here](https://docs.microsoft.com/azure/active-directory-b2c/session-overview#sign-out)
+
+## Why am I not signed in when returning from an invite link?
+
+MSAL.js will only process tokens which it originally requested. If your flow requires that you send a user a link they can use to sign up, you will need to ensure that the link points to your app, not the B2C service directly. An example flow can be seen in the [working with B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/working-with-b2c.md) doc.
 
 # Common Issues
 

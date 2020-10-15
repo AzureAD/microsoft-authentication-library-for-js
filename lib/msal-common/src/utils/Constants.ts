@@ -263,10 +263,12 @@ export const THE_FAMILY_ID = "1";
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
-    FAILURE_LIMIT: 3,
+    MAX_HEADER_BYTES: 4000, // Max is 4KB, 4000 Bytes provides 96 Byte buffer for separators, schema version, etc. 
     CACHE_KEY: "server-telemetry",
     CATEGORY_SEPARATOR: "|",
-    VALUE_SEPARATOR: ","
+    VALUE_SEPARATOR: ",",
+    OVERFLOW_TRUE: "1",
+    OVERFLOW_FALSE: "0"
 };
 
 /**
