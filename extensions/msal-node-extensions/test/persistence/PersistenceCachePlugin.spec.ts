@@ -4,7 +4,7 @@
  */
 
 import { IPersistence, PersistenceCachePlugin } from "../../src";
-import { Logger } from "@azure/msal-common";
+import { Logger, TokenCacheContext, ISerializableTokenCache } from "@azure/msal-common";
 
 describe('Test PersistenceCachePlugin', () => {
     const filePath = "./test.json";
@@ -44,6 +44,14 @@ describe('Test PersistenceCachePlugin', () => {
         }
     };
 
+    const mockCache: ISerializableTokenCache = {
+        serialize: () => {
+            return mockCacheData;
+        },
+        deserialize: (data: string) => {
+        }
+    }
+
     test('exports a class', async () => {
         const plugin = new PersistenceCachePlugin(mockPersistence);
         expect(plugin).toBeInstanceOf(PersistenceCachePlugin);
@@ -56,25 +64,25 @@ describe('Test PersistenceCachePlugin', () => {
         expect(plugin.lastSync).toEqual(0);
     });
 
-    test('readFromStorage', async () => {
+    test('beforeCacheAccess', async () => {
         const loadSpy = jest.spyOn(mockPersistence, "load");
+        const cacheSpy = jest.spyOn(mockCache, "deserialize");
         const reloadNecessarySpy = jest.spyOn(mockPersistence, "reloadNecessary");
         const plugin = new PersistenceCachePlugin(mockPersistence);
-        expect(await plugin.readFromStorage()).toEqual(mockCacheData)
+        const context = new TokenCacheContext(mockCache, false);
+        await plugin.beforeCacheAccess(context);
         expect(loadSpy).toHaveBeenCalled();
+        expect(cacheSpy).toHaveBeenCalled();
         expect(reloadNecessarySpy).toHaveBeenCalled();
     });
 
-    test('writeToStorage', async () => {
-        const loadSpy = jest.spyOn(mockPersistence, "load");
+    test('afterCacheAccess', async () => {
         const saveSpy = jest.spyOn(mockPersistence, "save");
+        const cacheSpy = jest.spyOn(mockCache, "serialize")
         const plugin = new PersistenceCachePlugin(mockPersistence);
-        const callback = (contents) => {
-          expect(contents).toEqual(mockCacheData);
-          return contents;
-        };
-        await plugin.writeToStorage(callback);
-        expect(loadSpy).toHaveBeenCalled();
+        const context = new TokenCacheContext(mockCache, true);
+        await plugin.afterCacheAccess(context);
         expect(saveSpy).toHaveBeenCalled();
+        expect(cacheSpy).toHaveBeenCalled();
     });
 });

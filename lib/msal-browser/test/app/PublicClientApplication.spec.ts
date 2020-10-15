@@ -18,8 +18,8 @@ import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { BroadcastEvent } from "../../src/event/BroadcastEvent";
-import { BroadcastMessage } from "../../src/event/BroadcastMessage";
+import { EventType } from "../../src/event/EventType";
+import { EventMessage } from "../../src/event/EventMessage";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -341,6 +341,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(result).to.be.null;
                 done();
             });
+        });
+
+        it("addEventCallback does not throw", (done) => {
+            const instance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+
+            expect(() => instance.addEventCallback(() => {})).to.not.throw();
+            done();
         });
     });
 
@@ -1793,78 +1804,60 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("broadcastEvent and addEventCallback tests", () => {
-        it("can add an event callback and broadcast to it", () => {
-            let receivedMessage: BroadcastMessage;
-            const subscriber = (message) => {receivedMessage = message};
-            pca.addEventCallback(subscriber);
-            pca.broadcastEvent(BroadcastEvent.LOGIN_START, InteractionType.POPUP);
+        it("can add an event callback and broadcast to it", (done) => {
+            const subscriber = (message) => {
+                expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
+                expect(message.interactionType).to.deep.eq(InteractionType.POPUP);
+                done();
+            };
 
-            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_START);
-            expect(receivedMessage.interactionType).to.deep.eq(InteractionType.POPUP);
+            pca.addEventCallback(subscriber);
+            pca.emitEvent(EventType.LOGIN_START, InteractionType.POPUP);
         });
 
-        it("can add multiple callbacks and broadcast to all", () => {
-            let receivedMessage1: BroadcastMessage;
-            let receivedMessage2: BroadcastMessage;
-            const subscriber1 = (message) => {receivedMessage1 = message};
-            const subscriber2 = (message) => {receivedMessage2 = message};
+        it("can add multiple callbacks and broadcast to all", (done) => {
+            const subscriber1 = (message) => {
+                expect(message.eventType).to.deep.eq(EventType.ACQUIRE_TOKEN_START);
+                expect(message.interactionType).to.deep.eq(InteractionType.REDIRECT);
+            };
+
+            const subscriber2 = (message) => {
+                expect(message.eventType).to.deep.eq(EventType.ACQUIRE_TOKEN_START);
+                expect(message.interactionType).to.deep.eq(InteractionType.REDIRECT);
+                done();
+            };
+
             pca.addEventCallback(subscriber1);
             pca.addEventCallback(subscriber2);
-            pca.broadcastEvent(BroadcastEvent.ACQUIRE_TOKEN_START, InteractionType.REDIRECT);
-
-            expect(receivedMessage1.type).to.deep.eq(BroadcastEvent.ACQUIRE_TOKEN_START);
-            expect(receivedMessage1.interactionType).to.deep.eq(InteractionType.REDIRECT);
-
-            expect(receivedMessage2.type).to.deep.eq(BroadcastEvent.ACQUIRE_TOKEN_START);
-            expect(receivedMessage2.interactionType).to.deep.eq(InteractionType.REDIRECT);
+            pca.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.REDIRECT);
         });
 
-        it("updates when new event broadcast", () => {
-            let receivedMessage: BroadcastMessage;
-            const subscriber = (message) => {receivedMessage = message};
+        it("sets interactionType, payload, and error to null by default", (done) => {
+            const subscriber = (message) => {
+                expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
+                expect(message.interactionType).to.be.null;
+                expect(message.payload).to.be.null;
+                expect(message.error).to.be.null;
+                expect(message.timestamp).to.not.be.null;
+                done();
+            };
+            
             pca.addEventCallback(subscriber);
-
-            pca.broadcastEvent(BroadcastEvent.LOGIN_START);
-            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_START);
-
-            pca.broadcastEvent(BroadcastEvent.LOGIN_SUCCESS);
-            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_SUCCESS);
+            pca.emitEvent(EventType.LOGIN_START);
         });
 
-        it("only returns the most recently broadcasted event", () => {
-            let receivedMessage: BroadcastMessage;
-            const subscriber = (message) => {receivedMessage = message};
+        it("sets all expected fields on event", (done) => {            
+            const subscriber = (message) => {
+                expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
+                expect(message.interactionType).to.deep.eq(InteractionType.SILENT);
+                expect(message.payload).to.deep.eq({scopes: ["user.read"]});
+                expect(message.error).to.be.null;
+                expect(message.timestamp).to.not.be.null;
+                done();
+            };
+            
             pca.addEventCallback(subscriber);
-
-            pca.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_START);
-            pca.broadcastEvent(BroadcastEvent.HANDLE_REDIRECT_FAILURE);
-            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.HANDLE_REDIRECT_FAILURE);
-        });
-
-        it("sets interactionType, payload, and error to null by default", () => {
-            let receivedMessage: BroadcastMessage;
-            const subscriber = (message) => {receivedMessage = message};
-            pca.addEventCallback(subscriber);
-            pca.broadcastEvent(BroadcastEvent.LOGIN_START);
-
-            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_START);
-            expect(receivedMessage.interactionType).to.be.null;
-            expect(receivedMessage.payload).to.be.null;
-            expect(receivedMessage.error).to.be.null;
-            expect(receivedMessage.timestamp).to.not.be.null;
-        });
-
-        it("sets all expected fields on event", () => {
-            let receivedMessage: BroadcastMessage;
-            const subscriber = (message) => {receivedMessage = message};
-            pca.addEventCallback(subscriber);
-            pca.broadcastEvent(BroadcastEvent.LOGIN_START, InteractionType.SILENT, {scopes: ["user.read"]}, null);
-
-            expect(receivedMessage.type).to.deep.eq(BroadcastEvent.LOGIN_START);
-            expect(receivedMessage.interactionType).to.deep.eq(InteractionType.SILENT);
-            expect(receivedMessage.payload).to.deep.eq({scopes: ["user.read"]});
-            expect(receivedMessage.error).to.be.null;
-            expect(receivedMessage.timestamp).to.not.be.null;
+            pca.emitEvent(EventType.LOGIN_START, InteractionType.SILENT, {scopes: ["user.read"]}, null);
         });
     });
 });
