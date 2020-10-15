@@ -38,6 +38,8 @@ export {
     NetworkResponse,
     // Logger
     LogLevel,
+    // ProtocolMode enum
+    ProtocolMode,
     ICachePlugin,
     TokenCacheContext,
     ISerializableTokenCache
