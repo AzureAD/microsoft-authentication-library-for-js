@@ -32,9 +32,7 @@ jobs:
 
     - name: Build packages
       working-directory: samples/msal-node-samples/VanillaJSTestApp
-      run: |
-        npm install
-        npm run build:package
+      run: npm run build:package
         
     - name: E2E Tests
       working-directory: samples/msal-node-samples/VanillaJSTestApp
