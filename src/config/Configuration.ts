@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserConstants } from "../utils/BrowserConstants";
 
@@ -21,6 +21,7 @@ const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
  * - postLogoutRedirectUri      - The redirect URI where the window navigates after a successful logout.
  * - navigateToLoginRequestUrl  - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
  * - clientCapabilities         - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
+ * - protocolMode               - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  */
 export type BrowserAuthOptions = {
     clientId: string;
@@ -31,6 +32,7 @@ export type BrowserAuthOptions = {
     postLogoutRedirectUri?: string;
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
+    protocolMode?: ProtocolMode;
 };
 
 /**
@@ -98,7 +100,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         redirectUri: "",
         postLogoutRedirectUri: "",
         navigateToLoginRequestUrl: true,
-        clientCapabilities: []
+        clientCapabilities: [],
+        protocolMode: ProtocolMode.AAD
     };
 
     // Default cache options for browser
