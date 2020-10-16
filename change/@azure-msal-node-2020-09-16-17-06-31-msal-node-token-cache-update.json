@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Fix issue with token cache not removing old cache entities",
-  "packageName": "@azure/msal-node",
-  "email": "sagonzal@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-09-17T00:06:31.882Z"
-}

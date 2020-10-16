@@ -9,7 +9,7 @@ export class Screenshot {
     private screenshotNum: number;
 
     constructor (foldername: string) {
-        this.folderName = foldername
+        this.folderName = foldername;
         this.screenshotNum = 0;
         createFolder(this.folderName);
     }
@@ -36,6 +36,10 @@ export async function setupCredentials(labConfig: LabConfig, labClient: LabClien
     const testPwdSecret = await labClient.getSecret(labConfig.lab.labName);
 
     accountPwd = testPwdSecret.value;
+
+    if (!accountPwd) {
+        throw "Unable to get account password!";
+    }
 
     return [username, accountPwd];
 }

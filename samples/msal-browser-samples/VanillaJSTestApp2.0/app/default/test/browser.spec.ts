@@ -8,29 +8,28 @@ import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constan
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-const SAMPLE_HOME_URL = 'http://localhost:30662/';
+const SAMPLE_HOME_URL = "http://localhost:30662/";
 let username = "";
 let accountPwd = "";
 
 async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, `loginPage`);
+    await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
     await page.click("#idSIButton9");
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
-    await page.waitForSelector("#i0118");
-    await screenshot.takeScreenshot(page, `pwdInputPage`);
+    await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
 }
 
 async function goBackToSampleHomepage(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
     await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, `loginPage`);
+    await screenshot.takeScreenshot(page, "loginPage");
     await page.click("#idBtn_Back");
     await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, `loginPage2`);
+    await screenshot.takeScreenshot(page, "loginPage2");
     await page.click("#idBtn_Back");
 }
 
@@ -52,7 +51,7 @@ describe("Browser tests", function () {
         
         browser = await puppeteer.launch({
             headless: true,
-            ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
+            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
         });
     });
 
@@ -79,18 +78,18 @@ describe("Browser tests", function () {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
-        await screenshot.takeScreenshot(page, `samplePageInit`);
+        await screenshot.takeScreenshot(page, "samplePageInit");
         // Click Sign In
         await page.click("#SignIn");
-        await screenshot.takeScreenshot(page, `signInClicked`);
+        await screenshot.takeScreenshot(page, "signInClicked");
         // Click Sign In With Redirect
         await page.click("#loginRedirect");
         // Enter credentials
         await enterCredentials(page, screenshot);
         // Wait for return to page
         await page.waitForNavigation({ waitUntil: "networkidle0"});
-        await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
-        let tokenStore = await BrowserCache.getTokens();
+        await screenshot.takeScreenshot(page, "samplePageLoggedIn");
+        const tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);
         expect(tokenStore.accessTokens).to.be.length(1);
         expect(tokenStore.refreshTokens).to.be.length(1);
@@ -104,10 +103,10 @@ describe("Browser tests", function () {
         const testName = "redirectBrowserBackButton";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
-        await screenshot.takeScreenshot(page, `samplePageInit`);
+        await screenshot.takeScreenshot(page, "samplePageInit");
         // Click Sign In
         await page.click("#SignIn");
-        await screenshot.takeScreenshot(page, `signInClicked`);
+        await screenshot.takeScreenshot(page, "signInClicked");
         // Click Sign In With Redirect
         await page.click("#loginRedirect");
         await page.waitForNavigation({ waitUntil: "networkidle0"});
@@ -121,10 +120,10 @@ describe("Browser tests", function () {
         const testName = "redirectDialogBackButton";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
-        await screenshot.takeScreenshot(page, `samplePageInit`);
+        await screenshot.takeScreenshot(page, "samplePageInit");
         // Click Sign In
         await page.click("#SignIn");
-        await screenshot.takeScreenshot(page, `signInClicked`);
+        await screenshot.takeScreenshot(page, "signInClicked");
         // Click Sign In With Redirect
         await page.click("#loginRedirect");
         await page.waitForNavigation({ waitUntil: "networkidle0"});
@@ -139,12 +138,12 @@ describe("Browser tests", function () {
         const testName = "popupBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
-        await screenshot.takeScreenshot(page, `samplePageInit`);
+        await screenshot.takeScreenshot(page, "samplePageInit");
         // Click Sign In
         await page.click("#SignIn");
-        await screenshot.takeScreenshot(page, `signInClicked`);
+        await screenshot.takeScreenshot(page, "signInClicked");
         // Click Sign In With Popup
-        const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once('popup', resolve));
+        const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
         await page.click("#loginPopup");
         const popupPage = await newPopupWindowPromise;
         const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
@@ -155,8 +154,8 @@ describe("Browser tests", function () {
         // Wait for token acquisition
         await page.waitFor(1000);
         expect(popupPage.isClosed()).to.be.true;
-        await screenshot.takeScreenshot(page, `samplePageLoggedIn`);
-        let tokenStore = await BrowserCache.getTokens();
+        await screenshot.takeScreenshot(page, "samplePageLoggedIn");
+        const tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);
         expect(tokenStore.accessTokens).to.be.length(1);
         expect(tokenStore.refreshTokens).to.be.length(1);
@@ -170,15 +169,15 @@ describe("Browser tests", function () {
         const testName = "popupCloseWindow";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
-        await screenshot.takeScreenshot(page, `samplePageInit`);
+        await screenshot.takeScreenshot(page, "samplePageInit");
         // Click Sign In
         await page.click("#SignIn");
-        await screenshot.takeScreenshot(page, `signInClicked`);
+        await screenshot.takeScreenshot(page, "signInClicked");
         // Click Sign In With Popup
-        const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once('popup', resolve));
+        const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
         await page.click("#loginPopup");
         const popupPage = await newPopupWindowPromise;
-        await screenshot.takeScreenshot(popupPage, `popupOpened`)
+        await screenshot.takeScreenshot(popupPage, "popupOpened");
         await popupPage.close();
         // Wait for processing
         await page.waitFor(500);

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity, ServerTelemetryCacheValue, ThrottlingEntity, ProtocolUtils } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AccountEntity, IdTokenEntity, CredentialType, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, CredentialEntity, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -181,7 +181,8 @@ export class BrowserStorage extends CacheManager {
                 return value;
             }
             case CacheSchemaType.TELEMETRY: {
-                return JSON.parse(value) as ServerTelemetryCacheValue;
+                const serverTelemetryEntity: ServerTelemetryEntity = new ServerTelemetryEntity();
+                return (CacheManager.toObject(serverTelemetryEntity, JSON.parse(value)) as ServerTelemetryEntity);
             }
             default: {
                 throw BrowserAuthError.createInvalidCacheTypeError();

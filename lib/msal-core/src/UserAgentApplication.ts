@@ -212,7 +212,6 @@ export class UserAgentApplication {
 
         // if no authority is passed, set the default: "https://login.microsoftonline.com/common"
         this.authority = this.config.auth.authority || DEFAULT_AUTHORITY;
-
         // cache keys msal - typescript throws an error if any value other than "localStorage" or "sessionStorage" is passed
         this.cacheStorage = new AuthCache(this.clientId, this.config.cache.cacheLocation, this.inCookie);
 
@@ -520,7 +519,6 @@ export class UserAgentApplication {
 
         let serverAuthenticationRequest: ServerRequestParameters;
         const acquireTokenAuthority = (request && request.authority) ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
-
         let popUpWindow: Window;
 
         try {
@@ -773,7 +771,7 @@ export class UserAgentApplication {
                     authErr = e;
                 }
             }
-
+            
             // resolve/reject based on cacheResult
             if (cacheResultResponse) {
                 this.logger.verbose("Token found in cache lookup");
@@ -798,12 +796,13 @@ export class UserAgentApplication {
                     logMessage = "No token found in cache lookup";
                 }
                 this.logger.verbose(logMessage);
-
+                
                 // Cache result can return null if cache is empty. In that case, set authority to default value if no authority is passed to the API.
                 if (!serverAuthenticationRequest.authorityInstance) {
-                    serverAuthenticationRequest.authorityInstance = request.authority ? AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata) : this.authorityInstance;
-                }
-
+                    serverAuthenticationRequest.authorityInstance = request.authority ? 
+                        AuthorityFactory.CreateInstance(request.authority, this.config.auth.validateAuthority, request.authorityMetadata)
+                        : this.authorityInstance;
+                }    
                 this.logger.verbosePii(`Authority instance: ${serverAuthenticationRequest.authority}`);
                 
                 try {
@@ -828,7 +827,7 @@ export class UserAgentApplication {
                         if (request.scopes && ScopeSet.onlyContainsOidcScopes(request.scopes)) {
                             /*
                              * App uses idToken to send to api endpoints
-                             * Default scope is tracked as clientId to store this token
+                             * Default scope is tracked as OIDC scopes to store this token
                              */
                             this.logger.verbose("OpenID Connect scopes only, renewing idToken");
                             this.silentLogin = true;
@@ -1356,11 +1355,56 @@ export class UserAgentApplication {
      */
     private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): AuthResponse {
         this.logger.verbose("GetCachedToken has been called");
-        let accessTokenCacheItem: AccessTokenCacheItem = null;
         const scopes = serverAuthenticationRequest.scopes;
 
+        /**
+         * Id Token should be returned in every acquireTokenSilent call. The only exception is a response_type = token
+         * request when a valid ID Token is not present in the cache.
+         */
+        const idToken = this.getCachedIdToken(serverAuthenticationRequest, account);
+        const authResponse = this.getCachedAccessToken(serverAuthenticationRequest, account, scopes);
+        const accountState = this.getAccountState(serverAuthenticationRequest.state);
+        return ResponseUtils.buildAuthResponse(idToken, authResponse, serverAuthenticationRequest, account, scopes, accountState);
+    }
+
+    /**
+     * 
+     * @param serverAuthenticationRequest 
+     * @param account 
+     */
+    private getCachedIdToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): IdToken {
+        const authority = serverAuthenticationRequest.authority || this.authority;
+        const idTokenCacheItem = this.cacheStorage.getIdToken(this.clientId, account ? account.homeAccountIdentifier : null, authority);
+
+        if (idTokenCacheItem != null) {
+            this.logger.verbose("Evaluating ID token found");
+            const idTokenIsStillValid = this.evaluateTokenExpiration(idTokenCacheItem);
+
+            if (idTokenIsStillValid) {
+                this.logger.verbose("ID token expiration is within offset, using ID token found in cache");
+                const idTokenValue = idTokenCacheItem.value;
+                if (idTokenValue) {
+                    this.logger.verbose("Matching ID Token found in cache");
+                } else {
+                    this.logger.verbose("No matching ID Token found in cache");
+                }
+        
+                return (idTokenValue) ? new IdToken(idTokenValue.idToken) : null;
+            } else {
+                this.logger.verbose("Cached ID token is expired, removing from cache");
+                this.cacheStorage.removeItem(JSON.stringify(idTokenCacheItem.key));
+                return null;
+            }
+        } else {
+            this.logger.verbose("No tokens found");
+            return null;
+        }
+    }
+
+    private getCachedAccessToken(serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: string[]): AuthResponse {
         // filter by clientId and account
         const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : null);
+        
         this.logger.verbose("Getting all cached access tokens");
 
         // No match found after initial filtering
@@ -1371,6 +1415,8 @@ export class UserAgentApplication {
 
         const filteredItems: Array<AccessTokenCacheItem> = [];
 
+        let accessTokenCacheItem: AccessTokenCacheItem = null;
+
         // if no authority passed or authority is common/organizations
         if (!serverAuthenticationRequest.authority || UrlUtils.isCommonAuthority(serverAuthenticationRequest.authority) || UrlUtils.isOrganizationsAuthority(serverAuthenticationRequest.authority)) {
             this.logger.verbose("No authority passed, filtering tokens by scope");
@@ -1378,7 +1424,18 @@ export class UserAgentApplication {
             for (let i = 0; i < tokenCacheItems.length; i++) {
                 const cacheItem = tokenCacheItems[i];
                 const cachedScopes = cacheItem.key.scopes.split(" ");
-                if (ScopeSet.containsScope(cachedScopes, scopes)) {
+
+                /**
+                 * Ignore OIDC scopes in the request for lookup in case of an id_token token response type, which would have a scopes
+                 * array including openid and profile. This method is guaranteed to be called with at least one resource scope
+                 * in the scopes list, given the scope validations for non id_token response type requests.
+                 *
+                 */
+                const searchScopes = ScopeSet.removeDefaultScopes(scopes);
+
+                if (searchScopes.length === 0 && ScopeSet.containsScope(cachedScopes, scopes)) {
+                    filteredItems.push(cacheItem);
+                } else if (ScopeSet.containsScope(cachedScopes, searchScopes)) {
                     filteredItems.push(cacheItem);
                 }
             }
@@ -1457,12 +1514,11 @@ export class UserAgentApplication {
 
         if (accessTokenCacheItem != null) {
             this.logger.verbose("Evaluating access token found");
-            const expired = Number(accessTokenCacheItem.value.expiresIn);
-            // If expiration is within offset, it will force renew
-            const offset = this.config.system.tokenRenewalOffsetSeconds || 300;
-            if (expired && (expired > TimeUtils.now() + offset)) {
-                this.logger.verbose("Token expiration is within offset, renewing token");
-                const idTokenObj = new IdToken(accessTokenCacheItem.value.idToken);
+            const tokenIsStillValid = this.evaluateTokenExpiration(accessTokenCacheItem);
+            // The response value will stay null if token retrieved from the cache is expired, otherwise it will be populated with said token's data
+            
+            if (tokenIsStillValid) {
+                this.logger.verbose("Access token expiration is within offset, using access token found in cache");
                 if (!account) {
                     account = this.getAccount();
                     if (!account) {
@@ -1470,31 +1526,40 @@ export class UserAgentApplication {
                     }
                 }
                 const aState = this.getAccountState(serverAuthenticationRequest.state);
-                const response : AuthResponse = {
+                const response: AuthResponse = {
                     uniqueId: "",
                     tenantId: "",
-                    tokenType: (accessTokenCacheItem.value.idToken === accessTokenCacheItem.value.accessToken) ? ServerHashParamKeys.ID_TOKEN : ServerHashParamKeys.ACCESS_TOKEN,
-                    idToken: idTokenObj,
-                    idTokenClaims: idTokenObj.claims,
+                    tokenType: ServerHashParamKeys.ACCESS_TOKEN,
+                    idToken: null,
+                    idTokenClaims: null,
                     accessToken: accessTokenCacheItem.value.accessToken,
                     scopes: accessTokenCacheItem.key.scopes.split(" "),
-                    expiresOn: new Date(expired * 1000),
+                    expiresOn: new Date(Number(accessTokenCacheItem.value.expiresIn) * 1000),
                     account: account,
                     accountState: aState,
                     fromCache: true
-                };
-                ResponseUtils.setResponseIdToken(response, idTokenObj);
-                this.logger.verbose("Response generated and token set");
+                };   
+                
                 return response;
             } else {
-                this.logger.verbose("Token expired, removing from cache");
-                this.cacheStorage.removeItem(JSON.stringify(filteredItems[0].key));
+                this.logger.verbose("Access token expired, removing from cache");
+                this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
                 return null;
             }
         } else {
             this.logger.verbose("No tokens found");
             return null;
         }
+    }
+
+    /**
+     * Returns true if the token passed in is within the acceptable expiration time offset, false if it is expired.
+     * @param tokenCacheItem 
+     * @param serverAuthenticationRequest 
+     */
+    private evaluateTokenExpiration(tokenCacheItem: AccessTokenCacheItem): Boolean {
+        const expiration = Number(tokenCacheItem.value.expiresIn);
+        return TokenUtils.validateExpirationIsWithinOffset(expiration, this.config.system.tokenRenewalOffsetSeconds);
     }
 
     /**
@@ -1643,7 +1708,7 @@ export class UserAgentApplication {
         }
         // if the response does not contain "scope" - scope is set to OIDC scopes by default and the token will be id_token
         else {
-            this.logger.verbose("Response parameters does not contain scope, clientId set as scope");
+            this.logger.verbose("Response parameters does not contain scope, OIDC scopes set as scope");
 
             // Generate and cache accessTokenKey and accessTokenValue
             const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientInfo.uid, clientInfo.utid);
