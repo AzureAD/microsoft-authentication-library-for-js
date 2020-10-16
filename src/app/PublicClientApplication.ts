@@ -77,7 +77,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
-            return silentAuthClient.acquireCachedToken(silentRequest);
+            return await silentAuthClient.acquireCachedToken(silentRequest);
         } catch (e) {
             return this.acquireTokenByRefreshToken(request);
         }

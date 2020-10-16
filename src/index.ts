@@ -19,6 +19,7 @@ export { SsoSilentRequest } from "./request/SsoSilentRequest";
 
 // Common Object Formats
 export {
+    AuthenticationScheme,
     // Account
     AccountInfo,
     // Request
@@ -34,5 +35,7 @@ export {
     // Logger Object
     ILoggerCallback,
     Logger,
-    LogLevel
+    LogLevel,
+    // Protocol Mode
+    ProtocolMode
 } from "@azure/msal-common";

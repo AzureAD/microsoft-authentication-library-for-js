@@ -74,7 +74,7 @@ export class BrowserUtils {
      * Returns best compatible network client object. 
      */
     static getBrowserNetworkClient(): INetworkModule {
-        if (window.fetch) {
+        if (window.fetch && window.Headers) {
             return new FetchClient();
         } else {
             return new XhrClient();

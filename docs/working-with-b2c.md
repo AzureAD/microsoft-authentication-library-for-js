@@ -102,3 +102,17 @@ During application registration, you are prompted to select an **audience**. The
 ### B2C and Sign-out Experience
 
 The sign-out clears the user's *single sign-on* state with **Azure AD B2C**, but it might not sign the user out of their **social identity provider** session. If the user selects the same identity provider during a subsequent sign-in, they might re-authenticate without entering their credentials. Here the assumption is that, if a user wants to sign out of the application, it doesn't necessarily mean they want to sign out of their social account (*e.g.* Facebook) itself.
+
+### B2C and Invite Flow
+
+MSAL.js will only process tokens which it originally requested. If your flow requires that you send a user a link they can use to sign up, you will need to ensure that the link points to your app, not the B2C service directly. An example invite flow is as follows:
+1. User clicks link to your app
+2. App calls `msal.loginRedirect` and includes the `id_token_hint` in the `extraQueryParameters`
+```javascript
+    msal.loginRedirect({
+        scopes: ["example_scope"],
+        extraQueryParameters: {'id_token_hint': your_id_token_hint}
+    });
+```
+3. App is redirected to B2C service where the user enters credentials/signs up
+4. B2C service redirects back to your app which calls `await msal.handleRedirectPromise()` to process the response and save the tokens
