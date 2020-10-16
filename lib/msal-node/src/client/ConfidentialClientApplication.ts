@@ -5,7 +5,7 @@
 
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
-import { ClientAssertion } from "../client/ClientAssertion";
+import { ClientAssertion } from "./ClientAssertion";
 import { ApiId } from "../utils/Constants";
 import { 
     ClientCredentialRequest, 

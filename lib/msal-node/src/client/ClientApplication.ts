@@ -26,9 +26,9 @@ import {
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { Storage } from "../cache/Storage";
-import { Constants as NodeConstants, ApiId } from "./../utils/Constants";
+import { Constants as NodeConstants, ApiId } from "../utils/Constants";
 import { TokenCache } from "../cache/TokenCache";
-import { ClientAssertion } from "../client/ClientAssertion";
+import { ClientAssertion } from "./ClientAssertion";
 import { version } from "../../package.json";
 
 export abstract class ClientApplication {
