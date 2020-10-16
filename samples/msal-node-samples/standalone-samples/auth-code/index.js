@@ -27,7 +27,7 @@ const config = {
 };
 
 // Create msal application object
-const pca = new msal.ConfidentialClientApplication(config);
+const cca = new msal.ConfidentialClientApplication(config);
 
 // Create Express App and Routes
 const app = express();
@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
     };
 
     // get url to sign user in and consent to scopes needed for applicatio
-    pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+    cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
         res.redirect(response);
     }).catch((error) => console.log(JSON.stringify(error)));
 });
@@ -51,7 +51,7 @@ app.get('/redirect', (req, res) => {
         redirectUri: "http://localhost:3000/redirect",
     };
 
-    pca.acquireTokenByCode(tokenRequest).then((response) => {
+    cca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
         res.sendStatus(200);
     }).catch((error) => {

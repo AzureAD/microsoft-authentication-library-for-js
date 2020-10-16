@@ -1,8 +1,8 @@
 {
   "type": "none",
-  "comment": "Increment core version constant for 1.4.1",
+  "comment": "Updated eslint rules (#2345)",
   "packageName": "msal",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "none",
-  "date": "2020-10-02T20:38:26.366Z"
+  "date": "2020-09-25T23:08:44.448Z"
 }

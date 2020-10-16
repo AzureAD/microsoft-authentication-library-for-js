@@ -26,9 +26,9 @@ import {
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { Storage } from "../cache/Storage";
-import { Constants as NodeConstants, ApiId } from "./../utils/Constants";
+import { Constants as NodeConstants, ApiId } from "../utils/Constants";
 import { TokenCache } from "../cache/TokenCache";
-import { ClientAssertion } from "../client/ClientAssertion";
+import { ClientAssertion } from "./ClientAssertion";
 import { version } from "../../package.json";
 
 export abstract class ClientApplication {
@@ -178,7 +178,8 @@ export abstract class ClientApplication {
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-                clientCapabilities: this.config.auth.clientCapabilities
+                clientCapabilities: this.config.auth.clientCapabilities,
+                protocolMode: this.config.auth.protocolMode
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!
@@ -200,6 +201,8 @@ export abstract class ClientApplication {
                 cpu: process.arch || "",
                 os: process.platform || "",
             },
+            persistencePlugin: this.config.cache!.cachePlugin,
+            serializableCache: this.tokenCache,
         };
     }
 
@@ -246,7 +249,7 @@ export abstract class ClientApplication {
         let authority: Authority;
         if (authorityString) {
             this.logger.verbose("Authority passed in, creating authority instance");
-            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!);
+            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!, this.config.auth.protocolMode!);
         } else {
             this.logger.verbose("No authority passed in request, defaulting to authority set on application object");
             authority = this.authority;
@@ -271,7 +274,8 @@ export abstract class ClientApplication {
 
         this._authority = AuthorityFactory.createInstance(
             this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
-            this.config.system!.networkClient!
+            this.config.system!.networkClient!,
+            this.config.auth.protocolMode!
         );
 
         return this._authority;

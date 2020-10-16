@@ -1,4 +1,8 @@
-// App Auth Modules and Configuration
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
@@ -19,6 +23,7 @@ export { CloudDiscoveryMetadata } from "./authority/CloudDiscoveryMetadata";
 export { TrustedAuthority } from "./authority/TrustedAuthority";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
+export { ProtocolMode } from "./authority/ProtocolMode";
 // Cache
 export { CacheManager } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType } from "./cache/utils/CacheTypes";
@@ -28,7 +33,11 @@ export { AccountEntity } from "./cache/entities/AccountEntity";
 export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
 export { AccessTokenEntity } from "./cache/entities/AccessTokenEntity";
 export { RefreshTokenEntity } from "./cache/entities/RefreshTokenEntity";
+export { ServerTelemetryEntity } from "./cache/entities/ServerTelemetryEntity";
 export { ThrottlingEntity } from "./cache/entities/ThrottlingEntity";
+export { ICachePlugin } from "./cache/interface/ICachePlugin";
+export { TokenCacheContext } from "./cache/persistence/TokenCacheContext";
+export { ISerializableTokenCache } from "./cache/interface/ISerializableTokenCache";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
 export { NetworkManager, NetworkResponse } from "./network/NetworkManager";
@@ -66,6 +75,5 @@ export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
 // Telemetry
-export { ServerTelemetryCacheValue } from "./telemetry/server/ServerTelemetryCacheValue";
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";

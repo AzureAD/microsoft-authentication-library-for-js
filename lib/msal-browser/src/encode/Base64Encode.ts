@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 /**

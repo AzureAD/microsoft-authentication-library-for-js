@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { INetworkModule, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
@@ -73,7 +74,7 @@ export class BrowserUtils {
      * Returns best compatible network client object. 
      */
     static getBrowserNetworkClient(): INetworkModule {
-        if (window.fetch) {
+        if (window.fetch && window.Headers) {
             return new FetchClient();
         } else {
             return new XhrClient();

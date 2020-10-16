@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import {
     AccountEntity,
     AccessTokenEntity,
@@ -182,6 +183,7 @@ export class Storage extends CacheManager {
         // write to the cache after removal
         if (result) {
             this.setCache(cache);
+            this.emitChange();
         }
         return result;
     }
