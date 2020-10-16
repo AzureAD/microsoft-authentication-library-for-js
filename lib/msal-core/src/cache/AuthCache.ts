@@ -93,10 +93,10 @@ export class AuthCache extends BrowserStorage {// Singleton
         switch (tokenType) {
             case ServerHashParamKeys.ACCESS_TOKEN:
                 // Cache item is an access token if scopes are included in the cache item key
-                return Boolean(accountMatch && key.match(Constants.scopes));
+                return !!(accountMatch && key.match(Constants.scopes));
             case ServerHashParamKeys.ID_TOKEN:
                 // Cache item is an ID token if scopes are NOT included in the cache item key
-                return Boolean(accountMatch && !key.match(Constants.scopes));
+                return !!(accountMatch && !key.match(Constants.scopes));
             default:
                 return false;
         }
