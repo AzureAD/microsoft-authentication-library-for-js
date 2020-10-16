@@ -174,7 +174,7 @@ describe("Browser tests", function () {
         await takeScreenshot(page, testName, "samplePageGotToken");
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
         expect(Object.keys(localStorage).length).to.be.eq(6);
-        expect(page.url()).to.be.eq(customQueryPage + "#"); // Redirect will leave empty hash on the url
+        expect(page.url()).to.be.eq(customQueryPage); // Redirect will leave empty hash on the url
     });
 
     it("Performs loginPopup then acquireTokenPopup", async () => {
