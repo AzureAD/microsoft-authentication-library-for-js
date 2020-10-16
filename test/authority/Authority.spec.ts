@@ -9,10 +9,9 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE
 } from "../utils/StringConstants";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
-import { ClientAuthErrorMessage } from "../../src";
+import { ClientAuthErrorMessage, ProtocolMode } from "../../src";
 import { ClientTestUtils } from "../client/ClientTestUtils";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
-import { hostname } from "os";
 
 describe("Authority.ts Class Unit Tests", () => {
     afterEach(() => {
@@ -30,7 +29,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     return null;
                 }
             };
-            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface);
+            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, ProtocolMode.AAD);
             expect(authority.canonicalAuthority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
         });
 
@@ -44,10 +43,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 }
             };
 
-            expect(() => new Authority("http://login.microsoftonline.com/common", networkInterface)).to.throw(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
-            expect(() => new Authority("https://login.microsoftonline.com/", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
-            expect(() => new Authority("This is not a URI", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
-            expect(() => new Authority("", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
+            expect(() => new Authority("http://login.microsoftonline.com/common", networkInterface, ProtocolMode.AAD)).to.throw(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
+            expect(() => new Authority("This is not a URI", networkInterface, ProtocolMode.AAD)).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
+            expect(() => new Authority("", networkInterface, ProtocolMode.AAD)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
         });
     });
 
@@ -62,7 +60,7 @@ describe("Authority.ts Class Unit Tests", () => {
         };
         let authority: Authority;
         beforeEach(() => {
-            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface);
+            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, ProtocolMode.AAD);
         });
 
         it("Gets canonical authority that ends in '/'", () => {
@@ -72,7 +70,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("Set canonical authority performs validation and canonicalization on url", () => {
             expect(() => authority.canonicalAuthority = "http://login.microsoftonline.com/common").to.throw(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
-            expect(() => authority.canonicalAuthority = "https://login.microsoftonline.com/").to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
+            expect(() => authority.canonicalAuthority = "https://login.microsoftonline.com/").to.not.throw();
             expect(() => authority.canonicalAuthority = "This is not a URI").to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
 
             authority.canonicalAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/${RANDOM_TEST_GUID}`;
@@ -119,7 +117,7 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("Throws error if endpoint discovery is incomplete for authorizationEndpoint, tokenEndpoint, endSessionEndpoint and selfSignedJwtAudience", () => {
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, ProtocolMode.AAD);
                 expect(() => authority.authorizationEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.tokenEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.endSessionEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
@@ -141,7 +139,7 @@ describe("Authority.ts Class Unit Tests", () => {
         };
         let authority: Authority;
         beforeEach(() => {
-            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface);
+            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, ProtocolMode.AAD);
         });
 
         it("discoveryComplete returns false if endpoint discovery has not been completed", () => {
@@ -159,7 +157,7 @@ describe("Authority.ts Class Unit Tests", () => {
             networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                 return DEFAULT_OPENID_CONFIG_RESPONSE;
             };
-            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface);
+            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, ProtocolMode.AAD);
             ClientTestUtils.setCloudDiscoveryMetadataStubs();
             await authority.resolveEndpointsAsync();
 
@@ -209,7 +207,7 @@ describe("Authority.ts Class Unit Tests", () => {
         it("ADFS authority uses v1 well-known endpoint", async () => {
             const authorityUrl = "https://login.microsoftonline.com/adfs/"
             let endpoint = "";
-            authority = new Authority(authorityUrl, networkInterface);
+            authority = new Authority(authorityUrl, networkInterface, ProtocolMode.AAD);
             sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
             sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
             sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").callsFake(() => {
@@ -226,5 +224,26 @@ describe("Authority.ts Class Unit Tests", () => {
             await authority.resolveEndpointsAsync();
             expect(endpoint).to.equal(`${authorityUrl}.well-known/openid-configuration`);
         });
+
+        it("OIDC ProtocolMode does not append v2 to endpoint", async () => {
+            const authorityUrl = "https://login.microsoftonline.com/"
+            let endpoint = "";
+            authority = new Authority(authorityUrl, networkInterface, ProtocolMode.OIDC);
+            sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
+            sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
+            sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").callsFake(() => {
+                return {
+                    preferred_cache: Constants.DEFAULT_AUTHORITY_HOST, 
+                    preferred_network: Constants.DEFAULT_AUTHORITY_HOST, 
+                    aliases: [Constants.DEFAULT_AUTHORITY_HOST]}
+            });
+            sinon.stub(Authority.prototype, <any>"discoverEndpoints").callsFake((openIdEndpoint) => {
+                endpoint = openIdEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE; // Response is required but is not important for this test
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).to.equal(`${authorityUrl}.well-known/openid-configuration`);
+        })
     });
 });

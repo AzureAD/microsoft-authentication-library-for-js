@@ -19,7 +19,7 @@ import { ClientTestUtils } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
-import { IdToken } from "../../src/account/IdToken";
+import { AuthToken } from "../../src/account/AuthToken";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
@@ -28,6 +28,7 @@ import { ScopeSet } from "../../src/request/ScopeSet";
 import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { ClientConfiguration } from "../../src";
 
 describe("OnBehalfOf unit tests", () => {
     let config: ClientConfiguration;
@@ -67,14 +68,14 @@ describe("OnBehalfOf unit tests", () => {
             ver: "2.0",
             iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
             sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            exp: "1536361411",
+            exp: 1536361411,
             name: "Abe Lincoln",
             preferred_username: "AbeLi@microsoft.com",
             oid: "00000000-0000-0000-66f3-3332eca7ea81",
             tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
             nonce: "123523",
         };
-        sinon.stub(IdToken, "extractIdToken").returns(idTokenClaims);
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
     });
 
 
@@ -139,7 +140,7 @@ describe("OnBehalfOf unit tests", () => {
         sinon.stub(OnBehalfOfClient.prototype, <any>"readIdTokenFromCache").returns(expectedIdTokenEntity);
         
         // mock account
-        const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
+        const idToken: AuthToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
         const accountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.authOptions.authority, idToken, config.cryptoInterface, TEST_TOKENS.ACCESS_TOKEN);
         sinon.stub(CacheManager.prototype, <any>"getAccount").returns(accountEntity);
         
@@ -161,7 +162,7 @@ describe("OnBehalfOf unit tests", () => {
         expect(authResult.account.environment).to.eq(accountEntity.environment);
         expect(authResult.account.tenantId).to.eq(accountEntity.realm);
     });
-    
+
     it("acquires a token, skipCache=true", async () => {
 
         sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
