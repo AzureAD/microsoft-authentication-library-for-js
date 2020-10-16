@@ -3,6 +3,6 @@
   "comment": "Use history API to clear hash for msal-browser",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-10-16T22:05:51.520Z"
 }
