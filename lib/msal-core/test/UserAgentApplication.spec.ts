@@ -1992,26 +1992,25 @@ describe("UserAgentApplication.ts Class", function () {
             const loginStartPage = loginUrl + userQueryString;
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
-            window.location.href = loginStartPage;
+            window.location.href = `${loginStartPage}${successHash}`;
             window.location.search = userQueryString;
+            window.location.hash = successHash;
+            window.location.pathname = "/test/";
 
             sinon.stub(window, "parent").returns(window);
-            sinon.stub(window.location, "href").returns(loginStartPage + successHash);
-            sinon.stub(window.history, "replaceState").callsFake((data, title, url) => {
-                window.location.hash = "";
+            sinon.stub(window.location, "assign").callsFake(() => {});
+            
+            sinon.stub(history, "replaceState").callsFake((data, title, url) => {
+                window.location.href = `http://localhost:8081${url}`;
             });
+            sinon.stub(UrlUtils, "urlContainsHash").returns(true);
 
-            window.location.hash = successHash;
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
-            expect(window.location.href).to.equal(loginStartPage);
-            expect(window.location.hash).to.equal(successHash);
-            expect(window.location.search).to.equal(userQueryString);
             msal = new UserAgentApplication(config);
             expect(window.location.href).to.equal(loginStartPage);
-            expect(window.location.hash).to.equal("");
             expect(window.location.search).to.equal(userQueryString);
             expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
         });
@@ -2344,6 +2343,7 @@ describe("UserAgentApplication.ts Class", function () {
                     postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
                 }
             };
+            window.location.hash = "";
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
             setTestCacheItems();
