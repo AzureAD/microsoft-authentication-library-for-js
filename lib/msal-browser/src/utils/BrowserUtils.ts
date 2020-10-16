@@ -31,7 +31,12 @@ export class BrowserUtils {
      * Clears hash from window url.
      */
     static clearHash(): void {
-        window.location.hash = "";
+        if ("replaceState" in history) {
+            // Full removes "#" from url
+            history.replaceState(null, null, `${window.location.pathname}${window.location.search}`);
+        } else {
+            window.location.hash = "";
+        }
     }
 
     /**
