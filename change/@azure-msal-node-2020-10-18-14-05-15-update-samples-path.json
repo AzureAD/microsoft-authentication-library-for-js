@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Update samples path",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-10-18T21:05:15.888Z"
+}
