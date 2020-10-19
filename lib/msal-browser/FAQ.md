@@ -72,7 +72,7 @@ We are currently working on support for iframed applications as well as solution
 
 ## Will MSAL 2.x support B2C?
 
-Yes this is now supported as of October 2020. 
+MSAL.js v2 supports B2C of October 2020. 
 
 # Authentication
 
