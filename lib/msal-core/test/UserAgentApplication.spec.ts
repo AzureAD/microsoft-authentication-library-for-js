@@ -40,7 +40,7 @@ type kv = {
     [key: string]: string;
 };
 
-describe("UserAgentApplication.ts Class", function () {
+describe.only("UserAgentApplication.ts Class", function () {
     // Test state params
     sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
     const TEST_LIBRARY_STATE = RequestUtils.generateLibraryState(Constants.interactionTypeRedirect);
@@ -1072,7 +1072,8 @@ describe("UserAgentApplication.ts Class", function () {
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    redirectUri: TEST_URIS.TEST_REDIR_URI
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    authority: TEST_CONFIG.validAuthority + "common/"
                 }
             };
             msal = new UserAgentApplication(config);
@@ -1127,15 +1128,16 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                // Won't happen
-                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
-            }).catch(function(err: AuthError) {
-                expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleMatchingTokens.code);
-                expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-                expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-                expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.ts");
+                expect(response.idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.be.deep.eq(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.account).to.be.eq(account);
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
         });
 
@@ -1362,7 +1364,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             setAuthInstanceStubs();
             sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
-            const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+            const renewTokenSpy = sinon.stub(msal, <any>"renewToken").throws(AuthError);
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
@@ -1415,17 +1417,19 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests getCachedToken returns correct Id Token when authority is passed and there are multiple ID tokens in the cache for the same account", (done) => {
+            const requestAuthority = 'https://login.onmicrosoft.com/common/';
             const tokenRequest : AuthenticationParameters = {
-                authority: 'https://login.onmicrosoft.com/common/',
+                authority: requestAuthority,
                 scopes: ["S1"],
                 account: account
             };
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
+            accessTokenKey.authority = requestAuthority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
-            idTokenKey.authority = 'https://login.onmicrosoft.com/common/';
+            idTokenKey.authority = requestAuthority;
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
@@ -1433,28 +1437,6 @@ describe("UserAgentApplication.ts Class", function () {
                 done();
             }).catch(function(err: AuthError) {
                 console.log("Shouldn't have error here. Data: " + JSON.stringify(err));
-            });
-        });
-
-        it("tests getCachedToken throws error when authority is not passed and there are multiple ID tokens in the cache for the same account", (done) => {
-            const tokenRequest : AuthenticationParameters = {
-                scopes: ["S1"],
-                account: account
-            };
-            const params: kv = {  };
-            params[SSOTypes.SID] = account.sid;
-            setUtilUnifiedCacheQPStubs(params);
-            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
-            idTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
-            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
-
-            msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                console.log("Shouldn't have response here. Data: " + JSON.stringify(response));
-            }).catch(function(err: AuthError) {
-                expect(err).to.be.instanceOf(ClientAuthError);
-                expect(err.errorCode).to.be.eq(ClientAuthErrorMessage.multipleMatchingIdTokens.code);
-                done();
             });
         });
 

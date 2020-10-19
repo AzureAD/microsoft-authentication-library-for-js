@@ -1380,29 +1380,24 @@ export class UserAgentApplication {
      * @param requestScopes 
      * @param tokenType 
      */
-    private getTokenCacheItemByAuthority(authority: string, tokenCacheItems: Array<AccessTokenCacheItem>, request: ServerRequestParameters, requestScopes: Array<string>, tokenType: string): AccessTokenCacheItem {
-        if (authority) {
-            let filteredAuthorityItems: Array<AccessTokenCacheItem>;
-            if (UrlUtils.isCommonAuthority(authority) || UrlUtils.isOrganizationsAuthority(authority)) {
-                filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByDomain(tokenCacheItems, UrlUtils.GetUrlComponents(authority).HostNameAndPort);
-            } else {
-                filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByAuthority(tokenCacheItems, authority);
-            }
-            
-            if (filteredAuthorityItems.length === 1) {
-                return filteredAuthorityItems[0];
-            }
-            else if (filteredAuthorityItems.length > 1) {
-                throw ClientAuthError.createMultipleMatchingTokensInCacheError(tokenType, requestScopes);
-            }
-            else {
-                this.logger.verbose(`No matching tokens of type ${tokenType} found`);
-                return null;
-            }  
+    private getTokenCacheItemByAuthority(authority: string, tokenCacheItems: Array<AccessTokenCacheItem>, requestScopes: Array<string>, tokenType: string): AccessTokenCacheItem {
+        let filteredAuthorityItems: Array<AccessTokenCacheItem>;
+        if (UrlUtils.isCommonAuthority(authority) || UrlUtils.isOrganizationsAuthority(authority)) {
+            filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByDomain(tokenCacheItems, UrlUtils.GetUrlComponents(authority).HostNameAndPort);
+        } else {
+            filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByAuthority(tokenCacheItems, authority);
         }
-        else { // if not common or organizations authority, throw error
+        
+        if (filteredAuthorityItems.length === 1) {
+            return filteredAuthorityItems[0];
+        }
+        else if (filteredAuthorityItems.length > 1) {
             throw ClientAuthError.createMultipleMatchingTokensInCacheError(tokenType, requestScopes);
-        } 
+        }
+        else {
+            this.logger.verbose(`No matching tokens of type ${tokenType} found`);
+            return null;
+        }  
     }
 
     /**
@@ -1418,27 +1413,10 @@ export class UserAgentApplication {
         this.logger.verbose("Getting all cached tokens of type ID Token");
         const idTokenCacheItems = this.cacheStorage.getAllTokensByType(this.clientId, account ? account.homeAccountIdentifier : null, ServerHashParamKeys.ID_TOKEN);
 
-        // No match found after initial clientId and account
-        if (idTokenCacheItems.length === 0) {
-            this.logger.verbose("No matching access tokens found when filtered by clientId and account");
-            return null;
-        }
-
-        let idTokenCacheItem: AccessTokenCacheItem = null;
-
-        this.logger.verbose("No authority passed into ID token request, filtering ID tokens by Client Application configuration authority");
-        // if only one cached token found
-        if (idTokenCacheItems.length === 1) {
-            this.logger.verbose("One matching ID token found in cache");
-            idTokenCacheItem = idTokenCacheItems[0];
-        }
-        // if more than one cached token is found
-        else if (idTokenCacheItems.length > 1) {
-            const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
-            idTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, idTokenCacheItems, serverAuthenticationRequest, null, ServerHashParamKeys.ID_TOKEN);
-        }
-
-        if (idTokenCacheItem != null) {
+        const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
+        const idTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, idTokenCacheItems, null, ServerHashParamKeys.ID_TOKEN);
+        
+        if (idTokenCacheItem) {
             this.logger.verbose("Evaluating ID token found");
             const idTokenIsStillValid = this.evaluateTokenExpiration(idTokenCacheItem);
 
@@ -1476,32 +1454,14 @@ export class UserAgentApplication {
     private getCachedAccessToken(serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: string[]): AuthResponse {
         this.logger.verbose("Getting all cached tokens of type Access Token");
         const tokenCacheItems = this.cacheStorage.getAllTokensByType(this.clientId, account ? account.homeAccountIdentifier : null, ServerHashParamKeys.ACCESS_TOKEN);
-
-        // No match found after initial clientId and account
-        if (tokenCacheItems.length === 0) {
-            this.logger.verbose("No matching access tokens found when filtered by clientId and account");
-            return null;
-        }
         
         const scopeFilteredTokenCacheItems = AuthCacheUtils.filterTokenCacheItemsByScope(tokenCacheItems, scopes);
-        let accessTokenCacheItem: AccessTokenCacheItem = null;
+        const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
+        // serverAuthenticationRequest.authority can only be common or organizations if not null
+        const accessTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, scopeFilteredTokenCacheItems, scopes, ServerHashParamKeys.ACCESS_TOKEN);
         
-        // if only one cached token found
-        if (scopeFilteredTokenCacheItems.length === 1) {
-            this.logger.verbose("One matching token found, setting authorityInstance");
-            accessTokenCacheItem = scopeFilteredTokenCacheItems[0];
-            serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
-        }
-        // if more than one cached token is found
-        else if (scopeFilteredTokenCacheItems.length > 1) {
-            const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
-            // serverAuthenticationRequest.authority can only be common or organizations if not null
-            accessTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, scopeFilteredTokenCacheItems, serverAuthenticationRequest, scopes, ServerHashParamKeys.ACCESS_TOKEN);
-            serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
-        }
-        // if no match found, check if there was a single authority used
-        else {
-            this.logger.verbose("No matching token found when filtering by scope");
+        if (!accessTokenCacheItem) {
+            this.logger.verbose("No matching token found when filtering by scope and authority");
             const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
             if (authorityList.length > 1) {
                 throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
@@ -1509,9 +1469,9 @@ export class UserAgentApplication {
 
             this.logger.verbose("Single authority used, setting authorityInstance");
             serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
-        }
-
-        if (accessTokenCacheItem != null) {
+            return null;
+        } else {
+            serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
             this.logger.verbose("Evaluating access token found");
             const tokenIsStillValid = this.evaluateTokenExpiration(accessTokenCacheItem);
             // The response value will stay null if token retrieved from the cache is expired, otherwise it will be populated with said token's data
@@ -1545,9 +1505,6 @@ export class UserAgentApplication {
                 this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
                 return null;
             }
-        } else {
-            this.logger.verbose("No tokens found");
-            return null;
         }
     }
 
