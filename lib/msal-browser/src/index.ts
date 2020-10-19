@@ -18,6 +18,10 @@ export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";
 export { SsoSilentRequest } from "./request/SsoSilentRequest";
 
+// Events
+export { EventMessage, EventPayload, EventError, EventCallbackFunction } from "./event/EventMessage";
+export { EventType } from "./event/EventType";
+
 // Common Object Formats
 export {
     AuthenticationScheme,

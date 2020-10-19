@@ -19,6 +19,8 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../../package.json";
+import { EventError, EventMessage, EventPayload, EventCallbackFunction } from "../event/EventMessage";
+import { EventType } from "../event/EventType";
 
 export abstract class ClientApplication {
 
@@ -45,6 +47,9 @@ export abstract class ClientApplication {
 
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
+
+    // Callback for subscribing to events
+    private eventCallbacks: EventCallbackFunction[];
 
     /**
      * @constructor
@@ -93,6 +98,9 @@ export abstract class ClientApplication {
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions);
 
+        // Array of events
+        this.eventCallbacks = [];
+
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
@@ -108,7 +116,34 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
-        return this.isBrowserEnvironment ? this.handleRedirectResponse() : null;
+        const loggedInAccounts = this.getAllAccounts();
+        if (this.isBrowserEnvironment) {
+            return this.handleRedirectResponse()
+                .then((result: AuthenticationResult) => {
+                    if (result) {
+                        // Emit login event if number of accounts change
+                        const isLoggingIn = loggedInAccounts.length !== this.getAllAccounts().length;
+                        if (isLoggingIn) {
+                            this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
+                        } else {
+                            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
+                        }
+                    }
+
+                    return result;
+                })
+                .catch((e) => {
+                    // Emit login event if there is an account
+                    if (loggedInAccounts.length > 0) {
+                        this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                    } else {
+                        this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                    }
+
+                    throw e;
+                });
+        }
+        return null;
     }
 
     /**
@@ -203,6 +238,7 @@ export abstract class ClientApplication {
      * @param interactionHandler
      */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
+        this.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
         const encodedTokenRequest = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string;
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
@@ -233,8 +269,17 @@ export abstract class ClientApplication {
      * @param {@link (RedirectRequest:type)}
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-        this.preflightBrowserEnvironmentCheck();
         // Preflight request
+        this.preflightBrowserEnvironmentCheck();
+
+        // If logged in, emit acquire token events
+        const isLoggedIn = this.getAllAccounts().length > 0;
+        if (isLoggedIn) {
+            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Redirect, request);
+        } else {
+            this.emitEvent(EventType.LOGIN_START, InteractionType.Redirect, request);
+        }
+        
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
         
@@ -255,6 +300,13 @@ export abstract class ClientApplication {
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
         } catch (e) {
+            // If logged in, emit acquire token events
+            if (isLoggedIn) {
+                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+            } else {
+                this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+            }
+
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
             throw e;
@@ -296,6 +348,14 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
+        // If logged in, emit acquire token events
+        const loggedInAccounts = this.getAllAccounts();
+        if (loggedInAccounts.length > 0) {
+            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
+        } else {
+            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
+        }
+
         // Preflight request
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
@@ -323,8 +383,24 @@ export abstract class ClientApplication {
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
 
             // Handle response from hash string.
-            return await interactionHandler.handleCodeResponse(hash);
+            const result = await interactionHandler.handleCodeResponse(hash);
+
+            // If logged in, emit acquire token events
+            const isLoggingIn = loggedInAccounts.length > this.getAllAccounts().length;
+            if (isLoggingIn) {
+                this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Popup, result);
+            } else {
+                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Popup, result);
+            }
+
+            return result;
         } catch (e) {
+            if (loggedInAccounts.length > 0) {
+                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Popup, null, e);
+            } else {
+                this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Popup, null, e);
+            }
+
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
             throw e;
@@ -352,7 +428,24 @@ export abstract class ClientApplication {
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck();
+        this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
+        
+        try {
+            const silentTokenResult = await this.acquireTokenByIframe(request);
+            this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+            return silentTokenResult;
+        } catch (e) {
+            this.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            throw e;
+        }
+    }
 
+    /**
+     * This function uses a hidden iframe to fetch an authorization code from the eSTS. To be used for silent refresh token acquisition and renewal.
+     * @param {@link AuthorizationUrlRequest}
+     * @param request 
+     */
+    private async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
@@ -402,6 +495,7 @@ export abstract class ClientApplication {
      *
      */
     protected async acquireTokenByRefreshToken(request: SilentRequest): Promise<AuthenticationResult> {
+        this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
         const silentRequest: SilentFlowRequest = {
@@ -419,9 +513,8 @@ export abstract class ClientApplication {
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                return await this.ssoSilent(request);
+                return await this.acquireTokenByIframe(request);
             }
-
             throw e;
         }
     }
@@ -453,12 +546,19 @@ export abstract class ClientApplication {
      * @param {@link (EndSessionRequest:type)} 
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        this.preflightBrowserEnvironmentCheck();
-        const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
-        // create logout string and navigate user window to logout. Auth module will clear cache.
-        const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-        BrowserUtils.navigateWindow(logoutUri);
+        try {
+            this.preflightBrowserEnvironmentCheck();
+            this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
+            const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+            const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
+            // create logout string and navigate user window to logout. Auth module will clear cache.
+            const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
+            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
+            BrowserUtils.navigateWindow(logoutUri);
+        } catch(e) {
+            this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
+            throw e;
+        }
     }
 
     // #endregion
@@ -769,6 +869,43 @@ export abstract class ClientApplication {
         validLogoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
         
         return validLogoutRequest;
+    }
+
+    /**
+     * Emits events by calling callback with event message
+     * @param eventType 
+     * @param interactionType 
+     * @param payload 
+     * @param error 
+     */
+    protected emitEvent(eventType: EventType, interactionType?: InteractionType, payload?: EventPayload, error?: EventError) {
+        if (this.isBrowserEnvironment) {
+            const message: EventMessage = {
+                eventType: eventType,
+                interactionType: interactionType || null,
+                payload: payload || null,
+                error: error || null,
+                timestamp: Date.now()
+            };
+    
+            this.logger.info(`Emitting event: ${eventType}`);
+    
+            this.eventCallbacks.forEach((callback) => {
+                this.logger.verbose(`Emitting event to callback: ${eventType}`);
+                callback.apply(null, [message]);
+            });
+        }
+    }
+
+    /**
+     * Adds event callbacks to array
+     * @param callback 
+     */
+    addEventCallback(callback: EventCallbackFunction) {
+        if (this.isBrowserEnvironment) {
+            this.logger.verbose("Event callback registered");
+            this.eventCallbacks.push(callback);
+        }
     }
 
     // #endregion
