@@ -16,7 +16,6 @@ export class AuthCacheUtils {
             const cachedScopes = cacheItem.key.scopes.split(" ");
             const searchScopes = ScopeSet.removeDefaultScopes(requestScopes);
 
-            // TODO: Revise MSAL Guard case
             const defaultScopesOnlyMatchToken = (searchScopes.length === 0 && ScopeSet.containsScope(cachedScopes, requestScopes));
             const searchScopesMatchToken = ScopeSet.containsScope(cachedScopes, searchScopes);
 
