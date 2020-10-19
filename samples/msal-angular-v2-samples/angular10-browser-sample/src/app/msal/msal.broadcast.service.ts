@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { MSAL_INSTANCE } from './constants';
-import { EventType, EventMessage, EventPayload, EventError, IPublicClientApplication, InteractionType } from '@azure/msal-browser';
+import { EventMessage, IPublicClientApplication } from '@azure/msal-browser';
 
 @Injectable()
 export class MsalBroadcastService {
@@ -18,22 +18,4 @@ export class MsalBroadcastService {
     });
   }
 
-  /**
-   * Broadcasts events from msal-angular, same shape as events from msal-browser
-   * @param eventType 
-   * @param interactionType 
-   * @param payload 
-   * @param error 
-   */
-  broadcastAngularEvent(eventType: EventType, interactionType?: InteractionType, payload?: EventPayload, error?: EventError) {
-    const message = {
-      eventType: eventType,
-      interactionType: interactionType || null,
-      payload: payload || null,
-      error: error || null,
-      timestamp: Date.now()
-    };
-    
-    this._msalSubject.next(message);
-  }
 }
