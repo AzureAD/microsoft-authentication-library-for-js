@@ -153,7 +153,7 @@ describe("UserAgentApplication.ts Class", function () {
             clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
             scopes: undefined,
             homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
-        }
+        };
 
         idToken = {
             accessToken: null,
@@ -285,10 +285,10 @@ describe("UserAgentApplication.ts Class", function () {
                 assign: function (url) {
                     try {
                         expect(url).to.include("&state");
-                        let hash = UrlUtils.getHashFromUrl(url);
-                        let state = UrlUtils.deserializeHash(hash).state;
-                        let decodedState = CryptoUtils.base64Decode(state);
-                        let stateObj = JSON.parse(decodedState);
+                        const hash = UrlUtils.getHashFromUrl(url);
+                        const state = UrlUtils.deserializeHash(hash).state;
+                        const decodedState = CryptoUtils.base64Decode(state);
+                        const stateObj = JSON.parse(decodedState);
 
                         expect(stateObj).to.include.keys("id");
                         expect(stateObj).to.include.keys("ts");
@@ -647,7 +647,7 @@ describe("UserAgentApplication.ts Class", function () {
                     done();
                     return false;
                 }
-            })
+            });
         });
 
         it("acquireTokenRedirect does not navigate if onRedirectNavigate is implemented and returns false", done => {
@@ -676,7 +676,7 @@ describe("UserAgentApplication.ts Class", function () {
                     done();
                     return false;
                 }
-            })
+            });
         });
 
         it("navigates if onRedirectNavigate returns null", done => {
@@ -701,7 +701,7 @@ describe("UserAgentApplication.ts Class", function () {
                 onRedirectNavigate: url => {
                     expect(url).to.be.not.null;
                 }
-            })
+            });
         });
 
         it("navigates if onRedirectNavigate returns true", done => {
@@ -726,9 +726,9 @@ describe("UserAgentApplication.ts Class", function () {
                 onRedirectNavigate: url => {
                     expect(url).to.be.not.null;
 
-                    return true
+                    return true;
                 }
-            })
+            });
         });
 
         it("calls error callback on loginRedirect if interaction is true", function (done) {
@@ -762,7 +762,6 @@ describe("UserAgentApplication.ts Class", function () {
             msal.handleRedirectCallback(checkErrorFromLibrary);
             msal.acquireTokenRedirect({scopes: [ "user.read" ]});
         });
-
 
         it("throws error on loginRedirect if interaction is true", function (done) {
             cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
@@ -830,7 +829,7 @@ describe("UserAgentApplication.ts Class", function () {
                 assign: function (url) {
                     try {
                         const state = UrlUtils.deserializeHash(url).state;
-                        const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state)
+                        const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state);
 
                         expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
                         done();
@@ -1044,14 +1043,14 @@ describe("UserAgentApplication.ts Class", function () {
         it("Hash is not processed in popup case" , function () {
             const oldWindowOpener = window.opener;
             window.opener = "different_window";
-            const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup)
+            const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup);
 
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`);
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE_POPUP}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
             window.location.hash = testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
-            let hashBeforeProcessing = window.location.hash;
-            let callbackExecuted = false
+            const hashBeforeProcessing = window.location.hash;
+            let callbackExecuted = false;
             msal = new UserAgentApplication(config);
 
             const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
@@ -1635,7 +1634,6 @@ describe("UserAgentApplication.ts Class", function () {
                     }).catch(done);
                 });
 
-
                 it("should return access token with id token if there are valid matching access token and id token in the cache", (done) => {
                     cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
@@ -1922,7 +1920,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests navigation to loginRequestUrl after first redirect", function(done) {
             config.auth.navigateToLoginRequestUrl = true;
-            const loginStartPage = "http://localhost:8081/test/"
+            const loginStartPage = "http://localhost:8081/test/";
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             window.location = {
@@ -1950,8 +1948,8 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests navigation to loginRequestUrl after first redirect", function(done) {
             config.auth.navigateToLoginRequestUrl = true;
-            const baseStartUrl = "http://localhost:8081/test/"
-            const loginStartPage = baseStartUrl + "#testHash"
+            const baseStartUrl = "http://localhost:8081/test/";
+            const loginStartPage = baseStartUrl + "#testHash";
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             window.location = {
@@ -1979,8 +1977,8 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests navigation to loginRequestUrl inc. user querystring after first redirect", function(done) {
             config.auth.navigateToLoginRequestUrl = true;
-            const baseStartUrl = "http://localhost:8081/test/"
-            const loginStartPage = baseStartUrl + "?testKey=testVal"
+            const baseStartUrl = "http://localhost:8081/test/";
+            const loginStartPage = baseStartUrl + "?testKey=testVal";
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             window.location = {
@@ -2008,15 +2006,15 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests user hash is added back to url on final page and token response is cached", function() {
             config.auth.navigateToLoginRequestUrl = true;
-            const loginUrl = "http://localhost:8081/test/"
-            const userHash = "#testHash"
-            const loginStartPage = loginUrl + userHash
+            const loginUrl = "http://localhost:8081/test/";
+            const userHash = "#testHash";
+            const loginStartPage = loginUrl + userHash;
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
             window.location.href = loginUrl;
 
             sinon.stub(window, "parent").returns(window);
-            sinon.stub(window.location, "href").returns(loginStartPage + successHash)
+            sinon.stub(window.location, "href").returns(loginStartPage + successHash);
 
             window.location.hash = successHash;
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
@@ -2033,37 +2031,39 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests user query string present on final page url and token response is cached", function() {
             config.auth.navigateToLoginRequestUrl = true;
-            const loginUrl = "http://localhost:8081/test/"
-            const userQueryString = "?testKey=testVal"
+            const loginUrl = "http://localhost:8081/test/";
+            const userQueryString = "?testKey=testVal";
             const loginStartPage = loginUrl + userQueryString;
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
-            window.location.href = loginStartPage;
+            window.location.href = `${loginStartPage}${successHash}`;
             window.location.search = userQueryString;
+            window.location.hash = successHash;
+            window.location.pathname = "/test/";
 
             sinon.stub(window, "parent").returns(window);
-            sinon.stub(window.location, "href").returns(loginStartPage + successHash)
+            sinon.stub(window.location, "assign").callsFake(() => {});
+            
+            sinon.stub(history, "replaceState").callsFake((data, title, url) => {
+                window.location.href = `http://localhost:8081${url}`;
+            });
+            sinon.stub(UrlUtils, "urlContainsHash").returns(true);
 
-            window.location.hash = successHash;
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
-            expect(window.location.href).to.equal(loginStartPage);
-            expect(window.location.hash).to.equal(successHash);
-            expect(window.location.search).to.equal(userQueryString);
             msal = new UserAgentApplication(config);
             expect(window.location.href).to.equal(loginStartPage);
-            expect(window.location.hash).to.equal("");
             expect(window.location.search).to.equal(userQueryString);
             expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
         });
 
         it("tests user hash is added back to url and query string exists on final page url and token response is cached", function() {
             config.auth.navigateToLoginRequestUrl = true;
-            const loginUrl = "http://localhost:8081/test/"
-            const userQueryString = "?testKey=testVal"
-            const userHash = "#testHash"
+            const loginUrl = "http://localhost:8081/test/";
+            const userQueryString = "?testKey=testVal";
+            const userHash = "#testHash";
             const loginStartPage = loginUrl + userQueryString + userHash;
             const successHash = testHashesForState(TEST_LIBRARY_STATE).TEST_SUCCESS_ID_TOKEN_HASH + TEST_USER_STATE_NUM;
 
@@ -2071,7 +2071,7 @@ describe("UserAgentApplication.ts Class", function () {
             window.location.search = userQueryString;
 
             sinon.stub(window, "parent").returns(window);
-            sinon.stub(window.location, "href").returns(loginStartPage + successHash)
+            sinon.stub(window.location, "href").returns(loginStartPage + successHash);
 
             window.location.hash = successHash;
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), loginStartPage);
@@ -2387,6 +2387,7 @@ describe("UserAgentApplication.ts Class", function () {
                     postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
                 }
             };
+            window.location.hash = "";
             msal = new UserAgentApplication(config);
             setAuthInstanceStubs();
             setTestCacheItems();
@@ -2599,7 +2600,7 @@ describe("UserAgentApplication.ts Class", function () {
                 account: account
             };
 
-            const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup)
+            const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup);
 
             window = {
                 ...oldWindow,
@@ -2610,11 +2611,11 @@ describe("UserAgentApplication.ts Class", function () {
                 },
                 open: function (url?, target?, features?, replace?): Window {
                     const state = UrlUtils.deserializeHash(url).state;
-                    const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state)
+                    const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state);
     
                     expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
                     done();
-                    return window
+                    return window;
                 },
                 close: function(): void {},
                 focus: null
@@ -2623,7 +2624,7 @@ describe("UserAgentApplication.ts Class", function () {
             const acquireTokenPromise = msal.acquireTokenPopup(tokenRequest);
             expect(acquireTokenPromise instanceof Promise).to.be.true;
 
-            acquireTokenPromise.catch(error => {console.log(error)});
+            acquireTokenPromise.catch(error => {console.log(error);});
         });
 
     });
@@ -2676,21 +2677,21 @@ describe("UserAgentApplication.ts Class", function () {
             try {
                 msal.acquireTokenSilent(null);
             } catch(e) {
-                () => {expect(e).to.be.instanceOf(ClientConfigurationError);}
-            };
+                () => {expect(e).to.be.instanceOf(ClientConfigurationError);};
+            }
         });
 
         it("throws an error if configured with a null request", () => {
             try {
                 msal.acquireTokenPopup(null);
             } catch(e) {
-                () => {expect(e).to.be.instanceOf(ClientConfigurationError);}
-            };
+                () => {expect(e).to.be.instanceOf(ClientConfigurationError);};
+            }
         });
     });
 
-    describe('Logger', () => {
-        it('getLogger and setLogger', done => {
+    describe("Logger", () => {
+        it("getLogger and setLogger", done => {
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -2703,7 +2704,7 @@ describe("UserAgentApplication.ts Class", function () {
             const correlationId = CryptoUtils.createNewGuid();
 
             const logger = new Logger((level, message, containsPii) => {
-                expect(message).to.contain('Message');
+                expect(message).to.contain("Message");
                 expect(message).to.contain(correlationId);
                 expect(message).to.contain(LogLevel.Info);
 
@@ -2720,7 +2721,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             expect(msal.getLogger()).to.equal(logger);
 
-            msal.getLogger().info('Message');
+            msal.getLogger().info("Message");
         });
     });
 
@@ -2804,7 +2805,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -2819,7 +2820,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             describe("loginPopup", () => {
                 const oldWindow = window;
-                const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup)
+                const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup);
 
                 beforeEach(function() {
                     cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
@@ -2859,7 +2860,7 @@ describe("UserAgentApplication.ts Class", function () {
                     const loginPopupPromise = msal.loginPopup({});
                     loginPopupPromise.catch(error => {
                         expect(navigateUrl).to.include(idTokenType);
-                        expect(navigateUrl).to.not.include(tokenType)
+                        expect(navigateUrl).to.not.include(tokenType);
                         expect(navigateUrl).to.not.include(idTokenTokenType);
                         done();
                     });
@@ -2896,7 +2897,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -2915,7 +2916,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -2934,7 +2935,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -2953,7 +2954,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -2972,7 +2973,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -2991,7 +2992,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3001,7 +3002,7 @@ describe("UserAgentApplication.ts Class", function () {
                     };
                     
                     sinon.stub(msal, "getAccount").returns(account);
-                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.openidScope], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1", Constants.openidScope], account});
                 });
 
                 it("should set response_type to id_token token when a resource scope is included along with profile", (done) => {
@@ -3010,7 +3011,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3020,7 +3021,7 @@ describe("UserAgentApplication.ts Class", function () {
                     };
                     
                     sinon.stub(msal, "getAccount").returns(account);
-                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.profileScope], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1", Constants.profileScope], account});
                 });
 
                 it("should set response_type to id_token token when a resource scope is included along with both OIDC scopes", (done) => {
@@ -3029,7 +3030,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3040,7 +3041,7 @@ describe("UserAgentApplication.ts Class", function () {
 
                     const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
                     sinon.stub(msal, "getAccount").returns(account);
-                    msal.acquireTokenRedirect({ scopes: ['S1', ...oidcScopes], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1", ...oidcScopes], account});
                 });
 
                 it("should treat clientId as a resource scope when included with OIDC scopes and therefore set response_type to id_token token", (done) => {
@@ -3049,7 +3050,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3069,7 +3070,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenTokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3080,7 +3081,7 @@ describe("UserAgentApplication.ts Class", function () {
 
                     const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
                     sinon.stub(msal, "getAccount").returns(account);
-                    msal.acquireTokenRedirect({ scopes: ['S1'], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1"], account});
                 });
 
                 it("should set response_type to token when multiple resource scopes are included", (done) => {
@@ -3089,7 +3090,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenTokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3100,7 +3101,7 @@ describe("UserAgentApplication.ts Class", function () {
 
                     const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
                     sinon.stub(msal, "getAccount").returns(account);
-                    msal.acquireTokenRedirect({ scopes: ['S1', 'S2'], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1", "S2"], account});
                 });
                 it("should treat clientId as a resource scope when included with resource scopes and therefore set response_type to token", (done) => {
                     window.location = {
@@ -3108,7 +3109,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType)
+                                expect(url).to.not.include(idTokenTokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3119,7 +3120,7 @@ describe("UserAgentApplication.ts Class", function () {
 
                     const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
                     sinon.stub(msal, "getAccount").returns(account);
-                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, 'S1'], account});
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "S1"], account});
                 });
             }); 
 
@@ -3151,7 +3152,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -3169,7 +3170,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -3187,7 +3188,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -3205,7 +3206,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenTokenType);
                                 done();
                             } catch (e) {
@@ -3223,7 +3224,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3232,7 +3233,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
                     
-                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.openidScope], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1", Constants.openidScope], account});
                 });
 
                 it("should set response_type to id_token token when a resource scope is included along with profile", (done) => {
@@ -3241,7 +3242,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3250,7 +3251,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
                     
-                    msal.acquireTokenRedirect({ scopes: ['S1', Constants.profileScope], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1", Constants.profileScope], account});
                 });
 
                 it("should set response_type to id_token token when a resource scope is included along with both OIDC scopes", (done) => {
@@ -3259,7 +3260,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3269,7 +3270,7 @@ describe("UserAgentApplication.ts Class", function () {
                     };
 
                     const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
-                    msal.acquireTokenRedirect({ scopes: ['S1', ...oidcScopes], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1", ...oidcScopes], account});
                 });
 
                 it("should treat clientId as a resource scope when included with OIDC scopes and therefore set response_type to id_token token", (done) => {
@@ -3278,7 +3279,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType)
+                                expect(url).to.not.include(tokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3307,7 +3308,7 @@ describe("UserAgentApplication.ts Class", function () {
                     };
 
                     const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
-                    msal.acquireTokenRedirect({ scopes: ['S1'], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1"], account});
                 });
 
                 it("should set response_type to id_token token when multiple resource scopes are included because login is required", (done) => {
@@ -3326,7 +3327,7 @@ describe("UserAgentApplication.ts Class", function () {
                     };
 
                     const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
-                    msal.acquireTokenRedirect({ scopes: ['S1', 'S2'], account});
+                    msal.acquireTokenRedirect({ scopes: ["S1", "S2"], account});
                 });
                 it("should treat clientId as a resource scope when included with resource scopes and therefore set response_type to id_token token because login is required", (done) => {
                     window.location = {
@@ -3334,7 +3335,7 @@ describe("UserAgentApplication.ts Class", function () {
                         assign: function (url) {
                             try {
                                 expect(url).to.not.include(tokenType);
-                                expect(url).to.include(idTokenTokenType)
+                                expect(url).to.include(idTokenTokenType);
                                 expect(url).to.not.include(idTokenType);
                                 done();
                             } catch (e) {
@@ -3344,7 +3345,7 @@ describe("UserAgentApplication.ts Class", function () {
                     };
 
                     const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
-                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, 'S1'], account});
+                    msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "S1"], account});
                 });
             }); 
         });

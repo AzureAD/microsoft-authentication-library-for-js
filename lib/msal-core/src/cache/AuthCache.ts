@@ -160,7 +160,6 @@ export class AuthCache extends BrowserStorage {// Singleton
         const isTokenRenewalInProgress = this.tokenRenewalInProgress(state);
 
         const storage = window[this.cacheLocation];
-        let key: string;
         // check state and remove associated cache
         if (stateId && !isTokenRenewalInProgress) {
             Object.keys(storage).forEach(key => {
