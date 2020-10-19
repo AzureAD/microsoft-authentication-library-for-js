@@ -42,6 +42,7 @@
     "lint:core": "eslint lib/msal-core/src --ext .ts",
     "lint:node": "eslint lib/msal-node/src --ext .ts",
     "lint:node:extensions": "eslint extensions/msal-node-extensions/src --ext .ts",
+    "lint:react": "eslint lib/msal-react/src --ext .ts",
     "clean": "lerna run clean --no-private && lerna clean",
     "clean:coverage": "rimraf ./.nyc_output/*",
     "beachball:check": "beachball check --branch origin/dev",

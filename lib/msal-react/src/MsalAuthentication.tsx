@@ -1,13 +1,19 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AuthenticationResult } from "@azure/msal-browser";
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 
 import { IMsalContext } from "./MsalContext";
 import { useMsal } from "./MsalProvider";
 import { getChildrenOrFunction, defaultLoginHandler } from "./utilities";
-import { useIsAuthenticated } from "./useIsAuthenticated";
+import { AccountIdentifiers, useIsAuthenticated } from "./useIsAuthenticated";
 
 export interface IMsalAuthenticationProps {
     username?: string;
+    homeAccountId?: string;
     loginHandler?: (context: IMsalContext) => Promise<AuthenticationResult>;
 }
 
@@ -17,12 +23,14 @@ type MsalAuthenticationResult = {
 };
 
 // TODO: Add optional argument for the `request` object?
-export function useMsalAuthentication(
-    args: IMsalAuthenticationProps = {}
-): MsalAuthenticationResult {
-    const { username, loginHandler = defaultLoginHandler } = args;
+export function useMsalAuthentication(args: IMsalAuthenticationProps = {}): MsalAuthenticationResult {
+    const { username, homeAccountId, loginHandler = defaultLoginHandler } = args;
     const msal = useMsal();
-    const isAuthenticated = useIsAuthenticated(username);
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
+    const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     const [error, setError] = useState<Error | null>(null);
 
@@ -63,9 +71,13 @@ export function useMsalAuthentication(
 }
 
 export const MsalAuthentication: React.FunctionComponent<IMsalAuthenticationProps> = props => {
-    const { username, loginHandler, children } = props;
-    const { msal } = useMsalAuthentication({ username, loginHandler });
-    const isAuthenticated = useIsAuthenticated(username);
+    const { username, homeAccountId, loginHandler, children } = props;
+    const { msal } = useMsalAuthentication({ username, homeAccountId, loginHandler });
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
+    const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     // TODO: What if the user authentiction is InProgress? How will user show a loading state?
     if (isAuthenticated) {

@@ -42,9 +42,9 @@ const UseIsAuthenticatedExample = () => {
     const isAuthenticated = useIsAuthenticated();
 
     const [username, setUsername] = useState(isAuthenticated ? state.accounts[0].username : "user@example.com");
-    const [currentUser, setCurrentUser] = useState(username);
+    const [currentUser, setCurrentUser] = useState(isAuthenticated ? state.accounts[0].username : "user@example.com");
     
-    const isSpecificUserAuthenticated = useIsAuthenticated(currentUser);
+    const isSpecificUserAuthenticated = useIsAuthenticated({username: currentUser});
     
     return (
         <React.Fragment>

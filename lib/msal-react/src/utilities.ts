@@ -1,8 +1,10 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { IMsalContext } from "./MsalContext";
-import {
-    IPublicClientApplication,
-    AuthenticationResult,
-} from "@azure/msal-browser";
+import { AuthenticationResult } from "@azure/msal-browser";
 
 type FaaCFunction = <T>(args: T) => React.ReactNode;
 
@@ -14,16 +16,6 @@ export function getChildrenOrFunction<T>(
         return children(args);
     }
     return children;
-}
-
-export function isAuthenticated(
-    instance: IPublicClientApplication,
-    username?: string
-): boolean {
-    // TODO: Remove the `|| []` hack when the @azure/msal-browser is updated
-    return username
-        ? !!instance.getAccountByUsername(username)
-        : (instance.getAllAccounts() || []).length > 0;
 }
 
 export function defaultLoginHandler(
