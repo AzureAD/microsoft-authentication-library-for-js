@@ -5,7 +5,7 @@
 
 import { ICrypto, PkceCodes } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
-import { EncodingUtils } from "./../utils/EncodingUtils";
+import { EncodingUtils } from "../utils/EncodingUtils";
 import { PkceGenerator } from "./PkceGenerator";
 
 /**

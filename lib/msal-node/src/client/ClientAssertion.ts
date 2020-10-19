@@ -7,7 +7,7 @@ import { sign } from "jsonwebtoken";
 import { TimeUtils, ClientAuthError } from "@azure/msal-common";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { EncodingUtils } from "../utils/EncodingUtils";
-import { JwtConstants } from "../../src/utils/Constants";
+import { JwtConstants } from "../utils/Constants";
 
 /**
  * Client assertion of type jwt-bearer used in confidential client flows
