@@ -13,6 +13,7 @@ import {
     RefreshTokenClient,
     RefreshTokenRequest,
     ClientConfiguration,
+    ProtocolMode
 } from '@azure/msal-common';
 
 jest.mock('@azure/msal-common');
@@ -42,7 +43,8 @@ describe('PublicClientApplication', () => {
             authority: authority,
             knownAuthorities: [],
             cloudDiscoveryMetadata: "",
-            clientCapabilities: []
+            clientCapabilities: [],
+            protocolMode: ProtocolMode.AAD
         },
     };
 
@@ -145,7 +147,8 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByRefreshToken(request);
         expect(AuthorityFactory.createInstance).toHaveBeenCalledWith(
             Constants.DEFAULT_AUTHORITY,
-            {}
+            {},
+            ProtocolMode.AAD
         );
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(
@@ -167,7 +170,8 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByRefreshToken(request);
         expect(AuthorityFactory.createInstance).toHaveBeenCalledWith(
             TEST_CONSTANTS.ALTERNATE_AUTHORITY,
-            {}
+            {},
+            ProtocolMode.AAD
         );
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(

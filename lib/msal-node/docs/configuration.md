@@ -66,6 +66,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}`. | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
 | `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
 | `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See performance.md for more info | string | Empty string `""` |
+| `protocolMode` | Enum representing the protocol mode to use. If `"AAD"`, will function on the AAD v2 endpoints; if `"OIDC"`, will function on OIDC-compliant endpoints. | string | `"AAD"` |
 
 ### Cache Config Options
 | Option | Description | Format | Default Value |

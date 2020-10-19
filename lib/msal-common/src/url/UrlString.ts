@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
@@ -61,7 +62,7 @@ export class UrlString {
         }
 
         // Throw error if URI or path segments are not parseable.
-        if (!components.HostNameAndPort || !components.PathSegments || components.PathSegments.length < 1) {
+        if (!components.HostNameAndPort || !components.PathSegments) {
             throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
         }
 

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { TENANT_PLACEHOLDER, EVENT_NAME_PREFIX } from "./TelemetryConstants";
 import { CryptoUtils } from "../utils/CryptoUtils";
 import { UrlUtils } from "../utils/UrlUtils";

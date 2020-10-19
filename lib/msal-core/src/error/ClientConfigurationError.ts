@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants";
 import { ClientAuthError } from "./ClientAuthError";
 import { TelemetryOptions } from "../Configuration";
 

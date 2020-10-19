@@ -1,4 +1,4 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError} from "../../src";
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError, ProtocolMode} from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../utils/StringConstants";
 import { AuthorityFactory } from "../../src";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
@@ -48,7 +48,7 @@ export class ClientTestUtils {
             }
         };
 
-        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient);
+        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, ProtocolMode.AAD);
 
         await authority.resolveEndpointsAsync().catch(error => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
