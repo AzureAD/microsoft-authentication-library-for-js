@@ -97,7 +97,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     it("clearHash() clears the window hash", () => {
         window.location.hash = "thisIsAHash";
         BrowserUtils.clearHash();
-        expect(window.location.hash).to.be.empty;
+        expect(window.location.href.includes("#thisIsAHash")).to.be.false;
     });
 
     it("replaceHash replaces the current window hash with the hash from the provided url", () => {

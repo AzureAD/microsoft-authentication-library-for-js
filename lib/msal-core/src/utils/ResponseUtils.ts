@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AuthResponse } from "../AuthResponse";
 import { Account } from "../Account";
 import { IdToken } from "../IdToken";

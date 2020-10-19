@@ -18,6 +18,7 @@ import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+import { SilentRequest } from "../../src/request/SilentRequest";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -1660,9 +1661,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(ProtocolUtils, "setRequestState").returns(TEST_STATE_VALUES.TEST_STATE);
-            const silentFlowRequest: SilentFlowRequest = {
+            const silentFlowRequest: SilentRequest = {
                 scopes: ["User.Read"],
-                account: testAccount
+                account: testAccount,
+                extraQueryParameters: {
+                    queryKey: "queryValue"
+                }
             };
             const expectedRequest: AuthorizationUrlRequest = {
                 ...silentFlowRequest,

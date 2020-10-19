@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 const express = require("express");
-const exphbs = require('express-handlebars');
-const msal = require('@azure/msal-node');
+const exphbs = require("express-handlebars");
+const msal = require("@azure/msal-node");
 const { promises: fs } = require("fs");
 
-const graph = require('./graph');
+const graph = require("./graph");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
@@ -16,25 +16,23 @@ const SERVER_PORT = process.env.PORT || 3000;
  */
 const cachePath = "./data/example.cache.json"; // Replace this string with the path to your valid cache file.
 
-const readFromStorage = () => {
-    return fs.readFile(cachePath, "utf-8");
+const beforeCacheAccess = async (cacheContext) => {
+    cacheContext.tokenCache.deserialize(await fs.readFile(cachePath, "utf-8"));
 };
 
-const writeToStorage = (getMergedState) => {
-    return readFromStorage().then(oldFile =>{
-        const mergedState = getMergedState(oldFile);
-        return fs.writeFile(cachePath, mergedState);
-    })
+const afterCacheAccess = async (cacheContext) => {
+    if(cacheContext.cacheHasChanged){
+        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());
+    }
 };
 
 const cachePlugin = {
-    readFromStorage,
-    writeToStorage
+    beforeCacheAccess,
+    afterCacheAccess
 };
 
-
 const graphConfig = {
-    graphMeEndpoint: 'https://graph.microsoft.com/v1.0/me'
+    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
 };
 
 /**
@@ -70,18 +68,18 @@ let accounts;
 const app = express();
 
 // Set handlebars view engine
-app.engine('.hbs', exphbs({extname: '.hbs'}));
-app.set('view engine', '.hbs');
+app.engine(".hbs", exphbs({ extname: ".hbs" }));
+app.set("view engine", ".hbs");
 
 /**
  * App Routes
  */
-app.get('/', (req, res) => {
-    res.render("login", { showSignInButton: true});
+app.get("/", (req, res) => {
+    res.render("login", { showSignInButton: true });
 });
 
 // Initiates Auth Code Grant
-app.get('/login', (req, res) => {
+app.get("/login", (req, res) => {
     pca.getAuthCodeUrl(authCodeUrlParameters)
         .then((response) => {
             console.log(response);
@@ -91,7 +89,7 @@ app.get('/login', (req, res) => {
 });
 
 // Second leg of Auth Code grant
-app.get('/redirect', (req, res) => {
+app.get("/redirect", (req, res) => {
     const tokenRequest = {
         code: req.query.code,
         redirectUri: "http://localhost:3000/redirect",
@@ -100,9 +98,8 @@ app.get('/redirect', (req, res) => {
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
-        const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
+        const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
         res.render("graph", templateParams);
-        return msalTokenCache.writeToPersistence();
     }).catch((error) => {
         console.log(error);
         res.status(500).send(error);
@@ -110,9 +107,9 @@ app.get('/redirect', (req, res) => {
 });
 
 // Initiates Acquire Token Silent flow
-app.get('/graphCall', (req, res) => {
+app.get("/graphCall", async (req, res) => {
     // get Accounts
-    accounts = msalTokenCache.getAllAccounts();
+    accounts = await msalTokenCache.getAllAccounts();
     console.log("Accounts: ", accounts);
 
     // Build silent request
@@ -136,17 +133,14 @@ app.get('/graphCall', (req, res) => {
                     profile: JSON.stringify(response, null, 4)
                 };
                 res.render("graph", templateParams);
-                return msalTokenCache.writeToPersistence();
             });
         })
         .catch((error) => {
             console.log(error);
             templateParams.couldNotAcquireToken = true;
-            res.render("graph", templateParams)
+            res.render("graph", templateParams);
         });
 });
 
-msalTokenCache.readFromPersistence().then(() => {
-    app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
-});
+app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
 

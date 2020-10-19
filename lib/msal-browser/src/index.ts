@@ -1,6 +1,11 @@
-// App and config
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration } from "./config/Configuration";
+export { InteractionType } from "./utils/BrowserConstants";
 
 // Browser Errors
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
@@ -31,5 +36,7 @@ export {
     // Logger Object
     ILoggerCallback,
     Logger,
-    LogLevel
+    LogLevel,
+    // Protocol Mode
+    ProtocolMode
 } from "@azure/msal-common";
