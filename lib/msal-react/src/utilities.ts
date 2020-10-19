@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { IMsalContext } from "./MsalContext";
 import { AuthenticationResult } from "@azure/msal-browser";
 
