@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, AppMetadataCache } from "./utils/CacheTypes";
+import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
 import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";

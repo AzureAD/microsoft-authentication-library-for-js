@@ -3,11 +3,15 @@
 Before you get started, please ensure you have completed all the [prerequisites](../README.md#prerequisites).
 
 In this document:
-- [Initializing the PublicClientApplication object](#initializing-the-publicclientapplication-object)
-- [(Optional) Configure Authority](#optional-configure-authority)
-- [(Optional) Configure Redirect URI](#optional-configure-redirect-uri)
-- [(Optional) Additional Configuration](./configuration.md)
-- [Choosing an Interaction Type](#choosing-an-interaction-type)
+- [Initialization of MSAL](#initialization-of-msal)
+  - [Initializing the PublicClientApplication object](#initializing-the-publicclientapplication-object)
+  - [(Optional) Configure Authority](#optional-configure-authority)
+  - [(Optional) Configure Redirect URI](#optional-configure-redirect-uri)
+  - [(Optional) Additional Configuration](#optional-additional-configuration)
+  - [Choosing an Interaction Type](#choosing-an-interaction-type)
+    - [Popup APIs](#popup-apis)
+    - [Redirect APIs](#redirect-apis)
+- [Next Steps](#next-steps)
 
 ## Initializing the PublicClientApplication object
 
@@ -42,6 +46,18 @@ const msalConfig = {
     auth: {
         clientId: 'your_client_id',
         authority: 'https://login.microsoftonline.com/{your_tenant_id}'
+    }
+};
+```
+
+If your application is using a separate OIDC-compliant authority like `"https://login.live.com"` or an IdentityServer, you will need to provide it in the `knownAuthorities` field and set your `protocolMode` to `"OIDC"`.
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: 'your_client_id',
+        authority: 'https://login.live.com',
+        knownAuthorities: ["login.live.com"],
+        protocolMode: "OIDC"
     }
 };
 ```

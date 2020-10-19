@@ -10,7 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.0-alpha.9",
+    "@azure/msal-node": "^1.0.0-alpha.11",
     "express": "^4.17.1",
     "express-handlebars": "^5.1.0"
   }

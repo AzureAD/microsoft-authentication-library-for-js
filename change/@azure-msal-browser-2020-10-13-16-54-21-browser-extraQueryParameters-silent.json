@@ -1,8 +1,8 @@
 {
   "type": "patch",
-  "comment": "Check for Headers class when configuring network client",
+  "comment": "Add extraQueryParameters to acquireTokenSilent in msal-browser",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "none",
-  "date": "2020-10-08T00:32:50.617Z"
+  "date": "2020-10-13T23:54:21.055Z"
 }
