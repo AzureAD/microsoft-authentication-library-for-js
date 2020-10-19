@@ -6,6 +6,7 @@
 import { AuthError } from "./AuthError";
 import { IdToken } from "../IdToken";
 import { StringUtils } from "../utils/StringUtils";
+import { ServerHashParamKeys } from '../utils/Constants';
 
 export const ClientAuthErrorMessage = {
     multipleMatchingTokens: {
@@ -123,13 +124,17 @@ export class ClientAuthError extends AuthError {
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, errorMessage);
     }
 
-    static createMultipleMatchingTokensInCacheError(scope: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
-            `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleMatchingTokens.desc}.`);
-    }
-
-    static createMultipleMatchingIdTokensInCacheError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingIdTokens.code, ClientAuthErrorMessage.multipleMatchingIdTokens.desc);
+    static createMultipleMatchingTokensInCacheError(tokenType: string, scopes: Array<string>): ClientAuthError {
+        let errorType;
+        let errorDescriptionExtension = "";
+        if (tokenType === ServerHashParamKeys.ACCESS_TOKEN) {
+            errorType = ClientAuthErrorMessage.multipleMatchingTokens
+            errorDescriptionExtension = `Cache error for scope ${scopes.toString()}: `;
+        } else {
+            errorType = ClientAuthErrorMessage.multipleMatchingIdTokens;
+        }
+        return new ClientAuthError(errorType.code,
+            `${errorDescriptionExtension}${errorType.desc}.`);
     }
 
     static createMultipleAuthoritiesInCacheError(scope: string): ClientAuthError {

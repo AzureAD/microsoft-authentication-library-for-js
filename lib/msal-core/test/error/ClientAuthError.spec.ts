@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { IdToken } from "../../src/IdToken";
-import { AuthError } from "../../src";
+import { AuthError, ServerHashParamKeys } from "../../src";
 
 describe("ClientAuthError.ts Class", () => {
 
@@ -50,9 +50,9 @@ describe("ClientAuthError.ts Class", () => {
 
   it("createMultipleMatchingTokensInCacheError creates a ClientAuthError object", () => {
 
-    const scope: string = "user.read";
+    const scopes: Array<string> = ["user.read"];
     const errorDetail: string = "Cache error for scope";
-    const multipleMatchingTokensError = ClientAuthError.createMultipleMatchingTokensInCacheError(scope);
+    const multipleMatchingTokensError = ClientAuthError.createMultipleMatchingTokensInCacheError(ServerHashParamKeys.ACCESS_TOKEN, scopes);
     let err: ClientAuthError;
 
     try {
@@ -63,7 +63,7 @@ describe("ClientAuthError.ts Class", () => {
 
     expect(err.errorCode).to.equal(ClientAuthErrorMessage.multipleMatchingTokens.code);
     expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-    expect(err.errorMessage).to.include(`${errorDetail} ${scope}`);
+    expect(err.errorMessage).to.include(`${errorDetail} ${scopes.toString()}`);
     expect(err.message).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
     expect(err.name).to.equal("ClientAuthError");
     expect(err.stack).to.include("ClientAuthError.spec.ts");
