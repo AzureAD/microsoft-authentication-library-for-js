@@ -182,7 +182,7 @@ export abstract class ClientApplication {
             // Deserialize hash fragment response parameters.
             const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(responseHash);
             const platformStateObj: BrowserStateObject = BrowserProtocolUtils.extractBrowserRequestState(this.browserCrypto, serverParams.state);
-            if (platformStateObj.interactionType !== InteractionType.REDIRECT) {
+            if (platformStateObj.interactionType !== InteractionType.Redirect) {
                 return null;
             } else {
                 BrowserUtils.clearHash();
@@ -235,7 +235,7 @@ export abstract class ClientApplication {
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck();
         // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
         
         try {
@@ -297,7 +297,7 @@ export abstract class ClientApplication {
      */
     private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
         // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
         
         try {
@@ -367,7 +367,7 @@ export abstract class ClientApplication {
         const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
             ...request,
             prompt: PromptValue.NONE
-        }, InteractionType.SILENT);
+        }, InteractionType.Silent);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.ssoSilent, silentRequest.correlationId);
 
