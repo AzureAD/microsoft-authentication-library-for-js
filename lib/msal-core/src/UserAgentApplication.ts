@@ -1406,37 +1406,6 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
-     * 
-     * Uses authority from passed in request to filter an array of tokenCacheItems until only the token being searched for remains, then returns that tokenCacheItem.
-     * This method will throw if authority filtering still yields multiple matching tokens and will return null if not tokens match the request authority.
-     * 
-     * @param request 
-     * @param tokenCacheItems 
-     * @param tokenType 
-     * @param requestScopes 
-     */
-    private getTokenCacheItemByRequestAuthority(request: ServerRequestParameters, tokenCacheItems: Array<AccessTokenCacheItem>, tokenType: string, requestScopes: Array<string>): AccessTokenCacheItem {
-        this.logger.verbose("Authority passed, filtering by authority");
-        // filter by authority
-        const authorityFilteredTokenCacheItems = AuthCacheUtils.filterTokenCacheItemsByAuthority(tokenCacheItems, request.authority);
-        // no match
-        if (authorityFilteredTokenCacheItems.length === 0) {
-            this.logger.verbose(`No matching tokens of type ${tokenType} found`);
-            return null;
-        }
-        // if only one cachedToken Found
-        else if (authorityFilteredTokenCacheItems.length === 1) {
-            this.logger.verbose(`Single matching token of type ${tokenType} found`);
-            return authorityFilteredTokenCacheItems[0];
-        }
-        else {
-            // if more than one cached token is found
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError(tokenType, requestScopes);
-        }
-    }
-
-    /**
      * 
      * @hidden
      * 
@@ -1457,23 +1426,16 @@ export class UserAgentApplication {
 
         let idTokenCacheItem: AccessTokenCacheItem = null;
 
-        // No request authority or request authority is common or organizations
-        if (!serverAuthenticationRequest.authority || UrlUtils.isCommonAuthority(serverAuthenticationRequest.authority) || UrlUtils.isOrganizationsAuthority(serverAuthenticationRequest.authority)) {
-            this.logger.verbose("No authority passed into ID token request, filtering ID tokens by Client Application configuration authority");
-            // if only one cached token found
-            if (idTokenCacheItems.length === 1) {
-                this.logger.verbose("One matching ID token found in cache");
-                idTokenCacheItem = idTokenCacheItems[0];
-            }
-            // if more than one cached token is found
-            else if (idTokenCacheItems.length > 1) {
-                const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
-                idTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, idTokenCacheItems, serverAuthenticationRequest, null, ServerHashParamKeys.ID_TOKEN);
-            }
-        } 
-        // Authority passed into request and it is not common or organizations
-        else {
-            idTokenCacheItem = this.getTokenCacheItemByRequestAuthority(serverAuthenticationRequest, idTokenCacheItems, ServerHashParamKeys.ID_TOKEN, null);
+        this.logger.verbose("No authority passed into ID token request, filtering ID tokens by Client Application configuration authority");
+        // if only one cached token found
+        if (idTokenCacheItems.length === 1) {
+            this.logger.verbose("One matching ID token found in cache");
+            idTokenCacheItem = idTokenCacheItems[0];
+        }
+        // if more than one cached token is found
+        else if (idTokenCacheItems.length > 1) {
+            const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
+            idTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, idTokenCacheItems, serverAuthenticationRequest, null, ServerHashParamKeys.ID_TOKEN);
         }
 
         if (idTokenCacheItem != null) {
@@ -1524,36 +1486,29 @@ export class UserAgentApplication {
         const scopeFilteredTokenCacheItems = AuthCacheUtils.filterTokenCacheItemsByScope(tokenCacheItems, scopes);
         let accessTokenCacheItem: AccessTokenCacheItem = null;
         
-        // No request authority or authority is common/organizations
-        if (!serverAuthenticationRequest.authority || UrlUtils.isCommonAuthority(serverAuthenticationRequest.authority) || UrlUtils.isOrganizationsAuthority(serverAuthenticationRequest.authority)) {
-            // if only one cached token found
-            if (scopeFilteredTokenCacheItems.length === 1) {
-                this.logger.verbose("One matching token found, setting authorityInstance");
-                accessTokenCacheItem = scopeFilteredTokenCacheItems[0];
-                serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
-            }
-            // if more than one cached token is found
-            else if (scopeFilteredTokenCacheItems.length > 1) {
-                const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
-                // serverAuthenticationRequest.authority can only be common or organizations if not null
-                accessTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, scopeFilteredTokenCacheItems, serverAuthenticationRequest, scopes, ServerHashParamKeys.ACCESS_TOKEN);
-                serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
-            }
-            // if no match found, check if there was a single authority used
-            else {
-                this.logger.verbose("No matching token found when filtering by scope");
-                const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
-                if (authorityList.length > 1) {
-                    throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
-                }
-
-                this.logger.verbose("Single authority used, setting authorityInstance");
-                serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
-            }
+        // if only one cached token found
+        if (scopeFilteredTokenCacheItems.length === 1) {
+            this.logger.verbose("One matching token found, setting authorityInstance");
+            accessTokenCacheItem = scopeFilteredTokenCacheItems[0];
+            serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
         }
-        // if an authority is passed in the API
+        // if more than one cached token is found
+        else if (scopeFilteredTokenCacheItems.length > 1) {
+            const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
+            // serverAuthenticationRequest.authority can only be common or organizations if not null
+            accessTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, scopeFilteredTokenCacheItems, serverAuthenticationRequest, scopes, ServerHashParamKeys.ACCESS_TOKEN);
+            serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
+        }
+        // if no match found, check if there was a single authority used
         else {
-            accessTokenCacheItem = this.getTokenCacheItemByRequestAuthority(serverAuthenticationRequest, tokenCacheItems, ServerHashParamKeys.ACCESS_TOKEN, scopes);
+            this.logger.verbose("No matching token found when filtering by scope");
+            const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
+            if (authorityList.length > 1) {
+                throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
+            }
+
+            this.logger.verbose("Single authority used, setting authorityInstance");
+            serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
         }
 
         if (accessTokenCacheItem != null) {
