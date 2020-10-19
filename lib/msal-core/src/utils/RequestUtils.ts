@@ -4,12 +4,12 @@
  */
 
 import { AuthenticationParameters } from "../AuthenticationParameters";
-import { Constants, PromptState, BlacklistedEQParams, InteractionType } from "../utils/Constants";
+import { Constants, PromptState, BlacklistedEQParams, InteractionType } from "./Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
-import { StringUtils } from "../utils/StringUtils";
-import { CryptoUtils } from "../utils/CryptoUtils";
+import { StringUtils } from "./StringUtils";
+import { CryptoUtils } from "./CryptoUtils";
 import { TimeUtils } from "./TimeUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 
@@ -47,7 +47,7 @@ export class RequestUtils {
         if(request) {
             // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
             scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
-            ScopeSet.validateInputScope(scopes, !isLoginCall, clientId);
+            ScopeSet.validateInputScope(scopes, !isLoginCall);
             scopes = ScopeSet.translateClientIdIfSingleScope(scopes, clientId);
 
             // validate prompt parameter
@@ -125,9 +125,8 @@ export class RequestUtils {
         if (!claimsRequest) {
             return;
         }
-        let claims;
         try {
-            claims = JSON.parse(claimsRequest);
+            JSON.parse(claimsRequest);
         } catch (e) {
             throw ClientConfigurationError.createClaimsRequestParsingError(e);
         }
