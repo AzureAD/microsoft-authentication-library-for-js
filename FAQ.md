@@ -200,16 +200,20 @@ Please ensure that these scopes are requested as part of the `loginPopup`,`login
 Include the first set of scopes in `loginPopup`, `loginRedirect` or `ssoSilent` then make another call to `acquireTokenRedirect`, `acquireTokenPopup` or `ssoSilent` containing your 2nd set of scopes. Until the access tokens expire, `acquireTokenSilent` will return either token from the cache. Once an access token is expired, one of the interactive APIs will need to be called again. This is an example of how you can handle this scenario:
 
 ```javascript
+// Initial acquisition of scopes 1 and 2
 await msal.loginPopup({scopes: ["scope1"]});
-await msal.ssoSilent({scopes: ["scope2"]});
-
 const account = msal.getAllAccounts()[0];
+await msal.ssoSilent({
+    scopes: ["scope2"],
+    loginHint: account.username
+});
 
+// Subsequent token acquisition with fallback
 msal.acquireTokenSilent({
     scopes: ["scope1"],
     account: account
 }).then((response) => {
-    if (response.accessToken === null) {
+    if (!response.accessToken) {
         return msal.ssoSilent({
             scopes: ["scope1"],
             loginHint: account.username
