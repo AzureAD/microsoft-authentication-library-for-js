@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Inject, Injectable } from "@angular/core";
 import {
     UserAgentApplication,
@@ -39,7 +44,7 @@ export class MsalService extends UserAgentApplication {
     ) {
         super(buildMsalConfig(msalConfig));
 
-        window.addEventListener("msal:popUpHashChanged", (e: CustomEvent) => {
+        window.addEventListener("msal:popUpHashChanged", () => {
             this.getLogger().verbose("popUpHashChanged ");
         });
 
