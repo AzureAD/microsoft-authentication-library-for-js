@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
