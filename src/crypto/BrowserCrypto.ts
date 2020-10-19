@@ -1,8 +1,8 @@
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
- * 
  */
+
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
