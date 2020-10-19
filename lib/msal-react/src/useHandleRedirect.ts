@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AuthenticationResult, AuthError } from "@azure/msal-browser";
 import { useState, useEffect } from "react";
 

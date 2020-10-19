@@ -19,7 +19,7 @@ import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { EventType } from "../../src/event/EventType";
-import { EventMessage } from "../../src/event/EventMessage";
+import { SilentRequest } from "../../src/request/SilentRequest";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -1660,9 +1660,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(ProtocolUtils, "setRequestState").returns(TEST_STATE_VALUES.TEST_STATE);
-            const silentFlowRequest: SilentFlowRequest = {
+            const silentFlowRequest: SilentRequest = {
                 scopes: ["User.Read"],
-                account: testAccount
+                account: testAccount,
+                extraQueryParameters: {
+                    queryKey: "queryValue"
+                }
             };
             const expectedRequest: AuthorizationUrlRequest = {
                 ...silentFlowRequest,
@@ -1807,29 +1810,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("can add an event callback and broadcast to it", (done) => {
             const subscriber = (message) => {
                 expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
-                expect(message.interactionType).to.deep.eq(InteractionType.POPUP);
+                expect(message.interactionType).to.deep.eq(InteractionType.Popup);
                 done();
             };
 
             pca.addEventCallback(subscriber);
-            pca.emitEvent(EventType.LOGIN_START, InteractionType.POPUP);
+            pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
         });
 
         it("can add multiple callbacks and broadcast to all", (done) => {
             const subscriber1 = (message) => {
                 expect(message.eventType).to.deep.eq(EventType.ACQUIRE_TOKEN_START);
-                expect(message.interactionType).to.deep.eq(InteractionType.REDIRECT);
+                expect(message.interactionType).to.deep.eq(InteractionType.Redirect);
             };
 
             const subscriber2 = (message) => {
                 expect(message.eventType).to.deep.eq(EventType.ACQUIRE_TOKEN_START);
-                expect(message.interactionType).to.deep.eq(InteractionType.REDIRECT);
+                expect(message.interactionType).to.deep.eq(InteractionType.Redirect);
                 done();
             };
 
             pca.addEventCallback(subscriber1);
             pca.addEventCallback(subscriber2);
-            pca.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.REDIRECT);
+            pca.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Redirect);
         });
 
         it("sets interactionType, payload, and error to null by default", (done) => {
@@ -1849,7 +1852,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("sets all expected fields on event", (done) => {            
             const subscriber = (message) => {
                 expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
-                expect(message.interactionType).to.deep.eq(InteractionType.SILENT);
+                expect(message.interactionType).to.deep.eq(InteractionType.Silent);
                 expect(message.payload).to.deep.eq({scopes: ["user.read"]});
                 expect(message.error).to.be.null;
                 expect(message.timestamp).to.not.be.null;
@@ -1857,7 +1860,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             
             pca.addEventCallback(subscriber);
-            pca.emitEvent(EventType.LOGIN_START, InteractionType.SILENT, {scopes: ["user.read"]}, null);
+            pca.emitEvent(EventType.LOGIN_START, InteractionType.Silent, {scopes: ["user.read"]}, null);
         });
     });
 });

@@ -1,4 +1,9 @@
-import { Injectable, ModuleWithProviders, NgModule } from "@angular/core";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { ModuleWithProviders, NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MsalService } from "./msal.service";
 import { MsalGuard } from "./msal-guard.service";

@@ -5,7 +5,7 @@
 
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserStorage } from "../cache/BrowserStorage";
-import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, ProtocolMode } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -243,7 +243,6 @@ export abstract class ClientApplication {
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
-        const hashUrlString = new UrlString(responseHash);
         // Deserialize hash fragment response parameters.
         const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(responseHash);
 
@@ -350,8 +349,8 @@ export abstract class ClientApplication {
      */
     private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
         // If logged in, emit acquire token events
-        const isLoggedIn = this.getAllAccounts().length > 0;
-        if (isLoggedIn) {
+        const loggedInAccounts = this.getAllAccounts();
+        if (loggedInAccounts.length > 0) {
             this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
         } else {
             this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
@@ -387,15 +386,16 @@ export abstract class ClientApplication {
             const result = await interactionHandler.handleCodeResponse(hash);
 
             // If logged in, emit acquire token events
-            if (isLoggedIn) {
-                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Popup, result);
-            } else {
+            const isLoggingIn = loggedInAccounts.length > this.getAllAccounts().length;
+            if (isLoggingIn) {
                 this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Popup, result);
+            } else {
+                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Popup, result);
             }
 
             return result;
         } catch (e) {
-            if (isLoggedIn) {
+            if (loggedInAccounts.length > 0) {
                 this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Popup, null, e);
             } else {
                 this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Popup, null, e);
@@ -474,8 +474,7 @@ export abstract class ClientApplication {
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            const silentTokenResult = await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
-            return silentTokenResult;
+            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(silentRequest.state);

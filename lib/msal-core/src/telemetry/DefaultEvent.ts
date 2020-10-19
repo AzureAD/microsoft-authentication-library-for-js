@@ -1,4 +1,9 @@
-import { EVENT_NAME_PREFIX, TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
 import TelemetryEvent from "./TelemetryEvent";
 import { EventCount, TelemetryPlatform } from "./TelemetryTypes";
 import { prependEventNamePrefix } from "./TelemetryUtils";
