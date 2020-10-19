@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import React from "react";
 import { MsalProvider, MsalConsumer, useMsal, useIsAuthenticated, AuthenticatedTemplate, UnauthenticatedTemplate } from "../src";
 
