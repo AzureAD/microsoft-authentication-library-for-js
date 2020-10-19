@@ -189,7 +189,7 @@ MSAL.js will only process tokens which it originally requested. If your flow req
 
 ## Why is there no access token returned from `acquireTokenSilent`?
 
-When exchanging a refresh token for a new access token the requested scopes must match the scopes that were requested when the refresh token was obtained. MSAL.js only holds one refresh token at a time. The B2C service is working on allowing refresh tokens to be redeemed for any consented scope but until that feature is rolled out these are the current workarounds:
+Azure AD B2C currently requires refresh tokens to be redeemed with the same scopes that were requested when the refresh token is first obtained. If your application requires different behavior, workarounds include: 
 
 #### If your application only needs to support 1 set of scopes: 
 
