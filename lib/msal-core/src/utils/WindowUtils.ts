@@ -337,4 +337,16 @@ export class WindowUtils {
             cacheStorage.resetTempCacheItems(state);
         }
     }
+
+    /**
+     * Removes url fragment from browser url
+     */
+    static clearUrlFragment() {
+        if ("replaceState" in history) {
+            // Full removes "#" from url
+            history.replaceState(null, null, `${window.location.pathname}${window.location.search}`);
+        } else {
+            window.location.hash = "";
+        }
+    }
 }
