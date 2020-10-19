@@ -80,21 +80,21 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             ...request,
             ...this.initializeBaseRequest(request)
         };
-        this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.SILENT, request);
+        this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         try {
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
-            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.SILENT, cachedToken);
+            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
             return cachedToken;
         } catch (e) {
             try {
                 const tokenRenewalResult = await this.acquireTokenByRefreshToken(request);
-                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.SILENT, tokenRenewalResult);
+                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
                 return tokenRenewalResult;
             } catch (tokenRenewalError) {
-                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.SILENT, null, tokenRenewalError);
+                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
                 throw tokenRenewalError;
             }
         }
