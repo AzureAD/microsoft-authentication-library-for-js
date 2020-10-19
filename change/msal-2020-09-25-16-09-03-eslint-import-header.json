@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Updated eslint rules (#2345)",
+  "packageName": "msal",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-09-25T23:08:44.448Z"
+}

@@ -5,7 +5,7 @@
 
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserStorage } from "../cache/BrowserStorage";
-import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, ProtocolMode } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, CacheSchemaType, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -182,7 +182,7 @@ export abstract class ClientApplication {
             // Deserialize hash fragment response parameters.
             const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(responseHash);
             const platformStateObj: BrowserStateObject = BrowserProtocolUtils.extractBrowserRequestState(this.browserCrypto, serverParams.state);
-            if (platformStateObj.interactionType !== InteractionType.REDIRECT) {
+            if (platformStateObj.interactionType !== InteractionType.Redirect) {
                 return null;
             } else {
                 BrowserUtils.clearHash();
@@ -207,7 +207,6 @@ export abstract class ClientApplication {
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
-        const hashUrlString = new UrlString(responseHash);
         // Deserialize hash fragment response parameters.
         const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(responseHash);
 
@@ -236,7 +235,7 @@ export abstract class ClientApplication {
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck();
         // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.REDIRECT);
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
         
         try {
@@ -298,7 +297,7 @@ export abstract class ClientApplication {
      */
     private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
         // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.POPUP);
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
         
         try {
@@ -368,7 +367,7 @@ export abstract class ClientApplication {
         const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
             ...request,
             prompt: PromptValue.NONE
-        }, InteractionType.SILENT);
+        }, InteractionType.Silent);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.ssoSilent, silentRequest.correlationId);
 

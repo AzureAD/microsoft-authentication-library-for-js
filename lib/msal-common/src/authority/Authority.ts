@@ -2,14 +2,15 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { AuthorityType } from "./AuthorityType";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
-import { UrlString } from "./../url/UrlString";
-import { IUri } from "./../url/IUri";
-import { ClientAuthError } from "./../error/ClientAuthError";
-import { INetworkModule } from "./../network/INetworkModule";
-import { NetworkResponse } from "./../network/NetworkManager";
-import { Constants } from "./../utils/Constants";
+import { UrlString } from "../url/UrlString";
+import { IUri } from "../url/IUri";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { INetworkModule } from "../network/INetworkModule";
+import { NetworkResponse } from "../network/NetworkManager";
+import { Constants } from "../utils/Constants";
 import { TrustedAuthority } from "./TrustedAuthority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";

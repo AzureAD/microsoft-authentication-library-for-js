@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { StringUtils } from "./StringUtils";
 import { Constants } from "./Constants";
 import { ICrypto } from "../crypto/ICrypto";

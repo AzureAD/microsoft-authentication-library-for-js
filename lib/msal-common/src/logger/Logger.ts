@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import pkg from "../../package.json";
 import { StringUtils } from "../utils/StringUtils";
 import { LoggerOptions } from "../config/ClientConfiguration";
