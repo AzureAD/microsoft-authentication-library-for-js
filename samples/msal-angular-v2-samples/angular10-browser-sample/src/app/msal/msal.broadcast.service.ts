@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { InteractionType, MSAL_INSTANCE } from './constants';
-import { EventType, EventMessage, EventPayload, EventError, IPublicClientApplication } from '@azure/msal-browser';
+import { MSAL_INSTANCE } from './constants';
+import { EventType, EventMessage, EventPayload, EventError, IPublicClientApplication, InteractionType } from '@azure/msal-browser';
 
 @Injectable()
 export class MsalBroadcastService {

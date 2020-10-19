@@ -1,10 +1,10 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService } from './msal';
-import { MSAL_GUARD_CONFIG, InteractionType } from './msal/constants';
+import { MSAL_GUARD_CONFIG } from './msal/constants';
 import { MsalGuardConfiguration } from './msal/msal.guard.config';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
-import { EventMessage, EventType } from '@azure/msal-browser';
+import { EventMessage, EventType, InteractionType } from '@azure/msal-browser';
 
 @Component({
   selector: 'app-root',
@@ -43,7 +43,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   login() {
-    if (this.msalGuardConfig.interactionType === InteractionType.POPUP) {
+    if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       this.authService.loginPopup({...this.msalGuardConfig.authRequest})
         .subscribe(() => this.checkAccount());
     } else {
