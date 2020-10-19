@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import * as React from "react";
 import { useContext } from "react";
 import {
@@ -13,20 +18,15 @@ export type MsalProviderProps = {
     instance: IPublicClientApplication;
 };
 
-export const MsalProvider: React.FunctionComponent<MsalProviderProps> = ({
-    instance,
-    children,
-}) => {
+export const MsalProvider: React.FunctionComponent<MsalProviderProps> = ({instance, children}) => {
     // State hook to store accounts
     const [accounts, setAccounts] = React.useState<AccountInfo[]>(
-        // TODO: Remove the `|| []` hack when PR is finally merged to msal/browser
-        instance.getAllAccounts() || []
+        instance.getAllAccounts()
     );
 
     // Callback to update accounts after MSAL APIs are invoked
     const updateContextState = React.useCallback(() => {
-        // TODO: Remove the `|| []` hack when PR is finally merged to msal/browser
-        setAccounts(instance.getAllAccounts() || []);
+        setAccounts(instance.getAllAccounts());
     }, [instance]);
 
     // Wrapped instance of MSAL that updates accounts after MSAL APIs are invoked

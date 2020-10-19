@@ -1,17 +1,27 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import React from "react";
 
 import { useMsal } from "./MsalProvider";
 import { getChildrenOrFunction } from "./utilities";
-import { useIsAuthenticated } from "./useIsAuthenticated";
+import { AccountIdentifiers, useIsAuthenticated } from "./useIsAuthenticated";
 
 export interface IMsalTemplateProps {
-    username?: string;
+    username?: string,
+    homeAccountId?: string
 }
 
 export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
-    const { children, username } = props;
+    const { children, username, homeAccountId } = props;
     const context = useMsal();
-    const isAuthenticated = useIsAuthenticated(username);
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
+    const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     if (!isAuthenticated) {
         return (
@@ -24,9 +34,13 @@ export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps
 };
 
 export const AuthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
-    const { children, username } = props;
+    const { children, username, homeAccountId } = props;
     const context = useMsal();
-    const isAuthenticated = useIsAuthenticated(username);
+    const accountIdentifier: AccountIdentifiers = {
+        username,
+        homeAccountId
+    };
+    const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     if (isAuthenticated) {
         return (

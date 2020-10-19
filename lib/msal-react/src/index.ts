@@ -1,8 +1,6 @@
 /*
- * TODO: How do we get the token before executing an API call in pure TypeScript, outside of a React component context?
- * TODO: How do we raise the `error` state into the MsalContext, where changes will allow all subscribed components to update?
- * TODO: How do we represent the current state of the authentication process (Authenticated, InProgress, IsError, Unauthenticated)?
- *      This will be important for showing intermediary UI such as loading or error components
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
  */
 
 export type { IMsalContext } from "./MsalContext";
@@ -21,4 +19,5 @@ export { withMsal } from "./withMsal";
 
 export { useHandleRedirect } from "./useHandleRedirect";
 
+export type { AccountIdentifiers } from "./useIsAuthenticated";
 export { useIsAuthenticated } from "./useIsAuthenticated";
