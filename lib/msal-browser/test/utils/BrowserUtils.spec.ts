@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
@@ -35,16 +40,12 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         window.location = {
             ...oldWindowLocation,
             assign: function (url) {
-                try {
-                    expect(url).to.include(TEST_URIS.TEST_LOGOUT_URI);
-                    done();
-                } catch (e) {
-                    console.error(e);
-                }
+                expect(url).to.include(TEST_URIS.TEST_LOGOUT_URI);
+                done();
             }
         };
         const windowAssignSpy = sinon.spy(window.location, "assign");
-        BrowserUtils.navigateWindow(TEST_URIS.TEST_LOGOUT_URI, new Logger(loggerOptions));
+        BrowserUtils.navigateWindow(TEST_URIS.TEST_LOGOUT_URI, 30000, new Logger(loggerOptions));
         expect(windowAssignSpy.calledOnce).to.be.true;
     });
 
@@ -55,16 +56,12 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         window.location = {
             ...oldWindowLocation,
             replace: function (url) {
-                try {
-                    expect(url).to.include(TEST_URIS.TEST_REDIR_URI);
-                    done();
-                } catch (e) {
-                    console.error(e);
-                }
+                expect(url).to.include(TEST_URIS.TEST_REDIR_URI);
+                done();
             }
         };
         const windowReplaceSpy = sinon.spy(window.location, "replace");
-        BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, new Logger(loggerOptions), true);
+        BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, 30000, new Logger(loggerOptions), true);
         expect(windowReplaceSpy.calledOnce).to.be.true;
     });
 
@@ -75,11 +72,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         window.location = {
             ...oldWindowLocation,
             replace: function (url) {
-                try {
-                    expect(url).to.include(TEST_URIS.TEST_REDIR_URI);
-                } catch (e) {
-                    console.log(e);
-                }
+                expect(url).to.include(TEST_URIS.TEST_REDIR_URI);
             }
         };
         
@@ -89,7 +82,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             done();
         });
         const windowReplaceSpy = sinon.spy(window.location, "replace");
-        BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, new Logger(loggerOptions), true);
+        BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, 30000, new Logger(loggerOptions), true);
         expect(windowReplaceSpy.calledOnce).to.be.true;
         clock.next();
     });
