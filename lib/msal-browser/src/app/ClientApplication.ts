@@ -153,7 +153,8 @@ export abstract class ClientApplication {
                 // Redirect to home page if login request url is null (real null or the string null)
                 const homepage = BrowserUtils.getHomepage();
                 // Cache the homepage under ORIGIN_URI to ensure cached hash is processed on homepage
-                this.browserStorage.setTemporaryCache(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), homepage);
+                const originUriCacheKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI);
+                this.browserStorage.setTemporaryCache(originUriCacheKey, homepage);
                 this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
                 BrowserUtils.navigateWindow(homepage, true);
             } else {

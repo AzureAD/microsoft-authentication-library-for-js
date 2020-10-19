@@ -20,11 +20,13 @@ export class RedirectHandler extends InteractionHandler {
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             if (redirectStartPage) {
-                this.browserStorage.setTemporaryCache(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), redirectStartPage);
+                const originUriCacheKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI);
+                this.browserStorage.setTemporaryCache(originUriCacheKey, redirectStartPage);
             }
 
             // Set interaction status in the library.
-            this.browserStorage.setTemporaryCache(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            const interactionCacheKey = this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY);
+            this.browserStorage.setTemporaryCache(interactionCacheKey, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             this.browserStorage.cacheCodeRequest(authCodeRequest, browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             const isIframedApp = BrowserUtils.isInIframe();
