@@ -2,12 +2,14 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, AppMetadataEntity, CacheManager, CredentialEntity, ThrottlingEntity, ServerTelemetryEntity, ProtocolUtils, ValidCredentialType, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType} from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, AppMetadataEntity, CacheManager, ThrottlingEntity, ServerTelemetryEntity, ProtocolUtils, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity} from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
+
+/* eslint-disable */
 
 // Cookie life calculation (hours * minutes * seconds * ms)
 const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
@@ -114,6 +116,7 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string): void {
+        console.log("setItem", key, value);
         this.windowStorage.setItem(key, value);
     }
 
@@ -127,11 +130,16 @@ export class BrowserStorage extends CacheManager {
             return null;
         }
 
-        const account = CacheManager.toObject(new AccountEntity(), JSON.parse(value));
-        if (AccountEntity.isAccountEntity(account)) {
-            return account;
+        try {
+            this.validateObjectKey(value);
+            const account = CacheManager.toObject(new AccountEntity(), JSON.parse(value));
+            if (AccountEntity.isAccountEntity(account)) {
+                return account;
+            }
+            return null;
+        } catch (e) {
+            return null;
         }
-        return null;
     }
 
     /**
@@ -292,10 +300,11 @@ export class BrowserStorage extends CacheManager {
      * @param key
      */
     getTemporaryCache(key: string): string {
-        if (this.cacheConfig.storeAuthStateInCookie) {
-            const itemCookie = this.getItemCookie(key);
+        const itemCookie = this.getItemCookie(key);
+        if (this.cacheConfig.storeAuthStateInCookie && itemCookie) {
             return itemCookie;
         }
+
         const value = this.getItem(key);
         if (StringUtils.isEmpty(value)) {
             return null;
@@ -311,7 +320,7 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setTemporaryCache(key: string, value: string): void {
-        const stringVal = value as string;
+        const stringVal = value;
         this.setItem(key, stringVal);
         if (this.cacheConfig.storeAuthStateInCookie) {
             this.setItemCookie(key, stringVal);
@@ -535,7 +544,7 @@ export class BrowserStorage extends CacheManager {
         this.setTemporaryCache(stateCacheKey, state);
 
         // Cache the nonce
-        const nonceCacheKey = this.generateCacheKey(this.generateNonceKey(state));
+        const nonceCacheKey = this.generateNonceKey(this.generateNonceKey(state));
         this.setTemporaryCache(nonceCacheKey, nonce);
 
         // Cache authorityKey
@@ -568,7 +577,7 @@ export class BrowserStorage extends CacheManager {
     cleanRequest(stateString?: string): void {
         // Interaction is completed - remove interaction status.
         this.removeItem(this.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
-        const stateCacheKey = this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE);
+        const stateCacheKey = this.generateStateKey(TemporaryCacheKeys.REQUEST_STATE);
         const cachedState = this.getTemporaryCache(stateCacheKey);
         this.resetRequestCache(cachedState || "");
     }
@@ -593,8 +602,7 @@ export class BrowserStorage extends CacheManager {
 
             // Get cached authority and use if no authority is cached with request.
             if (StringUtils.isEmpty(parsedRequest.authority)) {
-                const authorityKey: string = this.generateAuthorityKey(state);
-                const authorityCacheKey = this.generateCacheKey(authorityKey);
+                const authorityCacheKey: string = this.generateAuthorityKey(state);
                 const cachedAuthority: string = this.getTemporaryCache(authorityCacheKey);
                 parsedRequest.authority = cachedAuthority;
             }

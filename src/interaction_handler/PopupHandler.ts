@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, CacheSchemaType, AuthorizationCodeClient } from "@azure/msal-common";
+import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
@@ -33,7 +33,8 @@ export class PopupHandler extends InteractionHandler {
             // Save auth code request
             this.authCodeRequest = authCodeRequest;
             // Set interaction status in the library.
-            this.browserStorage.setTemporaryCache(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            const interactionCacheKey = this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY);
+            this.browserStorage.setTemporaryCache(interactionCacheKey, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             // Open the popup window to requestUrl.
             return this.openPopup(requestUrl, popup);
