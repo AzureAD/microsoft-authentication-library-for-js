@@ -48,8 +48,7 @@
     "beachball:check": "beachball check --branch origin/dev",
     "beachball:change": "beachball change --branch origin/dev",
     "beachball:bump": "beachball bump",
-    "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
-    "test:node:e2e": "cd samples/msal-node-samples/VanillaJSTestApp && npm install && lerna bootstrap && npm run test:e2e"
+    "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN"
   },
   "dependencies": {
     "@babel/register": "^7.7.0",
