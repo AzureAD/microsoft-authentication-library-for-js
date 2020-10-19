@@ -25,8 +25,6 @@ export const BrowserConstants = {
     POPUP_HEIGHT: 600,
     // Default popup monitor poll interval in milliseconds
     POLL_INTERVAL_MS: 50,
-    // Time to wait for page navigation to occur
-    NAVIGATION_TIMEOUT_MS: 30000,
     // msal-browser SKU
     MSAL_SKU: "msal.js.browser",
 };

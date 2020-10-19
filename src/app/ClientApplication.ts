@@ -107,7 +107,7 @@ export abstract class ClientApplication {
      * auth flows.
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
-    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+    async handleRedirectPromise(): Promise<AuthenticationResult | null | void> {
         return this.isBrowserEnvironment ? this.handleRedirectResponse() : null;
     }
 
@@ -116,7 +116,7 @@ export abstract class ClientApplication {
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
      */
-    private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
+    private async handleRedirectResponse(): Promise<AuthenticationResult | null | void> {
         if (!this.interactionInProgress()) {
             this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
             return null;
@@ -155,10 +155,10 @@ export abstract class ClientApplication {
                 // Cache the homepage under ORIGIN_URI to ensure cached hash is processed on homepage
                 this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), homepage, CacheSchemaType.TEMPORARY);
                 this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
-                BrowserUtils.navigateWindow(homepage, this.logger, true);
+                return BrowserUtils.navigateWindow(homepage, this.config.system.redirectNavigationTimeout, this.logger, true);
             } else {
                 // Navigate to page that initiated the redirect request
-                BrowserUtils.navigateWindow(loginRequestUrl, this.logger, true);
+                return BrowserUtils.navigateWindow(loginRequestUrl, this.config.system.redirectNavigationTimeout, this.logger, true);
             }
         }
 
@@ -214,8 +214,8 @@ export abstract class ClientApplication {
             // Hash contains known properties - handle and return in callback
             const currentAuthority = this.browserStorage.getCachedAuthority(serverParams.state);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
-            return await interactionHandler.handleCodeResponse(responseHash, this.browserCrypto, this.config.auth.clientId);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
+            return await interactionHandler.handleCodeResponse(responseHash, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(serverParams.state);
@@ -246,14 +246,14 @@ export abstract class ClientApplication {
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
 
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectStartPage, this.browserCrypto);
+            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.config.system.redirectNavigationTimeout, redirectStartPage);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(validRequest.state);
@@ -458,7 +458,7 @@ export abstract class ClientApplication {
         const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
         // create logout string and navigate user window to logout. Auth module will clear cache.
         const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-        BrowserUtils.navigateWindow(logoutUri, this.logger);
+        return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
     }
 
     // #endregion

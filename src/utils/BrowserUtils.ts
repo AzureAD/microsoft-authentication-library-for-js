@@ -7,7 +7,6 @@ import { INetworkModule, Logger, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants } from "./BrowserConstants";
 
 /**
  * Utility class for browser specific functions
@@ -21,7 +20,7 @@ export class BrowserUtils {
      * @param {string} urlNavigate - URL of the authorization endpoint
      * @param {boolean} noHistory - boolean flag, uses .replace() instead of .assign() if true
      */
-    static navigateWindow(urlNavigate: string, logger: Logger, noHistory?: boolean): void {
+    static navigateWindow(urlNavigate: string, navigationTimeout: number, logger: Logger, noHistory?: boolean): Promise<void> {
         if (noHistory) {
             window.location.replace(urlNavigate);
         } else {
@@ -29,9 +28,12 @@ export class BrowserUtils {
         }
 
         // To block code from running after navigation, this should not throw if navigation succeeds
-        setTimeout(() => {
-            logger.warning("Expected to navigate away from the current page but timeout occurred.");
-        }, BrowserConstants.NAVIGATION_TIMEOUT_MS);
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                logger.warning("Expected to navigate away from the current page but timeout occurred.");
+                resolve();
+            }, navigationTimeout);
+        });
     }
 
     /**
