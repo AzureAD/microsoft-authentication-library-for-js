@@ -32,12 +32,11 @@ import { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthErr
 import { AuthResponse, buildResponseStateOnly } from "./AuthResponse";
 import TelemetryManager from "./telemetry/TelemetryManager";
 import { TelemetryPlatform, TelemetryConfig } from "./telemetry/TelemetryTypes";
-import ApiEvent, { API_CODE, API_EVENT_IDENTIFIER } from "./telemetry/ApiEvent";
+import ApiEvent, { API_EVENT_IDENTIFIER } from "./telemetry/ApiEvent";
 
 import { Constants,
     ServerHashParamKeys,
     InteractionType,
-    libraryVersion,
     ResponseTypes,
     TemporaryCacheKeys,
     PersistentCacheKeys,
@@ -54,6 +53,7 @@ const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
  * Interface to handle iFrame generation, Popup Window creation and redirect handling
  */
 declare global {
+    // eslint-disable-next-line
     interface Window {
         msal: Object;
         CustomEvent: CustomEvent;
@@ -1233,7 +1233,7 @@ export class UserAgentApplication {
         this.logger.verbose("HandleRedirectAuthenticationResponse has been called");
 
         // clear hash from window
-        window.location.hash = "";
+        WindowUtils.clearUrlFragment();
         this.logger.verbose("Window.location.hash cleared");
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
