@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import TelemetryManager from "../telemetry/TelemetryManager";
 import { XhrClient, XhrResponse } from "../XHRClient";
 import HttpEvent from "../telemetry/HttpEvent";

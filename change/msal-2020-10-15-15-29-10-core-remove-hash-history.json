@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Use history API to clear hash to remove # sign",
+  "packageName": "msal",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-15T22:29:10.803Z"
+}

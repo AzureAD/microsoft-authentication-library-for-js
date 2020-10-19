@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AuthenticationResult, AuthError, EndSessionRequest } from "@azure/msal-common";
 import { EventType } from "./EventType";
 import { InteractionType } from "../utils/BrowserConstants";

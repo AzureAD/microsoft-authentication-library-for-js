@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 export enum EventType {
     LOGIN_START = "msal:loginStart",
     LOGIN_SUCCESS = "msal:loginSuccess",
@@ -10,8 +15,6 @@ export enum EventType {
     SSO_SILENT_SUCCESS = "msal:ssoSilentSuccess",
     SSO_SILENT_FAILURE = "msal:ssoSilentFailure",
     HANDLE_REDIRECT_START = "msal:handleRedirectStart",
-    HANDLE_REDIRECT_SUCCESS = "msal:handleRedirectSuccess",
-    HANDLE_REDIRECT_FAILURE = "msal:handleRedirectFailure",
     LOGOUT_START = "msal:logoutStart",
     LOGOUT_SUCCESS = "msal:logoutSuccess",
     LOGOUT_FAILURE = "msal:logoutFailure"
