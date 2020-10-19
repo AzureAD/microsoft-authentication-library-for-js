@@ -84,14 +84,18 @@ export const MsalAuthenticationTemplate: React.FunctionComponent<IMsalAuthentica
         username,
         homeAccountId
     };
-    const { msal } = useMsalAuthentication(interactionType, authenticationRequest, accountIdentifier);
+    const context = useMsal();
+    const { error } = useMsalAuthentication(interactionType, authenticationRequest, accountIdentifier);
+    if (error) {
+        throw error;
+    }
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     // TODO: What if the user authentiction is InProgress? How will user show a loading state?
     if (isAuthenticated) {
         return (
             <React.Fragment>
-                {getChildrenOrFunction(children, msal)}
+                {getChildrenOrFunction(children, context)}
             </React.Fragment>
         );
     }

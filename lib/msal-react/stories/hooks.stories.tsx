@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import * as React from "react";
 import { 
     MsalProvider, 
@@ -77,6 +82,27 @@ const UseIsAuthenticatedExample = () => {
 
 const UseMsalAuthenticationEample = () => {
     useMsalAuthentication(InteractionType.Popup);
+    
+    return (
+        <React.Fragment>
+            <p>The <pre style={{display: "inline"}}>useMsalAuthentication()</pre> hook initiates the authentication process. It accepts optional parameters for a specific "username", or a custom "loginHandler" function which initiates a custom authentication flow using the MSAL API.</p>
+            <UnauthenticatedTemplate>
+                <p><b>Authenticating...</b></p>
+            </UnauthenticatedTemplate>
+            <AuthenticatedTemplate>
+                {(context: IMsalContext) => (
+                    <p><b>Welcome {context.state.accounts[0].username}! You have been authenticated.</b></p>
+                )}
+            </AuthenticatedTemplate>
+        </React.Fragment>
+    );
+};
+
+const UseSilentMsalAuthenticationEample = () => {
+    const {login, error} = useMsalAuthentication(InteractionType.Silent);
+    if (error) {
+        login(InteractionType.Popup);
+    }
     
     return (
         <React.Fragment>
