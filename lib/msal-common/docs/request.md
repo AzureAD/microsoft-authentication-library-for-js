@@ -6,7 +6,7 @@ Since MSAL Node supports various authorization code grants, there is support for
 
 ### Public APIs
 - [getAuthCodeUrl()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#getauthcodeurl): This API is the first leg of the `authorization code grant` for MSAL Node. The request is of the type [AuthorizationUrlRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_authorizationurlrequest_.html).
-The application is sent a URL that can be used to generate an `authorization code`. This `URL` can be opened in a browser of choice, where the user can input their credential, and will be redirected back to the `redirectUri` (registered during the [app registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)) with an `authorization code`. The `authorization code` can now be redeemed for a `token` with the following step. Not that if authorization code flow is being done for a public client application, [PKCE](https://tools.ietf.org/html/rfc7636) is recommended. 
+The application is sent a URL that can be used to generate an `authorization code`. This URL can be opened in a browser of choice, where the user can input their credentials, and will be redirected back to the `redirectUri` (registered during the [app registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)) with an `authorization code`. The `authorization code` can now be redeemed for a `token` with the following step. Note that if authorization code flow is being done for a public client application, [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
 
 - [acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbycode): This API is the second leg of the `authorization code grant` for MSAL Node. The request constructed here should be of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_authorizationcoderequest_.html). The application passed the `authorization code` received as a part of the above step and exchanges it for a `token`. Not that if authorization code flow is being done for a public client application, [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
 
@@ -67,7 +67,7 @@ pca.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
 ## Refresh Token Flow
 
 ### Public APIs
-- [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbyrefreshtoken): This API acquires a token by exchanging the refresh token provided for a new set of tokens. The request is of the type [RefreshTokenRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_refreshtokenrequest_.html). The `refresh token` is never returned to the user in a response, but can be accessed from the user cache. It is recommended that you use acquireTokenSilent() for silent scenarios. When using acquireTokenSilent(), MSAL will handle the caching and refreshing of tokens automatically. 
+- [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbyrefreshtoken): This API acquires a token by exchanging the refresh token provided for a new set of tokens. The request is of the type [RefreshTokenRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_refreshtokenrequest_.html). The `refresh token` is never returned to the user in a response, but can be accessed from the user cache. It is recommended that you use `acquireTokenSilent()` for non-interactive scenarios. When using `acquireTokenSilent()`, MSAL will handle the caching and refreshing of tokens automatically.
 
 ``` javascript
 const config = {
@@ -168,7 +168,7 @@ accounts = msalCacheManager.getAllAccounts();
 
 // Build silent request
 const silentRequest = {
-    account: accounts[0], // You would filter accounts to get the account you want to get tokens for 
+    account: accounts[0], // You would filter accounts to get the account you want to get tokens for
     scopes: scopes,
 };
 
@@ -180,11 +180,44 @@ pca.acquireTokenSilent(silentRequest).then((response) => {
         console.log(error);
 });
 ```
+
+## Client Credentials Flow
+
+### Public APIs
+- [acquireTokenByClientCredential](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_confidentialclientapplication_.confidentialclientapplication.html#acquiretokenbyclientcredential): This API acquires a token using the confidential client application's credentials to authenticate (instead of impersonating a user) when calling another web service. In this scenario, the client is typically a middle-tier web service, a daemon service, or a back-end web application. For a higher level of assurance, the Microsoft identity platform also allows the calling service to use a certificate (instead of a shared secret) as a credential. The request is of the type [ClientCredentialRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_clientcredentialrequest_.html#clientcredentialrequest).
+
+``` javascript
+const config = {
+    auth: {
+        clientId: "your_client_id_here",
+        authority: "your_authority_here",
+        clientSecret: "you_client_secret_here"
+    }
+};
+
+// Create msal application object
+const cca = new msal.ConfidentialClientApplication(config);
+
+// With client credentials flows permissions need to be granted in the portal by a tenant administrator.
+// The scope is always in the format "<resource>/.default"
+const clientCredentialRequest = {
+    scopes: ["https://graph.microsoft.com/.default"], // replace with your resource
+};
+
+cca.acquireTokenByClientCredential(clientCredentialRequest).then((response) => {
+    console.log("Response: ", response);
+}).catch((error) => {
+    console.log(JSON.stringify(error));
+});
+```
+
+## On Behalf of Flow
+- [acquireTokenOnBehalfOf](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_confidentialclientapplication_.confidentialclientapplication.html#acquiretokenonbehalfof): This API implements the On Behalf Of Flow, which is used when an application invokes a service/web API, which in turn needs to call another service/web API that uses any other authentication flow (device code, username/password, etc). The access token is acquired by the web API initially (by any of the web API flows), and the web API can then exchange this token for another token via OBO. The request is of the type [OnBehalfOfRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_onbehalfofrequest_.html#onbehalfofrequest)
+
+Please look at the On Behalf Of flow [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/on-behalf-of) for usage instructions:
+
+* [WebAPI](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/on-behalf-of/web-api/index.js) sample code
+* [WebApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/on-behalf-of/web-app/index.js) sample code
+
 ## Next Steps
 Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](./response.md)
-
-
-
-
-
-
