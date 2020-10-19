@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { PkceCodes } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { Base64Encode } from "../encode/Base64Encode";
