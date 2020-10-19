@@ -40,7 +40,7 @@ All of our libraries follow [semantic versioning](https://semver.org). We recomm
 
 ## Roadmap
 
-Please check the [roadmap]https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md) to see what we are working on and what we have planned for future releases.
+Please check the [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md) to see what we are working on and what we have planned for future releases.
 
 ## Community Help and Support
 
