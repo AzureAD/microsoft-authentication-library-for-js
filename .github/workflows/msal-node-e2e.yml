@@ -29,22 +29,14 @@ jobs:
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
-
-    - name: Build packages
-      working-directory: samples/msal-node-samples/VanillaJSTestApp
-      run: |
-        npm install
-        lerna bootstrap
-        npm run build:package
         
     - name: E2E Tests
-      working-directory: samples/msal-node-samples/VanillaJSTestApp
       timeout-minutes: 5
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      run: npm run test:e2e
+      run: npm run test:node:e2e
 
     - name: Upload E2E Test Screenshots
       uses: actions/upload-artifact@v2

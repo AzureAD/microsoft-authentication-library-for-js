@@ -48,7 +48,8 @@
     "beachball:check": "beachball check --branch origin/dev",
     "beachball:change": "beachball change --branch origin/dev",
     "beachball:bump": "beachball bump",
-    "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN"
+    "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
+    "test:node:e2e": "lerna run --scope vanilla-js-node-test-app test:e2e"
   },
   "dependencies": {
     "@babel/register": "^7.7.0",
