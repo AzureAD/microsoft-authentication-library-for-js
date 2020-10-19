@@ -72,7 +72,7 @@ We are currently working on support for iframed applications as well as solution
 
 ## Will MSAL 2.x support B2C?
 
-We are currently working with the B2C service team to allow for authorization code flow to work in the browser with B2C tenants. We hope to have this available shortly after release.
+Yes this is now supported as of October 2020. 
 
 # Authentication
 
