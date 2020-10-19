@@ -1446,7 +1446,7 @@ export class UserAgentApplication {
      * @param account 
      */
     private getCachedIdToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): IdToken {
-        this.logger.verbose(`Getting all cached tokens of type ID Token`);
+        this.logger.verbose("Getting all cached tokens of type ID Token");
         const idTokenCacheItems = this.cacheStorage.getAllTokensByType(this.clientId, account ? account.homeAccountIdentifier : null, ServerHashParamKeys.ID_TOKEN);
 
         // No match found after initial clientId and account
@@ -1473,7 +1473,7 @@ export class UserAgentApplication {
         } 
         // Authority passed into request and it is not common or organizations
         else {
-           idTokenCacheItem = this.getTokenCacheItemByRequestAuthority(serverAuthenticationRequest, idTokenCacheItems, ServerHashParamKeys.ID_TOKEN, null);
+            idTokenCacheItem = this.getTokenCacheItemByRequestAuthority(serverAuthenticationRequest, idTokenCacheItems, ServerHashParamKeys.ID_TOKEN, null);
         }
 
         if (idTokenCacheItem != null) {
@@ -1512,7 +1512,7 @@ export class UserAgentApplication {
      * @param scopes 
      */
     private getCachedAccessToken(serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: string[]): AuthResponse {
-        this.logger.verbose(`Getting all cached tokens of type Access Token`);
+        this.logger.verbose("Getting all cached tokens of type Access Token");
         const tokenCacheItems = this.cacheStorage.getAllTokensByType(this.clientId, account ? account.homeAccountIdentifier : null, ServerHashParamKeys.ACCESS_TOKEN);
 
         // No match found after initial clientId and account
@@ -1553,7 +1553,7 @@ export class UserAgentApplication {
         }
         // if an authority is passed in the API
         else {
-          accessTokenCacheItem = this.getTokenCacheItemByRequestAuthority(serverAuthenticationRequest, tokenCacheItems, ServerHashParamKeys.ACCESS_TOKEN, scopes);
+            accessTokenCacheItem = this.getTokenCacheItemByRequestAuthority(serverAuthenticationRequest, tokenCacheItems, ServerHashParamKeys.ACCESS_TOKEN, scopes);
         }
 
         if (accessTokenCacheItem != null) {
@@ -1722,7 +1722,6 @@ export class UserAgentApplication {
 
         return response;
     }
-
 
     /**
      * @hidden

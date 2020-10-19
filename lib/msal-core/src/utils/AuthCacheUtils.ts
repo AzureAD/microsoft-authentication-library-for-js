@@ -3,15 +3,14 @@
  * Licensed under the MIT License.
  */
 
- import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
- import { ScopeSet } from "../ScopeSet";
- import { UrlUtils } from "../utils/UrlUtils"; 
+import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
+import { ScopeSet } from "../ScopeSet";
+import { UrlUtils } from "./UrlUtils"; 
 
 /**
  * @hidden
  */
 export class AuthCacheUtils {
-
     static filterTokenCacheItemsByScope(tokenCacheItems: Array<AccessTokenCacheItem>, requestScopes: string []): Array<AccessTokenCacheItem> {
         return tokenCacheItems.filter((cacheItem: AccessTokenCacheItem) => {
             const cachedScopes = cacheItem.key.scopes.split(" ");
@@ -31,7 +30,6 @@ export class AuthCacheUtils {
     }
 
     static filterTokenCacheItemsByDomain(tokenCacheItems: Array<AccessTokenCacheItem>, requestDomain: string): Array<AccessTokenCacheItem> {
-        // find an exact match for domain
         return tokenCacheItems.filter(cacheItem => {
             const cacheItemDomain = UrlUtils.GetUrlComponents(cacheItem.key.authority).HostNameAndPort;
             return cacheItemDomain === requestDomain;

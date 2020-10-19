@@ -6,7 +6,7 @@
 import { AuthError } from "./AuthError";
 import { IdToken } from "../IdToken";
 import { StringUtils } from "../utils/StringUtils";
-import { ServerHashParamKeys } from '../utils/Constants';
+import { ServerHashParamKeys } from "../utils/Constants";
 
 export const ClientAuthErrorMessage = {
     multipleMatchingTokens: {
@@ -128,7 +128,7 @@ export class ClientAuthError extends AuthError {
         let errorType;
         let errorDescriptionExtension = "";
         if (tokenType === ServerHashParamKeys.ACCESS_TOKEN) {
-            errorType = ClientAuthErrorMessage.multipleMatchingTokens
+            errorType = ClientAuthErrorMessage.multipleMatchingTokens;
             errorDescriptionExtension = `Cache error for scope ${scopes.toString()}: `;
         } else {
             errorType = ClientAuthErrorMessage.multipleMatchingIdTokens;
