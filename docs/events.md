@@ -18,12 +18,17 @@ Msal-browser exports the `addEventCallback` function which takes in a callback f
 
 Here is an example of how you could consume the emitted events in your application:
 ```javascript
-msalInstance.addEventCallback((message: EventMessage) => {
+const callbackId = msalInstance.addEventCallback((message: EventMessage) => {
     // Update UI or interact with EventMessage here
     if (message.eventType === EventType.LOGIN_SUCCESS) {
         console.log(message.payload);
      }
 });
+```
+Adding an event callback will return an id. This id can be used to remove the callback if necessary, using the `removeEventCallback` functio:
+
+```javascript
+msalInstance.removeEventCallback(callbackId);
 ```
 
 ## List of Event Types
