@@ -1411,7 +1411,7 @@ export class UserAgentApplication {
      */
     private getCachedIdToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): IdToken {
         this.logger.verbose("Getting all cached tokens of type ID Token");
-        const idTokenCacheItems = this.cacheStorage.getAllTokensByType(this.clientId, account ? account.homeAccountIdentifier : null, ServerHashParamKeys.ID_TOKEN);
+        const idTokenCacheItems = this.cacheStorage.getAllIdTokens(this.clientId, account ? account.homeAccountIdentifier : null);
         const matchAuthority = serverAuthenticationRequest.authority || this.authority;
         const idTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, idTokenCacheItems, null, ServerHashParamKeys.ID_TOKEN);
         
@@ -1452,7 +1452,7 @@ export class UserAgentApplication {
      */
     private getCachedAccessToken(serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: string[]): AuthResponse {
         this.logger.verbose("Getting all cached tokens of type Access Token");
-        const tokenCacheItems = this.cacheStorage.getAllTokensByType(this.clientId, account ? account.homeAccountIdentifier : null, ServerHashParamKeys.ACCESS_TOKEN);
+        const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : null);
         
         const scopeFilteredTokenCacheItems = AuthCacheUtils.filterTokenCacheItemsByScope(tokenCacheItems, scopes);
         const matchAuthority = serverAuthenticationRequest.authority || this.authority;
