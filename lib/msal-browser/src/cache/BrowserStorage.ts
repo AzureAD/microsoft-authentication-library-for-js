@@ -10,8 +10,6 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 
-/* eslint-disable */
-
 // Cookie life calculation (hours * minutes * seconds * ms)
 const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
@@ -91,7 +89,7 @@ export class BrowserStorage extends CacheManager {
      */
     private migrateCacheEntry(newKey: string, value: string): void {
         if (value) {
-            this.setTemporaryCache(this.generateCacheKey(newKey), value);
+            this.setTemporaryCache(newKey, value, true);
         }
     }
 
@@ -117,7 +115,6 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string): void {
-        console.log("setItem", key, value);
         this.windowStorage.setItem(key, value);
     }
 
@@ -300,7 +297,9 @@ export class BrowserStorage extends CacheManager {
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
      */
-    getTemporaryCache(key: string): string {
+    getTemporaryCache(cacheKey: string, generateKey?: boolean): string {
+        const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
+
         const itemCookie = this.getItemCookie(key);
         if (this.cacheConfig.storeAuthStateInCookie && itemCookie) {
             return itemCookie;
@@ -320,11 +319,12 @@ export class BrowserStorage extends CacheManager {
      * @param key
      * @param value
      */
-    setTemporaryCache(key: string, value: string): void {
-        const stringVal = value;
-        this.setItem(key, stringVal);
+    setTemporaryCache(cacheKey: string, value: string, generateKey?: boolean): void {
+        let key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
+
+        this.setItem(key, value);
         if (this.cacheConfig.storeAuthStateInCookie) {
-            this.setItemCookie(key, stringVal);
+            this.setItemCookie(key, value);
         }
     }
 
@@ -516,7 +516,7 @@ export class BrowserStorage extends CacheManager {
      */
     setAuthorityCache(authority: string, state: string): void {
         // Cache authorityKey
-        const authorityCacheKey = this.generateCacheKey(this.generateAuthorityKey(state));
+        const authorityCacheKey = this.generateAuthorityKey(state);
         this.setItem(authorityCacheKey, authority);
     }
 
@@ -541,12 +541,12 @@ export class BrowserStorage extends CacheManager {
      */
     updateCacheEntries(state: string, nonce: string, authorityInstance: string): void {
         // Cache the request state
-        const stateCacheKey = this.generateCacheKey(TemporaryCacheKeys.REQUEST_STATE);
-        this.setTemporaryCache(stateCacheKey, state);
+        const stateCacheKey = this.generateStateKey(state);
+        this.setTemporaryCache(stateCacheKey, state, false);
 
         // Cache the nonce
-        const nonceCacheKey = this.generateNonceKey(this.generateNonceKey(state));
-        this.setTemporaryCache(nonceCacheKey, nonce);
+        const nonceCacheKey = this.generateNonceKey(state);
+        this.setTemporaryCache(nonceCacheKey, nonce, false);
 
         // Cache authorityKey
         this.setAuthorityCache(authorityInstance, state);
@@ -578,15 +578,15 @@ export class BrowserStorage extends CacheManager {
     cleanRequest(stateString?: string): void {
         // Interaction is completed - remove interaction status.
         this.removeItem(this.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
+
         const stateCacheKey = this.generateStateKey(TemporaryCacheKeys.REQUEST_STATE);
         const cachedState = this.getTemporaryCache(stateCacheKey);
         this.resetRequestCache(cachedState || "");
     }
 
     cacheCodeRequest(authCodeRequest: AuthorizationCodeRequest, browserCrypto: ICrypto): void {
-        const requestParamsCacheKey = this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS);
         const encodedValue = browserCrypto.base64Encode(JSON.stringify(authCodeRequest));
-        this.setTemporaryCache(requestParamsCacheKey, encodedValue);
+        this.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, encodedValue, true);
     }
 
     /**
@@ -595,8 +595,7 @@ export class BrowserStorage extends CacheManager {
     getCachedRequest(state: string, browserCrypto: ICrypto): AuthorizationCodeRequest {
         try {
             // Get token request from cache and parse as TokenExchangeParameters.
-            const requestParamsCacheKey = this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS);
-            const encodedTokenRequest = this.getTemporaryCache(requestParamsCacheKey);
+            const encodedTokenRequest = this.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
 
             const parsedRequest = JSON.parse(browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
             this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));

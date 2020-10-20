@@ -164,7 +164,7 @@ export abstract class ClientApplication {
         }
 
         // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
-        const loginRequestUrl = this.browserStorage.getTemporaryCache(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI)) as string;
+        const loginRequestUrl = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, true);
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
 
@@ -182,14 +182,12 @@ export abstract class ClientApplication {
              * Returned from authority using redirect - need to perform navigation before processing response
              * Cache the hash to be retrieved after the next redirect
              */
-            const hashKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH);
-            this.browserStorage.setTemporaryCache(hashKey, responseHash);
+            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.URL_HASH, responseHash, true);
             if (!loginRequestUrl || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
                 const homepage = BrowserUtils.getHomepage();
                 // Cache the homepage under ORIGIN_URI to ensure cached hash is processed on homepage
-                const originUriCacheKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI);
-                this.browserStorage.setTemporaryCache(originUriCacheKey, homepage);
+                this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, homepage, true);
                 this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
                 BrowserUtils.navigateWindow(homepage, true);
             } else {
@@ -210,7 +208,7 @@ export abstract class ClientApplication {
         // Get current location hash from window or cache.
         const { location: { hash } } = window;
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
-        const cachedHash: string = this.browserStorage.getTemporaryCache(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH)) as string;
+        const cachedHash: string = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         const responseHash: string = isResponseHash ? hash : cachedHash;
@@ -240,7 +238,7 @@ export abstract class ClientApplication {
      */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
         this.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
-        const encodedTokenRequest = this.browserStorage.getItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string;
+        const encodedTokenRequest = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
@@ -645,7 +643,7 @@ export abstract class ClientApplication {
      */
     protected interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
-        return (this.browserStorage.getTemporaryCache(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY)) as string) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+        return (this.browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
     }
 
     /**
@@ -797,7 +795,7 @@ export abstract class ClientApplication {
         // Check for ADAL SSO
         if (StringUtils.isEmpty(validatedRequest.loginHint)) {
             // Only check for adal token if no SSO params are being used
-            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN) as string;
+            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
             if (!StringUtils.isEmpty(adalIdTokenString)) {
                 const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
                 this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
