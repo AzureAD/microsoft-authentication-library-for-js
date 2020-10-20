@@ -46,7 +46,6 @@ import { Constants,
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
 import { AuthCacheUtils } from "./utils/AuthCacheUtils";
-import { match } from 'sinon';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
