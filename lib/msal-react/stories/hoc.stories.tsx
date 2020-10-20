@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { MsalProvider, IWithMsalProps, withMsal } from "../src";
+import { MsalProvider, WithMsalProps, withMsal } from "../src";
 
 import { msalInstance } from "./msalInstance";
 
@@ -20,8 +20,8 @@ export const Example = () => {
     );
 };
 
-const WelcomeMessage: React.FunctionComponent<IWithMsalProps> = (props) => {
-    const accounts = props.msalContext.state.accounts;
+const WelcomeMessage: React.FunctionComponent<WithMsalProps> = (props) => {
+    const accounts = props.msalContext.accounts;
     
     if (accounts.length > 0) {
         return <span>Welcome! The <pre style={{display: "inline"}}>withMsal()</pre> higher-order component can see you are logged in with {accounts.length} accounts.</span>;

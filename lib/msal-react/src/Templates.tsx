@@ -11,17 +11,26 @@ import { getChildrenOrFunction } from "./utilities";
 import { AccountIdentifiers, useIsAuthenticated } from "./useIsAuthenticated";
 import { InteractionType, PopupRequest, RedirectRequest, SsoSilentRequest } from "@azure/msal-browser";
 
-export interface IMsalTemplateProps {
-    username?: string,
-    homeAccountId?: string
-    children?: ReactNode
-}
+export type MsalTemplateProps = {
+    username?: string;
+    homeAccountId?: string;
+    children?: ReactNode;
+};
+
+export type MsalAuthenticationProps = MsalTemplateProps & {
+    interactionType: InteractionType;
+    authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest;
+};
 
 /**
  * Renders child components if user is unauthenticated
  * @param props 
  */
-export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = ({ username, homeAccountId, children }: IMsalTemplateProps) => {
+export const UnauthenticatedTemplate: React.FunctionComponent<MsalTemplateProps> = ({ 
+    username, 
+    homeAccountId, 
+    children 
+}: MsalTemplateProps) => {
     const context = useMsal();
     const accountIdentifier: AccountIdentifiers = {
         username,
@@ -43,7 +52,11 @@ export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps
  * Renders child components if user is authenticated
  * @param props 
  */
-export const AuthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = ({ username, homeAccountId, children }: IMsalTemplateProps) => {
+export const AuthenticatedTemplate: React.FunctionComponent<MsalTemplateProps> = ({ 
+    username, 
+    homeAccountId, 
+    children 
+}: MsalTemplateProps) => {
     const context = useMsal();
     const accountIdentifier: AccountIdentifiers = {
         username,
@@ -61,25 +74,17 @@ export const AuthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> 
     return null;
 };
 
-export interface IMsalAuthenticationProps {
-    interactionType: InteractionType;
-    username?: string;
-    homeAccountId?: string;
-    authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest;
-    children?: ReactNode
-}
-
 /**
  * Attempts to authenticate user if not already authenticated, then renders child components
- * @param param0 
+ * @param props
  */
-export const MsalAuthenticationTemplate: React.FunctionComponent<IMsalAuthenticationProps> = ({ 
+export const MsalAuthenticationTemplate: React.FunctionComponent<MsalAuthenticationProps> = ({ 
     interactionType, 
     username, 
     homeAccountId, 
     authenticationRequest, 
     children 
-}: IMsalAuthenticationProps) => {
+}: MsalAuthenticationProps) => {
     const accountIdentifier: AccountIdentifiers = {
         username,
         homeAccountId

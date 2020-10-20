@@ -21,10 +21,7 @@ function isAuthenticated(instance: IPublicClientApplication, account?: AccountId
 }
 
 export function useIsAuthenticated(account?: AccountIdentifiers): boolean {
-    const {
-        state: { accounts },
-        instance,
-    } = useMsal();
+    const { instance, accounts } = useMsal();
 
     const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(
         isAuthenticated(instance, account)

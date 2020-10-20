@@ -11,12 +11,12 @@ import {
     UnauthenticatedTemplate, 
     AuthenticatedTemplate, 
     IMsalContext, 
-    useMsalAuthentication, 
-    InteractionType 
+    useMsalAuthentication
 } from "../src";
 
 import { msalInstance } from "./msalInstance";
 import { useState } from "react";
+import { InteractionType } from "@azure/msal-browser";
 
 export default {
     title: "MSAL React/Hooks",
@@ -47,16 +47,16 @@ const UseMsalExample = () => {
     const context = useMsal();
 
     return (
-        <p>The <pre style={{display: "inline"}}>useMsal()</pre> hook gives access to the MSAL React context. From here, any MSAL methods can be called, and state values accessed. For example, we know there are {context.state.accounts.length} accounts authenticated.</p>
+        <p>The <pre style={{display: "inline"}}>useMsal()</pre> hook gives access to the MSAL React context. From here, any MSAL methods can be called, and state values accessed. For example, we know there are {context.accounts.length} accounts authenticated.</p>
     );
 };
 
 const UseIsAuthenticatedExample = () => {
-    const { state } = useMsal();
+    const { accounts } = useMsal();
     const isAuthenticated = useIsAuthenticated();
 
-    const [username, setUsername] = useState(isAuthenticated ? state.accounts[0].username : "user@example.com");
-    const [currentUser, setCurrentUser] = useState(isAuthenticated ? state.accounts[0].username : "user@example.com");
+    const [username, setUsername] = useState(isAuthenticated ? accounts[0].username : "user@example.com");
+    const [currentUser, setCurrentUser] = useState(isAuthenticated ? accounts[0].username : "user@example.com");
     
     const isSpecificUserAuthenticated = useIsAuthenticated({username: currentUser});
     
@@ -74,7 +74,7 @@ const UseIsAuthenticatedExample = () => {
             </p>
 
             <input type="text" onChange={(e) => setUsername(e.target.value)} value={username} placeholder="Username" />
-            <button onClick={(e) => setCurrentUser(username)}>Check status</button>
+            <button onClick={() => setCurrentUser(username)}>Check status</button>
             <p>The user <b>{currentUser}</b> is <b>{isSpecificUserAuthenticated ? "authenticated" : "unauthenticated"}</b></p>
         </React.Fragment>
     );
@@ -91,7 +91,7 @@ const UseMsalAuthenticationEample = () => {
             </UnauthenticatedTemplate>
             <AuthenticatedTemplate>
                 {(context: IMsalContext) => (
-                    <p><b>Welcome {context.state.accounts[0].username}! You have been authenticated.</b></p>
+                    <p><b>Welcome {context.accounts[0].username}! You have been authenticated.</b></p>
                 )}
             </AuthenticatedTemplate>
         </React.Fragment>
@@ -112,7 +112,7 @@ const UseSilentMsalAuthenticationEample = () => {
             </UnauthenticatedTemplate>
             <AuthenticatedTemplate>
                 {(context: IMsalContext) => (
-                    <p><b>Welcome {context.state.accounts[0].username}! You have been authenticated.</b></p>
+                    <p><b>Welcome {context.accounts[0].username}! You have been authenticated.</b></p>
                 )}
             </AuthenticatedTemplate>
         </React.Fragment>

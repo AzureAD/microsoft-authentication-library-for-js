@@ -5,8 +5,8 @@
 
 export type { IMsalContext } from "./MsalContext";
 export type { MsalProviderProps } from "./MsalProvider";
-export type { IMsalAuthenticationProps } from "./Templates";
-export type { IWithMsalProps } from "./withMsal";
+export type { MsalAuthenticationProps, MsalTemplateProps } from "./Templates";
+export type { WithMsalProps } from "./withMsal";
 export type { AccountIdentifiers } from "./useIsAuthenticated";
 
 export { MsalContext, MsalConsumer } from "./MsalContext";
