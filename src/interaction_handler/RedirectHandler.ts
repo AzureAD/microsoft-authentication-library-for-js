@@ -21,13 +21,11 @@ export class RedirectHandler extends InteractionHandler {
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             if (redirectStartPage) {
-                const originUriCacheKey = this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI);
-                this.browserStorage.setTemporaryCache(originUriCacheKey, redirectStartPage);
+                this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, redirectStartPage, true);
             }
 
             // Set interaction status in the library.
-            const interactionCacheKey = this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY);
-            this.browserStorage.setTemporaryCache(interactionCacheKey, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            this.browserStorage.setTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserStorage.cacheCodeRequest(authCodeRequest, browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             const isIframedApp = BrowserUtils.isInIframe();
@@ -63,11 +61,13 @@ export class RedirectHandler extends InteractionHandler {
         const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
 
         // Handle code response.
-        const requestState = this.browserStorage.getTemporaryCache(this.browserStorage.generateStateKey(serverParams.state)) as string;
+        const stateKey = this.browserStorage.generateStateKey(serverParams.state);
+        const requestState = this.browserStorage.getTemporaryCache(stateKey);
         const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
-        const cachedNonce = this.browserStorage.getTemporaryCache(this.browserStorage.generateNonceKey(requestState)) as string;
+        const nonceKey = this.browserStorage.generateNonceKey(requestState);
+        const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
         this.authCodeRequest.code = authCode;
 

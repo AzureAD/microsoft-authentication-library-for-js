@@ -41,11 +41,13 @@ export abstract class InteractionHandler {
         const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
 
         // Handle code response.
-        const requestState = this.browserStorage.getTemporaryCache(this.browserStorage.generateStateKey(serverParams.state));
+        const stateKey = this.browserStorage.generateStateKey(serverParams.state);
+        const requestState = this.browserStorage.getTemporaryCache(stateKey);
         const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
-        const cachedNonce = this.browserStorage.getTemporaryCache(this.browserStorage.generateNonceKey(requestState));
+        const nonceKey = this.browserStorage.generateNonceKey(requestState);
+        const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
 
         // Assign code to request
         this.authCodeRequest.code = authCode;
