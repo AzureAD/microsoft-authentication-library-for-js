@@ -1072,8 +1072,7 @@ describe.only("UserAgentApplication.ts Class", function () {
             const config: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    redirectUri: TEST_URIS.TEST_REDIR_URI,
-                    authority: TEST_CONFIG.validAuthority + "common/"
+                    redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
             msal = new UserAgentApplication(config);

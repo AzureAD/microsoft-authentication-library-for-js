@@ -46,6 +46,7 @@ import { Constants,
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
 import { AuthCacheUtils } from "./utils/AuthCacheUtils";
+import { match } from 'sinon';
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -1382,12 +1383,12 @@ export class UserAgentApplication {
      */
     private getTokenCacheItemByAuthority(authority: string, tokenCacheItems: Array<AccessTokenCacheItem>, requestScopes: Array<string>, tokenType: string): AccessTokenCacheItem {
         let filteredAuthorityItems: Array<AccessTokenCacheItem>;
+    
         if (UrlUtils.isCommonAuthority(authority) || UrlUtils.isOrganizationsAuthority(authority)) {
             filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByDomain(tokenCacheItems, UrlUtils.GetUrlComponents(authority).HostNameAndPort);
         } else {
             filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByAuthority(tokenCacheItems, authority);
         }
-        
         if (filteredAuthorityItems.length === 1) {
             return filteredAuthorityItems[0];
         }
@@ -1412,8 +1413,7 @@ export class UserAgentApplication {
     private getCachedIdToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): IdToken {
         this.logger.verbose("Getting all cached tokens of type ID Token");
         const idTokenCacheItems = this.cacheStorage.getAllTokensByType(this.clientId, account ? account.homeAccountIdentifier : null, ServerHashParamKeys.ID_TOKEN);
-
-        const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
+        const matchAuthority = serverAuthenticationRequest.authority || this.authority;
         const idTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, idTokenCacheItems, null, ServerHashParamKeys.ID_TOKEN);
         
         if (idTokenCacheItem) {
@@ -1456,7 +1456,7 @@ export class UserAgentApplication {
         const tokenCacheItems = this.cacheStorage.getAllTokensByType(this.clientId, account ? account.homeAccountIdentifier : null, ServerHashParamKeys.ACCESS_TOKEN);
         
         const scopeFilteredTokenCacheItems = AuthCacheUtils.filterTokenCacheItemsByScope(tokenCacheItems, scopes);
-        const matchAuthority = serverAuthenticationRequest.authority || this.config.auth.authority;
+        const matchAuthority = serverAuthenticationRequest.authority || this.authority;
         // serverAuthenticationRequest.authority can only be common or organizations if not null
         const accessTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, scopeFilteredTokenCacheItems, scopes, ServerHashParamKeys.ACCESS_TOKEN);
         
