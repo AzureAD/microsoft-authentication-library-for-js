@@ -1835,7 +1835,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("broadcastEvent and addEventCallback tests", () => {
+    describe("Event API tests", () => {
         it("can add an event callback and broadcast to it", (done) => {
             const subscriber = (message) => {
                 expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
@@ -1845,6 +1845,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             pca.addEventCallback(subscriber);
             pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+        });
+
+        it("can remove an event callback", (done) => {
+            const subscriber = (message) => {
+                expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
+                expect(message.interactionType).to.deep.eq(InteractionType.Popup);
+            };
+
+            const callbackSpy = sinon.spy(subscriber);
+
+            const callbackId = pca.addEventCallback(callbackSpy);
+            pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+            pca.removeEventCallback(callbackId);
+            pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+            expect(callbackSpy.calledOnce).to.be.true;
+            done();
         });
 
         it("can add multiple callbacks and broadcast to all", (done) => {
