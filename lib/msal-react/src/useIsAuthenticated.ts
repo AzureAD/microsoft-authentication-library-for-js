@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AccountInfo, IPublicClientApplication } from "@azure/msal-browser";
 import { useState, useEffect } from "react";
 
@@ -16,10 +21,7 @@ function isAuthenticated(instance: IPublicClientApplication, account?: AccountId
 }
 
 export function useIsAuthenticated(account?: AccountIdentifiers): boolean {
-    const {
-        state: { accounts },
-        instance,
-    } = useMsal();
+    const { instance, accounts } = useMsal();
 
     const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(
         isAuthenticated(instance, account)

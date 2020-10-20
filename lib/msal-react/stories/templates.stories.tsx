@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import * as React from "react";
 import { MsalProvider, AuthenticatedTemplate, IMsalContext, UnauthenticatedTemplate } from "../src";
 
@@ -14,7 +19,7 @@ export const Authenticated = () => (
         <AuthenticatedTemplate>
             {(context: IMsalContext) => (
                 <React.Fragment>
-                    <b>Welcome, {context.state.accounts[0].username}!</b>
+                    <b>Welcome, {context.accounts[0].username}!</b>
                 </React.Fragment>
             )}
         </AuthenticatedTemplate>
@@ -33,7 +38,7 @@ export const Uauthenticated = () => (
         </UnauthenticatedTemplate>
         <UnauthenticatedTemplate>
             {(context: IMsalContext) => (
-                <b> There are currently {context.state.accounts.length} active accounts.</b>
+                <b> There are currently {context.accounts.length} active accounts.</b>
             )}
         </UnauthenticatedTemplate>
     </MsalProvider>
@@ -47,7 +52,7 @@ export const SpecificUser = () => {
     return (
         <MsalProvider instance={msalInstance}>
             <input type="text" onChange={(e) => setUsername(e.target.value)} value={username} />
-            <button onClick={(e) => setCurrentUser(username)}>Check status</button>
+            <button onClick={() => setCurrentUser(username)}>Check status</button>
             <p>Authentication status templates can be scoped to a specific username.</p>
 
             <UnauthenticatedTemplate username={currentUser}>

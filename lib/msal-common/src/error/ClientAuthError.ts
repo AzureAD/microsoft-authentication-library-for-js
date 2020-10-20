@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { AuthError } from "./AuthError";
 import { ScopeSet } from "../request/ScopeSet";
 
@@ -29,10 +30,6 @@ export const ClientAuthErrorMessage = {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
     },
-    invalidAuthorityType: {
-        code: "invalid_authority_type",
-        desc: "The given authority is not a valid type of authority supported by MSAL. Please review the trace to determine the root cause."
-    },
     hashNotDeserialized: {
         code: "hash_not_deserialized",
         desc: "The hash parameters could not be deserialized. Please review the trace to determine the root cause."
@@ -53,21 +50,9 @@ export const ClientAuthErrorMessage = {
         code: "nonce_mismatch",
         desc: "Nonce mismatch error. This may be caused by a race condition in concurrent requests."
     },
-    accountMismatchError: {
-        code: "account_mismatch",
-        desc: "The cached account and account which made the token request do not match."
-    },
     noTokensFoundError: {
         code: "no_tokens_found",
         desc: "No tokens were found for the given scopes, and no authorization code was passed to acquireToken. You must retrieve an authorization code before making a call to acquireToken()."
-    },
-    cacheParseError: {
-        code: "cache_parse_error",
-        desc: "Could not parse cache key."
-    },
-    userLoginRequiredError: {
-        code: "user_login_error",
-        desc: "User login is required."
     },
     multipleMatchingTokens: {
         code: "multiple_matching_tokens",
@@ -213,17 +198,8 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown if authority type is not valid.
-     * @param invalidAuthorityError
-     */
-    static createInvalidAuthorityTypeError(givenUrl: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidAuthorityType.code,
-            `${ClientAuthErrorMessage.invalidAuthorityType.desc} Given Url: ${givenUrl}`);
-    }
-
-    /**
      * Creates an error thrown when the hash cannot be deserialized.
-     * @param invalidAuthorityError
+     * @param hashParamObj
      */
     static createHashNotDeserializedError(hashParamObj: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.hashNotDeserialized.code,
@@ -232,7 +208,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the state cannot be parsed.
-     * @param invalidState 
+     * @param invalidState
      */
     static createInvalidStateError(invalidState: string, errorString?: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code,
@@ -256,34 +232,10 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the cached account and response account do not match.
-     */
-    static createAccountMismatchError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.accountMismatchError.code,
-            ClientAuthErrorMessage.accountMismatchError.desc);
-    }
-
-    /**
      * Creates an error thrown when the authorization code required for a token request is null or empty.
      */
     static createNoTokensFoundError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code, ClientAuthErrorMessage.noTokensFoundError.desc);
-    }
-
-    /**
-     * Creates an error in cache parsing.
-     */
-    static createCacheParseError(cacheKey: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.cacheParseError.code,
-            `${ClientAuthErrorMessage.cacheParseError.desc} Cache key: ${cacheKey}`);
-    }
-
-    /**
-     * Throws error when renewing token without login.
-     */
-    static createUserLoginRequiredError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.userLoginRequiredError.code,
-            ClientAuthErrorMessage.userLoginRequiredError.desc);
     }
 
     /**
@@ -394,7 +346,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error if crypto object not found.
-     * @param operationName 
+     * @param operationName
      */
     static createNoCryptoObjectError(operationName: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noCryptoObj.code, `${ClientAuthErrorMessage.noCryptoObj.desc}${operationName}`);

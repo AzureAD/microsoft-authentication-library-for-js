@@ -35,12 +35,12 @@
     "build-storybook": "build-storybook"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.2.0",
+    "@azure/msal-browser": "^2.3.1",
     "react": ">=16"
   },
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
-    "@azure/msal-browser": "^2.2.0",
+    "@azure/msal-browser": "^2.3.1",
     "@babel/core": "^7.10.5",
     "@storybook/addon-actions": "^5.3.19",
     "@storybook/addon-docs": "^5.3.19",

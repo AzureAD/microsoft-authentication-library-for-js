@@ -1,89 +1,60 @@
-import * as React from "react";
-import { useContext } from "react";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import React, { FunctionComponent, useState, useEffect, useContext, ReactNode } from "react";
 import {
     IPublicClientApplication,
     AccountInfo,
-    AuthenticationResult,
-    AuthorizationUrlRequest,
-    EndSessionRequest,
+    EventType,
+    EventMessage
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 
 export type MsalProviderProps = {
     instance: IPublicClientApplication;
+    children?: ReactNode
 };
 
-export const MsalProvider: React.FunctionComponent<MsalProviderProps> = ({instance, children}) => {
+export const MsalProvider: FunctionComponent<MsalProviderProps> = ({instance, children}: MsalProviderProps) => {
     // State hook to store accounts
-    const [accounts, setAccounts] = React.useState<AccountInfo[]>(
+    const [accounts, setAccounts] = useState<AccountInfo[]>(
         instance.getAllAccounts()
     );
 
-    // Callback to update accounts after MSAL APIs are invoked
-    const updateContextState = React.useCallback(() => {
-        setAccounts(instance.getAllAccounts());
+    const [loginInProgress, setLoginInProgress] = useState<boolean>(false);
+
+    useEffect(() => {
+        instance.addEventCallback((message: EventMessage) => {
+            switch (message.eventType) {
+                case EventType.LOGIN_START:
+                case EventType.SSO_SILENT_START:
+                    setLoginInProgress(true);
+                    break;
+                case EventType.LOGIN_SUCCESS:
+                case EventType.SSO_SILENT_SUCCESS:
+                    setAccounts(instance.getAllAccounts());
+                    setLoginInProgress(false);
+                    break;
+                case EventType.LOGIN_FAILURE:
+                case EventType.SSO_SILENT_FAILURE:
+                    setLoginInProgress(false);
+                    break;
+                case EventType.ACQUIRE_TOKEN_SUCCESS:
+                case EventType.LOGOUT_SUCCESS:
+                    setAccounts(instance.getAllAccounts());
+                    break;
+            }
+        });
     }, [instance]);
 
-    // Wrapped instance of MSAL that updates accounts after MSAL APIs are invoked
-    const wrappedInstance = React.useMemo<IPublicClientApplication>(() => {
-        return {
-            acquireTokenPopup: instance.acquireTokenPopup.bind(instance),
-            acquireTokenRedirect: instance.acquireTokenRedirect.bind(instance),
-            acquireTokenSilent: instance.acquireTokenSilent.bind(instance),
-            getAllAccounts: instance.getAllAccounts.bind(instance),
-            getAccountByUsername: instance.getAccountByUsername.bind(instance),
-            getAccountByHomeId: instance.getAccountByHomeId.bind(instance),
-            handleRedirectPromise: async (): Promise<AuthenticationResult | null> => {
-                const response = await instance.handleRedirectPromise.call(
-                    instance
-                );
-
-                if (response) {
-                    updateContextState();
-                }
-
-                return response;
-            },
-            loginPopup: async (
-                request: AuthorizationUrlRequest
-            ): Promise<AuthenticationResult> => {
-                const response = await instance.loginPopup.call(
-                    instance,
-                    request
-                );
-                updateContextState();
-                return response;
-            },
-            loginRedirect: instance.loginRedirect.bind(instance),
-            logout: async (
-                logoutRequest?: EndSessionRequest | undefined
-            ): Promise<void> => {
-                await instance.logout.call(instance, logoutRequest);
-                updateContextState();
-            },
-            ssoSilent: async (
-                request: AuthorizationUrlRequest
-            ): Promise<AuthenticationResult> => {
-                const response = await instance.ssoSilent.call(
-                    instance,
-                    request
-                );
-                updateContextState();
-                return response;
-            },
-        };
-    }, [instance, updateContextState]);
-
     // Memoized context value
-    const contextValue = React.useMemo<IMsalContext>(
-        () => ({
-            instance: wrappedInstance,
-            state: {
-                accounts,
-            },
-        }),
-        [wrappedInstance, accounts]
-    );
+    const contextValue: IMsalContext = {
+        instance,
+        loginInProgress,
+        accounts
+    };
 
     return (
         <MsalContext.Provider value={contextValue}>

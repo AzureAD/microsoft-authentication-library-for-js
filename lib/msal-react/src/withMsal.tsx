@@ -1,30 +1,20 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import React from "react";
 
 import { IMsalContext } from "./MsalContext";
 import { useMsal } from "./MsalProvider";
+import { Subtract } from "./utilities";
 
-/*
- * Utility types
- * Reference: https://github.com/piotrwitek/utility-types
- */
-type SetDifference<A, B> = A extends B ? never : A;
-type SetComplement<A, A1 extends A> = SetDifference<A, A1>;
-type Subtract<T extends T1, T1 extends object> = Pick<
-T,
-SetComplement<keyof T, keyof T1>
->;
-
-export interface IWithMsalProps {
+export type WithMsalProps = {
     msalContext: IMsalContext;
-}
+};
 
-export const withMsal = <P extends IWithMsalProps>(
-    Component: React.ComponentType<P>
-) => {
-    const ComponentWithMsal: React.FunctionComponent<Subtract<
-    P,
-    IWithMsalProps
-    >> = props => {
+export const withMsal = <P extends WithMsalProps>(Component: React.ComponentType<P>) => {
+    const ComponentWithMsal: React.FunctionComponent<Subtract<P,WithMsalProps>> = props => {
         const msal = useMsal();
         return <Component {...(props as P)} msalContext={msal} />;
     };

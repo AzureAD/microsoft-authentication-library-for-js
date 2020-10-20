@@ -51,7 +51,7 @@ const config = {
     auth: {
         clientId: "81f752bc-1fd5-4ecf-bd58-74b556e9b46e",
         authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
-        clientSecret: "6~~nD1vY_XMj0H2_kpu4.8nn~0WD.hsCha",
+        clientSecret: "",
     }
 };
 

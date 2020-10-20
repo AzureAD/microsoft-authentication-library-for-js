@@ -8,12 +8,17 @@
     },
     "plugins": [
         "@typescript-eslint/eslint-plugin-tslint",
-        "security"
+        "security",
+        "import",
+        "header"
     ],
     "extends": [
         "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended",
-        "plugin:security/recommended"
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:security/recommended",
+        "plugin:import/typescript"
     ],
     "rules": {
         "@typescript-eslint/array-type": 0,
@@ -28,13 +33,23 @@
         "@typescript-eslint/no-empty-function": 1,
         "@typescript-eslint/no-inferrable-types": 0,
         "@typescript-eslint/no-object-literal-type-assertion": 0,
+        "@typescript-eslint/no-unused-vars": 2,
         "@typescript-eslint/prefer-interface": 0,
         "@typescript-eslint/semi": 2,
         "@typescript-eslint/type-annotation-spacing": 0,
         "eol-last": 2,
+        "header/header": [2, "block", [ "", " * Copyright (c) Microsoft Corporation. All rights reserved.", " * Licensed under the MIT License.", " " ], 2],
+        "import/first": 2,
+        "import/no-unresolved": 2,
+        "import/no-useless-path-segments": 2,
+        "import/no-extraneous-dependencies": 2,
+        "import/no-unused-modules": 2,
+        "import/no-commonjs": 2,
+        "import/no-duplicates": 2,
         "multiline-comment-style": [2, "starred-block" ],
         "no-multiple-empty-lines": [2, { "max": 1 }],
         "no-var": 2,
+        "no-console": 2,
         "prefer-const": 2,
         "quotes": [2, "double"],
         "spaced-comment": 2

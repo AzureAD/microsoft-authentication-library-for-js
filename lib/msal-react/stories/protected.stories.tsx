@@ -1,5 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import * as React from "react";
-import { MsalProvider, MsalAuthenticationTemplate, InteractionType } from "../src";
+import { MsalProvider, MsalAuthenticationTemplate } from "../src";
+import { InteractionType } from "@azure/msal-browser";
 
 import { msalInstance } from "./msalInstance";
 
