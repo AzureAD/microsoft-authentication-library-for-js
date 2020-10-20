@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Add removeEventCallback API (#2462)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-20T21:41:15.901Z"
+}

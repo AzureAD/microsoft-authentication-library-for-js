@@ -49,7 +49,7 @@ export abstract class ClientApplication {
     protected isBrowserEnvironment: boolean;
 
     // Callback for subscribing to events
-    private eventCallbacks: EventCallbackFunction[];
+    private eventCallbacks: Map<string, EventCallbackFunction>;
 
     /**
      * @constructor
@@ -99,7 +99,7 @@ export abstract class ClientApplication {
         this.logger = new Logger(this.config.system.loggerOptions);
 
         // Array of events
-        this.eventCallbacks = [];
+        this.eventCallbacks = new Map();
 
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
@@ -122,7 +122,7 @@ export abstract class ClientApplication {
                 .then((result: AuthenticationResult) => {
                     if (result) {
                         // Emit login event if number of accounts change
-                        const isLoggingIn = loggedInAccounts.length !== this.getAllAccounts().length;
+                        const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
                         if (isLoggingIn) {
                             this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
                         } else {
@@ -386,7 +386,7 @@ export abstract class ClientApplication {
             const result = await interactionHandler.handleCodeResponse(hash);
 
             // If logged in, emit acquire token events
-            const isLoggingIn = loggedInAccounts.length > this.getAllAccounts().length;
+            const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
             if (isLoggingIn) {
                 this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Popup, result);
             } else {
@@ -890,8 +890,8 @@ export abstract class ClientApplication {
     
             this.logger.info(`Emitting event: ${eventType}`);
     
-            this.eventCallbacks.forEach((callback) => {
-                this.logger.verbose(`Emitting event to callback: ${eventType}`);
+            this.eventCallbacks.forEach((callback: EventCallbackFunction, callbackId: string) => {
+                this.logger.verbose(`Emitting event to callback ${callbackId}: ${eventType}`);
                 callback.apply(null, [message]);
             });
         }
@@ -901,11 +901,21 @@ export abstract class ClientApplication {
      * Adds event callbacks to array
      * @param callback 
      */
-    addEventCallback(callback: EventCallbackFunction) {
+    addEventCallback(callback: EventCallbackFunction): string | null {
         if (this.isBrowserEnvironment) {
-            this.logger.verbose("Event callback registered");
-            this.eventCallbacks.push(callback);
+            const callbackId = this.browserCrypto.createNewGuid();
+            this.eventCallbacks.set(callbackId, callback);
+            this.logger.verbose(`Event callback registered with id: ${callbackId}`);
+
+            return callbackId;
         }
+
+        return null;
+    }
+
+    removeEventCallback(callbackId: string): void {
+        this.eventCallbacks.delete(callbackId);
+        this.logger.verbose(`Event callback ${callbackId} removed.`);
     }
 
     // #endregion
