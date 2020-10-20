@@ -19,7 +19,7 @@ export function useMsalAuthentication(
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest, 
     accountIdentifier?: AccountIdentifiers
 ): MsalAuthenticationResult {
-    const msal = useMsal();
+    const { instance, loginInProgress } = useMsal();
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
     const [result, setResult] = useState<AuthenticationResult|null>(null);
     const [error, setError] = useState<AuthError|null>(null);
@@ -27,27 +27,25 @@ export function useMsalAuthentication(
     const login = useCallback((loginType: InteractionType, request?: PopupRequest|RedirectRequest|SsoSilentRequest): Promise<AuthenticationResult|null> => {
         switch (loginType) {
             case InteractionType.Popup:
-                return msal.instance.loginPopup(request as PopupRequest);
+                return instance.loginPopup(request as PopupRequest);
             case InteractionType.Redirect:
                 // This promise is not expected to resolve due to full frame redirect
-                return msal.instance.loginRedirect(request as RedirectRequest).then(null);
+                return instance.loginRedirect(request as RedirectRequest).then(null);
             case InteractionType.Silent:
-                return msal.instance.ssoSilent(request as SsoSilentRequest);
+                return instance.ssoSilent(request as SsoSilentRequest);
             default:
                 throw "Invalid interaction type provided.";
         }
-    }, [msal, authenticationRequest, interactionType]);
+    }, [instance, authenticationRequest, interactionType]);
 
     useEffect(() => {
-        /*
-         * TODO: Check whether login is already in progress
-         */
-        if (!isAuthenticated) {
+        if (!isAuthenticated && !loginInProgress) {
             login(interactionType, authenticationRequest)
                 .then(result => setResult(result))
                 .catch(error => setError(error));
         }
-    }, [isAuthenticated]);
+
+    }, [isAuthenticated, loginInProgress]);
 
     return { login, result, error };
 }

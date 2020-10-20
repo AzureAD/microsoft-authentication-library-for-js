@@ -32,8 +32,8 @@ export const MsalProvider: FunctionComponent<MsalProviderProps> = ({instance, ch
                     setLoginInProgress(true);
                     break;
                 case EventType.LOGIN_SUCCESS:
-                    setLoginInProgress(false);
                     setAccounts(instance.getAllAccounts());
+                    setLoginInProgress(false);
                     break;
                 case EventType.LOGIN_FAILURE:
                     setLoginInProgress(false);

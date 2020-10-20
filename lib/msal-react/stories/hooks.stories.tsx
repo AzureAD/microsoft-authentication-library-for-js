@@ -38,10 +38,17 @@ UseIsAuthenticatedHook.story = { name: "useIsAuthenticated" };
 
 export const UseMsalAuthenticationHook = () => (
     <MsalProvider instance={msalInstance}>
-        <UseMsalAuthenticationEample />
+        <UseMsalAuthenticationExample />
     </MsalProvider>
 );
 UseMsalAuthenticationHook.story = { name: "useMsalAuthentication" };
+
+export const UseMsalAuthenticationHookSilently = () => (
+    <MsalProvider instance={msalInstance}>
+        <UseSilentMsalAuthenticationExample />
+    </MsalProvider>
+);
+UseMsalAuthenticationHookSilently.story = { name: "useMsalAuthentication with ssoSilent" };
 
 const UseMsalExample = () => {
     const context = useMsal();
@@ -62,7 +69,7 @@ const UseIsAuthenticatedExample = () => {
     
     return (
         <React.Fragment>
-            <p>The <pre style={{display: "inline"}}>useIsAuthenticated()</pre> hook will tell you if there is at least one authenticated account. The hook also accepts an optional "username" argument, and will indicate whether the given user is authenticated.</p>
+            <p>The <pre style={{display: "inline"}}>useIsAuthenticated()</pre> hook will tell you if there is at least one authenticated account. The hook also accepts optional username and homeAccountId arguments, and will indicate whether the given user is authenticated.</p>
             
             <p>
                 {isAuthenticated && (
@@ -80,12 +87,12 @@ const UseIsAuthenticatedExample = () => {
     );
 };
 
-const UseMsalAuthenticationEample = () => {
+const UseMsalAuthenticationExample = () => {
     useMsalAuthentication(InteractionType.Popup);
     
     return (
         <React.Fragment>
-            <p>The <pre style={{display: "inline"}}>useMsalAuthentication()</pre> hook initiates the authentication process. It accepts optional parameters for a specific "username", or a custom "loginHandler" function which initiates a custom authentication flow using the MSAL API.</p>
+            <p>The <pre style={{display: "inline"}}>useMsalAuthentication()</pre> hook initiates the authentication process. You must specify what interaction type to use for authentication. It also accepts optional parameters to identify if a specific user is signed in and a request object passed to the MSAL API for authentication, if necessary.</p>
             <UnauthenticatedTemplate>
                 <p><b>Authenticating...</b></p>
             </UnauthenticatedTemplate>
@@ -98,15 +105,18 @@ const UseMsalAuthenticationEample = () => {
     );
 };
 
-const UseSilentMsalAuthenticationEample = () => {
+const UseSilentMsalAuthenticationExample = () => {
     const {login, error} = useMsalAuthentication(InteractionType.Silent);
-    if (error) {
-        login(InteractionType.Popup);
-    }
+
+    React.useEffect(() => {
+        if(error) {
+            login(InteractionType.Popup);
+        }
+    }, [error]);
     
     return (
         <React.Fragment>
-            <p>The <pre style={{display: "inline"}}>useMsalAuthentication()</pre> hook initiates the authentication process. It accepts optional parameters for a specific "username", or a custom "loginHandler" function which initiates a custom authentication flow using the MSAL API.</p>
+            <p>The <pre style={{display: "inline"}}>useMsalAuthentication()</pre> hook initiates the authentication process. You must specify what interaction type to use for authentication. It also accepts optional parameters to identify if a specific user is signed in and a request object passed to the MSAL API for authentication, if necessary.</p>
             <UnauthenticatedTemplate>
                 <p><b>Authenticating...</b></p>
             </UnauthenticatedTemplate>
