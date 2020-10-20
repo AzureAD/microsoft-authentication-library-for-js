@@ -890,8 +890,8 @@ export abstract class ClientApplication {
     
             this.logger.info(`Emitting event: ${eventType}`);
     
-            this.eventCallbacks.forEach((callback: EventCallbackFunction) => {
-                this.logger.verbose(`Emitting event to callback: ${eventType}`);
+            this.eventCallbacks.forEach((callback: EventCallbackFunction, callbackId: string) => {
+                this.logger.verbose(`Emitting event to callback ${callbackId}: ${eventType}`);
                 callback.apply(null, [message]);
             });
         }
@@ -903,9 +903,9 @@ export abstract class ClientApplication {
      */
     addEventCallback(callback: EventCallbackFunction): string | null {
         if (this.isBrowserEnvironment) {
-            this.logger.verbose("Event callback registered");
             const callbackId = this.browserCrypto.createNewGuid();
             this.eventCallbacks.set(callbackId, callback);
+            this.logger.verbose(`Event callback registered with id: ${callbackId}`);
 
             return callbackId;
         }
@@ -915,6 +915,7 @@ export abstract class ClientApplication {
 
     removeEventCallback(callbackId: string): void {
         this.eventCallbacks.delete(callbackId);
+        this.logger.verbose(`Event callback ${callbackId} removed.`);
     }
 
     // #endregion
