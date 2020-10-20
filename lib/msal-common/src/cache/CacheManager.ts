@@ -769,7 +769,7 @@ export class DefaultStorageClass extends CacheManager {
         const notImplErr = "Storage interface - setRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    getRefreshTokenCredential(): IdTokenEntity {
+    getRefreshTokenCredential(): RefreshTokenEntity {
         const notImplErr = "Storage interface - getRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
