@@ -59,7 +59,7 @@ npm install @azure/msal-browser
 ### Via CDN:
 
 ```html
-<script src="https://alcdn.msauth.net/browser/2.3.1/js/msal-browser.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.4.0/js/msal-browser.min.js"></script>
 ```
 
 See [here](./docs/cdn-usage.md) for more info on how to use this package from the Microsoft CDN.

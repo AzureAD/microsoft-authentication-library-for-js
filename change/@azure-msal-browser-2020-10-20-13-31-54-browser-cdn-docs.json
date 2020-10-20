@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Updated cdn docs for MSAL Browser",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-20T20:31:54.480Z"
-}
