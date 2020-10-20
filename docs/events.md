@@ -22,6 +22,7 @@ msalInstance.addEventCallback((message: EventMessage) => {
     // Update UI or interact with EventMessage here
     if (message.eventType === EventType.LOGIN_SUCCESS) {
         console.log(message.payload);
+     }
 });
 ```
 
@@ -33,16 +34,15 @@ This the list of events currently emitted by msal-browser.
 |------------ |:----------: |:-----------: |:------------: | :---------:|
 | `LOGIN_START` | LoginPopup or loginRedirect are called | `Popup` or `Redirect` | PopupRequest or RedirectRequest | 
 | `LOGIN_SUCCESS` | Successfully logged in |`Popup` or `Redirect`| AuthenticationResult | 
-| `LOGIN_FAILURE` | Error when logging in | `Popup` or `Redirect`|  | AuthError |
+| `LOGIN_FAILURE` | Error when logging in | `Popup` or `Redirect`|  | AuthError or Error |
 | `ACQUIRE_TOKEN_START`   | AcquireTokenPopup or acquireTokenRedirect or acquireTokenSilent are called |`Popup` or `Redirect` or `Silent`| PopupRequest or RedirectRequest or SilentRequest|  
 | `ACQUIRE_TOKEN_SUCCESS` | Successfully acquired token from cache or network |`Popup` or `Redirect` or `Silent`| AuthenticationResult |
-| `ACQUIRE_TOKEN_FAILURE` | Error when acquiring token |`Popup` or `Redirect` or `Silent`|  | AuthError |
+| `ACQUIRE_TOKEN_FAILURE` | Error when acquiring token |`Popup` or `Redirect` or `Silent`|  | AuthError or Error |
 | `ACQUIRE_TOKEN_NETWORK_START` | Starting acquiring token from network |`Silent`|               |            
 | `SSO_SILENT_START` | SsoSilent API called |`Silent`|SsoSilentRequest|
 | `SSO_SILENT_SUCCESS` | SsoSilent succeeded |`Silent`| AuthenticationResult |
-| `SSO_SILENT_FAILURE` | SsoSilent failed |`Silent`|  | AuthError |
+| `SSO_SILENT_FAILURE` | SsoSilent failed |`Silent`|  | AuthError or Error |
 | `HANDLE_REDIRECT_START` | HandleRedirectPromise called and hash being processed | `Redirect` | | 
 | `LOGOUT_START` | Logout called |`Redirect`| EndSessionRequest |
 | `LOGOUT_SUCCESS` | Logout success |`Redirect`|EndSessionRequest|
-| `LOGOUT_FAILURE`| Logout failed|`Redirect`|  | Error |
-|
+| `LOGOUT_FAILURE`| Logout failed|`Redirect`|  | AuthError or Error |
