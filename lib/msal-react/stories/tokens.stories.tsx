@@ -4,7 +4,7 @@
  */
 
 import React, {  useState, useCallback } from "react";
-import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from "../src";
+import { MsalProvider, useMsal, UnauthenticatedTemplate } from "../src";
 
 import { msalInstance } from "./msalInstance";
 import { AccountInfo } from "@azure/msal-browser";
@@ -32,7 +32,7 @@ export const AcquireTokenPopup = () => (
 );
 
 const AcquireTokenSilentExample = () => {
-    const { instance, state } = useMsal();
+    const { instance, accounts } = useMsal();
 
     const getTokenClick = useCallback(async (setter: React.Dispatch<React.SetStateAction<string>>, account: AccountInfo) => {
         const tokenResponse = await instance.acquireTokenSilent({
@@ -47,7 +47,7 @@ const AcquireTokenSilentExample = () => {
 
     return (
         <React.Fragment>
-            {state.accounts.map((account) => (
+            {accounts.map((account) => (
                 <AccountTokenFetcher key={account.homeAccountId} onFetch={getTokenClick} account={account} />
             ))}
         </React.Fragment>
@@ -56,7 +56,7 @@ const AcquireTokenSilentExample = () => {
 };
 
 const AcquireTokenPopupExample = () => {
-    const { instance, state } = useMsal();
+    const { instance, accounts } = useMsal();
 
     const getTokenClick = useCallback(async (setter: React.Dispatch<React.SetStateAction<string>>, account: AccountInfo) => {
         const tokenResponse = await instance.acquireTokenPopup({
@@ -71,7 +71,7 @@ const AcquireTokenPopupExample = () => {
 
     return (
         <React.Fragment>
-            {state.accounts.map((account) => (
+            {accounts.map((account) => (
                 <AccountTokenFetcher key={account.homeAccountId} onFetch={getTokenClick} account={account} />
             ))}
         </React.Fragment>
@@ -84,7 +84,7 @@ interface IAccountTokenFetcherProps {
     account: AccountInfo;
 }
 
-const AccountTokenFetcher: React.FunctionComponent<IAccountTokenFetcherProps> = ({ onFetch, account }) => {
+const AccountTokenFetcher: React.FunctionComponent<IAccountTokenFetcherProps> = ({ onFetch, account }: IAccountTokenFetcherProps) => {
     const [ accessToken, setAccessToken ] = useState<string | undefined>(undefined);
 
     return (

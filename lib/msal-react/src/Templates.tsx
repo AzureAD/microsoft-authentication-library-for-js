@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import React from "react";
+import React, { ReactNode } from "react";
 
 import { useMsal } from "./MsalProvider";
 import { useMsalAuthentication } from "./useMsalAuthentication";
@@ -14,14 +14,14 @@ import { InteractionType, PopupRequest, RedirectRequest, SsoSilentRequest } from
 export interface IMsalTemplateProps {
     username?: string,
     homeAccountId?: string
+    children?: ReactNode
 }
 
 /**
  * Renders child components if user is unauthenticated
  * @param props 
  */
-export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
-    const { children, username, homeAccountId } = props;
+export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = ({ username, homeAccountId, children }: IMsalTemplateProps) => {
     const context = useMsal();
     const accountIdentifier: AccountIdentifiers = {
         username,
@@ -43,8 +43,7 @@ export const UnauthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps
  * Renders child components if user is authenticated
  * @param props 
  */
-export const AuthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = props => {
-    const { children, username, homeAccountId } = props;
+export const AuthenticatedTemplate: React.FunctionComponent<IMsalTemplateProps> = ({ username, homeAccountId, children }: IMsalTemplateProps) => {
     const context = useMsal();
     const accountIdentifier: AccountIdentifiers = {
         username,
@@ -66,7 +65,8 @@ export interface IMsalAuthenticationProps {
     interactionType: InteractionType;
     username?: string;
     homeAccountId?: string;
-    authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest
+    authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest;
+    children?: ReactNode
 }
 
 /**
@@ -79,7 +79,7 @@ export const MsalAuthenticationTemplate: React.FunctionComponent<IMsalAuthentica
     homeAccountId, 
     authenticationRequest, 
     children 
-}) => {
+}: IMsalAuthenticationProps) => {
     const accountIdentifier: AccountIdentifiers = {
         username,
         homeAccountId
