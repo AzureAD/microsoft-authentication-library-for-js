@@ -578,10 +578,11 @@ export class BrowserStorage extends CacheManager {
     cleanRequest(stateString?: string): void {
         // Interaction is completed - remove interaction status.
         this.removeItem(this.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
-
-        const stateCacheKey = this.generateStateKey(TemporaryCacheKeys.REQUEST_STATE);
-        const cachedState = this.getTemporaryCache(stateCacheKey);
-        this.resetRequestCache(cachedState || "");
+        if (stateString) {
+            const stateKey = this.generateStateKey(stateString);
+            const cachedState = this.getItem(stateKey);
+            this.resetRequestCache(cachedState || "");
+        }
     }
 
     cacheCodeRequest(authCodeRequest: AuthorizationCodeRequest, browserCrypto: ICrypto): void {
