@@ -40,7 +40,7 @@ type kv = {
     [key: string]: string;
 };
 
-describe.only("UserAgentApplication.ts Class", function () {
+describe("UserAgentApplication.ts Class", function () {
     // Test state params
     sinon.stub(TimeUtils, "now").returns(TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK);
     const TEST_LIBRARY_STATE = RequestUtils.generateLibraryState(Constants.interactionTypeRedirect);
