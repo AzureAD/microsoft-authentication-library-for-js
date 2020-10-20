@@ -1,8 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import "mocha";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
@@ -20,6 +23,8 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
+chai.use(chaiAsPromised);
+const expect = chai.expect;
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -1806,7 +1811,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("broadcastEvent and addEventCallback tests", () => {
+    describe("Event API tests", () => {
         it("can add an event callback and broadcast to it", (done) => {
             const subscriber = (message) => {
                 expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
@@ -1816,6 +1821,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             pca.addEventCallback(subscriber);
             pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+        });
+
+        it("can remove an event callback", (done) => {
+            const subscriber = (message) => {
+                expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
+                expect(message.interactionType).to.deep.eq(InteractionType.Popup);
+            };
+
+            const callbackSpy = sinon.spy(subscriber);
+
+            const callbackId = pca.addEventCallback(callbackSpy);
+            pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+            pca.removeEventCallback(callbackId);
+            pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+            expect(callbackSpy.calledOnce).to.be.true;
+            done();
         });
 
         it("can add multiple callbacks and broadcast to all", (done) => {
