@@ -1,6 +1,8 @@
-// Browser check variables
-// If you support IE, our recommendation is that you sign-in using Redirect APIs
-// If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
+/*
+ * Browser check variables
+ * If you support IE, our recommendation is that you sign-in using Redirect APIs
+ * If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
+ */
 const ua = window.navigator.userAgent;
 const msie = ua.indexOf("MSIE ");
 const msie11 = ua.indexOf("Trident/");
@@ -11,8 +13,10 @@ const isEdge = msedge > 0;
 let signInType;
 let accountId = "";
 
-// Create the main myMSALObj instance
-// configuration parameters are located at authConfig.js
+/*
+ * Create the main myMSALObj instance
+ * configuration parameters are located at authConfig.js
+ */
 const myMSALObj = new msal.PublicClientApplication(msalConfig); 
 
 // Register Callbacks for Redirect flow
@@ -46,7 +50,7 @@ async function signIn(method) {
             console.log(error);
         });
     } else if (signInType === "loginRedirect") {
-        return myMSALObj.loginRedirect(loginRequest)
+        return myMSALObj.loginRedirect(loginRequest);
     }
 }
 
