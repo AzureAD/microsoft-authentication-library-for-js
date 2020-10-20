@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Add docs for event API",
+  "comment": "Add docs for event API (#2459)",
   "packageName": "@azure/msal-browser",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "none",
