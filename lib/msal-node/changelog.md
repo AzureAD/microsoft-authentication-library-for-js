@@ -1,8 +1,45 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 17 Sep 2020 23:16:22 GMT and should not be manually modified.
+This log was last generated on Thu, 15 Oct 2020 00:49:18 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.11
+
+Thu, 15 Oct 2020 00:49:18 GMT
+
+### Changes
+
+- Export all "Request" types in msal-node (sameera.gajjarapu@microsoft.com)
+
+## 1.0.0-alpha.10
+
+Wed, 14 Oct 2020 23:45:07 GMT
+
+### Changes
+
+- Docs update for msal-node release (sameera.gajjarapu@microsoft.com)
+- Export error types for msal-node (sameera.gajjarapu@microsoft.com)
+- Add uuid as dependency in msal-node package.json so it is installed with the library (hectormgdev@gmail.com)
+- Update TokenCache interface (#2348) (sameera.gajjarapu@microsoft.com)
+
+## 1.0.0-alpha.9
+
+Fri, 02 Oct 2020 17:42:35 GMT
+
+### Changes
+
+- Dummy implementation of access token proof-of-possession (prkanher@microsoft.com)
+
+## 1.0.0-alpha.7
+
+Wed, 23 Sep 2020 21:13:48 GMT
+
+### Changes
+- Make network interface public (#2335) (sameera.gajjarapu@microsoft.com)
+- Rename TokenCache.cacheHasChanged to TokenCache.hasChanged (#2332) (sagonzal@microsoft.com)
+- FOCI - Family of Client IDs feature (#2201) (sameera.gajjarapu@microsoft.com)
+- Fix issue with token cache not removing old cache entities (#2304) (sagonzal@microsoft.com)
 
 ## 1.0.0-alpha.6
 

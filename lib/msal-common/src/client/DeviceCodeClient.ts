@@ -12,7 +12,6 @@ import { Constants, GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
@@ -44,17 +43,19 @@ export class DeviceCodeClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response);
-        const tokenResponse = responseHandler.handleServerTokenResponse(
+        return await responseHandler.handleServerTokenResponse(
             response,
-            this.authority
+            this.authority,
+            request.resourceRequestMethod,
+            request.resourceRequestUri
         );
-
-        return tokenResponse;
     }
 
     /**

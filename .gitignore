@@ -261,6 +261,7 @@ paket-files/
 # MSAL specific ignore files
 node_modules/
 .nyc_output/
+coverage/
 typings/
 lib-commonjs/
 lib-es6/

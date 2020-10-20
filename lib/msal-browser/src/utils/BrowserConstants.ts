@@ -72,11 +72,14 @@ export enum ApiId {
  * Interaction type of the API - used for state and telemetry
  */
 export enum InteractionType {
-    REDIRECT = "redirect",
-    POPUP = "popup",
-    SILENT = "silent"
+    Redirect = "redirect",
+    Popup = "popup",
+    Silent = "silent"
 }
 
 export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
+
+// JWK Key Format string (Type MUST be defined for window crypto APIs)
+export const KEY_FORMAT_JWK = "jwk";

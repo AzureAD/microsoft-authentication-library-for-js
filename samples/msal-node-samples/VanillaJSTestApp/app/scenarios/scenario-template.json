@@ -1,0 +1,29 @@
+{
+    "authOptions":
+        {
+            "clientId": "",
+            "authority": ""
+        },
+    "request":
+    {
+        "authCodeUrlParameters": {
+            "scopes": [],
+            "redirectUri": ""
+        },
+        "tokenRequest": {
+            "code": "",
+            "redirectUri": "",
+            "scopes": []
+        }
+    },
+    "resource":
+    {
+        "resourceEndpoint": ""
+    }, 
+    "sample": 
+    {
+        "appType": "",
+        "flow": "",
+        "clientType": ""
+    }
+}

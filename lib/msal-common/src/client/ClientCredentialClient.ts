@@ -8,12 +8,12 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType } from "../utils/Constants";
+import { GrantType , CredentialType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
-import { CredentialType } from "../utils/Constants";
+
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
@@ -39,7 +39,7 @@ export class ClientCredentialClient extends BaseClient {
             return await this.executeTokenRequest(request, this.authority);
         }
 
-        const cachedAuthenticationResult = this.getCachedAuthenticationResult();
+        const cachedAuthenticationResult = await this.getCachedAuthenticationResult();
         if (cachedAuthenticationResult != null) {
             return cachedAuthenticationResult;
         } else {
@@ -47,19 +47,25 @@ export class ClientCredentialClient extends BaseClient {
         }
     }
 
-    private getCachedAuthenticationResult(): AuthenticationResult {
+    private async getCachedAuthenticationResult(): Promise<AuthenticationResult> {
         const cachedAccessToken = this.readAccessTokenFromCache();
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             return null;
         }
-        return ResponseHandler.generateAuthenticationResult({
-            account: null,
-            accessToken: cachedAccessToken,
-            idToken: null,
-            refreshToken: null,
-            appMetadata: null
-        }, null, true);
+
+        return await ResponseHandler.generateAuthenticationResult(
+            this.cryptoUtils,
+            {
+                account: null,
+                accessToken: cachedAccessToken,
+                idToken: null,
+                refreshToken: null,
+                appMetadata: null
+            }, 
+            null, 
+            true
+        );
     }
 
     private readAccessTokenFromCache(): AccessTokenEntity {
@@ -98,13 +104,17 @@ export class ClientCredentialClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(
+        const tokenResponse = await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
+            request.resourceRequestMethod,
+            request.resourceRequestUri,
             null,
             null,
             request.scopes
