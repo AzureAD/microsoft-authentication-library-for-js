@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Fix issue where concurrent acquireTokenSilent call closed window used by acquireTokenPopup (#2355)",
+  "packageName": "msal",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-20T18:32:01.957Z"
+}
