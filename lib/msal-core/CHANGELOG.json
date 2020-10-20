@@ -2,6 +2,48 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Wed, 14 Oct 2020 23:45:07 GMT",
+      "tag": "msal_v1.4.1",
+      "version": "1.4.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add CDN doc for msal-core",
+            "author": "janutter@microsoft.com",
+            "commit": "b6e2d705415360f637e6bd2b45b9cf555f2c9431",
+            "package": "msal"
+          },
+          {
+            "comment": "Update docs to explain B2C invite flow (#2392)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "319fe7bb2f6e2c7ea905d1df10ed7665d64264f3",
+            "package": "msal"
+          },
+          {
+            "comment": "Increment core version constant for 1.4.1",
+            "author": "janutter@microsoft.com",
+            "commit": "e2a48cb3462109ac3f625d0727aec1c6f4ae5248",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "msal_v1.4.1",
+      "version": "1.4.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix ID Token cache lookup. PR #2206",
+            "author": "hemoral@microsoft.com",
+            "commit": "23ddd4ab6632d932a8fd4dd276b39c7c8202ff6c",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
       "tag": "msal_v1.4.0",
       "version": "1.4.0",

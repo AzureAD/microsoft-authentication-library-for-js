@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import TelemetryEvent from "./TelemetryEvent";
 import {
     CompletedEvents,
@@ -13,10 +18,6 @@ import { libraryVersion, Constants } from "../utils/Constants";
 import ApiEvent, { API_EVENT_IDENTIFIER } from "./ApiEvent";
 import { Logger } from "../Logger";
 import HttpEvent from "./HttpEvent";
-
-// for use in cache events
-const MSAL_CACHE_EVENT_VALUE_PREFIX = "msal.token";
-const MSAL_CACHE_EVENT_NAME = "msal.cache_event";
 
 export default class TelemetryManager {
 

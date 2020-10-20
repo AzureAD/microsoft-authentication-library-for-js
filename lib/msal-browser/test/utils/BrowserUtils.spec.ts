@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import { BrowserUtils } from "../../src/utils/BrowserUtils"
+import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TEST_URIS } from "./StringConstants";
 import { XhrClient } from "../../src/network/XhrClient";
 import { FetchClient } from "../../src/network/FetchClient";
@@ -11,6 +11,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     afterEach(() => {
         sinon.restore();
         oldWindow = window;
+        window.Headers = undefined;
         window.fetch = undefined;
     });
 
@@ -58,22 +59,22 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
 
     it("clearHash() clears the window hash", () => {
         window.location.hash = "thisIsAHash";
-        BrowserUtils.clearHash()
-        expect(window.location.hash).to.be.empty;
+        BrowserUtils.clearHash();
+        expect(window.location.href.includes("#thisIsAHash")).to.be.false;
     });
 
     it("replaceHash replaces the current window hash with the hash from the provided url", () => {
         window.location.hash = "thisIsAHash";
         const url = "http://localhost/#";
-        const testHash = "replacementHash"
-        BrowserUtils.replaceHash(url + testHash)
+        const testHash = "replacementHash";
+        BrowserUtils.replaceHash(url + testHash);
         expect(window.location.hash).to.be.eq(testHash);
     });
 
     it("replaceHash clears the current window hash when provided url does not have hash", () => {
         window.location.hash = "thisIsAHash";
         const url = "http://localhost/";
-        BrowserUtils.replaceHash(url)
+        BrowserUtils.replaceHash(url);
         expect(window.location.hash).to.be.eq("");
     });
     
@@ -91,6 +92,9 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         window.fetch = (input: RequestInfo, init?: RequestInit): Promise<Response> => {
             return null;
         };
+        // @ts-ignore
+        window.Headers = () => {};
+
         expect(BrowserUtils.getBrowserNetworkClient() instanceof FetchClient).to.be.true;
     });
 

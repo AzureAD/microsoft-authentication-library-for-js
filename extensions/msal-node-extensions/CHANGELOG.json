@@ -2,6 +2,57 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Wed, 14 Oct 2020 23:45:07 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.4",
+      "version": "1.0.0-alpha.4",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Update PersistenceCachePlugin (#2348)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "26723689e35918c59bd6ce58ba8cb886118676c6",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.3",
+      "version": "1.0.0-alpha.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updating the pre-release version(#2342)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "bc3f324edd6cf83937c31f73d3aefc6dbaf5f748",
+            "package": "@azure/msal-node-extensions"
+          },
+          {
+            "comment": "Update changelog versions for msal-node and extensions (#2336)",
+            "author": "hemoral@microsoft.com",
+            "commit": "323875a725e0d5049ff6742a9ca5160c2d4b7d0d",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 23 Sep 2020 21:13:48 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.3",
+      "version": "1.0.0-alpha.3",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Update error message (#2265)",
+            "author": "sagonzal@microsoft.com",
+            "commit": "81d044a2a4640ebfa8b3bd80cb30cc2c602bbef1",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 17 Sep 2020 23:16:22 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0",
       "version": "1.0.0-alpha.2",
