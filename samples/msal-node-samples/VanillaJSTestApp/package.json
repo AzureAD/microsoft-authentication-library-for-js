@@ -7,7 +7,7 @@
     "start": "node index.js",
     "build:package": "cd ../../../lib/msal-node && npm run build:all",
     "start:build": "npm run build:package && npm start",
-    "test:e2e": "npm run build:package && ts-node ./testRunner.ts"
+    "test:e2e": "ts-node ./testRunner.ts"
   },
   "author": "",
   "license": "MIT",

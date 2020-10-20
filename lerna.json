@@ -9,8 +9,7 @@
         "@azure/msal-angular",
         "@azure/msal-node",
         "vanilla-js-test-app",
-        "vanilla-js-test-app-2.0",
-        "vanilla-js-node-test-app"
+        "vanilla-js-test-app-2.0"
       ],
       "stream": true
     }
