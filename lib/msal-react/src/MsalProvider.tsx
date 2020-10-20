@@ -29,17 +29,19 @@ export const MsalProvider: FunctionComponent<MsalProviderProps> = ({instance, ch
         instance.addEventCallback((message: EventMessage) => {
             switch (message.eventType) {
                 case EventType.LOGIN_START:
+                case EventType.SSO_SILENT_START:
                     setLoginInProgress(true);
                     break;
                 case EventType.LOGIN_SUCCESS:
+                case EventType.SSO_SILENT_SUCCESS:
                     setAccounts(instance.getAllAccounts());
                     setLoginInProgress(false);
                     break;
                 case EventType.LOGIN_FAILURE:
+                case EventType.SSO_SILENT_FAILURE:
                     setLoginInProgress(false);
                     break;
                 case EventType.ACQUIRE_TOKEN_SUCCESS:
-                case EventType.SSO_SILENT_SUCCESS:
                 case EventType.LOGOUT_SUCCESS:
                     setAccounts(instance.getAllAccounts());
                     break;
