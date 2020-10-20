@@ -609,8 +609,9 @@ export class UserAgentApplication {
                         // TODO: Check how this can be extracted for any framework specific code?
                         if (this.config.framework.isAngular) {
                             this.broadcast("msal:popUpHashChanged", hash);
-                            WindowUtils.closePopups();
                         }
+                        
+                        WindowUtils.closePopups();
                     } catch (error) {
                         if (reject) {
                             reject(error);
@@ -1218,9 +1219,6 @@ export class UserAgentApplication {
 
         const tokenResponseCallback = window.callbackMappedToRenewStates[stateInfo.state];
         this.processCallBack(locationHash, stateInfo, tokenResponseCallback);
-
-        // If current window is opener, close all windows
-        WindowUtils.closePopups();
     }
 
     /**
