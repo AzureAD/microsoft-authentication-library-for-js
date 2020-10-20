@@ -3,6 +3,6 @@
   "comment": "Fix issues with ID token caching and cache lookup (#2376)",
   "packageName": "msal",
   "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-10-07T21:20:34.100Z"
 }
