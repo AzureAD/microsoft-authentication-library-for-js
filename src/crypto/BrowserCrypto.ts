@@ -1,8 +1,8 @@
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
- * 
  */
+
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
@@ -137,7 +137,6 @@ export class BrowserCrypto {
      * @param data 
      */
     private async getSubtleCryptoDigest(algorithm: string, data: Uint8Array): Promise<ArrayBuffer> {
-        console.log(algorithm);
         return window.crypto.subtle.digest(algorithm, data);
     }
 
