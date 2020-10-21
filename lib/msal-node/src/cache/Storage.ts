@@ -5,18 +5,18 @@
 
 import {
     AccountEntity,
+    IdTokenEntity,
     AccessTokenEntity,
     RefreshTokenEntity,
-    IdTokenEntity,
     AppMetadataEntity,
+    ServerTelemetryEntity,
+    ThrottlingEntity,
     CacheManager,
     Logger,
     ValidCacheType,
     CredentialEntity,
-    ThrottlingEntity,
     CredentialType
 } from "@azure/msal-common";
-import { ServerTelemetryEntity } from "@azure/msal-common/dist/src/cache/entities/ServerTelemetryEntity";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerTypes";
@@ -172,7 +172,7 @@ export class Storage extends CacheManager {
      * @param key
      */
     getAccount(key: string): AccountEntity | null {
-        const account: AccountEntity = this.getItem(key) as AccountEntity;
+        const account = this.getItem(key) as AccountEntity;
         if (AccountEntity.isAccountEntity(account)) {
             return account;
         }
