@@ -28,15 +28,6 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
 
         expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingCacheHits)).to.be.false;
 
-        /*
-         * const missingErrorCount = {
-         *     failedRequests: [999, "correlationId"],
-         *     errors: ["testError"],
-         *     cacheHits: 0
-         * };
-         * expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingErrorCount)).to.be.false;
-         */
-
         const missingErrors = {
             failedRequests: [999, "correlationId"],
             errorCount: 1,

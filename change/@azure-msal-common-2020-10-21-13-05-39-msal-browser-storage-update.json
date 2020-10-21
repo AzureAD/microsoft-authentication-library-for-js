@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "msal-browser and msal-node cache Interfaces to msal-common updated",
+  "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",
