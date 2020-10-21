@@ -56,21 +56,13 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 ```javascript
 npm install @azure/msal-browser
 ```
-### Via CDN (with SRI Hash):
+### Via CDN:
+
+```html
+<script src="https://alcdn.msauth.net/browser/2.4.0/js/msal-browser.min.js"></script>
+```
 
 See [here](./docs/cdn-usage.md) for more info on how to use this package from the Microsoft CDN.
-
-### Compiled
-
-```javascript
-<script src="https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.js" integrity="sha384-M9bRB06LdiYadS+F9rPQnntFCYR3UJvtb2Vr4Tmhw9WBwWUfxH8VDRAFKNn3VTc/" crossorigin="anonymous"></script>
-```
-
-### Minified
-
-```javascript
-<script src="https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.min.js" integrity="sha384-EmYPwkfj+VVmL1brMS1h6jUztl4QMS8Qq8xlZNgIT/luzg7MAzDVrRa2JxbNmk/e" crossorigin="anonymous"></script>
-```
 
 ## Usage
 
@@ -119,45 +111,60 @@ More instructions to run the samples can be found in the [`README.md` file](http
 
 ## Build and Test
 
-### Build Library
-```javascript
-// Change to the root of the msal repo
-cd microsoft-authentication-library-for-js/
-// Install npm dependencies and bootstrap packages
-npm install
-// Build library
-npm run build
-// To run build only for the browser package
-npm run build -- --scope @azure/msal-browser
-```
+See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information. 
 
-#### Alternate Build Instructions
-If you are having issues with `lerna`, you can try the following:
+### Linking local package dependencies
 
-```javascript
+If you are having issues with `lerna` and wish to use the local version of the `@azure/msal-common` library (to reflect changes made in both repositories) you can run do the following:
+
+```bash
 // Change to the msal-browser package directory
 cd lib/msal-browser/
-// Ensure you are using the local build of msal-common
+// Install package dependencies
+npm install
+// Change to the msal-common package directory
+cd ../msal-common/
+// Install package dependencies
+npm install
+// Prepare the local msal-common package for linking
+npm link
+// Change back to the msal-browser package directory
+cd ../msal-browser/
+// Link to the local build of msal-common
 npm link @azure/msal-common
+```
+
+### Building the package
+
+To build the `@azure/msal-browser` library, you can do the following:
+
+```bash
+// Change to the msal-browser package directory
+cd lib/msal-browser/
 // To run build only for browser package
 npm run build
-// To run build for common and browser package
+```
+
+To build both the `@azure/msal-browser` library and `@azure/msal-common` libraries, you can do the following:
+```bash
+// Change to the msal-browser package directory
+cd lib/msal-browser/
+// To run build only for browser package
 npm run build:all
 ```
 
 ### Running Tests
 `@azure/msal-browser` uses [mocha](https://mochajs.org/) and [chai](https://www.chaijs.com/) to run unit tests, as well as Istanbul's [nyc](https://github.com/istanbuljs/nyc) tool for code coverage.
 
-```javascript
+```bash
 // To run tests
 npm test
 // To run tests with code coverage
 npm run test:coverage:only
 ```
 
-- If you are having issues with `lerna`, change to the `msal-browser` directory and run the commands directly there.
-
 ## Implicit Flow vs Authorization Code Flow with PKCE
+
 MSAL.js 1.x implemented the [Implicit Grant Flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), as defined by the OAuth 2.0 protocol and [OpenID](https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc).
 
 Our goal is that the library abstracts enough of the protocol away so that you can get plug and play authentication, but it is important to know and understand the implicit flow from a security perspective. The MSAL 1.x client for single-page applications runs in the context of a web browser which cannot manage client secrets securely. It uses the implicit flow, which optimized for single-page applications and has one less hop between client and server so tokens are returned directly to the browser. These aspects make it naturally less secure. These security concerns are mitigated per standard practices such as: use of short lived tokens (and so no refresh tokens are returned), the library requiring a registered redirect URI for the app, and library matching the request and response with a unique nonce and state parameter. You can read more about the [disadvantages of the implicit flow here](https://tools.ietf.org/html/draft-ietf-oauth-browser-based-apps-04#section-9.8.6).

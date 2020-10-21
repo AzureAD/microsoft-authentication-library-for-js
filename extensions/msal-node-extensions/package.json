@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -38,7 +38,7 @@
   "module": "dist/test.esm.js",
   "dependencies": {
     "bindings": "^1.5.0",
-    "@azure/msal-common": "^1.5.0",
+    "@azure/msal-common": "^1.6.2",
     "keytar": "6.0.1",
     "nan": "^2.13.2"
   },

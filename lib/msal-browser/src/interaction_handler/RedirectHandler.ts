@@ -2,20 +2,32 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
-import { InteractionHandler } from "./InteractionHandler";
+
+import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
+import { BrowserStorage } from "../cache/BrowserStorage";
 
-export class RedirectHandler extends InteractionHandler {
+export class RedirectHandler {
+
+    private authModule: AuthorizationCodeClient;
+    private browserStorage: BrowserStorage;
+    private browserCrypto: ICrypto;
+    private authCodeRequest: AuthorizationCodeRequest;
+
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, browserCrypto: ICrypto) {
+        this.authModule = authCodeModule;
+        this.browserStorage = storageImpl;
+        this.browserCrypto = browserCrypto;
+    }
 
     /**
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectStartPage?: string, browserCrypto?: ICrypto): Window {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectTimeout: number, redirectStartPage?: string): Promise<void> {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
@@ -25,7 +37,7 @@ export class RedirectHandler extends InteractionHandler {
 
             // Set interaction status in the library.
             this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
-            this.browserStorage.cacheCodeRequest(authCodeRequest, browserCrypto);
+            this.browserStorage.cacheCodeRequest(authCodeRequest, this.browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             const isIframedApp = BrowserUtils.isInIframe();
             if (isIframedApp) {
@@ -33,21 +45,19 @@ export class RedirectHandler extends InteractionHandler {
                 throw BrowserAuthError.createRedirectInIframeError(isIframedApp);
             }
             // Navigate window to request URL
-            BrowserUtils.navigateWindow(requestUrl);
+            return BrowserUtils.navigateWindow(requestUrl, redirectTimeout, this.authModule.logger);
         } else {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
-        // Return this window handle. Not used for redirect, but needed for API definition.
-        return window;
     }
 
     /**
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponse(locationHash: string, browserCrypto?: ICrypto, clientId?: string): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, clientId?: string): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
@@ -65,7 +75,7 @@ export class RedirectHandler extends InteractionHandler {
 
         // Get cached items
         const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateNonceKey(requestState), CacheSchemaType.TEMPORARY) as string;
-        this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
+        this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, this.browserCrypto);
         this.authCodeRequest.code = authCode;
 
         // Remove throttle if it exists
