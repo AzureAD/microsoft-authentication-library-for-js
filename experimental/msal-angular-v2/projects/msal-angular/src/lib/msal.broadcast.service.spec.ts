@@ -1,16 +1,17 @@
 import { TestBed } from '@angular/core/testing';
-
 import { MsalBroadcastService } from './msal.broadcast.service';
 
 describe('MsalBroadcastService', () => {
-  let service: MsalBroadcastService;
+  let broadcastService: MsalBroadcastService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(MsalBroadcastService);
+    TestBed.configureTestingModule({
+      providers: [MsalBroadcastService]
+    });
+    broadcastService = TestBed.inject(MsalBroadcastService);
   });
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
+    expect(broadcastService).toBeTruthy();
   });
 });
