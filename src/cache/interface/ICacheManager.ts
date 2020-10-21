@@ -8,7 +8,7 @@ import {
     AccountCache,
     CredentialCache,
     AccountFilter,
-    CredentialFilter, ValidCredentialType
+    CredentialFilter
 } from "../utils/CacheTypes";
 import { CacheRecord } from "../entities/CacheRecord";
 import { AccountEntity } from "../entities/AccountEntity";
