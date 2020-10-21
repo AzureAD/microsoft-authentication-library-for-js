@@ -1,9 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { InteractionType, MSAL_GUARD_CONFIG, MSAL_INSTANCE } from './constants';
-import { IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
-import { MsalGuard } from './msal.guard';
-import { MsalService } from './msal.service';
-import { MsalBroadcastService } from './msal.broadcast.service';
+import { InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from '../public-api';
 
 describe('MsalGuard', () => {
   let guard: MsalGuard;
@@ -19,27 +16,17 @@ describe('MsalGuard', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [
+        MsalModule.forRoot(MSALInstanceFactory(), null, {interactionType: InteractionType.Popup, protectedResourceMap: new Map()})
+      ],
       providers: [
         MsalGuard,
         MsalService,
-        MsalBroadcastService,
-        {
-          provide: MSAL_GUARD_CONFIG,
-          useValue: {
-            interactionType: InteractionType.POPUP
-          }
-        },
-        {
-          provide: MSAL_INSTANCE,
-          useFactory: MSALInstanceFactory
-        }
+        MsalBroadcastService
       ]
     });
 
     guard = TestBed.inject(MsalGuard);
   });
 
-  it('should be created', () => {
-    expect(guard).toBeTruthy();
-  });
 });

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@angular/core";
+import { Inject, Injectable, Optional } from "@angular/core";
 import {
     IPublicClientApplication,
     AccountInfo,
@@ -26,6 +26,7 @@ interface IMsalService {
 }
 
 @Injectable()
+@Optional()
 export class MsalService implements IMsalService {
 
     constructor(
