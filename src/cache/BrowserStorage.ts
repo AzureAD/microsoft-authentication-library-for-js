@@ -94,11 +94,11 @@ export class BrowserStorage extends CacheManager {
     }
 
     /**
-     * Parses key as JSON object, JSON.parse() will throw an error.
-     * @param key
+     * Parses passed value as JSON object, JSON.parse() will throw an error.
+     * @param input
      */
-    private validateObjectKey(key: string): void {
-        JSON.parse(key);
+    private IsJSON(jsonValue: string): void {
+        JSON.parse(jsonValue);
     }
 
     /**
@@ -129,7 +129,7 @@ export class BrowserStorage extends CacheManager {
         }
 
         try {
-            this.validateObjectKey(value);
+            this.IsJSON(value);
             const account = CacheManager.toObject(new AccountEntity(), JSON.parse(value));
             if (AccountEntity.isAccountEntity(account)) {
                 return account;
@@ -456,7 +456,7 @@ export class BrowserStorage extends CacheManager {
     generateCacheKey(key: string): string {
         try {
             // Defined schemas do not need the key migrated
-            this.validateObjectKey(key);
+            this.IsJSON(key);
             return key;
         } catch (e) {
             if (StringUtils.startsWith(key, Constants.CACHE_PREFIX) || StringUtils.startsWith(key, PersistentCacheKeys.ADAL_ID_TOKEN)) {
