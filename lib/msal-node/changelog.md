@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 15 Oct 2020 00:49:18 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Oct 2020 23:47:28 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.12
+
+Tue, 20 Oct 2020 23:47:28 GMT
+
+### Changes
+
+- Adds support for any OIDC-compliant authority (#2389). (jamckenn@microsoft.com)
 
 ## 1.0.0-alpha.11
 

@@ -45,6 +45,7 @@ import { Constants,
 } from "./utils/Constants";
 import { CryptoUtils } from "./utils/CryptoUtils";
 import { TrustedAuthority } from "./authority/TrustedAuthority";
+import { AuthCacheUtils } from "./utils/AuthCacheUtils";
 
 // default authority
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common";
@@ -608,8 +609,9 @@ export class UserAgentApplication {
                         // TODO: Check how this can be extracted for any framework specific code?
                         if (this.config.framework.isAngular) {
                             this.broadcast("msal:popUpHashChanged", hash);
-                            WindowUtils.closePopups();
                         }
+                        
+                        WindowUtils.closePopups();
                     } catch (error) {
                         if (reject) {
                             reject(error);
@@ -793,7 +795,7 @@ export class UserAgentApplication {
                 } else if (request.forceRefresh) {
                     logMessage = "Skipped cache lookup since request.forceRefresh option was set to true";
                 } else {
-                    logMessage = "No token found in cache lookup";
+                    logMessage = "No valid token found in cache lookup";
                 }
                 this.logger.verbose(logMessage);
                 
@@ -1217,9 +1219,6 @@ export class UserAgentApplication {
 
         const tokenResponseCallback = window.callbackMappedToRenewStates[stateInfo.state];
         this.processCallBack(locationHash, stateInfo, tokenResponseCallback);
-
-        // If current window is opener, close all windows
-        WindowUtils.closePopups();
     }
 
     /**
@@ -1368,15 +1367,53 @@ export class UserAgentApplication {
     }
 
     /**
+     * @hidden
+     * 
+     * Uses passed in authority to further filter an array of tokenCacheItems until only the token being searched for remains, then returns that tokenCacheItem.
+     * This method will throw if authority filtering still yields multiple matching tokens and will return null if not tokens match the authority passed in.
+     * 
+     * @param authority 
+     * @param tokenCacheItems 
+     * @param request 
+     * @param requestScopes 
+     * @param tokenType 
+     */
+    private getTokenCacheItemByAuthority(authority: string, tokenCacheItems: Array<AccessTokenCacheItem>, requestScopes: Array<string>, tokenType: string): AccessTokenCacheItem {
+        let filteredAuthorityItems: Array<AccessTokenCacheItem>;
+    
+        if (UrlUtils.isCommonAuthority(authority) || UrlUtils.isOrganizationsAuthority(authority)) {
+            filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByDomain(tokenCacheItems, UrlUtils.GetUrlComponents(authority).HostNameAndPort);
+        } else {
+            filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByAuthority(tokenCacheItems, authority);
+        }
+        if (filteredAuthorityItems.length === 1) {
+            return filteredAuthorityItems[0];
+        }
+        else if (filteredAuthorityItems.length > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError(tokenType, requestScopes);
+        }
+        else {
+            this.logger.verbose(`No matching tokens of type ${tokenType} found`);
+            return null;
+        }  
+    }
+
+    /**
+     * 
+     * @hidden
+     * 
+     * Searches the token cache for an ID Token that matches the request parameter and returns it as an IdToken object.
      * 
      * @param serverAuthenticationRequest 
      * @param account 
      */
     private getCachedIdToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): IdToken {
-        const authority = serverAuthenticationRequest.authority || this.authority;
-        const idTokenCacheItem = this.cacheStorage.getIdToken(this.clientId, account ? account.homeAccountIdentifier : null, authority);
-
-        if (idTokenCacheItem != null) {
+        this.logger.verbose("Getting all cached tokens of type ID Token");
+        const idTokenCacheItems = this.cacheStorage.getAllIdTokens(this.clientId, account ? account.homeAccountIdentifier : null);
+        const matchAuthority = serverAuthenticationRequest.authority || this.authority;
+        const idTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, idTokenCacheItems, null, ServerHashParamKeys.ID_TOKEN);
+        
+        if (idTokenCacheItem) {
             this.logger.verbose("Evaluating ID token found");
             const idTokenIsStillValid = this.evaluateTokenExpiration(idTokenCacheItem);
 
@@ -1384,9 +1421,9 @@ export class UserAgentApplication {
                 this.logger.verbose("ID token expiration is within offset, using ID token found in cache");
                 const idTokenValue = idTokenCacheItem.value;
                 if (idTokenValue) {
-                    this.logger.verbose("Matching ID Token found in cache");
+                    this.logger.verbose("ID Token found in cache is valid and unexpired");
                 } else {
-                    this.logger.verbose("No matching ID Token found in cache");
+                    this.logger.verbose("ID Token found in cache is invalid");
                 }
         
                 return (idTokenValue) ? new IdToken(idTokenValue.idToken) : null;
@@ -1401,118 +1438,37 @@ export class UserAgentApplication {
         }
     }
 
+    /**
+     * 
+     * @hidden
+     * 
+     * Searches the token cache for an access token that matches the request parameters and returns it as an AuthResponse.
+     * 
+     * @param serverAuthenticationRequest 
+     * @param account 
+     * @param scopes 
+     */
     private getCachedAccessToken(serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: string[]): AuthResponse {
-        // filter by clientId and account
+        this.logger.verbose("Getting all cached tokens of type Access Token");
         const tokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, account ? account.homeAccountIdentifier : null);
         
-        this.logger.verbose("Getting all cached access tokens");
+        const scopeFilteredTokenCacheItems = AuthCacheUtils.filterTokenCacheItemsByScope(tokenCacheItems, scopes);
+        const matchAuthority = serverAuthenticationRequest.authority || this.authority;
+        // serverAuthenticationRequest.authority can only be common or organizations if not null
+        const accessTokenCacheItem = this.getTokenCacheItemByAuthority(matchAuthority, scopeFilteredTokenCacheItems, scopes, ServerHashParamKeys.ACCESS_TOKEN);
+        
+        if (!accessTokenCacheItem) {
+            this.logger.verbose("No matching token found when filtering by scope and authority");
+            const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
+            if (authorityList.length > 1) {
+                throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
+            }
 
-        // No match found after initial filtering
-        if (tokenCacheItems.length === 0) {
-            this.logger.verbose("No matching tokens found when filtered by clientId and account");
+            this.logger.verbose("Single authority used, setting authorityInstance");
+            serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
             return null;
-        }
-
-        const filteredItems: Array<AccessTokenCacheItem> = [];
-
-        let accessTokenCacheItem: AccessTokenCacheItem = null;
-
-        // if no authority passed or authority is common/organizations
-        if (!serverAuthenticationRequest.authority || UrlUtils.isCommonAuthority(serverAuthenticationRequest.authority) || UrlUtils.isOrganizationsAuthority(serverAuthenticationRequest.authority)) {
-            this.logger.verbose("No authority passed, filtering tokens by scope");
-            // filter by scope
-            for (let i = 0; i < tokenCacheItems.length; i++) {
-                const cacheItem = tokenCacheItems[i];
-                const cachedScopes = cacheItem.key.scopes.split(" ");
-
-                /**
-                 * Ignore OIDC scopes in the request for lookup in case of an id_token token response type, which would have a scopes
-                 * array including openid and profile. This method is guaranteed to be called with at least one resource scope
-                 * in the scopes list, given the scope validations for non id_token response type requests.
-                 *
-                 */
-                const searchScopes = ScopeSet.removeDefaultScopes(scopes);
-
-                if (searchScopes.length === 0 && ScopeSet.containsScope(cachedScopes, scopes)) {
-                    filteredItems.push(cacheItem);
-                } else if (ScopeSet.containsScope(cachedScopes, searchScopes)) {
-                    filteredItems.push(cacheItem);
-                }
-            }
-
-            // if only one cached token found
-            if (filteredItems.length === 1) {
-                this.logger.verbose("One matching token found, setting authorityInstance");
-                accessTokenCacheItem = filteredItems[0];
-                serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
-            }
-            // if more than one cached token is found
-            else if (filteredItems.length > 1) {
-                // serverAuthenticationRequest.authority can only be common or organizations if not null
-                if (serverAuthenticationRequest.authority) {
-                    // find an exact match for domain
-                    const requestDomain = UrlUtils.GetUrlComponents(serverAuthenticationRequest.authority).HostNameAndPort;
-                    const filteredAuthorityItems = filteredItems.filter(filteredItem => {
-                        const domain = UrlUtils.GetUrlComponents(filteredItem.key.authority).HostNameAndPort;
-                        return domain === requestDomain;
-                    });
-                    
-                    if (filteredAuthorityItems.length === 1) {
-                        accessTokenCacheItem = filteredAuthorityItems[0];
-                        serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
-                    }
-                    else if (filteredAuthorityItems.length > 1) {
-                        throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
-                    }
-                    else {
-                        this.logger.verbose("No matching tokens found");
-                        return null;
-                    }  
-                }
-                else { // if not common or organizations authority, throw error
-                    throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
-                } 
-            }
-            // if no match found, check if there was a single authority used
-            else {
-                this.logger.verbose("No matching token found when filtering by scope");
-                const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
-                if (authorityList.length > 1) {
-                    throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
-                }
-
-                this.logger.verbose("Single authority used, setting authorityInstance");
-                serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
-            }
-        }
-        // if an authority is passed in the API
-        else {
-            this.logger.verbose("Authority passed, filtering by authority and scope");
-            // filter by authority and scope
-            for (let i = 0; i < tokenCacheItems.length; i++) {
-                const cacheItem = tokenCacheItems[i];
-                const cachedScopes = cacheItem.key.scopes.split(" ");
-                if (ScopeSet.containsScope(cachedScopes, scopes) && UrlUtils.CanonicalizeUri(cacheItem.key.authority) === serverAuthenticationRequest.authority) {
-                    filteredItems.push(cacheItem);
-                }
-            }
-            // no match
-            if (filteredItems.length === 0) {
-                this.logger.verbose("No matching tokens found");
-                return null;
-            }
-            // if only one cachedToken Found
-            else if (filteredItems.length === 1) {
-                this.logger.verbose("Single token found");
-                accessTokenCacheItem = filteredItems[0];
-            }
-            else {
-                // if more than one cached token is found
-                throw ClientAuthError.createMultipleMatchingTokensInCacheError(scopes.toString());
-            }
-        }
-
-        if (accessTokenCacheItem != null) {
+        } else {
+            serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
             this.logger.verbose("Evaluating access token found");
             const tokenIsStillValid = this.evaluateTokenExpiration(accessTokenCacheItem);
             // The response value will stay null if token retrieved from the cache is expired, otherwise it will be populated with said token's data
@@ -1546,9 +1502,6 @@ export class UserAgentApplication {
                 this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
                 return null;
             }
-        } else {
-            this.logger.verbose("No tokens found");
-            return null;
         }
     }
 
@@ -1654,80 +1607,104 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     *
-     * This method must be called for processing the response received from AAD. It extracts the hash, processes the token or error, saves it in the cache and calls the registered callbacks with the result.
-     * @param {string} authority authority received in the redirect response from AAD.
-     * @param {TokenResponse} requestInfo an object created from the redirect response from AAD comprising of the keys - parameters, requestType, stateMatch, stateResponse and valid.
-     * @param {Account} account account object for which scopes are consented for. The default account is the logged in account.
-     * @param {ClientInfo} clientInfo clientInfo received as part of the response comprising of fields uid and utid.
-     * @param {IdToken} idToken idToken received as part of the response.
-     * @ignore
-     * @private
+     * 
+     * This method builds an Access Token Cache item and saves it to the cache, returning the original
+     * AuthResponse augmented with a parsed expiresOn attribute.
+     * 
+     * @param response The AuthResponse object that contains the token to be saved
+     * @param authority The authority under which the ID token will be cached
+     * @param scopes The scopes to be added to the cache item key (undefined for ID token cache items)
+     * @param clientInfo Client Info object that is used to generate the homeAccountIdentifier
+     * @param expiration Token expiration timestamp
      */
-    /* tslint:disable:no-string-literal */
-    private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: ClientInfo, idTokenObj: IdToken): AuthResponse {
-        this.logger.verbose("SaveAccessToken has been called");
-        let scope: string;
-        const accessTokenResponse = { ...response };
-        let expiration: number;
-
-        // if the response contains "scope"
-        if (parameters.hasOwnProperty(ServerHashParamKeys.SCOPE)) {
-            this.logger.verbose("Response parameters contains scope");
-            // read the scopes
-            scope = parameters[ServerHashParamKeys.SCOPE];
-            const consentedScopes = scope.split(" ");
-
-            // retrieve all access tokens from the cache, remove the dup scores
-            const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, authority);
-            this.logger.verbose("Retrieving all access tokens from cache and removing duplicates");
-
-            for (let i = 0; i < accessTokenCacheItems.length; i++) {
-                const accessTokenCacheItem = accessTokenCacheItems[i];
-
-                if (accessTokenCacheItem.key.homeAccountIdentifier === response.account.homeAccountIdentifier) {
-                    const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
-                    if (ScopeSet.isIntersectingScopes(cachedScopes, consentedScopes)) {
-                        this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
-                    }
-                }
-            }
-
-            // Generate and cache accessTokenKey and accessTokenValue
-            const expiresIn = TimeUtils.parseExpiresIn(parameters[ServerHashParamKeys.EXPIRES_IN]);
-            const parsedState = RequestUtils.parseLibraryState(parameters[ServerHashParamKeys.STATE]);
-            expiration = parsedState.ts + expiresIn;
-            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientInfo.uid, clientInfo.utid);
-            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ACCESS_TOKEN], idTokenObj.rawIdToken, expiration.toString(), clientInfo.encodeClientInfo());
-
-            this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            this.logger.verbose("Saving token to cache");
-
-            accessTokenResponse.accessToken  = parameters[ServerHashParamKeys.ACCESS_TOKEN];
-            accessTokenResponse.scopes = consentedScopes;
-        }
-        // if the response does not contain "scope" - scope is set to OIDC scopes by default and the token will be id_token
-        else {
-            this.logger.verbose("Response parameters does not contain scope, OIDC scopes set as scope");
-
-            // Generate and cache accessTokenKey and accessTokenValue
-            const accessTokenKey = new AccessTokenKey(authority, this.clientId, scope, clientInfo.uid, clientInfo.utid);
-            expiration = Number(idTokenObj.expiration);
-            const accessTokenValue = new AccessTokenValue(parameters[ServerHashParamKeys.ID_TOKEN], parameters[ServerHashParamKeys.ID_TOKEN], expiration.toString(), clientInfo.encodeClientInfo());
-            this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            this.logger.verbose("Saving token to cache");
-            accessTokenResponse.scopes = Constants.oidcScopes;
-            accessTokenResponse.accessToken = parameters[ServerHashParamKeys.ID_TOKEN];
-        }
+    private saveToken(response: AuthResponse, authority: string, scopes: string, clientInfo: ClientInfo, expiration: number): AuthResponse {
+        const accessTokenKey = new AccessTokenKey(authority, this.clientId, scopes, clientInfo.uid, clientInfo.utid);
+        const accessTokenValue = new AccessTokenValue(response.accessToken, response.idToken.rawIdToken, expiration.toString(), clientInfo.encodeClientInfo());
+        this.cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
         if (expiration) {
-            this.logger.verbose("New expiration set");
-            accessTokenResponse.expiresOn = new Date(expiration * 1000);
+            this.logger.verbose("New expiration set for token");
+            response.expiresOn = new Date(expiration * 1000);
         } else {
-            this.logger.error("Could not parse expiresIn parameter");
+            this.logger.error("Could not parse expiresIn parameter for access token");
         }
 
-        return accessTokenResponse;
+        return response;
+    }
+
+    /**
+     * @hidden
+     * 
+     * This method sets up the elements of an ID Token cache item and calls saveToken to save it in
+     * Access Token Cache item format for the client application to use.
+     * 
+     * @param response The AuthResponse object that will be used to build the cache item
+     * @param authority The authority under which the ID token will be cached
+     * @param parameters The response's Hash Params, which contain the ID token returned from the server
+     * @param clientInfo Client Info object that is used to generate the homeAccountIdentifier
+     * @param idTokenObj ID Token object from which the ID token's expiration is extracted
+     */
+    /* tslint:disable:no-string-literal */
+    private saveIdToken(response: AuthResponse, authority: string, parameters: any, clientInfo: ClientInfo, idTokenObj: IdToken): AuthResponse {
+        this.logger.verbose("SaveIdToken has been called");
+        const idTokenResponse = { ...response };
+
+        // Scopes are undefined so they don't show up in ID token cache key
+        let scopes: string;
+
+        idTokenResponse.scopes = Constants.oidcScopes;
+        idTokenResponse.accessToken = parameters[ServerHashParamKeys.ID_TOKEN];
+
+        const expiration = Number(idTokenObj.expiration);
+
+        // Set ID Token item in cache
+        this.logger.verbose("Saving ID token to cache");
+        return this.saveToken(idTokenResponse, authority, scopes, clientInfo, expiration);
+    }
+
+    /**
+     * @hidden
+     * 
+     * This method sets up the elements of an Access Token cache item and calls saveToken to save it to the cache
+     * 
+     * @param response The AuthResponse object that will be used to build the cache item
+     * @param authority The authority under which the access token will be cached
+     * @param parameters The response's Hash Params, which contain the access token returned from the server
+     * @param clientInfo Client Info object that is used to generate the homeAccountIdentifier
+     */
+    /* tslint:disable:no-string-literal */
+    private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: ClientInfo): AuthResponse {
+        this.logger.verbose("SaveAccessToken has been called");
+        const accessTokenResponse = { ...response };
+
+        // read the scopes
+        const scope = parameters[ServerHashParamKeys.SCOPE];
+        const consentedScopes = scope.split(" ");
+
+        // retrieve all access tokens from the cache, remove the dup scopes
+        const accessTokenCacheItems = this.cacheStorage.getAllAccessTokens(this.clientId, authority);
+        this.logger.verbose("Retrieving all access tokens from cache and removing duplicates");
+
+        for (let i = 0; i < accessTokenCacheItems.length; i++) {
+            const accessTokenCacheItem = accessTokenCacheItems[i];
+
+            if (accessTokenCacheItem.key.homeAccountIdentifier === response.account.homeAccountIdentifier) {
+                const cachedScopes = accessTokenCacheItem.key.scopes.split(" ");
+                if (ScopeSet.isIntersectingScopes(cachedScopes, consentedScopes)) {
+                    this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
+                }
+            }
+        }
+
+        accessTokenResponse.accessToken  = parameters[ServerHashParamKeys.ACCESS_TOKEN];
+        accessTokenResponse.scopes = consentedScopes;
+
+        const expiresIn = TimeUtils.parseExpiresIn(parameters[ServerHashParamKeys.EXPIRES_IN]);
+        const parsedState = RequestUtils.parseLibraryState(parameters[ServerHashParamKeys.STATE]);
+        const expiration = parsedState.ts + expiresIn;
+
+        this.logger.verbose("Saving access token to cache");
+        return this.saveToken(accessTokenResponse, authority, scope, clientInfo, expiration);
     }
 
     /**
@@ -1831,13 +1808,12 @@ export class UserAgentApplication {
                     if (hashParams.hasOwnProperty(ServerHashParamKeys.ID_TOKEN)) {
                         this.logger.verbose("Fragment has id_token");
                         idTokenObj = new IdToken(hashParams[ServerHashParamKeys.ID_TOKEN]);
-                        response.idToken = idTokenObj;
-                        response.idTokenClaims = idTokenObj.claims;
                     } else {
                         this.logger.verbose("No idToken on fragment, getting idToken from cache");
                         idTokenObj = new IdToken(this.cacheStorage.getItem(PersistentCacheKeys.IDTOKEN));
-                        response = ResponseUtils.setResponseIdToken(response, idTokenObj);
                     }
+
+                    response = ResponseUtils.setResponseIdToken(response, idTokenObj);
 
                     // set authority
                     const authority: string = this.populateAuthority(stateInfo.state, this.inCookie, this.cacheStorage, idTokenObj);
@@ -1878,7 +1854,7 @@ export class UserAgentApplication {
                         acquireTokenAccount = JSON.parse(cachedAccount);
                         this.logger.verbose("AcquireToken request account retrieved from cache");
                         if (response.account && acquireTokenAccount && Account.compareAccounts(response.account, acquireTokenAccount)) {
-                            response = this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
+                            response = this.saveAccessToken(response, authority, hashParams, clientInfo);
                             this.logger.info("The user object received in the response is the same as the one passed in the acquireToken request");
                         }
                         else {
@@ -1888,7 +1864,7 @@ export class UserAgentApplication {
                     }
                     else if (!StringUtils.isEmpty(this.cacheStorage.getItem(acquireTokenAccountKey_noaccount))) {
                         this.logger.verbose("No acquireToken account retrieved from cache");
-                        response = this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
+                        response = this.saveAccessToken(response, authority, hashParams, clientInfo);
                     }
                 }
 
@@ -1932,8 +1908,8 @@ export class UserAgentApplication {
                             this.cacheStorage.setItem(PersistentCacheKeys.IDTOKEN, hashParams[ServerHashParamKeys.ID_TOKEN], this.inCookie);
                             this.cacheStorage.setItem(PersistentCacheKeys.CLIENT_INFO, clientInfo.encodeClientInfo(), this.inCookie);
 
-                            // Save idToken as access token for app itself
-                            this.saveAccessToken(response, authority, hashParams, clientInfo, idTokenObj);
+                            // Save idToken as access token item for app itself
+                            this.saveIdToken(response, authority, hashParams, clientInfo, idTokenObj);
                         }
                     } else {
                         this.logger.verbose("No idToken or no nonce. Cache key for Authority set as state");

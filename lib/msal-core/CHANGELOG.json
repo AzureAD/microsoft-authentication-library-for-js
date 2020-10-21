@@ -2,6 +2,41 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Tue, 20 Oct 2020 23:47:28 GMT",
+      "tag": "msal_v1.4.2",
+      "version": "1.4.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix issue where concurrent acquireTokenSilent call closed window used by acquireTokenPopup (#2355)",
+            "author": "hemoral@microsoft.com",
+            "commit": "39bef43a63b97cb1008115c61567c0f92870137c",
+            "package": "msal"
+          },
+          {
+            "comment": "Use history API to clear hash to remove # sign",
+            "author": "janutter@microsoft.com",
+            "commit": "eff310ee300b1fdb9d9cf338fb3833f8675ea511",
+            "package": "msal"
+          },
+          {
+            "comment": "Fix issues with ID token caching and cache lookup (#2376)",
+            "author": "hemoral@microsoft.com",
+            "commit": "a03c5b70ad4416c816186ba09764a82b73096edf",
+            "package": "msal"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Updated eslint rules (#2345)",
+            "author": "janutter@microsoft.com",
+            "commit": "64a4f9e868e63346dfd711dec717abe7fd14d949",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Oct 2020 23:45:07 GMT",
       "tag": "msal_v1.4.1",
       "version": "1.4.1",
