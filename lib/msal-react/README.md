@@ -1,183 +1,278 @@
-# TSDX React User Guide
+# Microsoft Authentication Library for React (msal-react)
 
-Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
+`msal-react` is under development. **We do not recommend using this in a production environment yet**.
 
-> This TSDX setup is meant for developing React components (not apps!) that can be published to NPM. If you’re looking to build an app, you should use `create-react-app`, `razzle`, `nextjs`, `gatsby`, or `react-static`.
+## Documentation
 
-> If you’re new to TypeScript and React, checkout [this handy cheatsheet](https://github.com/sw-yx/react-typescript-cheatsheet/)
+### Installation
 
-## Commands
+MSAL React will have `@azure/msal-browser` listed as a peer dependency.
 
-TSDX scaffolds your new library inside `/src`, and also sets up a [Parcel-based](https://parceljs.org) playground for it inside `/example`.
-
-The recommended workflow is to run TSDX in one terminal:
-
-```
-npm start # or yarn start
+```sh
+npm install react react-dom
+npm install @azure/msal-react @azure/msal-browser
 ```
 
-This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
+### API
 
-Then run either example playground or storybook:
+#### MsalProvider
 
-### Storybook
+MSAL React will be configured with the same configuration for MSAL.js itself, along with any configuration options that are specific to MSAL React (TBD). This will be passed to the `MsalProvider` component, which will put an instance of `PublicClientApplication` in the React context. Using `MsalProvider` will be a requirement for the other APIs. It will be recommended to use `MsalProvider` at the top-level of your application.
 
-Run inside another terminal:
+`MsalProvider` and `MsalConsumer` are built on the [React context API](https://reactjs.org/docs/context.html). There are various ways of recieving the context values, including components and hooks.
 
-```
-yarn storybook
-```
+```javascript
+// index.js
+import React from "react";
+import ReactDOM from "react-dom";
 
-This loads the stories from `./stories`.
+import { MsalProvider } from "@azure/msal-react";
+import { Configuration } from "@azure/msal-browser";
 
-> NOTE: Stories should reference the components as if using the library, similar to the example playground. This means importing from the root project directory. This has been aliased in the tsconfig and the storybook webpack config as a helper.
+import App from "./app.jsx";
 
-### Example
+// MSAL configuration
+const configuration: Configuration = {
+    auth: {
+        clientId: "client-id"
+    }
+};
 
-Then run the example inside another:
+// Component
+const AppProvider = () => (
+    <MsalProvider configuration={configuration}>
+        <App />
+    </MsalProvider>
+);
 
-```
-cd example
-npm i # or yarn to install dependencies
-npm start # or yarn start
-```
-
-The default example imports and live reloads whatever is in `/dist`, so if you are seeing an out of date component, make sure TSDX is running in watch mode like we recommend above. **No symlinking required**, [we use Parcel's aliasing](https://github.com/palmerhq/tsdx/pull/88/files).
-
-To do a one-off build, use `npm run build` or `yarn build`.
-
-To run tests, use `npm test` or `yarn test`.
-
-## Configuration
-
-Code quality is [set up for you](https://github.com/palmerhq/tsdx/pull/45/files) with `prettier`, `husky`, and `lint-staged`. Adjust the respective fields in `package.json` accordingly.
-
-### Jest
-
-Jest tests are set up to run with `npm test` or `yarn test`. This runs the test watcher (Jest) in an interactive mode. By default, runs tests related to files changed since the last commit.
-
-#### Setup Files
-
-This is the folder structure we set up for you:
-
-```
-/example
-  index.html
-  index.tsx       # test your component here in a demo app
-  package.json
-  tsconfig.json
-/src
-  index.tsx       # EDIT THIS
-/test
-  blah.test.tsx   # EDIT THIS
-.gitignore
-package.json
-README.md         # EDIT THIS
-tsconfig.json
+ReactDOM.render(<AppProvider />, document.getElementById("root"));
 ```
 
-#### React Testing Library
+#### useMsal
 
-We do not set up `react-testing-library` for you yet, we welcome contributions and documentation on this.
-
-### Rollup
-
-TSDX uses [Rollup v1.x](https://rollupjs.org) as a bundler and generates multiple rollup configs for various module formats and build settings. See [Optimizations](#optimizations) for details.
-
-### TypeScript
-
-`tsconfig.json` is set up to interpret `dom` and `esnext` types, as well as `react` for `jsx`. Adjust according to your needs.
-
-## Continuous Integration
-
-### Travis
-
-_to be completed_
-
-### Circle
-
-_to be completed_
-
-## Optimizations
-
-Please see the main `tsdx` [optimizations docs](https://github.com/palmerhq/tsdx#optimizations). In particular, know that you can take advantage of development-only optimizations:
+A hook that returns the instance of `PublicClientApplication` to be used within a function component. Changes to the context from the `MsalProvider` will allow your function component to update as required.
 
 ```js
-// ./types/index.d.ts
-declare var __DEV__: boolean;
+import React from 'react';
+import { useMsal } from "@azure/msal-react";
 
-// inside your code...
-if (__DEV__) {
-  console.log('foo');
+export function HomePage() {
+    const msal = useMsal();
+
+    if (msal.isAuthenticated) {
+        return <span>You are currently authenticated.</span>
+    } else {
+        return <span>You are not authenticated yet.</span>
+    }
 }
 ```
 
-You can also choose to install and use [invariant](https://github.com/palmerhq/tsdx#invariant) and [warning](https://github.com/palmerhq/tsdx#warning) functions.
+#### MsalContext
 
-## Module Formats
+The raw context for MSAL React. It will not be recommended to use this directly, except when your application needs to access the context type itself (e.g. consuming the MSAL React context directly).
 
-CJS, ESModules, and UMD module formats are supported.
+```js
+// app.js
+import React from "react";
+import { MsalContext } from "@azure/msal-react";
 
-The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
+class App extends React.Component {
+    static contextType = MsalContext;
 
-## Using the Playground
+    render() {
+        return (
+            <div>
+                {!this.context.getAccount() ? (
+                    <button
+                        onClick={e => {
+                            e.preventDefault();
+                            this.context.loginPopup();
+                        }}
+                    >
+                        Login
+                    </button>
+                ) : (
+                    <button
+                        onClick={e => {
+                            e.preventDefault();
+                            this.context.logout();
+                        }}
+                    >
+                        Logout
+                    </button>
+                )}
+            </div>
+        )
+    }
+}
 
-```
-cd example
-npm i # or yarn to install dependencies
-npm start # or yarn start
-```
-
-The default example imports and live reloads whatever is in `/dist`, so if you are seeing an out of date component, make sure TSDX is running in watch mode like we recommend above. **No symlinking required**!
-
-## Deploying the Playground
-
-The Playground is just a simple [Parcel](https://parceljs.org) app, you can deploy it anywhere you would normally deploy that. Here are some guidelines for **manually** deploying with the Netlify CLI (`npm i -g netlify-cli`):
-
-```bash
-cd example # if not already in the example folder
-npm run build # builds to dist
-netlify deploy # deploy the dist folder
-```
-
-Alternatively, if you already have a git repo connected, you can set up continuous deployment with Netlify:
-
-```bash
-netlify init
-# build command: yarn build && cd example && yarn && yarn build
-# directory to deploy: example/dist
-# pick yes for netlify.toml
-```
-
-## Named Exports
-
-Per Palmer Group guidelines, [always use named exports.](https://github.com/palmerhq/typescript#exports) Code split inside your React app instead of your React library.
-
-## Including Styles
-
-There are many ways to ship styles, including with CSS-in-JS. TSDX has no opinion on this, configure how you like.
-
-For vanilla CSS, you can include it at the root directory and add it to the `files` section in your `package.json`, so that it can be imported separately by your users and run through their bundler's loader.
-
-## Publishing to NPM
-
-We recommend using https://github.com/sindresorhus/np.
-
-## Usage with Lerna
-
-When creating a new package with TSDX within a project set up with Lerna, you might encounter a `Cannot resolve dependency` error when trying to run the `example` project. To fix that you will need to make changes to the `package.json` file _inside the `example` directory_.
-
-The problem is that due to the nature of how dependencies are installed in Lerna projects, the aliases in the example project's `package.json` might not point to the right place, as those dependencies might have been installed in the root of your Lerna project.
-
-Change the `alias` to point to where those packages are actually installed. This depends on the directory structure of your Lerna project, so the actual path might be different from the diff below.
-
-```diff
-   "alias": {
--    "react": "../node_modules/react",
--    "react-dom": "../node_modules/react-dom"
-+    "react": "../../../node_modules/react",
-+    "react-dom": "../../../node_modules/react-dom"
-   },
+export default App;
 ```
 
-An alternative to fixing this problem would be to remove aliases altogether and define the dependencies referenced as aliases as dev dependencies instead. [However, that might cause other problems.](https://github.com/palmerhq/tsdx/issues/64)
+#### withMsal
+
+A higher-order component which will pass the MSAL instance as a prop (instead of via context). The instance of `withMsal` must be a child (at any level) of `MsalProvider`.
+
+```js
+// app.js
+import React from "react";
+import { IMsalPropType } from "@azure/msal-react";
+
+const scopes = ['user.read'];
+
+class App extends React.Component {
+    static propTypes = {
+        msal: IMsalPropType
+    }
+
+    render() {
+        if (this.props.msal.isAuthenticated) {
+            return (
+                <button
+                    onClick={e => {
+                        this.props.msal.logout();
+                    }}
+                >
+                    Logout
+                </button>
+            );
+        } else {
+            return (
+                <button
+                    onClick={e => {
+                        this.props.msal.loginPopup({ scopes });
+                    }}
+                >
+                    Login
+                </button>
+            );
+        }
+    }
+}
+
+export const WrappedApplication = withMsal(App);
+
+// index.js
+import { WrappedApplication } from "./app.js";
+
+const AppProvider = () => (
+    <MsalProvider configuration={configuration}>
+        <WrappedApplication />
+    </MsalProvider>
+);
+
+ReactDOM.render(<AppProvider />, document.getElementById("root"));
+```
+
+#### AuthenticatedTemplate
+
+The `AuthenticatedTemplate` component will only render the children if the user has a currently authenticated account. This allows conditional rendering of content or components that require a certain authentication state.
+
+Additionally, the `AuthenticatedTemplate` provides the option to pass a function as a child using the [function-as-a-child pattern](https://reactjs.org/docs/context.html#contextconsumer). This will pass down the instance of `PubliClientApplication` as the only argument for more advanced conditional logic.
+
+```js
+import React from 'react';
+import { AuthenticatedTemplate } from "@azure/msal-react";
+
+export function HomePage() {
+    return (
+        <React.Fragment>
+            <p>Anyone can see this paragraph.</p>
+            <AuthenticatedTemplate>
+                <p>But only authenticated users will see this paragraph.</p>
+            </AuthenticatedTemplate>
+            <AuthenticatedTemplate>
+                {(msal) => {
+                    return (
+                        <p>You have {msal.accounts.length} accounts authenticated.</p>
+                    );
+                }}
+            </AuthenticatedTemplate>
+        </React.Fragment>
+    );
+}
+```
+
+#### UnauthenticatedTemplate
+
+The `UnauthenticatedTemplate` component will only render the children if the user has a no accounts currently authenticated. This allows conditional rendering of content or components that require a certain authentication state.
+
+Additionally, the `UnauthenticatedTemplate` provides the option to pass a function as a child using the [function-as-a-child pattern](https://reactjs.org/docs/context.html#contextconsumer). This will pass down the instance of `PubliClientApplication` as the only argument for more advanced conditional logic.
+
+```js
+import React from 'react';
+import { UnauthenticatedTemplate } from "@azure/msal-react";
+
+export function HomePage() {
+    return (
+        <React.Fragment>
+            <p>Anyone can see this paragraph.</p>
+            <UnauthenticatedTemplate>
+                <p>But only user's who have no authenticated accounts will see this paragraph.</p>
+            </UnauthenticatedTemplate>
+            <UnauthenticatedTemplate>
+                {(msal) => {
+                    return (
+                        <button onClick={(e) => { msal.logout(); }}>Logout</button>
+                    );
+                }}
+            </UnauthenticatedTemplate>
+        </React.Fragment>
+    );
+}
+```
+
+#### MsalAuthentication
+
+The `MsalAuthentication` component takes props that allow you to configure the authentication method and guarentees that authentication will be executed when the component is rendered. A default authentication flow will be initiated using the instance methods of `PublicClientApplication` provided by the `MsalProvider`.
+
+For more advanced use cases, the default authentication logic implemented with `MsalAuthentication` may not be suitable. In these situations, it may be better to write a custom hook or component that uses the instance of `PublicClientApplication` from the `MsalProvider` to support more specific behavior.
+
+```js
+import React from 'react';
+import { MsalAuthentication, AuthenticationType, UnauthenticatedTemplate, AuthenticatedTemplate } from "@azure/msal-react";
+
+export function ProtectedComponent() {
+    return (
+        <MsalAuthentication request={{ scopes: ['user.read'] }} forceLogin={true} type={AuthenticationType.POPUP}>
+            <h1>Protected Component</h1>
+            <p>Any children of the MsalAuthentication component will be rendered unless they are wrapped in a conditional template.</p>
+
+            <UnauthenticatedTemplate>
+                <p>Please login before viewing this page.</p>
+            </UnauthenticatedTemplate>
+            <AuthenticatedTemplate>
+                <p>Thank you for logging in with your account!</p>
+            </AuthenticatedTemplate>
+        </MsalAuthentication>
+    );
+}
+```
+
+
+
+
+#### useHandleRedirect
+
+React hook to receive the response from redirect operations (wrapper around `handleRedirectPromise`).
+
+TODO: Error handling
+
+```js
+export function RedirectPage() {
+    const redirectResult = useHandleRedirect();
+
+    if (redirectResult) {
+        return (
+            <React.Fragment>
+                <p>Redirect response:</p>
+                <pre>{JSON.stringify(redirectResult, null, 4)}</pre>
+            </React.Fragment>
+        );
+    } else {
+        return (
+            <p>This page is not returning from a redirect operation.</p>
+        );
+    }
+}
+```

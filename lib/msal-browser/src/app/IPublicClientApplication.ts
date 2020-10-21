@@ -14,7 +14,8 @@ export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
-    addEventCallback(callback: Function): void;
+    addEventCallback(callback: Function): string | null;
+    removeEventCallback(callbackId: string): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
@@ -60,6 +61,9 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
     },
     addEventCallback: () => {
+        return null;
+    },
+    removeEventCallback: () => {
         return;
     }
 };
