@@ -2,6 +2,79 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 20 Oct 2020 23:47:28 GMT",
+      "tag": "@azure/msal-browser_v2.4.0",
+      "version": "2.4.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updated cdn docs for MSAL Browser",
+            "author": "janutter@microsoft.com",
+            "commit": "034fc94ad59499932fe7530b0e5ab3152bcbf11e",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update FAQ (#2440)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "1de35f42e0340d2b3020ba7938d0ae5d7d067a42",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Updated eslint rules (#2345)",
+            "author": "janutter@microsoft.com",
+            "commit": "64a4f9e868e63346dfd711dec717abe7fd14d949",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add removeEventCallback API (#2462)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f934892a769d3287a8edda8ec3f72928ff288ea8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add event api to msal-browser (#2394)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "b1a6ccc6348b556cd4636511aeb8e58060154daa",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Use history API to clear hash for msal-browser",
+            "author": "janutter@microsoft.com",
+            "commit": "9a3618b430e9f174505529949ebacf4bccd04858",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Export InteractionType (#2438)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9fc76a676ed0e157e43e6a9512352fcb29099aae",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add extraQueryParameters to acquireTokenSilent in msal-browser",
+            "author": "janutter@microsoft.com",
+            "commit": "d2132c15c759f33c299761b9869dd1144907c0a8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix unexpected interaction_required error in redirect flow (#2404)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c22bb29b8880de4bf0b9437a1c2ad48776a9d88f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Adds support for any OIDC-compliant authority (#2389).",
+            "author": "jamckenn@microsoft.com",
+            "commit": "2b6b9ec9033a8b829393e44c3feb7b19b163d2cd",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Oct 2020 23:45:07 GMT",
       "tag": "@azure/msal-browser_v2.3.1",
       "version": "2.3.1",
