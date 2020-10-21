@@ -56,21 +56,13 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 ```javascript
 npm install @azure/msal-browser
 ```
-### Via CDN (with SRI Hash):
+### Via CDN:
+
+```html
+<script src="https://alcdn.msauth.net/browser/2.4.0/js/msal-browser.min.js"></script>
+```
 
 See [here](./docs/cdn-usage.md) for more info on how to use this package from the Microsoft CDN.
-
-### Compiled
-
-```javascript
-<script src="https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.js" integrity="sha384-M9bRB06LdiYadS+F9rPQnntFCYR3UJvtb2Vr4Tmhw9WBwWUfxH8VDRAFKNn3VTc/" crossorigin="anonymous"></script>
-```
-
-### Minified
-
-```javascript
-<script src="https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.min.js" integrity="sha384-EmYPwkfj+VVmL1brMS1h6jUztl4QMS8Qq8xlZNgIT/luzg7MAzDVrRa2JxbNmk/e" crossorigin="anonymous"></script>
-```
 
 ## Usage
 
