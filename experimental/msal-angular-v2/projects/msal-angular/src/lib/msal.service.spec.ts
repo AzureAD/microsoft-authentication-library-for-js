@@ -66,7 +66,7 @@ describe('MsalService', () => {
 
     });
 
-    it("failure", done => {
+    it("failure", (done) => {
       const sampleError = new AuthError("123", "message");
 
       spyOn(PublicClientApplication.prototype, "loginPopup").and.returnValue((
@@ -85,11 +85,190 @@ describe('MsalService', () => {
             expect(error.message).toBe(sampleError.message);
             expect(PublicClientApplication.prototype.loginPopup).toHaveBeenCalledWith(request);
             done();
-
           }
         });
     });
+  });
 
+  // describe("loginRedirect", () => {
+  //   it("success", () => {
+  //     spyOn(PublicClientApplication.prototype, "loginRedirect");
 
+  //     const request = {
+  //       scopes: ["user.read"]
+  //     };
+
+  //     authService.loginRedirect(request);
+
+  //     expect(PublicClientApplication.prototype.loginRedirect).toHaveBeenCalled();
+  //   });
+  // });
+
+  describe("ssoSilent", () => {
+    it("success", (done) => {
+      const sampleIdToken = {
+        idToken: "id-token"
+      };
+
+      spyOn(PublicClientApplication.prototype, "ssoSilent").and.returnValue((
+        new Promise((resolve) => {
+          //@ts-ignore
+          resolve(sampleIdToken);
+        })
+      ));
+
+      const request = {
+        scopes: ["user.read"],
+        loginHint: "name@example.com"
+      };
+
+      authService.ssoSilent(request)
+        .subscribe((response: AuthenticationResult) => {
+          expect(response.idToken).toBe(sampleIdToken.idToken);
+          expect(PublicClientApplication.prototype.ssoSilent).toHaveBeenCalledWith(request);
+          done();
+        });
+
+    });
+
+    it("failure", (done) => {
+      const sampleError = new AuthError("123", "message");
+
+      spyOn(PublicClientApplication.prototype, "ssoSilent").and.returnValue((
+        new Promise((resolve, reject) => {
+          reject(sampleError);
+        })
+      ));
+
+      const request = {
+        scopes: ["user.read"],
+        loginHint: "name@example.com"
+      };
+
+      authService.ssoSilent(request)
+        .subscribe({
+          error: (error: AuthError) => {
+            expect(error.message).toBe(sampleError.message);
+            expect(PublicClientApplication.prototype.ssoSilent).toHaveBeenCalledWith(request);
+            done();
+          }
+        });
+    });
+  });
+
+  describe("acquireTokenSilent", () => {
+    it("success", (done) => {
+      const sampleAccessToken = {
+        accessToken: "123abc"
+      };
+
+      spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+        new Promise((resolve) => {
+          //@ts-ignore
+          resolve(sampleAccessToken);
+        })
+      ));
+
+      const request = {
+        scopes: ["user.read"],
+        account: null
+      };
+
+      authService.acquireTokenSilent(request)
+        .subscribe((response: AuthenticationResult) => {
+          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+          expect(PublicClientApplication.prototype.acquireTokenSilent).toHaveBeenCalledWith(request);
+          done();
+        });
+
+    });
+
+    it("failure", (done) => {
+      const sampleError = new AuthError("123", "message");
+
+      spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+        new Promise((resolve, reject) => {
+          reject(sampleError);
+        })
+      ));
+
+      const request = {
+        scopes: ["wrong.scope"],
+        account: null
+      };
+
+      authService.acquireTokenSilent(request)
+        .subscribe({
+          error: (error: AuthError) => {
+            expect(error.message).toBe(sampleError.message);
+            expect(PublicClientApplication.prototype.acquireTokenSilent).toHaveBeenCalledWith(request);
+            done();
+          }
+        });
+
+    });
+  });
+
+  // describe("acquireTokenRedirect", () => {
+  //   it("success", () => {
+  //     spyOn(PublicClientApplication.prototype, "acquireTokenRedirect");
+
+  //     authService.acquireTokenRedirect({
+  //       scopes: ["user.read"]
+  //     });
+
+  //     expect(PublicClientApplication.prototype.acquireTokenRedirect).toHaveBeenCalled();
+  //   });
+  // });
+
+  describe("acquireTokenPopup", () => {
+    it("success", (done) => {
+      const sampleAccessToken = {
+        accessToken: "123abc"
+      };
+
+      spyOn(PublicClientApplication.prototype, "acquireTokenPopup").and.returnValue((
+        new Promise((resolve) => {
+          //@ts-ignore
+          resolve(sampleAccessToken);
+        })
+      ));
+
+      const request = {
+        scopes: ["user.read"]
+      };
+
+      authService.acquireTokenPopup(request)
+        .subscribe((response: AuthenticationResult) => {
+          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+          expect(PublicClientApplication.prototype.acquireTokenPopup).toHaveBeenCalledWith(request);
+          done();
+        });
+
+    });
+
+    it("failure", (done) => {
+      const sampleError = new AuthError("123", "message");
+
+      spyOn(PublicClientApplication.prototype, "acquireTokenPopup").and.returnValue((
+        new Promise((resolve, reject) => {
+          reject(sampleError);
+        })
+      ));
+
+      const request = {
+        scopes: ["wrong.scope"]
+      };
+
+      authService.acquireTokenPopup(request)
+        .subscribe({
+          error: (error: AuthError) => {
+            expect(error.message).toBe(sampleError.message);
+            expect(PublicClientApplication.prototype.acquireTokenPopup).toHaveBeenCalledWith(request);
+            done();
+          }
+        });
+
+    });
   });
 });
