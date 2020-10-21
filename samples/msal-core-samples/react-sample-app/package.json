@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "msal": "^1.4.1",
+    "msal": "^1.4.2",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-app-polyfill": "^1.0.1",
