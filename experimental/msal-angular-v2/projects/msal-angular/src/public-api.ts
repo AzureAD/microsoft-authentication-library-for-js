@@ -1,7 +1,5 @@
-/*
- * Public API Surface of msal-angular
- */
-
-export * from './lib/msal-angular.service';
-export * from './lib/msal-angular.component';
-export * from './lib/msal-angular.module';
+export { MsalService } from './lib/msal.service';
+export { MsalGuard } from './lib/msal.guard';
+export { MsalInterceptor } from './lib/msal.interceptor';
+export { MSAL_INSTANCE } from './lib/constants';
+export { MsalBroadcastService } from './lib/msal.broadcast.service';

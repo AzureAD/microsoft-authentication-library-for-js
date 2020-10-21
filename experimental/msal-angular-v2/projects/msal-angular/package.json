@@ -1,11 +1,17 @@
 {
-  "name": "msal-angular",
-  "version": "0.0.1",
+  "name": "@azure/msal-angular",
+  "version": "2.0.0-alpha.0",
   "peerDependencies": {
     "@angular/common": "^10.0.14",
-    "@angular/core": "^10.0.14"
+    "@angular/core": "^10.0.14",
+    "@azure/msal-browser": "^2.4.0"
   },
   "dependencies": {
+    "minimatch": "^3.0.4",
+    "path": "^0.12.7",
     "tslib": "^2.0.0"
+  },
+  "devDependencies": {
+    "@azure/msal-browser": "^2.4.0"
   }
 }
