@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import React, { FunctionComponent, useState, useEffect, useContext, ReactNode } from "react";
+import React, { useState, useEffect, PropsWithChildren } from "react";
 import {
     IPublicClientApplication,
     AccountInfo,
@@ -12,12 +12,11 @@ import {
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 
-export type MsalProviderProps = {
+export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
-    children?: ReactNode
-};
+}>;
 
-export const MsalProvider: FunctionComponent<MsalProviderProps> = ({instance, children}: MsalProviderProps) => {
+export function MsalProvider({instance, children}: MsalProviderProps) {
     // State hook to store accounts
     const [accounts, setAccounts] = useState<AccountInfo[]>(
         instance.getAllAccounts()
@@ -65,6 +64,5 @@ export const MsalProvider: FunctionComponent<MsalProviderProps> = ({instance, ch
             {children}
         </MsalContext.Provider>
     );
-};
+}
 
-export const useMsal = () => useContext(MsalContext);
