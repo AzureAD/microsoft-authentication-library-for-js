@@ -320,7 +320,7 @@ export class BrowserStorage extends CacheManager {
      * @param value
      */
     setTemporaryCache(cacheKey: string, value: string, generateKey?: boolean): void {
-        let key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
+        const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
 
         this.setItem(key, value);
         if (this.cacheConfig.storeAuthStateInCookie) {

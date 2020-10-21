@@ -67,7 +67,6 @@ export class OnBehalfOfClient extends BaseClient {
                 username: null
             });
 
-            console.log("AccountKey", accountKey);
             cachedAccount = this.cacheManager.getAccount(accountKey);
         }
 

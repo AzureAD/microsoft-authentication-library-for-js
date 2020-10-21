@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -37,7 +37,7 @@ export class RedirectHandler {
 
             // Set interaction status in the library.
             this.browserStorage.setTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
-            this.browserStorage.cacheCodeRequest(authCodeRequest, browserCrypto);
+            this.browserStorage.cacheCodeRequest(authCodeRequest, this.browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             const isIframedApp = BrowserUtils.isInIframe();
             if (isIframedApp) {
@@ -77,7 +77,7 @@ export class RedirectHandler {
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
-        this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, browserCrypto);
+        this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, this.browserCrypto);
         this.authCodeRequest.code = authCode;
 
         // Remove throttle if it exists
