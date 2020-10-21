@@ -10,7 +10,7 @@ import { useMsal } from "./MsalProvider";
 
 type MsalAuthenticationResult = {
     login: Function; 
-    result: AuthenticationResult|null|void;
+    result: AuthenticationResult|null;
     error: AuthError|null;
 };
 
