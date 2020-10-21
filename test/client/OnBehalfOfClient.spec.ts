@@ -28,7 +28,7 @@ import { ScopeSet } from "../../src/request/ScopeSet";
 import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
-import { ClientConfiguration, ClientConfigurationError } from "../../src";
+import { ClientConfiguration } from "../../src";
 
 describe("OnBehalfOf unit tests", () => {
     let config: ClientConfiguration;
@@ -127,22 +127,21 @@ describe("OnBehalfOf unit tests", () => {
 
         // mock access token
         const expectedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "", "login.windows.net", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
 
         sinon.stub(OnBehalfOfClient.prototype, <any>"readAccessTokenFromCache").returns(expectedAtEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
         // mock id token
         const expectedIdTokenEntity: IdTokenEntity = IdTokenEntity.createIdTokenEntity(
-            "", "login.microsoftonline.com", TEST_TOKENS.IDTOKEN_V2, config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_TOKENS.ACCESS_TOKEN
+            "", "login.windows.net", TEST_TOKENS.IDTOKEN_V2, config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_TOKENS.ACCESS_TOKEN
         );
         sinon.stub(OnBehalfOfClient.prototype, <any>"readIdTokenFromCache").returns(expectedIdTokenEntity);
 
         // mock account
         const idToken: AuthToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
-        const accountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.authOptions.authority, idToken, config.cryptoInterface, TEST_TOKENS.ACCESS_TOKEN);
-        config.storageInterface.setAccount(accountEntity.generateAccountKey(),  accountEntity);
-        console.log("getAccount", config.storageInterface.getAccount(accountEntity.generateAccountKey()));
+        const expectedAccountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.authOptions.authority, idToken, config.cryptoInterface, TEST_TOKENS.ACCESS_TOKEN);
+        sinon.stub(OnBehalfOfClient.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
 
         const client = new OnBehalfOfClient(config);
         const onBehalfOfRequest: OnBehalfOfRequest = {
@@ -158,9 +157,9 @@ describe("OnBehalfOf unit tests", () => {
         expect(authResult.fromCache).to.be.true;
         expect(authResult.uniqueId).to.eq(idToken.claims.oid);
         expect(authResult.tenantId).to.eq(idToken.claims.tid);
-        expect(authResult.account.homeAccountId).to.eq(accountEntity.homeAccountId);
-        expect(authResult.account.environment).to.eq(accountEntity.environment);
-        expect(authResult.account.tenantId).to.eq(accountEntity.realm);
+        expect(authResult.account.homeAccountId).to.eq(expectedAccountEntity.homeAccountId);
+        expect(authResult.account.environment).to.eq(expectedAccountEntity.environment);
+        expect(authResult.account.tenantId).to.eq(expectedAccountEntity.realm);
     });
 
     it("acquires a token, skipCache=true", async () => {
