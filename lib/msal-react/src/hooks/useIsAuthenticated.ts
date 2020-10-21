@@ -3,12 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, IPublicClientApplication } from "@azure/msal-browser";
 import { useState, useEffect } from "react";
-
-import { useMsal } from "./MsalProvider";
-
-export type AccountIdentifiers = Partial<Pick<AccountInfo, "homeAccountId"|"username">>;
+import { IPublicClientApplication } from "@azure/msal-browser";
+import { useMsal } from "./useMsal";
+import { AccountIdentifiers } from "../types/AccountIdentifiers";
 
 function isAuthenticated(instance: IPublicClientApplication, account?: AccountIdentifiers): boolean {
     if (account?.homeAccountId) {

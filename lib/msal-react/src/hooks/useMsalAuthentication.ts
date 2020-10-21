@@ -5,10 +5,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError } from "@azure/msal-browser";
-import { AccountIdentifiers, useIsAuthenticated } from "./useIsAuthenticated";
-import { useMsal } from "./MsalProvider";
+import { useIsAuthenticated } from "./useIsAuthenticated";
+import { AccountIdentifiers } from "../types/AccountIdentifiers";
+import { useMsal } from "./useMsal";
 
-type MsalAuthenticationResult = {
+export type MsalAuthenticationResult = {
     login: Function; 
     result: AuthenticationResult|null;
     error: AuthError|null;
