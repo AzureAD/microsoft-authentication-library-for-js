@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 14 Oct 2020 23:45:07 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Oct 2020 23:47:28 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.4.0
+
+Tue, 20 Oct 2020 23:47:28 GMT
+
+### Minor changes
+
+- Add removeEventCallback API (#2462) (thomas.norling@microsoft.com)
+- Add event api to msal-browser (#2394) (joarroyo@microsoft.com)
+
+### Patches
+
+- Use history API to clear hash for msal-browser (janutter@microsoft.com)
+- Export InteractionType (#2438) (thomas.norling@microsoft.com)
+- Add extraQueryParameters to acquireTokenSilent in msal-browser (janutter@microsoft.com)
+- Fix unexpected interaction_required error in redirect flow (#2404) (thomas.norling@microsoft.com)
+- Adds support for any OIDC-compliant authority (#2389). (jamckenn@microsoft.com)
 
 ## 2.3.1
 
