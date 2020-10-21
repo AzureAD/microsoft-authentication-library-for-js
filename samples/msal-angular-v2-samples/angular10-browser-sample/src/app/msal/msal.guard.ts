@@ -49,9 +49,9 @@ export class MsalGuard implements CanActivate {
 
         const redirectStartPage = this.getDestinationUrl(url);
         this.authService.loginRedirect({
-            ...this.msalGuardConfig.authRequest,
             redirectStartPage,
             scopes: [],
+            ...this.msalGuardConfig.authRequest,
         });
         return of(false);
     }
