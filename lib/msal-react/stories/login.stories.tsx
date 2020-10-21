@@ -1,5 +1,10 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import React from "react";
-import { MsalProvider, MsalConsumer, useMsal, useIsAuthenticated, AuthenticatedTemplate, UnauthenticatedTemplate } from "../src";
+import { MsalProvider, useMsal, AuthenticatedTemplate, UnauthenticatedTemplate } from "../src";
 
 import { msalInstance } from "./msalInstance";
 
@@ -23,9 +28,7 @@ export const Logout = () => (
 );
 
 const PopupExample = () => {
-    const { instance, state } = useMsal();
-
-    const accounts = state.accounts;
+    const { instance, accounts } = useMsal();
 
     return (
         <React.Fragment>
@@ -39,9 +42,7 @@ const PopupExample = () => {
 };
 
 const LogoutExample = () => {
-    const { instance, state } = useMsal();
-    
-    const accounts = state.accounts;
+    const { instance, accounts } = useMsal();
 
     return (
         <React.Fragment>

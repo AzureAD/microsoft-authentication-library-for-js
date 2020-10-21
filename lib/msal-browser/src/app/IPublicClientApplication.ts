@@ -59,5 +59,11 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },	
     ssoSilent: () => {	
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+    },
+    addEventCallback: () => {
+        return null;
+    },
+    removeEventCallback: () => {
+        return;
     }
 };

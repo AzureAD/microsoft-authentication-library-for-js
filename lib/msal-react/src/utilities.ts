@@ -3,9 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { IMsalContext } from "./MsalContext";
-import { AuthenticationResult } from "@azure/msal-browser";
-
 type FaaCFunction = <T>(args: T) => React.ReactNode;
 
 export function getChildrenOrFunction<T>(
@@ -18,12 +15,10 @@ export function getChildrenOrFunction<T>(
     return children;
 }
 
-export function defaultLoginHandler(
-    context: IMsalContext
-): Promise<AuthenticationResult> {
-    const { instance } = context;
-    return instance.loginPopup({
-        scopes: ["user.read"],
-        prompt: "select_account",
-    });
-}
+/*
+ * Utility types
+ * Reference: https://github.com/piotrwitek/utility-types
+ */
+type SetDifference<A, B> = A extends B ? never : A;
+type SetComplement<A, A1 extends A> = SetDifference<A, A1>;
+export type Subtract<T extends T1, T1 extends object> = Pick<T,SetComplement<keyof T, keyof T1>>;

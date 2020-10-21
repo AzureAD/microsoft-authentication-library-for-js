@@ -3,26 +3,27 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult } from "@azure/msal-browser";
+import { AuthenticationResult, AuthError } from "@azure/msal-browser";
 import { useState, useEffect } from "react";
 
 import { useMsal } from "./MsalProvider";
 
-export function useHandleRedirect(): AuthenticationResult | null {
+export function useHandleRedirect(): [AuthenticationResult|null, AuthError|null] {
     const { instance } = useMsal();
-    const [
-        redirectResponse,
-        setRedirectResponse,
-    ] = useState<AuthenticationResult | null>(null);
+    const [response, setResponse] = useState<AuthenticationResult|null>(null);
+    const [error, setError] = useState<AuthError|null>(null);
 
     useEffect(() => {
         instance.handleRedirectPromise().then(response => {
             if (response) {
-                setRedirectResponse(response);
+                setResponse(response);
+                setError(null);
             }
+        }).catch(e => {
+            setError(e);
+            setResponse(null);
         });
-        // TODO: error handling
     }, [instance]);
 
-    return redirectResponse;
+    return [response, error];
 }
