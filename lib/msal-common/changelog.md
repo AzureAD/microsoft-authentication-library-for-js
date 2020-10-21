@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 15 Oct 2020 00:49:18 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Oct 2020 23:47:28 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.6.2
+
+Tue, 20 Oct 2020 23:47:28 GMT
+
+### Patches
+
+- Adds support for any OIDC-compliant authority (#2389). (jamckenn@microsoft.com)
 
 ## 1.6.1
 
