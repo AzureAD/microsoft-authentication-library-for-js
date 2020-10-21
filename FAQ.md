@@ -42,6 +42,7 @@
 1. [Why is getAccountByUsername returning null, even though I'm signed in?](#why-is-getaccountbyusername-returning-null-even-though-im-signed-in)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
+1. [Why is there no access token returned from acquireTokenSilent?](#why-is-there-no-access-token-returned-from-acquiretokensilent)
 
 **Common Issues**
 1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/errors.md)
@@ -185,3 +186,43 @@ You can read more about this behavior [here](https://docs.microsoft.com/azure/ac
 ## Why am I not signed in when returning from an invite link?
 
 MSAL.js will only process tokens which it originally requested. If your flow requires that you send a user a link they can use to sign up, you will need to ensure that the link points to your app, not the B2C service directly. An example flow can be seen in the [working with B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/working-with-b2c.md) doc.
+
+## Why is there no access token returned from `acquireTokenSilent`?
+
+Azure AD B2C currently requires refresh tokens to be redeemed with the same scopes that were requested when the refresh token is first obtained. If your application requires different behavior, workarounds include: 
+
+#### If your application only needs to support 1 set of scopes: 
+
+Please ensure that these scopes are requested as part of the `loginPopup`,`loginRedirect` or `ssoSilent` call made prior to calling `acquireTokenSilent`. This ensures the refresh token is issued for the scopes you need.
+
+#### If your application needs to support more than 1 set of scopes:
+
+Include the first set of scopes in `loginPopup`, `loginRedirect` or `ssoSilent` then make another call to `acquireTokenRedirect`, `acquireTokenPopup` or `ssoSilent` containing your 2nd set of scopes. Until the access tokens expire, `acquireTokenSilent` will return either token from the cache. Once an access token is expired, one of the interactive APIs will need to be called again. This is an example of how you can handle this scenario:
+
+```javascript
+// Initial acquisition of scopes 1 and 2
+await msal.loginPopup({scopes: ["scope1"]});
+const account = msal.getAllAccounts()[0];
+await msal.ssoSilent({
+    scopes: ["scope2"],
+    loginHint: account.username
+});
+
+// Subsequent token acquisition with fallback
+msal.acquireTokenSilent({
+    scopes: ["scope1"],
+    account: account
+}).then((response) => {
+    if (!response.accessToken) {
+        return msal.ssoSilent({
+            scopes: ["scope1"],
+            loginHint: account.username
+        });
+    } else {
+        return response;
+    }
+});
+```
+
+:warning: `ssoSilent` will not work in browsers that disable 3rd party cookies, such as Safari. If you need to support these browsers, call `acquireTokenRedirect` or `acquireTokenPopup`
+    
