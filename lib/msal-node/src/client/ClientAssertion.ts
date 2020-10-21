@@ -20,6 +20,7 @@ export class ClientAssertion {
     private expirationTime: number;
     private issuer: string;
     private jwtAudience: string;
+    private publicCertificate: Array<string>;
 
     public static fromAssertion(assertion: string): ClientAssertion {
         const clientAssertion = new ClientAssertion();
@@ -27,10 +28,13 @@ export class ClientAssertion {
         return clientAssertion;
     }
 
-    public static fromCertificate(thumbprint: string, privateKey: string): ClientAssertion {
+    public static fromCertificate(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion {
         const clientAssertion = new ClientAssertion();
         clientAssertion.privateKey = privateKey;
         clientAssertion.thumbprint = thumbprint;
+        if (publicCertificate) {
+            clientAssertion.publicCertificate = this.parseCertificate(publicCertificate);
+        }
         return clientAssertion;
     }
 
@@ -69,6 +73,12 @@ export class ClientAssertion {
             [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex")
         };
 
+        if (this.publicCertificate) {
+            Object.assign(header, { 
+                [JwtConstants.X5C]: this.publicCertificate 
+            });
+        }
+
         const payload = {
             [JwtConstants.AUDIENCE]: this.jwtAudience,
             [JwtConstants.EXPIRATION_TIME]: this.expirationTime,
@@ -84,5 +94,17 @@ export class ClientAssertion {
 
     private isExpired(): boolean {
         return this.expirationTime < TimeUtils.nowSeconds();
+    }
+
+    public static parseCertificate(publicCertificate: string): Array<string> {
+        const re = /-----BEGIN CERTIFICATE-----\n(.+?)\n-----END CERTIFICATE-----/gm;
+        const certs = Array<string>();
+
+        let matches;
+        while ((matches = re.exec(publicCertificate)) !== null) {
+            certs.push(matches[1]);
+        }
+        
+        return certs;
     }
 }

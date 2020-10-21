@@ -30,6 +30,7 @@ export type NodeAuthOptions = {
     clientCertificate?: {
         thumbprint: string,
         privateKey: string,
+        x5c?: string
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
@@ -78,6 +79,7 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientCertificate: {
         thumbprint: "",
         privateKey: "",
+        x5c: ""
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
