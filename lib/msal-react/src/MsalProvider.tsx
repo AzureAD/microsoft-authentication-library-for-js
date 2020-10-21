@@ -26,7 +26,7 @@ export const MsalProvider: FunctionComponent<MsalProviderProps> = ({instance, ch
     const [loginInProgress, setLoginInProgress] = useState<boolean>(false);
 
     useEffect(() => {
-        instance.addEventCallback((message: EventMessage) => {
+        const callbackId = instance.addEventCallback((message: EventMessage) => {
             switch (message.eventType) {
                 case EventType.LOGIN_START:
                 case EventType.SSO_SILENT_START:
@@ -47,6 +47,10 @@ export const MsalProvider: FunctionComponent<MsalProviderProps> = ({instance, ch
                     break;
             }
         });
+
+        return () => {
+            callbackId && instance.removeEventCallback(callbackId);
+        };
     }, [instance]);
 
     // Memoized context value
