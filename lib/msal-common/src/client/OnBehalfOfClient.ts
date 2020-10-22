@@ -3,8 +3,6 @@
  * Licensed under the MIT License.
  */
 
-/* eslint-disable */
-
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
@@ -23,7 +21,7 @@ import { AccountEntity } from "../cache/entities/AccountEntity";
 import { AuthToken } from "../account/AuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestThumbprint } from "../network/RequestThumbprint";
-import { AccountInfo } from '../account/AccountInfo';
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * On-Behalf-Of client

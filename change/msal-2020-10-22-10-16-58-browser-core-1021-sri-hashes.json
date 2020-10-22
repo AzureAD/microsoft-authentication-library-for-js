@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update SRI hashes for msal@1.4.2 and browser@2.4.0",
+  "packageName": "msal",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-22T17:16:58.133Z"
+}

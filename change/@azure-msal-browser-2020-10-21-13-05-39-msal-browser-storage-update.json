@@ -1,8 +1,8 @@
 {
-  "type": "minor",
+  "type": "patch",
   "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
   "packageName": "@azure/msal-browser",
   "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-10-21T20:05:14.502Z"
 }
