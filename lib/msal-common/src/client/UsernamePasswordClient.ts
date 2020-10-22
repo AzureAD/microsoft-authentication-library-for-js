@@ -8,13 +8,13 @@ import { ClientConfiguration } from "../config/ClientConfiguration";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ResponseHandler } from "../response/ResponseHandler";
-import { Authority } from '../authority/Authority';
-import { NetworkResponse } from '../network/NetworkManager';
-import { ServerAuthorizationTokenResponse } from '../response/ServerAuthorizationTokenResponse';
-import { RequestParameterBuilder } from '../request/RequestParameterBuilder';
-import { ScopeSet } from '../request/ScopeSet';
-import { GrantType } from '../utils/Constants';
-import { StringUtils } from '../utils/StringUtils';
+import { Authority } from "../authority/Authority";
+import { NetworkResponse } from "../network/NetworkManager";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
+import { ScopeSet } from "../request/ScopeSet";
+import { GrantType } from "../utils/Constants";
+import { StringUtils } from "../utils/StringUtils";
 
 /**
  * Oauth2.0 Password grant client
