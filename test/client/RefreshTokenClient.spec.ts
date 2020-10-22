@@ -99,7 +99,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface.setAccount(testAccountEntity.generateAccountKey(), testAccountEntity);
+            config.storageInterface.setAccount(testAccountEntity);
             client = new RefreshTokenClient(config);
         });
 
@@ -176,8 +176,8 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface.setAccount(testAccountEntity.generateAccountKey(), testAccountEntity);
-            config.storageInterface.setAppMetadata(testAppMetadata.generateAppMetadataKey(), testAppMetadata);
+            config.storageInterface.setAccount(testAccountEntity);
+            config.storageInterface.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config);
         });
 

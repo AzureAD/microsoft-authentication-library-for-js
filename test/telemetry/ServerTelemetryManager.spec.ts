@@ -3,85 +3,9 @@ import { expect } from "chai";
 import { ServerTelemetryManager, CacheManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ValidCredentialType, StringUtils } from "../../src";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import sinon from "sinon";
+import { MockStorageClass } from "../client/ClientTestUtils";
 
-let store = {};
-class TestCacheManager extends CacheManager {
-    // Accounts
-    getAccount(key: string): AccountEntity | null {
-        const account: AccountEntity = store[key] as AccountEntity;
-        if (AccountEntity.isAccountEntity(account)) {
-            return account;
-        }
-        return null;
-    }
-    setAccount(key: string, value: AccountEntity): void {
-        store[key] = value;
-    }
-
-    // Credentials (idtokens, accesstokens, refreshtokens)
-    getCredential(key: string): ValidCredentialType | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        switch (credType) {
-            case CredentialType.ID_TOKEN:
-                return store[key] as IdTokenEntity;
-            case CredentialType.ACCESS_TOKEN:
-                return store[key] as AccessTokenEntity;
-            case CredentialType.REFRESH_TOKEN:
-                return store[key] as RefreshTokenEntity;
-        }
-        return null;
-    }
-    setCredential(key: string, value: CredentialEntity): void {
-        store[key] = value;
-    }
-
-    // AppMetadata
-    getAppMetadata(key: string): AppMetadataEntity | null {
-        return store[key] as AppMetadataEntity;
-    }
-    setAppMetadata(key: string, value: AppMetadataEntity): void {
-        store[key] = value;
-    }
-
-    // Telemetry cache
-    getServerTelemetry(key: string): ServerTelemetryEntity | null {
-        const serverTelemetryEntity: ServerTelemetryEntity = store[key] as ServerTelemetryEntity;
-        if (ServerTelemetryEntity.isServerTelemetryEntity(key, serverTelemetryEntity)) {
-            return serverTelemetryEntity;
-        }
-        return null;
-    }
-    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
-        store[key] = value;
-    }
-
-    // Throttling cache
-    getThrottlingCache(key: string): ThrottlingEntity | null {
-        return store[key] as ThrottlingEntity;
-    }
-    setThrottlingCache(key: string, value: ThrottlingEntity): void {
-        store[key] = value;
-    }
-
-    removeItem(key: string): boolean {
-        let result: boolean = false;
-        if (!!store[key]) {
-            delete store[key];
-            result = true;
-        }
-        return result;
-    }
-    containsKey(key: string): boolean {
-        return !!store[key];
-    }
-    getKeys(): string[] {
-        return Object.keys(store);
-    }
-    clear(): void {
-        store = {};
-    }
-}
-const testCacheManager = new TestCacheManager();
+const testCacheManager = new MockStorageClass();
 const testApiCode = 9999999;
 const testError = "interaction_required";
 const testCorrelationId = "this-is-a-test-correlationId";
@@ -95,7 +19,7 @@ const testTelemetryPayload: ServerTelemetryRequest = {
 
 describe("ServerTelemetryManager.ts", () => {
     afterEach(() => {
-        store = {};
+        testCacheManager.store = {};
         sinon.restore();
     });
 
