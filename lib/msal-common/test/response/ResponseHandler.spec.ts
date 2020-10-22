@@ -9,8 +9,9 @@ import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetwor
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientTestUtils } from "../client/ClientTestUtils";
-import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme, ValidCredentialType, CredentialEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity } from "../../src";
+import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme, ValidCredentialType, CredentialEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, ProtocolMode } from "../../src";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
+import { MockStorageClass } from "../client/ClientTestUtils";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -63,101 +64,9 @@ const cryptoInterface: ICrypto = {
     }
 };
 
-let store = {};
-class TestCacheManager extends CacheManager {
-    // Accounts
-    getAccount(key: string): AccountEntity | null {
-        const account: AccountEntity = store[key] as AccountEntity;
-        if (AccountEntity.isAccountEntity(account)) {
-            return account;
-        }
-        return null;
-    }
-    setAccount(key: string, value: AccountEntity): void {
-        store[key] = value;
-    }
+const testCacheManager = new MockStorageClass();
 
-    // Credentials (idtokens)
-    getIdTokenCredential(key: string): IdTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.ID_TOKEN) {
-            return store[key] as IdTokenEntity;
-        }
-        return null;
-    }
-    setIdTokenCredential(key: string, value: CredentialEntity): void {
-        store[key] = value;
-    }
-
-    // Credentials (accesstokens)
-    getAccessTokenCredential(key: string): AccessTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.ACCESS_TOKEN) {
-            return store[key] as AccessTokenEntity;
-        }
-        return null;
-    }
-    setAccessTokenCredential(key: string, value: AccessTokenEntity): void {
-        store[key] = value;
-    }
-
-    // Credentials (accesstokens)
-    getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.REFRESH_TOKEN) {
-            return store[key] as RefreshTokenEntity;
-        }
-        return null;
-    }
-    setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void {
-        store[key] = value;
-    }
-
-    // AppMetadata
-    getAppMetadata(key: string): AppMetadataEntity | null {
-        return store[key] as AppMetadataEntity;
-    }
-    setAppMetadata(key: string, value: AppMetadataEntity): void {
-        store[key] = value;
-    }
-
-    // Telemetry cache
-    getServerTelemetry(key: string): ServerTelemetryEntity | null {
-        return store[key] as ServerTelemetryEntity;
-    }
-    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
-        store[key] = value;
-    }
-
-    // Throttling cache
-    getThrottlingCache(key: string): ThrottlingEntity | null {
-        return store[key] as ThrottlingEntity;
-    }
-    setThrottlingCache(key: string, value: ThrottlingEntity): void {
-        store[key] = value;
-    }
-
-    removeItem(key: string): boolean {
-        let result: boolean = false;
-        if (!!store[key]) {
-            delete store[key];
-            result = true;
-        }
-        return result;
-    }
-    containsKey(key: string): boolean {
-        return !!store[key];
-    }
-    getKeys(): string[] {
-        return Object.keys(store);
-    }
-    clear(): void {
-        store = {};
-    }
-}
-const testCacheManager = new TestCacheManager;
-
-const authority = new Authority("https://login.microsoftonline.com/common", networkInterface);
+const authority = new Authority("https://login.microsoftonline.com/common", networkInterface, ProtocolMode.AAD);
 
 describe("ResponseHandler.ts", () => {
     beforeEach(() => {

@@ -111,7 +111,7 @@ describe("Storage tests for msal-node: ", () => {
 
         let mockAccountEntity = CacheManager.toObject(new AccountEntity(), mockAccountData);
         expect(mockAccountEntity).toBeInstanceOf(AccountEntity);
-        nodeStorage.setAccount(mockAccountEntity.generateAccountKey(), mockAccountEntity);
+        nodeStorage.setAccount(mockAccountEntity);
         expect(nodeStorage.getAccount(mockAccountEntity.generateAccountKey())).toEqual(mockAccountEntity);
     });
 
@@ -165,7 +165,7 @@ describe("Storage tests for msal-node: ", () => {
         let accessToken = new AccessTokenEntity();
         accessToken = CacheManager.toObject(accessToken, newMockATData);
 
-        nodeStorage.setAccessTokenCredential(accessToken.generateCredentialKey(), accessToken);
+        nodeStorage.setAccessTokenCredential(accessToken);
         const fetchedAccessToken = nodeStorage.getAccessTokenCredential(accessTokenKey);
         expect(fetchedAccessToken).toEqual(accessToken);
     });

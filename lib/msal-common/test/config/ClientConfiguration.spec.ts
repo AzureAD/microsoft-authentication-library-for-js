@@ -47,8 +47,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw("Unexpected error in authentication.: Storage interface - removeItem() has not been implemented");
         expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw(AuthError);
         expect(emptyConfig.storageInterface.setAccount).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.setAccount("testKey", MockCache.acc)).to.throw("Unexpected error in authentication.: Storage interface - setAccount() has not been implemented");
-        expect(() => emptyConfig.storageInterface.setAccount("testKey", MockCache.acc)).to.throw(AuthError);
+        expect(() => emptyConfig.storageInterface.setAccount(MockCache.acc)).to.throw("Unexpected error in authentication.: Storage interface - setAccount() has not been implemented");
+        expect(() => emptyConfig.storageInterface.setAccount(MockCache.acc)).to.throw(AuthError);
         // Network interface checks
         expect(emptyConfig.networkInterface).to.be.not.null;
         expect(emptyConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
@@ -129,7 +129,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 cpu: TEST_CONFIG.TEST_CPU
             }
         });
-        cacheStorageMock.setAccount("accountTestkey", MockCache.acc);
+        cacheStorageMock.setAccount(MockCache.acc);
         // Crypto interface tests
         expect(newConfig.cryptoInterface).to.be.not.null;
         expect(newConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -143,11 +143,11 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.storageInterface.clear).to.be.not.null;
         expect(newConfig.storageInterface.clear).to.be.eq(cacheStorageMock.clear);
         expect(newConfig.storageInterface.containsKey).to.be.not.null;
-        expect(newConfig.storageInterface.containsKey("accountTestkey")).to.be.true;
+        expect(newConfig.storageInterface.containsKey(MockCache.acc.generateAccountKey())).to.be.true;
         expect(newConfig.storageInterface.getAccount).to.be.not.null;
-        expect(newConfig.storageInterface.getAccount("accountTestkey")).to.be.eq(MockCache.acc);
+        expect(newConfig.storageInterface.getAccount(MockCache.acc.generateAccountKey())).to.be.eq(MockCache.acc);
         expect(newConfig.storageInterface.getKeys).to.be.not.null;
-        expect(newConfig.storageInterface.getKeys()).to.be.deep.eq(["accountTestkey"]);
+        expect(newConfig.storageInterface.getKeys()).to.be.deep.eq([MockCache.acc.generateAccountKey()]);
         expect(newConfig.storageInterface.removeItem).to.be.not.null;
         expect(newConfig.storageInterface.removeItem).to.be.eq(cacheStorageMock.removeItem);
         expect(newConfig.storageInterface.setAccount).to.be.not.null;

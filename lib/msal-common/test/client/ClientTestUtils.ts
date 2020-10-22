@@ -24,7 +24,8 @@ export class MockStorageClass extends CacheManager {
         }
         return null;
     }
-    setAccount(key: string, value: AccountEntity): void {
+    setAccount(value: AccountEntity): void {
+        const key = value.generateAccountKey();
         this.store[key] = value;
     }
 
@@ -36,7 +37,8 @@ export class MockStorageClass extends CacheManager {
         }
         return null;
     }
-    setIdTokenCredential(key: string, value: CredentialEntity): void {
+    setIdTokenCredential(value: IdTokenEntity): void {
+        const key = value.generateCredentialKey();
         this.store[key] = value;
     }
 
@@ -48,7 +50,8 @@ export class MockStorageClass extends CacheManager {
         }
         return null;
     }
-    setAccessTokenCredential(key: string, value: AccessTokenEntity): void {
+    setAccessTokenCredential(value: AccessTokenEntity): void {
+        const key = value.generateCredentialKey();
         this.store[key] = value;
     }
 
@@ -60,7 +63,8 @@ export class MockStorageClass extends CacheManager {
         }
         return null;
     }
-    setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void {
+    setRefreshTokenCredential(value: RefreshTokenEntity): void {
+        const key = value.generateCredentialKey();
         this.store[key] = value;
     }
 
@@ -68,7 +72,8 @@ export class MockStorageClass extends CacheManager {
     getAppMetadata(key: string): AppMetadataEntity | null {
         return this.store[key] as AppMetadataEntity;
     }
-    setAppMetadata(key: string, value: AppMetadataEntity): void {
+    setAppMetadata(value: AppMetadataEntity): void {
+        const key = value.generateAppMetadataKey();
         this.store[key] = value;
     }
 
