@@ -300,9 +300,11 @@ export class BrowserStorage extends CacheManager {
     getTemporaryCache(cacheKey: string, generateKey?: boolean): string {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
 
-        const itemCookie = this.getItemCookie(key);
-        if (this.cacheConfig.storeAuthStateInCookie && itemCookie) {
-            return itemCookie;
+        if (this.cacheConfig.storeAuthStateInCookie) {
+            const itemCookie = this.getItemCookie(key);
+            if (itemCookie) {
+                return itemCookie;
+            }
         }
 
         const value = this.getItem(key);
