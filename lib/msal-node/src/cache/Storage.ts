@@ -295,11 +295,11 @@ export class Storage extends CacheManager {
 
     /**
      * fetch throttling entity from the platform cache
-     * @param throttlingKey
+     * @param throttlingCacheKey
      */
-    getThrottlingCache(throttlingKey: string): ThrottlingEntity | null {
-        const throttlingCache: ThrottlingEntity = this.getItem(throttlingKey) as ThrottlingEntity;
-        if (ThrottlingEntity.isThrottlingEntity(throttlingKey, throttlingCache)) {
+    getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
+        const throttlingCache: ThrottlingEntity = this.getItem(throttlingCacheKey) as ThrottlingEntity;
+        if (ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
             return throttlingCache;
         }
         return null;
