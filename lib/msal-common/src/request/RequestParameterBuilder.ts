@@ -1,16 +1,15 @@
 /*
-* Copyright (c) Microsoft Corporation. All rights reserved.
-* Licensed under the MIT License.
-*/
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, ClaimsRequestKeys, PasswordGrantConstants } from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, AuthenticationScheme, ClaimsRequestKeys, PasswordGrantConstants} from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "./RequestValidator";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
-import { use } from 'chai';
 
 export class RequestParameterBuilder {
 
@@ -41,10 +40,13 @@ export class RequestParameterBuilder {
     }
 
     /**
-     * add scopes
+     * add scopes. set addOidcScopes to false to prevent default scopes in non-user scenarios
      * @param scopeSet
+     * @param addOidcScopes
      */
-    addScopes(scopeSet: ScopeSet): void {
+    addScopes(scopes: string[], addOidcScopes: boolean = true): void {
+        const requestScopes = addOidcScopes ? [...scopes || [], Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE] : scopes || [];
+        const scopeSet = new ScopeSet(requestScopes);
         this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
 
@@ -222,6 +224,22 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * add OBO assertion for confidential client flows
+     * @param clientAssertion
+     */
+    addOboAssertion(oboAssertion: string): void {
+        this.parameters.set(AADServerParamKeys.OBO_ASSERTION, encodeURIComponent(oboAssertion));
+    }
+
+    /**
+     * add grant type
+     * @param grantType
+     */
+    addRequestTokenUse(tokenUse: string): void {
+        this.parameters.set(AADServerParamKeys.REQUESTED_TOKEN_USE, encodeURIComponent(tokenUse));
+    }
+
+    /**
      * add grant type
      * @param grantType
      */
@@ -281,7 +299,7 @@ export class RequestParameterBuilder {
      * adds `username` for Password Grant flow
      * @param username
      */
-    addUsername(username: string) {
+    addUsername(username: string): void {
         this.parameters.set(PasswordGrantConstants.username, username);
     }
 
@@ -289,8 +307,19 @@ export class RequestParameterBuilder {
      * adds `password` for Password Grant flow
      * @param password
      */
-    addPassword(password: string) {
+    addPassword(password: string): void {
         this.parameters.set(PasswordGrantConstants.password, password);
+    }
+
+    /**
+     * add pop_jwk to query params
+     * @param cnfString
+     */
+    addPopToken(cnfString: string): void {
+        if (!StringUtils.isEmpty(cnfString)) {
+            this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
+            this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(cnfString));
+        }
     }
 
     /**

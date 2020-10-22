@@ -1,8 +1,70 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Oct 2020 23:47:28 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.4.0
+
+Tue, 20 Oct 2020 23:47:28 GMT
+
+### Minor changes
+
+- Add removeEventCallback API (#2462) (thomas.norling@microsoft.com)
+- Add event api to msal-browser (#2394) (joarroyo@microsoft.com)
+
+### Patches
+
+- Use history API to clear hash for msal-browser (janutter@microsoft.com)
+- Export InteractionType (#2438) (thomas.norling@microsoft.com)
+- Add extraQueryParameters to acquireTokenSilent in msal-browser (janutter@microsoft.com)
+- Fix unexpected interaction_required error in redirect flow (#2404) (thomas.norling@microsoft.com)
+- Adds support for any OIDC-compliant authority (#2389). (jamckenn@microsoft.com)
+
+## 2.3.1
+
+Wed, 14 Oct 2020 23:45:07 GMT
+
+### Patches
+
+- Remove rogue console.log() in the BrowserCrypto.ts file and add a lint rule to prevent future issues (#2410) (prkanher@microsoft.com)
+- Check for Headers class when configuring network client (janutter@microsoft.com)
+- Update getItem to return ServerTelemetryEntity (#2223) (thomas.norling@microsoft.com)
+
+## 2.3.0
+
+Fri, 02 Oct 2020 17:42:35 GMT
+
+### Minor changes
+
+- Implementation of Access Token Proof-of-Possession Flow (#2151, #2153, #2154, #2209, #2289) (prkanher@microsoft.com)
+
+## 2.2.1
+
+Wed, 30 Sep 2020 17:58:33 GMT
+
+### Patches
+
+- Support SSR in msal-browser (#2073) (thomas.norling@microsoft.com)
+
+## 2.2.0
+
+Thu, 17 Sep 2020 23:16:22 GMT
+
+### Minor changes
+
+- Added client-side throttling to enhance server stability (#1907) (jamckenn@microsoft.com)
+
+### Patches
+
+- Fix issue with base64 encoding of spaces (#2248) (prkanher@microsoft.com)
+- Properly support multiple concurrent RT requests (#2290) (janutter@microsoft.com)
+- Default scope addition done in msal-common (#2267) (thomas.norling@microsoft.com)
+- acquireTokenSilent calls ssoSilent (#2264) (thomas.norling@microsoft.com)
+- Check for interaction in progress when processing redirect hash (#2183) (thomas.norling@microsoft.com)
+- Creating ClientApplication.ts subclass (#2199) (prkanher@microsoft.com)
+- Add SsoSilentRequest for ssoSilent, update tests and samples (joarroyo@microsoft.com)
+- Add Angular 10 browser sample, update documentation (joarroyo@microsoft.com)
 
 ## 2.1.0
 

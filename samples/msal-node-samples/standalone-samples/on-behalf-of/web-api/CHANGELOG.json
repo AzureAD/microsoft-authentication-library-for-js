@@ -1,0 +1,35 @@
+{
+  "name": "msal-node-on-behalf-of-web-app",
+  "entries": [
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "msal-node-on-behalf-of-web-app_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Bump msal-node versions to alpha.8 on msal-node samples",
+            "author": "hectormgdev@gmail.com",
+            "commit": "dc8641667c475b36937f597c97d99241427f68cd",
+            "package": "msal-node-on-behalf-of-web-app"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "msal-node-on-behal-of-web-app_v1.0.1",
+      "version": "1.0.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add on-behalf-of sample",
+            "author": "sagonzal@microsoft.com",
+            "commit": "53c018c8ea0d1877c12641fc1a749e6d66e7ff78",
+            "package": "msal-node-on-behal-of-web-app"
+          }
+        ]
+      }
+    }
+  ]
+}

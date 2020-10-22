@@ -1,5 +1,13 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AuthResponse } from "../AuthResponse";
+import { Account } from "../Account";
 import { IdToken } from "../IdToken";
+import { ResponseTypes, ServerHashParamKeys } from "./Constants";
+import { ServerRequestParameters } from "../ServerRequestParameters";
 
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
@@ -30,5 +38,29 @@ export class ResponseUtils {
             uniqueId: idTokenObj.objectId || idTokenObj.subject,
             tenantId: idTokenObj.tenantId,
         };
+    }
+
+    static buildAuthResponse(idToken: IdToken, authResponse: AuthResponse, serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: Array<string>, accountState: string): AuthResponse {
+        switch(serverAuthenticationRequest.responseType) {
+            case ResponseTypes.id_token:
+                authResponse = {
+                    ...authResponse,
+                    tokenType: ServerHashParamKeys.ID_TOKEN,
+                    account: account,
+                    scopes: scopes,
+                    accountState: accountState
+                };
+                
+                authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
+                return (authResponse.idToken) ? authResponse : null;
+            case ResponseTypes.id_token_token:
+                authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
+                return (authResponse && authResponse.accessToken && authResponse.idToken) ? authResponse : null;
+            case ResponseTypes.token:
+                authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
+                return authResponse;
+            default: 
+                return null;
+        }
     }
 }

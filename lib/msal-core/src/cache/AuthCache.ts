@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys} from "../utils/Constants";
+import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys, ServerHashParamKeys} from "../utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
@@ -79,6 +79,30 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
+     * Validates that the input cache key contains the account search terms (clientId and homeAccountIdentifier) and
+     * then whether or not it contains the "scopes", depending on the token type being searched for. With matching account
+     * search terms, Access Token search tries to match the "scopes" keyword, while Id Token search expects "scopes" to not be included.
+     * @param key 
+     * @param clientId 
+     * @param homeAccountIdentifier 
+     * @param tokenType 
+     */
+    private matchKeyForType(key:string, clientId: string, homeAccountIdentifier: string, tokenType: string): Boolean {
+        const accountMatch = key.match(clientId) && key.match(homeAccountIdentifier);
+        
+        switch (tokenType) {
+            case ServerHashParamKeys.ACCESS_TOKEN:
+                // Cache item is an access token if scopes are included in the cache item key
+                return !!(accountMatch && key.match(Constants.scopes));
+            case ServerHashParamKeys.ID_TOKEN:
+                // Cache item is an ID token if scopes are NOT included in the cache item key
+                return !!(accountMatch && !key.match(Constants.scopes));
+            default:
+                return false;
+        }
+    }
+
+    /**
      * add value to storage
      * @param key
      * @param value
@@ -136,7 +160,6 @@ export class AuthCache extends BrowserStorage {// Singleton
         const isTokenRenewalInProgress = this.tokenRenewalInProgress(state);
 
         const storage = window[this.cacheLocation];
-        let key: string;
         // check state and remove associated cache
         if (stateId && !isTokenRenewalInProgress) {
             Object.keys(storage).forEach(key => {
@@ -180,13 +203,14 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
-     * Get all access tokens in the cache
-     * @param clientId
-     * @param homeAccountIdentifier
+     * Get all tokens of a certain type from the cache
+     * @param clientId 
+     * @param homeAccountIdentifier 
+     * @param tokenType
      */
-    getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+    getAllTokensByType(clientId: string, homeAccountIdentifier: string, tokenType: string): Array<AccessTokenCacheItem> {
         const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
-            const keyMatches = key.match(clientId) && key.match(homeAccountIdentifier) && key.match(Constants.scopes);
+            const keyMatches = this.matchKeyForType(key, clientId, homeAccountIdentifier, tokenType);
             if ( keyMatches ) {
                 const value = this.getItem(key);
                 if (value) {
@@ -207,7 +231,25 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
+     * Get all access tokens in the cache
+     * @param clientId
+     * @param homeAccountIdentifier
+     */
+    getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+        return this.getAllTokensByType(clientId, homeAccountIdentifier, ServerHashParamKeys.ACCESS_TOKEN);
+    }
+
+    /**
+     * Get all id tokens in the cache in the form of AccessTokenCacheItem objects so they are 
+     * in a normalized format and can make use of the existing cached access token validation logic
+     */
+    getAllIdTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+        return this.getAllTokensByType(clientId, homeAccountIdentifier, ServerHashParamKeys.ID_TOKEN);
+    }
+
+    /**
      * Return if the token renewal is still in progress
+     * 
      * @param stateValue
      */
     private tokenRenewalInProgress(stateValue: string): boolean {

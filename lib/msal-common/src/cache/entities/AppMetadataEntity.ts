@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { APP_METADATA, Separators } from "../../utils/Constants";
 
 /**
@@ -24,11 +25,40 @@ export class AppMetadataEntity {
     familyId?: string;
 
     /**
-     * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
+     * Generate AppMetadata Cache Key as per the schema: appmetadata-<environment>-<client_id>
      */
-    generateAppMetaDataEntityKey(): string {
-        const appMetaDataKeyArray: Array<string> = [APP_METADATA, this.environment, this.clientId];
+    generateAppMetadataKey(): string {
+        return AppMetadataEntity.generateAppMetadataCacheKey(this.environment, this.clientId);
+    }
+
+    /**
+     * Generate AppMetadata Cache Key
+     */
+    static generateAppMetadataCacheKey(environment: string, clientId: string): string {
+        const appMetaDataKeyArray: Array<string> = [
+            APP_METADATA,
+            environment,
+            clientId,
+        ];
         return appMetaDataKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Creates AppMetadataEntity
+     * @param clientId
+     * @param environment
+     * @param familyId
+     */
+    static createAppMetadataEntity(clientId: string, environment: string, familyId?: string): AppMetadataEntity {
+        const appMetadata = new AppMetadataEntity();
+
+        appMetadata.clientId = clientId;
+        appMetadata.environment = environment;
+        if (familyId) {
+            appMetadata.familyId = familyId;
+        }
+
+        return appMetadata;
     }
 
     /**
@@ -37,7 +67,7 @@ export class AppMetadataEntity {
      */
     static isAppMetadataEntity(key: string, entity: object): boolean {
         return (
-            (key.indexOf(APP_METADATA) === 0) &&
+            key.indexOf(APP_METADATA) === 0 &&
             entity.hasOwnProperty("clientId") &&
             entity.hasOwnProperty("environment")
         );

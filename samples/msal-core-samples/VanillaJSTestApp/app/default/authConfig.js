@@ -1,4 +1,10 @@
 // Config object to be passed to Msal on creation
+const msalLogger = new Msal.Logger((level, message, pii) => {
+    console.log(message);
+}, {
+    level: Msal.LogLevel.Verbose
+})
+
 const msalConfig = {
     auth: {
         clientId: "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0",
@@ -15,12 +21,13 @@ const msalConfig = {
             telemetryEmitter: (events) => {
                 console.log("Telemetry Events", events);
             }
-        }
+        },
+        logger: msalLogger
     }
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["openid", "profile", "User.Read"],
+    scopes: ["User.Read"],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };

@@ -1,8 +1,12 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 export class MSALError {
     private _error: string = "";
     private _errorDesc: string = "";
     private _scopes: string = "";
-
 
     constructor(error: string , errorDesc?: string, scopes?: string) {
         this._error = error;

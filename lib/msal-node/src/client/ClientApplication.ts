@@ -19,20 +19,22 @@ import {
     BaseAuthRequest,
     SilentFlowRequest,
     SilentFlowClient,
-    Logger
-} from '@azure/msal-common';
-import { Configuration, buildAppConfiguration } from '../config/Configuration';
-import { CryptoProvider } from '../crypto/CryptoProvider';
-import { Storage } from '../cache/Storage';
-import { Constants as NodeConstants } from './../utils/Constants';
-import { TokenCache } from '../cache/TokenCache';
-import { ClientAssertion } from "../client/ClientAssertion";
-const pjson = require("../../package.json");
+    Logger,
+    ServerTelemetryManager,
+    ServerTelemetryRequest
+} from "@azure/msal-common";
+import { Configuration, buildAppConfiguration } from "../config/Configuration";
+import { CryptoProvider } from "../crypto/CryptoProvider";
+import { Storage } from "../cache/Storage";
+import { Constants as NodeConstants, ApiId } from "../utils/Constants";
+import { TokenCache } from "../cache/TokenCache";
+import { ClientAssertion } from "./ClientAssertion";
+import { version } from "../../package.json";
 
 export abstract class ClientApplication {
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
-    private storage: Storage;
+    protected storage: Storage;
     private tokenCache: TokenCache;
     protected logger: Logger;
     protected config: Configuration;
@@ -74,7 +76,7 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequestScopes(request) as AuthorizationUrlRequest);
+        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequest(request) as AuthorizationUrlRequest);
     }
 
     /**
@@ -87,14 +89,22 @@ export abstract class ClientApplication {
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByCode called");
-        const authClientConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        this.logger.verbose("Auth client config generated");
-        const authorizationCodeClient = new AuthorizationCodeClient(
-            authClientConfig
-        );
-        return authorizationCodeClient.acquireToken(this.initializeRequestScopes(request) as AuthorizationCodeRequest);
+        const validRequest = this.initializeRequest(request) as AuthorizationCodeRequest;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByCode, validRequest.correlationId!);
+        try {
+            const authClientConfig = await this.buildOauthClientConfiguration(
+                request.authority,
+                serverTelemetryManager
+            );
+            this.logger.verbose("Auth client config generated");
+            const authorizationCodeClient = new AuthorizationCodeClient(
+                authClientConfig
+            );
+            return authorizationCodeClient.acquireToken(validRequest);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 
     /**
@@ -106,14 +116,22 @@ export abstract class ClientApplication {
      */
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByRefreshToken called");
-        const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        this.logger.verbose("Auth client config generated");
-        const refreshTokenClient = new RefreshTokenClient(
-            refreshTokenClientConfig
-        );
-        return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
+        const validRequest = this.initializeRequest(request) as RefreshTokenRequest;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByRefreshToken, validRequest.correlationId!);
+        try {
+            const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
+                request.authority,
+                serverTelemetryManager
+            );
+            this.logger.verbose("Auth client config generated");
+            const refreshTokenClient = new RefreshTokenClient(
+                refreshTokenClientConfig
+            );
+            return refreshTokenClient.acquireToken(validRequest);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 
     /**
@@ -125,13 +143,21 @@ export abstract class ClientApplication {
      * and the guidance is for the user to call any interactive token acquisition API (eg: `acquireTokenByCode()`).
      */
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
-        const silentFlowClientConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        const silentFlowClient = new SilentFlowClient(
-            silentFlowClientConfig
-        );
-        return silentFlowClient.acquireToken(this.initializeRequestScopes(request) as SilentFlowRequest);
+        const validRequest = this.initializeRequest(request) as SilentFlowRequest;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent, validRequest.correlationId!, validRequest.forceRefresh);
+        try {
+            const silentFlowClientConfig = await this.buildOauthClientConfiguration(
+                request.authority,
+                serverTelemetryManager
+            );
+            const silentFlowClient = new SilentFlowClient(
+                silentFlowClientConfig
+            );
+            return silentFlowClient.acquireToken(validRequest);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 
     /**
@@ -142,7 +168,7 @@ export abstract class ClientApplication {
         return this.tokenCache;
     }
 
-    protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
+    protected async buildOauthClientConfiguration(authority?: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
 
@@ -152,7 +178,8 @@ export abstract class ClientApplication {
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-                clientCapabilities: this.config.auth.clientCapabilities
+                clientCapabilities: this.config.auth.clientCapabilities,
+                protocolMode: this.config.auth.protocolMode
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!
@@ -163,16 +190,19 @@ export abstract class ClientApplication {
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,
             storageInterface: this.storage,
+            serverTelemetryManager: serverTelemetryManager,
             clientCredentials: {
                 clientSecret: this.clientSecret,
                 clientAssertion: this.clientAssertion ? this.getClientAssertion() : undefined,
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
-                version: pjson.version,
-                cpu: process.arch || '',
-                os: process.platform || '',
+                version: version,
+                cpu: process.arch || "",
+                os: process.platform || "",
             },
+            persistencePlugin: this.config.cache!.cachePlugin,
+            serializableCache: this.tokenCache,
         };
     }
 
@@ -180,20 +210,32 @@ export abstract class ClientApplication {
         return {
             assertion: this.clientAssertion.getJwt(this.cryptoProvider, this.config.auth.clientId, this._authority.tokenEndpoint),
             assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
-        }
+        };
     }
 
     /**
-     * Generates a request with the default scopes.
+     * Generates a request with the default scopes & generates a correlationId.
      * @param authRequest
      */
-    protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
+    protected initializeRequest(authRequest: BaseAuthRequest): BaseAuthRequest {
         this.logger.verbose("initializeRequestScopes called");
 
         return {
             ...authRequest,
-            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE],
+            correlationId: authRequest && authRequest.correlationId || this.cryptoProvider.createNewGuid()
         };
+    }
+
+    protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
+        const telemetryPayload: ServerTelemetryRequest = {
+            clientId: this.config.auth.clientId,
+            correlationId: correlationId,
+            apiId: apiId,
+            forceRefresh: forceRefresh || false
+        };
+
+        return new ServerTelemetryManager(telemetryPayload, this.storage);
     }
 
     /**
@@ -207,10 +249,10 @@ export abstract class ClientApplication {
         let authority: Authority;
         if (authorityString) {
             this.logger.verbose("Authority passed in, creating authority instance");
-            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!);
+            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!, this.config.auth.protocolMode!);
         } else {
             this.logger.verbose("No authority passed in request, defaulting to authority set on application object");
-            authority = this.authority
+            authority = this.authority;
         }
 
         if (authority.discoveryComplete()) {
@@ -232,7 +274,8 @@ export abstract class ClientApplication {
 
         this._authority = AuthorityFactory.createInstance(
             this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
-            this.config.system!.networkClient!
+            this.config.system!.networkClient!,
+            this.config.auth.protocolMode!
         );
 
         return this._authority;

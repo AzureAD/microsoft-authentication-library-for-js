@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Inject, Injectable } from "@angular/core";
 import {
     UserAgentApplication,
@@ -39,13 +44,13 @@ export class MsalService extends UserAgentApplication {
     ) {
         super(buildMsalConfig(msalConfig));
 
-        window.addEventListener("msal:popUpHashChanged", (e: CustomEvent) => {
+        window.addEventListener("msal:popUpHashChanged", () => {
             this.getLogger().verbose("popUpHashChanged ");
         });
 
         window.addEventListener("msal:popUpClosed", (e: CustomEvent) => {
-            var errorParts = e.detail.split("|");
-            var msalError = new MSALError(errorParts[0], errorParts[1]);
+            const errorParts = e.detail.split("|");
+            const msalError = new MSALError(errorParts[0], errorParts[1]);
             if (this.getLoginInProgress()) {
                 broadcastService.broadcast("msal:loginFailure", msalError);
                 this.setloginInProgress(false);

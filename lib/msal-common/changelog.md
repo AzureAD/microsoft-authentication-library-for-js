@@ -1,8 +1,76 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 25 Aug 2020 00:40:45 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Oct 2020 23:47:28 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.6.2
+
+Tue, 20 Oct 2020 23:47:28 GMT
+
+### Patches
+
+- Adds support for any OIDC-compliant authority (#2389). (jamckenn@microsoft.com)
+
+## 1.6.1
+
+Thu, 15 Oct 2020 00:49:18 GMT
+
+### Patches
+
+- Removing unused errors in msal-common and fixing possible build errors in @azure/msal-common@1.6.0 (#2432) (sameera.gajjarapu@microsoft.com)
+
+## 1.6.0
+
+Wed, 14 Oct 2020 23:45:07 GMT
+
+### Minor changes
+
+- Add support for persistence cache plugin (#2348) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Add Telemetry header size limit (#2223) (thomas.norling@microsoft.com)
+
+## 1.5.0
+
+Fri, 02 Oct 2020 17:42:35 GMT
+
+### Minor changes
+
+- Implementation of Access Token Proof-of-Possession Flow (#2151, #2153, #2154, #2209, #2289) (prkanher@microsoft.com)
+
+## 1.4.0
+
+Wed, 23 Sep 2020 21:13:48 GMT
+
+### Minor changes
+
+- FOCI - Family of Client IDs feature (#2201) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Remove null in function return types to be compatible with ICacheManager.ts (#2335) (sameera.gajjarapu@microsoft.com)
+- Scopes stored case sensitive, compared case insensitive (#2302) (sameera.gajjarapu@microsoft.com)
+
+## 1.3.0
+
+Thu, 17 Sep 2020 23:16:22 GMT
+
+### Minor changes
+
+- Add support for On-behalf-of flow (#2157) (sagonzal@microsoft.com)
+- ValidCacheType adds ServerTelemetryEntity (sameera.gajjarapu@microsoft.com)
+- Added client-side throttling to enhance server stability (#1907) (jamckenn@microsoft.com)
+
+### Patches
+
+- Add name field to AccountInfo (#2288) (jamckenn@microsoft.com)
+- Realm should fallback to an empty string for non AAD scenarios (sameera.gajjarapu@microsoft.com)
+- Add default scopes in all requests and ignore in cache lookups (#2267) (thomas.norling@microsoft.com)
+- Move refreshToken API to RefreshTokenClient (#2264) (thomas.norling@microsoft.com)
+- Track Suberrors in Telemetry (#1921) (thomas.norling@microsoft.com)
+- Separate cache lookup from token refresh (#2189) (thomas.norling@microsoft.com)
 
 ## 1.2.0
 

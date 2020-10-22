@@ -99,7 +99,7 @@ export class ScopeSet {
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
      * @ignore
      */
-    static validateInputScope(scopes: Array<string>, scopesRequired: boolean, clientId: string): void {
+    static validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
         if (!scopes) {
             if (scopesRequired) {
                 throw ClientConfigurationError.createScopesRequiredError(scopes);
@@ -194,7 +194,7 @@ export class ScopeSet {
 
     /**
      * @ignore
-     * Adds missing OIDC scopes to scopes array withot duplication. Since STS requires OIDC scopes for
+     * Adds missing OIDC scopes to scopes array without duplication. Since STS requires OIDC scopes for
      * all implicit flow requests, 'openid' and 'profile' should always be included in the final request
      */
     static appendDefaultScopes(scopes: Array<string>): Array<string> {
@@ -208,6 +208,16 @@ export class ScopeSet {
         }
 
         return extendedScopes;
+    }
+
+    /**
+     * @ignore
+     * Removes present OIDC scopes from scopes array.
+     */
+    static removeDefaultScopes(scopes: Array<string>): Array<string> {
+        return scopes.filter(scope => {
+            return (scope !== Constants.openidScope && scope !== Constants.profileScope);
+        });
     }
 
     /**

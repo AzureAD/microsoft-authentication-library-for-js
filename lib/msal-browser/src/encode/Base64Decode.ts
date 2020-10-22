@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 /**
@@ -30,7 +31,7 @@ export class Base64Decode {
         }
 
         const inputUtf8Arr = this.base64DecToArr(encodedString);
-        return decodeURIComponent(BrowserStringUtils.utf8ArrToString(inputUtf8Arr));
+        return BrowserStringUtils.utf8ArrToString(inputUtf8Arr);
     }
 
     /**

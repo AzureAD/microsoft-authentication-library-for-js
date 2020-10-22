@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@angular/core";
 import {
-    IPublicClientApplication, 
-    AccountInfo, 
+    IPublicClientApplication,
+    AccountInfo,
     EndSessionRequest,
     AuthorizationUrlRequest,
     AuthenticationResult,

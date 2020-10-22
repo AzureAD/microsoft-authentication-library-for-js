@@ -1,5 +1,10 @@
-import { TELEMETRY_BLOB_EVENT_NAMES } from "./TelemetryConstants";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
+    TELEMETRY_BLOB_EVENT_NAMES,
     EVENT_NAME_KEY,
     START_TIME_KEY,
     ELAPSED_TIME_KEY
@@ -63,7 +68,7 @@ export default class TelemetryEvent {
 
     public get key() {
         return `${this.telemetryCorrelationId}_${this.eventId}-${this.eventName}`;
-    };
+    }
 
     public get displayName() {
         return `Msal-${this.label}-${this.telemetryCorrelationId}`;

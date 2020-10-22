@@ -2,14 +2,16 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import {
     LoggerOptions,
     INetworkModule,
-    LogLevel
-} from '@azure/msal-common';
-import { NetworkUtils } from '../utils/NetworkUtils';
-import debug from 'debug';
-import { ICachePlugin } from "../cache/ICachePlugin";
+    LogLevel, 
+    ProtocolMode,
+    ICachePlugin
+} from "@azure/msal-common";
+import { NetworkUtils } from "../utils/NetworkUtils";
+import debug from "debug";
 
 /**
  * - clientId               - Client id of the application.
@@ -18,6 +20,7 @@ import { ICachePlugin } from "../cache/ICachePlugin";
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal. 
  * - clientAssertion        - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
+ * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  */
 export type NodeAuthOptions = {
     clientId: string;
@@ -30,7 +33,8 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
-    clientCapabilities?: []
+    clientCapabilities?: [];
+    protocolMode?: ProtocolMode;
 };
 
 /**
@@ -67,17 +71,18 @@ export type Configuration = {
 };
 
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
-    clientId: '',
-    authority: '',
-    clientSecret: '',
-    clientAssertion: '',
+    clientId: "",
+    authority: "",
+    clientSecret: "",
+    clientAssertion: "",
     clientCertificate: {
-        thumbprint: '',
-        privateKey: '',
+        thumbprint: "",
+        privateKey: "",
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
-    clientCapabilities: []
+    clientCapabilities: [],
+    protocolMode: ProtocolMode.AAD
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
@@ -88,7 +93,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         message: string,
         containsPii: boolean
     ) => {
-        debug(`msal:${LogLevel[level]}${containsPii ? '-Pii' : ''}`)(message);
+        debug(`msal:${LogLevel[level]}${containsPii ? "-Pii" : ""}`)(message);
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
