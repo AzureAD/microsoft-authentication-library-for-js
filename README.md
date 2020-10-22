@@ -60,7 +60,7 @@ npm install @azure/msal-browser
 <script src="https://alcdn.msauth.net/browser/2.4.0/js/msal-browser.min.js"></script>
 ```
 
-See [here](./docs/cdn-usage.md) for more info on how to use this package from the Microsoft CDN.
+See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/cdn-usage.md) for more info on how to use this package from the Microsoft CDN.
 
 ## Usage
 
