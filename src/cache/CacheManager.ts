@@ -29,94 +29,89 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * fetch the account entity from the platform cache
-     * @param key
+     *  @param accountKey
      */
-    abstract getAccount(key: string): AccountEntity | null;
+    abstract getAccount(accountKey: string): AccountEntity | null;
 
     /**
      * set account entity in the platform cache
-     * @param key
-     * @param value
+     * @param account
      */
-    abstract setAccount(key: string, value: AccountEntity): void;
+    abstract setAccount(account: AccountEntity): void;
 
     /**
      * fetch the idToken entity from the platform cache
-     * @param key
+     * @param idTokenKey
      */
-    abstract getIdTokenCredential(key: string): IdTokenEntity | null;
+    abstract getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
-     * @param key
-     * @param value
+     * @param idToken
      */
-    abstract setIdTokenCredential(key: string, value: IdTokenEntity): void;
+    abstract setIdTokenCredential(idToken: IdTokenEntity): void;
 
     /**
      * fetch the idToken entity from the platform cache
-     * @param key
+     * @param accessTokenKey
      */
-    abstract getAccessTokenCredential(key: string): AccessTokenEntity | null;
+    abstract getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
-     * @param key
-     * @param value
+     * @param accessToken
      */
-    abstract setAccessTokenCredential(key: string, value: AccessTokenEntity): void;
+    abstract setAccessTokenCredential(accessToken: AccessTokenEntity): void;
 
     /**
      * fetch the idToken entity from the platform cache
-     * @param key
+     * @param refreshTokenKey
      */
-    abstract getRefreshTokenCredential(key: string): RefreshTokenEntity | null;
+    abstract getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
-     * @param key
-     * @param value
+     * @param refreshToken
      */
-    abstract setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void;
+    abstract setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void;
 
     /**
      * fetch appMetadata entity from the platform cache
-     * @param key
+     * @param appMetadataKey
      */
-    abstract getAppMetadata(key: string): AppMetadataEntity | null;
+    abstract getAppMetadata(appMetadataKey: string): AppMetadataEntity | null;
 
     /**
      * set appMetadata entity to the platform cache
-     * @param key
-     * @param value
+     * @param appMetadata
      */
-    abstract setAppMetadata(key: string, value: AppMetadataEntity): void;
+    abstract setAppMetadata(appMetadata: AppMetadataEntity): void;
 
     /**
      * fetch server telemetry entity from the platform cache
-     * @param key
+     * @param serverTelemetryKey
      */
-    abstract getServerTelemetry(key: string): ServerTelemetryEntity | null;
+    abstract getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null;
 
     /**
      * set server telemetry entity to the platform cache
-     * @param key
-     * @param value
+     * @param serverTelemetryKey
+     * @param serverTelemetry
      */
-    abstract setServerTelemetry(key: string, value: ServerTelemetryEntity): void;
+    abstract setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void;
 
     /**
      * fetch throttling entity from the platform cache
-     * @param key
+     * @param throttlingCacheKey
      */
-    abstract getThrottlingCache(key: string): ThrottlingEntity | null;
+    abstract getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null;
 
     /**
      * set throttling entity to the platform cache
-     * @param key
-     * @param value
+     * @param throttlingCacheKey
+     * @param throttlingCache
      */
-    abstract setThrottlingCache(key: string, value: ThrottlingEntity): void;
+    abstract setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void;;
 
     /**
      * Function to remove an item from cache given its key.
@@ -169,11 +164,11 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (!!cacheRecord.account) {
-            this.saveAccount(cacheRecord.account);
+            this.setAccount(cacheRecord.account);
         }
 
         if (!!cacheRecord.idToken) {
-            this.saveIdToken(cacheRecord.idToken);
+            this.setIdTokenCredential(cacheRecord.idToken);
         }
 
         if (!!cacheRecord.accessToken) {
@@ -181,26 +176,12 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (!!cacheRecord.refreshToken) {
-            this.saveRefreshToken(cacheRecord.refreshToken);
+            this.setRefreshTokenCredential(cacheRecord.refreshToken);
         }
-    }
 
-    /**
-     * saves account into cache
-     * @param account
-     */
-    private saveAccount(account: AccountEntity): void {
-        const key = account.generateAccountKey();
-        this.setAccount(key, account);
-    }
-
-    /**
-     * saves idToken credential
-     * @param credential
-     */
-    private saveIdToken(credential: IdTokenEntity): void {
-        const key = credential.generateCredentialKey();
-        this.setIdTokenCredential(key, credential);
+        if (!!cacheRecord.appMetadata) {
+            this.setAppMetadata(cacheRecord.appMetadata);
+        }
     }
 
     /**
@@ -225,17 +206,7 @@ export abstract class CacheManager implements ICacheManager {
                 }
             });
         }
-        const key = credential.generateCredentialKey();
-        this.setAccessTokenCredential(key, credential);
-    }
-
-    /**
-     * saves accessToken credential
-     * @param credential
-     */
-    private saveRefreshToken(credential: RefreshTokenEntity): void {
-        const key = credential.generateCredentialKey();
-        this.setRefreshTokenCredential(key, credential);
+        this.setAccessTokenCredential(credential);
     }
 
     /**
