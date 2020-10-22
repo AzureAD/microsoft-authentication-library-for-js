@@ -10,8 +10,8 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
+import { InMemoryStorage } from "./InMemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
-
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -33,40 +33,19 @@ export class BrowserCacheManager extends CacheManager {
 
     constructor(clientId: string, cacheConfig: CacheOptions, cryptoImpl: CryptoOps) {
         super();
-        console.log(cacheConfig.cacheLocation);
-        if (cacheConfig.cacheLocation === BrowserConstants.CACHE_LOCATION_IN_MEMORY) {
-            // TODO: add in memory storage
-        } else {
-            this.browserStorage = new BrowserStorage(cacheConfig.cacheLocation);
-        }
-
-        // Validate cache location
-        this.validateWindowStorage(cacheConfig.cacheLocation);
 
         this.cacheConfig = cacheConfig;
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
 
-        // Migrate any cache entries from older versions of MSAL.
-        this.migrateCacheEntries();
-    }
+        if (cacheConfig.cacheLocation === BrowserConstants.CACHE_LOCATION_IN_MEMORY) {
+            this.browserStorage = new InMemoryStorage();
+        } else {
+            this.browserStorage = new BrowserStorage(cacheConfig.cacheLocation);
 
-    /**
-     * Validates the the given cache location string is an expected value:
-     * - localStorage
-     * - sessionStorage (default)
-     * Also validates if given cacheLocation is supported on the browser.
-     * @param cacheLocation
-     */
-    private validateWindowStorage(cacheLocation: string): void {
-        if (cacheLocation !== BrowserConstants.CACHE_LOCATION_LOCAL && cacheLocation !== BrowserConstants.CACHE_LOCATION_SESSION) {
-            throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
-        }
-
-        const storageSupported = !!window[cacheLocation];
-        if (!storageSupported) {
-            throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
-        }
+            // Migrate any cache entries from older versions of MSAL.
+            this.migrateCacheEntries();
+        }        
     }
 
     /**
