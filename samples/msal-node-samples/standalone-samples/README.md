@@ -1,6 +1,6 @@
 # MSAL Node Standalone Samples
 
-The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. MSAL Node covers many situations, and most developers will only need one of these samples.
+The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. MSAL Node covers many scenarios, and most developers will only need one of these samples.
 
 ## Should I use this sample:
 
