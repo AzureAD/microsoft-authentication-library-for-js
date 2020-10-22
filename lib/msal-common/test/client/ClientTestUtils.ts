@@ -12,7 +12,6 @@ import { CloudDiscoveryMetadata } from "../../src/authority/CloudDiscoveryMetada
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 
-/* eslint-disable */
 export class MockStorageClass extends CacheManager {
     store = {};
 
