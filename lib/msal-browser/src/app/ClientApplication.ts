@@ -21,6 +21,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../../package.json";
 import { EventError, EventMessage, EventPayload, EventCallbackFunction } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
+import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 
 export abstract class ClientApplication {
 
@@ -269,7 +270,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
-        this.preflightBrowserEnvironmentCheck();
+        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -324,7 +325,7 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            this.preflightBrowserEnvironmentCheck();
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -426,7 +427,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.preflightBrowserEnvironmentCheck();
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
@@ -546,7 +547,7 @@ export abstract class ClientApplication {
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         try {
-            this.preflightBrowserEnvironmentCheck();
+            this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
             const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
@@ -732,12 +733,18 @@ export abstract class ClientApplication {
      * Helper to validate app environment before making a silent request
      * * @param request
      */
-    protected preflightBrowserEnvironmentCheck(): void {
+    protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
 
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
+
+        if (interactionType === InteractionType.Redirect) {
+            if (this.config.cache.cacheLocation === BrowserConstants.CACHE_LOCATION_IN_MEMORY && !this.config.cache.storeAuthStateInCookie) {
+                throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
+            }
+        }
     }
 
     /**
