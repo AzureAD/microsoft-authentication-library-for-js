@@ -60,7 +60,7 @@ Continue to the appropriate sample to learn how it works, or to build it in to y
 
 ### Configure the application
 
-Each application has an `index.js` file, which is considered the entrypoint of the application. This file both contains the MSAL configuration and the application code that shows how to use each authorization flow. The sample works out-of-the-box with the default configuration in the `index.js` files, but you can customize it to use your own AzureAD app registration by changing the configuration values to match your app registration's. Below you'll find an example of what the main MSAL configuration object looks like. This is the object you'll want to customize to match your app registration.
+Each application has an `index.js` file, which is considered the entry point of the application. This file contains both the MSAL configuration and the application code demonstrating how to use each authorization flow. The sample works out-of-the-box with the default configuration in the `index.js` files, but you can customize it to use your own AzureAD app registration by changing the configuration values to match your app registration's. Below you'll find an example of what the main MSAL configuration object looks like. This is the object you'll want to customize to match your app registration.
 
 ```javascript
 // Before running the sample, you will need to replace the values in the config, 
