@@ -142,8 +142,7 @@ export class BrowserStorage extends CacheManager {
 
     /**
      * set account entity in the platform cache
-     * @param key
-     * @param value
+     * @param account
      */
     setAccount(account: AccountEntity): void {
         const key = account.generateAccountKey();
