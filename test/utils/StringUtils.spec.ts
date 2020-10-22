@@ -9,7 +9,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
     
     it("decodeJwt returns a correctly crackedToken.", () => {
         const sampleJwt = `${TEST_TOKENS.SAMPLE_JWT_HEADER}.${TEST_TOKENS.SAMPLE_JWT_PAYLOAD}.${TEST_TOKENS.SAMPLE_JWT_SIG}`;
-        const decodedJwt = StringUtils.decodeJwt(sampleJwt);
+        const decodedJwt = StringUtils.decodeAuthToken(sampleJwt);
 
         expect(decodedJwt).to.be.deep.eq({
             header: TEST_TOKENS.SAMPLE_JWT_HEADER,
@@ -22,7 +22,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         let err: ClientAuthError;
 
         try {
-            let decodedJwt = StringUtils.decodeJwt(null);
+            let decodedJwt = StringUtils.decodeAuthToken(null);
         } catch (e) {
             err = e;
         }
@@ -30,9 +30,9 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyIdToken.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
+        expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyToken.code);
+        expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+        expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("StringUtils.spec.ts");
     });
@@ -41,7 +41,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         let err: ClientAuthError;
 
         try {
-            let decodedJwt = StringUtils.decodeJwt("");
+            let decodedJwt = StringUtils.decodeAuthToken("");
         } catch (e) {
             err = e;
         }
@@ -49,9 +49,9 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyIdToken.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
+        expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyToken.code);
+        expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+        expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("StringUtils.spec.ts");
     });
@@ -60,7 +60,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         let err: ClientAuthError;
 
         try {
-            let decodedJwt = StringUtils.decodeJwt(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
+            let decodedJwt = StringUtils.decodeAuthToken(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
         } catch (e) {
             err = e;
         }
@@ -68,9 +68,9 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(err instanceof ClientAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.idTokenParsingError.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.idTokenParsingError.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.idTokenParsingError.desc);
+        expect(err.errorCode).to.equal(ClientAuthErrorMessage.tokenParsingError.code);
+        expect(err.errorMessage).to.include(ClientAuthErrorMessage.tokenParsingError.desc);
+        expect(err.message).to.include(ClientAuthErrorMessage.tokenParsingError.desc);
         expect(err.name).to.equal("ClientAuthError");
         expect(err.stack).to.include("StringUtils.spec.ts");
     });
@@ -130,5 +130,21 @@ describe("StringUtils.ts Class Unit Tests", () => {
 
     it("removeEmptyStringsFromArray() removes empty strings from an array", () => {
 
+    });
+
+    describe("jsonParseHelper", () => {
+        it("parses json", () => {
+            const test = { test: "json" };
+            const jsonString = JSON.stringify(test);
+            const parsedVal = StringUtils.jsonParseHelper(jsonString);
+            expect(parsedVal).to.be.deep.eq(test);
+        });
+
+        it("returns null on error", () => {
+            const parsedValNull = StringUtils.jsonParseHelper(null);
+            const parsedValEmptyString = StringUtils.jsonParseHelper("");
+            expect(parsedValNull).to.be.null;
+            expect(parsedValEmptyString).to.be.null;
+        })
     });
 });

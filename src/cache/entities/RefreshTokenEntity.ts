@@ -40,7 +40,8 @@ export class RefreshTokenEntity extends CredentialEntity {
         environment: string,
         refreshToken: string,
         clientId: string,
-        familyId?: string
+        familyId?: string,
+        oboAssertion?: string
     ): RefreshTokenEntity {
         const rtEntity = new RefreshTokenEntity();
 
@@ -49,6 +50,7 @@ export class RefreshTokenEntity extends CredentialEntity {
         rtEntity.environment = environment;
         rtEntity.homeAccountId = homeAccountId;
         rtEntity.secret = refreshToken;
+        rtEntity.oboAssertion = oboAssertion;
 
         if (familyId)
             rtEntity.familyId = familyId;

@@ -4,8 +4,9 @@
  */
 
 import { CredentialEntity } from "./CredentialEntity";
-import { CredentialType } from "../../utils/Constants";
+import { CredentialType, AuthenticationScheme } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
+import { StringUtils } from "../../utils/StringUtils";
 
 /**
  * ACCESS_TOKEN Credential Type
@@ -60,7 +61,9 @@ export class AccessTokenEntity extends CredentialEntity {
         tenantId: string,
         scopes: string,
         expiresOn: number,
-        extExpiresOn: number
+        extExpiresOn: number,
+        tokenType?: string,
+        oboAssertion?: string
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
@@ -71,8 +74,10 @@ export class AccessTokenEntity extends CredentialEntity {
         const currentTime = TimeUtils.nowSeconds();
         atEntity.cachedAt = currentTime.toString();
 
-        // Token expiry time.
-        // This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
+        /*
+         * Token expiry time.
+         * This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
+         */
         atEntity.expiresOn = expiresOn.toString();
         atEntity.extendedExpiresOn = extExpiresOn.toString();
 
@@ -80,7 +85,9 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.clientId = clientId;
         atEntity.realm = tenantId;
         atEntity.target = scopes;
+        atEntity.oboAssertion = oboAssertion;
 
+        atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
         return atEntity;
     }
 
