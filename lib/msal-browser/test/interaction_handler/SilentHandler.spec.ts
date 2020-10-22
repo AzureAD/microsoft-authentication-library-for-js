@@ -10,31 +10,12 @@ import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES }
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { TestStorageManager } from "../cache/TestStorageManager";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
-class TestStorageInterface extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
-        return;
-    }
-    getItem(key: string, type?: string): string | object {
-        return "cacheItem";
-    }
-    removeItem(key: string, type?: string): boolean {
-        return true;
-    }
-    containsKey(key: string, type?: string): boolean {
-        return true;
-    }
-    getKeys(): string[] {
-        return testKeySet;
-    }
-    clear(): void {
-        return;
-    }
-}
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -104,7 +85,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                     return "signedJwt";
                 }
             },
-            storageInterface: new TestStorageInterface(),
+            storageInterface: new TestStorageManager(),
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -236,7 +217,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 .catch(() => {
                     done();
                 });
-                
+
             setTimeout(() => {
                 iframe.contentWindow.location = {
                     href: "http://localhost/#/code=hello",

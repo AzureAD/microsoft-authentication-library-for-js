@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SERVER_TELEM_CONSTANTS, CacheSchemaType, Separators } from "../../utils/Constants";
+import { SERVER_TELEM_CONSTANTS, Separators } from "../../utils/Constants";
 import { CacheManager } from "../../cache/CacheManager";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
@@ -42,7 +42,7 @@ export class ServerTelemetryManager {
      */
     generateLastRequestHeaderValue(): string {
         const lastRequests = this.getLastRequests();
-        
+
         const maxErrors = ServerTelemetryManager.maxErrorsToSend(lastRequests);
         const failedRequests = lastRequests.failedRequests.slice(0, 2*maxErrors).join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
         const errors = lastRequests.errors.slice(0, maxErrors).join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
@@ -57,14 +57,14 @@ export class ServerTelemetryManager {
 
     /**
      * API to cache token failures for MSER data capture
-     * @param error 
+     * @param error
      */
     cacheFailedRequest(error: AuthError): void {
         const lastRequests = this.getLastRequests();
         lastRequests.failedRequests.push(this.apiId, this.correlationId);
         lastRequests.errors.push(StringUtils.isEmpty(error.suberror)? error.errorCode: error.suberror);
 
-        this.cacheManager.setItem(this.telemetryCacheKey, lastRequests, CacheSchemaType.TELEMETRY);
+        this.cacheManager.setServerTelemetry(this.telemetryCacheKey, lastRequests);
 
         return;
     }
@@ -76,17 +76,17 @@ export class ServerTelemetryManager {
         const lastRequests = this.getLastRequests();
         lastRequests.cacheHits += 1;
 
-        this.cacheManager.setItem(this.telemetryCacheKey, lastRequests, CacheSchemaType.TELEMETRY);
+        this.cacheManager.setServerTelemetry(this.telemetryCacheKey, lastRequests);
         return lastRequests.cacheHits;
     }
 
     /**
      * Get the server telemetry entity from cache or initialize a new one
      */
-    getLastRequests(): ServerTelemetryEntity { 
+    getLastRequests(): ServerTelemetryEntity {
         const initialValue: ServerTelemetryEntity = new ServerTelemetryEntity();
-        const lastRequests = this.cacheManager.getItem(this.telemetryCacheKey, CacheSchemaType.TELEMETRY) as ServerTelemetryEntity;
-        
+        const lastRequests = this.cacheManager.getServerTelemetry(this.telemetryCacheKey) as ServerTelemetryEntity;
+
         return lastRequests || initialValue;
     }
 
@@ -105,14 +105,14 @@ export class ServerTelemetryManager {
             const serverTelemEntity = new ServerTelemetryEntity();
             serverTelemEntity.failedRequests = lastRequests.failedRequests.slice(numErrorsFlushed*2); // failedRequests contains 2 items for each error
             serverTelemEntity.errors = lastRequests.errors.slice(numErrorsFlushed);
-            
-            this.cacheManager.setItem(this.telemetryCacheKey, serverTelemEntity, CacheSchemaType.TELEMETRY);
+
+            this.cacheManager.setServerTelemetry(this.telemetryCacheKey, serverTelemEntity);
         }
     }
 
     /**
      * Returns the maximum number of errors that can be flushed to the server in the next network request
-     * @param serverTelemetryEntity 
+     * @param serverTelemetryEntity
      */
     static maxErrorsToSend(serverTelemetryEntity: ServerTelemetryEntity): number {
         let i;

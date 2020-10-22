@@ -24,11 +24,11 @@ export class ThrottlingUtils {
     /**
      * Performs necessary throttling checks before a network request.
      * @param cacheManager
-     * @param thumbprint 
+     * @param thumbprint
      */
     static preProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
-        const value = cacheManager.getItem(key, CacheSchemaType.THROTTLING) as ThrottlingEntity;
+        const value = cacheManager.getThrottlingCache(key);
 
         if (value) {
             if (value.throttleTime < Date.now()) {
@@ -42,9 +42,9 @@ export class ThrottlingUtils {
     /**
      * Performs necessary throttling checks after a network request.
      * @param cacheManager
-     * @param thumbprint 
+     * @param thumbprint
      * @param response
-     */    
+     */
     static postProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint, response: NetworkResponse<ServerAuthorizationTokenResponse>): void {
         if (ThrottlingUtils.checkResponseStatus(response) || ThrottlingUtils.checkResponseForRetryAfter(response)) {
             const thumbprintValue: ThrottlingEntity = {
@@ -54,10 +54,9 @@ export class ThrottlingUtils {
                 errorMessage: response.body.error_description,
                 subError: response.body.suberror
             };
-            cacheManager.setItem(
+            cacheManager.setThrottlingCache(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
-                thumbprintValue,
-                CacheSchemaType.THROTTLING
+                thumbprintValue
             );
         }
     }
