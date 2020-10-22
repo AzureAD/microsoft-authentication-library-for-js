@@ -10,13 +10,14 @@ import { ScopeSet } from "../../src/request/ScopeSet";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
-    CACHE_MOCKS
+    CACHE_MOCKS,
 } from "../utils/StringConstants";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
+import { CacheManager } from "../../src";
 
-describe("mockCache.cacheManager.ts test cases", () => {
+describe("CacheManager.ts test cases", () => {
 
     let mockCache = new MockCache();
     beforeEach(() => {
@@ -316,24 +317,36 @@ describe("mockCache.cacheManager.ts test cases", () => {
 
     it("readAccessTokenFromCache matches multiple tokens, throws error", () => {
 
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "mocked_homeaccountid", "login.microsoftonline.com", "an_access_token", "client_id", TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "mocked_homeaccountid", "login.microsoftonline.com", "an_access_token", "client_id", TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+
+        const accountData = {
+            "username": "John Doe",
+            "localAccountId": "uid",
+            "realm": "common",
+            "environment": "login.microsoftonline.com",
+            "homeAccountId": "uid.utid",
+            "authorityType": "MSSTS",
+            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+        };
+        const mockedAccount: AccountEntity = CacheManager.toObject(new AccountEntity(), accountData);
 
         mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
         mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity2);
+        mockCache.cacheManager.setAccount(mockedAccount);
 
         const mockedAccountInfo: AccountInfo = {
-            homeAccountId: "mocked_homeaccountid",
+            homeAccountId: "uid.utid",
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
-            username: "mocked_username"
+            username: "John Doe"
         };
-        console.log(mockCache.cacheManager.readAccessTokenFromCache("client_id", mockedAccountInfo, new ScopeSet(["User.Read"])));
 
-        expect(() => mockCache.cacheManager.readAccessTokenFromCache("client_id", mockedAccountInfo, new ScopeSet(["User.Read"]))).to.throw(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]))).to.throw(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
     it("readIdTokenFromCache", () => {
