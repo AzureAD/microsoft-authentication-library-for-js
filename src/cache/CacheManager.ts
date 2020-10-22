@@ -679,23 +679,20 @@ export abstract class CacheManager implements ICacheManager {
      * @param key
      * @param credType
      */
-    private getSpecificCredential(key: string, credType: string): ValidCredentialType {
-        let entity: ValidCredentialType;
+    private getSpecificCredential(key: string, credType: string): ValidCredentialType | null {
         switch (credType) {
             case CredentialType.ID_TOKEN: {
-                entity = this.getIdTokenCredential(key);
-                break;
+                return this.getIdTokenCredential(key);
             }
             case CredentialType.ACCESS_TOKEN: {
-                entity = this.getAccessTokenCredential(key);
-                break;
+                return this.getAccessTokenCredential(key);
             }
             case CredentialType.REFRESH_TOKEN: {
-                entity = this.getRefreshTokenCredential(key);
-                break;
+                return this.getRefreshTokenCredential(key);
             }
+            default:
+                return null;
         }
-        return entity;
     }
 
     /**
