@@ -120,19 +120,19 @@ export class BrowserStorage extends CacheManager {
 
     /**
      * fetch the account entity from the platform cache
-     * @param key
+     * @param accountKey
      */
-    getAccount(key: string): AccountEntity | null {
-        const value = this.getItem(key);
-        if (StringUtils.isEmpty(value)) {
+    getAccount(accountKey: string): AccountEntity | null {
+        const account = this.getItem(accountKey);
+        if (StringUtils.isEmpty(account)) {
             return null;
         }
 
         try {
-            this.IsJSON(value);
-            const account = CacheManager.toObject(new AccountEntity(), JSON.parse(value));
-            if (AccountEntity.isAccountEntity(account)) {
-                return account;
+            this.IsJSON(account);
+            const accountEntity = CacheManager.toObject(new AccountEntity(), JSON.parse(account));
+            if (AccountEntity.isAccountEntity(accountEntity)) {
+                return accountEntity;
             }
             return null;
         } catch (e) {
@@ -145,16 +145,17 @@ export class BrowserStorage extends CacheManager {
      * @param key
      * @param value
      */
-    setAccount(key: string, value: AccountEntity): void {
-        this.setItem(key, JSON.stringify(value));
+    setAccount(account: AccountEntity): void {
+        const key = account.generateAccountKey();
+        this.setItem(key, JSON.stringify(account));
     }
 
     /**
      * generates idToken entity from a string
-     * @param value
+     * @param idTokenKey
      */
-    getIdTokenCredential(key: string): IdTokenEntity {
-        const value = this.getItem(key);
+    getIdTokenCredential(idTokenKey: string): IdTokenEntity {
+        const value = this.getItem(idTokenKey);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
@@ -164,19 +165,19 @@ export class BrowserStorage extends CacheManager {
 
     /**
      * set IdToken credential to the platform cache
-     * @param key
-     * @param value
+     * @param idToken
      */
-    setIdTokenCredential(key: string, value: IdTokenEntity): void {
-        this.setItem(key, JSON.stringify(value));
+    setIdTokenCredential(idToken: IdTokenEntity): void {
+        const idTokenKey = idToken.generateCredentialKey();
+        this.setItem(idTokenKey, JSON.stringify(idToken));
     }
 
     /**
      * generates accessToken entity from a string
-     * @param value
+     * @param key
      */
-    getAccessTokenCredential(key: string): AccessTokenEntity {
-        const value = this.getItem(key);
+    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity {
+        const value = this.getItem(accessTokenKey);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
@@ -186,16 +187,16 @@ export class BrowserStorage extends CacheManager {
 
     /**
      * set accessToken credential to the platform cache
-     * @param key
-     * @param value
+     * @param accessToken
      */
-    setAccessTokenCredential(key: string, value: AccessTokenEntity): void {
-        this.setItem(key, JSON.stringify(value));
+    setAccessTokenCredential(accessToken: AccessTokenEntity): void {
+        const accessTokenKey = accessToken.generateCredentialKey();
+        this.setItem(accessTokenKey, JSON.stringify(accessToken));
     }
 
     /**
      * generates refreshToken entity from a string
-     * @param value
+     * @param refreshTokenKey
      */
     getRefreshTokenCredential(key: string): RefreshTokenEntity {
         const value = this.getItem(key);
@@ -208,24 +209,24 @@ export class BrowserStorage extends CacheManager {
 
     /**
      * set refreshToken credential to the platform cache
-     * @param key
-     * @param value
+     * @param refreshToken
      */
-    setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void {
-        this.setItem(key, JSON.stringify(value));
+    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
+        const refreshTokenKey = refreshToken.generateCredentialKey();
+        this.setItem(refreshTokenKey, JSON.stringify(refreshToken));
     }
 
     /**
      * fetch appMetadata entity from the platform cache
-     * @param key
+     * @param appMetadataKey
      */
-    getAppMetadata(key: string): AppMetadataEntity {
-        const value = this.getItem(key);
+    getAppMetadata(appMetadataKey: string): AppMetadataEntity {
+        const value = this.getItem(appMetadataKey);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
         const appMetadata: AppMetadataEntity = CacheManager.toObject(new AppMetadataEntity(), JSON.parse(value));
-        if (AppMetadataEntity.isAppMetadataEntity(key, appMetadata)) {
+        if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
             return appMetadata;
         }
         return null;
@@ -234,24 +235,24 @@ export class BrowserStorage extends CacheManager {
 
     /**
      * set appMetadata entity to the platform cache
-     * @param key
-     * @param value
+     * @param appMetadata
      */
-    setAppMetadata(key: string, value: AppMetadataEntity): void {
-        this.setItem(key, JSON.stringify(value));
+    setAppMetadata(appMetadata: AppMetadataEntity): void {
+        const appMetadataKey = appMetadata.generateAppMetadataKey();
+        this.setItem(appMetadataKey, JSON.stringify(appMetadata));
     }
 
     /**
      * fetch server telemetry entity from the platform cache
-     * @param key
+     * @param serverTelemetryKey
      */
-    getServerTelemetry(key: string): ServerTelemetryEntity | null {
-        const value = this.getItem(key);
+    getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null {
+        const value = this.getItem(serverTelemetryKey);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
         const serverTelemetryEntity = CacheManager.toObject(new ServerTelemetryEntity(), JSON.parse(value));
-        if (ServerTelemetryEntity.isServerTelemetryEntity(key, serverTelemetryEntity)) {
+        if (ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetryKey, serverTelemetryEntity)) {
             return serverTelemetryEntity;
         }
         return null;
@@ -259,25 +260,25 @@ export class BrowserStorage extends CacheManager {
 
     /**
      * set server telemetry entity to the platform cache
-     * @param key
-     * @param value
+     * @param serverTelemetryKey
+     * @param serverTelemetry
      */
-    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
-        this.setItem(key, JSON.stringify(value));
+    setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void {
+        this.setItem(serverTelemetryKey, JSON.stringify(serverTelemetry));
     }
 
     /**
      * fetch throttling entity from the platform cache
-     * @param key
+     * @param throttlingCacheKey
      */
-    getThrottlingCache(key: string): ThrottlingEntity | null {
-        const value = this.getItem(key);
+    getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
+        const value = this.getItem(throttlingCacheKey);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
         const throttlingCache = CacheManager.toObject(new ThrottlingEntity(), JSON.parse(value));
 
-        if (ThrottlingEntity.isThrottlingEntity(key, throttlingCache)) {
+        if (ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
             return throttlingCache;
         }
         return null;
@@ -285,11 +286,11 @@ export class BrowserStorage extends CacheManager {
 
     /**
      * set throttling entity to the platform cache
-     * @param key
-     * @param value
+     * @param throttlingCacheKey
+     * @param throttlingCache
      */
-    setThrottlingCache(key: string, value: ThrottlingEntity): void {
-        this.setItem(key, JSON.stringify(value));
+    setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void {
+        this.setItem(throttlingCacheKey, JSON.stringify(throttlingCache));
     }
 
     /**
