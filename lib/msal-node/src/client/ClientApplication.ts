@@ -56,7 +56,6 @@ export abstract class ClientApplication {
         );
         this.cryptoProvider = new CryptoProvider();
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
-        console.log(this);
     }
 
     /**
@@ -74,6 +73,7 @@ export abstract class ClientApplication {
             request.authority
         );
         this.logger.verbose("Auth client config generated");
+        this.logger.verbose("TEST LOGGER MESSAGE");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
