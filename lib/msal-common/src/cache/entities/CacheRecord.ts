@@ -10,11 +10,11 @@ import { AccountEntity } from "./AccountEntity";
 import { AppMetadataEntity } from "./AppMetadataEntity";
 
 export class CacheRecord {
-    account: AccountEntity;
-    idToken: IdTokenEntity;
-    accessToken: AccessTokenEntity;
-    refreshToken: RefreshTokenEntity;
-    appMetadata: AppMetadataEntity;
+    account?: AccountEntity;
+    idToken?: IdTokenEntity;
+    accessToken?: AccessTokenEntity;
+    refreshToken?: RefreshTokenEntity;
+    appMetadata?: AppMetadataEntity;
 
     constructor(accountEntity?: AccountEntity, idTokenEntity?: IdTokenEntity, accessTokenEntity?: AccessTokenEntity, refreshTokenEntity?: RefreshTokenEntity, appMetadataEntity?: AppMetadataEntity) {
         this.account = accountEntity;

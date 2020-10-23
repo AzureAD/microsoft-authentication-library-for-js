@@ -61,7 +61,7 @@ export class SilentFlowClient extends BaseClient {
         const environment = request.authority || Authority.generateEnvironmentFromAuthority(this.authority);
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment);
 
-        if (this.isRefreshRequired(request, cacheRecord.accessToken)) {
+        if (!cacheRecord.accessToken || this.isRefreshRequired(request, cacheRecord.accessToken)) {
             throw ClientAuthError.createRefreshRequiredError();
         } else {
             if (this.config.serverTelemetryManager) {
@@ -80,9 +80,9 @@ export class SilentFlowClient extends BaseClient {
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             cacheRecord,
-            idTokenObj, 
             true,
-            null,
+            idTokenObj,
+            undefined,
             resourceRequestMethod,
             resourceRequestUri
         );

@@ -35,7 +35,8 @@ export const Constants = {
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending",
-    NOT_DEFINED: "not_defined"
+    NOT_DEFINED: "not_defined",
+    EMPTY_STRING: ""
 };
 
 /**
@@ -264,7 +265,7 @@ export const THE_FAMILY_ID = "1";
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
-    MAX_HEADER_BYTES: 4000, // Max is 4KB, 4000 Bytes provides 96 Byte buffer for separators, schema version, etc. 
+    MAX_HEADER_BYTES: 4000, // Max is 4KB, 4000 Bytes provides 96 Byte buffer for separators, schema version, etc.
     CACHE_KEY: "server-telemetry",
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ",",

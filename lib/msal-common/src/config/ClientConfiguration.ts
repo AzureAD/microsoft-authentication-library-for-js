@@ -24,23 +24,26 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  *
  * This object allows you to configure important elements of MSAL functionality:
  * - authOptions                - Authentication for application
+ * - storageInterface           - Storage implementation
+ * - networkInterface           - Network implementation
  * - cryptoInterface            - Implementation of crypto functions
  * - libraryInfo                - Library metadata
- * - loggerOptions              - Logging for application
- * - networkInterface           - Network implementation
- * - storageInterface           - Storage implementation
  * - systemOptions              - Additional library options
+ * - loggerOptions              - Logging for application
  * - clientCredentials          - Credentials options for confidential clients
+ * - serverTelemetryManager     - Adds the server telemetry options for every request
+ * - persistencePlugin          - Interface for Cache plugin implemented for persistence in extensions / User app to implement it otherwise
+ * - serializableCache          - Serializes persistent cache if enabled
  */
 export type ClientConfiguration = {
     authOptions: AuthOptions,
-    systemOptions?: SystemOptions,
+    storageInterface: CacheManager,
+    networkInterface: INetworkModule,
+    cryptoInterface: ICrypto,
+    libraryInfo: LibraryInfo
+    systemOptions: SystemOptions,
     loggerOptions?: LoggerOptions,
-    storageInterface?: CacheManager,
-    networkInterface?: INetworkModule,
-    cryptoInterface?: ICrypto,
     clientCredentials?: ClientCredentials,
-    libraryInfo?: LibraryInfo
     serverTelemetryManager?: ServerTelemetryManager,
     persistencePlugin?: ICachePlugin,
     serializableCache?: ISerializableTokenCache
@@ -71,7 +74,7 @@ export type AuthOptions = {
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
  */
 export type SystemOptions = {
-    tokenRenewalOffsetSeconds?: number;
+    tokenRenewalOffsetSeconds: number;
 };
 
 /**
@@ -196,7 +199,7 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation,
         clientCredentials: clientCredentials,
         libraryInfo: libraryInfo,
-        serverTelemetryManager: serverTelemetryManager, 
+        serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache
     } : ClientConfiguration): ClientConfiguration {

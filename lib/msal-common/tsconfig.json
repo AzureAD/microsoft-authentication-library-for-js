@@ -13,7 +13,17 @@
         "allowUnusedLabels": false,
         "noImplicitReturns": true,
         "esModuleInterop": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": false,
+        "strict": true,
+        // "noImplicitAny": true,
+        "alwaysStrict": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
     },
     "include": [
         "src/**/*"

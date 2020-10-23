@@ -9,7 +9,7 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, Errors, Constants  } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -48,10 +48,10 @@ export class RefreshTokenClient extends BaseClient {
             this.authority,
             request.resourceRequestMethod,
             request.resourceRequestUri,
-            null,
-            null,
-            null,
-            null,
+            Constants.EMPTY_STRING,
+            Constants.EMPTY_STRING,
+            [],
+            Constants.EMPTY_STRING,
             true
         );
     }
@@ -154,26 +154,34 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addClientInfo();
 
-        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        const correlationId = request.correlationId ? request.correlationId : this.config.cryptoInterface.createNewGuid();
+
         parameterBuilder.addCorrelationId(correlationId);
 
         parameterBuilder.addRefreshToken(request.refreshToken);
 
-        if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
-        }
+        // client credentials flow
+        if (this.config.clientCredentials) {
+            if (this.config.clientCredentials.clientSecret) {
+                parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
+            }
 
-        if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion = this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion);
-            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+            if (this.config.clientCredentials.clientAssertion) {
+                const clientAssertion = this.config.clientCredentials.clientAssertion;
+                parameterBuilder.addClientAssertion(clientAssertion.assertion);
+                parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+            }
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
+            if (StringUtils.isEmpty(request.resourceRequestMethod) || StringUtils.isEmpty(request.resourceRequestUri)) {
+                parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
+            } else {
+                throw ClientConfigurationError.createResourceRequestParametersRequiredError();
+            }
         }
-        
+
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }

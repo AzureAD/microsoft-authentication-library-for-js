@@ -152,7 +152,7 @@ export class ResponseHandler {
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
              * If not present, we should return null, as it's the case that another application called removeAccount in between
-             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal. 
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal.
              */
             if (handlingRefreshTokenResponse && cacheRecord.account) {
                 const key = cacheRecord.account.generateAccountKey();
@@ -169,7 +169,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
     /**
@@ -294,7 +294,7 @@ export class ResponseHandler {
      * @param fromTokenCache
      * @param stateString
      */
-    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, idTokenObj: AuthToken, fromTokenCache: boolean, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
+    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, fromTokenCache: boolean, idTokenObj?: AuthToken, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date = null;

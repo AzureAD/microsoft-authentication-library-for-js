@@ -85,7 +85,7 @@ export class RequestParameterBuilder {
 
     /**
      * add sid
-     * @param sid 
+     * @param sid
      */
     addSid(sid: string): void {
         this.parameters.set(SSOTypes.SID, encodeURIComponent(sid));
@@ -95,7 +95,7 @@ export class RequestParameterBuilder {
      * add claims
      * @param claims
      */
-    addClaims(claims: string, clientCapabilities: Array<string>): void {
+    addClaims(claims?: string, clientCapabilities?: Array<string>): void {
         const mergedClaims = this.addClientCapabilitiesToClaims(claims, clientCapabilities);
         RequestValidator.validateClaims(mergedClaims);
         this.parameters.set(AADServerParamKeys.CLAIMS, encodeURIComponent(mergedClaims));
@@ -222,7 +222,7 @@ export class RequestParameterBuilder {
     addClientAssertionType(clientAssertionType: string): void {
         this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION_TYPE, encodeURIComponent(clientAssertionType));
     }
-    
+
     /**
      * add OBO assertion for confidential client flows
      * @param clientAssertion
@@ -230,7 +230,7 @@ export class RequestParameterBuilder {
     addOboAssertion(oboAssertion: string): void {
         this.parameters.set(AADServerParamKeys.OBO_ASSERTION, encodeURIComponent(oboAssertion));
     }
-    
+
     /**
      * add grant type
      * @param grantType
@@ -266,7 +266,7 @@ export class RequestParameterBuilder {
         });
     }
 
-    addClientCapabilitiesToClaims(claims: string, clientCapabilities: Array<string>): string {
+    addClientCapabilitiesToClaims(claims?: string, clientCapabilities?: Array<string>): string {
         let mergedClaims: object;
 
         // Parse provided claims into JSON object or initialize empty object
@@ -297,7 +297,7 @@ export class RequestParameterBuilder {
 
     /**
      * add pop_jwk to query params
-     * @param cnfString 
+     * @param cnfString
      */
     addPopToken(cnfString: string): void {
         if (!StringUtils.isEmpty(cnfString)) {

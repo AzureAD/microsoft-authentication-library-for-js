@@ -8,7 +8,7 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType , CredentialType } from "../utils/Constants";
+import { GrantType , CredentialType, Constants } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
@@ -47,28 +47,26 @@ export class ClientCredentialClient extends BaseClient {
         }
     }
 
-    private async getCachedAuthenticationResult(): Promise<AuthenticationResult> {
+    private async getCachedAuthenticationResult(): Promise<AuthenticationResult | null> {
         const cachedAccessToken = this.readAccessTokenFromCache();
-        if (!cachedAccessToken ||
-            TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+        if (!cachedAccessToken || TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             return null;
         }
 
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             {
-                account: null,
+                account: undefined,
                 accessToken: cachedAccessToken,
-                idToken: null,
-                refreshToken: null,
-                appMetadata: null
-            }, 
-            null, 
+                idToken: undefined,
+                refreshToken: undefined,
+                appMetadata: undefined
+            },
             true
         );
     }
 
-    private readAccessTokenFromCache(): AccessTokenEntity {
+    private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: "",
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
@@ -94,7 +92,7 @@ export class ClientCredentialClient extends BaseClient {
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
-            authority: request.authority,
+            authority: authority.canonicalAuthority,
             scopes: request.scopes
         };
 
@@ -115,8 +113,8 @@ export class ClientCredentialClient extends BaseClient {
             this.authority,
             request.resourceRequestMethod,
             request.resourceRequestUri,
-            null,
-            null,
+            Constants.EMPTY_STRING,
+            Constants.EMPTY_STRING,
             request.scopes
         );
 
@@ -135,14 +133,16 @@ export class ClientCredentialClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
-        if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
-        }
+        if (this.config.clientCredentials) {
+            if (this.config.clientCredentials.clientSecret) {
+                parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
+            }
 
-        if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion = this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion);
-            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+            if (this.config.clientCredentials.clientAssertion) {
+                const clientAssertion = this.config.clientCredentials.clientAssertion;
+                parameterBuilder.addClientAssertion(clientAssertion.assertion);
+                parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+            }
         }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {

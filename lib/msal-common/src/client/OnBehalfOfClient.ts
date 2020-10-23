@@ -42,14 +42,14 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         const cachedAuthenticationResult = this.getCachedAuthenticationResult(request);
-        if (cachedAuthenticationResult != null) {
+        if (cachedAuthenticationResult !== null) {
             return cachedAuthenticationResult;
         } else {
             return await this.executeTokenRequest(request, this.authority);
         }
     }
 
-    private async getCachedAuthenticationResult(request: OnBehalfOfRequest): Promise<AuthenticationResult> {
+    private async getCachedAuthenticationResult(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
         const cachedAccessToken = this.readAccessTokenFromCache(request);
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
@@ -77,9 +77,9 @@ export class OnBehalfOfClient extends BaseClient {
                 account: cachedAccount,
                 accessToken: cachedAccessToken,
                 idToken: cachedIdToken,
-                refreshToken: null,
-                appMetadata: null,
-            }, idTokenObject, true);
+                refreshToken: undefined,
+                appMetadata: undefined,
+            }, true, idTokenObject);
     }
 
     private readAccessTokenFromCache(request: OnBehalfOfRequest): AccessTokenEntity {
