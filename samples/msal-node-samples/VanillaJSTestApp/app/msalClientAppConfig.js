@@ -24,11 +24,9 @@ module.exports = async function(scenarioConfiguration, cacheLocation) {
             cachePlugin
         },
         // Uncomment the code below to enable the MSAL logger
-        /**
-        * system: {
-        *   loggerOptions: loggerOptions
-        * }
-        */
+        system: {
+          loggerOptions: loggerOptions
+        }
     }
 
     const clientType = scenarioConfiguration.sample.clientType;
