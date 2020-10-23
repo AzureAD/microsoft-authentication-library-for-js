@@ -12,27 +12,7 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
-
-class TestStorageInterface extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
-        return;
-    }
-    getItem(key: string, type?: string): string | object {
-        return "cacheItem";
-    }
-    removeItem(key: string, type?: string): boolean {
-        return true;
-    }
-    containsKey(key: string, type?: string): boolean {
-        return true;
-    }
-    getKeys(): string[] {
-        return testKeySet;
-    }
-    clear(): void {
-        return;
-    }
-}
+import { TestStorageManager } from "../cache/TestStorageManager";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -102,7 +82,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                     return "signedJwt";
                 }
             },
-            storageInterface: new TestStorageInterface(),
+            storageInterface: new TestStorageManager(),
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -183,7 +163,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             const popupWindow = popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            expect(browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
 

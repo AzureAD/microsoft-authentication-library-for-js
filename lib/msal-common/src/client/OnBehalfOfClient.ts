@@ -21,6 +21,7 @@ import { AccountEntity } from "../cache/entities/AccountEntity";
 import { AuthToken } from "../account/AuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * On-Behalf-Of client
@@ -60,14 +61,14 @@ export class OnBehalfOfClient extends BaseClient {
         let cachedAccount: AccountEntity = null;
         if (cachedIdToken) {
             idTokenObject = new AuthToken(cachedIdToken.secret, this.config.cryptoInterface);
-            const accountKey = AccountEntity.generateAccountCacheKey({
+            const accountInfo: AccountInfo = {
                 homeAccountId: cachedIdToken.homeAccountId,
                 environment: cachedIdToken.environment,
                 tenantId: cachedIdToken.realm,
                 username: null
-            });
+            };
 
-            cachedAccount = this.cacheManager.getAccount(accountKey);
+            cachedAccount = this.readAccountFromCache(accountInfo);
         }
 
         return await ResponseHandler.generateAuthenticationResult(
@@ -119,6 +120,10 @@ export class OnBehalfOfClient extends BaseClient {
             return null;
         }
         return idTokens[0] as IdTokenEntity;
+    }
+
+    private readAccountFromCache(account: AccountInfo): AccountEntity {
+        return this.cacheManager.readAccountFromCache(account);
     }
 
     private async executeTokenRequest(request: OnBehalfOfRequest, authority: Authority)

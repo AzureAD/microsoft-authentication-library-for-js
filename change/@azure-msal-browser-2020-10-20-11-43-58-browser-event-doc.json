@@ -1,8 +1,8 @@
 {
-  "type": "minor",
-  "comment": "Add event api to msal-browser (#2394)",
+  "type": "none",
+  "comment": "Add docs for event API (#2459)",
   "packageName": "@azure/msal-browser",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "none",
-  "date": "2020-10-08T01:01:18.552Z"
+  "date": "2020-10-20T18:43:58.553Z"
 }

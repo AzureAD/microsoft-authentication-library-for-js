@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Updated eslint rules (#2345)",
-  "packageName": "@azure/msal-angularjs",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-09-25T23:08:13.638Z"
-}

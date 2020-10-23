@@ -13,7 +13,7 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
             errors: ["testError"],
             errorCount: 1,
             cacheHits: 0
-        }
+        };
 
         expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, serverTelemetryObject)).to.be.true;
     });
@@ -24,34 +24,27 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
             failedRequests: [999, "correlationId"],
             errors: ["testError"],
             errorCount: 1
-        }
+        };
 
         expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingCacheHits)).to.be.false;
-
-        const missingErrorCount = {
-            failedRequests: [999, "correlationId"],
-            errors: ["testError"],
-            cacheHits: 0
-        }
-        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingErrorCount)).to.be.false;
 
         const missingErrors = {
             failedRequests: [999, "correlationId"],
             errorCount: 1,
             cacheHits: 0
-        }
+        };
         expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingErrors)).to.be.false;
 
         const missingFailedRequests = {
             errors: ["testError"],
             errorCount: 1,
             cacheHits: 0
-        }
+        };
         expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingFailedRequests)).to.be.false;
 
         const noCommonValues = {
             testParam: "test"
-        }
+        };
         expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, noCommonValues)).to.be.false;
     });
 

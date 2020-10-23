@@ -12,7 +12,7 @@ export const TEST_URIS = {
     DEFAULT_INSTANCE: "https://login.microsoftonline.com/",
     ALTERNATE_INSTANCE: "https://login.windows.net/",
     TEST_REDIR_URI: "https://localhost:8081/index.html",
-    TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI: "https://localhost:8081/%D1%80/index.html",    
+    TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI: "https://localhost:8081/%D1%80/index.html",
     TEST_ALTERNATE_REDIR_URI: "https://localhost:8081/index2.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
     TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
@@ -35,7 +35,9 @@ export const TEST_CONFIG = {
     TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
     TOKEN_TYPE_BEARER: "Bearer",
     DEFAULT_SCOPES: ["openid", "profile"],
-    SID: "session-id"
+    SID: "session-id",
+    OID: "test-oid",
+    SUB: "test-sub"
 };
 
 // Test Tokens

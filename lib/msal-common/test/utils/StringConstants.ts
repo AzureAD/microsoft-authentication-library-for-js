@@ -1,6 +1,9 @@
-/**
- * This file contains the string constants used by the test classes.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
  */
+
+// This file contains the string constants used by the test classes.
 
 import { Constants } from "../../src/utils/Constants";
 import { RequestThumbprint, ThrottlingEntity, AccountInfo } from "../../src";
