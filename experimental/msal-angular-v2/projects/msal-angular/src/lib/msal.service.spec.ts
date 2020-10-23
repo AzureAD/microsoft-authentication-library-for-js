@@ -90,19 +90,23 @@ describe('MsalService', () => {
     });
   });
 
-  // describe("loginRedirect", () => {
-  //   it("success", () => {
-  //     spyOn(PublicClientApplication.prototype, "loginRedirect");
+  describe("loginRedirect", () => {
+    it("success", async () => {
+      spyOn(PublicClientApplication.prototype, "loginRedirect").and.returnValue((
+        new Promise((resolve) => {
+          resolve();
+        })
+      ));
 
-  //     const request = {
-  //       scopes: ["user.read"]
-  //     };
+      const request = {
+        scopes: ["user.read"]
+      };
 
-  //     authService.loginRedirect(request);
+      await authService.loginRedirect(request);
 
-  //     expect(PublicClientApplication.prototype.loginRedirect).toHaveBeenCalled();
-  //   });
-  // });
+      expect(PublicClientApplication.prototype.loginRedirect).toHaveBeenCalled();
+    });
+  });
 
   describe("ssoSilent", () => {
     it("success", (done) => {
@@ -209,17 +213,21 @@ describe('MsalService', () => {
     });
   });
 
-  // describe("acquireTokenRedirect", () => {
-  //   it("success", () => {
-  //     spyOn(PublicClientApplication.prototype, "acquireTokenRedirect");
+  describe("acquireTokenRedirect", () => {
+    it("success", async () => {
+      spyOn(PublicClientApplication.prototype, "acquireTokenRedirect").and.returnValue((
+        new Promise((resolve) => {
+          resolve();
+        })
+      ));
 
-  //     authService.acquireTokenRedirect({
-  //       scopes: ["user.read"]
-  //     });
+      await authService.acquireTokenRedirect({
+        scopes: ["user.read"]
+      });
 
-  //     expect(PublicClientApplication.prototype.acquireTokenRedirect).toHaveBeenCalled();
-  //   });
-  // });
+      expect(PublicClientApplication.prototype.acquireTokenRedirect).toHaveBeenCalled();
+    });
+  });
 
   describe("acquireTokenPopup", () => {
     it("success", (done) => {
@@ -271,4 +279,47 @@ describe('MsalService', () => {
 
     });
   });
+
+  describe("handleRedirectObservable", () => {
+    it("success", (done) => {
+      const sampleAccessToken = {
+        accessToken: "123abc"
+      };
+
+      spyOn(PublicClientApplication.prototype, "handleRedirectPromise").and.returnValue((
+        new Promise((resolve) => {
+          //@ts-ignore
+          resolve(sampleAccessToken);
+        })
+      ));
+
+      authService.handleRedirectObservable()
+        .subscribe((response: AuthenticationResult) => {
+          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+          expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalled();
+          done();
+        });
+    });
+
+    it("failure", (done) => {
+      const sampleError = new AuthError("123", "message");
+  
+      spyOn(PublicClientApplication.prototype, "handleRedirectPromise").and.returnValue((
+        new Promise((resolve, reject) => {
+          reject(sampleError);
+        })
+      ));
+  
+      authService.handleRedirectObservable()
+        .subscribe({
+          error: (error: AuthError) => {
+            expect(error.message).toBe(sampleError.message);
+            expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalled();
+            done();
+          }
+        });
+    });
+
+  });
+
 });

@@ -26,7 +26,6 @@ interface IMsalService {
 }
 
 @Injectable()
-@Optional()
 export class MsalService implements IMsalService {
 
     constructor(

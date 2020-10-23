@@ -5,7 +5,8 @@ import { MsalGuardConfiguration } from './msal.guard.config';
 import { MsalInterceptorConfig } from './msal.interceptor.config';
 import { MsalGuard } from './msal.guard';
 import { MsalBroadcastService } from './msal.broadcast.service';
-import { MsalService, MSAL_INSTANCE } from '../public-api';
+import { MsalService } from './msal.service';
+import { MSAL_INSTANCE } from './constants';
 import { MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG } from './constants';
 
 @NgModule({
