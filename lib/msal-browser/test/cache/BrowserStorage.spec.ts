@@ -6,29 +6,83 @@ import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, TEST_HASHES } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
-import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType, ProtocolUtils } from "@azure/msal-common";
+import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 class TestCacheStorage extends CacheManager {
-    setItem(key: string, value: string): void {
-        throw new Error("Method not implemented.");
+    setAccount(): void {
+        const notImplErr = "Storage interface - setAccount() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
     }
-    getItem(key: string): string {
-        throw new Error("Method not implemented.");
+    getAccount(): AccountEntity {
+        const notImplErr = "Storage interface - getAccount() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
     }
-    removeItem(key: string): boolean {
-        throw new Error("Method not implemented.");
+    setIdTokenCredential(): void {
+        const notImplErr = "Storage interface - setIdTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
     }
-    containsKey(key: string): boolean {
-        throw new Error("Method not implemented.");
+    getIdTokenCredential(): IdTokenEntity {
+        const notImplErr = "Storage interface - getIdTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    setAccessTokenCredential(): void {
+        const notImplErr = "Storage interface - setAccessTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    getAccessTokenCredential(): AccessTokenEntity {
+        const notImplErr = "Storage interface - getAccessTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    setRefreshTokenCredential(): void {
+        const notImplErr = "Storage interface - setRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    getRefreshTokenCredential(): RefreshTokenEntity {
+        const notImplErr = "Storage interface - getRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    setAppMetadata(): void {
+        const notImplErr = "Storage interface - setAppMetadata() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    getAppMetadata(): AppMetadataEntity {
+        const notImplErr = "Storage interface - getAppMetadata() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    setServerTelemetry(): void {
+        const notImplErr = "Storage interface - setServerTelemetry() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    getServerTelemetry(): ServerTelemetryEntity {
+        const notImplErr = "Storage interface - getServerTelemetry() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    setThrottlingCache(): void {
+        const notImplErr = "Storage interface - setThrottlingCache() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    getThrottlingCache(): ThrottlingEntity {
+        const notImplErr = "Storage interface - getThrottlingCache() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    removeItem(): boolean {
+        const notImplErr = "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
+    }
+    containsKey(): boolean {
+        const notImplErr = "Storage interface - containsKey() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
     }
     getKeys(): string[] {
-        throw new Error("Method not implemented.");
+        const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
     }
     clear(): void {
-        throw new Error("Method not implemented.");
+        const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
+        throw new Error(notImplErr);
     }
 }
 
@@ -97,10 +151,10 @@ describe("BrowserStorage() tests", () => {
             expect(window.sessionStorage.getItem(clientInfoKey)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             expect(window.sessionStorage.getItem(errorKey)).to.be.eq(errorKeyVal);
             expect(window.sessionStorage.getItem(errorDescKey)).to.be.eq(errorDescVal);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ID_TOKEN), CacheSchemaType.TEMPORARY)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.CLIENT_INFO), CacheSchemaType.TEMPORARY)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ERROR), CacheSchemaType.TEMPORARY)).to.be.eq(errorKeyVal);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(PersistentCacheKeys.ERROR_DESC), CacheSchemaType.TEMPORARY)).to.be.eq(errorDescVal);
+            expect(browserStorage.getTemporaryCache(PersistentCacheKeys.ID_TOKEN, true)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
+            expect(browserStorage.getTemporaryCache(PersistentCacheKeys.CLIENT_INFO, true)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+            expect(browserStorage.getTemporaryCache(PersistentCacheKeys.ERROR, true)).to.be.eq(errorKeyVal);
+            expect(browserStorage.getTemporaryCache(PersistentCacheKeys.ERROR_DESC, true)).to.be.eq(errorDescVal);
         });
     });
 
@@ -124,61 +178,47 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("setItem()", () => {
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
+            browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
             expect(window.localStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
-        });
-
-        it("setItem() throws error if type passed in is not one of CacheSchemaType types", () => {
-            expect(() => browserSessionStorage.setItem(msalCacheKey, cacheVal, "OTHER_TYPE")).to.throw(BrowserAuthError);
-            expect(() => browserSessionStorage.setItem(msalCacheKey, cacheVal, "OTHER_TYPE")).to.throw(BrowserAuthErrorMessage.invalidCacheType.desc);
-            expect(() => browserLocalStorage.setItem(msalCacheKey, cacheVal, "OTHER_TYPE")).to.throw(BrowserAuthError);
-            expect(() => browserLocalStorage.setItem(msalCacheKey, cacheVal, "OTHER_TYPE")).to.throw(BrowserAuthErrorMessage.invalidCacheType.desc);
         });
 
         it("getItem()", () => {
             window.sessionStorage.setItem(msalCacheKey, cacheVal);
             window.localStorage.setItem(msalCacheKey, cacheVal);
-            expect(browserSessionStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
-            expect(browserLocalStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
-        });
-
-        it("getItem() throws error if type passed in is not one of CacheSchemaType types", () => {
-            window.sessionStorage.setItem(msalCacheKey, cacheVal);
-            window.localStorage.setItem(msalCacheKey, cacheVal);
-            expect(() => browserSessionStorage.getItem(msalCacheKey, "OTHER_TYPE")).to.throw(BrowserAuthError);
-            expect(() => browserSessionStorage.getItem(msalCacheKey, "OTHER_TYPE")).to.throw(BrowserAuthErrorMessage.invalidCacheType.desc);
-            expect(() => browserLocalStorage.getItem(msalCacheKey, "OTHER_TYPE")).to.throw(BrowserAuthError);
-            expect(() => browserLocalStorage.getItem(msalCacheKey, "OTHER_TYPE")).to.throw(BrowserAuthErrorMessage.invalidCacheType.desc);
+            expect(browserSessionStorage.getTemporaryCache("cacheKey", true)).to.be.eq(cacheVal);
+            expect(browserLocalStorage.getTemporaryCache("cacheKey", true)).to.be.eq(cacheVal);
         });
 
         it("removeItem()", () => {
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
+            browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserSessionStorage.removeItem(msalCacheKey);
             browserLocalStorage.removeItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.null;
             expect(window.localStorage.getItem(msalCacheKey)).to.be.null;
+            expect(browserLocalStorage.getTemporaryCache("cacheKey", true)).to.be.null;
+            expect(browserSessionStorage.getTemporaryCache("cacheKey", true)).to.be.null;
         });
 
         it("containsKey()", () => {
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
+            browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
             expect(browserSessionStorage.containsKey(msalCacheKey)).to.be.true;
             expect(browserLocalStorage.containsKey(msalCacheKey)).to.be.true;
         });
 
         it("getKeys()", () => {
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
+            browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
             expect(browserSessionStorage.getKeys()).to.be.deep.eq([msalCacheKey]);
             expect(browserLocalStorage.getKeys()).to.be.deep.eq([msalCacheKey]);
         });
 
         it("clear()", () => {
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
+            browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserSessionStorage.clear();
             browserLocalStorage.clear();
             expect(browserSessionStorage.getKeys()).to.be.empty;
@@ -207,11 +247,11 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("setItem()", () => {
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
             expect(document.cookie).to.be.eq(`${msalCacheKey}=${cacheVal}`);
             browserSessionStorage.clearItemCookie(msalCacheKey);
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
             expect(window.localStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
             expect(document.cookie).to.be.eq(`${msalCacheKey}=${cacheVal}`);
             browserLocalStorage.clearItemCookie(msalCacheKey);
@@ -220,24 +260,25 @@ describe("BrowserStorage() tests", () => {
         it("getItem()", () => {
             const getCookieSpy = sinon.spy(BrowserStorage.prototype, "getItemCookie");
             window.sessionStorage.setItem(msalCacheKey, cacheVal);
-            window.localStorage.setItem(msalCacheKey, cacheVal);
             browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
-            expect(browserSessionStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
+            expect(browserSessionStorage.getTemporaryCache("cacheKey", true)).to.be.eq(cacheVal);
             expect(getCookieSpy.returned(cacheVal)).to.be.true;
             expect(getCookieSpy.calledOnce).to.be.true;
-            expect(browserLocalStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
+            window.localStorage.setItem(msalCacheKey, cacheVal);
+            browserLocalStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(browserLocalStorage.getTemporaryCache("cacheKey", true)).to.be.eq(cacheVal);
             expect(getCookieSpy.returned(cacheVal)).to.be.true;
             expect(getCookieSpy.calledTwice).to.be.true;
         });
 
         it("removeItem()", () => {
             const clearCookieSpy = sinon.spy(BrowserStorage.prototype, "clearItemCookie");
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserSessionStorage.removeItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.null;
             expect(document.cookie).to.be.empty;
             expect(clearCookieSpy.calledOnce).to.be.true;
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.removeItem(msalCacheKey);
             expect(window.localStorage.getItem(msalCacheKey)).to.be.null;
             expect(document.cookie).to.be.empty;
@@ -245,11 +286,11 @@ describe("BrowserStorage() tests", () => {
         });
 
         it("clear()", () => {
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserSessionStorage.clear();
             expect(browserSessionStorage.getKeys()).to.be.empty;
             expect(document.cookie).to.be.empty;
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.clear();
             expect(browserLocalStorage.getKeys()).to.be.empty;
             expect(document.cookie).to.be.empty;
@@ -257,11 +298,11 @@ describe("BrowserStorage() tests", () => {
 
         it("setItem() with item that contains ==", () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
             expect(document.cookie).to.be.eq(`${encodeURIComponent(msalCacheKey)}=${cacheVal}`);
             browserSessionStorage.clearItemCookie(msalCacheKey);
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(window.localStorage.getItem(msalCacheKey)).to.be.eq(cacheVal);
             expect(document.cookie).to.be.eq(`${encodeURIComponent(msalCacheKey)}=${cacheVal}`);
             browserLocalStorage.clearItemCookie(msalCacheKey);
@@ -271,12 +312,13 @@ describe("BrowserStorage() tests", () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
             const getCookieSpy = sinon.spy(BrowserStorage.prototype, "getItemCookie");
             window.sessionStorage.setItem(msalCacheKey, cacheVal);
-            window.localStorage.setItem(msalCacheKey, cacheVal);
             browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
-            expect(browserSessionStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
+            expect(browserSessionStorage.getTemporaryCache(msalCacheKey)).to.be.eq(cacheVal);
             expect(getCookieSpy.returned(cacheVal)).to.be.true;
             expect(getCookieSpy.calledOnce).to.be.true;
-            expect(browserLocalStorage.getItem(msalCacheKey, CacheSchemaType.TEMPORARY)).to.be.eq(cacheVal);
+            window.localStorage.setItem(msalCacheKey, cacheVal);
+            browserLocalStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(browserLocalStorage.getTemporaryCache(msalCacheKey)).to.be.eq(cacheVal);
             expect(getCookieSpy.returned(cacheVal)).to.be.true;
             expect(getCookieSpy.calledTwice).to.be.true;
         });
@@ -284,12 +326,12 @@ describe("BrowserStorage() tests", () => {
         it("removeItem() with item that contains ==", () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
             const clearCookieSpy = sinon.spy(BrowserStorage.prototype, "clearItemCookie");
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache(msalCacheKey, cacheVal);
             browserSessionStorage.removeItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.null;
             expect(document.cookie).to.be.empty;
             expect(clearCookieSpy.calledOnce).to.be.true;
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setTemporaryCache(msalCacheKey, cacheVal);
             browserLocalStorage.removeItem(msalCacheKey);
             expect(window.localStorage.getItem(msalCacheKey)).to.be.null;
             expect(document.cookie).to.be.empty;
@@ -298,11 +340,11 @@ describe("BrowserStorage() tests", () => {
 
         it("clear() with item that contains ==", () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
-            browserSessionStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserSessionStorage.setTemporaryCache(msalCacheKey, cacheVal);
             browserSessionStorage.clear();
             expect(browserSessionStorage.getKeys()).to.be.empty;
             expect(document.cookie).to.be.empty;
-            browserLocalStorage.setItem(msalCacheKey, cacheVal, CacheSchemaType.TEMPORARY);
+            browserLocalStorage.setTemporaryCache(msalCacheKey, cacheVal);
             browserLocalStorage.clear();
             expect(browserLocalStorage.getKeys()).to.be.empty;
             expect(document.cookie).to.be.empty;
@@ -405,8 +447,8 @@ describe("BrowserStorage() tests", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE;
             const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             browserStorage.updateCacheEntries(stateString, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`);
-            browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams", CacheSchemaType.TEMPORARY);
-            browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI, CacheSchemaType.TEMPORARY);
+            browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
+            browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI);
 
             browserStorage.resetRequestCache(stateString);
             const nonceKey = browserStorage.generateNonceKey(stateString);
@@ -429,7 +471,7 @@ describe("BrowserStorage() tests", () => {
                 correlationId: `${RANDOM_TEST_GUID}`
             };
 
-            browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(tokenRequest)), CacheSchemaType.TEMPORARY);
+            browserStorage.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, browserCrypto.base64Encode(JSON.stringify(tokenRequest)), true);
 
             const cachedRequest = browserStorage.getCachedRequest(RANDOM_TEST_GUID, browserCrypto);
             expect(cachedRequest).to.be.deep.eq(tokenRequest);
@@ -470,7 +512,7 @@ describe("BrowserStorage() tests", () => {
                 correlationId: `${RANDOM_TEST_GUID}`
             };
             const stringifiedRequest = JSON.stringify(tokenRequest);
-            browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), stringifiedRequest.substring(0, stringifiedRequest.length / 2), CacheSchemaType.TEMPORARY);
+            browserStorage.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest.substring(0, stringifiedRequest.length / 2), true);
             expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
         });
 
@@ -483,7 +525,7 @@ describe("BrowserStorage() tests", () => {
             // Set up cache
             const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE);
             const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;
-            browserStorage.setItem(authorityKey, alternateAuthority, CacheSchemaType.TEMPORARY);
+            browserStorage.setItem(authorityKey, alternateAuthority);
 
             const cachedRequest: AuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -493,7 +535,7 @@ describe("BrowserStorage() tests", () => {
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
             };
             const stringifiedRequest = browserCrypto.base64Encode(JSON.stringify(cachedRequest));
-            browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), stringifiedRequest, CacheSchemaType.TEMPORARY);
+            browserStorage.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest, true);
 
             // Perform test
             const tokenRequest = browserStorage.getCachedRequest(TEST_STATE_VALUES.TEST_STATE, browserCrypto);

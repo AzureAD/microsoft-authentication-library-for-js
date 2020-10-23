@@ -205,7 +205,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         beforeEach(() => {
             // @ts-ignore
             oldWindow = { ...global.window };
-    
+
             // @ts-ignore
             global.window = undefined;
         });
@@ -373,12 +373,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("Redirect Flow Unit tests", () => {
 
         describe("handleRedirectPromise()", () => {
-            it("does nothing if no hash is detected", (done) => {	
+            it("does nothing if no hash is detected", (done) => {
                 pca.handleRedirectPromise().then(() => {
-                    expect(window.localStorage.length).to.be.eq(0);	
-                    expect(window.sessionStorage.length).to.be.eq(0);	
+                    expect(window.localStorage.length).to.be.eq(0);
+                    expect(window.sessionStorage.length).to.be.eq(0);
                     done();
-                });		
+                });
             });
 
             it("gets hash from cache and processes response", async () => {
@@ -468,7 +468,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: ["scope1", "scope2"],
                     code: ""
                 };
-                
+
                 const stateString = TEST_STATE_VALUES.TEST_STATE;
                 const browserCrypto = new CryptoOps();
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
@@ -478,7 +478,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_ERROR_HASH);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-                
+
                 pca = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID
@@ -748,9 +748,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const browserCrypto = new CryptoOps();
                 const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 await pca.loginRedirect(emptyRequest);
-                expect(browserStorage.getItem(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
-                expect(browserStorage.getItem(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.eq(RANDOM_TEST_GUID);
-                expect(browserStorage.getItem(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(RANDOM_TEST_GUID);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
             });
 
             it("Caches token request correctly", async () => {
@@ -778,7 +778,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const browserCrypto = new CryptoOps();
                 const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 await pca.loginRedirect(tokenRequest);
-                const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string));
+                const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
                 expect(cachedRequest.scopes).to.be.deep.eq([]);
                 expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
                 expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
@@ -798,7 +798,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
-				
+
                 const testError = {
                     errorCode: "create_login_url_error",
                     errorMessage: "Error in creating a login url"
@@ -867,7 +867,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 expect(loginUrlSpy.calledWith(validatedRequest)).to.be.true;
             });
-	
+
             it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
                 const idTokenClaims: TokenClaims = {
                     "iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
@@ -972,7 +972,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(browserStorage.getItem(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.eq(RANDOM_TEST_GUID);
                 expect(browserStorage.getItem(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
             });
-	
+
             it("Caches token request correctly", async () => {
                 const testScope = "testscope";
                 const tokenRequest: AuthorizationUrlRequest = {
@@ -995,7 +995,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const browserCrypto = new CryptoOps();
                 const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 await pca.acquireTokenRedirect(tokenRequest);
-                const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), CacheSchemaType.TEMPORARY) as string));
+                const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
                 expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
                 expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
                 expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
@@ -1014,7 +1014,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
-                
+
                 const testError = {
                     errorCode: "create_login_url_error",
                     errorMessage: "Error in creating a login url"
@@ -1084,7 +1084,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 expect(acquireTokenUrlSpy.calledWith(validatedRequest)).to.be.true;
             });
-	
+
             it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
                 const idTokenClaims: TokenClaims = {
                     "iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
@@ -1284,7 +1284,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
                 const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
-                
+
                 try {
                     await pca.acquireTokenPopup(request);
                 } catch(e) {}
@@ -1314,7 +1314,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
 
                 const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
-                
+
                 try {
                     await pca.acquireTokenPopup(request);
                 } catch(e) {}
@@ -1748,6 +1748,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount1: AccountEntity = new AccountEntity();
         testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
+        testAccount1.localAccountId = TEST_CONFIG.OID;
         testAccount1.environment = testAccountInfo1.environment;
         testAccount1.realm = testAccountInfo1.tenantId;
         testAccount1.username = testAccountInfo1.username;
@@ -1766,6 +1767,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount2: AccountEntity = new AccountEntity();
         testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
+        testAccount2.localAccountId = TEST_CONFIG.OID;
         testAccount2.environment = testAccountInfo2.environment;
         testAccount2.realm = testAccountInfo2.tenantId;
         testAccount2.username = testAccountInfo2.username;
@@ -1780,7 +1782,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const cacheKey2 = AccountEntity.generateAccountCacheKey(testAccountInfo2);
             window.sessionStorage.setItem(cacheKey2, JSON.stringify(testAccount2));
         });
-        
+
         afterEach(() => {
             window.sessionStorage.clear();
         });
@@ -1889,12 +1891,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(message.timestamp).to.not.be.null;
                 done();
             };
-            
+
             pca.addEventCallback(subscriber);
             pca.emitEvent(EventType.LOGIN_START);
         });
 
-        it("sets all expected fields on event", (done) => {            
+        it("sets all expected fields on event", (done) => {
             const subscriber = (message) => {
                 expect(message.eventType).to.deep.eq(EventType.LOGIN_START);
                 expect(message.interactionType).to.deep.eq(InteractionType.Silent);
@@ -1903,7 +1905,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(message.timestamp).to.not.be.null;
                 done();
             };
-            
+
             pca.addEventCallback(subscriber);
             pca.emitEvent(EventType.LOGIN_START, InteractionType.Silent, {scopes: ["user.read"]}, null);
         });
