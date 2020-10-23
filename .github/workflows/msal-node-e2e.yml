@@ -30,14 +30,6 @@ jobs:
         RUNNING_NODE_CI: 1
       run: npm ci
 
-    - name: Install Test App
-      working-directory: samples/msal-node-samples/VanillaJSTestApp
-      run: npm install
-    
-    - name: Link Dependencies
-      working-directory: ./
-      run: lerna bootstrap
-
     - name: Build Package
       working-directory: samples/msal-node-samples/VanillaJSTestApp
       run: npm run build:package
