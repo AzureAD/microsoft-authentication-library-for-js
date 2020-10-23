@@ -13,7 +13,7 @@ export const EVENT_KEYS = {
 
 export default class UiEvent extends TelemetryEvent {
     constructor(correlationId: string) {
-        super(prependEventNamePrefix("ui_event"), correlationId);
+        super(prependEventNamePrefix("ui_event"), correlationId, "UiEvent");
     }
 
     public set userCancelled(userCancelled: boolean) {

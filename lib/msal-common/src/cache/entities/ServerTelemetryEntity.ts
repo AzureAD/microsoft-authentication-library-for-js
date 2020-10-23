@@ -30,7 +30,6 @@ export class ServerTelemetryEntity {
             validateEntity =
                 entity.hasOwnProperty("failedRequests") &&
                 entity.hasOwnProperty("errors") &&
-                entity.hasOwnProperty("errorCount") &&
                 entity.hasOwnProperty("cacheHits");
         }
 

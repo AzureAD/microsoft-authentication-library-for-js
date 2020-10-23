@@ -15,9 +15,9 @@ export class AuthorityFactory {
     /**
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (i.e. aad, b2c, adfs)
-     * 
+     *
      * Also performs endpoint discovery.
-     * 
+     *
      * @param authorityUri
      * @param networkClient
      * @param protocolMode
@@ -41,11 +41,11 @@ export class AuthorityFactory {
     /**
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (i.e. aad, b2c, adfs)
-     * 
+     *
      * Does not perform endpoint discovery.
-     * 
-     * @param authorityUrl 
-     * @param networkInterface 
+     *
+     * @param authorityUrl
+     * @param networkInterface
      * @param protocolMode
      */
     static createInstance(authorityUrl: string, networkInterface: INetworkModule, protocolMode: ProtocolMode): Authority {

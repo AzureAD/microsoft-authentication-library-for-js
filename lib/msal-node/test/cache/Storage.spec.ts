@@ -54,14 +54,14 @@ describe("Storage tests for msal-node: ", () => {
 
         const cache = nodeStorage.getCache();
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
-        const account = cache[accountKey] as AccountEntity;
+        const account: AccountEntity = cache[accountKey] as AccountEntity;
         expect(account).toBeInstanceOf(AccountEntity);
         expect(account.clientInfo).toBe(
             'eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=='
         );
 
         const newInMemoryCache = nodeStorage.getInMemoryCache();
-        expect(newInMemoryCache.accounts[accountKey]).toEqual(account);
+        expect(newInMemoryCache.accounts[accountKey]).toEqual(cache[accountKey]);
     });
 
     it('setItem() and getItem() tests - tests for an account', () => {
@@ -72,12 +72,12 @@ describe("Storage tests for msal-node: ", () => {
         const newMockAccount = {
             'uid1.utid1-login.windows.net-samplerealm': {
                 username: 'Jane Doe',
-                local_account_id: 'object5678',
+                localAccountId: 'object5678',
                 realm: 'samplerealm',
                 environment: 'login.windows.net',
-                home_account_id: 'uid1.utid1',
-                authority_type: 'MSSTS',
-                client_info: 'eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9',
+                homeAccountId: 'uid1.utid1',
+                authorityType: 'MSSTS',
+                clientInfo: 'eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9',
             },
         };
         let account = new AccountEntity();
@@ -88,6 +88,31 @@ describe("Storage tests for msal-node: ", () => {
 
         expect(fetchedAccount).toBeInstanceOf(AccountEntity);
         expect(account).toEqual(fetchedAccount);
+    });
+
+    it('setAccount() and getAccount() tests', () => {
+        const nodeStorage = new Storage(logger);
+        nodeStorage.setInMemoryCache(inMemoryCache);
+        const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
+        const fetchedAccount = nodeStorage.getAccount(accountKey);
+
+        expect(fetchedAccount).toBeInstanceOf(AccountEntity);
+        expect(fetchedAccount).toEqual(inMemoryCache.accounts[accountKey]);
+
+        const mockAccountData = {
+            username: 'Jane Doe',
+            localAccountId: 'object5678',
+            realm: 'samplerealm',
+            environment: 'login.windows.net',
+            homeAccountId: 'uid1.utid1',
+            authorityType: 'MSSTS',
+            clientInfo: 'eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9',
+        };
+
+        let mockAccountEntity = CacheManager.toObject(new AccountEntity(), mockAccountData);
+        expect(mockAccountEntity).toBeInstanceOf(AccountEntity);
+        nodeStorage.setAccount(mockAccountEntity);
+        expect(nodeStorage.getAccount(mockAccountEntity.generateAccountKey())).toEqual(mockAccountEntity);
     });
 
     it('setCache() and getCache() tests - tests for an accessToken', () => {
@@ -118,6 +143,31 @@ describe("Storage tests for msal-node: ", () => {
         nodeStorage.setCache(cache);
         const readCache = nodeStorage.getCache();
         expect(readCache[accessTokenKey]).toEqual(accessToken);
+    });
+
+    it('setAccessTokenCredential() and getAccessTokenCredential() tests', () => {
+        const nodeStorage = new Storage(logger);
+
+        const accessTokenKey = 'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite';
+        const newMockATData = {
+            homeAccountId: 'uid1.utid1',
+            environment: 'login.windows.net',
+            credentialType: 'AccessToken',
+            clientId: 'mock_client_id',
+            secret: 'an access token',
+            realm: 'samplerealm',
+            target: 'scoperead scopewrite',
+            cachedAt: '1000',
+            expiresOn: '4600',
+            extendedExpiresOn: '4600',
+        };
+
+        let accessToken = new AccessTokenEntity();
+        accessToken = CacheManager.toObject(accessToken, newMockATData);
+
+        nodeStorage.setAccessTokenCredential(accessToken);
+        const fetchedAccessToken = nodeStorage.getAccessTokenCredential(accessTokenKey);
+        expect(fetchedAccessToken).toEqual(accessToken);
     });
 
     it('containsKey() tests - tests for an accountKey', () => {
