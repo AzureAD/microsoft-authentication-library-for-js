@@ -56,6 +56,7 @@ export abstract class ClientApplication {
         );
         this.cryptoProvider = new CryptoProvider();
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
+        console.log(this);
     }
 
     /**
