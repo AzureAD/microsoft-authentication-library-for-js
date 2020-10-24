@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update E2ETestApp to handle cases where test cache file doesn't exist (#2485)",
+  "packageName": "end-to-end-test-app-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-24T01:12:29.137Z"
+}
