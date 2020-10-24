@@ -36,12 +36,12 @@ jobs:
 
     - name: Link MSAL Node
       working-directory: lib/msal-node
-      run: npm run link
+      run: npm link
     
     - name: Build Package
       working-directory: samples/msal-node-samples/VanillaJSTestApp
       run: |
-        npm run link @azure/msal-node
+        npm link @azure/msal-node
         npm run build:package
 
     - name: E2E Tests
