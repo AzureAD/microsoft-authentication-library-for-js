@@ -73,7 +73,6 @@ export abstract class ClientApplication {
             request.authority
         );
         this.logger.verbose("Auth client config generated");
-        this.logger.verbose("TEST LOGGER MESSAGE");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
