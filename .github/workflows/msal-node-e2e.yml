@@ -30,9 +30,19 @@ jobs:
         RUNNING_NODE_CI: 1
       run: npm ci
 
+    - name: Install Dependencies
+      working-directory: samples/msal-node-samples/VanillaJSTestApp
+      run: npm install
+
+    - name: Link MSAL Node
+      working-directory: lib/msal-node
+      run: npm run link
+    
     - name: Build Package
       working-directory: samples/msal-node-samples/VanillaJSTestApp
-      run: npm run build:package
+      run: |
+        npm run link @azure/msal-node
+        npm run build:package
 
     - name: E2E Tests
       working-directory: samples/msal-node-samples/VanillaJSTestApp
