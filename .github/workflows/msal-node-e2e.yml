@@ -12,7 +12,7 @@ on:
     paths: 
       - 'msal-node/**/*' 
       - 'msal-common/**/*'
-      - 'samples/msal-node-samples/VanillaJSTestApp/**/*'
+      - 'samples/msal-node-samples/EndToEndTestApp/**/*'
 
 jobs:
   run-e2e:
@@ -31,7 +31,7 @@ jobs:
       run: npm ci
 
     - name: Install Dependencies
-      working-directory: samples/msal-node-samples/VanillaJSTestApp
+      working-directory: samples/msal-node-samples/EndToEndTestApp
       run: npm install
 
     - name: Link MSAL Node
@@ -39,13 +39,13 @@ jobs:
       run: npm link
     
     - name: Build Package
-      working-directory: samples/msal-node-samples/VanillaJSTestApp
+      working-directory: samples/msal-node-samples/EndToEndTestApp
       run: |
         npm link @azure/msal-node
         npm run build:package
 
     - name: E2E Tests
-      working-directory: samples/msal-node-samples/VanillaJSTestApp
+      working-directory: samples/msal-node-samples/EndToEndTestApp
       timeout-minutes: 5
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
