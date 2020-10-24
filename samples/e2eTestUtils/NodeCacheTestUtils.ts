@@ -1,5 +1,5 @@
 import { Deserializer, Serializer } from "../../lib/msal-node";
-import { InMemoryCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
+import { InMemoryCache, JsonCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
 import fs from "fs";
 
 export type tokenMap = {
@@ -10,7 +10,7 @@ export type tokenMap = {
 
 export class NodeCacheTestUtils {
     static getTokens(cacheLocation: string): tokenMap {
-        const cache = fs.readFileSync(cacheLocation, { encoding: 'utf-8' });
+        const cache = (fs.existsSync(cacheLocation)) ?  fs.readFileSync(cacheLocation, { encoding: 'utf-8' }) : "{}";
         const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
 
         const tokenCache: tokenMap = {
@@ -29,7 +29,7 @@ export class NodeCacheTestUtils {
     }
 
     static resetCache(cacheLocation: string) {
-        const jsonCache = require(cacheLocation);
+        const jsonCache = (fs.existsSync(cacheLocation)) ? require(cacheLocation) : this.getCacheTemplate();
         const cache: InMemoryCache = Deserializer.deserializeAllCache(jsonCache);
         Object.keys(cache).forEach( key => cache[key] = []);
         const serializedCache = Serializer.serializeAllCache(cache);
@@ -39,5 +39,15 @@ export class NodeCacheTestUtils {
         } catch (error) {
             console.error("Error writing to cache file in resetCache: ", error);
         }
+    }
+
+    private static getCacheTemplate(): any {
+        return JSON.stringify({
+            Account: {},
+            IdToken: {},
+            AccessToken: {},
+            RefreshToken: {},
+            AppMetadata: {}
+        });
     }
 }
