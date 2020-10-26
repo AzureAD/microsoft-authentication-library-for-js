@@ -2,6 +2,35 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 26 Oct 2020 21:00:29 GMT",
+      "tag": "@azure/msal-node_v1.0.0-alpha.13",
+      "version": "1.0.0-alpha.13",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9d4c4a18de10eb3d918810dc10766fbd5547165d",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Export Node Cache Serializer for use in end-to-end testing framework (#2414)",
+            "author": "hemoral@microsoft.com",
+            "commit": "ba3fad77b2f6ea5034c423aa44096c5698cbcb3d",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update samples path",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "971ff811cb00a3d97b8ceff32999cd80d3d5a7ac",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 20 Oct 2020 23:47:28 GMT",
       "tag": "@azure/msal-node_v1.0.0-alpha.12",
       "version": "1.0.0-alpha.12",
