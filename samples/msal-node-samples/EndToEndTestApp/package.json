@@ -1,8 +1,9 @@
 {
-  "name": "vanilla-js-node-test-app",
+  "name": "end-to-end-test-app-node",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "start": "node index.js",
     "build:package": "cd ../../../lib/msal-node && npm run build:all",
