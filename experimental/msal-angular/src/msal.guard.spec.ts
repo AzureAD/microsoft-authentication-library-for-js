@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
-import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from '../public-api';
+import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from './public-api';
 
 describe('MsalGuard', () => {
   let guard: MsalGuard;

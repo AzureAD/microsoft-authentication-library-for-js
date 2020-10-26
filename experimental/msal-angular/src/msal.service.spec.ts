@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { AuthenticationResult, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
-import { MsalModule, MsalBroadcastService, MsalService } from '../public-api';
+import { AuthenticationResult, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
+import { MsalModule, MsalBroadcastService, MsalService } from './public-api';
 
 let authService: MsalService;
 let broadcastService: MsalBroadcastService;
@@ -173,7 +173,7 @@ describe('MsalService', () => {
         })
       ));
 
-      const request = {
+      const request: SilentRequest = {
         scopes: ["user.read"],
         account: null
       };
@@ -196,7 +196,7 @@ describe('MsalService', () => {
         })
       ));
 
-      const request = {
+      const request: SilentRequest = {
         scopes: ["wrong.scope"],
         account: null
       };

@@ -5,36 +5,36 @@
   "projects": {
     "msal-angular": {
       "projectType": "library",
-      "root": "projects/msal-angular",
-      "sourceRoot": "projects/msal-angular/src",
+      "root": "./",
+      "sourceRoot": "./src",
       "prefix": "lib",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
-            "tsConfig": "projects/msal-angular/tsconfig.lib.json",
-            "project": "projects/msal-angular/ng-package.json"
+            "tsConfig": "./tsconfig.lib.json",
+            "project": "./ng-package.json"
           },
           "configurations": {
             "production": {
-              "tsConfig": "projects/msal-angular/tsconfig.lib.prod.json"
+              "tsConfig": "./tsconfig.lib.prod.json"
             }
           }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "projects/msal-angular/src/test.ts",
-            "tsConfig": "projects/msal-angular/tsconfig.spec.json",
-            "karmaConfig": "projects/msal-angular/karma.conf.js"
+            "main": "./src/test.ts",
+            "tsConfig": "./tsconfig.spec.json",
+            "karmaConfig": "./karma.conf.js"
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "projects/msal-angular/tsconfig.lib.json",
-              "projects/msal-angular/tsconfig.spec.json"
+              "./tsconfig.lib.json",
+              "./tsconfig.spec.json"
             ],
             "exclude": [
               "**/node_modules/**"

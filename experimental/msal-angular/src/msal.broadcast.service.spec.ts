@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { MSAL_INSTANCE } from './constants';
 import { MsalBroadcastService } from './msal.broadcast.service';
 import { EventMessage, EventType, InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
-import { MsalModule } from '../public-api';
+import { MsalModule } from './public-api';
 
 const msalInstance = new PublicClientApplication({
       auth: {

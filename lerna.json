@@ -16,7 +16,7 @@
   },
   "packages": [
     "lib/*",
-    "experimental/**/*",
+    "experimental/*",
     "samples/**/*"
   ],
   "version": "independent",

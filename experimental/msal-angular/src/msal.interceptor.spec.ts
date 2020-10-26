@@ -3,7 +3,7 @@ import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 import { InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
-import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService } from '../public-api';
+import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService } from './public-api';
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({

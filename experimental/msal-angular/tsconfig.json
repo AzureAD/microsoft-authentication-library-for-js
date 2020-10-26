@@ -8,10 +8,10 @@
   "files": [],
   "references": [
     {
-      "path": "./projects/msal-angular/tsconfig.lib.json"
+      "path": "./tsconfig.lib.json"
     },
     {
-      "path": "./projects/msal-angular/tsconfig.spec.json"
+      "path": "./tsconfig.spec.json"
     }
 ]
 }

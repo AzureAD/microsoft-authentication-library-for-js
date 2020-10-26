@@ -17,7 +17,6 @@
     ],
     "paths": {
       "msal-angular": [
-        "dist/msal-angular/msal-angular",
         "dist/msal-angular"
       ]
     }

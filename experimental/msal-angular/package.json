@@ -1,6 +1,6 @@
 {
-  "name": "@azure/msal-angular-v2",
-  "version": "0.0.0",
+  "name": "@azure/msal-angular",
+  "version": "2.0.0-alpha.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -11,6 +11,10 @@
   },
   "private": true,
   "dependencies": {
+    "minimatch": "^3.0.4",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
     "@angular/animations": "~10.0.9",
     "@angular/common": "~10.0.9",
     "@angular/compiler": "~10.0.9",
@@ -19,22 +23,14 @@
     "@angular/platform-browser": "~10.0.9",
     "@angular/platform-browser-dynamic": "~10.0.9",
     "@angular/router": "~10.0.9",
-    "@azure/msal-browser": "^2.4.0",
-    "minimatch": "^3.0.4",
-    "path": "^0.12.7",
-    "rxjs": "~6.5.5",
-    "tslib": "^2.0.0",
-    "zone.js": "~0.10.3"
-  },
-  "devDependencies": {
     "@angular-devkit/build-angular": "~0.1000.8",
     "@angular-devkit/build-ng-packagr": "~0.1000.8",
     "@angular/cli": "~10.0.6",
     "@angular/compiler-cli": "~10.0.9",
-    "@types/node": "^12.11.1",
+    "@azure/msal-browser": "^2.4.0",
     "@types/jasmine": "~3.5.0",
     "@types/jasminewd2": "~2.0.3",
-    "codelyzer": "^6.0.0",
+    "@types/node": "^12.11.1",
     "jasmine-core": "~3.5.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~5.0.0",
@@ -44,8 +40,15 @@
     "karma-jasmine-html-reporter": "^1.5.0",
     "ng-packagr": "^10.0.0",
     "protractor": "~7.0.0",
+    "rxjs": "~6.5.5",
     "ts-node": "~8.3.0",
-    "tslint": "~6.1.0",
-    "typescript": "~3.9.5"
+    "tslib": "^2.0.0",
+    "typescript": "~3.9.5",
+    "zone.js": "~0.10.3"
+  },
+  "peerDependencies": {
+    "@angular/common": "^10.0.14",
+    "@angular/core": "^10.0.14",
+    "@azure/msal-browser": "^2.4.0"
   }
 }
