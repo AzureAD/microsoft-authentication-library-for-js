@@ -10,7 +10,7 @@ import { BrowserCacheLocation, BrowserConstants, TemporaryCacheKeys } from "../.
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { InMemoryStorage } from "../../src/cache/InMemoryStorage";
+import { MemoryStorage } from "../../src/cache/MemoryStorage";
 
 class TestCacheStorage extends CacheManager {
     setAccount(): void {
@@ -114,7 +114,7 @@ describe("BrowserCacheManager tests", () => {
             const setupStorageSpy = sinon.spy(BrowserCacheManager.prototype, <any>"setupBrowserStorage");
             new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             expect(setupStorageSpy.calledOnce).to.be.true;
-            expect(setupStorageSpy.returned(sinon.match.instanceOf(InMemoryStorage))).to.be.true;
+            expect(setupStorageSpy.returned(sinon.match.instanceOf(MemoryStorage))).to.be.true;
         });
 
         it("Falls back to memory storage if storage is not supported", () => {
@@ -123,13 +123,13 @@ describe("BrowserCacheManager tests", () => {
             const setupStorageSpy = sinon.spy(BrowserCacheManager.prototype, <any>"setupBrowserStorage");
             new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             expect(setupStorageSpy.calledOnce).to.be.true;
-            expect(setupStorageSpy.returned(sinon.match.instanceOf(InMemoryStorage))).to.be.true;
+            expect(setupStorageSpy.returned(sinon.match.instanceOf(MemoryStorage))).to.be.true;
             // Test local storage not supported
             sinon.stub(window, "localStorage").value(null);
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             expect(setupStorageSpy.calledTwice).to.be.true;
-            expect(setupStorageSpy.returned(sinon.match.instanceOf(InMemoryStorage))).to.be.true;
+            expect(setupStorageSpy.returned(sinon.match.instanceOf(MemoryStorage))).to.be.true;
         });
 
         it("Creates a BrowserStorage object that implements the ICacheStorage interface", () => {

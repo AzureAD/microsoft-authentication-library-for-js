@@ -5,7 +5,7 @@
 
 import { IWindowStorage } from "./IWindowStorage";
 
-export class InMemoryStorage implements IWindowStorage {
+export class MemoryStorage implements IWindowStorage {
 
     private cache: Map<string, string>;
 
