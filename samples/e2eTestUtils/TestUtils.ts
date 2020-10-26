@@ -1,8 +1,7 @@
 import fs from "fs";
 import puppeteer from "puppeteer";
-import { LabClient } from "./LabClient";
 import { LabConfig } from "./LabConfig";
-import { Configuration } from "../../lib/msal-browser";
+import { LabClient } from "./LabClient";
 
 export class Screenshot {
     private folderName: string;
@@ -44,18 +43,4 @@ export async function setupCredentials(labConfig: LabConfig, labClient: LabClien
     return [username, accountPwd];
 }
 
-export function buildConfig(labConfig: LabConfig): Configuration {
-    const msalConfig: Configuration = {
-        auth: {
-            clientId: labConfig.app.appId
-        }
-    };
 
-    if (labConfig.lab.authority.endsWith("/")) {
-        msalConfig.auth.authority = labConfig.lab.authority + labConfig.user.tenantID;
-    } else {
-        msalConfig.auth.authority = `${labConfig.lab.authority}/${labConfig.user.tenantID}`;
-    }
-
-    return msalConfig;
-}

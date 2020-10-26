@@ -1,8 +1,9 @@
 {
     "authOptions":
     {
-        "clientId": "89e61572-2f96-47ba-b571-9d8c8f96b69d",
-        "redirectUri": "http://localhost:3000"
+        "clientId": "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
+        "authority": "https://login.windows-ppe.net/common/",
+        "redirectUri": "http://localhost:3000/redirect"
     },    
     "request":
     {
@@ -21,7 +22,7 @@
     },
     "resourceApi":
     {
-        "endpoint": "https://graph.microsoft.com/v1.0/me"
+        "endpoint": "https://graph.microsoft-ppe.com/v1.0/me"
     },
     "sample": 
     {
