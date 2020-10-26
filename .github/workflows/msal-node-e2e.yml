@@ -32,7 +32,7 @@ jobs:
 
     - name: Install Dependencies
       working-directory: samples/msal-node-samples/EndToEndTestApp
-      run: npm install
+      run: npm ci
 
     - name: Link MSAL Node
       working-directory: lib/msal-node
