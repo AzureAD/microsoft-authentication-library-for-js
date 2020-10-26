@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SERVER_TELEM_CONSTANTS, Separators } from "../../utils/Constants";
+import { SERVER_TELEM_CONSTANTS, Separators, Constants } from "../../utils/Constants";
 import { CacheManager } from "../../cache/CacheManager";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
@@ -62,7 +62,16 @@ export class ServerTelemetryManager {
     cacheFailedRequest(error: AuthError): void {
         const lastRequests = this.getLastRequests();
         lastRequests.failedRequests.push(this.apiId, this.correlationId);
-        lastRequests.errors.push(StringUtils.isEmpty(error.suberror)? error.errorCode: error.suberror);
+
+        if (!StringUtils.isEmpty(error.suberror)) {
+            lastRequests.errors.push(error.suberror);
+        } else if (!StringUtils.isEmpty(error.errorCode)) {
+            lastRequests.errors.push(error.errorCode);
+        } else if (!!error && error.toString()) {
+            lastRequests.errors.push(error.toString());
+        } else {
+            lastRequests.errors.push(SERVER_TELEM_CONSTANTS.UNKNOWN_ERROR);
+        }
 
         this.cacheManager.setServerTelemetry(this.telemetryCacheKey, lastRequests);
 
@@ -121,9 +130,9 @@ export class ServerTelemetryManager {
         const errorCount = serverTelemetryEntity.errors.length;
         for (i = 0; i < errorCount; i++) {
             // failedRequests parameter contains pairs of apiId and correlationId, multiply index by 2 to preserve pairs
-            const apiId = serverTelemetryEntity.failedRequests[2*i];
-            const correlationId = serverTelemetryEntity.failedRequests[2*i + 1];
-            const errorCode = serverTelemetryEntity.errors[i];
+            const apiId = serverTelemetryEntity.failedRequests[2*i] || Constants.EMPTY_STRING;
+            const correlationId = serverTelemetryEntity.failedRequests[2*i + 1] || Constants.EMPTY_STRING;
+            const errorCode = serverTelemetryEntity.errors[i] || Constants.EMPTY_STRING;
 
             // Count number of characters that would be added to header, each character is 1 byte. Add 3 at the end to account for separators
             dataSize += apiId.toString().length + correlationId.toString().length + errorCode.length + 3;
