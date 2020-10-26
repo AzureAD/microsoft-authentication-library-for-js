@@ -3,24 +3,34 @@
  * Licensed under the MIT License.
  */
 const fs = require('fs');
-const msal = require('@azure/msal-node');
 
  /**
  * Cache Plugin configuration
  */
-const cachePath = "./data/cache.json"; // Replace this string with the path to your valid cache file.
 
-const readFromStorage = () => {
-    return fs.readFileSync(cachePath, "utf-8");
-};
-
-const writeToStorage = (getMergedState) => {
-    const oldFile = readFromStorage();
-    const mergedState = getMergedState(oldFile);
-    return fs.writeFileSync(cachePath, mergedState);
-};
-
-module.exports = {
-    readFromStorage,
-    writeToStorage
+module.exports = async function(cacheLocation) {
+    const beforeCacheAccess = async (cacheContext) => {
+        cacheContext.tokenCache.deserialize(await fs.readFile(cacheLocation, "utf-8", (err, data) => {
+            if (err) {
+                console.log(err);
+            } else {
+                return data;
+            }
+        }));
+    };
+    
+    const afterCacheAccess = async (cacheContext) => {
+        if(cacheContext.cacheHasChanged){
+            await fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
+                if (err) {
+                    console.log(err);
+                }
+            });
+        }
+    };
+    
+    return {
+        beforeCacheAccess,
+        afterCacheAccess
+    }
 }

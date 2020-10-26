@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Export Node Cache Serializer for use in end-to-end testing framework (#2414)",
+  "packageName": "@azure/msal-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-14T00:18:39.354Z"
+}

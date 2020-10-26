@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import * as Mocha from "mocha";
 import { expect } from "chai";
-import { ServerTelemetryManager, CacheManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ValidCredentialType, StringUtils } from "../../src";
+import { ServerTelemetryManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity } from "../../src";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import sinon from "sinon";
 import { MockStorageClass } from "../client/ClientTestUtils";
@@ -60,6 +65,42 @@ describe("ServerTelemetryManager.ts", () => {
             const failures = {
                 failedRequests: [testApiCode, testCorrelationId],
                 errors: ["sub_error"],
+                cacheHits: 0
+            };
+
+            const cacheValue = testCacheManager.getServerTelemetry(cacheKey) as ServerTelemetryEntity;
+            expect(cacheValue).to.deep.eq(failures);
+        });
+
+        it("Adds stringified error if not an AuthError", () => {
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
+            try {
+                throw new Error("test_error");
+            } catch (e) {
+                telemetryManager.cacheFailedRequest(e);
+            }
+
+            const failures = {
+                failedRequests: [testApiCode, testCorrelationId],
+                errors: ["Error: test_error"],
+                cacheHits: 0
+            };
+
+            const cacheValue = testCacheManager.getServerTelemetry(cacheKey) as ServerTelemetryEntity;
+            expect(cacheValue).to.deep.eq(failures);
+        });
+
+        it("Adds unknown error if error is empty or cannot be identified", () => {
+            const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
+            try {
+                throw "";
+            } catch (e) {
+                telemetryManager.cacheFailedRequest(e);
+            }
+
+            const failures = {
+                failedRequests: [testApiCode, testCorrelationId],
+                errors: ["unknown_error"],
                 cacheHits: 0
             };
 
@@ -164,26 +205,38 @@ describe("ServerTelemetryManager.ts", () => {
         });
     });
 
-    it("maxErrorsToSend returns a number smaller than length of error array when size limit reached", () => {
-        const failures = {
-            failedRequests: [],
-            errors: [],
-            cacheHits: 0
-        };
-
-        let dataSize = 0;
-        while (dataSize < 4000) {
+    describe("maxErrorsToSend tests", () => {
+        it("maxErrorsToSend returns a number smaller than length of error array when size limit reached", () => {
+            const failures = {
+                failedRequests: [],
+                errors: [],
+                cacheHits: 0
+            };
+    
+            let dataSize = 0;
+            while (dataSize < 4000) {
+                failures.failedRequests.push(testApiCode, testCorrelationId);
+                failures.errors.push(testError);
+                dataSize += testApiCode.toString().length + testCorrelationId.toString().length + testError.length;
+            }
+            // Add a couple more to go over max size
             failures.failedRequests.push(testApiCode, testCorrelationId);
             failures.errors.push(testError);
-            dataSize += testApiCode.toString().length + testCorrelationId.toString().length + testError.length;
-        }
-        // Add a couple more to go over max size
-        failures.failedRequests.push(testApiCode, testCorrelationId);
-        failures.errors.push(testError);
-        failures.failedRequests.push(testApiCode, testCorrelationId);
-        failures.errors.push(testError);
-
-        expect(ServerTelemetryManager.maxErrorsToSend(failures)).to.be.lessThan(failures.errors.length);
+            failures.failedRequests.push(testApiCode, testCorrelationId);
+            failures.errors.push(testError);
+    
+            expect(ServerTelemetryManager.maxErrorsToSend(failures)).to.be.lessThan(failures.errors.length);
+        });
+    
+        it("maxErrorsToSend doesn't break on null and undefined values", () => {
+            const failures = {
+                failedRequests: [null, undefined, undefined, null],
+                errors: [null, undefined],
+                cacheHits: 0
+            };
+    
+            expect(ServerTelemetryManager.maxErrorsToSend(failures)).to.be.eq(2);
+        });
     });
 
     it("incrementCacheHits", () => {
@@ -194,7 +247,6 @@ describe("ServerTelemetryManager.ts", () => {
         telemetryManager.incrementCacheHits();
 
         const cacheValue = testCacheManager.getServerTelemetry(cacheKey) as ServerTelemetryEntity;
-        console.log("cacheValue", cacheValue);
         expect(cacheValue.cacheHits).to.eq(2);
     });
 });
