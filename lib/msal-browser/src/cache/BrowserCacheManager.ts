@@ -39,6 +39,9 @@ export class BrowserCacheManager extends CacheManager {
         this.cryptoImpl = cryptoImpl;
 
         this.browserStorage = this.setupBrowserStorage(cacheConfig.cacheLocation);
+
+        // Migrate any cache entries from older versions of MSAL.
+        this.migrateCacheEntries();
     }
 
     /**
@@ -48,14 +51,10 @@ export class BrowserCacheManager extends CacheManager {
     private setupBrowserStorage(cacheLocation: string): IWindowStorage {
         if (cacheLocation !== BrowserCacheLocation.MemoryStorage) {
             try {
-                const storageObj = new BrowserStorage(cacheLocation);
-
-                // Migrate any cache entries from older versions of MSAL.
-                this.migrateCacheEntries();
-
-                return storageObj;
+                return new BrowserStorage(cacheLocation);
             } catch (e) {
                 // TODO: Log error here
+                // console.log(e);
             }
         }
 
@@ -227,12 +226,12 @@ export class BrowserCacheManager extends CacheManager {
         if (StringUtils.isEmpty(value)) {
             return null;
         }
+
         const appMetadata: AppMetadataEntity = CacheManager.toObject(new AppMetadataEntity(), JSON.parse(value));
         if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
             return appMetadata;
         }
         return null;
-
     }
 
     /**
@@ -367,13 +366,12 @@ export class BrowserCacheManager extends CacheManager {
     clear(): void {
         this.removeAllAccounts();
         this.removeAppMetadata();
-        let key: string;
-        for (key in this.browserStorage) {
+        this.browserStorage.getKeys().forEach((cacheKey: string) => {
             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
-            if (this.browserStorage.hasOwnProperty(key) && ((key.indexOf(Constants.CACHE_PREFIX) !== -1) || (key.indexOf(this.clientId) !== -1))) {
-                this.removeItem(key);
+            if (this.browserStorage.containsKey(cacheKey) && ((cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1) || (cacheKey.indexOf(this.clientId) !== -1))) {
+                this.removeItem(cacheKey);
             }
-        }
+        });
     }
 
     /**
