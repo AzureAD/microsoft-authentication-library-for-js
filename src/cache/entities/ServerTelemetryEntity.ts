@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { SERVER_TELEM_CONSTANTS } from "../../utils/Constants";
 
 export class ServerTelemetryEntity {
@@ -29,7 +30,6 @@ export class ServerTelemetryEntity {
             validateEntity =
                 entity.hasOwnProperty("failedRequests") &&
                 entity.hasOwnProperty("errors") &&
-                entity.hasOwnProperty("errorCount") &&
                 entity.hasOwnProperty("cacheHits");
         }
 

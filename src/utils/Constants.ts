@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     SKU: "msal.js.common",
@@ -34,7 +35,8 @@ export const Constants = {
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending",
-    NOT_DEFINED: "not_defined"
+    NOT_DEFINED: "not_defined",
+    EMPTY_STRING: ""
 };
 
 /**
@@ -268,7 +270,8 @@ export const SERVER_TELEM_CONSTANTS = {
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ",",
     OVERFLOW_TRUE: "1",
-    OVERFLOW_FALSE: "0"
+    OVERFLOW_FALSE: "0",
+    UNKNOWN_ERROR: "unknown_error"
 };
 
 /**
