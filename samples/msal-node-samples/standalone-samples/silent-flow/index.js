@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 const express = require("express");
-const exphbs = require('express-handlebars');
-const msal = require('@azure/msal-node');
+const exphbs = require("express-handlebars");
+const msal = require("@azure/msal-node");
 const { promises: fs } = require("fs");
 
-const graph = require('./graph');
+const graph = require("./graph");
 
 const SERVER_PORT = process.env.PORT || 3000;
 
@@ -31,9 +31,8 @@ const cachePlugin = {
     afterCacheAccess
 };
 
-
 const graphConfig = {
-    graphMeEndpoint: 'https://graph.microsoft.com/v1.0/me'
+    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
 };
 
 /**
@@ -69,18 +68,18 @@ let accounts;
 const app = express();
 
 // Set handlebars view engine
-app.engine('.hbs', exphbs({ extname: '.hbs' }));
-app.set('view engine', '.hbs');
+app.engine(".hbs", exphbs({ extname: ".hbs" }));
+app.set("view engine", ".hbs");
 
 /**
  * App Routes
  */
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
     res.render("login", { showSignInButton: true });
 });
 
 // Initiates Auth Code Grant
-app.get('/login', (req, res) => {
+app.get("/login", (req, res) => {
     pca.getAuthCodeUrl(authCodeUrlParameters)
         .then((response) => {
             console.log(response);
@@ -90,7 +89,7 @@ app.get('/login', (req, res) => {
 });
 
 // Second leg of Auth Code grant
-app.get('/redirect', (req, res) => {
+app.get("/redirect", (req, res) => {
     const tokenRequest = {
         code: req.query.code,
         redirectUri: "http://localhost:3000/redirect",
@@ -108,14 +107,14 @@ app.get('/redirect', (req, res) => {
 });
 
 // Initiates Acquire Token Silent flow
-app.get('/graphCall', async (req, res) => {
+app.get("/graphCall", async (req, res) => {
     // get Accounts
     accounts = await msalTokenCache.getAllAccounts();
     console.log("Accounts: ", accounts);
 
     // Build silent request
     const silentRequest = {
-        account: accounts[1], // Index must match the account that is trying to acquire token silently
+        account: accounts[0], // Index must match the account that is trying to acquire token silently
         scopes: scopes,
     };
 
@@ -139,7 +138,7 @@ app.get('/graphCall', async (req, res) => {
         .catch((error) => {
             console.log(error);
             templateParams.couldNotAcquireToken = true;
-            res.render("graph", templateParams)
+            res.render("graph", templateParams);
         });
 });
 

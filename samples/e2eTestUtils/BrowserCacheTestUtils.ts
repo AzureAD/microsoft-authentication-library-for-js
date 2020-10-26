@@ -1,10 +1,29 @@
 import puppeteer from "puppeteer";
 
+import { LabConfig } from "./LabConfig";
+import { Configuration } from "../../lib/msal-browser";
+
 export type tokenMap = {
     idTokens: string[],
     accessTokens: string[],
     refreshTokens: string[]
 };
+
+export function buildConfig(labConfig: LabConfig): Configuration {
+    const msalConfig: Configuration = {
+        auth: {
+            clientId: labConfig.app.appId
+        }
+    };
+
+    if (labConfig.lab.authority.endsWith("/")) {
+        msalConfig.auth.authority = labConfig.lab.authority + labConfig.user.tenantID;
+    } else {
+        msalConfig.auth.authority = `${labConfig.lab.authority}/${labConfig.user.tenantID}`;
+    }
+
+    return msalConfig;
+}
 
 export class BrowserCacheUtils {
     private page: puppeteer.Page;

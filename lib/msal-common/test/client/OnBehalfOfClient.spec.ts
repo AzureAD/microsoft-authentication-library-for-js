@@ -38,12 +38,12 @@ describe("OnBehalfOf unit tests", () => {
         sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
         config = await ClientTestUtils.createTestClientConfiguration();
         // Set up required objects and mocked return values
-        const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;
+        const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
         config.cryptoInterface.base64Decode = (input: string): string => {
             switch (input) {
                 case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                     return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                case `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9`:
+                case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
                     return decodedLibState;
                 default:
                     return input;
@@ -77,7 +77,6 @@ describe("OnBehalfOf unit tests", () => {
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
     });
-
 
     afterEach(() => {
         sinon.restore();
@@ -123,27 +122,27 @@ describe("OnBehalfOf unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REQUESTED_TOKEN_USE}=${AADServerParamKeys.ON_BEHALF_OF}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.OBO_ASSERTION}=${TEST_TOKENS.ACCESS_TOKEN}`);
     });
-    
+
     it("acquires a token, returns token from cache", async () => {
 
         // mock access token
         const expectedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
-            
+            "", "login.windows.net", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+
         sinon.stub(OnBehalfOfClient.prototype, <any>"readAccessTokenFromCache").returns(expectedAtEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
         // mock id token
         const expectedIdTokenEntity: IdTokenEntity = IdTokenEntity.createIdTokenEntity(
-             "", "login.microsoftonline.com", TEST_TOKENS.IDTOKEN_V2, config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_TOKENS.ACCESS_TOKEN 
+            "", "login.windows.net", TEST_TOKENS.IDTOKEN_V2, config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_TOKENS.ACCESS_TOKEN
         );
         sinon.stub(OnBehalfOfClient.prototype, <any>"readIdTokenFromCache").returns(expectedIdTokenEntity);
-        
+
         // mock account
         const idToken: AuthToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface);
-        const accountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.authOptions.authority, idToken, config.cryptoInterface, TEST_TOKENS.ACCESS_TOKEN);
-        sinon.stub(CacheManager.prototype, <any>"getAccount").returns(accountEntity);
-        
+        const expectedAccountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, config.authOptions.authority, idToken, config.cryptoInterface, TEST_TOKENS.ACCESS_TOKEN);
+        sinon.stub(OnBehalfOfClient.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
+
         const client = new OnBehalfOfClient(config);
         const onBehalfOfRequest: OnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -158,9 +157,9 @@ describe("OnBehalfOf unit tests", () => {
         expect(authResult.fromCache).to.be.true;
         expect(authResult.uniqueId).to.eq(idToken.claims.oid);
         expect(authResult.tenantId).to.eq(idToken.claims.tid);
-        expect(authResult.account.homeAccountId).to.eq(accountEntity.homeAccountId);
-        expect(authResult.account.environment).to.eq(accountEntity.environment);
-        expect(authResult.account.tenantId).to.eq(accountEntity.realm);
+        expect(authResult.account.homeAccountId).to.eq(expectedAccountEntity.homeAccountId);
+        expect(authResult.account.environment).to.eq(expectedAccountEntity.environment);
+        expect(authResult.account.tenantId).to.eq(expectedAccountEntity.realm);
     });
 
     it("acquires a token, skipCache=true", async () => {
@@ -196,18 +195,18 @@ describe("OnBehalfOf unit tests", () => {
     it("Multiple access tokens matched, exception thrown", async () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
-            
+
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
-            
+
         const mockedCredentialCache: CredentialCache = {
-            accessTokens: { 
+            accessTokens: {
                 "key1": mockedAtEntity,
                 "key2": mockedAtEntity2
             },
             refreshTokens: null,
             idTokens: null
-        }
+        };
 
         sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
 
@@ -216,7 +215,7 @@ describe("OnBehalfOf unit tests", () => {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN
         };
-        
+
         await expect(client.acquireToken(onBehalfOfRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 });

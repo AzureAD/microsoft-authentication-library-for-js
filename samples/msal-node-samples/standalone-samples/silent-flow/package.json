@@ -5,14 +5,12 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "node index.js",
-    "build:package": "cd ../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start:build": "npm run build:package && npm start"
+    "start": "node index.js"
   },
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.0-alpha.9",
+    "@azure/msal-node": "^1.0.0-alpha.12",
     "axios": "^0.19.2",
     "express": "^4.17.1",
     "express-handlebars": "^4.0.4"
