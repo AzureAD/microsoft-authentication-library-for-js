@@ -9,9 +9,9 @@ import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryCacheValue, AuthenticationScheme, RefreshTokenClient, Logger } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryEntity, AuthenticationScheme, RefreshTokenClient, Logger } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
-import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType } from "../../src/utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
 import { XhrClient } from "../../src/network/XhrClient";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -23,12 +23,13 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
-        cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
+        cacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false
     };
 
@@ -746,7 +747,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
                 const browserCrypto = new CryptoOps();
-                const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 await pca.loginRedirect(emptyRequest);
                 expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
                 expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(RANDOM_TEST_GUID);
@@ -776,7 +777,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
                 const browserCrypto = new CryptoOps();
-                const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 await pca.loginRedirect(tokenRequest);
                 const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
                 expect(cachedRequest.scopes).to.be.deep.eq([]);
@@ -793,7 +794,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
 
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER
@@ -810,7 +811,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // Test that error was cached for telemetry purposes and then thrown
                     expect(window.sessionStorage).to.be.length(1);
                     const failures = window.sessionStorage.getItem(`server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`);
-                    const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                    const failureObj = JSON.parse(failures) as ServerTelemetryEntity;
                     expect(failureObj.failedRequests).to.be.length(2);
                     expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenRedirect);
                     expect(failureObj.errors[0]).to.eq(testError.errorCode);
@@ -832,8 +833,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
-                browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
                 const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -882,8 +883,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
-                browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
                 const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -966,11 +967,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve();
                 });
                 const browserCrypto = new CryptoOps();
-                const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 await pca.loginRedirect(emptyRequest);
-                expect(browserStorage.getItem(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
-                expect(browserStorage.getItem(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.eq(RANDOM_TEST_GUID);
-                expect(browserStorage.getItem(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(RANDOM_TEST_GUID);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
             });
 
             it("Caches token request correctly", async () => {
@@ -993,7 +994,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve();
                 });
                 const browserCrypto = new CryptoOps();
-                const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 await pca.acquireTokenRedirect(tokenRequest);
                 const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
                 expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
@@ -1009,7 +1010,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: [testScope]
                 };
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER
@@ -1026,7 +1027,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // Test that error was cached for telemetry purposes and then thrown
                     expect(window.sessionStorage).to.be.length(1);
                     const failures = window.sessionStorage.getItem(`server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`);
-                    const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                    const failureObj = JSON.parse(failures) as ServerTelemetryEntity;
                     expect(failureObj.failedRequests).to.be.length(2);
                     expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenRedirect);
                     expect(failureObj.errors[0]).to.eq(testError.errorCode);
@@ -1049,8 +1050,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
-                browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
                 const acquireTokenUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1099,8 +1100,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
-                browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
                 const acquireTokenUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1238,7 +1239,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // Test that error was cached for telemetry purposes and then thrown
                     expect(window.sessionStorage).to.be.length(1);
                     const failures = window.sessionStorage.getItem(`server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`);
-                    const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                    const failureObj = JSON.parse(failures) as ServerTelemetryEntity;
                     expect(failureObj.failedRequests).to.be.length(2);
                     expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenPopup);
                     expect(failureObj.errors[0]).to.eq(testError.errorCode);
@@ -1404,7 +1405,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // Test that error was cached for telemetry purposes and then thrown
                     expect(window.sessionStorage).to.be.length(1);
                     const failures = window.sessionStorage.getItem(`server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`);
-                    const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                    const failureObj = JSON.parse(failures) as ServerTelemetryEntity;
                     expect(failureObj.failedRequests).to.be.length(2);
                     expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenPopup);
                     expect(failureObj.errors[0]).to.eq(testError.errorCode);
@@ -1632,7 +1633,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).to.be.length(1);
                 const failures = window.sessionStorage.getItem(`server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`);
-                const failureObj = JSON.parse(failures) as ServerTelemetryCacheValue;
+                const failureObj = JSON.parse(failures) as ServerTelemetryEntity;
                 expect(failureObj.failedRequests).to.be.length(2);
                 expect(failureObj.failedRequests[0]).to.eq(ApiId.acquireTokenSilent_silentFlow);
                 expect(failureObj.errors[0]).to.eq(testError.errorCode);

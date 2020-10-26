@@ -2,9 +2,8 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient, ProtocolMode } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
 import sinon from "sinon";
@@ -13,6 +12,7 @@ import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/Brows
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -42,7 +42,7 @@ const networkInterface = {
 
 describe("PopupHandler.ts Unit Tests", () => {
 
-    let browserStorage: BrowserStorage;
+    let browserStorage: BrowserCacheManager;
     let popupHandler: PopupHandler;
     const cryptoOps = new CryptoOps();
     beforeEach(() => {
@@ -52,7 +52,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
         const authCodeModule = new AuthorizationCodeClient({
             authOptions: {
                 ...configObj.auth,
@@ -110,7 +110,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true,
             },
         });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps);
         popupHandler = new PopupHandler(authCodeModule, browserStorage);
     });
 
