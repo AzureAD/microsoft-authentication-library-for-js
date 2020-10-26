@@ -9,7 +9,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
-import { InMemoryStorage } from "./InMemoryStorage";
+import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
 
 /**
@@ -57,7 +57,7 @@ export class BrowserCacheManager extends CacheManager {
             }
         }
 
-        return new InMemoryStorage();
+        return new MemoryStorage();
     }
 
     /**
