@@ -7,29 +7,29 @@ import { IWindowStorage } from "./IWindowStorage";
 
 export class InMemoryStorage implements IWindowStorage {
 
-    private cache: Record<string, string>;
+    private cache: Map<string, string>;
 
     constructor() {
-        this.cache = {};
+        this.cache = new Map<string, string>();
     }
 
     getItem(key: string): string {
-        return this.cache[key];
+        return this.cache.get(key);
     }
 
     setItem(key: string, value: string): void {
-        this.cache[key] = value;
+        this.cache.set(key, value);
     }
 
     removeItem(key: string): void {
-        delete this.cache[key];
+        this.cache.delete(key);
     }
 
     getKeys(): string[] {
-        return Object.keys(this.cache);
+        return [...this.cache.keys()];
     }
 
-    containsItem(key: string): boolean {
-        return this.cache.hasOwnProperty(key);
+    containsKey(key: string): boolean {
+        return this.cache.has(key);
     }
 }
