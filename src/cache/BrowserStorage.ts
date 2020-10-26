@@ -4,7 +4,7 @@
  */
 
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-import { BrowserCacheLocation, BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { IWindowStorage } from "./IWindowStorage";
 
 export class BrowserStorage implements IWindowStorage {
