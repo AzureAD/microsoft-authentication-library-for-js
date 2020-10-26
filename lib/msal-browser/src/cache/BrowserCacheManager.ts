@@ -7,7 +7,6 @@ import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, 
 import { CacheOptions } from "../config/Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserCacheLocation, BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
 import { InMemoryStorage } from "./InMemoryStorage";
@@ -53,8 +52,8 @@ export class BrowserCacheManager extends CacheManager {
             try {
                 return new BrowserStorage(cacheLocation);
             } catch (e) {
+                this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
                 // TODO: Log error here
-                // console.log(e);
             }
         }
 

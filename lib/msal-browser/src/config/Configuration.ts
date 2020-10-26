@@ -5,7 +5,7 @@
 
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserCacheLocation, BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserCacheLocation } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows and iframes in milliseconds
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
