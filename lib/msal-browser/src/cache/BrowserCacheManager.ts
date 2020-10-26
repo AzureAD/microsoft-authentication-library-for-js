@@ -8,7 +8,7 @@ import { CacheOptions } from "../config/Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserCacheLocation, BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
 import { InMemoryStorage } from "./InMemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
@@ -38,14 +38,28 @@ export class BrowserCacheManager extends CacheManager {
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
 
-        if (cacheConfig.cacheLocation === BrowserConstants.CACHE_LOCATION_IN_MEMORY) {
-            this.browserStorage = new InMemoryStorage();
-        } else {
-            this.browserStorage = new BrowserStorage(cacheConfig.cacheLocation);
+        this.browserStorage = this.setupBrowserStorage(cacheConfig.cacheLocation);
+    }
 
-            // Migrate any cache entries from older versions of MSAL.
-            this.migrateCacheEntries();
-        }        
+    /**
+     * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
+     * @param cacheLocation 
+     */
+    private setupBrowserStorage(cacheLocation: string): IWindowStorage {
+        if (cacheLocation !== BrowserCacheLocation.MemoryStorage) {
+            try {
+                const storageObj = new BrowserStorage(cacheLocation);
+
+                // Migrate any cache entries from older versions of MSAL.
+                this.migrateCacheEntries();
+
+                return storageObj;
+            } catch (e) {
+                // TODO: Log error here
+            }
+        }
+
+        return new InMemoryStorage();
     }
 
     /**
@@ -186,8 +200,8 @@ export class BrowserCacheManager extends CacheManager {
      * generates refreshToken entity from a string
      * @param refreshTokenKey
      */
-    getRefreshTokenCredential(key: string): RefreshTokenEntity {
-        const value = this.getItem(key);
+    getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity {
+        const value = this.getItem(refreshTokenKey);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
@@ -289,9 +303,11 @@ export class BrowserCacheManager extends CacheManager {
     getTemporaryCache(cacheKey: string, generateKey?: boolean): string {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
 
-        const itemCookie = this.getItemCookie(key);
-        if (this.cacheConfig.storeAuthStateInCookie && itemCookie) {
-            return itemCookie;
+        if (this.cacheConfig.storeAuthStateInCookie) {
+            const itemCookie = this.getItemCookie(key);
+            if (itemCookie) {
+                return itemCookie;
+            }
         }
 
         const value = this.getItem(key);
@@ -335,14 +351,14 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     containsKey(key: string): boolean {
-        return this.browserStorage.hasOwnProperty(key);
+        return this.browserStorage.containsKey(key);
     }
 
     /**
      * Gets all keys in window.
      */
     getKeys(): string[] {
-        return Object.keys(this.browserStorage);
+        return this.browserStorage.getKeys();
     }
 
     /**

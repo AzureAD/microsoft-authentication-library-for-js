@@ -7,7 +7,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
-import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
+import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -741,7 +741,7 @@ export abstract class ClientApplication {
         BrowserUtils.blockReloadInHiddenIframes();
 
         if (interactionType === InteractionType.Redirect) {
-            if (this.config.cache.cacheLocation === BrowserConstants.CACHE_LOCATION_IN_MEMORY && !this.config.cache.storeAuthStateInCookie) {
+            if (this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage && !this.config.cache.storeAuthStateInCookie) {
                 throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
             }
         }

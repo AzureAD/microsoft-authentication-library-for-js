@@ -32,5 +32,5 @@ export interface IWindowStorage {
      * Returns true or false if the given key is present in the cache.
      * @param key 
      */
-    containsItem(key: string): boolean;
+    containsKey(key: string): boolean;
 }
