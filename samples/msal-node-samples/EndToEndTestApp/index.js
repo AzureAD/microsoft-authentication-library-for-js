@@ -53,11 +53,11 @@ async function runSample(scenario, port, cacheLocation) {
 
 // If the app is executed manually, the $0 argument in argv will correspond to this index.js file
 if(argv.$0 === "index.js") {
-    console.log("Vanilla JS Test App is being executed manually.");
+    console.log("End to End Test App is being executed manually.");
     runSample(argv.s, argv.p, DEFAULT_CACHE_LOCATION);
 } else {
     // Whenever argv.$0 is not index.js, it means it was required and executed in an external script
-    console.log("Vanilla JS Test App is being executed from an external script.");
+    console.log("End to End Test App is being executed from an external script.");
 }
 
 // Export the main script as a function so it can be executed programatically to enable E2E Test automation

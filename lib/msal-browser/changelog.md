@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 20 Oct 2020 23:47:28 GMT and should not be manually modified.
+This log was last generated on Mon, 26 Oct 2020 21:00:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.4.1
+
+Mon, 26 Oct 2020 21:00:29 GMT
+
+### Patches
+
+- msal-browser and msal-node cache Interfaces to msal-common updated (#2415) (sameera.gajjarapu@microsoft.com)
 
 ## 2.4.0
 
