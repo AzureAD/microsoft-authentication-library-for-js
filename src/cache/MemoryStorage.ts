@@ -2,7 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import { IWindowStorage } from "./IWindowStorage";
 
 export class MemoryStorage implements IWindowStorage {
@@ -26,7 +25,11 @@ export class MemoryStorage implements IWindowStorage {
     }
 
     getKeys(): string[] {
-        return [...this.cache.keys()];
+        const cacheKeys: string[] = [];
+        this.cache.forEach((value: string, key: string) => {
+            cacheKeys.push(key);
+        });
+        return cacheKeys;
     }
 
     containsKey(key: string): boolean {
