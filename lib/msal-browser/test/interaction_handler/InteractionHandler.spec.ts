@@ -12,6 +12,7 @@ import {
     AuthorizationCodeClient,
     AuthenticationScheme,
     ProtocolMode,
+    Logger,
 } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
@@ -73,7 +74,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
 
     let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
-    const cyrptoOpts = new CryptoOps();
+    const cryptoOpts = new CryptoOps();
 
     beforeEach(() => {
         const appConfig: Configuration = {
@@ -83,7 +84,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
         };
         const configObj = buildConfiguration(appConfig);
         const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
-        authCodeModule = new AuthorizationCodeClient({
+        const authConfig = {
             authOptions: {
                 ...configObj.auth,
                 authority: authorityInstance,
@@ -128,8 +129,10 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 },
                 piiLoggingEnabled: true
             }
-        });
-        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cyrptoOpts);
+        };
+        authCodeModule = new AuthorizationCodeClient(authConfig);
+        const logger = new Logger(authConfig.loggerOptions);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOpts, logger);
     });
 
     afterEach(() => {

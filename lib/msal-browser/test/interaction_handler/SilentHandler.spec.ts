@@ -1,7 +1,7 @@
 import chai from "chai";
 import "mocha";
 import chaiAsPromised from "chai-as-promised";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheManager, AuthorizationCodeClient, ProtocolMode } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheManager, AuthorizationCodeClient, ProtocolMode, Logger } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
@@ -56,7 +56,7 @@ describe("SilentHandler.ts Unit Tests", () => {
         };
         const configObj = buildConfiguration(appConfig);
         const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
-        authCodeModule = new AuthorizationCodeClient({
+        const authConfig = {
             authOptions: {
                 ...configObj.auth,
                 authority: authorityInstance,
@@ -112,9 +112,11 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
                 piiLoggingEnabled: true,
             },
-        });
+        };
+        authCodeModule = new AuthorizationCodeClient(authConfig);
         const browserCrypto = new CryptoOps();
-        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto);
+        const logger = new Logger(authConfig.loggerOptions);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
         silentHandler = new SilentHandler(authCodeModule, browserStorage, DEFAULT_IFRAME_TIMEOUT_MS);
     });
 
