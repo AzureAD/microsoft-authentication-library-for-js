@@ -14,7 +14,7 @@ export class MemoryStorage implements IWindowStorage {
     }
 
     getItem(key: string): string {
-        return this.cache.get(key);
+        return this.cache.get(key) || null;
     }
 
     setItem(key: string, value: string): void {
