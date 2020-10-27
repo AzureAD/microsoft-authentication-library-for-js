@@ -4,11 +4,11 @@ import { expect } from "chai";
 import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
+import { AzureEnvironments, AppTypes, UserTypes, B2cProviders } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/aadAuthConfig.json";
 import { msalConfig as b2cMsalConfig, request as b2cTokenRequest } from "../authConfigs/b2cAuthConfig.json";
-import { b2cEnterCredentials, clickLoginPopup, clickLoginRedirect, enterCredentials, waitForReturnToApp } from "./testUtils";
+import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, enterCredentials, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
@@ -197,21 +197,23 @@ describe("Browser tests", function () {
         let username = "";
         let accountPwd = "";
 
-        before(async () => {
-            const labApiParams: LabApiQueryParams = {
-                azureEnvironment: AzureEnvironments.CLOUD,
-                appType: AppTypes.CLOUD
-            };
-    
-            const labClient = new LabClient();
-            const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
-
-            [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
-
+        before(() => {
             fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: b2cMsalConfig, request: b2cTokenRequest}));
         });
 
         describe("AAD Account", () => {
+            before(async () => {
+                const labApiParams: LabApiQueryParams = {
+                    azureEnvironment: AzureEnvironments.CLOUD,
+                    appType: AppTypes.CLOUD
+                };
+        
+                const labClient = new LabClient();
+                const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+    
+                [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+            });
+
             describe("login Tests", () => {
                 beforeEach(async () => {
                     context = await browser.createIncognitoBrowserContext();
@@ -231,7 +233,7 @@ describe("Browser tests", function () {
                     const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
                     await clickLoginRedirect(screenshot, page);
-                    await b2cEnterCredentials(page, screenshot, username, accountPwd);
+                    await b2cAadPpeEnterCredentials(page, screenshot, username, accountPwd);
                     await waitForReturnToApp(screenshot, page);
 
                     await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
@@ -242,7 +244,7 @@ describe("Browser tests", function () {
                     const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
                     const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
-                    await b2cEnterCredentials(popupPage, screenshot, username, accountPwd);
+                    await b2cAadPpeEnterCredentials(popupPage, screenshot, username, accountPwd);
                     await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
 
                     await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
@@ -263,7 +265,150 @@ describe("Browser tests", function () {
                     screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                     
                     const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
-                    await b2cEnterCredentials(popupPage, screenshot, username, accountPwd);
+                    await b2cAadPpeEnterCredentials(popupPage, screenshot, username, accountPwd);
+                    await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
+                });
+    
+                beforeEach(async () => {
+                    await page.reload();
+                    await page.waitForSelector("#WelcomeMessage");
+                });
+            
+                after(async () => {
+                    await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
+                    await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                    await page.close();
+                });
+    
+                it("acquireTokenRedirect", async () => {
+                    await page.waitForSelector("#acquireTokenRedirect");
+                    
+                    // Remove access_tokens from cache so we can verify acquisition
+                    const tokenStore = await BrowserCache.getTokens();
+                    await BrowserCache.removeTokens(tokenStore.refreshTokens);
+                    await BrowserCache.removeTokens(tokenStore.accessTokens);
+                    await page.click("#acquireTokenRedirect");
+                    await page.waitForSelector("#scopes-acquired");
+                    await screenshot.takeScreenshot(page, "acquireTokenRedirectGotTokens");
+    
+                    // Verify we now have an access_token
+                    await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                });
+    
+                it("acquireTokenPopup", async () => {
+                    await page.waitForSelector("#acquireTokenPopup");
+    
+                    // Remove access_tokens from cache so we can verify acquisition
+                    const tokenStore = await BrowserCache.getTokens();
+                    await BrowserCache.removeTokens(tokenStore.refreshTokens);
+                    await BrowserCache.removeTokens(tokenStore.accessTokens);
+                    await page.click("#acquireTokenPopup");
+                    await page.waitForSelector("#scopes-acquired");
+                    await screenshot.takeScreenshot(page, "acquireTokenPopupGotTokens");
+    
+                    // Verify we now have an access_token
+                    await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                });
+    
+                it("acquireTokenSilent from Cache", async () => {
+                    await page.waitForSelector("#acquireTokenSilent");
+    
+                    await page.click("#acquireTokenSilent");
+                    await page.waitForSelector("#scopes-acquired");
+                    await screenshot.takeScreenshot(page, "acquireTokenSilent-fromCache-GotTokens");
+    
+                    const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(b2cMsalConfig.auth.clientId);
+                    expect(telemetryCacheEntry).to.not.be.null;
+                    expect(telemetryCacheEntry["cacheHits"]).to.be.eq(1);
+                    // Remove Telemetry Cache entry for next test
+                    await BrowserCache.removeTokens([BrowserCacheUtils.getTelemetryKey(b2cMsalConfig.auth.clientId)]);
+
+                    // Verify we now have an access_token
+                    await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                });
+    
+                it("acquireTokenSilent via RefreshToken", async () => {
+                    await page.waitForSelector("#acquireTokenSilent");
+    
+                    // Remove access_tokens from cache so we can verify acquisition
+                    let tokenStore = await BrowserCache.getTokens();
+                    await BrowserCache.removeTokens(tokenStore.accessTokens);
+    
+                    await page.click("#acquireTokenSilent");
+                    await page.waitForSelector("#scopes-acquired");
+                    await screenshot.takeScreenshot(page, "acquireTokenSilent-viaRefresh-GotTokens");
+    
+                    // Verify we now have an access_token
+                    await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                });
+            });
+        });
+
+        describe("Local Account", () => {
+            before(async () => {
+                const labApiParams: LabApiQueryParams = {
+                    userType: UserTypes.B2C,
+                    b2cProvider: B2cProviders.LOCAL
+                };
+        
+                const labClient = new LabClient();
+                const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+    
+                [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+            });
+
+            describe("login Tests", () => {
+                beforeEach(async () => {
+                    context = await browser.createIncognitoBrowserContext();
+                    page = await context.newPage();
+                    BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
+                    await page.goto(SAMPLE_HOME_URL);
+                });
+            
+                afterEach(async () => {
+                    await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
+                    await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                    await page.close();
+                });
+        
+                it("Performs loginRedirect", async () => {
+                    const testName = "b2cRedirectLocalAccountCase";
+                    const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
+                    await clickLoginRedirect(screenshot, page);
+                    await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+                    await waitForReturnToApp(screenshot, page);
+
+                    await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                });
+                
+                it("Performs loginPopup", async () => {
+                    const testName = "b2cPopupLocalAccountCase";
+                    const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
+                    const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
+                    await b2cLocalAccountEnterCredentials(popupPage, screenshot, username, accountPwd);
+                    await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
+
+                    await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                });
+            });
+    
+            describe("acquireToken Tests", () => {
+                let testName: string;
+                let screenshot: Screenshot;
+                
+                before(async () => {
+                    context = await browser.createIncognitoBrowserContext();
+                    page = await context.newPage();
+                    BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
+                    await page.goto(SAMPLE_HOME_URL);
+    
+                    testName = "b2cAcquireTokenLocalAccountCase";
+                    screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+                    
+                    const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
+                    await b2cLocalAccountEnterCredentials(popupPage, screenshot, username, accountPwd);
                     await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
                 });
     

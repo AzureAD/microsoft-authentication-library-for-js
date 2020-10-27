@@ -13,7 +13,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.click("#idSIButton9");
 }
 
-export async function b2cEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+export async function b2cAadPpeEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await page.waitForSelector("#MSIDLAB4_AzureAD");
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
@@ -23,6 +23,14 @@ export async function b2cEnterCredentials(page: Page, screenshot: Screenshot, us
     // Keep me signed in dialog box
     await page.waitForSelector("#idSIButton9");
     await page.click("#idSIButton9");
+}
+
+export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
+    await page.waitForSelector("#logonIdentifier");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    await page.type("#logonIdentifier", username);
+    await page.type("#password", accountPwd);
+    await page.click("#next");
 }
 
 export async function clickLoginRedirect(screenshot: Screenshot, page: Page): Promise<void> {
