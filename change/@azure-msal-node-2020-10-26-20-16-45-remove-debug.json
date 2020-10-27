@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Remove `debug` from the `msal-node` library",
+  "comment": "Remove `debug` from the `msal-node` library (#2496)",
   "packageName": "@azure/msal-node",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "none",
