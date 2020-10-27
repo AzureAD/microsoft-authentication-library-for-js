@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -26,16 +26,18 @@ export class BrowserCacheManager extends CacheManager {
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
     private clientId: string;
     private cryptoImpl: CryptoOps;
+    private logger: Logger;
 
     // Cookie life calculation (hours * minutes * seconds * ms)
     private readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
-    constructor(clientId: string, cacheConfig: CacheOptions, cryptoImpl: CryptoOps) {
+    constructor(clientId: string, cacheConfig: CacheOptions, cryptoImpl: CryptoOps, logger: Logger) {
         super();
 
         this.cacheConfig = cacheConfig;
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
+        this.logger = logger;
 
         this.browserStorage = this.setupBrowserStorage(cacheConfig.cacheLocation);
 
@@ -48,16 +50,20 @@ export class BrowserCacheManager extends CacheManager {
      * @param cacheLocation 
      */
     private setupBrowserStorage(cacheLocation: BrowserCacheLocation): IWindowStorage {
-        if (cacheLocation !== BrowserCacheLocation.MemoryStorage) {
-            try {
-                return new BrowserStorage(cacheLocation);
-            } catch (e) {
-                this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
-                // TODO: Log error here
-            }
+        switch (cacheLocation) {
+            case BrowserCacheLocation.LocalStorage:
+            case BrowserCacheLocation.SessionStorage:
+                try {
+                    return new BrowserStorage(cacheLocation);
+                } catch (e) {
+                    this.logger.verbose(e);
+                    this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
+                    return new MemoryStorage();
+                }
+            case BrowserCacheLocation.MemoryStorage:
+            default:
+                return new MemoryStorage();
         }
-
-        return new MemoryStorage();
     }
 
     /**
