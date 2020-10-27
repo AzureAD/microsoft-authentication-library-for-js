@@ -740,10 +740,10 @@ export abstract class ClientApplication {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
-        if (interactionType === InteractionType.Redirect) {
-            if (this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage && !this.config.cache.storeAuthStateInCookie) {
-                throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
-            }
+        if (interactionType === InteractionType.Redirect && 
+            this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage && 
+            !this.config.cache.storeAuthStateInCookie) {
+            throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
     }
 
