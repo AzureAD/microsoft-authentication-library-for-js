@@ -13,7 +13,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.0-alpha.12",
+    "@azure/msal-node": "^1.0.0-alpha.13",
     "axios": "^0.20.0",
     "e2eTestUtils": "file:../../.",
     "express": "^4.17.1",
