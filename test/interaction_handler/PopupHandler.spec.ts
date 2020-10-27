@@ -2,7 +2,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient, ProtocolMode } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient, ProtocolMode, Logger } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
@@ -53,7 +53,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         };
         const configObj = buildConfiguration(appConfig);
         const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
-        const authCodeModule = new AuthorizationCodeClient({
+        const authConfig = {
             authOptions: {
                 ...configObj.auth,
                 authority: authorityInstance,
@@ -109,8 +109,10 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
                 piiLoggingEnabled: true,
             },
-        });
-        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps);
+        };
+        const authCodeModule = new AuthorizationCodeClient(authConfig);
+        const logger = new Logger(authConfig.loggerOptions);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps, logger);
         popupHandler = new PopupHandler(authCodeModule, browserStorage);
     });
 

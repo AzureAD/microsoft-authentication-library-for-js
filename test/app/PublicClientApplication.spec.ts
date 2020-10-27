@@ -4,12 +4,12 @@
  */
 
 import "mocha";
-import chai from "chai";
+import chai, { config } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryEntity, AuthenticationScheme, RefreshTokenClient, Logger } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, SilentFlowRequest, CacheSchemaType, TimeUtils, AuthorizationCodeClient, ResponseMode, SilentFlowClient, TrustedAuthority, EndSessionRequest, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, ServerTelemetryEntity, AuthenticationScheme, RefreshTokenClient, Logger, LogLevel } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -31,6 +31,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false
+    };
+
+    const loggerOptions = {
+        loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+            if (containsPii) {
+                console.log(`Log level: ${level} Message: ${message}`);
+            }
+        },
+        piiLoggingEnabled: true
     };
 
     let dbStorage = {};
@@ -745,9 +754,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve();
                 });
+                const testLogger = new Logger(loggerOptions);
 
                 const browserCrypto = new CryptoOps();
-                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 await pca.loginRedirect(emptyRequest);
                 expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
                 expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(RANDOM_TEST_GUID);
@@ -777,7 +787,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
                 const browserCrypto = new CryptoOps();
-                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const testLogger = new Logger(loggerOptions);
+                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 await pca.loginRedirect(tokenRequest);
                 const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
                 expect(cachedRequest.scopes).to.be.deep.eq([]);
@@ -794,7 +805,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
 
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const testLogger = new Logger(loggerOptions);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER
@@ -833,7 +845,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const testLogger = new Logger(loggerOptions);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
                 const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -883,7 +896,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const testLogger = new Logger(loggerOptions);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
                 const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -967,7 +981,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve();
                 });
                 const browserCrypto = new CryptoOps();
-                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const testLogger = new Logger(loggerOptions);
+                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 await pca.loginRedirect(emptyRequest);
                 expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
                 expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(RANDOM_TEST_GUID);
@@ -994,7 +1009,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve();
                 });
                 const browserCrypto = new CryptoOps();
-                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const testLogger = new Logger(loggerOptions);
+                const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 await pca.acquireTokenRedirect(tokenRequest);
                 const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
                 expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
@@ -1010,7 +1026,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: [testScope]
                 };
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const testLogger = new Logger(loggerOptions);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER
@@ -1050,7 +1067,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const testLogger = new Logger(loggerOptions);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
                 const acquireTokenUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -1100,7 +1118,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
-                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+                const testLogger = new Logger(loggerOptions);
+                const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
                 const acquireTokenUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({

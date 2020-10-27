@@ -5,7 +5,7 @@ import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/Brows
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, TEST_HASHES } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
-import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity } from "@azure/msal-common";
+import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel } from "@azure/msal-common";
 import { BrowserCacheLocation, BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -90,6 +90,7 @@ class TestCacheStorage extends CacheManager {
 describe("BrowserCacheManager tests", () => {
 
     let cacheConfig: CacheOptions;
+    let logger: Logger;
     let windowRef: Window & typeof globalThis;
     const browserCrypto = new CryptoOps();
     beforeEach(() => {
@@ -97,6 +98,14 @@ describe("BrowserCacheManager tests", () => {
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false
         };
+        logger = new Logger({
+            loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+                if (containsPii) {
+                    console.log(`Log level: ${level} Message: ${message}`);
+                }
+            },
+            piiLoggingEnabled: true
+        });
         windowRef = window;
     });
 
@@ -112,7 +121,7 @@ describe("BrowserCacheManager tests", () => {
         it("Falls back to memory storage if cache location string does not match localStorage or sessionStorage", () => {
             cacheConfig.cacheLocation = "notALocation";
             const setupStorageSpy = sinon.spy(BrowserCacheManager.prototype, <any>"setupBrowserStorage");
-            new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             expect(setupStorageSpy.calledOnce).to.be.true;
             expect(setupStorageSpy.returned(sinon.match.instanceOf(MemoryStorage))).to.be.true;
         });
@@ -121,19 +130,19 @@ describe("BrowserCacheManager tests", () => {
             // Test sessionStorage not supported
             sinon.stub(window, "sessionStorage").value(null);
             const setupStorageSpy = sinon.spy(BrowserCacheManager.prototype, <any>"setupBrowserStorage");
-            new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             expect(setupStorageSpy.calledOnce).to.be.true;
             expect(setupStorageSpy.returned(sinon.match.instanceOf(MemoryStorage))).to.be.true;
             // Test local storage not supported
             sinon.stub(window, "localStorage").value(null);
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
-            new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             expect(setupStorageSpy.calledTwice).to.be.true;
             expect(setupStorageSpy.returned(sinon.match.instanceOf(MemoryStorage))).to.be.true;
         });
 
         it("Creates a BrowserStorage object that implements the ICacheStorage interface", () => {
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             expect(browserStorage.setItem).to.be.not.null;
             expect(browserStorage.getItem).to.be.not.null;
             expect(browserStorage.removeItem).to.be.not.null;
@@ -154,7 +163,7 @@ describe("BrowserCacheManager tests", () => {
             window.sessionStorage.setItem(errorKey, errorKeyVal);
             window.sessionStorage.setItem(errorDescKey, errorDescVal);
 
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             expect(window.sessionStorage.getItem(idTokenKey)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
             expect(window.sessionStorage.getItem(clientInfoKey)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             expect(window.sessionStorage.getItem(errorKey)).to.be.eq(errorKeyVal);
@@ -173,9 +182,9 @@ describe("BrowserCacheManager tests", () => {
         let cacheVal: string;
         let msalCacheKey: string;
         beforeEach(() => {
-            browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
-            browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
@@ -242,9 +251,9 @@ describe("BrowserCacheManager tests", () => {
         let msalCacheKey: string;
         beforeEach(() => {
             cacheConfig.storeAuthStateInCookie = true;
-            browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
-            browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
@@ -366,9 +375,9 @@ describe("BrowserCacheManager tests", () => {
         let cacheVal: string;
         let msalCacheKey: string;
         beforeEach(() => {
-            browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
-            browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
@@ -423,20 +432,20 @@ describe("BrowserCacheManager tests", () => {
     describe("Helpers", () => {
 
         it("generateAuthorityKey() creates a valid cache key for authority strings", () => {
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE);
             expect(authorityKey).to.be.eq(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${RANDOM_TEST_GUID}`);
         });
 
         it("generateNonceKey() create a valid cache key for nonce strings", () => {
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const nonceKey = browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE);
             expect(nonceKey).to.be.eq(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${RANDOM_TEST_GUID}`);
         });
 
         it("updateCacheEntries() correctly updates the authority, state and nonce in the cache", () => {
             const authorityCacheSpy = sinon.spy(BrowserCacheManager.prototype, "setAuthorityCache");
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const testNonce = "testNonce";
             const stateString = TEST_STATE_VALUES.TEST_STATE;
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
@@ -453,7 +462,7 @@ describe("BrowserCacheManager tests", () => {
 
         it("resetTempCacheItems() resets all temporary cache items with the given state", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE;
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             browserStorage.updateCacheEntries(stateString, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`);
             browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
             browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI);
@@ -469,7 +478,7 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("Successfully retrieves and decodes response from cache", async () => {
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
@@ -488,7 +497,7 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("Throws error if request cannot be retrieved from cache", async () => {
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const cryptoObj = new CryptoOps();
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
@@ -509,7 +518,7 @@ describe("BrowserCacheManager tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const cryptoObj = new CryptoOps();
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
@@ -529,7 +538,7 @@ describe("BrowserCacheManager tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             // Set up cache
             const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE);
             const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;

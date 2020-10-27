@@ -60,9 +60,21 @@ describe("RedirectHandler.ts Unit Tests", () => {
         const configObj = buildConfiguration(appConfig);
         const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
         const browserCrypto = new CryptoOps();
-
-        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto);
-        const authCodeModule = new AuthorizationCodeClient({
+        const loggerConfig = {
+            loggerCallback: (
+                level: LogLevel,
+                message: string,
+                containsPii: boolean
+            ): void => {
+                if (containsPii) {
+                    console.log(`Log level: ${level} Message: ${message}`);
+                }
+            },
+            piiLoggingEnabled: true,
+        };
+        const logger = new Logger(loggerConfig);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
+        const authConfig = {
             authOptions: {
                 ...configObj.auth,
                 authority: authorityInstance,
@@ -106,19 +118,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     return testNetworkResult;
                 },
             },
-            loggerOptions: {
-                loggerCallback: (
-                    level: LogLevel,
-                    message: string,
-                    containsPii: boolean
-                ): void => {
-                    if (containsPii) {
-                        console.log(`Log level: ${level} Message: ${message}`);
-                    }
-                },
-                piiLoggingEnabled: true,
-            },
-        });
+            loggerOptions: loggerConfig,
+        };        
+        const authCodeModule = new AuthorizationCodeClient(authConfig);
         
         redirectHandler = new RedirectHandler(authCodeModule, browserStorage, browserCrypto);
     });
