@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { IWindowStorage } from "./IWindowStorage";
 
 export class MemoryStorage implements IWindowStorage {
