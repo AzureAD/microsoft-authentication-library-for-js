@@ -47,7 +47,7 @@ export class BrowserCacheManager extends CacheManager {
      * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
      * @param cacheLocation 
      */
-    private setupBrowserStorage(cacheLocation: string): IWindowStorage {
+    private setupBrowserStorage(cacheLocation: BrowserCacheLocation): IWindowStorage {
         if (cacheLocation !== BrowserCacheLocation.MemoryStorage) {
             try {
                 return new BrowserStorage(cacheLocation);

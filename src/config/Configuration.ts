@@ -44,7 +44,7 @@ export type BrowserAuthOptions = {
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  */
 export type CacheOptions = {
-    cacheLocation?: string;
+    cacheLocation?: BrowserCacheLocation;
     storeAuthStateInCookie?: boolean;
 };
 
