@@ -8,7 +8,7 @@ let authConfig;
 initializeMsal();
 
 async function initializeMsal() {
-    return fetch("authConfig.json").then(response => {
+    return fetch("testConfig.json").then(response => {
         return response.json();
     }).then(json => {
         authConfig = json;
@@ -43,11 +43,11 @@ function handleResponse(resp) {
 async function signIn(method) {
     signInType = method;
     if (signInType === "loginPopup") {
-        return myMSALObj.loginPopup(authConfig.loginRequest).then(handleResponse).catch(function (error) {
+        return myMSALObj.loginPopup(authConfig.request).then(handleResponse).catch(function (error) {
             console.log(error);
         });
     } else if (signInType === "loginRedirect") {
-        return myMSALObj.loginRedirect(authConfig.loginRequest)
+        return myMSALObj.loginRedirect(authConfig.request)
     }
 }
 

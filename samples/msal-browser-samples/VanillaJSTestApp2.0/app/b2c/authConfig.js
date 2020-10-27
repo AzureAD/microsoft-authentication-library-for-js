@@ -1,7 +1,7 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "e3b9ad76-9763-4827-b088-80c7a7888f79",
+        clientId: "4c837770-7a2b-471e-aafa-3328d04a23b1",
         authority: "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/",
         knownAuthorities: ["login.microsoftonline.com"]
     },
@@ -13,6 +13,6 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const tokenRequest = {
-    scopes: ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read", "offline_access"],
+    scopes: ["https://msidlabb2c.onmicrosoft.com/4c837770-7a2b-471e-aafa-3328d04a23b1/read "],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };
