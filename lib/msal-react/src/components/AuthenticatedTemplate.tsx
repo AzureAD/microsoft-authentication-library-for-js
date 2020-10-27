@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useMemo } from "react";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { getChildrenOrFunction } from "../utilities";
 import { useMsal } from "../hooks/useMsal";
@@ -17,10 +17,12 @@ export type AuthenticatedTemplateProps = PropsWithChildren<AccountIdentifiers>;
  */
 export function AuthenticatedTemplate({ username, homeAccountId, children }: AuthenticatedTemplateProps) {
     const context = useMsal();
-    const accountIdentifier: AccountIdentifiers = {
-        username,
-        homeAccountId
-    };
+    const accountIdentifier: AccountIdentifiers = useMemo(() => {
+        return {
+            username,
+            homeAccountId
+        };
+    }, [username, homeAccountId]);
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     if (isAuthenticated) {

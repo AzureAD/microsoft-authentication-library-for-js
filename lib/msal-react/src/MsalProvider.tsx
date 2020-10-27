@@ -47,6 +47,8 @@ export function MsalProvider({instance, children}: MsalProviderProps) {
             }
         });
 
+        instance.handleRedirectPromise();
+
         return () => {
             callbackId && instance.removeEventCallback(callbackId);
         };
