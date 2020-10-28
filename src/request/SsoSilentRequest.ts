@@ -14,9 +14,6 @@ import { AuthorizationUrlRequest } from "@azure/msal-common";
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
  * - extraScopesToConsent       - Scopes for a different resource when the user needs consent upfront.
- * - responseMode               - Specifies the method that should be used to send the authentication result to your app. Fragment is the only valid option for msal-browser.
- * - codeChallenge              - Used to secure authorization code grant via Proof of Key for Code Exchange (PKCE). For more information, see the PKCE RCF:https://tools.ietf.org/html/rfc7636
- * - codeChallengeMethod        - The method used to encode the code verifier for the code challenge parameter. Can be "plain" or "S256". If excluded, code challenge is assumed to be plaintext. For more information, see the PKCE RCF: https://tools.ietf.org/html/rfc7636
  * - state                      - A value included in the request that is also returned in the token response. A randomly generated unique value is typically used for preventing cross site request forgery attacks. The state is also used to encode information about the user's state in the app before the authentication request occurred.
  * - prompt                     - Indicates the type of user interaction that is required.
  *          login: will force the user to enter their credentials on that request, negating single-sign on
