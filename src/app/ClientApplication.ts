@@ -113,6 +113,7 @@ export abstract class ClientApplication {
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
+     * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if current value does not contain response to be handled.
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
