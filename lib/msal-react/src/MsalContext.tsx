@@ -9,6 +9,7 @@ import { IPublicClientApplication, stubbedPublicClientApplication, AccountInfo }
 export interface IMsalContext {
     instance: IPublicClientApplication;
     loginInProgress: boolean;
+    interactionInProgress: boolean;
     accounts: AccountInfo[];
 }
 
@@ -19,6 +20,7 @@ export interface IMsalContext {
 const defaultMsalContext: IMsalContext = {
     instance: stubbedPublicClientApplication,
     loginInProgress: false,
+    interactionInProgress: false,
     accounts: [],
 };
 

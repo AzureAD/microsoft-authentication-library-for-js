@@ -8,7 +8,7 @@ import {
     IPublicClientApplication,
     AccountInfo,
     EventType,
-    EventMessage
+    EventMessage, InteractionType
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 
@@ -23,6 +23,7 @@ export function MsalProvider({instance, children}: MsalProviderProps) {
     );
 
     const [loginInProgress, setLoginInProgress] = useState<boolean>(false);
+    const [interactionInProgress, setInteractionInProgress] = useState<boolean>(false);
 
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
@@ -30,19 +31,31 @@ export function MsalProvider({instance, children}: MsalProviderProps) {
                 case EventType.LOGIN_START:
                 case EventType.SSO_SILENT_START:
                     setLoginInProgress(true);
+                    setInteractionInProgress(true);
+                    break;
+                case EventType.ACQUIRE_TOKEN_START:
+                case EventType.HANDLE_REDIRECT_START:
+                case EventType.LOGOUT_START:
+                    if (message.interactionType === InteractionType.Redirect || message.interactionType === InteractionType.Popup) {
+                        setInteractionInProgress(true);
+                    }
                     break;
                 case EventType.LOGIN_SUCCESS:
                 case EventType.SSO_SILENT_SUCCESS:
                     setAccounts(instance.getAllAccounts());
                     setLoginInProgress(false);
+                    setInteractionInProgress(false);
                     break;
                 case EventType.LOGIN_FAILURE:
                 case EventType.SSO_SILENT_FAILURE:
                     setLoginInProgress(false);
+                    setInteractionInProgress(false);
                     break;
                 case EventType.ACQUIRE_TOKEN_SUCCESS:
                 case EventType.LOGOUT_SUCCESS:
+                case EventType.LOGOUT_FAILURE:
                     setAccounts(instance.getAllAccounts());
+                    setInteractionInProgress(false);
                     break;
             }
         });
@@ -58,6 +71,7 @@ export function MsalProvider({instance, children}: MsalProviderProps) {
     const contextValue: IMsalContext = {
         instance,
         loginInProgress,
+        interactionInProgress,
         accounts
     };
 

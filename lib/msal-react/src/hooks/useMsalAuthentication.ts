@@ -20,7 +20,7 @@ export function useMsalAuthentication(
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest, 
     accountIdentifier?: AccountIdentifiers
 ): MsalAuthenticationResult {
-    const { instance, loginInProgress } = useMsal();
+    const { instance, interactionInProgress } = useMsal();
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
     const [result, setResult] = useState<AuthenticationResult|null>(null);
     const [error, setError] = useState<AuthError|null>(null);
@@ -40,13 +40,13 @@ export function useMsalAuthentication(
     }, [instance, authenticationRequest, interactionType]);
 
     useEffect(() => {
-        if (!isAuthenticated && !loginInProgress) {
+        if (!isAuthenticated && !interactionInProgress) {
             login(interactionType, authenticationRequest)
                 .then(result => setResult(result))
                 .catch(error => setError(error));
         }
 
-    }, [isAuthenticated, loginInProgress]);
+    }, [isAuthenticated, interactionInProgress]);
 
     return { login, result, error };
 }
