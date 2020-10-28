@@ -9,7 +9,6 @@ import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestUtils } from "../utils/RequestUtils";
-import { AccessTokenKey } from './AccessTokenKey';
 
 /**
  * @hidden
@@ -88,30 +87,18 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param homeAccountIdentifier 
      * @param tokenType 
      */
-    private matchKeyForType(key:string, clientId: string, homeAccountIdentifier: string, tokenType: string): AccessTokenKey {
-        // Does the cache item match the request account
-        const accountMatches = key.match(clientId) && key.match(homeAccountIdentifier);
-        // Does the cache item match the requested token type
-        let tokenTypeMatches = false;
-
+    private matchKeyForType(key:string, clientId: string, homeAccountIdentifier: string, tokenType: string): Boolean {
+        const accountMatch = key.match(clientId) && key.match(homeAccountIdentifier);
+        
         switch (tokenType) {
             case ServerHashParamKeys.ACCESS_TOKEN:
                 // Cache item is an access token if scopes are included in the cache item key
-                tokenTypeMatches = !!key.match(Constants.scopes);
-                break;
+                return !!(accountMatch && key.match(Constants.scopes));
             case ServerHashParamKeys.ID_TOKEN:
-                // Cache may be an ID token if scopes are NOT included in the cache item key
-                tokenTypeMatches = !key.match(Constants.scopes);
-                break;
-        }
-
-        // Make sure the cache item has a JSON cache key to avoid matching non-token cache items
-        try {
-            // If the token completely matches the request, try to parse and return the key, otherwise return null
-            return (accountMatches && tokenTypeMatches) ? JSON.parse(key) : null;
-        } catch (err) {
-            // If not a valid JSON key, the cache item although matching is not a usable token and should not show up in the search results
-            return null;
+                // Cache item is an ID token if scopes are NOT included in the cache item key
+                return !!(accountMatch && !key.match(Constants.scopes));
+            default:
+                return false;
         }
     }
 
@@ -223,16 +210,16 @@ export class AuthCache extends BrowserStorage {// Singleton
      */
     getAllTokensByType(clientId: string, homeAccountIdentifier: string, tokenType: string): Array<AccessTokenCacheItem> {
         const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
-            const matchedTokenKey: AccessTokenKey = this.matchKeyForType(key, clientId, homeAccountIdentifier, tokenType);
-            if (matchedTokenKey) {
+            const keyMatches = this.matchKeyForType(key, clientId, homeAccountIdentifier, tokenType);
+            if ( keyMatches ) {
                 const value = this.getItem(key);
                 if (value) {
                     try {
-                        const newAccessTokenCacheItem = new AccessTokenCacheItem(matchedTokenKey, JSON.parse(value));
+                        const parseAtKey = JSON.parse(key);
+                        const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value));
                         return tokens.concat([ newAccessTokenCacheItem ]);
-                    } catch (err) {
-                        // Skip cache items with non-valid JSON values
-                        return tokens;
+                    } catch (e) {
+                        throw ClientAuthError.createCacheParseError(key);
                     }
                 }
             }
