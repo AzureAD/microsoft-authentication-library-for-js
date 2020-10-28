@@ -24,6 +24,11 @@ export class StringUtils {
     static isValidJson(str: string): boolean {
         try {
             const parsedValue = JSON.parse(str);
+            /**
+             * There are edge cases in which JSON.parse will successfully parse a non-valid JSON object 
+             * (e.g. JSON.parse will parse an escaped string into an unescaped string), so adding a type check
+             * of the parsed value is necessary in order to be certain that the string represents a valid JSON object.
+             * */
             return (parsedValue && typeof parsedValue === "object");
         } catch (error) {
             return false;
