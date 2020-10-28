@@ -1925,7 +1925,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe.only("Logger", () => {
+    describe("Logger", () => {
         it("getLogger and setLogger", done => {
             const logger = new Logger({
                 loggerCallback: (level, message, containsPii) => {
