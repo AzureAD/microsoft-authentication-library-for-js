@@ -77,6 +77,8 @@ describe('Silent Flow AAD PPE Tests', () => {
         it("Performs acquire token silent", async () => {
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
+            await page.waitForSelector("#graph-called-successfully");
+            await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
         });
     });
 });
