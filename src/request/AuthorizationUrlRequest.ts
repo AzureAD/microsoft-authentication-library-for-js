@@ -37,18 +37,18 @@ import { AccountInfo } from "../account/AccountInfo";
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type AuthorizationUrlRequest = BaseAuthRequest & {
-    authenticationScheme?: AuthenticationScheme,
-    redirectUri?: string;
-    extraScopesToConsent?: Array<string>;
-    responseMode?: ResponseMode;
+    redirectUri: string;
+    responseMode: ResponseMode;
+    state: string;
+    nonce: string;
+    authenticationScheme: AuthenticationScheme;
     codeChallenge?: string;
     codeChallengeMethod?: string;
-    state?: string;
     prompt?: string;
+    extraScopesToConsent?: Array<string>;
     account?: AccountInfo;
     loginHint?: string;
     domainHint?: string;
     sid?: string;
     extraQueryParameters?: StringDict;
-    nonce?: string;
 };
