@@ -98,7 +98,7 @@ const msal = require('@azure/msal-node');
 Initialize the app object within your web app.
 
 ```js
-const pca = new msal.ConfidentialClientApplication(config);
+const cca = new msal.ConfidentialClientApplication(config);
 ```
 
 ### Configure Sign In Request
@@ -140,7 +140,7 @@ app.get('/', (req, res) => {
         redirectUri: "http://localhost:3000/redirect",
     };
 
-    pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+    cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
         res.redirect(response);
     }).catch((error) => console.log(JSON.stringify(error)));
 });
@@ -186,7 +186,7 @@ app.get('/redirect', (req, res) => {
         redirectUri: "http://localhost:3000/redirect",
     };
 
-    pca.acquireTokenByCode(tokenRequest).then((response) => {
+    cca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
         res.sendStatus(200);
     }).catch((error) => {
