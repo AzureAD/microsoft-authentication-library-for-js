@@ -23,5 +23,6 @@ export interface IPublicClientApplication {
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+    getLogger(): Logger;
     setLogger(logger: Logger): void;
 }
