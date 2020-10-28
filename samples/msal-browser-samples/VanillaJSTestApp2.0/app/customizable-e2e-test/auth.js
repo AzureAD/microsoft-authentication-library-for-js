@@ -1,5 +1,5 @@
 let signInType;
-let username = "";
+let homeAccountId = "";
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
@@ -8,7 +8,7 @@ let authConfig;
 initializeMsal();
 
 async function initializeMsal() {
-    return fetch("authConfig.json").then(response => {
+    return fetch("testConfig.json").then(response => {
         return response.json();
     }).then(json => {
         authConfig = json;
@@ -21,7 +21,7 @@ async function initializeMsal() {
 
 function handleResponse(resp) {
     if (resp !== null) {
-        username = resp.account.username;
+        homeAccountId = resp.account.homeAccountId;
         showWelcomeMessage(resp.account);
         if (resp.accessToken) {
             updateUI(resp);
@@ -34,7 +34,7 @@ function handleResponse(resp) {
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
-            username = currentAccounts[0].username;
+            homeAccountId = currentAccounts[0].homeAccountId;
             showWelcomeMessage(currentAccounts[0]);
         }
     }
@@ -43,17 +43,17 @@ function handleResponse(resp) {
 async function signIn(method) {
     signInType = method;
     if (signInType === "loginPopup") {
-        return myMSALObj.loginPopup(authConfig.loginRequest).then(handleResponse).catch(function (error) {
+        return myMSALObj.loginPopup(authConfig.request).then(handleResponse).catch(function (error) {
             console.log(error);
         });
     } else if (signInType === "loginRedirect") {
-        return myMSALObj.loginRedirect(authConfig.loginRequest)
+        return myMSALObj.loginRedirect(authConfig.request)
     }
 }
 
 function signOut() {
     const logoutRequest = {
-        account: myMSALObj.getAccountByUsername(username)
+        account: myMSALObj.getAccountByHomeId(homeAccountId)
     };
 
     myMSALObj.logout(logoutRequest);
@@ -61,7 +61,7 @@ function signOut() {
 
 async function getTokenPopup() {
     const request = authConfig.request;
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccountByHomeId(homeAccountId);
     if (currentAcc) {
         request.account = currentAcc;
         response = await myMSALObj.acquireTokenPopup(request).then(handleResponse).catch(error => {
@@ -72,7 +72,7 @@ async function getTokenPopup() {
 
 async function getTokenRedirect() {
     const request = authConfig.request;
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccountByHomeId(homeAccountId);
     if (currentAcc) {
         request.account = currentAcc;
         myMSALObj.acquireTokenRedirect(request);
@@ -81,7 +81,7 @@ async function getTokenRedirect() {
 
 async function getTokenSilently() {
     const request = authConfig.request;
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccountByHomeId(homeAccountId);
     if (currentAcc) {
         request.account = currentAcc;
         response = await myMSALObj.acquireTokenSilent(request).then(handleResponse).catch(error => {
