@@ -1850,6 +1850,60 @@ describe("UserAgentApplication.ts Class", function () {
                 });
             });
         });
+
+        describe("Token cache item key matching", () => {
+            describe("Access Tokens", () => {
+                let tokenRequest : AuthenticationParameters;
+                beforeEach(() => {
+                    tokenRequest = {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: ["S1"],
+                        account: account
+                    };
+                    setAuthInstanceStubs();
+                    sinon.stub(msal, "getAccount").returns(account);
+                    sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+                });
+
+                afterEach(() => {
+                    cacheStorage.clear();
+                    sinon.reset();
+                });
+            });
+
+            describe("ID Token", () => {
+                let tokenRequest : AuthenticationParameters;
+                beforeEach(() => {
+                    tokenRequest = {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: Constants.oidcScopes,
+                        account: account
+                    };
+                    setAuthInstanceStubs();
+                    sinon.stub(msal, "getAccount").returns(account);
+                    sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+                });
+
+                afterEach(() => {
+                    cacheStorage.clear();
+                    sinon.reset();
+                });
+
+                it("should match if key is valid JSON and contains no scopes field", (done) => {
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+                    msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                        expect(response.scopes).to.be.deep.eq(["openid", "profile"]);
+                        expect(response.account).to.be.eq(account);
+                        expect(response.idToken.rawIdToken).to.eq(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                        done();
+                    }).catch(done);
+                })
+
+            })
+        })
     });
 
     describe("Processing Authentication Responses", function() {
