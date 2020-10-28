@@ -72,11 +72,10 @@ describe("RefreshTokenClient unit tests", () => {
         sinon.restore();
     });
 
-    describe("Constructor", async () => {
-
-        const config = await ClientTestUtils.createTestClientConfiguration();
+    describe("Constructor", () => {
         it("creates a RefreshTokenClient", async () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
             expect(client).to.be.not.null;
             expect(client instanceof RefreshTokenClient).to.be.true;
@@ -121,7 +120,10 @@ describe("RefreshTokenClient unit tests", () => {
             const refreshTokenRequest: RefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                claims: TEST_CONFIG.CLAIMS
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
@@ -260,7 +262,10 @@ describe("RefreshTokenClient unit tests", () => {
             const client = new RefreshTokenClient(config);
             await expect(client.acquireTokenByRefreshToken({
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: null
+                account: null,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
             })).to.be.rejectedWith(ClientAuthErrorMessage.NoAccountInSilentRequest.desc);
         });
 
@@ -291,7 +296,10 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const tokenRequest: SilentFlowRequest = {
                 scopes: [testScope2],
-                account: testAccount
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
             };
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config);

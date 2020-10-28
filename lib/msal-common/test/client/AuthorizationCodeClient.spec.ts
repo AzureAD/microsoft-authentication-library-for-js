@@ -1,9 +1,12 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import * as Mocha from "mocha";
 import * as chai from "chai";
 import sinon from "sinon";
 import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;
-chai.use(chaiAsPromised);
 import {
     Authority,
     AuthorizationCodeClient,
@@ -40,6 +43,8 @@ import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes, AuthenticationScheme } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
+const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 describe("AuthorizationCodeClient unit tests", () => {
     beforeEach(() => {
