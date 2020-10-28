@@ -4,10 +4,10 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
-import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
+import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -21,6 +21,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../../package.json";
 import { EventError, EventMessage, EventPayload, EventCallbackFunction } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
+import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 
 export abstract class ClientApplication {
 
@@ -28,7 +29,7 @@ export abstract class ClientApplication {
     protected readonly browserCrypto: CryptoOps;
 
     // Storage interface implementation
-    protected readonly browserStorage: BrowserStorage;
+    protected readonly browserStorage: BrowserCacheManager;
 
     // Network interface implementation
     protected readonly networkClient: INetworkModule;
@@ -92,11 +93,11 @@ export abstract class ClientApplication {
         // Initialize the network module class.
         this.networkClient = this.config.system.networkClient;
 
-        // Initialize the browser storage class.
-        this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache, this.browserCrypto);
-
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions);
+
+        // Initialize the browser storage class.
+        this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger);
 
         // Array of events
         this.eventCallbacks = new Map();
@@ -272,7 +273,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
-        this.preflightBrowserEnvironmentCheck();
+        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -327,7 +328,7 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            this.preflightBrowserEnvironmentCheck();
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -429,7 +430,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.preflightBrowserEnvironmentCheck();
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
@@ -549,7 +550,7 @@ export abstract class ClientApplication {
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         try {
-            this.preflightBrowserEnvironmentCheck();
+            this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
             const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
@@ -735,12 +736,18 @@ export abstract class ClientApplication {
      * Helper to validate app environment before making a silent request
      * * @param request
      */
-    protected preflightBrowserEnvironmentCheck(): void {
+    protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
 
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
+
+        if (interactionType === InteractionType.Redirect && 
+            this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage && 
+            !this.config.cache.storeAuthStateInCookie) {
+            throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
+        }
     }
 
     /**
