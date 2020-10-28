@@ -398,7 +398,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
-                    correlationId: RANDOM_TEST_GUID
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
                 const testServerTokenResponse = {
@@ -466,7 +467,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const testAuthCodeRequest: AuthorizationCodeRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["scope1", "scope2"],
-                    code: ""
+                    code: "",
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
                 const stateString = TEST_STATE_VALUES.TEST_STATE;
@@ -509,7 +513,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
-                    correlationId: RANDOM_TEST_GUID
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
@@ -598,7 +603,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
-                    correlationId: RANDOM_TEST_GUID
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
@@ -703,7 +709,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const loginRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["user.read"],
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
                 pca.loginRedirect(loginRequest);
@@ -728,7 +739,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -758,7 +774,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
                     correlationId: RANDOM_TEST_GUID,
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -789,7 +809,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
                 const browserCrypto = new CryptoOps();
@@ -833,7 +858,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
                 const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
-                browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
+                browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, false);
                 const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -850,7 +875,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 await pca.loginRedirect(emptyRequest);
                 const validatedRequest: AuthorizationUrlRequest = {
@@ -883,7 +913,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
                 const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
-                browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
+                browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, false);
                 const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -901,7 +931,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
                     loginHint: "AbeLi@microsoft.com",
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 await pca.loginRedirect(loginRequest);
                 const validatedRequest: AuthorizationUrlRequest = {
@@ -941,7 +976,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const loginRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["user.read", "openid", "profile"],
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 pca.acquireTokenRedirect(loginRequest);
             });
@@ -951,7 +991,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [testScope],
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -968,9 +1013,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const browserCrypto = new CryptoOps();
                 const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
                 await pca.loginRedirect(emptyRequest);
-                expect(browserStorage.getItem(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
-                expect(browserStorage.getItem(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.eq(RANDOM_TEST_GUID);
-                expect(browserStorage.getItem(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE), CacheSchemaType.TEMPORARY)).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
+                expect(browserStorage.getItem(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
+                expect(browserStorage.getItem(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(RANDOM_TEST_GUID);
+                expect(browserStorage.getItem(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
             });
 
             it("Caches token request correctly", async () => {
@@ -979,7 +1024,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [testScope],
                     correlationId: RANDOM_TEST_GUID,
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1006,7 +1055,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const testScope = "testscope";
                 const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
-                    scopes: [testScope]
+                    scopes: [testScope],
+                    state: "",
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 const browserCrypto = new CryptoOps();
                 const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
@@ -1050,7 +1105,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
                 const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
-                browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
+                browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, false);
                 const acquireTokenUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1067,7 +1122,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [testScope],
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 await pca.acquireTokenRedirect(emptyRequest);
                 const validatedRequest: AuthorizationUrlRequest = {
@@ -1100,7 +1160,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
                 const browserCrypto = new CryptoOps();
                 const browserStorage: BrowserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
-                browserStorage.setItem(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, CacheSchemaType.TEMPORARY);
+                browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, false);
                 const acquireTokenUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1119,7 +1179,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [testScope],
                     loginHint: "AbeLi@microsoft.com",
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 await pca.acquireTokenRedirect(loginRequest);
                 const validatedRequest: AuthorizationUrlRequest = {
@@ -1275,7 +1340,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["scope"],
                     loginHint: "AbeLi@microsoft.com",
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -1310,7 +1380,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["scope"],
                     loginHint: "AbeLi@microsoft.com",
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
                 const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
@@ -1432,7 +1507,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
                 prompt: PromptValue.SELECT_ACCOUNT,
-                loginHint: "testLoginHint"
+                loginHint: "testLoginHint",
+                state: "",
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
             await expect(pca.ssoSilent(req)).to.be.rejectedWith(BrowserAuthError);
@@ -1595,7 +1676,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentATStub = sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").resolves(testTokenResponse);
             const tokenRequest: SilentFlowRequest = {
                 scopes: ["scope1"],
-                account: testAccount
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
             };
             const expectedTokenRequest: SilentFlowRequest = {
                 ...tokenRequest,
@@ -1693,20 +1777,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 extraQueryParameters: {
                     queryKey: "queryValue"
-                }
+                }, 
+                forceRefresh: false
             };
             const expectedRequest: AuthorizationUrlRequest = {
                 ...silentFlowRequest,
                 scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 prompt: "none",
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 state: TEST_STATE_VALUES.TEST_STATE,
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
             const tokenResp = await pca.acquireTokenSilent(silentFlowRequest);
 
@@ -1729,7 +1815,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.logout();
             const validatedLogoutRequest: EndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));

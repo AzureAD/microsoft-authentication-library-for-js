@@ -18,9 +18,10 @@ import { SilentFlowRequest, StringDict } from "@azure/msal-common";
  * - extraQueryParameters   - String to string map of custom query parameters. Only used when renewing the refresh token.
  * - redirectUri            - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. Only used for cases where refresh token is expired.
  */
-export type SilentRequest = Omit<SilentFlowRequest, "authority"|"correlationId"> & {
+export type SilentRequest = Omit<SilentFlowRequest, "authority"|"correlationId"|"forceRefresh"> & {
     redirectUri?: string;
     extraQueryParameters?: StringDict;
     authority?: string;
     correlationId?: string;
+    forceRefresh?: boolean;
 };

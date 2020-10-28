@@ -16,7 +16,6 @@ import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../../package.json";
 import { EventError, EventMessage, EventPayload, EventCallbackFunction } from "../event/EventMessage";
@@ -494,7 +493,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    protected async acquireTokenByRefreshToken(request: SilentRequest): Promise<AuthenticationResult> {
+    protected async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
@@ -550,7 +549,7 @@ export abstract class ClientApplication {
             this.preflightBrowserEnvironmentCheck();
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-            const authClient = await this.createAuthCodeClient(null, validLogoutRequest && (logoutRequest.authority || this.config.auth.authority));
+            const authClient = await this.createAuthCodeClient(null, logoutRequest && (logoutRequest.authority || this.config.auth.authority));
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
@@ -779,24 +778,9 @@ export abstract class ClientApplication {
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+    protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         
         const redirectUri = this.getRedirectUri(request.redirectUri);
-
-        // Check for ADAL SSO
-        let loginHint = request.loginHint;
-        if (StringUtils.isEmpty(loginHint)) {
-            // Only check for adal token if no SSO params are being used
-            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
-            if (!StringUtils.isEmpty(adalIdTokenString)) {
-                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
-                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                if (adalIdToken.claims && adalIdToken.claims.upn) {
-                    loginHint = adalIdToken.claims.upn;
-                }
-            }
-        }
-
         const browserState: BrowserStateObject = {
             interactionType: interactionType
         };
@@ -817,12 +801,24 @@ export abstract class ClientApplication {
         const validatedRequest: AuthorizationUrlRequest = {
             ...this.initializeBaseRequest(request),
             redirectUri: redirectUri,
-            loginHint: loginHint,
             state: state,
             nonce: nonce,
             responseMode: ResponseMode.FRAGMENT,
             authenticationScheme: authenticationScheme,
         };
+
+        // Check for ADAL SSO
+        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
+            // Only check for adal token if no SSO params are being used
+            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
+            if (!StringUtils.isEmpty(adalIdTokenString)) {
+                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
+                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+                if (adalIdToken.claims && adalIdToken.claims.upn) {
+                    validatedRequest.loginHint = adalIdToken.claims.upn;
+                }
+            }
+        }
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
