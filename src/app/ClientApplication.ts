@@ -5,7 +5,7 @@
 
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserStorage } from "../cache/BrowserStorage";
-import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -21,6 +21,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../../package.json";
 import { EventError, EventMessage, EventPayload, EventCallbackFunction } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
+import { EndBrowserSessionRequest } from "../request/EndBrowserSessionRequest";
 
 export abstract class ClientApplication {
 
@@ -544,12 +545,12 @@ export abstract class ClientApplication {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param {@link (EndSessionRequest:type)}
      */
-    async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+    async logout(logoutRequest?: EndBrowserSessionRequest): Promise<void> {
         try {
             this.preflightBrowserEnvironmentCheck();
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-            const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
+            const authClient = await this.createAuthCodeClient(null, validLogoutRequest && (logoutRequest.authority || this.config.auth.authority));
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
@@ -744,16 +745,21 @@ export abstract class ClientApplication {
      * Initializer function for all request APIs
      * @param request
      */
-    protected initializeBaseRequest(request: BaseAuthRequest): BaseAuthRequest {
-        const validatedRequest: BaseAuthRequest = {
-            ...request
-        };
-
-        if (StringUtils.isEmpty(validatedRequest.authority)) {
-            validatedRequest.authority = this.config.auth.authority;
+    protected initializeBaseRequest(request: PopupRequest|RedirectRequest|SilentFlowRequest|SsoSilentRequest): BaseAuthRequest {
+        let authority = request.authority;
+        if (StringUtils.isEmpty(authority)) {
+            authority = this.config.auth.authority;
         }
 
-        validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+        const scopes = [...((request && request.scopes) || [])];
+        const correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+
+        const validatedRequest: BaseAuthRequest = {
+            ...request,
+            correlationId,
+            authority,
+            scopes
+        };
 
         return validatedRequest;
     }
@@ -770,37 +776,23 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Generates a request that will contain the openid and profile scopes.
-     * @param request
-     */
-    protected setDefaultScopes(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest): AuthorizationUrlRequest {
-        return {
-            ...request,
-            scopes: [...((request && request.scopes) || [])]
-        };
-    }
-
-    /**
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
     protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        let validatedRequest: AuthorizationUrlRequest = {
-            ...request,
-            ...this.setDefaultScopes(request)
-        };
-
-        validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
+        
+        const redirectUri = this.getRedirectUri(request.redirectUri);
 
         // Check for ADAL SSO
-        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
+        let loginHint = request.loginHint;
+        if (StringUtils.isEmpty(loginHint)) {
             // Only check for adal token if no SSO params are being used
             const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
             if (!StringUtils.isEmpty(adalIdTokenString)) {
                 const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
                 this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (adalIdToken.claims && adalIdToken.claims.upn) {
-                    validatedRequest.loginHint = adalIdToken.claims.upn;
+                    loginHint = adalIdToken.claims.upn;
                 }
             }
         }
@@ -809,21 +801,27 @@ export abstract class ClientApplication {
             interactionType: interactionType
         };
 
-        validatedRequest.state = ProtocolUtils.setRequestState(
+        const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
             (request && request.state) || "",
             browserState
         );
 
-        if (StringUtils.isEmpty(validatedRequest.nonce)) {
-            validatedRequest.nonce = this.browserCrypto.createNewGuid();
+        let nonce = request.nonce;
+        if (StringUtils.isEmpty(nonce)) {
+            nonce = this.browserCrypto.createNewGuid();
         }
 
-        validatedRequest.responseMode = ResponseMode.FRAGMENT;
+        const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
 
-        validatedRequest = {
-            ...validatedRequest,
-            ...this.initializeBaseRequest(validatedRequest)
+        const validatedRequest: AuthorizationUrlRequest = {
+            ...this.initializeBaseRequest(request),
+            redirectUri: redirectUri,
+            loginHint: loginHint,
+            state: state,
+            nonce: nonce,
+            responseMode: ResponseMode.FRAGMENT,
+            authenticationScheme: authenticationScheme,
         };
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
@@ -855,15 +853,11 @@ export abstract class ClientApplication {
      * Initializer for the logout request.
      * @param logoutRequest
      */
-    protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): EndSessionRequest {
+    protected initializeLogoutRequest(logoutRequest?: EndBrowserSessionRequest): EndSessionRequest {
         const validLogoutRequest = {
+            correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest
         };
-        if (StringUtils.isEmpty(validLogoutRequest.authority)) {
-            validLogoutRequest.authority = this.config.auth.authority;
-        }
-
-        validLogoutRequest.correlationId = (validLogoutRequest && validLogoutRequest.correlationId) || this.browserCrypto.createNewGuid();
 
         validLogoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
 

@@ -17,6 +17,7 @@ export { PopupRequest } from "./request/PopupRequest";
 export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";
 export { SsoSilentRequest } from "./request/SsoSilentRequest";
+export { EndBrowserSessionRequest } from "./request/EndBrowserSessionRequest";
 
 // Events
 export { EventMessage, EventPayload, EventError, EventCallbackFunction } from "./event/EventMessage";
