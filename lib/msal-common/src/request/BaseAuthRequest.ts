@@ -14,9 +14,9 @@
  */
 export type BaseAuthRequest = {
     scopes: Array<string>;
+    authority: string;
+    correlationId: string;
     claims?: string;
-    authority?: string;
-    correlationId?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
 };

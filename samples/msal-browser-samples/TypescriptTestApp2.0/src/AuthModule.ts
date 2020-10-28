@@ -1,4 +1,4 @@
-import { PublicClientApplication, AuthorizationUrlRequest, SilentRequest, AuthenticationResult, Configuration, LogLevel, AccountInfo, InteractionRequiredAuthError, EndSessionRequest, RedirectRequest, PopupRequest } from "@azure/msal-browser";
+import { PublicClientApplication, SilentRequest, AuthenticationResult, Configuration, LogLevel, AccountInfo, InteractionRequiredAuthError, RedirectRequest, PopupRequest, EndBrowserSessionRequest } from "@azure/msal-browser";
 import { UIManager } from "./UIManager";
 import { SsoSilentRequest } from "@azure/msal-browser/dist/src/request/SsoSilentRequest";
 
@@ -195,7 +195,7 @@ export class AuthModule {
      * Logs out of current account.
      */
     logout(): void {
-        const logOutRequest: EndSessionRequest = {
+        const logOutRequest: EndBrowserSessionRequest = {
             account: this.account
         };
 

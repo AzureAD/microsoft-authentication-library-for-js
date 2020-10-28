@@ -114,7 +114,8 @@ export class RefreshTokenClient extends BaseClient {
 
         const refreshTokenRequest: RefreshTokenRequest = {
             ...request,
-            refreshToken: refreshToken.secret
+            refreshToken: refreshToken.secret,
+            authenticationScheme: AuthenticationScheme.BEARER
         };
 
         return this.acquireToken(refreshTokenRequest);

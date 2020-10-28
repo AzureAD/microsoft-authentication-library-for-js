@@ -13,8 +13,7 @@ import { AccountInfo } from "../account/AccountInfo";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  */
 export type EndSessionRequest = {
+    correlationId: string
     account?: AccountInfo,
     postLogoutRedirectUri?: string,
-    authority?: string,
-    correlationId?: string
 };

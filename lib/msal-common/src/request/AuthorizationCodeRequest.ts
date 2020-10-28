@@ -23,6 +23,6 @@ import { AuthenticationScheme } from "../utils/Constants";
 export type AuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;
     code: string;
+    authenticationScheme: AuthenticationScheme;
     codeVerifier?: string;
-    authenticationScheme?: AuthenticationScheme;
 };
