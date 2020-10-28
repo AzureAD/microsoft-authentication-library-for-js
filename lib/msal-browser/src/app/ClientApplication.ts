@@ -918,6 +918,13 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Returns the logger instance
+     */
+    getLogger(): Logger {
+        return this.logger;
+    }
+
+    /**
      * Replaces the default logger set in configurations with new Logger with new configurations
      * @param logger Logger instance
      */
