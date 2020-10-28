@@ -72,10 +72,10 @@ export enum ApiId {
  * Interaction type of the API - used for state and telemetry
  */
 export enum InteractionType {
-    REDIRECT = "redirect",
-    POPUP = "popup",
-    SILENT = "silent",
-    NONE = "none"
+    Redirect = "redirect",
+    Popup = "popup",
+    Silent = "silent",
+    None = "none"
 }
 
 export enum BrokerMessageType {

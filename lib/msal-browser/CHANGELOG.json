@@ -2,6 +2,161 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 26 Oct 2020 21:00:29 GMT",
+      "tag": "@azure/msal-browser_v2.4.1",
+      "version": "2.4.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update SRI hashes for msal@1.4.2 and browser@2.4.0",
+            "author": "janutter@microsoft.com",
+            "commit": "2edf8ba703ad49c78f548e17ace9ee494abf30f1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update Readme (#2468)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "dca9f652c157ee621302225c04ec87f488b2c8cb",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add docs for event API (#2459)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "9b6fd4426eac56327a6180739888ecaa4b54af7e",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9d4c4a18de10eb3d918810dc10766fbd5547165d",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 20 Oct 2020 23:47:28 GMT",
+      "tag": "@azure/msal-browser_v2.4.0",
+      "version": "2.4.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updated cdn docs for MSAL Browser",
+            "author": "janutter@microsoft.com",
+            "commit": "034fc94ad59499932fe7530b0e5ab3152bcbf11e",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update FAQ (#2440)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "1de35f42e0340d2b3020ba7938d0ae5d7d067a42",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Updated eslint rules (#2345)",
+            "author": "janutter@microsoft.com",
+            "commit": "64a4f9e868e63346dfd711dec717abe7fd14d949",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add removeEventCallback API (#2462)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f934892a769d3287a8edda8ec3f72928ff288ea8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add event api to msal-browser (#2394)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "b1a6ccc6348b556cd4636511aeb8e58060154daa",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Use history API to clear hash for msal-browser",
+            "author": "janutter@microsoft.com",
+            "commit": "9a3618b430e9f174505529949ebacf4bccd04858",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Export InteractionType (#2438)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9fc76a676ed0e157e43e6a9512352fcb29099aae",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add extraQueryParameters to acquireTokenSilent in msal-browser",
+            "author": "janutter@microsoft.com",
+            "commit": "d2132c15c759f33c299761b9869dd1144907c0a8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix unexpected interaction_required error in redirect flow (#2404)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c22bb29b8880de4bf0b9437a1c2ad48776a9d88f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Adds support for any OIDC-compliant authority (#2389).",
+            "author": "jamckenn@microsoft.com",
+            "commit": "2b6b9ec9033a8b829393e44c3feb7b19b163d2cd",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 14 Oct 2020 23:45:07 GMT",
+      "tag": "@azure/msal-browser_v2.3.1",
+      "version": "2.3.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove rogue console.log() in the BrowserCrypto.ts file and add a lint rule to prevent future issues (#2410)",
+            "author": "prkanher@microsoft.com",
+            "commit": "d2fc6bb778a79d9160474cebfc6c5a52bcf464ff",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Check for Headers class when configuring network client",
+            "author": "janutter@microsoft.com",
+            "commit": "15798f723cd9beb8f6160703168f3ff63bcb8793",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update getItem to return ServerTelemetryEntity (#2223)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "82b982ba38d70d9060e3cf5d9c38e0203b60d963",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update docs to explain B2C invite flow (#2392)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "319fe7bb2f6e2c7ea905d1df10ed7665d64264f3",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update README.md",
+            "author": "prkanher@microsoft.com",
+            "commit": "8f5e957039dfbfb0ecfa42a2f1244873d2f4b5b1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add enhanced documentation about responseMode in browser (#2228)",
+            "author": "jamckenn@microsoft.com",
+            "commit": "1c098e24d82c19f32dc5c493b76f46a89eca1828",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Oct 2020 17:42:35 GMT",
       "tag": "@azure/msal-browser_v2.3.0",
       "version": "2.3.0",

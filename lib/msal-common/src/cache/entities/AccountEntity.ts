@@ -13,9 +13,9 @@ import { AuthToken } from "../../account/AuthToken";
 import { ICrypto } from "../../crypto/ICrypto";
 import { buildClientInfo } from "../../account/ClientInfo";
 import { StringUtils } from "../../utils/StringUtils";
-import { TrustedAuthority } from "../../authority/TrustedAuthority";
 import { AccountInfo } from "../../account/AccountInfo";
 import { ClientAuthError } from "../../error/ClientAuthError";
+import { AuthorityType } from "../../authority/AuthorityType";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -119,7 +119,7 @@ export class AccountEntity {
     }
 
     /**
-     * Build Account cache from IdToken, clientInfo and authority/policy
+     * Build Account cache from IdToken, clientInfo and authority/policy. Associated with AAD.
      * @param clientInfo
      * @param authority
      * @param idToken
@@ -168,18 +168,18 @@ export class AccountEntity {
     }
 
     /**
-     * Build ADFS account type
+     * Builds non-AAD/ADFS account.
      * @param authority
      * @param idToken
      */
-    static createADFSAccount(
+    static createGenericAccount(
         authority: Authority,
         idToken: AuthToken,
         oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
-
-        account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
+        
+        account.authorityType = (authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
         // non AAD scenarios can have empty realm
         account.realm = "";
@@ -207,6 +207,9 @@ export class AccountEntity {
      */
     static isAccountEntity(entity: object): boolean {
 
+        if (!entity) {
+            return false;
+        }
         return (
             entity.hasOwnProperty("homeAccountId") &&
             entity.hasOwnProperty("environment") &&

@@ -2,6 +2,102 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 26 Oct 2020 21:00:29 GMT",
+      "tag": "@azure/msal-common_v1.6.3",
+      "version": "1.6.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix ServerTelemetry maxErrorToSend bug (#2491)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "81575de28b78e7c09c5d475854e14a8bc1b7b567",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add missing default headers to device code",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "e007d2b425c8ceaed409ed9b11a1a72bc64fa955",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9d4c4a18de10eb3d918810dc10766fbd5547165d",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 20 Oct 2020 23:47:28 GMT",
+      "tag": "@azure/msal-common_v1.6.2",
+      "version": "1.6.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Adds support for any OIDC-compliant authority (#2389).",
+            "author": "jamckenn@microsoft.com",
+            "commit": "2b6b9ec9033a8b829393e44c3feb7b19b163d2cd",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Updated eslint rules (#2345)",
+            "author": "janutter@microsoft.com",
+            "commit": "64a4f9e868e63346dfd711dec717abe7fd14d949",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 15 Oct 2020 00:49:18 GMT",
+      "tag": "@azure/msal-common_v1.6.1",
+      "version": "1.6.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Removing unused errors in msal-common and fixing possible build errors in @azure/msal-common@1.6.0 (#2432)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "c752e512993dc3a294b51fe0849c70e3cfeafa3e",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 14 Oct 2020 23:45:07 GMT",
+      "tag": "@azure/msal-common_v1.6.0",
+      "version": "1.6.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Docs updates for msal-node release",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "20718209d5d567c02223a7f1b220b4aa40ad6817",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add support for persistence cache plugin (#2348)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "26723689e35918c59bd6ce58ba8cb886118676c6",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Add Telemetry header size limit (#2223)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "82b982ba38d70d9060e3cf5d9c38e0203b60d963",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Oct 2020 17:42:35 GMT",
       "tag": "@azure/msal-common_v1.5.0",
       "version": "1.5.0",

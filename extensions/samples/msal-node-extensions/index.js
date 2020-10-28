@@ -24,7 +24,6 @@ createPersistence().then((filePersistence) => {
         },
     };
     const pca = new msal.PublicClientApplication(publicClientConfig);
-    const tokenCache = pca.getTokenCache();
 
     // Create Express App and Routes
     const app = express();
@@ -51,20 +50,14 @@ createPersistence().then((filePersistence) => {
         pca.acquireTokenByCode(tokenRequest).then((response) => {
             console.log("\nResponse: \n", response);
             res.sendStatus(200);
-            if (tokenCache.cacheHasChanged()) {
-                tokenCache.writeToPersistence();
-            }
         }).catch((error) => {
             console.log(error);
             res.status(500).send(error);
         });
     });
 
-    tokenCache.readFromPersistence().then(() => {
-        app.listen(SERVER_PORT, () => console.log(`Msal Extensions Sample app listening on port ${SERVER_PORT}!`))
-    });
-}
-);
+    app.listen(SERVER_PORT, () => console.log(`Msal Extensions Sample app listening on port ${SERVER_PORT}!`));
+});
 
 /**
  * Builds persistence based on operating system. Falls back to storing in plain text.
