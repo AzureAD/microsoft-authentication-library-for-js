@@ -52,10 +52,13 @@ export function MsalProvider({instance, children}: MsalProviderProps) {
                     setInteractionInProgress(false);
                     break;
                 case EventType.ACQUIRE_TOKEN_SUCCESS:
+                case EventType.ACQUIRE_TOKEN_FAILURE:
                 case EventType.LOGOUT_SUCCESS:
                 case EventType.LOGOUT_FAILURE:
                     setAccounts(instance.getAllAccounts());
-                    setInteractionInProgress(false);
+                    if (message.interactionType === InteractionType.Redirect || message.interactionType === InteractionType.Popup) {
+                        setInteractionInProgress(false);
+                    }
                     break;
             }
         });
