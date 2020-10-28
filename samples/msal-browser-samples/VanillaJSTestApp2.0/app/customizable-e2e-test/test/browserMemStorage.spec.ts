@@ -15,13 +15,11 @@ const SAMPLE_HOME_URL = "http://localhost:30662/";
 
 async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens).to.be.length(1);
-    expect(tokenStore.accessTokens).to.be.length(1);
-    expect(tokenStore.refreshTokens).to.be.length(1);
-    expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
-    expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).to.be.true;
+    expect(tokenStore.idTokens).to.be.length(0);
+    expect(tokenStore.accessTokens).to.be.length(0);
+    expect(tokenStore.refreshTokens).to.be.length(0);
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).to.be.eq(4);
+    expect(Object.keys(storage).length).to.be.eq(0);
 }
 
 describe("Browser tests", function () {
