@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Injectable } from "@angular/core";
 import {
     HttpRequest,
@@ -45,7 +50,7 @@ export class MsalInterceptor implements HttpInterceptor {
             .pipe(
                 mergeMap(nextReq => next.handle(nextReq)),
                 tap(
-                    event => {}, // tslint:disable-line
+                    () => {},
                     err => {
                         if (err instanceof HttpErrorResponse && err.status === 401) {
                             this.auth.clearCacheForScope(token);

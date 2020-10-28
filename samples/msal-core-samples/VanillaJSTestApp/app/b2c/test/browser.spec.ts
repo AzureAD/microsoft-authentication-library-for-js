@@ -11,10 +11,10 @@ let accountPwd = "";
 
 // Set App Info
 const clientId = "e3b9ad76-9763-4827-b088-80c7a7888f79";
-const authority = "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/"
-const scopes = ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
-const idTokenCacheKey = "msal." + clientId + ".idtoken"
-const clientInfoCacheKey = "msal." + clientId + ".client.info"
+const authority = "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/";
+const scopes = ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"];
+const idTokenCacheKey = "msal." + clientId + ".idtoken";
+const clientInfoCacheKey = "msal." + clientId + ".client.info";
 
 function setupScreenshotDir() {
     if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
@@ -37,7 +37,7 @@ async function setupCredentials() {
 }
 
 async function takeScreenshot(page: puppeteer.Page, testName: string, screenshotName: string): Promise<void> {
-    const screenshotFolderName = `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+    const screenshotFolderName = `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`;
     if (!fs.existsSync(`${screenshotFolderName}`)) {
         fs.mkdirSync(screenshotFolderName);
     }
@@ -47,12 +47,11 @@ async function takeScreenshot(page: puppeteer.Page, testName: string, screenshot
 async function enterCredentials(page: puppeteer.Page, testName: string): Promise<void> {
     await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0116");
-    await takeScreenshot(page, testName, `loginPage`);
+    await takeScreenshot(page, testName, "loginPage");
     await page.type("#i0116", username);
     await page.click("#idSIButton9");
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
-    await page.waitForSelector("#i0118");
-    await takeScreenshot(page, testName, `pwdInputPage`);
+    await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await takeScreenshot(page, testName, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
 
@@ -63,10 +62,10 @@ async function enterCredentials(page: puppeteer.Page, testName: string): Promise
 
 async function loginRedirect(page: puppeteer.Page, testName: string): Promise<void> {
     // Home Page
-    await takeScreenshot(page, testName, `samplePageInit`);
+    await takeScreenshot(page, testName, "samplePageInit");
     // Click Sign In
     await page.click("#SignIn");
-    await takeScreenshot(page, testName, `signInClicked`);
+    await takeScreenshot(page, testName, "signInClicked");
     // Click Sign In With Redirect
     await page.click("#loginRedirect");
     await page.waitForSelector("#MSIDLAB4_AzureAD");
@@ -78,17 +77,17 @@ async function loginRedirect(page: puppeteer.Page, testName: string): Promise<vo
     await enterCredentials(page, testName);
     // Wait for return to page
     await page.waitForSelector("#getAccessTokenRedirect");
-    await takeScreenshot(page, testName, `samplePageLoggedIn`);
+    await takeScreenshot(page, testName, "samplePageLoggedIn");
 }
 
 async function loginPopup(page: puppeteer.Page, testName: string): Promise<void> {
     // Home Page
-    await takeScreenshot(page, testName, `samplePageInit`);
+    await takeScreenshot(page, testName, "samplePageInit");
     // Click Sign In
     await page.click("#SignIn");
-    await takeScreenshot(page, testName, `signInClicked`);
+    await takeScreenshot(page, testName, "signInClicked");
     // Click Sign In With Popup
-    const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once('popup', resolve));
+    const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
     await page.click("#loginPopup");
     const popupPage = await newPopupWindowPromise;
     const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
@@ -103,25 +102,25 @@ async function loginPopup(page: puppeteer.Page, testName: string): Promise<void>
     // Wait until popup window closes and see that we are logged in
     await popupWindowClosed;
     await page.waitForSelector("#getAccessTokenPopup");
-    await takeScreenshot(page, testName, `samplePageLoggedIn`);
+    await takeScreenshot(page, testName, "samplePageLoggedIn");
 }
 
 async function validateAccessTokens(page: puppeteer.Page, localStorage: Storage) {
-    let accessTokensFound = 0
+    let accessTokensFound = 0;
     let accessTokenMatch: boolean;
 
     Object.keys(localStorage).forEach(async (key) => {
         if (key.includes("authority")) {
-            let cacheKey = JSON.parse(key);
+            const cacheKey = JSON.parse(key);
             // let cachedScopeList = cacheKey.scopes.split(" ");
 
             accessTokenMatch = cacheKey.authority === authority.toLowerCase() &&
-                                cacheKey.clientId.toLowerCase() === clientId.toLowerCase()
-                                // scopes.every(scope => cachedScopeList.includes(scope));
+                                cacheKey.clientId.toLowerCase() === clientId.toLowerCase();
+            // scopes.every(scope => cachedScopeList.includes(scope));
 
             if (accessTokenMatch) {
                 accessTokensFound += 1;
-                await page.evaluate((key) => window.localStorage.removeItem(key))
+                await page.evaluate((key) => window.localStorage.removeItem(key));
             }
         }
     });
@@ -139,7 +138,7 @@ describe("Browser tests", function () {
         setupCredentials();
         browser = await puppeteer.launch({
             headless: true,
-            ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
+            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
         });
     });
 
@@ -156,7 +155,7 @@ describe("Browser tests", function () {
             SCREENSHOT_NUM = 0;
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            await page.goto('http://localhost:30662/');
+            await page.goto("http://localhost:30662/");
         });
     
         afterEach(async () => {
@@ -190,7 +189,7 @@ describe("Browser tests", function () {
             SCREENSHOT_NUM = 0;
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            await page.goto('http://localhost:30662/');
+            await page.goto("http://localhost:30662/");
             await loginPopup(page, testName);
         });
     

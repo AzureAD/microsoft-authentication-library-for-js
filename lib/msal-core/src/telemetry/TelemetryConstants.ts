@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 export const EVENT_NAME_PREFIX = "msal.";
 export const EVENT_NAME_KEY = "event_name";
 export const START_TIME_KEY = "start_time";

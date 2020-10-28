@@ -9,8 +9,9 @@ import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetwor
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientTestUtils } from "../client/ClientTestUtils";
-import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme } from "../../src";
+import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme, ValidCredentialType, CredentialEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, ProtocolMode } from "../../src";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
+import { MockStorageClass } from "../client/ClientTestUtils";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -61,38 +62,11 @@ const cryptoInterface: ICrypto = {
     async signJwt(): Promise<string> {
         return signedJwt;
     }
-}
+};
 
-let store = {};
-class TestCacheManager extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
-        store[key] = value as string;
-    }
-    getItem(key: string, type?: string): string | object {
-        return store[key];
-    }
-    removeItem(key: string, type?: string): boolean {
-        let result: boolean = false;
-        if (!!store[key]) {
-            delete store[key];
-            result = true;
-        }
+const testCacheManager = new MockStorageClass();
 
-        return result;
-    }
-    containsKey(key: string, type?: string): boolean {
-        return !!store[key];
-    }
-    getKeys(): string[] {
-        return Object.keys(store);
-    }
-    clear(): void {
-        store = {};
-    }
-}
-const testCacheManager = new TestCacheManager;
-
-let authority = new Authority("https://login.microsoftonline.com/common", networkInterface);
+const authority = new Authority("https://login.microsoftonline.com/common", networkInterface, ProtocolMode.AAD);
 
 describe("ResponseHandler.ts", () => {
     beforeEach(() => {
@@ -111,9 +85,9 @@ describe("ResponseHandler.ts", () => {
 
     afterEach(() => {
         sinon.restore();
-    })
+    });
 
-    describe("generateCacheRecord", () => {
+    describe("generateCacheRecord", async () => {
         it("throws invalid cache environment error", async () => {
             sinon.restore();
             sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedIdToken, crypto) => {
@@ -140,7 +114,7 @@ describe("ResponseHandler.ts", () => {
                     expect(e.errorMessage).to.be.eq(ClientAuthErrorMessage.invalidCacheEnvironment.desc);
                 } else {
                     throw e;
-                }                
+                }
             }
         });
 
@@ -195,7 +169,7 @@ describe("ResponseHandler.ts", () => {
         });
     });
 
-    describe("generateAuthenticationResult", () => {
+    describe("generateAuthenticationResult", async () => {
         it("sets default values if access_token not in cacheRecord", async () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.access_token = null;
@@ -234,7 +208,7 @@ describe("ResponseHandler.ts", () => {
                         };
                     default:
                         return null;
-                };
+                }
             });
             sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
             sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
@@ -244,7 +218,7 @@ describe("ResponseHandler.ts", () => {
                 username: "test@contoso.com"
             });
             ClientTestUtils.setCloudDiscoveryMetadataStubs();
-            
+
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
             const result = await responseHandler.handleServerTokenResponse(testResponse, authority, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
 
@@ -257,7 +231,7 @@ describe("ResponseHandler.ts", () => {
         afterEach(() => {
             sinon.restore();
         });
-        
+
         it("throws state mismatch error", (done) => {
             const testServerCodeResponse: ServerAuthorizationCodeResponse = {
                 code: "testCode",

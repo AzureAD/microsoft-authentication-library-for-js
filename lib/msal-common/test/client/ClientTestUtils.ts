@@ -1,24 +1,106 @@
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError} from "../../src";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory } from "../../src";
 import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../utils/StringConstants";
-import { AuthorityFactory } from "../../src";
+
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 import sinon from "sinon";
 import { CloudDiscoveryMetadata } from "../../src/authority/CloudDiscoveryMetadata";
 import { CacheManager } from "../../src/cache/CacheManager";
+import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 
 export class MockStorageClass extends CacheManager {
     store = {};
-    setItem(key: string, value: string | object, type?: string): void {
+
+    // Accounts
+    getAccount(key: string): AccountEntity | null {
+        const account: AccountEntity = this.store[key] as AccountEntity;
+        if (AccountEntity.isAccountEntity(account)) {
+            return account;
+        }
+        return null;
+    }
+    setAccount(value: AccountEntity): void {
+        const key = value.generateAccountKey();
         this.store[key] = value;
     }
-    getItem(key: string, type?: string): string | object {
-        return this.store[key];
+
+    // Credentials (idtokens)
+    getIdTokenCredential(key: string): IdTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.ID_TOKEN) {
+            return this.store[key] as IdTokenEntity;
+        }
+        return null;
     }
-    removeItem(key: string, type?: string): boolean {
-        delete this.store[key];
-        return true;
+    setIdTokenCredential(value: IdTokenEntity): void {
+        const key = value.generateCredentialKey();
+        this.store[key] = value;
     }
-    containsKey(key: string, type?: string): boolean {
+
+    // Credentials (accesstokens)
+    getAccessTokenCredential(key: string): AccessTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.ACCESS_TOKEN) {
+            return this.store[key] as AccessTokenEntity;
+        }
+        return null;
+    }
+    setAccessTokenCredential(value: AccessTokenEntity): void {
+        const key = value.generateCredentialKey();
+        this.store[key] = value;
+    }
+
+    // Credentials (accesstokens)
+    getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
+        const credType = CredentialEntity.getCredentialType(key);
+        if (credType === CredentialType.REFRESH_TOKEN) {
+            return this.store[key] as RefreshTokenEntity;
+        }
+        return null;
+    }
+    setRefreshTokenCredential(value: RefreshTokenEntity): void {
+        const key = value.generateCredentialKey();
+        this.store[key] = value;
+    }
+
+    // AppMetadata
+    getAppMetadata(key: string): AppMetadataEntity | null {
+        return this.store[key] as AppMetadataEntity;
+    }
+    setAppMetadata(value: AppMetadataEntity): void {
+        const key = value.generateAppMetadataKey();
+        this.store[key] = value;
+    }
+
+    // Telemetry cache
+    getServerTelemetry(key: string): ServerTelemetryEntity | null {
+        return this.store[key] as ServerTelemetryEntity;
+    }
+    setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
+        this.store[key] = value;
+    }
+
+    // Throttling cache
+    getThrottlingCache(key: string): ThrottlingEntity | null {
+        return this.store[key] as ThrottlingEntity;
+    }
+    setThrottlingCache(key: string, value: ThrottlingEntity): void {
+        this.store[key] = value;
+    }
+
+    removeItem(key: string): boolean {
+        let result: boolean = false;
+        if (!!this.store[key]) {
+            delete this.store[key];
+            result = true;
+        }
+        return result;
+    }
+    containsKey(key: string): boolean {
         return !!this.store[key];
     }
     getKeys(): string[] {
@@ -48,13 +130,12 @@ export class ClientTestUtils {
             }
         };
 
-        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient);
+        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, ProtocolMode.AAD);
 
         await authority.resolveEndpointsAsync().catch(error => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
         });
 
-        const store = {};
         return {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,

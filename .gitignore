@@ -261,6 +261,7 @@ paket-files/
 # MSAL specific ignore files
 node_modules/
 .nyc_output/
+coverage/
 typings/
 lib-commonjs/
 lib-es6/
@@ -268,6 +269,7 @@ lib/msal-core/lib-commonjs
 lib/msal-core/lib-es6
 *.tgz
 *.zip
-samples/**/test/screenshots
+samples/**/screenshots
 samples/**/data/cache.json
+samples/**/data/testCache.json
 .env

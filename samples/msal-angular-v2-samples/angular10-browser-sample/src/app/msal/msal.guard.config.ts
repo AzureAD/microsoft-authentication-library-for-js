@@ -1,7 +1,6 @@
-import { InteractionType } from "./constants";
-import { PopupRequest, RedirectRequest } from '@azure/msal-browser';
+import { PopupRequest, RedirectRequest,InteractionType } from '@azure/msal-browser';
 
 export type MsalGuardConfiguration = {
-    interactionType: InteractionType.POPUP | InteractionType.REDIRECT;
+    interactionType: InteractionType.Popup | InteractionType.Redirect;
     authRequest?: PopupRequest | RedirectRequest;
 };

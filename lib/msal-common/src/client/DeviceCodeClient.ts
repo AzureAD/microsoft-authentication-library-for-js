@@ -12,7 +12,6 @@ import { Constants, GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { ScopeSet } from "../request/ScopeSet";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
@@ -44,7 +43,9 @@ export class DeviceCodeClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
@@ -63,7 +64,7 @@ export class DeviceCodeClient extends BaseClient {
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
         const queryString = this.createQueryString(request);
-        const headers = this.createDefaultLibraryHeaders();
+        const headers = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
@@ -121,7 +122,7 @@ export class DeviceCodeClient extends BaseClient {
 
         parameterBuilder.addScopes(request.scopes);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
-        
+
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }

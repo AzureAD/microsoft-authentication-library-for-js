@@ -1,8 +1,18 @@
 # Change Log - msal
 
-This log was last generated on Wed, 30 Sep 2020 17:58:33 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Oct 2020 23:47:28 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.2
+
+Tue, 20 Oct 2020 23:47:28 GMT
+
+### Patches
+
+- Fix issue where concurrent acquireTokenSilent call closed window used by acquireTokenPopup (#2355) (hemoral@microsoft.com)
+- Use history API to clear hash to remove # sign (janutter@microsoft.com)
+- Fix issues with ID token caching and cache lookup (#2376) (hemoral@microsoft.com)
 
 ## 1.4.1
 

@@ -1,8 +1,43 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Fri, 02 Oct 2020 17:42:35 GMT and should not be manually modified.
+This log was last generated on Mon, 26 Oct 2020 21:00:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.4.1
+
+Mon, 26 Oct 2020 21:00:29 GMT
+
+### Patches
+
+- msal-browser and msal-node cache Interfaces to msal-common updated (#2415) (sameera.gajjarapu@microsoft.com)
+
+## 2.4.0
+
+Tue, 20 Oct 2020 23:47:28 GMT
+
+### Minor changes
+
+- Add removeEventCallback API (#2462) (thomas.norling@microsoft.com)
+- Add event api to msal-browser (#2394) (joarroyo@microsoft.com)
+
+### Patches
+
+- Use history API to clear hash for msal-browser (janutter@microsoft.com)
+- Export InteractionType (#2438) (thomas.norling@microsoft.com)
+- Add extraQueryParameters to acquireTokenSilent in msal-browser (janutter@microsoft.com)
+- Fix unexpected interaction_required error in redirect flow (#2404) (thomas.norling@microsoft.com)
+- Adds support for any OIDC-compliant authority (#2389). (jamckenn@microsoft.com)
+
+## 2.3.1
+
+Wed, 14 Oct 2020 23:45:07 GMT
+
+### Patches
+
+- Remove rogue console.log() in the BrowserCrypto.ts file and add a lint rule to prevent future issues (#2410) (prkanher@microsoft.com)
+- Check for Headers class when configuring network client (janutter@microsoft.com)
+- Update getItem to return ServerTelemetryEntity (#2223) (thomas.norling@microsoft.com)
 
 ## 2.3.0
 
