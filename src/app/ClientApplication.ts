@@ -552,7 +552,7 @@ export abstract class ClientApplication {
             this.preflightBrowserEnvironmentCheck();
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-            const authClient = await this.createAuthCodeClient(null, logoutRequest && (logoutRequest.authority || this.config.auth.authority));
+            const authClient = await this.createAuthCodeClient(null, logoutRequest && logoutRequest.authority);
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
