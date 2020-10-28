@@ -91,7 +91,7 @@ export class BrokerClientApplication extends ClientApplication {
                 // TODO: Replace with in-memory cache lookup
                 console.log(brokerResult);
                 this.cachedBrokerResponse = null;
-                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.REDIRECT, brokerResult);
+                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
                 this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
