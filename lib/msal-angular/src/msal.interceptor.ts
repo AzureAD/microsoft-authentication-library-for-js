@@ -1,17 +1,22 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     HttpRequest,
     HttpHandler,
     HttpEvent,
     HttpInterceptor
-} from '@angular/common/http';
-import { Observable, from, EMPTY } from 'rxjs';
-import { switchMap, catchError } from 'rxjs/operators';
-import { MsalService } from './msal.service';
+} from "@angular/common/http";
+import { Observable, EMPTY } from "rxjs";
+import { switchMap, catchError } from "rxjs/operators";
+import { MsalService } from "./msal.service";
 import { Minimatch } from "minimatch";
 import { AuthenticationResult, InteractionType } from "@azure/msal-browser";
-import { Injectable, Inject } from '@angular/core';
-import { MSAL_INTERCEPTOR_CONFIG } from './constants';
-import { MsalInterceptorConfig } from './msal.interceptor.config';
+import { Injectable, Inject } from "@angular/core";
+import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
+import { MsalInterceptorConfig } from "./msal.interceptor.config";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
@@ -41,7 +46,7 @@ export class MsalInterceptor implements HttpInterceptor {
                 }),
                 switchMap((result: AuthenticationResult) => {
                     const headers = req.headers
-                        .set('Authorization', `Bearer ${result.accessToken}`);
+                        .set("Authorization", `Bearer ${result.accessToken}`);
 
                     const requestClone = req.clone({headers});
                     return next.handle(requestClone);

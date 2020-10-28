@@ -1,12 +1,17 @@
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { MsalService } from './msal.service';
-import { Injectable, Inject } from '@angular/core';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from "@angular/router";
+import { MsalService } from "./msal.service";
+import { Injectable, Inject } from "@angular/core";
 import { Location } from "@angular/common";
 import { InteractionType} from "@azure/msal-browser";
-import { MsalGuardConfiguration } from './msal.guard.config';
-import { MSAL_GUARD_CONFIG } from './constants';
-import { concatMap, catchError, map } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
+import { MsalGuardConfiguration } from "./msal.guard.config";
+import { MSAL_GUARD_CONFIG } from "./constants";
+import { concatMap, catchError, map } from "rxjs/operators";
+import { Observable, of } from "rxjs";
 
 @Injectable()
 export class MsalGuard implements CanActivate {
@@ -34,8 +39,10 @@ export class MsalGuard implements CanActivate {
             return `${baseUrl}/${pathUrl}`;
         }
 
-        // If using path location strategy, pathUrl will include the relative portion of the base path (e.g. /base/page).
-        // Since baseUrl also includes /base, can just concatentate baseUrl + path
+        /*
+         * If using path location strategy, pathUrl will include the relative portion of the base path (e.g. /base/page).
+         * Since baseUrl also includes /base, can just concatentate baseUrl + path
+         */
         return `${baseUrl}${path}`;
     }
 
@@ -66,7 +73,7 @@ export class MsalGuard implements CanActivate {
                     }
                     return of(true);
                 }),
-                catchError(() => console.log)
+                catchError(() => of(false))
             );
     }
 

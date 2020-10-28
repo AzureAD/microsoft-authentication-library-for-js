@@ -1,4 +1,9 @@
-import { Inject, Injectable, Optional } from "@angular/core";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { Inject, Injectable } from "@angular/core";
 import {
     IPublicClientApplication,
     AccountInfo,
@@ -10,7 +15,7 @@ import {
     SilentRequest
 } from "@azure/msal-browser";
 import { MSAL_INSTANCE } from "./constants";
-import { Observable, from } from 'rxjs';
+import { Observable, from } from "rxjs";
 
 interface IMsalService {
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult>;

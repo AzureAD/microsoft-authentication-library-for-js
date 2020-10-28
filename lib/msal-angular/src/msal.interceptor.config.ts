@@ -1,4 +1,9 @@
-import { PopupRequest, RedirectRequest, InteractionType } from '@azure/msal-browser';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { PopupRequest, RedirectRequest, InteractionType } from "@azure/msal-browser";
 
 export type MsalInterceptorConfig = {
     interactionType: InteractionType.Popup | InteractionType.Redirect;

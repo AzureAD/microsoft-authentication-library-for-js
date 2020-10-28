@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test",
-    "lint": "ng lint",
+    "lint": "cd ../../ && npm run lint:angular",
+    "lint:fix": "npm run lint -- -- --fix",
     "e2e": "ng e2e"
   },
   "private": true,
