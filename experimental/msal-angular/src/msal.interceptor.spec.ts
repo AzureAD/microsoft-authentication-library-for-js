@@ -19,7 +19,9 @@ describe('MsalInterceptor', () => {
   let httpMock: HttpTestingController;
   let httpClient: HttpClient;
 
-  beforeEach(() => {
+  beforeAll(() => {
+    TestBed.resetTestingModule();
+
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule,

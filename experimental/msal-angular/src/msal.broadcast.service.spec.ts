@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { MSAL_INSTANCE } from './constants';
 import { MsalBroadcastService } from './msal.broadcast.service';
-import { EventMessage, EventType, InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+import { EventType, InteractionType, PublicClientApplication } from '@azure/msal-browser';
 import { MsalModule } from './public-api';
 
 const msalInstance = new PublicClientApplication({
@@ -14,7 +13,9 @@ const msalInstance = new PublicClientApplication({
 describe('MsalBroadcastService', () => {
   let broadcastService: MsalBroadcastService;
 
-  beforeEach(() => {
+  beforeAll(() => {
+    TestBed.resetTestingModule();
+
     TestBed.configureTestingModule({
       imports: [
         MsalModule.forRoot(msalInstance, null, {interactionType: InteractionType.Popup, protectedResourceMap: new Map()})

@@ -1,25 +1,23 @@
 import { TestBed } from '@angular/core/testing';
-import { AuthenticationResult, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
+import { AuthenticationResult, AuthError, InteractionType, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
 import { MsalModule, MsalBroadcastService, MsalService } from './public-api';
 
 let authService: MsalService;
 let broadcastService: MsalBroadcastService;
 
-function MSALInstanceFactory(): IPublicClientApplication {
-  return new PublicClientApplication({
-    auth: {
-      clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
-      redirectUri: 'http://localhost:4200'
-    }
-  });
-}
+const msalInstance = new PublicClientApplication({
+  auth: {
+    clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
+    redirectUri: 'http://localhost:4200'
+  }
+});
 
 function initializeMsal() {
   TestBed.resetTestingModule();
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(MSALInstanceFactory(), null, { interactionType: InteractionType.Popup, protectedResourceMap: new Map() })
+      MsalModule.forRoot(msalInstance, null, { interactionType: InteractionType.Popup, protectedResourceMap: new Map() })
     ],
     providers: [
       MsalService,

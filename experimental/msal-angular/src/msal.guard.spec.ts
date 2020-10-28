@@ -14,7 +14,8 @@ describe('MsalGuard', () => {
     });
   }
 
-  beforeEach(() => {
+  beforeAll(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [
         MsalModule.forRoot(MSALInstanceFactory(), null, {interactionType: InteractionType.Popup, protectedResourceMap: new Map()})

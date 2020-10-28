@@ -1,27 +1,118 @@
-# MsalAngularV2
+# Microsoft Authentication Library for Angular
+![npm (scoped)](https://img.shields.io/npm/v/@azure/msal-angular)![npm](https://img.shields.io/npm/dw/@azure/msal-angular)
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.6.
+| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-angular)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-angular/) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples)
+| --- | --- | --- | --- | --- |
 
-## Development server
+1. [About](#about)
+2. [Guides](#guides)
+3. [Version Support](#version-support)
+4. [Prerequisites](#prerequisites)
+5. [Installation](#installation)
+6. [Usage](#usage)
+7. [Samples](#samples)
+8. [Build and running tests](#build-and-running-tests)
+9. [Versioning](#versioning)
+10. [Community Help and Support](#community-help-and-support)
+11. [Contribute](#contribute)
+12. [Security Reporting](#security-reporting)
+13. [License](#license)
+14. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## About
 
-## Code scaffolding
+MSAL for Angular enables Angular web applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+The `@azure/msal-angular` package described by the code in this folder uses the [`@azure/msal-browser` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) as a dependency to enable authentication in Angular Web Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [`msal-angular-v1` library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core).
 
-## Build
+This is an improvement upon the current `msal-angular` library which will utilize the authorization code flow. Most features available in the old library will be available in this one, but there are nuances to the authentication flow in both. The `@azure/msal-angular` package does NOT support the implicit flow.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+## Guides
 
-## Running unit tests
+- [Quickstart](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-angular)
+- [Upgrade Guide (1.x-2.x)]()
+- [Upgrade Guide (0.x-1.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/0.x-1.x-upgrade-guide.md)
+- [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/configuration.md)
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Version Support
 
-## Running end-to-end tests
+At a minimum, MSAL Angular will follow the [support schedule of the main Angular project](https://angular.io/guide/releases#support-policy-and-schedule). We may continue to support certain versions of Angular that are no under Active or LTS support from the main Angular project on a version-by-version basis, as defined below.
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+| MSAL Angular version | MSAL support status     | Supported Angular versions |
+|----------------------|-------------------------|----------------------------|
+| 2.x.x                | Active development      | 9, 10                      |
+| 1.x.x                | Active development      | 6, 7, 8, 9                 |
+| 0.x.x                | In maintenance          | 4, 5                       |
 
-## Further help
+## Prerequisites
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+Before using MSAL.js, [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get your `clientId`.
+
+## Installation
+
+The MSAL Angular package is available on NPM:
+
+`npm install msal @azure/msal-angular --save`
+
+
+## Usage
+
+MSAL Angular Basics
+1. [Initialization](./docs/initialization.md)
+2. [Public APIs](./docs/public-apis.md)
+3. [Advanced Topics](./docs/advanced-topics.md)
+
+## Samples
+
+### MSAL Angular 1.x Samples
+* [Angular Quickstart](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-angular)
+* [B2C Angular SPA](https://github.com/Azure-Samples/active-directory-b2c-javascript-angular-spa)
+* [Angular v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular6-sample-app)
+* [Angular v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular7-sample-app)
+* [Angular v8](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular8-sample-app)
+* [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular9-sample-app)
+
+### MSAL Angular 2.x Samples
+* [Angular v10]()
+
+## Build and running tests
+
+If you want to build the library and run all the unit tests, you can do the following.
+
+First navigate to the root directory of the library(msal-angular) and install the dependencies:
+
+    npm install
+
+Then use the following command to build the library and run all the unit tests:
+
+    npm run build
+
+    npm run test
+
+## Versioning
+
+This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when possible. We use [semantic versioning](http://semver.org) so you can control the risk associated with updating your app. As an example, always downloading the latest minor version number (e.g. x._y_.x) ensures you get the latest security and feature enhanements but our API surface remains the same. You can always see the latest version and release notes under the Releases tab of GitHub.
+
+## Community Help and Support
+
+-   [Msal Browser FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md) for access to our frequently asked questions
+-   [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag "msal".
+    We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
+-   [GitHub Issues](../../issues) for reporting a bug or feature requests
+-   [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
+
+## Contribute
+
+We enthusiastically welcome contributions and feedback. Please read the [contributing guide](contributing.md) before you begin.
+
+## Security Reporting
+
+If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/security/dd252948) and subscribing to Security Advisory Alerts.
+
+## License
+
+Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License (the "License").
+
+## We Value and Adhere to the Microsoft Open Source Code of Conduct
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
