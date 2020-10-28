@@ -78,11 +78,11 @@ export class BrokerClientApplication extends ClientApplication {
         if (validMessage) {
             this.logger.verbose(`Broker auth request validated: ${validMessage}`);
             switch (validMessage.interactionType) {
-                case InteractionType.REDIRECT:
+                case InteractionType.Redirect:
                     return this.brokeredRedirectRequest(validMessage, clientMessage.ports[0]);
-                case InteractionType.POPUP:
+                case InteractionType.Popup:
                     return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
-                case InteractionType.SILENT:
+                case InteractionType.Silent:
                     return this.brokeredSilentRequest(validMessage, clientMessage.ports[0]);
                 default:
                     return;
@@ -104,12 +104,12 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredPopupRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const response: BrokerAuthenticationResult = (await this.acquireTokenPopup(validMessage.request as PopupRequest)) as BrokerAuthenticationResult;
-            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.POPUP, response);
+            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {
-            const brokerAuthResponse = new BrokerAuthResponse(InteractionType.POPUP, null, err);
+            const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, null, err);
             this.logger.info(`Found auth error: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
@@ -119,12 +119,12 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(validMessage.request as SilentRequest)) as BrokerAuthenticationResult;
-            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.SILENT, response);
+            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {
-            const brokerAuthResponse = new BrokerAuthResponse(InteractionType.SILENT, null, err);
+            const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, null, err);
             this.logger.info(`Found auth error: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();

@@ -38,7 +38,7 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    protected createTokenRequestBody(request: RefreshTokenRequest): string {
+    protected async createTokenRequestBody(request: RefreshTokenRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         // TODO: Add broker params

@@ -173,7 +173,7 @@ export class ResponseHandler {
         return ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
-    handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): BrokerAuthenticationResult {
+    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): Promise<BrokerAuthenticationResult> {
         // generate homeAccountId
         if (serverTokenResponse.client_info) {
             this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
@@ -185,7 +185,7 @@ export class ResponseHandler {
         }
         
         // create an idToken object (not entity)
-        const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
+        const idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
 
         // token nonce check (TODO: Add a warning if no nonce is given?)
         if (!StringUtils.isEmpty(cachedNonce)) {
@@ -203,11 +203,11 @@ export class ResponseHandler {
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
         // Save refresh token
         if (!!cacheRecord.refreshToken) {
-            this.cacheStorage.saveCredential(cacheRecord.refreshToken);
+            this.cacheStorage.setRefreshTokenCredential(cacheRecord.refreshToken);
         }
 
         cacheRecord.refreshToken = null;
-        const result = ResponseHandler.generateAuthenticationResult(cacheRecord, idTokenObj, false, requestStateObj);
+        const result = await ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj);
 
         // Get creds to send to child
         return {

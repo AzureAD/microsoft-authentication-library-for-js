@@ -142,7 +142,7 @@ export class RefreshTokenClient extends BaseClient {
      * Helper function to create the token request body
      * @param request
      */
-    private async createTokenRequestBody(request: RefreshTokenRequest): Promise<string> {
+    protected async createTokenRequestBody(request: RefreshTokenRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);

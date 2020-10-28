@@ -73,21 +73,21 @@ export class EmbeddedClientApplication {
     async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult> {
         await this.preflightBrokerRequest();
 
-        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.POPUP, DEFAULT_POPUP_MESSAGE_TIMEOUT);
+        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Popup, DEFAULT_POPUP_MESSAGE_TIMEOUT);
         return BrokerAuthResponse.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
     }
 
     async sendRedirectRequest(request: RedirectRequest): Promise<void> {
         await this.preflightBrokerRequest();
 
-        const message = await this.sendRequest(request, InteractionType.REDIRECT, DEFAULT_MESSAGE_TIMEOUT);
+        const message = await this.sendRequest(request, InteractionType.Redirect, DEFAULT_MESSAGE_TIMEOUT);
         BrokerRedirectResponse.validate(message);
     }
 
     async sendSilentRefreshRequest(request: SilentRequest): Promise<AuthenticationResult> {
         await this.preflightBrokerRequest();
 
-        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.SILENT, DEFAULT_MESSAGE_TIMEOUT);
+        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Silent, DEFAULT_MESSAGE_TIMEOUT);
         return BrokerAuthResponse.processBrokerResponse(brokerAuthResultMessage, this.browserStorage);
     }
 
