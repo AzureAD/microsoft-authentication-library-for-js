@@ -9,6 +9,7 @@ const msalConfig = {
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     },
     system: {
+        // TODO: Use interaction type enum
         brokerOptions: {
             allowBrokering: true,
             trustedBrokerDomains: ["http://localhost:30663"],

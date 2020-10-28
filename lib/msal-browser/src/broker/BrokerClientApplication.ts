@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { version } from "../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthenticationResult, StringUtils, AuthError } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthenticationResult, StringUtils, AuthError, AuthorizationUrlRequest, PersistentCacheKeys, CacheSchemaType, IdToken, ProtocolUtils, ResponseMode } from "@azure/msal-common";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { Configuration } from "../config/Configuration";
@@ -17,6 +17,8 @@ import { ClientApplication } from "../app/ClientApplication";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrokerHandleRedirectRequest } from "./BrokerHandleRedirectRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { BrowserStateObject } from "../utils/BrowserProtocolUtils";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -112,20 +114,52 @@ export class BrokerClientApplication extends ClientApplication {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
         if (validMessage) {
             this.logger.verbose(`Broker auth request validated: ${validMessage}`);
+            // TODO: Calculate request thumbprint
+            const brokerResult = await this.cachedBrokerResponse;
+            if (brokerResult) {
+                // TODO: Replace with in-memory cache lookup
+                this.cachedBrokerResponse = null;
+                const clientPort = clientMessage.ports[0];
+                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
+                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+                clientPort.postMessage(brokerAuthResponse);
+                clientPort.close();
+                return;
+            }
+
             switch (validMessage.interactionType) {
-                case InteractionType.Redirect:
-                    return this.brokeredRedirectRequest(validMessage, clientMessage.ports[0]);
-                case InteractionType.Popup:
-                    return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
                 case InteractionType.Silent:
                     return this.brokeredSilentRequest(validMessage, clientMessage.ports[0]);
+                case InteractionType.Redirect:
+                case InteractionType.Popup:
                 default:
-                    return;
+                    return this.interactiveBrokerRequest(this.config.system.brokerOptions.preferredInteractionType || validMessage.interactionType, validMessage, clientMessage);
             }
         }
     }
 
+    /**
+     * 
+     * @param interactionType 
+     * @param validMessage 
+     * @param clientMessage 
+     */
+    private async interactiveBrokerRequest(interactionType: InteractionType, validMessage: BrokerAuthRequest, clientMessage: MessageEvent): Promise<void> {
+        switch (interactionType) {
+            case InteractionType.Redirect:
+                return this.brokeredRedirectRequest(validMessage, clientMessage.ports[0]);
+            case InteractionType.Popup:
+                return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
+            case InteractionType.Silent:
+            case InteractionType.None:
+                // TODO: Throw error?
+            default:
+                return;
+        }
+    }
+
     async handleRedirectPromise(): Promise<BrokerAuthenticationResult | null> {
+        
         this.cachedBrokerResponse = super.handleRedirectPromise() as Promise<BrokerAuthenticationResult>;
         return null;
     }
@@ -205,5 +239,57 @@ export class BrokerClientApplication extends ClientApplication {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new BrokerRefreshTokenClient(clientConfig);
+    }
+
+    /**
+     * Helper to initialize required request parameters for interactive APIs and ssoSilent()
+     * @param request
+     */
+    protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+        let validatedRequest: AuthorizationUrlRequest = {
+            ...request,
+            ...this.setDefaultScopes(request)
+        };
+
+        validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
+
+        // Check for ADAL SSO
+        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
+            // Only check for adal token if no SSO params are being used
+            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN) as string;
+            if (!StringUtils.isEmpty(adalIdTokenString)) {
+                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
+                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+                if (adalIdToken.claims && adalIdToken.claims.upn) {
+                    validatedRequest.loginHint = adalIdToken.claims.upn;
+                }
+            }
+        }
+
+        const browserState: BrowserStateObject = {
+            interactionType: interactionType,
+            brokerClientId: this.config.auth.clientId
+        };
+
+        validatedRequest.state = ProtocolUtils.setRequestState(
+            this.browserCrypto,
+            (request && request.state) || "",
+            browserState
+        );
+
+        if (StringUtils.isEmpty(validatedRequest.nonce)) {
+            validatedRequest.nonce = this.browserCrypto.createNewGuid();
+        }
+
+        validatedRequest.responseMode = ResponseMode.FRAGMENT;
+
+        validatedRequest = {	
+            ...validatedRequest,	
+            ...this.initializeBaseRequest(validatedRequest)	
+        };
+
+        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
+
+        return validatedRequest;
     }
 }

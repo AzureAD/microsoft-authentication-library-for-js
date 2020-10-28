@@ -55,7 +55,7 @@ export type CacheOptions = {
 export type BrokerOptions = {
     actAsBroker?: boolean;
     allowLogout?: boolean;
-    preferredInteractionType?: InteractionType;
+    preferredInteractionType?: InteractionType.POPUP | InteractionType.REDIRECT | InteractionType.NONE;
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
     brokeredRedirectUri?: string;
@@ -138,7 +138,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
         actAsBroker: false,
         allowLogout: false,
-        preferredInteractionType: null,
+        preferredInteractionType: InteractionType.NONE,
         allowBrokering: false,
         trustedBrokerDomains: [],
         brokeredRedirectUri: "",

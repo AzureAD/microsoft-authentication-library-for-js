@@ -96,23 +96,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
     }
 
-    /**
-     * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
-     * the page, so any code that follows this function will not execute.
-     *
-     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
-     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
-     *
-     * @param {@link (RedirectRequest:type)}
-     */
-    async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-        // Check for brokered request
-        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-            return this.embeddedApp.sendRedirectRequest(request);
-        }
-        return super.acquireTokenRedirect(request);
-    }
-
     // #endregion
 
     // #region Popup Flow

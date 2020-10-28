@@ -1,7 +1,6 @@
 import { BrokerMessage } from "./BrokerMessage";
-import { BrokerAuthenticationResult, AccessTokenEntity, IdTokenEntity, AccountEntity, CacheManager, AuthenticationResult } from "@azure/msal-common";
+import { BrokerAuthenticationResult, AccessTokenEntity, IdTokenEntity, AccountEntity, CacheManager, AuthenticationResult, CacheRecord } from "@azure/msal-common";
 import { InteractionType, BrokerMessageType } from "../utils/BrowserConstants";
-import { CacheRecord } from "@azure/msal-common/dist/src/cache/entities/CacheRecord";
 import { BrowserStorage } from "../cache/BrowserStorage";
 
 export class BrokerAuthResponse extends BrokerMessage {
@@ -36,6 +35,10 @@ export class BrokerAuthResponse extends BrokerMessage {
     }
 
     static processBrokerResponse(brokerAuthResult: BrokerAuthResponse, browserStorage: BrowserStorage): AuthenticationResult {
+        if (!brokerAuthResult) {
+            return null;
+        }
+
         if (brokerAuthResult.error) {
             throw brokerAuthResult.error;
         }
