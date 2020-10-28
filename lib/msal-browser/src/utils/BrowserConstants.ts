@@ -9,10 +9,6 @@ import { AuthorizationUrlRequest, Constants } from "@azure/msal-common";
  * Constants
  */
 export const BrowserConstants = {
-    // Local storage constant string
-    CACHE_LOCATION_LOCAL: "localStorage",
-    // Session storage constant string
-    CACHE_LOCATION_SESSION: "sessionStorage",
     // Interaction status key (only used for browsers)
     INTERACTION_STATUS_KEY: "interaction.status",
     // Interaction in progress cache value
@@ -28,6 +24,12 @@ export const BrowserConstants = {
     // msal-browser SKU
     MSAL_SKU: "msal.js.browser",
 };
+
+export enum BrowserCacheLocation {
+    LocalStorage = "localStorage",
+    SessionStorage = "sessionStorage",
+    MemoryStorage = "memoryStorage"
+}
 
 /**
  * HTTP Request types supported by MSAL.
