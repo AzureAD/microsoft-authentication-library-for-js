@@ -3,11 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AccountInfo, EndSessionRequest } from "@azure/msal-common";
+import { AuthenticationResult, AccountInfo } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { EndBrowserSessionRequest } from "../request/EndBrowserSessionRequest";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
@@ -21,6 +22,6 @@ export interface IPublicClientApplication {
     handleRedirectPromise(): Promise<AuthenticationResult | null>;
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
-    logout(logoutRequest?: EndSessionRequest): Promise<void>;
+    logout(logoutRequest?: EndBrowserSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 }
