@@ -114,12 +114,13 @@ export abstract class ClientApplication {
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
+     * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
-    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+    async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
-            return this.handleRedirectResponse()
+            return this.handleRedirectResponse(hash)
                 .then((result: AuthenticationResult) => {
                     if (result) {
                         // Emit login event if number of accounts change
@@ -152,13 +153,13 @@ export abstract class ClientApplication {
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
      */
-    private async handleRedirectResponse(): Promise<AuthenticationResult | null> {
+    private async handleRedirectResponse(hash?: string): Promise<AuthenticationResult | null> {
         if (!this.interactionInProgress()) {
             this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
             return null;
         }
 
-        const responseHash = this.getRedirectResponseHash();
+        const responseHash = this.getRedirectResponseHash(hash || window.location.hash);
         if (StringUtils.isEmpty(responseHash)) {
             // Not a recognized server response hash or hash not associated with a redirect request
             return null;
@@ -170,12 +171,15 @@ export abstract class ClientApplication {
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
 
         if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
+            // We are on the page we need to navigate to - handle hash
+            const handleHashResult = await this.handleHash(responseHash);
+
             if (loginRequestUrl.indexOf("#") > -1) {
                 // Replace current hash with non-msal hash, if present
                 BrowserUtils.replaceHash(loginRequestUrl);
             }
-            // We are on the page we need to navigate to - handle hash
-            return this.handleHash(responseHash);
+            
+            return handleHashResult;
         } else if (!this.config.auth.navigateToLoginRequestUrl) {
             return this.handleHash(responseHash);
         } else if (!BrowserUtils.isInIframe()) {
@@ -205,9 +209,8 @@ export abstract class ClientApplication {
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
      * @returns {string}
      */
-    private getRedirectResponseHash(): string | null {
+    private getRedirectResponseHash(hash: string): string | null {
         // Get current location hash from window or cache.
-        const { location: { hash } } = window;
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
         const cachedHash: string = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
