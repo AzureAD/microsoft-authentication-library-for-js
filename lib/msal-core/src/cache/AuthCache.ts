@@ -7,9 +7,9 @@ import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys, Ser
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
-import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestUtils } from "../utils/RequestUtils";
-import { AccessTokenKey } from './AccessTokenKey';
+import { AccessTokenKey } from "./AccessTokenKey";
+import { StringUtils } from "../utils/StringUtils";
 
 /**
  * @hidden
@@ -89,6 +89,11 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param tokenType 
      */
     private matchKeyForType(key:string, clientId: string, homeAccountIdentifier: string, tokenType: string): AccessTokenKey {
+        // All valid token cache item keys are valid JSON objects, ignore keys that aren't
+        if (!StringUtils.isValidJson(key)) {
+            return null;
+        }
+
         // Does the cache item match the request account
         const accountMatches = key.match(clientId) && key.match(homeAccountIdentifier);
         // Does the cache item match the requested token type
@@ -105,14 +110,7 @@ export class AuthCache extends BrowserStorage {// Singleton
                 break;
         }
 
-        // Make sure the cache item has a JSON cache key to avoid matching non-token cache items
-        try {
-            // If the token completely matches the request, try to parse and return the key, otherwise return null
-            return (accountMatches && tokenTypeMatches) ? JSON.parse(key) : null;
-        } catch (err) {
-            // If not a valid JSON key, the cache item although matching is not a usable token and should not show up in the search results
-            return null;
-        }
+        return (accountMatches && tokenTypeMatches) ? JSON.parse(key) : null;
     }
 
     /**
@@ -239,7 +237,6 @@ export class AuthCache extends BrowserStorage {// Singleton
 
             return tokens;
         }, []);
-
         return results;
     }
 
