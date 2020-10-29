@@ -3,6 +3,6 @@
   "comment": "Add getLogger and setLogger to msal-browser (#2513)",
   "packageName": "@azure/msal-browser",
   "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-10-29T00:06:48.589Z"
 }
