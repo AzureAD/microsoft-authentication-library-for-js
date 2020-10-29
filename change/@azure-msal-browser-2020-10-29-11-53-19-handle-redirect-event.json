@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add handleRedirect End Event (#2518)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-29T18:53:19.835Z"
-}

@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 26 Oct 2020 21:00:29 GMT and should not be manually modified.
+This log was last generated on Thu, 29 Oct 2020 20:36:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.5.0
+
+Thu, 29 Oct 2020 20:36:48 GMT
+
+### Minor changes
+
+- Add getLogger and setLogger to msal-browser (#2513) (joarroyo@microsoft.com)
+- Adding memory storage option for cache location (#2481) (prkanher@microsoft.com)
+
+### Patches
+
+- Add handleRedirect End Event (#2518) (thomas.norling@microsoft.com)
+- Ensure history.replaceState is a function (janutter@microsoft.com)
+- Allow hash to be passed into handleRedirectPromise, reset non-msal after processing (janutter@microsoft.com)
 
 ## 2.4.1
 
