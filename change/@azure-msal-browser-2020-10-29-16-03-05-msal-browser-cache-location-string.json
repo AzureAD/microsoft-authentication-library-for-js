@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Restore string to cacheLocation type",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-10-29T23:03:05.675Z"
+}
