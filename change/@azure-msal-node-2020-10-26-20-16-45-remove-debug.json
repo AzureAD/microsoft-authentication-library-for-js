@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Remove `debug` from the `msal-node` library (#2496)",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-27T03:16:45.402Z"
+}
