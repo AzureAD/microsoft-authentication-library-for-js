@@ -4,6 +4,7 @@
  */
 
 import { Inject, Injectable } from "@angular/core";
+import { Location } from "@angular/common";
 import {
     IPublicClientApplication,
     AccountInfo,
@@ -32,10 +33,17 @@ interface IMsalService {
 
 @Injectable()
 export class MsalService implements IMsalService {
+    private redirectHash: string;
 
     constructor(
-        @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication
-    ) {}
+        @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
+        private location: Location
+    ) {
+        const hash = this.location.path(true).split('#').pop();
+        if (hash) {
+            this.redirectHash = `#${hash}`;
+        }
+    }
 
     acquireTokenPopup(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
         return from(this.msalInstance.acquireTokenPopup(request));
@@ -53,7 +61,9 @@ export class MsalService implements IMsalService {
         return this.msalInstance.getAllAccounts();
     }
     handleRedirectObservable(): Observable<AuthenticationResult> {
-        return from(this.msalInstance.handleRedirectPromise());
+        const handleRedirect = from(this.msalInstance.handleRedirectPromise(this.redirectHash));
+        this.redirectHash = '';
+        return handleRedirect;
     }
     loginPopup(request?: AuthorizationUrlRequest): Observable<AuthenticationResult> {
         return from(this.msalInstance.loginPopup(request));
