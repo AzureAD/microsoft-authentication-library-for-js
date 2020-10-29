@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "prerelease",
   "comment": "Add getLogger and setLogger to msal-node (#2520)",
   "packageName": "@azure/msal-node",
   "email": "joarroyo@microsoft.com",
