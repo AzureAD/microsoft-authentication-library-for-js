@@ -8,16 +8,16 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 export class RedirectHandler {
 
     private authModule: AuthorizationCodeClient;
-    private browserStorage: BrowserStorage;
+    private browserStorage: BrowserCacheManager;
     private browserCrypto: ICrypto;
     private authCodeRequest: AuthorizationCodeRequest;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, browserCrypto: ICrypto) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, browserCrypto: ICrypto) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
         this.browserCrypto = browserCrypto;
