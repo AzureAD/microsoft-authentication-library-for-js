@@ -251,10 +251,7 @@ export class ResponseHandler {
         }
 
         // appMetadata
-        let cachedAppMetadata: AppMetadataEntity = null;
-        if (!StringUtils.isEmpty(serverTokenResponse.foci)) {
-            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(this.clientId, env, serverTokenResponse.foci);
-        }
+        const cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(this.clientId, env, serverTokenResponse.foci);
 
         return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken, cachedAppMetadata);
     }
