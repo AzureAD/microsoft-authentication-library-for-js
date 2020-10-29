@@ -18,6 +18,7 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 
 ## Via CDN:
 
+<!-- CDN_LATEST -->
 ```html
 <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.2/js/msal.min.js"></script>
 ```
