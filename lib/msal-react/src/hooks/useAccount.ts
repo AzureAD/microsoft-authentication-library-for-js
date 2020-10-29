@@ -19,13 +19,13 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers: Acco
 }
 
 export function useAccount(accountIdentifiers: AccountIdentifiers): AccountInfo | null {
-    const { instance, interactionInProgress } = useMsal();
+    const { instance, inProgress } = useMsal();
 
     const [account, setAccount] = useState<AccountInfo|null>(null);
 
     useEffect(() => {
         setAccount(getAccount(instance, accountIdentifiers));
-    }, [interactionInProgress, accountIdentifiers, instance]);
+    }, [inProgress, accountIdentifiers, instance]);
 
     return account;
 }

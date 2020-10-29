@@ -6,7 +6,7 @@
 import React, { PropsWithChildren, useMemo } from "react";
 import { useMsal } from "../hooks/useMsal";
 import { useIsAuthenticated } from "../hooks/useIsAuthenticated";
-import { getChildrenOrFunction } from "../utilities";
+import { getChildrenOrFunction } from "../utils/utilities";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 
 export type UnauthenticatedTemplateProps = PropsWithChildren<AccountIdentifiers>;

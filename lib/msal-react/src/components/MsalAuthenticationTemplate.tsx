@@ -5,7 +5,7 @@
 
 import React, { PropsWithChildren, useMemo } from "react";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
-import { getChildrenOrFunction } from "../utilities";
+import { getChildrenOrFunction } from "../utils/utilities";
 import { useMsal } from "../hooks/useMsal";
 import { useMsalAuthentication } from "../hooks/useMsalAuthentication";
 import { useIsAuthenticated } from "../hooks/useIsAuthenticated";

@@ -11,6 +11,7 @@ import {
     EventMessage, InteractionType
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
+import { InteractionStatus } from "./utils/Constants";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
@@ -18,46 +19,43 @@ export type MsalProviderProps = PropsWithChildren<{
 
 export function MsalProvider({instance, children}: MsalProviderProps) {
     // State hook to store accounts
-    const [accounts, setAccounts] = useState<AccountInfo[]>(
-        instance.getAllAccounts()
-    );
-
-    const [loginInProgress, setLoginInProgress] = useState<boolean>(false);
-    const [interactionInProgress, setInteractionInProgress] = useState<boolean>(false);
+    const [accounts, setAccounts] = useState<AccountInfo[]>(instance.getAllAccounts());
+    // State hook to store in progress value
+    const [inProgress, setInProgress] = useState<InteractionStatus>(InteractionStatus.Startup);
 
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
             switch (message.eventType) {
                 case EventType.LOGIN_START:
+                    setInProgress(InteractionStatus.Login);
+                    break;
                 case EventType.SSO_SILENT_START:
-                    setLoginInProgress(true);
-                    setInteractionInProgress(true);
+                    setInProgress(InteractionStatus.SsoSilent);
                     break;
                 case EventType.ACQUIRE_TOKEN_START:
-                case EventType.HANDLE_REDIRECT_START:
-                case EventType.LOGOUT_START:
                     if (message.interactionType === InteractionType.Redirect || message.interactionType === InteractionType.Popup) {
-                        setInteractionInProgress(true);
+                        setInProgress(InteractionStatus.AcquireToken);
                     }
+                    break;
+                case EventType.HANDLE_REDIRECT_START:
+                    setInProgress(InteractionStatus.HandleRedirect);
+                    break;
+                case EventType.LOGOUT_START:
+                    setInProgress(InteractionStatus.Logout);
                     break;
                 case EventType.LOGIN_SUCCESS:
                 case EventType.SSO_SILENT_SUCCESS:
-                    setAccounts(instance.getAllAccounts());
-                    setLoginInProgress(false);
-                    setInteractionInProgress(false);
-                    break;
                 case EventType.LOGIN_FAILURE:
                 case EventType.SSO_SILENT_FAILURE:
-                    setLoginInProgress(false);
-                    setInteractionInProgress(false);
+                case EventType.LOGOUT_FAILURE:
+                    setAccounts(instance.getAllAccounts());
+                    setInProgress(InteractionStatus.None);
                     break;
                 case EventType.ACQUIRE_TOKEN_SUCCESS:
                 case EventType.ACQUIRE_TOKEN_FAILURE:
-                case EventType.LOGOUT_SUCCESS:
-                case EventType.LOGOUT_FAILURE:
                     setAccounts(instance.getAllAccounts());
                     if (message.interactionType === InteractionType.Redirect || message.interactionType === InteractionType.Popup) {
-                        setInteractionInProgress(false);
+                        setInProgress(InteractionStatus.None);
                     }
                     break;
             }
@@ -73,8 +71,7 @@ export function MsalProvider({instance, children}: MsalProviderProps) {
     // Memoized context value
     const contextValue: IMsalContext = {
         instance,
-        loginInProgress,
-        interactionInProgress,
+        inProgress,
         accounts
     };
 
