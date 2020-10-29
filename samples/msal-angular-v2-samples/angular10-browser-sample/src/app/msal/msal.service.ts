@@ -11,6 +11,7 @@ import {
 } from "@azure/msal-browser";
 import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from 'rxjs';
+import { Location } from '@angular/common';
 
 interface IMsalService {
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult>;
@@ -27,10 +28,18 @@ interface IMsalService {
 
 @Injectable()
 export class MsalService implements IMsalService {
+    private redirectHash: string;
 
     constructor(
-        @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication
-    ) {}
+        @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
+        private location: Location
+    ) {
+        // Cache the code hash before Angular router clears it
+        const hash = this.location.path(true).split('#').pop();
+        if (hash) {
+            this.redirectHash = `#${hash}`;
+        }
+    }
 
     acquireTokenPopup(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
         return from(this.msalInstance.acquireTokenPopup(request));
@@ -48,7 +57,7 @@ export class MsalService implements IMsalService {
         return this.msalInstance.getAllAccounts();
     }
     handleRedirectObservable(): Observable<AuthenticationResult> {
-        return from(this.msalInstance.handleRedirectPromise());
+        return from(this.msalInstance.handleRedirectPromise(this.redirectHash));
     }
     loginPopup(request?: AuthorizationUrlRequest): Observable<AuthenticationResult> {
         return from(this.msalInstance.loginPopup(request));
