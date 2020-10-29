@@ -2,6 +2,33 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 26 Oct 2020 21:00:29 GMT",
+      "tag": "@azure/msal-common_v1.6.3",
+      "version": "1.6.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix ServerTelemetry maxErrorToSend bug (#2491)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "81575de28b78e7c09c5d475854e14a8bc1b7b567",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add missing default headers to device code",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "e007d2b425c8ceaed409ed9b11a1a72bc64fa955",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9d4c4a18de10eb3d918810dc10766fbd5547165d",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 20 Oct 2020 23:47:28 GMT",
       "tag": "@azure/msal-common_v1.6.2",
       "version": "1.6.2",
