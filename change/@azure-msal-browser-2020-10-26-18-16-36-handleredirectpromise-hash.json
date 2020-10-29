@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Allow hash to be passed into handleRedirectPromise, reset non-msal after processing",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-27T01:16:36.548Z"
-}
