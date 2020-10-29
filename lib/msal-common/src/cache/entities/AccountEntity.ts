@@ -100,7 +100,8 @@ export class AccountEntity {
             environment: this.environment,
             tenantId: this.realm,
             username: this.username,
-            name: this.name
+            name: this.name,
+            localAccountId: this.localAccountId
         };
     }
 
@@ -153,7 +154,7 @@ export class AccountEntity {
             // How do you account for MSA CID here?
             const localAccountId = !StringUtils.isEmpty(idToken.claims.oid)
                 ? idToken.claims.oid
-                : idToken.claims.sid;
+                : idToken.claims.sub;
             account.localAccountId = localAccountId;
 
             /*
@@ -178,7 +179,7 @@ export class AccountEntity {
         oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
-        
+
         account.authorityType = (authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
         account.homeAccountId = idToken.claims.sub;
         // non AAD scenarios can have empty realm

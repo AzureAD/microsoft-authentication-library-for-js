@@ -131,9 +131,37 @@ describe("AccountEntity.ts Unit Tests", () => {
 
         expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
         expect(acc.username).to.eq("AbeLi@microsoft.com");
+        expect(acc.localAccountId).to.eql(idTokenClaims.oid);
     });
 
-    it("create an Account with emails claim instead of preferred_username claim", () => {       
+    it("create an Account with sub instead of oid as localAccountId", () => {
+        // Set up stubs
+        const idTokenClaims = {
+            "ver": "2.0",
+            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            "exp": 1536361411,
+            "name": "Abe Lincoln",
+            "preferred_username": "AbeLi@microsoft.com",
+            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+            "nonce": "123523",
+        };
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+
+        const acc = AccountEntity.createAccount(
+            TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
+            authority,
+            idToken,
+            cryptoInterface
+        );
+
+        expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.username).to.eq("AbeLi@microsoft.com");
+        expect(acc.localAccountId).to.eql(idTokenClaims.sub);
+    });
+
+    it("create an Account with emails claim instead of preferred_username claim", () => {
         // Set up stubs
         const idTokenClaims = {
             "ver": "2.0",
@@ -160,7 +188,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.username).to.eq("AbeLi@microsoft.com");
     });
 
-    it("create an Account no preferred_username or emails claim", () => {       
+    it("create an Account no preferred_username or emails claim", () => {
         const authority =  AuthorityFactory.createInstance(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
