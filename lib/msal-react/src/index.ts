@@ -5,18 +5,24 @@
 
 export type { IMsalContext } from "./MsalContext";
 export type { MsalProviderProps } from "./MsalProvider";
-export type { MsalAuthenticationProps, MsalTemplateProps } from "./Templates";
-export type { WithMsalProps } from "./withMsal";
-export type { AccountIdentifiers } from "./useIsAuthenticated";
+export type { MsalAuthenticationResult } from "./hooks/useMsalAuthentication";
+export type { MsalAuthenticationProps } from "./components/MsalAuthenticationTemplate";
+export type { AuthenticatedTemplateProps } from "./components/AuthenticatedTemplate";
+export type { UnauthenticatedTemplateProps } from "./components/UnauthenticatedTemplate";
+export type { WithMsalProps } from "./components/withMsal";
+export type { AccountIdentifiers } from "./types/AccountIdentifiers";
 
 export { MsalContext, MsalConsumer } from "./MsalContext";
-export { MsalProvider, useMsal } from "./MsalProvider";
+export { MsalProvider } from "./MsalProvider";
 
-export { AuthenticatedTemplate, UnauthenticatedTemplate, MsalAuthenticationTemplate } from "./Templates";
+export { AuthenticatedTemplate } from "./components/AuthenticatedTemplate";
+export { UnauthenticatedTemplate } from "./components/UnauthenticatedTemplate";
+export { MsalAuthenticationTemplate } from "./components/MsalAuthenticationTemplate";
 
-export { withMsal } from "./withMsal";
+export { withMsal } from "./components/withMsal";
 
-export { useHandleRedirect } from "./useHandleRedirect";
-export { useIsAuthenticated } from "./useIsAuthenticated";
-export { useMsalAuthentication } from "./useMsalAuthentication";
+export { useMsal } from "./hooks/useMsal";
+export { useHandleRedirect } from "./hooks/useHandleRedirect";
+export { useIsAuthenticated } from "./hooks/useIsAuthenticated";
+export { useMsalAuthentication } from "./hooks/useMsalAuthentication";
 
