@@ -2,6 +2,41 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 26 Oct 2020 21:00:29 GMT",
+      "tag": "@azure/msal-browser_v2.4.1",
+      "version": "2.4.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update SRI hashes for msal@1.4.2 and browser@2.4.0",
+            "author": "janutter@microsoft.com",
+            "commit": "2edf8ba703ad49c78f548e17ace9ee494abf30f1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update Readme (#2468)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "dca9f652c157ee621302225c04ec87f488b2c8cb",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add docs for event API (#2459)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "9b6fd4426eac56327a6180739888ecaa4b54af7e",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9d4c4a18de10eb3d918810dc10766fbd5547165d",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 20 Oct 2020 23:47:28 GMT",
       "tag": "@azure/msal-browser_v2.4.0",
       "version": "2.4.0",

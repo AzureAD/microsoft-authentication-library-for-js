@@ -269,6 +269,7 @@ lib/msal-core/lib-commonjs
 lib/msal-core/lib-es6
 *.tgz
 *.zip
-samples/**/test/screenshots
+samples/**/screenshots
 samples/**/data/cache.json
+samples/**/data/testCache.json
 .env

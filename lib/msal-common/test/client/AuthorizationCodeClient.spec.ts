@@ -406,14 +406,14 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
-            const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;
+            const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
             config.cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
                         return TEST_POP_VALUES.DECODED_REQ_CNF;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    case `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9`:
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
                         return decodedLibState;
                     default:
                         return input;
@@ -463,7 +463,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         };
                     default:
                         return null;
-                };
+                }
             });
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: AuthorizationCodeRequest = {
