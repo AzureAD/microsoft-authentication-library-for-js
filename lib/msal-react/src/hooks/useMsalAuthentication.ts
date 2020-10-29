@@ -8,7 +8,7 @@ import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, Authe
 import { useIsAuthenticated } from "./useIsAuthenticated";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { useMsal } from "./useMsal";
-import { InteractionStatus } from "utils/Constants";
+import { InteractionStatus } from "../utils/Constants";
 
 export type MsalAuthenticationResult = {
     login: Function; 

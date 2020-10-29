@@ -45,6 +45,7 @@ export function MsalProvider({instance, children}: MsalProviderProps) {
                     break;
                 case EventType.LOGIN_SUCCESS:
                 case EventType.SSO_SILENT_SUCCESS:
+                case EventType.HANDLE_REDIRECT_END:
                 case EventType.LOGIN_FAILURE:
                 case EventType.SSO_SILENT_FAILURE:
                 case EventType.LOGOUT_FAILURE:
