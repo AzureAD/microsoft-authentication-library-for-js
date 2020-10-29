@@ -67,5 +67,11 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     removeEventCallback: () => {
         return;
+    },
+    getLogger: () => {
+        throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
+    },
+    setLogger: () => {
+        return;
     }
 };
