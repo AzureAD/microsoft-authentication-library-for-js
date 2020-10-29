@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AccountInfo, EndSessionRequest } from "@azure/msal-common";
+import { AuthenticationResult, AccountInfo, EndSessionRequest, Logger } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
@@ -23,4 +23,6 @@ export interface IPublicClientApplication {
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+    getLogger(): Logger;
+    setLogger(logger: Logger): void;
 }

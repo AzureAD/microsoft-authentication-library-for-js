@@ -927,5 +927,19 @@ export abstract class ClientApplication {
         this.logger.verbose(`Event callback ${callbackId} removed.`);
     }
 
+    /**
+     * Returns the logger instance
+     */
+    getLogger(): Logger {
+        return this.logger;
+    }
+
+    /**
+     * Replaces the default logger set in configurations with new Logger with new configurations
+     * @param logger Logger instance
+     */
+    setLogger(logger: Logger): void {
+        this.logger = logger;
+    }
     // #endregion
 }
