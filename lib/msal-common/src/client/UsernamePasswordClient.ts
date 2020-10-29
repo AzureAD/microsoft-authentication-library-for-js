@@ -12,9 +12,9 @@ import { Authority } from "../authority/Authority";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { ScopeSet } from "../request/ScopeSet";
 import { GrantType } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * Oauth2.0 Password grant client
@@ -56,10 +56,15 @@ export class UsernamePasswordClient extends BaseClient {
      * @param request
      */
     private async executeTokenRequest(authority: Authority, request: UsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const requestBody = this.createTokenRequestBody(request);
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: authority.canonicalAuthority,
+            scopes: request.scopes
+        };
+        const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers);
+        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
     }
 
     /**
@@ -73,8 +78,7 @@ export class UsernamePasswordClient extends BaseClient {
         parameterBuilder.addUsername(request.username);
         parameterBuilder.addPassword(request.password);
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        parameterBuilder.addScopes(scopeSet);
+        parameterBuilder.addScopes(request.scopes);
 
         parameterBuilder.addGrantType(GrantType.RESOURCE_OWNER_PASSWORD_GRANT);
         parameterBuilder.addClientInfo();

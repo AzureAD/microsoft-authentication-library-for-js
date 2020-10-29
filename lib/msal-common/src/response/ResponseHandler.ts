@@ -152,7 +152,7 @@ export class ResponseHandler {
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
              * If not present, we should return null, as it's the case that another application called removeAccount in between
-             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal. 
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal.
              */
             if (handlingRefreshTokenResponse && cacheRecord.account) {
                 const key = cacheRecord.account.generateAccountKey();
@@ -251,11 +251,8 @@ export class ResponseHandler {
         }
 
         // appMetadata
-        let cachedAppMetadata: AppMetadataEntity = null;
-        if (!StringUtils.isEmpty(serverTokenResponse.foci)) {
-            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(this.clientId, env, serverTokenResponse.foci);
-        }
-
+        const foci = StringUtils.isEmpty(serverTokenResponse.foci) ? "0" : serverTokenResponse.foci;
+        const cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(this.clientId, env, foci);
         return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken, cachedAppMetadata);
     }
 
