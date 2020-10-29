@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fixing a bug and adding `localAcccountId` in AccountInfo interface",
+  "comment": "Fixing a bug and adding `localAcccountId` in AccountInfo interface (#2516)",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",
