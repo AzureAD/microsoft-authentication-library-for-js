@@ -14,6 +14,7 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
 ## Basic Usage
 
+<!-- CDN_LATEST -->
 ```html
 <script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.2/js/msal.min.js"></script>
 ```
@@ -80,6 +81,7 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 
 ### SRI Hash History
 
+<!-- SRI_TABLE_START -->
 Version | Build       | SRI Hash
 --------| ----------- | ---------------------------
 1.4.2   | msal.js     | `sha384-67878C1OfZkWiSmJMKaQsXCZPQtvEcM884jw9pi3b4DQ/MvuDjU7F1DEj2uqi8cr`
