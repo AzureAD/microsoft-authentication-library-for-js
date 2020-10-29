@@ -260,6 +260,17 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
+     * Get all access and ID tokens in the cache
+     * @param clientId 
+     * @param homeAccountIdentifier 
+     */
+    getAllTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+        const accessTokens = this.getAllAccessTokens(clientId, homeAccountIdentifier);
+        const idTokens =  this.getAllIdTokens(clientId, homeAccountIdentifier);
+        return [...accessTokens, ...idTokens];
+    }
+
+    /**
      * Return if the token renewal is still in progress
      * 
      * @param stateValue
