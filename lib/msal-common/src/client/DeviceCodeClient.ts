@@ -64,7 +64,7 @@ export class DeviceCodeClient extends BaseClient {
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
         const queryString = this.createQueryString(request);
-        const headers = this.createDefaultLibraryHeaders();
+        const headers = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
@@ -122,7 +122,7 @@ export class DeviceCodeClient extends BaseClient {
 
         parameterBuilder.addScopes(request.scopes);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
-        
+
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }

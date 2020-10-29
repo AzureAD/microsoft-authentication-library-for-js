@@ -27,7 +27,9 @@
     "node": ">=0.8.0"
   },
   "scripts": {
-    "cdn": "node ./cdn-upload.js",
+    "cdn": "npm run cdn:upload && npm run cdn:sri",
+    "cdn:upload": "node ./cdn-upload.js",
+    "cdn:sri": "node ./cdn-sri.js",
     "clean": "shx rm -rf dist lib-commonjs lib-es6",
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "doc": "npm run doc:generate && npm run doc:deploy",
@@ -36,9 +38,6 @@
     "build:modules": "tsc && tsc -m es6 --outDir lib-es6 && npm run build:webpack",
     "build:modules:watch": "tsc -m es6 --outDir lib-es6 --watch",
     "build": "npm run clean && npm run build:modules",
-    "sri": "npm run build:webpack && npm run sri:msal && npm run sri:msalmin",
-    "sri:msal": "openssl dgst -sha384 -binary dist/msal.js | openssl base64 -A",
-    "sri:msalmin": "openssl dgst -sha384 -binary dist/msal.min.js | openssl base64 -A",
     "test": "mocha",
     "test:coverage": "nyc --reporter=text mocha",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
@@ -90,6 +89,7 @@
     "sinon": "^7.3.1",
     "source-map-support": "^0.5.13",
     "sourcemap-istanbul-instrumenter-loader": "^0.2.0",
+    "ssri": "^8.0.0",
     "ts-loader": "^5.3.1",
     "ts-node": "^8.0.3",
     "tslint": "^5.8.0",

@@ -28,21 +28,21 @@ describe("ThrottlingUtils", () => {
     describe("preProcess", () => {
         afterEach(() => {
             sinon.restore();
-        })
+        });
 
         it("checks the cache and throws an error", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getItem").callsFake(() => thumbprintValue);
-            sinon.stub(Date, "now").callsFake(() => 1)
+            sinon.stub(cache, "getThrottlingCache").callsFake(() => thumbprintValue);
+            sinon.stub(Date, "now").callsFake(() => 1);
 
             try {
                 ThrottlingUtils.preProcess(cache, thumbprint);
             } catch { }
-            sinon.assert.callCount(removeItemStub, 0)
-            
+            sinon.assert.callCount(removeItemStub, 0);
+
             expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).to.throw(ServerError);
         });
 
@@ -51,12 +51,12 @@ describe("ThrottlingUtils", () => {
             const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getItem").callsFake(() => thumbprintValue);
-            sinon.stub(Date, "now").callsFake(() => 10)
+            sinon.stub(cache, "getThrottlingCache").callsFake(() => thumbprintValue);
+            sinon.stub(Date, "now").callsFake(() => 10);
 
             ThrottlingUtils.preProcess(cache, thumbprint);
-            sinon.assert.callCount(removeItemStub, 1)
-            
+            sinon.assert.callCount(removeItemStub, 1);
+
             expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).to.not.throw;
         });
 
@@ -64,11 +64,11 @@ describe("ThrottlingUtils", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const cache = new MockStorageClass();
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getItem").callsFake(() => null);
+            sinon.stub(cache, "getThrottlingCache").callsFake(() => null);
 
             ThrottlingUtils.preProcess(cache, thumbprint);
-            sinon.assert.callCount(removeItemStub, 0)
-            
+            sinon.assert.callCount(removeItemStub, 0);
+
             expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).to.not.throw;
         });
     });
@@ -86,7 +86,7 @@ describe("ThrottlingUtils", () => {
                 status: 429
             };
             const cache = new MockStorageClass();
-            const setItemStub = sinon.stub(cache, "setItem");
+            const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
             ThrottlingUtils.postProcess(cache, thumbprint, res);
             sinon.assert.callCount(setItemStub, 1);
@@ -100,12 +100,12 @@ describe("ThrottlingUtils", () => {
                 status: 200
             };
             const cache = new MockStorageClass();
-            const setItemStub = sinon.stub(cache, "setItem");
+            const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
             ThrottlingUtils.postProcess(cache, thumbprint, res);
             sinon.assert.callCount(setItemStub, 0);
         });
-    })
+    });
 
     describe("checkResponseStatus", () => {
         it("returns true if status == 429", () => {
@@ -196,7 +196,7 @@ describe("ThrottlingUtils", () => {
 
     describe("calculateThrottleTime", () => {
         before(() => {
-            sinon.stub(Date, "now").callsFake(() => 5000)
+            sinon.stub(Date, "now").callsFake(() => 5000);
         });
 
         after(() => {
@@ -243,7 +243,7 @@ describe("ThrottlingUtils", () => {
 
             sinon.assert.callCount(removeItemStub, 1);
             expect(res).to.be.true;
-        })
+        });
 
         it("doesn't find an entry and returns false", () => {
             const cache = new MockStorageClass();

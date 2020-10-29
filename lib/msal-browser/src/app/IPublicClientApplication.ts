@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AccountInfo, EndSessionRequest } from "@azure/msal-common";
+import { AuthenticationResult, AccountInfo, EndSessionRequest, Logger } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
@@ -19,11 +19,13 @@ export interface IPublicClientApplication {
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
-    handleRedirectPromise(): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+    getLogger(): Logger;
+    setLogger(logger: Logger): void;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -64,6 +66,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return null;
     },
     removeEventCallback: () => {
+        return;
+    },
+    getLogger: () => {
+        throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
+    },
+    setLogger: () => {
         return;
     }
 };

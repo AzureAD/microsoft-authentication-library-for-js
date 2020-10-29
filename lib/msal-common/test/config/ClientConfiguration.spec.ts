@@ -8,15 +8,16 @@ import { Constants } from "../../src";
 import { version } from "../../package.json";
 import {TEST_CONFIG, TEST_POP_VALUES} from "../utils/StringConstants";
 import { MockStorageClass } from "../client/ClientTestUtils";
+import { MockCache } from "../cache/entities/cacheConstants";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default functions", async () => {
         const emptyConfig: ClientConfiguration = buildClientConfiguration({
-			authOptions: {
-				clientId: TEST_CONFIG.MSAL_CLIENT_ID
-			}
-		});
+            authOptions: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            }
+        });
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).to.be.not.null;
         expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -36,18 +37,18 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.storageInterface.containsKey).to.be.not.null;
         expect(() => emptyConfig.storageInterface.containsKey("testKey")).to.throw("Unexpected error in authentication.: Storage interface - containsKey() has not been implemented");
         expect(() => emptyConfig.storageInterface.containsKey("testKey")).to.throw(AuthError);
-        expect(emptyConfig.storageInterface.getItem).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.getItem("testKey")).to.throw("Unexpected error in authentication.: Storage interface - getItem() has not been implemented");
-        expect(() => emptyConfig.storageInterface.getItem("testKey")).to.throw(AuthError);
+        expect(emptyConfig.storageInterface.getAccount).to.be.not.null;
+        expect(() => emptyConfig.storageInterface.getAccount("testKey")).to.throw("Unexpected error in authentication.: Storage interface - getAccount() has not been implemented");
+        expect(() => emptyConfig.storageInterface.getAccount("testKey")).to.throw(AuthError);
         expect(emptyConfig.storageInterface.getKeys).to.be.not.null;
         expect(() => emptyConfig.storageInterface.getKeys()).to.throw("Unexpected error in authentication.: Storage interface - getKeys() has not been implemented");
         expect(() => emptyConfig.storageInterface.getKeys()).to.throw(AuthError);
         expect(emptyConfig.storageInterface.removeItem).to.be.not.null;
         expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw("Unexpected error in authentication.: Storage interface - removeItem() has not been implemented");
         expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw(AuthError);
-        expect(emptyConfig.storageInterface.setItem).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.setItem("testKey", "testValue")).to.throw("Unexpected error in authentication.: Storage interface - setItem() has not been implemented");
-        expect(() => emptyConfig.storageInterface.setItem("testKey", "testValue")).to.throw(AuthError);
+        expect(emptyConfig.storageInterface.setAccount).to.be.not.null;
+        expect(() => emptyConfig.storageInterface.setAccount(MockCache.acc)).to.throw("Unexpected error in authentication.: Storage interface - setAccount() has not been implemented");
+        expect(() => emptyConfig.storageInterface.setAccount(MockCache.acc)).to.throw(AuthError);
         // Network interface checks
         expect(emptyConfig.networkInterface).to.be.not.null;
         expect(emptyConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
@@ -81,9 +82,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
 
     it("buildConfiguration correctly assigns new values", async () => {
         const newConfig: ClientConfiguration = buildClientConfiguration({
-			authOptions: {
-				clientId: TEST_CONFIG.MSAL_CLIENT_ID
-			},
+            authOptions: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            },
             cryptoInterface: {
                 createNewGuid: (): string => {
                     return "newGuid";
@@ -128,7 +129,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 cpu: TEST_CONFIG.TEST_CPU
             }
         });
-        cacheStorageMock.setItem("testKey", "cacheItem");
+        cacheStorageMock.setAccount(MockCache.acc);
         // Crypto interface tests
         expect(newConfig.cryptoInterface).to.be.not.null;
         expect(newConfig.cryptoInterface.base64Decode).to.be.not.null;
@@ -142,15 +143,15 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.storageInterface.clear).to.be.not.null;
         expect(newConfig.storageInterface.clear).to.be.eq(cacheStorageMock.clear);
         expect(newConfig.storageInterface.containsKey).to.be.not.null;
-        expect(newConfig.storageInterface.containsKey("testKey")).to.be.true;
-        expect(newConfig.storageInterface.getItem).to.be.not.null;
-        expect(newConfig.storageInterface.getItem("testKey")).to.be.eq("cacheItem");
+        expect(newConfig.storageInterface.containsKey(MockCache.acc.generateAccountKey())).to.be.true;
+        expect(newConfig.storageInterface.getAccount).to.be.not.null;
+        expect(newConfig.storageInterface.getAccount(MockCache.acc.generateAccountKey())).to.be.eq(MockCache.acc);
         expect(newConfig.storageInterface.getKeys).to.be.not.null;
-        expect(newConfig.storageInterface.getKeys()).to.be.deep.eq(["testKey"]);
+        expect(newConfig.storageInterface.getKeys()).to.be.deep.eq([MockCache.acc.generateAccountKey()]);
         expect(newConfig.storageInterface.removeItem).to.be.not.null;
         expect(newConfig.storageInterface.removeItem).to.be.eq(cacheStorageMock.removeItem);
-        expect(newConfig.storageInterface.setItem).to.be.not.null;
-        expect(newConfig.storageInterface.setItem).to.be.eq(cacheStorageMock.setItem);
+        expect(newConfig.storageInterface.setAccount).to.be.not.null;
+        expect(newConfig.storageInterface.setAccount).to.be.eq(cacheStorageMock.setAccount);
         // Network interface tests
         expect(newConfig.networkInterface).to.be.not.null;
         expect(newConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
