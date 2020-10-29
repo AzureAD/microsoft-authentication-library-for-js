@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 20 Oct 2020 23:47:28 GMT and should not be manually modified.
+This log was last generated on Mon, 26 Oct 2020 21:00:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.13
+
+Mon, 26 Oct 2020 21:00:29 GMT
+
+### Changes
+
+- msal-browser and msal-node cache Interfaces to msal-common updated (#2415) (sameera.gajjarapu@microsoft.com)
+- Export Node Cache Serializer for use in end-to-end testing framework (#2414) (hemoral@microsoft.com)
 
 ## 1.0.0-alpha.12
 

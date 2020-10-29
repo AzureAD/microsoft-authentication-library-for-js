@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
 import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";

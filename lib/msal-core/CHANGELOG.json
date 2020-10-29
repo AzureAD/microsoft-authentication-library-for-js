@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Mon, 26 Oct 2020 21:00:29 GMT",
+      "tag": "msal_v1.4.2",
+      "version": "1.4.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update SRI hashes for msal@1.4.2 and browser@2.4.0",
+            "author": "janutter@microsoft.com",
+            "commit": "2edf8ba703ad49c78f548e17ace9ee494abf30f1",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 20 Oct 2020 23:47:28 GMT",
       "tag": "msal_v1.4.2",
       "version": "1.4.2",

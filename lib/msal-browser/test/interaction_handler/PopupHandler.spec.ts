@@ -2,9 +2,8 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient, ProtocolMode, Logger } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
 import sinon from "sinon";
@@ -12,27 +11,8 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
-
-class TestStorageInterface extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
-        return;
-    }
-    getItem(key: string, type?: string): string | object {
-        return "cacheItem";
-    }
-    removeItem(key: string, type?: string): boolean {
-        return true;
-    }
-    containsKey(key: string, type?: string): boolean {
-        return true;
-    }
-    getKeys(): string[] {
-        return testKeySet;
-    }
-    clear(): void {
-        return;
-    }
-}
+import { TestStorageManager } from "../cache/TestStorageManager";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -62,7 +42,7 @@ const networkInterface = {
 
 describe("PopupHandler.ts Unit Tests", () => {
 
-    let browserStorage: BrowserStorage;
+    let browserStorage: BrowserCacheManager;
     let popupHandler: PopupHandler;
     const cryptoOps = new CryptoOps();
     beforeEach(() => {
@@ -72,8 +52,8 @@ describe("PopupHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        const authCodeModule = new AuthorizationCodeClient({
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        const authConfig = {
             authOptions: {
                 ...configObj.auth,
                 authority: authorityInstance,
@@ -102,7 +82,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                     return "signedJwt";
                 }
             },
-            storageInterface: new TestStorageInterface(),
+            storageInterface: new TestStorageManager(),
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -129,8 +109,10 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
                 piiLoggingEnabled: true,
             },
-        });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps);
+        };
+        const authCodeModule = new AuthorizationCodeClient(authConfig);
+        const logger = new Logger(authConfig.loggerOptions);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps, logger);
         popupHandler = new PopupHandler(authCodeModule, browserStorage);
     });
 
@@ -183,7 +165,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             const popupWindow = popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            expect(browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
 

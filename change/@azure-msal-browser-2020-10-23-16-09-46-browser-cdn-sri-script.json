@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Add script to automate generation and updating of browser SRI hashes",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-23T23:09:46.105Z"
+}

@@ -13,7 +13,7 @@ const msalConfig = {
             loggerCallback: (level, message, containsPii) => {
                 if (containsPii) {	
                     return;	
-                }	
+                }
                 switch (level) {	
                     case msal.LogLevel.Error:	
                         console.error(message);	
