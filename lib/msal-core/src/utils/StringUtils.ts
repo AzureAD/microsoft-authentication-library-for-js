@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenKey } from '../cache/AccessTokenKey';
+import { AccessTokenKey } from "../cache/AccessTokenKey";
 
 /**
  * @hidden
@@ -34,7 +34,7 @@ export class StringUtils {
              */
             return (parsedKey && typeof parsedKey === "object") ? parsedKey : null;
         } catch (error) {
-            return null;;
+            return null;
         }
     }
 }
