@@ -25,7 +25,7 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
-import { AuthenticationScheme } from "../utils/Constants";
+import { AuthenticationScheme, THE_FAMILY_ID } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
@@ -309,7 +309,7 @@ export class ResponseHandler {
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
         }
         if (cacheRecord.appMetadata) {
-            familyId = cacheRecord.appMetadata.familyId || null;
+            familyId = cacheRecord.appMetadata.familyId === THE_FAMILY_ID ? THE_FAMILY_ID : null;
         }
         const uid = idTokenObj ? idTokenObj.claims.oid || idTokenObj.claims.sub : "";
         const tid = idTokenObj ? idTokenObj.claims.tid : "";
