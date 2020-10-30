@@ -12,6 +12,16 @@
         "vanilla-js-test-app-2.0"
       ],
       "stream": true
+    },
+    "exec": {
+        "scope": [
+            "msal",
+            "@azure/msal-angularjs",
+            "@azure/msal-browser",
+            "@azure/msal-common",
+            "@azure/msal-node"
+        ],
+        "stream": true
     }
   },
   "packages": [

@@ -28,6 +28,8 @@
     "typescript": "^3.9.7"
   },
   "scripts": {
+    "audit": "lerna exec \"npm audit\"",
+    "audit:prod": "lerna exec \"npm audit --production\"",
     "postinstall": "node build/postinstall.js",
     "build": "lerna run --concurrency 1 build",
     "build:extensions": "cd extensions/msal-node-extensions/ && npm ci && npm run build",
