@@ -6,7 +6,7 @@ import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, TEST_HASHES } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
 import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
-import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity } from "@azure/msal-common";
+import { CacheManager, Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest, CacheSchemaType, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -462,7 +462,7 @@ describe("BrowserStorage() tests", () => {
 
         it("Successfully retrieves and decodes response from cache", async () => {
             const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
-            const tokenRequest: AuthorizationCodeRequest = {
+            const tokenRequest: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
                 code: "thisIsAnAuthCode",
@@ -482,7 +482,7 @@ describe("BrowserStorage() tests", () => {
         it("Throws error if request cannot be retrieved from cache", async () => {
             const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             const cryptoObj = new CryptoOps();
-            const tokenRequest: AuthorizationCodeRequest = {
+            const tokenRequest: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
                 code: "thisIsAnAuthCode",
@@ -503,7 +503,7 @@ describe("BrowserStorage() tests", () => {
             });
             const browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto);
             const cryptoObj = new CryptoOps();
-            const tokenRequest: AuthorizationCodeRequest = {
+            const tokenRequest: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
                 code: "thisIsAnAuthCode",
@@ -527,7 +527,7 @@ describe("BrowserStorage() tests", () => {
             const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;
             browserStorage.setItem(authorityKey, alternateAuthority);
 
-            const cachedRequest: AuthorizationCodeRequest = {
+            const cachedRequest: CommonAuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 code: "thisIsACode",
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,

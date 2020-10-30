@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, AuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient } from "@azure/msal-common";
+import { StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient } from "@azure/msal-common";
 import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
@@ -15,7 +15,7 @@ export abstract class InteractionHandler {
 
     protected authModule: AuthorizationCodeClient;
     protected browserStorage: BrowserStorage;
-    protected authCodeRequest: AuthorizationCodeRequest;
+    protected authCodeRequest: CommonAuthorizationCodeRequest;
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
         this.authModule = authCodeModule;
@@ -26,7 +26,7 @@ export abstract class InteractionHandler {
      * Function to enable user interaction.
      * @param requestUrl
      */
-    abstract initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Window | Promise<HTMLIFrameElement>;
+    abstract initiateAuthRequest(requestUrl: string, authCodeRequest: CommonAuthorizationCodeRequest): Window | Promise<HTMLIFrameElement>;
 
     /**
      * Function to handle response parameters from hash.

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
+import { UrlString, StringUtils, Constants, CommonAuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
@@ -28,7 +28,7 @@ export class PopupHandler extends InteractionHandler {
      * Opens a popup window with given request Url.
      * @param requestUrl
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, popup?: Window|null): Window {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, popup?: Window|null): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
             // Save auth code request
