@@ -5,7 +5,7 @@
 
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserCacheLocation } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows and iframes in milliseconds
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -44,7 +44,7 @@ export type BrowserAuthOptions = {
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  */
 export type CacheOptions = {
-    cacheLocation?: string;
+    cacheLocation?: BrowserCacheLocation | string;
     storeAuthStateInCookie?: boolean;
 };
 
@@ -110,7 +110,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
 
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-        cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
+        cacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false
     };
 
