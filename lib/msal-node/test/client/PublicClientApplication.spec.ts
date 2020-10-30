@@ -10,7 +10,9 @@ import {
     DeviceCodeClient,
     RefreshTokenClient,
     ClientConfiguration,
-    ProtocolMode
+    ProtocolMode,
+    Logger,
+    LogLevel
 } from '@azure/msal-common';
 
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
@@ -178,5 +180,25 @@ describe('PublicClientApplication', () => {
         expect(RefreshTokenClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
+    });
+
+    test("getLogger and setLogger", async () => {
+        const authApp = new PublicClientApplication(appConfig);
+        const logger = new Logger({
+            loggerCallback: (level, message, containsPii) => {
+                expect(message).toContain("Message");
+                expect(message).toContain(LogLevel.Info);
+
+                expect(level).toEqual(LogLevel.Info);
+                expect(containsPii).toEqual(false);
+            },
+            piiLoggingEnabled: false
+        });
+
+        authApp.setLogger(logger);
+
+        expect(authApp.getLogger()).toEqual(logger);
+
+        authApp.getLogger().info("Message");
     });
 });

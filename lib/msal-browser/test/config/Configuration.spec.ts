@@ -3,6 +3,7 @@ import { Configuration, buildConfiguration } from "../../src/config/Configuratio
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { LogLevel, Constants } from "@azure/msal-common";
 import sinon from "sinon";
+import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 
 /**
  * Defaults for the Configuration Options
@@ -106,7 +107,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                 navigateToLoginRequestUrl: false
             },
             cache: {
-                cacheLocation: "localStorage",
+                cacheLocation: BrowserCacheLocation.LocalStorage,
                 storeAuthStateInCookie: true
             },
             system: {

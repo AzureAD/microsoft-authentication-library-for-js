@@ -5,9 +5,8 @@
 
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
 import sinon from "sinon";
@@ -16,6 +15,7 @@ import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/Brows
 import { BrowserConstants } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
@@ -47,7 +47,7 @@ const networkInterface = {
 
 describe("PopupHandler.ts Unit Tests", () => {
 
-    let browserStorage: BrowserStorage;
+    let browserStorage: BrowserCacheManager;
     let popupHandler: PopupHandler;
     const cryptoOps = new CryptoOps();
     beforeEach(() => {
@@ -57,8 +57,8 @@ describe("PopupHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        const authCodeModule = new AuthorizationCodeClient({
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        const authConfig = {
             authOptions: {
                 ...configObj.auth,
                 authority: authorityInstance,
@@ -114,8 +114,10 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
                 piiLoggingEnabled: true,
             },
-        });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps);
+        };
+        const authCodeModule = new AuthorizationCodeClient(authConfig);
+        const logger = new Logger(authConfig.loggerOptions);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps, logger);
         popupHandler = new PopupHandler(authCodeModule, browserStorage);
     });
 
@@ -156,7 +158,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
             // sinon.stub(window, "open").returns(window);
             window.focus = (): void => {
@@ -167,7 +170,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 return window;
             };
 
-            const popupWindow = popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
+            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
             expect(browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
@@ -258,7 +261,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
 
             // @ts-ignore
@@ -295,7 +299,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
 
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
@@ -308,7 +313,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
 
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, null)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);

@@ -189,6 +189,21 @@ export abstract class ClientApplication {
         return this.tokenCache;
     }
 
+    /**
+     * Returns the logger instance
+     */
+    getLogger(): Logger {
+        return this.logger;
+    }
+
+    /**
+     * Replaces the default logger set in configurations with new Logger with new configurations
+     * @param logger Logger instance
+     */
+    setLogger(logger: Logger): void {
+        this.logger = logger;
+    }
+
     protected async buildOauthClientConfiguration(authority: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()

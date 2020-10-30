@@ -46,6 +46,7 @@ export {
     NetworkRequestOptions,
     NetworkResponse,
     // Logger
+    Logger,
     LogLevel,
     // ProtocolMode enum
     ProtocolMode,
