@@ -9,6 +9,10 @@ on:
       - dev
       - master
   pull_request:
+    paths: 
+      - 'msal-browser/**/*' 
+      - 'msal-common/**/*'
+      - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
 
 jobs:
   run-e2e:
@@ -30,7 +34,7 @@ jobs:
       working-directory: samples/msal-browser-samples/VanillaJSTestApp2.0
       run: |
         npm install
-        npm run build:packages
+        npm run build:package
 
     - name: E2E Tests
       working-directory: samples/msal-browser-samples/VanillaJSTestApp2.0
