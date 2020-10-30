@@ -37,15 +37,15 @@
   },
   "module": "dist/test.esm.js",
   "dependencies": {
-    "bindings": "^1.5.0",
     "@azure/msal-common": "^1.6.3",
-    "keytar": "6.0.1",
+    "bindings": "^1.5.0",
+    "keytar": "^7.0.0",
     "nan": "^2.13.2"
   },
   "devDependencies": {
     "husky": "^4.2.5",
     "node-gyp": "^7.0.0",
-    "tsdx": "^0.13.3",
+    "tsdx": "^0.14.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.3"
   }
