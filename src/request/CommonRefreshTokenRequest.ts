@@ -7,7 +7,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
 import { AuthenticationScheme } from "../utils/Constants";
 
 /**
- * RefreshTokenRequest
+ * CommonRefreshTokenRequest
  * - scopes                  - Array of scopes the application is requesting access to.
  * - claims                  - A stringified claims request which will be added to all /authorize and /token calls
  * - authority               - URL of the authority, the security token service (STS) from which MSAL will acquire tokens.
@@ -16,7 +16,7 @@ import { AuthenticationScheme } from "../utils/Constants";
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
-export type RefreshTokenRequest = BaseAuthRequest & {
+export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
     authenticationScheme: AuthenticationScheme;
 };

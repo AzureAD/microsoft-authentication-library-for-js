@@ -38,7 +38,7 @@ export class StringUtils {
      *
      * @param str
      */
-    static isEmpty(str: string): boolean {
+    static isEmpty(str?: string): boolean {
         return (typeof str === "undefined" || !str || 0 === str.length);
     }
 

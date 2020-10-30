@@ -11,7 +11,7 @@ import { ScopeSet } from "../request/ScopeSet";
 import { GrantType , CredentialType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
+import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
@@ -31,7 +31,7 @@ export class ClientCredentialClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: ClientCredentialRequest): Promise<AuthenticationResult> {
+    public async acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult> {
 
         this.scopeSet = new ScopeSet(request.scopes || []);
 
@@ -87,7 +87,7 @@ export class ClientCredentialClient extends BaseClient {
         return accessTokens[0] as AccessTokenEntity;
     }
 
-    private async executeTokenRequest(request: ClientCredentialRequest, authority: Authority)
+    private async executeTokenRequest(request: CommonClientCredentialRequest, authority: Authority)
         : Promise<AuthenticationResult> {
 
         const requestBody = this.createTokenRequestBody(request);
@@ -123,7 +123,7 @@ export class ClientCredentialClient extends BaseClient {
         return tokenResponse;
     }
 
-    private createTokenRequestBody(request: ClientCredentialRequest): string {
+    private createTokenRequestBody(request: CommonClientCredentialRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);

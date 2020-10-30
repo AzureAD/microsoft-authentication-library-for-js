@@ -12,7 +12,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - oboAssertion            - The access token that was sent to the middle-tier API. This token must have an audience of the app making this OBO request. 
  * - skipCache               - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
  */
-export type OnBehalfOfRequest = BaseAuthRequest & {
+export type CommonOnBehalfOfRequest = BaseAuthRequest & {
     oboAssertion: string,
     skipCache?: boolean;
 };

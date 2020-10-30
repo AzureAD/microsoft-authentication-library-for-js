@@ -5,7 +5,7 @@
 
 import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
-import { SilentFlowRequest } from "../request/SilentFlowRequest";
+import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
@@ -29,7 +29,7 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         try {
             return await this.acquireCachedToken(request);
         } catch (e) {
@@ -46,7 +46,7 @@ export class SilentFlowClient extends BaseClient {
      * Retrieves token from cache or throws an error if it must be refreshed.
      * @param request
      */
-    async acquireCachedToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    async acquireCachedToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -93,7 +93,7 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      * @param cachedAccessToken
      */
-    private isRefreshRequired(request: SilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
+    private isRefreshRequired(request: CommonSilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
         if (request.forceRefresh || request.claims) {
             // Must refresh due to request parameters
             return true;

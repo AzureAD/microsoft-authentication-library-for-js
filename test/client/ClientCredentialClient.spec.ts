@@ -11,7 +11,7 @@ import { AADServerParamKeys, GrantType, Constants } from "../../src/utils/Consta
 import { ClientTestUtils } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient";
-import { ClientCredentialRequest } from "../../src/request/ClientCredentialRequest";
+import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { CredentialCache } from "../../src/cache/utils/CacheTypes";
@@ -47,17 +47,17 @@ describe("ClientCredentialClient unit tests", () => {
 
         const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
-        const clientCredentialRequest: ClientCredentialRequest = {
+        const CommonClientCredentialRequest: CommonClientCredentialRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
 
-        const authResult = await client.acquireToken(clientCredentialRequest);
+        const authResult = await client.acquireToken(CommonClientCredentialRequest);
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).to.deep.eq(expectedScopes);
         expect(authResult.accessToken).to.deep.eq(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token);
         expect(authResult.state).to.be.empty;
 
-        expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).to.be.true;
+        expect(createTokenRequestBodySpy.calledWith(CommonClientCredentialRequest)).to.be.true;
 
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -76,11 +76,11 @@ describe("ClientCredentialClient unit tests", () => {
         sinon.stub(ClientCredentialClient.prototype, <any>"readAccessTokenFromCache").returns(expectedAtEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
-        const clientCredentialRequest: ClientCredentialRequest = {
+        const CommonClientCredentialRequest: CommonClientCredentialRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
 
-        const authResult = await client.acquireToken(clientCredentialRequest);
+        const authResult = await client.acquireToken(CommonClientCredentialRequest);
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).to.deep.eq(expectedScopes);
         expect(authResult.accessToken).to.deep.eq("an_access_token");
@@ -98,18 +98,18 @@ describe("ClientCredentialClient unit tests", () => {
 
         const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
-        const clientCredentialRequest: ClientCredentialRequest = {
+        const CommonClientCredentialRequest: CommonClientCredentialRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             skipCache: true
         };
 
-        const authResult = await client.acquireToken(clientCredentialRequest);
+        const authResult = await client.acquireToken(CommonClientCredentialRequest);
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).to.deep.eq(expectedScopes);
         expect(authResult.accessToken).to.deep.eq(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token);
         expect(authResult.state).to.be.empty;
 
-        expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).to.be.true;
+        expect(createTokenRequestBodySpy.calledWith(CommonClientCredentialRequest)).to.be.true;
 
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -141,11 +141,11 @@ describe("ClientCredentialClient unit tests", () => {
         sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
 
         const client = new ClientCredentialClient(config);
-        const clientCredentialRequest: ClientCredentialRequest = {
+        const CommonClientCredentialRequest: CommonClientCredentialRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
 
-        await expect(client.acquireToken(clientCredentialRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+        await expect(client.acquireToken(CommonClientCredentialRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
 });

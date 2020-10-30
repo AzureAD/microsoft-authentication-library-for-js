@@ -20,9 +20,9 @@ import { AuthenticationScheme } from "../utils/Constants";
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
-export type AuthorizationCodeRequest = BaseAuthRequest & {
-    redirectUri: string;
-    code: string;
+export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     authenticationScheme: AuthenticationScheme;
+    code: string;
+    redirectUri: string;
     codeVerifier?: string;
 };
