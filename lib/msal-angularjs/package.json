@@ -24,7 +24,7 @@
     "node": ">=0.8.0"
   },
   "dependencies": {
-    "msal": "1.4.3"
+    "msal": "^0.2.4"
   },
   "devDependencies": {
     "angular": "^1.7.0",
@@ -33,23 +33,19 @@
     "angular-route": "^1.7.0",
     "angular-ui-router": "^1.0.18",
     "browserify": "^16.2.2",
-    "gulp": "^3.9.1",
-    "gulp-karma": "0.0.5",
     "install": "^0.11.0",
     "jasmine-core": "^3.1.0",
-    "karma": "^2.0.2",
+    "karma": "^5.2.3",
     "karma-browserify": "^5.2.0",
     "karma-chrome-launcher": "^2.2.0",
-    "karma-coverage": "^1.1.2",
     "karma-jasmine": "^1.1.2",
     "karma-jasmine-ajax": "^0.1.13",
     "karma-phantomjs-launcher": "^1.0.4",
-    "phantomjs": "^2.1.7",
+    "phantomjs-prebuilt": "^2.1.16",
     "puppeteer": "^1.5.0",
     "unminified-webpack-plugin": "^2.0.0",
-    "watchify": "^3.11.0",
-    "webpack": "^4.15.1",
-    "webpack-cli": "^3.0.8"
+    "webpack": "^5.3.2",
+    "webpack-cli": "^4.1.0"
   },
   "scripts": {
     "test": "webpack && karma start --browsers ChromeHeadlessNoSandbox karma.conf.js",
