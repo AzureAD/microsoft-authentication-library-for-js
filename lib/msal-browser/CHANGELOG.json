@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 30 Oct 2020 00:52:19 GMT",
+      "tag": "@azure/msal-browser_v2.5.1",
+      "version": "2.5.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Restore string to cacheLocation type (#2523)",
+            "author": "janutter@microsoft.com",
+            "commit": "7f45b2d37f6784f25aa454f599d0cb7f81463b5c",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 29 Oct 2020 20:36:48 GMT",
       "tag": "@azure/msal-browser_v2.5.0",
       "version": "2.5.0",
