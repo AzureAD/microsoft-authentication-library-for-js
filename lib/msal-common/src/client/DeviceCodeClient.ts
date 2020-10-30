@@ -5,7 +5,7 @@
 
 import { DeviceCodeResponse, ServerDeviceCodeResponse } from "../response/DeviceCodeResponse";
 import { BaseClient } from "./BaseClient";
-import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
+import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
@@ -31,7 +31,7 @@ export class DeviceCodeClient extends BaseClient {
      * polls token endpoint to exchange device code for tokens
      * @param request
      */
-    public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult> {
+    public async acquireToken(request: CommonDeviceCodeRequest): Promise<AuthenticationResult> {
 
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
@@ -62,7 +62,7 @@ export class DeviceCodeClient extends BaseClient {
      * Creates device code request and executes http GET
      * @param request
      */
-    private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
+    private async getDeviceCode(request: CommonDeviceCodeRequest): Promise<DeviceCodeResponse> {
         const queryString = this.createQueryString(request);
         const headers = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
@@ -116,7 +116,7 @@ export class DeviceCodeClient extends BaseClient {
     /**
      * Create device code endpoint query parameters and returns string
      */
-    private createQueryString(request: DeviceCodeRequest): string {
+    private createQueryString(request: CommonDeviceCodeRequest): string {
 
         const parameterBuilder: RequestParameterBuilder = new RequestParameterBuilder();
 
@@ -137,7 +137,7 @@ export class DeviceCodeClient extends BaseClient {
      * @param deviceCodeResponse
      */
     private async acquireTokenWithDeviceCode(
-        request: DeviceCodeRequest,
+        request: CommonDeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
 
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
@@ -198,7 +198,7 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      * @param deviceCodeResponse
      */
-    private createTokenRequestBody(request: DeviceCodeRequest, deviceCodeResponse: DeviceCodeResponse): string {
+    private createTokenRequestBody(request: CommonDeviceCodeRequest, deviceCodeResponse: DeviceCodeResponse): string {
 
         const requestParameters: RequestParameterBuilder = new RequestParameterBuilder();
 

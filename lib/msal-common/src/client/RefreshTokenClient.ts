@@ -5,7 +5,7 @@
 
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { BaseClient } from "./BaseClient";
-import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
+import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
@@ -16,7 +16,7 @@ import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
-import { SilentFlowRequest } from "../request/SilentFlowRequest";
+import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
@@ -30,7 +30,7 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
+    public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult>{
         const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
@@ -60,7 +60,7 @@ export class RefreshTokenClient extends BaseClient {
      * Gets cached refresh token and attaches to request, then calls acquireToken API
      * @param request
      */
-    public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    public async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -103,7 +103,7 @@ export class RefreshTokenClient extends BaseClient {
      * makes a network call to acquire tokens by exchanging RefreshToken available in userCache; throws if refresh token is not cached
      * @param request
      */
-    private async acquireTokenWithCachedRefreshToken(request: SilentFlowRequest, foci: boolean) {
+    private async acquireTokenWithCachedRefreshToken(request: CommonSilentFlowRequest, foci: boolean) {
         // fetches family RT or application RT based on FOCI value
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
 
@@ -112,7 +112,7 @@ export class RefreshTokenClient extends BaseClient {
             throw ClientAuthError.createNoTokensFoundError();
         }
 
-        const refreshTokenRequest: RefreshTokenRequest = {
+        const refreshTokenRequest: CommonRefreshTokenRequest = {
             ...request,
             refreshToken: refreshToken.secret,
             authenticationScheme: AuthenticationScheme.BEARER
@@ -126,7 +126,7 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      * @param authority
      */
-    private async executeTokenRequest(request: RefreshTokenRequest, authority: Authority)
+    private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = await this.createTokenRequestBody(request);
@@ -144,7 +144,7 @@ export class RefreshTokenClient extends BaseClient {
      * Helper function to create the token request body
      * @param request
      */
-    private async createTokenRequestBody(request: RefreshTokenRequest): Promise<string> {
+    private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);

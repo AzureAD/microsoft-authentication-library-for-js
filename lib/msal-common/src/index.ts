@@ -50,16 +50,17 @@ export { ICrypto, PkceCodes } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
-export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
-export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
-export { RefreshTokenRequest } from "./request/RefreshTokenRequest";
-export { ClientCredentialRequest } from "./request/ClientCredentialRequest";
-export { OnBehalfOfRequest } from "./request/OnBehalfOfRequest";
-export { SilentFlowRequest } from "./request/SilentFlowRequest";
-export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
-export { EndSessionRequest } from "./request/EndSessionRequest";
+export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest";
+export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest";
+export { CommonRefreshTokenRequest } from "./request/CommonRefreshTokenRequest";
+export { CommonClientCredentialRequest } from "./request/CommonClientCredentialRequest";
+export { CommonOnBehalfOfRequest } from "./request/CommonOnBehalfOfRequest";
+export { CommonSilentFlowRequest } from "./request/CommonSilentFlowRequest";
+export { CommonDeviceCodeRequest } from "./request/CommonDeviceCodeRequest";
+export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
+export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors

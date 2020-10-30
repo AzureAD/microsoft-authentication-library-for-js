@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -15,7 +15,7 @@ export class RedirectHandler {
     private authModule: AuthorizationCodeClient;
     private browserStorage: BrowserStorage;
     private browserCrypto: ICrypto;
-    private authCodeRequest: AuthorizationCodeRequest;
+    private authCodeRequest: CommonAuthorizationCodeRequest;
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, browserCrypto: ICrypto) {
         this.authModule = authCodeModule;
@@ -27,7 +27,7 @@ export class RedirectHandler {
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectTimeout: number, redirectStartPage?: string): Promise<void> {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, redirectTimeout: number, redirectStartPage?: string): Promise<void> {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true

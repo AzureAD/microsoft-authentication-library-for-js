@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { EndSessionRequest } from "@azure/msal-common";
+import { CommonEndSessionRequest } from "@azure/msal-common";
 
 /**
  * EndSessionRequest
@@ -12,6 +12,6 @@ import { EndSessionRequest } from "@azure/msal-common";
  * - authority              - Authority to send logout request to.
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  */
-export type EndBrowserSessionRequest = Partial<EndSessionRequest> & {
+export type EndSessionRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
 };

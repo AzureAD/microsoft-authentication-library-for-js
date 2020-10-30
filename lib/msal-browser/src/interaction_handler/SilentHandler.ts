@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
+import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -22,7 +22,7 @@ export class SilentHandler extends InteractionHandler {
      * @param urlNavigate 
      * @param userRequestScopes
      */
-    async initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Promise<HTMLIFrameElement> {
+    async initiateAuthRequest(requestUrl: string, authCodeRequest: CommonAuthorizationCodeRequest): Promise<HTMLIFrameElement> {
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");

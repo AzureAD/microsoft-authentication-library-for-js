@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import "mocha";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
@@ -7,7 +12,7 @@ import {
     LogLevel,
     AccountInfo,
     AuthorityFactory,
-    AuthorizationCodeRequest,
+    CommonAuthorizationCodeRequest,
     AuthenticationResult,
     AuthorizationCodeClient,
     AuthenticationScheme,
@@ -36,7 +41,7 @@ class TestInteractionHandler extends InteractionHandler {
     }
 }
 
-const testAuthCodeRequest: AuthorizationCodeRequest = {
+const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
     redirectUri: TEST_URIS.TEST_REDIR_URI,
     scopes: ["scope1", "scope2"],
     code: ""

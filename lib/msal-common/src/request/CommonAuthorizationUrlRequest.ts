@@ -36,19 +36,19 @@ import { AccountInfo } from "../account/AccountInfo";
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
-export type AuthorizationUrlRequest = BaseAuthRequest & {
+export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
+    authenticationScheme: AuthenticationScheme;
     redirectUri: string;
     responseMode: ResponseMode;
-    state: string;
-    nonce: string;
-    authenticationScheme: AuthenticationScheme;
+    account?: AccountInfo;
     codeChallenge?: string;
     codeChallengeMethod?: string;
-    prompt?: string;
-    extraScopesToConsent?: Array<string>;
-    account?: AccountInfo;
-    loginHint?: string;
     domainHint?: string;
-    sid?: string;
     extraQueryParameters?: StringDict;
+    extraScopesToConsent?: Array<string>;
+    loginHint?: string;
+    nonce?: string;
+    prompt?: string;
+    sid?: string;
+    state?: string;
 };

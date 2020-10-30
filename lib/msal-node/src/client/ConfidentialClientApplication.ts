@@ -8,13 +8,13 @@ import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
 import { ApiId } from "../utils/Constants";
 import { 
-    ClientCredentialRequest, 
     ClientCredentialClient, 
-    OnBehalfOfRequest, 
     OnBehalfOfClient, 
     AuthenticationResult, 
     StringUtils, 
-    ClientAuthError } from "@azure/msal-common";
+    ClientAuthError, CommonClientCredentialRequest, CommonOnBehalfOfRequest } from "@azure/msal-common";
+import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
+import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 
 export class ConfidentialClientApplication extends ClientApplication {
 
@@ -48,16 +48,19 @@ export class ConfidentialClientApplication extends ClientApplication {
      */
     public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByClientCredential called");
-        const validRequest = this.initializeRequest(request) as ClientCredentialRequest;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId!, validRequest.skipCache);
+        const validRequest: CommonClientCredentialRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
-                request.authority,
+                validRequest.authority,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
-            return clientCredentialClient.acquireToken(request);
+            return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
@@ -77,12 +80,16 @@ export class ConfidentialClientApplication extends ClientApplication {
      */
     public async acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenOnBehalfOf called");
+        const validRequest: CommonOnBehalfOfRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
         const clientCredentialConfig = await this.buildOauthClientConfiguration(
-            request.authority
+            validRequest.authority
         );
         this.logger.verbose("Auth client config generated");
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
-        return oboClient.acquireToken(this.initializeRequest(request) as OnBehalfOfRequest);
+        return oboClient.acquireToken(validRequest);
     }
 
     private setClientCredential(configuration: Configuration): void {

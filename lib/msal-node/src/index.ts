@@ -14,16 +14,18 @@ export { TokenCache } from "./cache/TokenCache";
 // crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";
 
+// Request objects
+export type { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
+export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
+export type { ClientCredentialRequest } from "./request/ClientCredentialRequest";
+export type { DeviceCodeRequest } from "./request/DeviceCodeRequest";
+export type { OnBehalfOfRequest } from "./request/OnBehalfOfRequest";
+export type { RefreshTokenRequest } from "./request/RefreshTokenRequest";
+export type { SilentFlowRequest } from "./request/SilentFlowRequest";
+
 // Common Object Formats
 export {
     // Request
-    AuthorizationCodeRequest,
-    AuthorizationUrlRequest,
-    SilentFlowRequest,
-    DeviceCodeRequest,
-    RefreshTokenRequest,
-    ClientCredentialRequest,
-    OnBehalfOfRequest,
     PromptValue,
     ResponseMode,
     // Response

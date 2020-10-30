@@ -8,7 +8,7 @@ import {
     INetworkModule,
     LogLevel, 
     ProtocolMode,
-    ICachePlugin
+    ICachePlugin, Constants
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 import debug from "debug";
@@ -72,7 +72,7 @@ export type Configuration = {
 
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: "",
-    authority: "",
+    authority: Constants.DEFAULT_AUTHORITY,
     clientSecret: "",
     clientAssertion: "",
     clientCertificate: {

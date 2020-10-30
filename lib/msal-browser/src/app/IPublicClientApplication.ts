@@ -8,7 +8,7 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { EndBrowserSessionRequest } from "../request/EndBrowserSessionRequest";
+import { EndSessionRequest } from "../request/EndSessionRequest";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
@@ -22,6 +22,6 @@ export interface IPublicClientApplication {
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
-    logout(logoutRequest?: EndBrowserSessionRequest): Promise<void>;
+    logout(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 }

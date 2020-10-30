@@ -6,12 +6,12 @@
 import { AccountInfo } from "../account/AccountInfo";
 
 /**
- * EndSessionRequest
+ * CommonEndSessionRequest
  * - account                - Account object that will be logged out of. All tokens tied to this account will be cleared.
  * - postLogoutRedirectUri  - URI to navigate to after logout page.
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  */
-export type EndSessionRequest = {
+export type CommonEndSessionRequest = {
     correlationId: string
     account?: AccountInfo,
     postLogoutRedirectUri?: string,

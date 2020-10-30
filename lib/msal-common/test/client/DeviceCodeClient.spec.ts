@@ -5,7 +5,7 @@ import {
     ClientAuthErrorMessage,
     Constants,
     DeviceCodeClient,
-    DeviceCodeRequest,
+    CommonDeviceCodeRequest,
     ClientConfiguration,
     AuthToken,
 } from "../../src";
@@ -104,7 +104,7 @@ describe("DeviceCodeClient unit tests", async () => {
             const createTokenRequestBodySpy = sinon.spy(DeviceCodeClient.prototype, <any>"createTokenRequestBody");
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response
             };
@@ -135,7 +135,7 @@ describe("DeviceCodeClient unit tests", async () => {
             tokenRequestStub.onSecondCall().resolves(AUTHENTICATION_RESULT);
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response
             };
@@ -147,12 +147,12 @@ describe("DeviceCodeClient unit tests", async () => {
 
     describe("Device code exceptions", () => {
 
-        it("Throw device code flow cancelled exception if DeviceCodeRequest.cancel=true", async () => {
+        it("Throw device code flow cancelled exception if CommonDeviceCodeRequest.cancel=true", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response,
             };
@@ -166,7 +166,7 @@ describe("DeviceCodeClient unit tests", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_EXPIRED_RESPONSE);
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response,
             };
