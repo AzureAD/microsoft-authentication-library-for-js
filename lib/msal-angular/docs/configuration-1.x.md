@@ -1,4 +1,4 @@
-# MSAL Angular Configuration
+# MSAL Angular 1.x Configuration
 
 MSAL for Angular can configured in multiple ways:
 

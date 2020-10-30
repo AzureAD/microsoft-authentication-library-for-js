@@ -1,10 +1,18 @@
-# Initialization MSAL-Angular v1
-
-## Prerequisites
+# Initialization of MSAL Angular
 
 Before using MSAL.js, [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get your `clientId`.
 
-### 1. Include and initialize the MSAL module in your app module.
+In this document:
+- [Initialization of MSAL](#initialization-of-msal-angular)
+    - [Include and initialize the MSAL module in your app module](#include-and-initialize-the-msal-module-in-your-app-module)
+    - [Secure the routes in your application](#secure-the-routes-in-your-application)
+    - [Get tokens for Web API calls](#get-tokens-for-web-api-calls)
+    - [Subscribe to event callbacks](#subscribe-to-event-callbacks)
+- [Next Steps](#next-steps)
+
+
+
+## Include and initialize the MSAL module in your app module
 
 Import MsalModule into app.module.ts. To initialize MSAL module you are required to pass the clientId of your application which you can get from the application registration.
 
@@ -21,7 +29,7 @@ Import MsalModule into app.module.ts. To initialize MSAL module you are required
 export class AppModule {}
 ```
 
-### 2. Secure the routes in your application
+## Secure the routes in your application
 
 You can add authentication to secure specific routes in your application by just adding `canActivate : [MsalGuard]` to your route definition. It can be added at the parent or child routes.
 
@@ -45,7 +53,7 @@ You can add authentication to secure specific routes in your application by just
 
 When a user visits these routes, the library will prompt the user to authenticate.
 
-### 3. Get tokens for Web API calls
+## Get tokens for Web API calls
 
 MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. MsalInterceptor will obtain tokens and add them to all your Http requests in API calls based on the `protectedResourceMap`.
 
@@ -81,7 +89,7 @@ As of `@azure/msal-angular@1.1.0`, `protectedResourceMap` supports wildcard patt
 
 **Note:** When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`).
 
-### 4. Subscribe to event callbacks
+## Subscribe to event callbacks
 
 MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service and also implement a `handleRedirectCallback`:
 
@@ -141,3 +149,7 @@ this.broadcastService.subscribe("msal:ssoFailure", payload => {
     }
   }
 ```
+
+# Next Steps
+
+You are ready to use MSAL Angular's [public APIs](./public-apis.md)!

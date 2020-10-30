@@ -23,14 +23,13 @@
 
 MSAL for Angular enables Angular web applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-The `@azure/msal-angular` package described by the code in this folder uses the [`@azure/msal-browser` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) as a dependency to enable authentication in Angular Web Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [`msal-angular-v1` library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core).
+The `@azure/msal-angular` package described by the code in this folder wraps the [`@azure/msal-browser` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) and uses it as a peer dependency to enable authentication in Angular Web Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the description provided by [@azure/msal-browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser#implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [`msal-angular-v1` library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core).
 
 This is an improvement upon the current `msal-angular` library which will utilize the authorization code flow. Most features available in the old library will be available in this one, but there are nuances to the authentication flow in both. The `@azure/msal-angular` package does NOT support the implicit flow.
 
 ## Guides
 
-- [Quickstart](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-angular)
-- [Upgrade Guide (1.x-2.x)]()
+- [Upgrade Guide (1.x-2.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/1.x-2.x-upgrade-guide.md)
 - [Upgrade Guide (0.x-1.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/0.x-1.x-upgrade-guide.md)
 - [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/configuration.md)
 
@@ -51,9 +50,9 @@ Before using MSAL.js, [register an application in Azure AD](https://docs.microso
 ## Installation
 
 The MSAL Angular package is available on NPM:
-
-`npm install msal @azure/msal-angular --save`
-
+```
+npm install msal @azure/msal-angular --save
+```
 
 ## Usage
 
