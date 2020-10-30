@@ -4,7 +4,7 @@
  */
 
 import { StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient } from "@azure/msal-common";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 
@@ -14,10 +14,10 @@ import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 export abstract class InteractionHandler {
 
     protected authModule: AuthorizationCodeClient;
-    protected browserStorage: BrowserStorage;
+    protected browserStorage: BrowserCacheManager;
     protected authCodeRequest: CommonAuthorizationCodeRequest;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
     }

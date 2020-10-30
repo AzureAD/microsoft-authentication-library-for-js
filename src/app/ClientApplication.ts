@@ -4,10 +4,10 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { BrowserStorage } from "../cache/BrowserStorage";
 import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, CommonSilentFlowRequest, CommonEndSessionRequest } from "@azure/msal-common";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { buildConfiguration, Configuration } from "../config/Configuration";
-import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
+import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -21,6 +21,7 @@ import { version } from "../../package.json";
 import { EventError, EventMessage, EventPayload, EventCallbackFunction } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
+import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 
 export abstract class ClientApplication {
 
@@ -28,7 +29,7 @@ export abstract class ClientApplication {
     protected readonly browserCrypto: CryptoOps;
 
     // Storage interface implementation
-    protected readonly browserStorage: BrowserStorage;
+    protected readonly browserStorage: BrowserCacheManager;
 
     // Network interface implementation
     protected readonly networkClient: INetworkModule;
@@ -92,11 +93,11 @@ export abstract class ClientApplication {
         // Initialize the network module class.
         this.networkClient = this.config.system.networkClient;
 
-        // Initialize the browser storage class.
-        this.browserStorage = new BrowserStorage(this.config.auth.clientId, this.config.cache, this.browserCrypto);
-
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions);
+
+        // Initialize the browser storage class.
+        this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger);
 
         // Array of events
         this.eventCallbacks = new Map();
@@ -117,6 +118,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
+        this.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
             return this.handleRedirectResponse(hash)
@@ -130,6 +132,7 @@ export abstract class ClientApplication {
                             this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
                         }
                     }
+                    this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
                     return result;
                 })
@@ -140,6 +143,7 @@ export abstract class ClientApplication {
                     } else {
                         this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
                     }
+                    this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
                     throw e;
                 });
@@ -240,7 +244,6 @@ export abstract class ClientApplication {
      * @param interactionHandler
      */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
-        this.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
         const encodedTokenRequest = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as CommonAuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
@@ -272,7 +275,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
-        this.preflightBrowserEnvironmentCheck();
+        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -327,7 +330,7 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            this.preflightBrowserEnvironmentCheck();
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -429,7 +432,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.preflightBrowserEnvironmentCheck();
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
@@ -549,7 +552,7 @@ export abstract class ClientApplication {
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         try {
-            this.preflightBrowserEnvironmentCheck();
+            this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
             const authClient = await this.createAuthCodeClient(null, logoutRequest && logoutRequest.authority);
@@ -735,12 +738,18 @@ export abstract class ClientApplication {
      * Helper to validate app environment before making a silent request
      * * @param request
      */
-    protected preflightBrowserEnvironmentCheck(): void {
+    protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
 
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
+
+        if (interactionType === InteractionType.Redirect && 
+            this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage && 
+            !this.config.cache.storeAuthStateInCookie) {
+            throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
+        }
     }
 
     /**
@@ -910,5 +919,19 @@ export abstract class ClientApplication {
         this.logger.verbose(`Event callback ${callbackId} removed.`);
     }
 
+    /**
+     * Returns the logger instance
+     */
+    getLogger(): Logger {
+        return this.logger;
+    }
+
+    /**
+     * Replaces the default logger set in configurations with new Logger with new configurations
+     * @param logger Logger instance
+     */
+    setLogger(logger: Logger): void {
+        this.logger = logger;
+    }
     // #endregion
 }
