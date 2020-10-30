@@ -118,6 +118,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
+        this.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
             return this.handleRedirectResponse(hash)
@@ -131,6 +132,7 @@ export abstract class ClientApplication {
                             this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
                         }
                     }
+                    this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
                     return result;
                 })
@@ -141,6 +143,7 @@ export abstract class ClientApplication {
                     } else {
                         this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
                     }
+                    this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
                     throw e;
                 });
@@ -241,7 +244,6 @@ export abstract class ClientApplication {
      * @param interactionHandler
      */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
-        this.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
         const encodedTokenRequest = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
         const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
