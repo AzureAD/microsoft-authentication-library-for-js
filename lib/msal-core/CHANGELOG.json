@@ -2,6 +2,35 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Thu, 29 Oct 2020 20:36:48 GMT",
+      "tag": "msal_v1.4.3",
+      "version": "1.4.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix ID token matching logic to ignore non-JSON cache keys (#2510)",
+            "author": "hemoral@microsoft.com",
+            "commit": "93d2d668a60f9cff09e7c6b048831fb8b9d1bd18",
+            "package": "msal"
+          },
+          {
+            "comment": "Ensure history.replaceState is a function",
+            "author": "janutter@microsoft.com",
+            "commit": "77143b3994fb16313324fb91799e38a462bac1c1",
+            "package": "msal"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add SRI script for core",
+            "author": "janutter@microsoft.com",
+            "commit": "63a305f340f2dc1738c85268d56563a471c98a57",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 26 Oct 2020 21:00:29 GMT",
       "tag": "msal_v1.4.2",
       "version": "1.4.2",
