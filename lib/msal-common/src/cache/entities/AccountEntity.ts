@@ -207,6 +207,9 @@ export class AccountEntity {
      */
     static isAccountEntity(entity: object): boolean {
 
+        if (!entity) {
+            return false;
+        }
         return (
             entity.hasOwnProperty("homeAccountId") &&
             entity.hasOwnProperty("environment") &&

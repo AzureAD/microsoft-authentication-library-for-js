@@ -23,7 +23,7 @@
     "@angular/router": "~9.0.0",
     "@azure/msal-angular": "^1.1.1",
     "core-js": "^3.6.4",
-    "msal": "^1.4.2",
+    "msal": "^1.4.3",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"

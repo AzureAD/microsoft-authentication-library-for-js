@@ -20,7 +20,6 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
     
         clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
             console.log("\nResponse: \n:", response);
-            msalTokenCache.writeToPersistence();
             res.sendStatus(200);
         }).catch((error) => {
             console.log(error);

@@ -1,10 +1,29 @@
 import puppeteer from "puppeteer";
 
+import { LabConfig } from "./LabConfig";
+import { Configuration } from "../../lib/msal-browser";
+
 export type tokenMap = {
     idTokens: string[],
     accessTokens: string[],
     refreshTokens: string[]
 };
+
+export function buildConfig(labConfig: LabConfig): Configuration {
+    const msalConfig: Configuration = {
+        auth: {
+            clientId: labConfig.app.appId
+        }
+    };
+
+    if (labConfig.lab.authority.endsWith("/")) {
+        msalConfig.auth.authority = labConfig.lab.authority + labConfig.user.tenantID;
+    } else {
+        msalConfig.auth.authority = `${labConfig.lab.authority}/${labConfig.user.tenantID}`;
+    }
+
+    return msalConfig;
+}
 
 export class BrowserCacheUtils {
     private page: puppeteer.Page;
@@ -30,7 +49,6 @@ export class BrowserCacheUtils {
             accessTokens: [],
             refreshTokens: []
         };
-
         Object.keys(storage).forEach(async key => {
             if (key.includes("idtoken") && BrowserCacheUtils.validateToken(storage[key], "IdToken")) {
                 tokenKeys.idTokens.push(key);
@@ -57,8 +75,8 @@ export class BrowserCacheUtils {
         ) {
             return false;
         }
-
-        if (tokenType === "IdToken" && !BrowserCacheUtils.validateStringField(tokenVal.realm)) {
+            
+        if (tokenType === "IdToken" && typeof(tokenVal.realm) !== "string") {
             return false;
         } else if (tokenType === "AccessToken") {
             if (
@@ -111,7 +129,6 @@ export class BrowserCacheUtils {
         if (Object.keys(storage).includes(accountKey)) {
             return JSON.parse(storage[accountKey]);
         }
-
         return null;
     }
 

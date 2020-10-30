@@ -3,29 +3,36 @@
  * Licensed under the MIT License.
  */
 const msal = require('@azure/msal-node');
-const cachePlugin = require('./cachePlugin');
 
 // Create msal application object
-module.exports = function(scenarioConfiguration) {
+module.exports = async function(scenarioConfiguration, cacheLocation) {
+
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
+        },
+            piiLoggingEnabled: false,
+        logLevel: msal.LogLevel.Verbose,
+    }
+        
+    const cachePlugin = await require('./cachePlugin')(cacheLocation);
+
     // Build full MSAL Client configuration object
     const clientConfig = {
         auth: scenarioConfiguration.authOptions,
         cache: {
             cachePlugin
         },
-        system: {
-            loggerOptions: {
-                loggerCallback(loglevel, message, containsPii) {
-                    console.log(message);
-                },
-                piiLoggingEnabled: false,
-                logLevel: msal.LogLevel.Verbose,
-            }
-        }
+        // Uncomment the code below to enable the MSAL logger
+        /**
+        * system: {
+        *   loggerOptions: loggerOptions
+        * }
+        */
     }
 
     const clientType = scenarioConfiguration.sample.clientType;
-    
+
     // Build MSAL Client Application depending on the Client type
     switch(clientType) {
         case "public":

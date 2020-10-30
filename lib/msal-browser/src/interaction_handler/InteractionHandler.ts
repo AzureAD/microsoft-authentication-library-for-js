@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, AuthorizationCodeRequest, CacheSchemaType, AuthenticationResult, AuthorizationCodeClient } from "@azure/msal-common";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { StringUtils, AuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient } from "@azure/msal-common";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 
@@ -14,10 +14,10 @@ import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 export abstract class InteractionHandler {
 
     protected authModule: AuthorizationCodeClient;
-    protected browserStorage: BrowserStorage;
+    protected browserStorage: BrowserCacheManager;
     protected authCodeRequest: AuthorizationCodeRequest;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
     }
@@ -42,11 +42,13 @@ export abstract class InteractionHandler {
         const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
 
         // Handle code response.
-        const requestState = this.browserStorage.getItem(this.browserStorage.generateStateKey(serverParams.state), CacheSchemaType.TEMPORARY) as string;
+        const stateKey = this.browserStorage.generateStateKey(serverParams.state);
+        const requestState = this.browserStorage.getTemporaryCache(stateKey);
         const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
-        
+
         // Get cached items
-        const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateNonceKey(requestState), CacheSchemaType.TEMPORARY) as string;
+        const nonceKey = this.browserStorage.generateNonceKey(requestState);
+        const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
 
         // Assign code to request
         this.authCodeRequest.code = authCode;
