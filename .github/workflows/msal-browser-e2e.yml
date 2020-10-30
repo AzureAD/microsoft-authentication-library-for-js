@@ -9,10 +9,6 @@ on:
       - dev
       - master
   pull_request:
-    paths: 
-      - 'msal-browser/**/*' 
-      - 'msal-common/**/*'
-      - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
 
 jobs:
   run-e2e:
