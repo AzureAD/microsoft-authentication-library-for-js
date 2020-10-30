@@ -49,7 +49,7 @@ export class BrowserCacheManager extends CacheManager {
      * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
      * @param cacheLocation 
      */
-    private setupBrowserStorage(cacheLocation: BrowserCacheLocation): IWindowStorage {
+    private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
         switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
