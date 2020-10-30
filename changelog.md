@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 29 Oct 2020 20:36:48 GMT and should not be manually modified.
+This log was last generated on Fri, 30 Oct 2020 00:52:19 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.5.1
+
+Fri, 30 Oct 2020 00:52:19 GMT
+
+### Patches
+
+- Restore string to cacheLocation type (#2523) (janutter@microsoft.com)
 
 ## 2.5.0
 
