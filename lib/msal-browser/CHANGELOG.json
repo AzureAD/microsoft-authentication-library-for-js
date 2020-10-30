@@ -2,6 +2,70 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 30 Oct 2020 00:52:19 GMT",
+      "tag": "@azure/msal-browser_v2.5.1",
+      "version": "2.5.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Restore string to cacheLocation type (#2523)",
+            "author": "janutter@microsoft.com",
+            "commit": "7f45b2d37f6784f25aa454f599d0cb7f81463b5c",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 29 Oct 2020 20:36:48 GMT",
+      "tag": "@azure/msal-browser_v2.5.0",
+      "version": "2.5.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add handleRedirect End Event (#2518)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "22369204b53bbd7b791d83f5b9476661eebdeda5",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Ensure history.replaceState is a function",
+            "author": "janutter@microsoft.com",
+            "commit": "77143b3994fb16313324fb91799e38a462bac1c1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Allow hash to be passed into handleRedirectPromise, reset non-msal after processing",
+            "author": "janutter@microsoft.com",
+            "commit": "689c9df7a9fe3f9dabb7cdd604a84707fd216154",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add getLogger and setLogger to msal-browser (#2513)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "664b02b2c8075ef0a5fd3880ce38117523ed3e74",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Adding memory storage option for cache location (#2481)",
+            "author": "prkanher@microsoft.com",
+            "commit": "f07cef165707ffa46827069a0d0d202eb0313312",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add script to automate generation and updating of browser SRI hashes",
+            "author": "janutter@microsoft.com",
+            "commit": "894453a2e68a9570ba6984da6f692ed05188ae8f",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 26 Oct 2020 21:00:29 GMT",
       "tag": "@azure/msal-browser_v2.4.1",
       "version": "2.4.1",

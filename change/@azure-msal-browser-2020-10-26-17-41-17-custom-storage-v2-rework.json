@@ -1,8 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Adding memory storage option for cache location (#2481)",
-  "packageName": "@azure/msal-browser",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-26T23:41:17.349Z"
-}
