@@ -103,8 +103,19 @@ export class BrowserCacheManager extends CacheManager {
      * Parses passed value as JSON object, JSON.parse() will throw an error.
      * @param input
      */
-    private IsJSON(jsonValue: string): void {
-        JSON.parse(jsonValue);
+    private validateAndParseJson(jsonValue: string): object {
+        try {
+            const parsedJson = JSON.parse(jsonValue);
+            /**
+             * There are edge cases in which JSON.parse will successfully parse a non-valid JSON object 
+             * (e.g. JSON.parse will parse an escaped string into an unescaped string), so adding a type check
+             * of the parsed value is necessary in order to be certain that the string represents a valid JSON object.
+             *
+             */
+            return (parsedJson && typeof parsedJson === "object") ? parsedJson : null;
+        } catch (error) {
+            return null;
+        }
     }
 
     /**
@@ -134,16 +145,12 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
 
-        try {
-            this.IsJSON(account);
-            const accountEntity = CacheManager.toObject(new AccountEntity(), JSON.parse(account));
-            if (AccountEntity.isAccountEntity(accountEntity)) {
-                return accountEntity;
-            }
-            return null;
-        } catch (e) {
-            return null;
+        const parsedAccount = this.validateAndParseJson(account);
+        const accountEntity = CacheManager.toObject<AccountEntity>(new AccountEntity(), parsedAccount);
+        if (AccountEntity.isAccountEntity(accountEntity)) {
+            return accountEntity;
         }
+        return null;
     }
 
     /**
@@ -165,8 +172,13 @@ export class BrowserCacheManager extends CacheManager {
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const idToken: IdTokenEntity = CacheManager.toObject(new IdTokenEntity(), JSON.parse(value));
-        return idToken;
+
+        const parsedIdToken = this.validateAndParseJson(value);
+        const idToken: IdTokenEntity = CacheManager.toObject(new IdTokenEntity(), parsedIdToken);
+        if (IdTokenEntity.isIdTokenEntity(idToken)) {
+            return idToken;
+        }
+        return null;
     }
 
     /**
@@ -187,8 +199,12 @@ export class BrowserCacheManager extends CacheManager {
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const accessToken: AccessTokenEntity = CacheManager.toObject(new AccessTokenEntity(), JSON.parse(value));
-        return accessToken;
+        const parsedAccessToken = this.validateAndParseJson(value);
+        const accessToken: AccessTokenEntity = CacheManager.toObject(new AccessTokenEntity(), parsedAccessToken);
+        if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
+            return accessToken;
+        }
+        return null;
     }
 
     /**
@@ -209,8 +225,12 @@ export class BrowserCacheManager extends CacheManager {
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const refreshToken: RefreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), JSON.parse(value));
-        return refreshToken;
+        const parsedRefreshToken = this.validateAndParseJson(value);
+        const refreshToken: RefreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), parsedRefreshToken);
+        if (AccessTokenEntity.isAccessTokenEntity(refreshToken)) {
+            return refreshToken;
+        }
+        return null;
     }
 
     /**
@@ -232,7 +252,8 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
 
-        const appMetadata: AppMetadataEntity = CacheManager.toObject(new AppMetadataEntity(), JSON.parse(value));
+        const parsedMetadata = this.validateAndParseJson(value);
+        const appMetadata: AppMetadataEntity = CacheManager.toObject(new AppMetadataEntity(), parsedMetadata);
         if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
             return appMetadata;
         }
@@ -257,7 +278,8 @@ export class BrowserCacheManager extends CacheManager {
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const serverTelemetryEntity = CacheManager.toObject(new ServerTelemetryEntity(), JSON.parse(value));
+        const parsedMetadata = this.validateAndParseJson(value);
+        const serverTelemetryEntity = CacheManager.toObject(new ServerTelemetryEntity(), parsedMetadata);
         if (ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetryKey, serverTelemetryEntity)) {
             return serverTelemetryEntity;
         }
@@ -282,8 +304,9 @@ export class BrowserCacheManager extends CacheManager {
         if (StringUtils.isEmpty(value)) {
             return null;
         }
-        const throttlingCache = CacheManager.toObject(new ThrottlingEntity(), JSON.parse(value));
-
+        
+        const parsedThrottlingCache = this.validateAndParseJson(value);
+        const throttlingCache = CacheManager.toObject(new ThrottlingEntity(), parsedThrottlingCache);
         if (ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
             return throttlingCache;
         }
@@ -464,7 +487,7 @@ export class BrowserCacheManager extends CacheManager {
     generateCacheKey(key: string): string {
         try {
             // Defined schemas do not need the key migrated
-            this.IsJSON(key);
+            this.validateAndParseJson(key);
             return key;
         } catch (e) {
             if (StringUtils.startsWith(key, Constants.CACHE_PREFIX) || StringUtils.startsWith(key, PersistentCacheKeys.ADAL_ID_TOKEN)) {
