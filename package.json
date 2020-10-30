@@ -55,7 +55,7 @@
     "prepack": "npm run build:all"
   },
   "devDependencies": {
-    "@azure/storage-blob": "^12.2.0-preview.1",
+    "@azure/storage-blob": "^12.2.1",
     "@babel/core": "^7.7.2",
     "@babel/plugin-proposal-class-properties": "^7.7.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
@@ -84,8 +84,8 @@
     "rollup": "^1.24.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-typescript2": "^0.24.3",
-    "rollup-plugin-uglify": "^6.0.4",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.29.0",
     "shx": "^0.3.2",
     "sinon": "^7.5.0",
     "ssri": "^8.0.0",
