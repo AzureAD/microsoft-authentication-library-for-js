@@ -1,6 +1,18 @@
-import { PublicClientApplication, AuthorizationUrlRequest, SilentRequest, AuthenticationResult, Configuration, LogLevel, AccountInfo, InteractionRequiredAuthError, EndSessionRequest, RedirectRequest, PopupRequest } from "@azure/msal-browser";
+import { 
+    PublicClientApplication, 
+    SilentRequest, 
+    AuthenticationResult, 
+    Configuration, 
+    LogLevel, 
+    AccountInfo, 
+    InteractionRequiredAuthError, 
+    EndSessionRequest, 
+    RedirectRequest, 
+    PopupRequest, 
+    SsoSilentRequest
+} from "@azure/msal-browser";
 import { UIManager } from "./UIManager";
-import { SsoSilentRequest } from "@azure/msal-browser/dist/src/request/SsoSilentRequest";
+import * as config from "./config.json"
 
 /**
  * Configuration class for @azure/msal-browser: 
@@ -8,11 +20,13 @@ import { SsoSilentRequest } from "@azure/msal-browser/dist/src/request/SsoSilent
  */
 const MSAL_CONFIG: Configuration = {
     auth: {
-        clientId: "2eb9245f-612b-46cc-994a-f5e35ef37da0"
+        clientId: config.msalConfig.auth.clientId,
+        authority: config.msalConfig.auth.authority,
+        knownAuthorities: config.msalConfig.auth.knownAuthorities
     },
     cache: {
-        cacheLocation: "sessionStorage", // This configures where your cache will be stored
-        storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
+        cacheLocation: config.msalConfig.cache.cacheLocation, // This configures where your cache will be stored
+        storeAuthStateInCookie: config.msalConfig.cache.storeAuthStateInCookie, // Set this to "true" if you are having issues on IE11 or Edge
     },
     system: {
         loggerOptions: {

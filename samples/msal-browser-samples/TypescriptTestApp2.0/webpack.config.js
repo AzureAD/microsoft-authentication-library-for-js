@@ -3,7 +3,7 @@ const path = require('path');
 module.exports = {
   entry: './build-babel/index.js',
   resolve: {
-    extensions: [ '.js' ],
+    extensions: [ '.js', '.json' ],
   },
   output: {
     filename: 'bundle.js',

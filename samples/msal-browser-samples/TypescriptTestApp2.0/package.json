@@ -8,11 +8,12 @@
     "clean": "npm run clean:build && rimraf dist",
     "clean:build": "rimraf build-tsc build-babel",
     "copy-views": "node utils/copyViews",
-    "build:babel": "babel build-tsc --out-dir build-babel --source-maps",
+    "build:babel": "babel build-tsc --out-dir build-babel --source-maps --copy-files",
     "build:webpack": "webpack",
     "build": "tsc && npm run build:babel && npm run build:webpack && npm run clean:build",
     "prestart": "npm run clean && npm run build && npm run copy-views",
-    "start": "node ."
+    "start": "node .",
+    "test:e2e": "ts-node ./src/e2eTest/testRunner.ts"
   },
   "keywords": [
     "msal",
@@ -25,9 +26,9 @@
   "dependencies": {
     "@azure/msal-browser": "^2.5.1",
     "@babel/runtime": "^7.10.4",
-    "express": "^4.17.1",
+    "clear-module": "^4.1.1",
     "fs": "0.0.1-security",
-    "morgan": "^1.10.0",
+    "mocha": "^8.2.0",
     "path": "^0.12.7",
     "yargs": "^15.4.0"
   },
@@ -36,10 +37,16 @@
     "@babel/core": "^7.10.4",
     "@babel/plugin-transform-runtime": "^7.10.4",
     "@babel/preset-env": "^7.10.4",
+    "@types/express": "^4.17.8",
+    "@types/mocha": "^8.0.3",
+    "@types/morgan": "^1.9.2",
     "@types/shelljs": "^0.8.8",
+    "express": "^4.17.1",
+    "morgan": "^1.10.0",
     "rimraf": "^3.0.2",
     "shelljs": "^0.8.4",
     "ts-loader": "^8.0.0",
+    "ts-node": "^9.0.0",
     "typescript": "^3.9.6",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.12"
