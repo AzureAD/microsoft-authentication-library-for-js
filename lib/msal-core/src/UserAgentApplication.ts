@@ -1089,15 +1089,15 @@ export class UserAgentApplication {
 
     /**
      * @hidden
-     * Clear all access tokens in the cache.
+     * Clear all access tokens and ID tokens in the cache.
      * @ignore
      */
     protected clearCache(): void {
         this.logger.verbose("Clearing cache");
         window.renewStates = [];
-        const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
-        for (let i = 0; i < accessTokenItems.length; i++) {
-            this.cacheStorage.removeItem(JSON.stringify(accessTokenItems[i].key));
+        const tokenCacheItems = this.cacheStorage.getAllTokens(Constants.clientId, Constants.homeAccountIdentifier);
+        for (let i = 0; i < tokenCacheItems.length; i++) {
+            this.cacheStorage.removeItem(JSON.stringify(tokenCacheItems[i].key));
         }
         this.cacheStorage.resetCacheItems();
         this.cacheStorage.clearMsalCookie();
