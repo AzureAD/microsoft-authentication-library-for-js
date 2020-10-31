@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Ensure history.replaceState is a function",
-  "packageName": "msal",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-27T18:19:17.890Z"
-}

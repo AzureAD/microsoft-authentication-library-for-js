@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "2.4.1",
+  "version": "2.5.1",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -34,7 +34,7 @@
     "dist"
   ],
   "scripts": {
-    "cdn": "npm run cdn:upload && npm run cdn:sri",
+    "cdn": "npm run build:all && npm run cdn:upload && npm run cdn:sri",
     "cdn:upload": "node ./cdn-upload.js",
     "cdn:sri": "node ./cdn-sri.js",
     "clean": "shx rm -rf dist lib",
