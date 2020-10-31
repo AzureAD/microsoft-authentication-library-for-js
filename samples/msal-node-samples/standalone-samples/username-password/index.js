@@ -45,10 +45,10 @@ const tokenCalls = async () => {
         return await msalTokenCache.getAllAccounts();
     };
 
-    console.log("When am I executing this?", getAccounts());
     accounts = await getAccounts();
+
     // Acquire Token Silently if an account is present
-    if (accounts) {
+    if (accounts.length > 0) {
         const silentRequest = {
             account: accounts[0], // Index must match the account that is trying to acquire token silently
             scopes: ["user.read"],
