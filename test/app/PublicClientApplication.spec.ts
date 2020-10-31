@@ -1946,4 +1946,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.emitEvent(EventType.LOGIN_START, InteractionType.Silent, {scopes: ["user.read"]}, null);
         });
     });
+
+    describe("Logger", () => {
+        it("getLogger and setLogger", done => {
+            const logger = new Logger({
+                loggerCallback: (level, message, containsPii) => {
+                    expect(message).to.contain("Message");
+                    expect(message).to.contain(LogLevel.Info);
+    
+                    expect(level).to.equal(LogLevel.Info);
+                    expect(containsPii).to.be.false;
+    
+                    done();
+                },
+                piiLoggingEnabled: false
+            });
+
+            pca.setLogger(logger);
+
+            expect(pca.getLogger()).to.equal(logger);
+
+            pca.getLogger().info("Message");
+        });
+    });
 });
