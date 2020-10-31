@@ -69,9 +69,9 @@ describe("RefreshTokenClient unit tests", () => {
 
     describe("Constructor", async () => {
 
+        const config = await ClientTestUtils.createTestClientConfiguration();
         it("creates a RefreshTokenClient", async () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
             expect(client).to.be.not.null;
             expect(client instanceof RefreshTokenClient).to.be.true;
@@ -96,10 +96,13 @@ describe("RefreshTokenClient unit tests", () => {
             AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
             sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface.setAccount(testAccountEntity);
+            config.storageInterface.setRefreshTokenCredential(testRefreshTokenEntity);
+            config.storageInterface.setRefreshTokenCredential(testFamilyRefreshTokenEntity);
+            config.storageInterface.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config);
         });
 
@@ -109,8 +112,6 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("acquires a token", async () => {
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
-
-            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
             const refreshTokenRequest: RefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -173,11 +174,13 @@ describe("RefreshTokenClient unit tests", () => {
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_WITH_FOCI);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "getAccount").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "getAppMetadata").returns(testAppMetadata);
             sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
+            config.storageInterface.setAccount(testAccountEntity);
+            config.storageInterface.setRefreshTokenCredential(testRefreshTokenEntity);
+            config.storageInterface.setRefreshTokenCredential(testFamilyRefreshTokenEntity);
+            config.storageInterface.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config);
         });
 
@@ -187,8 +190,6 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("acquires a token (FOCI)", async () => {
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
-
-            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
             const refreshTokenRequest: RefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,

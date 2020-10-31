@@ -2,11 +2,12 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, CacheSchemaType, AuthorizationCodeClient } from "@azure/msal-common";
+
+import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 /**
  * This class implements the interaction handler base class for browsers. It is written specifically for handling
@@ -16,7 +17,7 @@ export class PopupHandler extends InteractionHandler {
 
     private currentWindow: Window;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         super(authCodeModule, storageImpl);
 
         // Properly sets this reference for the unload event.
@@ -33,7 +34,7 @@ export class PopupHandler extends InteractionHandler {
             // Save auth code request
             this.authCodeRequest = authCodeRequest;
             // Set interaction status in the library.
-            this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
+            this.browserStorage.setTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             // Open the popup window to requestUrl.
             return this.openPopup(requestUrl, popup);
@@ -118,7 +119,7 @@ export class PopupHandler extends InteractionHandler {
             if (popup) {
                 popupWindow = popup;
                 popupWindow.location.assign(urlNavigate);
-            } else if (typeof popup === "undefined") { 
+            } else if (typeof popup === "undefined") {
                 // Popup will be undefined if it was not passed in
                 popupWindow = PopupHandler.openSizedPopup(urlNavigate);
             }

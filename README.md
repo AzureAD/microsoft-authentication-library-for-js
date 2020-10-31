@@ -6,7 +6,7 @@ The Microsoft Authentication Library for JavaScript enables client-side JavaScri
 
 ### Core and wrapper libaries
 
-The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries**, in their respective README.md.
+The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries** in their respective README.md.
 
 - [Microsoft Authentication Library for Node.js v1.x (Alpha)](lib/msal-node/): A [Node.js](https://nodejs.org/en/) library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the following OAuth 2.0 protocols and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc):
     - [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with [PKCE](https://oauth.net/2/pkce/)
@@ -40,7 +40,7 @@ All of our libraries follow [semantic versioning](https://semver.org). We recomm
 
 ## Roadmap
 
-Please check the [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki#roadmap) to see what we are working on and what we have planned for future releases.
+Please check the [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md) to see what we are working on and what we have planned for future releases.
 
 ## Community Help and Support
 

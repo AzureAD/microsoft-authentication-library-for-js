@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import TelemetryEvent from "./TelemetryEvent";
 import { prependEventNamePrefix } from "./TelemetryUtils";
 
@@ -8,7 +13,7 @@ export const EVENT_KEYS = {
 
 export default class UiEvent extends TelemetryEvent {
     constructor(correlationId: string) {
-        super(prependEventNamePrefix("ui_event"), correlationId);
+        super(prependEventNamePrefix("ui_event"), correlationId, "UiEvent");
     }
 
     public set userCancelled(userCancelled: boolean) {

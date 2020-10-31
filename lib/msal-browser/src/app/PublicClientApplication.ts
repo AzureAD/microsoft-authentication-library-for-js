@@ -2,14 +2,16 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, ApiId } from "../utils/BrowserConstants";
+import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
+import { EventType } from "../event/EventType";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -66,19 +68,35 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
+    /**
+     * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
+     * 
+     * @param {@link (SilentRequest:type)} 
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        this.preflightBrowserEnvironmentCheck();
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
+        this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         try {
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
-            return await silentAuthClient.acquireCachedToken(silentRequest);
+            const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
+            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
+            return cachedToken;
         } catch (e) {
-            return this.acquireTokenByRefreshToken(request);
+            try {
+                const tokenRenewalResult = await this.acquireTokenByRefreshToken(request);
+                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
+                return tokenRenewalResult;
+            } catch (tokenRenewalError) {
+                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+                throw tokenRenewalError;
+            }
         }
     }
 }

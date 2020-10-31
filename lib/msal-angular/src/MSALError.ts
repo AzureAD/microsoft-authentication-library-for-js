@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 export class MSALError {
     private _error: string = "";
     private _errorDesc: string = "";

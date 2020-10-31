@@ -23,6 +23,7 @@ export type CredentialCache = {
 };
 
 export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | ServerTelemetryEntity | ThrottlingEntity | string;
+export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 /**
  * Account:	<home_account_id>-<environment>-<realm*>

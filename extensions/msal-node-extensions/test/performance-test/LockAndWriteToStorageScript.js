@@ -7,10 +7,24 @@ const process = require("process");
 const extensions = require("../../dist/index");
 const fs = require("fs");
 const path = require("path");
+const msalCommon = require("@azure/msal-common");
 
 // Expect: node_path, path_to_file, filename, retryNumber, retryDelay
 if (process.argv.length < 5) {
     process.exit(1)
+}
+
+let fileData;
+const serializableCache = {
+    serialize: () => {
+        return fileData;
+    },
+    deserialize: (data) => {
+        if (!data || data.length === 0) {
+            data = "";
+        }
+        fileData = data;
+    }
 }
 
 async function writeToCache(fileName, retryNumber, retryDelay) {
@@ -33,17 +47,18 @@ async function writeToCache(fileName, retryNumber, retryDelay) {
         retryDelay
     };
     const plugin = new extensions.PersistenceCachePlugin(persistence, lockOptions);
-    await plugin.writeToStorage(async (diskState) => {
+    const context = new msalCommon.TokenCacheContext(serializableCache, true);
+    try {
+        await plugin.beforeCacheAccess(context);
+
         const processId = process.pid.toString();
-        let data = diskState;
-        if (!diskState || diskState.length === 0) {
-            data = "";
-        }
-        data = data + "< " + processId + "\n";
+        let data = fileData + "< " + processId + "\n";
         await sleep(100);
-        data = data + "> " + processId + "\n";
-        return data;
-    }).then(() => logger.end())
+        fileData = data + "> " + processId + "\n";
+    } finally {
+        await plugin.afterCacheAccess(context, true);
+        () => logger.end();
+    }
 }
 
 // Logs from each process get written to this directory

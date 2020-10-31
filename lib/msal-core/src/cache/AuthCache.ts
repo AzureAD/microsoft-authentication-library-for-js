@@ -3,14 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys} from "../utils/Constants";
+import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys, ServerHashParamKeys} from "../utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
-import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestUtils } from "../utils/RequestUtils";
-import { AccessTokenValue } from "./AccessTokenValue";
 import { AccessTokenKey } from "./AccessTokenKey";
+import { StringUtils } from "../utils/StringUtils";
 
 /**
  * @hidden
@@ -81,6 +80,42 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
+     * Validates that the input cache key contains the account search terms (clientId and homeAccountIdentifier) and
+     * then whether or not it contains the "scopes", depending on the token type being searched for. With matching account
+     * search terms, Access Token search tries to match the "scopes" keyword, while Id Token search expects "scopes" to not be included.
+     * @param key 
+     * @param clientId 
+     * @param homeAccountIdentifier 
+     * @param tokenType 
+     */
+    private matchKeyForType(key:string, clientId: string, homeAccountIdentifier: string, tokenType: string): AccessTokenKey {
+        // All valid token cache item keys are valid JSON objects, ignore keys that aren't
+        const parsedKey = StringUtils.validateAndParseJsonCacheKey(key);
+
+        if (!parsedKey) {
+            return null;
+        }
+
+        // Does the cache item match the request account
+        const accountMatches = key.match(clientId) && key.match(homeAccountIdentifier);
+        // Does the cache item match the requested token type
+        let tokenTypeMatches = false;
+
+        switch (tokenType) {
+            case ServerHashParamKeys.ACCESS_TOKEN:
+                // Cache item is an access token if scopes are included in the cache item key
+                tokenTypeMatches = !!key.match(Constants.scopes);
+                break;
+            case ServerHashParamKeys.ID_TOKEN:
+                // Cache may be an ID token if scopes are NOT included in the cache item key
+                tokenTypeMatches = !key.match(Constants.scopes);
+                break;
+        }
+
+        return (accountMatches && tokenTypeMatches) ? parsedKey : null;
+    }
+
+    /**
      * add value to storage
      * @param key
      * @param value
@@ -138,7 +173,6 @@ export class AuthCache extends BrowserStorage {// Singleton
         const isTokenRenewalInProgress = this.tokenRenewalInProgress(state);
 
         const storage = window[this.cacheLocation];
-        let key: string;
         // check state and remove associated cache
         if (stateId && !isTokenRenewalInProgress) {
             Object.keys(storage).forEach(key => {
@@ -182,61 +216,58 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
-     * Get all access tokens in the cache
-     * @param clientId
-     * @param homeAccountIdentifier
+     * Get all tokens of a certain type from the cache
+     * @param clientId 
+     * @param homeAccountIdentifier 
+     * @param tokenType
      */
-    getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+    getAllTokensByType(clientId: string, homeAccountIdentifier: string, tokenType: string): Array<AccessTokenCacheItem> {
         const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
-            const keyMatches = key.match(clientId) && key.match(homeAccountIdentifier) && key.match(Constants.scopes);
-            if ( keyMatches ) {
+            const matchedTokenKey: AccessTokenKey = this.matchKeyForType(key, clientId, homeAccountIdentifier, tokenType);
+            if (matchedTokenKey) {
                 const value = this.getItem(key);
                 if (value) {
                     try {
-                        const parseAtKey = JSON.parse(key);
-                        const newAccessTokenCacheItem = new AccessTokenCacheItem(parseAtKey, JSON.parse(value));
+                        const newAccessTokenCacheItem = new AccessTokenCacheItem(matchedTokenKey, JSON.parse(value));
                         return tokens.concat([ newAccessTokenCacheItem ]);
-                    } catch (e) {
-                        throw ClientAuthError.createCacheParseError(key);
+                    } catch (err) {
+                        // Skip cache items with non-valid JSON values
+                        return tokens;
                     }
                 }
             }
 
             return tokens;
         }, []);
-
         return results;
     }
 
     /**
-     * Returns an IdToken retrieved from the cache in the form of a AccessTokenCacheItem object so it is 
+     * Get all access tokens in the cache
+     * @param clientId
+     * @param homeAccountIdentifier
+     */
+    getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+        return this.getAllTokensByType(clientId, homeAccountIdentifier, ServerHashParamKeys.ACCESS_TOKEN);
+    }
+
+    /**
+     * Get all id tokens in the cache in the form of AccessTokenCacheItem objects so they are 
      * in a normalized format and can make use of the existing cached access token validation logic
      */
-    getIdToken(clientId: string, homeAccountIdentifier: string, authority: string): AccessTokenCacheItem {
-        const idTokenKey: AccessTokenKey = {
-            authority: authority,
-            clientId: clientId,
-            scopes: undefined,
-            homeAccountIdentifier: homeAccountIdentifier
-        };
+    getAllIdTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+        return this.getAllTokensByType(clientId, homeAccountIdentifier, ServerHashParamKeys.ID_TOKEN);
+    }
 
-        const idTokenKeyString = JSON.stringify(idTokenKey);
-        const idToken = this.getItem(idTokenKeyString);
-        
-        if (idToken) {
-            try {
-                const idTokenValue = JSON.parse(idToken) as AccessTokenValue;
-                /**
-                 * Return an AccessTokenCacheItem because the class already exists and the logic to validate access tokens that
-                 * depends on it can be reused for ID token validation
-                 */
-                return new AccessTokenCacheItem(idTokenKey, idTokenValue);
-            } catch (e) {
-                throw ClientAuthError.createCacheParseError(idTokenKeyString);
-            }
-        }
-
-        return null;
+    /**
+     * Get all access and ID tokens in the cache
+     * @param clientId 
+     * @param homeAccountIdentifier 
+     */
+    getAllTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+        const accessTokens = this.getAllAccessTokens(clientId, homeAccountIdentifier);
+        const idTokens =  this.getAllIdTokens(clientId, homeAccountIdentifier);
+        return [...accessTokens, ...idTokens];
     }
 
     /**

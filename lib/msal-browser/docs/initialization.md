@@ -3,11 +3,15 @@
 Before you get started, please ensure you have completed all the [prerequisites](../README.md#prerequisites).
 
 In this document:
-- [Initializing the PublicClientApplication object](#initializing-the-publicclientapplication-object)
-- [(Optional) Configure Authority](#optional-configure-authority)
-- [(Optional) Configure Redirect URI](#optional-configure-redirect-uri)
-- [(Optional) Additional Configuration](./configuration.md)
-- [Choosing an Interaction Type](#choosing-an-interaction-type)
+- [Initialization of MSAL](#initialization-of-msal)
+  - [Initializing the PublicClientApplication object](#initializing-the-publicclientapplication-object)
+  - [(Optional) Configure Authority](#optional-configure-authority)
+  - [(Optional) Configure Redirect URI](#optional-configure-redirect-uri)
+  - [(Optional) Additional Configuration](#optional-additional-configuration)
+  - [Choosing an Interaction Type](#choosing-an-interaction-type)
+    - [Popup APIs](#popup-apis)
+    - [Redirect APIs](#redirect-apis)
+- [Next Steps](#next-steps)
 
 ## Initializing the PublicClientApplication object
 
@@ -42,6 +46,18 @@ const msalConfig = {
     auth: {
         clientId: 'your_client_id',
         authority: 'https://login.microsoftonline.com/{your_tenant_id}'
+    }
+};
+```
+
+If your application is using a separate OIDC-compliant authority like `"https://login.live.com"` or an IdentityServer, you will need to provide it in the `knownAuthorities` field and set your `protocolMode` to `"OIDC"`.
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: 'your_client_id',
+        authority: 'https://login.live.com',
+        knownAuthorities: ["login.live.com"],
+        protocolMode: "OIDC"
     }
 };
 ```
@@ -96,6 +112,8 @@ msalInstance.handleRedirectPromise().then((tokenResponse) => {
 This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
 
 It is not recommended to use both interaction types in a single application.
+
+**Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
 # Next Steps
 
