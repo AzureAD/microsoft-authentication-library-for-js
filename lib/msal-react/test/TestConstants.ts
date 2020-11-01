@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "@azure/msal-browser";
+import { AccountInfo, AuthenticationResult } from "@azure/msal-browser";
 
 export const TEST_CONFIG = {
-    MSAL_CLIENT_ID: "0813e1d1-ad72-46a9-8665-399bba48c201"
+    MSAL_CLIENT_ID: "0813e1d1-ad72-46a9-8665-399bba48c201",
 };
 
 export const TEST_DATA_CLIENT_INFO = {
@@ -29,3 +29,16 @@ export const testAccount: AccountInfo = {
     username: "example@microsoft.com",
     name: "Abe Lincoln"
 };
+
+export const testResult: AuthenticationResult = {
+    uniqueId: "unique-id",
+    tenantId: "tenant-id",
+    scopes: ["openid", "profile"],
+    idToken: "test-id-token",
+    idTokenClaims: {},
+    accessToken: "test-access-token",
+    fromCache: false,
+    expiresOn: new Date(Date.now() + (3600000)),
+    account: testAccount,
+    tokenType: "Bearer"
+}

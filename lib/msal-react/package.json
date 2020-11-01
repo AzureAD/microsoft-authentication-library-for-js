@@ -25,6 +25,8 @@
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
     "build:modules:watch": "tsdx watch --verbose",
     "test": "tsdx test .*.spec.*",
+    "test:watch": "tsdx test .*.spec.* --watch",
+    "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "cd ../../ && npm run lint:react",
     "lint:fix": "npm run lint -- -- --fix",
     "build:all": "npm run build:common && npm run build:browser && npm run build",
