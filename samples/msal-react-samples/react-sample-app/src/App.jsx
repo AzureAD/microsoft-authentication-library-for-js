@@ -8,13 +8,13 @@ import Button from "react-bootstrap/Button";
 import "./styles/App.css";
 
 const ProfileContent = () => {
-    const { instance, state } = useMsal();
+    const { instance, accounts } = useMsal();
     const [graphData, setGraphData] = useState(null);
 
     function RequestProfileData() {
         instance.acquireTokenSilent({
             ...loginRequest,
-            account: state.accounts[0]
+            account: accounts[0]
         }).then((response) => {
             callMsGraph(response.accessToken).then(response => setGraphData(response));
         });
@@ -22,7 +22,7 @@ const ProfileContent = () => {
 
     return (
         <>
-            <h5 className="card-title">Welcome {state.accounts[0].name}</h5>
+            <h5 className="card-title">Welcome {accounts[0].name}</h5>
             {graphData ? 
                 <ProfileData graphData={graphData} />
                 :

@@ -7,7 +7,7 @@ import { loginRequest } from "./authConfig";
 import Dropdown from "react-bootstrap/esm/Dropdown";
 
 const SignInSignOutButton = () => {
-    const { instance, state } = useMsal();
+    const { instance } = useMsal();
     return (
         <>
             <AuthenticatedTemplate>
