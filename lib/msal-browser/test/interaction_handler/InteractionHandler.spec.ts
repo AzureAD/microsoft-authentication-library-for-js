@@ -1,17 +1,30 @@
 import { expect } from "chai";
 import "mocha";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult, CacheManager, AuthorizationCodeClient, AuthenticationScheme, CacheSchemaType } from "@azure/msal-common";
+import {
+    PkceCodes,
+    NetworkRequestOptions,
+    LogLevel,
+    AccountInfo,
+    AuthorityFactory,
+    AuthorizationCodeRequest,
+    AuthenticationResult,
+    AuthorizationCodeClient,
+    AuthenticationScheme,
+    ProtocolMode,
+    Logger,
+} from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { TestStorageManager } from "../cache/TestStorageManager";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 class TestInteractionHandler extends InteractionHandler {
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         super(authCodeModule, storageImpl);
     }
 
@@ -57,32 +70,11 @@ const networkInterface = {
     },
 };
 
-class TestStorageInterface extends CacheManager {
-    setItem(key: string, value: string | object, type?: string): void {
-        return;
-    }
-    getItem(key: string, type?: string): string | object {
-        return "cacheItem";
-    }
-    removeItem(key: string, type?: string): boolean {
-        return true;
-    }
-    containsKey(key: string, type?: string): boolean {
-        return true;
-    }
-    getKeys(): string[] {
-        return testKeySet;
-    }
-    clear(): void {
-        return;
-    }
-}
-
 describe("InteractionHandler.ts Unit Tests", () => {
 
     let authCodeModule: AuthorizationCodeClient;
-    let browserStorage: BrowserStorage;
-    const cyrptoOpts = new CryptoOps();
+    let browserStorage: BrowserCacheManager;
+    const cryptoOpts = new CryptoOps();
 
     beforeEach(() => {
         const appConfig: Configuration = {
@@ -91,8 +83,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        authCodeModule = new AuthorizationCodeClient({
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        const authConfig = {
             authOptions: {
                 ...configObj.auth,
                 authority: authorityInstance,
@@ -120,7 +112,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     return "signedJwt";
                 }
             },
-            storageInterface: new TestStorageInterface(),
+            storageInterface: new TestStorageManager(),
             networkInterface: {
                 sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
                     return testNetworkResult;
@@ -137,8 +129,10 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 },
                 piiLoggingEnabled: true
             }
-        });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cyrptoOpts);
+        };
+        authCodeModule = new AuthorizationCodeClient(authConfig);
+        const logger = new Logger(authConfig.loggerOptions);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOpts, logger);
     });
 
     afterEach(() => {
@@ -197,8 +191,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 state: "testState",
                 tokenType: AuthenticationScheme.BEARER
             };
-            browserStorage.setItem(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE, CacheSchemaType.TEMPORARY);
-            browserStorage.setItem(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), idTokenClaims.nonce, CacheSchemaType.TEMPORARY);
+            browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE);
+            browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), idTokenClaims.nonce);
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);

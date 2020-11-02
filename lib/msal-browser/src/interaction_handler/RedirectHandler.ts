@@ -3,21 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, CacheSchemaType, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 export class RedirectHandler {
 
     private authModule: AuthorizationCodeClient;
-    private browserStorage: BrowserStorage;
+    private browserStorage: BrowserCacheManager;
     private browserCrypto: ICrypto;
     private authCodeRequest: AuthorizationCodeRequest;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage, browserCrypto: ICrypto) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, browserCrypto: ICrypto) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
         this.browserCrypto = browserCrypto;
@@ -32,11 +32,11 @@ export class RedirectHandler {
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             if (redirectStartPage) {
-                this.browserStorage.setItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), redirectStartPage, CacheSchemaType.TEMPORARY);
+                this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, redirectStartPage, true);
             }
 
             // Set interaction status in the library.
-            this.browserStorage.setItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
+            this.browserStorage.setTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserStorage.cacheCodeRequest(authCodeRequest, this.browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             const isIframedApp = BrowserUtils.isInIframe();
@@ -70,11 +70,13 @@ export class RedirectHandler {
         const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
 
         // Handle code response.
-        const requestState = this.browserStorage.getItem(this.browserStorage.generateStateKey(serverParams.state), CacheSchemaType.TEMPORARY) as string;
+        const stateKey = this.browserStorage.generateStateKey(serverParams.state);
+        const requestState = this.browserStorage.getTemporaryCache(stateKey);
         const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
-        const cachedNonce = this.browserStorage.getItem(this.browserStorage.generateNonceKey(requestState), CacheSchemaType.TEMPORARY) as string;
+        const nonceKey = this.browserStorage.generateNonceKey(requestState);
+        const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, this.browserCrypto);
         this.authCodeRequest.code = authCode;
 
@@ -82,7 +84,7 @@ export class RedirectHandler {
         if (clientId) {
             ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes);
         }
-        
+
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
 

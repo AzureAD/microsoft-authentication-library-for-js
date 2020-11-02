@@ -1,9 +1,10 @@
 {
     "authOptions":
-    {
-        "clientId": "89e61572-2f96-47ba-b571-9d8c8f96b69d",
-        "redirectUri": "http://localhost:3000"
-    },    
+        {
+            "clientId": "89e61572-2f96-47ba-b571-9d8c8f96b69d",
+            "authority": "https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660",
+            "clientSecret": ""
+        },
     "request":
     {
         "authCodeUrlParameters": {
@@ -11,11 +12,7 @@
             "redirectUri": "http://localhost:3000/redirect"
         },
         "tokenRequest": {
-            "code": "",
             "redirectUri": "http://localhost:3000/redirect",
-            "scopes": ["user.read"]
-        },
-        "silentRequest": {
             "scopes": ["user.read"]
         }
     },
@@ -26,8 +23,8 @@
     "sample": 
     {
         "appType": "web",
-        "flow": "silent",
-        "clientType": "public"
+        "flow": "authCode",
+        "clientType": "confidential"
     }
     
 }
