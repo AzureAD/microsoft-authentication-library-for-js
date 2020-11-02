@@ -106,7 +106,7 @@ export class RefreshTokenClient extends BaseClient {
     private async acquireTokenWithCachedRefreshToken(request: SilentFlowRequest, foci: boolean) {
         // fetches family RT or application RT based on FOCI value
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
-
+        
         // no refresh Token
         if (!refreshToken) {
             throw ClientAuthError.createNoTokensFoundError();

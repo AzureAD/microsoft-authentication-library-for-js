@@ -311,7 +311,6 @@ export abstract class CacheManager implements ICacheManager {
             accessTokens: {},
             refreshTokens: {},
         };
-
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
@@ -374,7 +373,6 @@ export abstract class CacheManager implements ICacheManager {
                     break;
             }
         });
-
         return matchingCredentials;
     }
 
