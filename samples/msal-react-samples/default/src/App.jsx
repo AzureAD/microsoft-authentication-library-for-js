@@ -32,9 +32,7 @@ const ProfileContent = () => {
     );
 };
 
-const MainContent = () => {
-    useHandleRedirect(); // Only needed if using redirect flow
-    
+const MainContent = () => {    
     return (
         <div className="App">
             <AuthenticatedTemplate>
