@@ -133,6 +133,10 @@ export class ResponseHandler {
                     throw ClientAuthError.createNonceMismatchError();
                 }
             }
+
+            if (authority && authority.authorityType === AuthorityType.Adfs && !this.homeAccountIdentifier) {
+                this.homeAccountIdentifier = idTokenObj.claims.sub || "";
+            }
         }
 
         // save the response tokens
