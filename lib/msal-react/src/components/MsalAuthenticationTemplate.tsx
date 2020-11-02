@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useMemo } from "react";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
-import { getChildrenOrFunction } from "../utilities";
+import { getChildrenOrFunction } from "../utils/utilities";
 import { useMsal } from "../hooks/useMsal";
 import { useMsalAuthentication } from "../hooks/useMsalAuthentication";
 import { useIsAuthenticated } from "../hooks/useIsAuthenticated";
@@ -27,10 +27,12 @@ export function MsalAuthenticationTemplate({
     authenticationRequest, 
     children 
 }: MsalAuthenticationProps) {
-    const accountIdentifier: AccountIdentifiers = {
-        username,
-        homeAccountId
-    };
+    const accountIdentifier: AccountIdentifiers = useMemo(() => {
+        return {
+            username,
+            homeAccountId
+        };
+    }, [username, homeAccountId]);
     const context = useMsal();
     const { error } = useMsalAuthentication(interactionType, authenticationRequest, accountIdentifier);
     if (error) {

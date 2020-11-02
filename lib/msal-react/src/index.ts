@@ -22,7 +22,7 @@ export { MsalAuthenticationTemplate } from "./components/MsalAuthenticationTempl
 export { withMsal } from "./components/withMsal";
 
 export { useMsal } from "./hooks/useMsal";
-export { useHandleRedirect } from "./hooks/useHandleRedirect";
+export { useAccount } from "./hooks/useAccount";
 export { useIsAuthenticated } from "./hooks/useIsAuthenticated";
 export { useMsalAuthentication } from "./hooks/useMsalAuthentication";
 
