@@ -12,13 +12,13 @@ export class ErrorBoundary extends React.Component {
     componentDidCatch(e) {
         this.setState({
             hasError: true,
-            error: e
+            error: e.errorCode
         });
     }
 
     render() {
         if (this.hasError) {
-            return <h5>Error: {this.error}</h5>
+            return <h5>This is a protected page and the following error occurred during authentication: <strong>{this.state.error}</strong></h5>;
         }
 
         return this.props.children;

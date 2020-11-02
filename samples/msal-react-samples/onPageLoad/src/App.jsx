@@ -33,11 +33,19 @@ const ProfileContent = () => {
     );
 };
 
+const InProgressComponent = ({inProgress}) => {
+    return <h5>{inProgress} In Progress</h5>;
+}
+
+const ErrorComponent = ({error}) => {
+    return <h5>This is a protected page and the following error occurred during authentication: <strong>{error.errorCode}</strong></h5>;
+}
+
 const MainContent = () => {    
     return (
         <div className="App">
             <ErrorBoundary>
-                <MsalAuthenticationTemplate interactionType="popup">
+                <MsalAuthenticationTemplate interactionType="popup" loadingComponent={InProgressComponent} errorComponent={ErrorComponent}>
                     <ProfileContent />
                 </MsalAuthenticationTemplate>
             </ErrorBoundary>
