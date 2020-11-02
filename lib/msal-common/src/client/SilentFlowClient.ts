@@ -101,6 +101,7 @@ export class SilentFlowClient extends BaseClient {
             // Must refresh due to expired or non-existent access_token
             return true;
         }
+
         return false;
     }
 }
