@@ -329,7 +329,6 @@ export class BrowserCacheManager extends CacheManager {
      */
     getTemporaryCache(cacheKey: string, generateKey?: boolean): string {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
-
         if (this.cacheConfig.storeAuthStateInCookie) {
             const itemCookie = this.getItemCookie(key);
             if (itemCookie) {
@@ -485,16 +484,15 @@ export class BrowserCacheManager extends CacheManager {
      * @param addInstanceId
      */
     generateCacheKey(key: string): string {
-        try {
-            // Defined schemas do not need the key migrated
-            this.validateAndParseJson(key);
-            return key;
-        } catch (e) {
+        const generatedKey = this.validateAndParseJson(key);
+        if (!generatedKey) {
             if (StringUtils.startsWith(key, Constants.CACHE_PREFIX) || StringUtils.startsWith(key, PersistentCacheKeys.ADAL_ID_TOKEN)) {
                 return key;
             }
             return `${Constants.CACHE_PREFIX}.${this.clientId}.${key}`;
         }
+
+        return JSON.stringify(key);
     }
 
     /**
