@@ -65,10 +65,12 @@ MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `
                 clientId: "Your client ID"
             }
         }, {
-            protectedResourceMap: [
+        //MsalGuardConfiguation here
+        }, {
+            protectedResourceMap: new Map([
                 ['https://graph.microsoft.com/v1.0/me', ['user.read']],
                 ['https://api.myapplication.com/users/*', ['customscope.read']]
-            ]
+            ])
         })
     ],
     providers: [
@@ -85,69 +87,75 @@ export class AppModule {}
 
 Using MsalInterceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
 
-As of `@azure/msal-angular@1.1.0`, `protectedResourceMap` supports wildcard patterns that are supported by [minimatch](https://github.com/isaacs/minimatch), and `unprotectedResources` is deprecated and ignored. 
+As of `@azure/msal-angular@2`protectedResourceMap` supports wildcard patterns that are supported by [minimatch](https://github.com/isaacs/minimatch). `unprotectedResources` is deprecated and no longer an option fpr configuration. 
 
 **Note:** When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`).
 
 ## Subscribe to event callbacks
 
-MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service and also implement a `handleRedirectCallback`:
+MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service and also implement a `handleRedirectObservable`:
 
 ```js
-this.authService.handleRedirectCallback((authError, response) => {
-    // do something here
+this.authService.handleRedirectObservable().subscribe({
+    next: (result) => // do something here
 });
 ```
 
-1. Login-related events (`loginPopup`/`loginRedirect`)
+### 1. How to subscribe to events
 
 ```js
-this.broadcastService.subscribe("msal:loginFailure", payload => {
-    // do something here
-});
-
-this.broadcastService.subscribe("msal:loginSuccess", payload => {
-    // do something here
-});
+this.msalBroadcastService.msalSubject$
+    .pipe(
+        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS)
+    )
+    .subscribe((result) => {
+        // do something here
+    });
 ```
 
-2. Token-related events (`acquireTokenSilent()`/`acquireTokenPopup()`/`acquireTokenRedirect()`)
+### 2. List of available events
+
+To subscribe to different events, replace the above `EventType` with one of the following:
 
 ```js
-this.broadcastService.subscribe("msal:acquireTokenSuccess", payload => {
-    // do something here
-});
-
-this.broadcastService.subscribe("msal:acquireTokenFailure", payload => {
-    // do something here
-});
+export enum EventType {
+    LOGIN_START = "msal:loginStart",
+    LOGIN_SUCCESS = "msal:loginSuccess",
+    LOGIN_FAILURE = "msal:loginFailure",
+    ACQUIRE_TOKEN_START = "msal:acquireTokenStart",
+    ACQUIRE_TOKEN_SUCCESS = "msal:acquireTokenSuccess",
+    ACQUIRE_TOKEN_FAILURE = "msal:acquireTokenFailure",
+    ACQUIRE_TOKEN_NETWORK_START = "msal:acquireTokenFromNetworkStart",
+    SSO_SILENT_START = "msal:ssoSilentStart",
+    SSO_SILENT_SUCCESS = "msal:ssoSilentSuccess",
+    SSO_SILENT_FAILURE = "msal:ssoSilentFailure",
+    HANDLE_REDIRECT_START = "msal:handleRedirectStart",
+    LOGOUT_START = "msal:logoutStart",
+    LOGOUT_SUCCESS = "msal:logoutSuccess",
+    LOGOUT_FAILURE = "msal:logoutFailure"
+}
 ```
 
-3. SSO-related events (`ssoSilent()`)
+### 3. Unsubscribing
+
+It is extremely important to unsubscribe. Implement `ngOnDestroy()` in your component and unsubscribe.
 
 ```js
-this.broadcastService.subscribe("msal:ssoSuccess", payload => {
-    // do something here
-});
+private readonly _destroying$ = new Subject<void>();
 
-this.broadcastService.subscribe("msal:ssoFailure", payload => {
-    // do something here
-});
-```
+this.msalBroadcastService.msalSubject$
+    .pipe(
+        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS),
+        takeUntil(this._destroying$)
+    )
+    .subscribe((result) => {
+        this.checkAccount();
+    });
 
-4. It is extremely important to unsubscribe. Implement `ngOnDestroy()` in your component and unsubscribe.
-
-```js
- private subscription: Subscription;
-
- this.subscription = this.broadcastService.subscribe("msal:acquireTokenFailure", (payload) => {});
-
- ngOnDestroy() {
-    this.broadcastService.getMSALSubject().next(1);
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-  }
+ngOnDestroy(): void {
+    this._destroying$.next(null);
+    this._destroying$.complete();
+}
 ```
 
 # Next Steps
