@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError } from "@azure/msal-browser";
 import { useIsAuthenticated } from "./useIsAuthenticated";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
@@ -21,10 +21,17 @@ export function useMsalAuthentication(
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest, 
     accountIdentifier?: AccountIdentifiers
 ): MsalAuthenticationResult {
+    const isMounted = useRef(true);
+    useEffect(() => {
+        return () => {
+            isMounted.current = false;
+        }
+    }, []);
+
     const { instance, inProgress } = useMsal();
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
-    const [result, setResult] = useState<AuthenticationResult|null>(null);
-    const [error, setError] = useState<AuthError|null>(null);
+    const [[result, error], setResponse] = useState<[AuthenticationResult|null, AuthError|null]>([null, null]);
+    const [hasBeenCalled, setHasBeenCalled] = useState<boolean>(false);
 
     const login = useCallback((loginType: InteractionType, request?: PopupRequest|RedirectRequest|SsoSilentRequest): Promise<AuthenticationResult|null> => {
         switch (loginType) {
@@ -41,13 +48,19 @@ export function useMsalAuthentication(
     }, [instance, authenticationRequest, interactionType]);
 
     useEffect(() => {
-        if (!isAuthenticated && inProgress === InteractionStatus.None) {
+        if (!hasBeenCalled && !isAuthenticated && inProgress === InteractionStatus.None) {
+            // Ensure login is only called one time from within this hook, any subsequent login attempts should use the callback returned
+            setHasBeenCalled(true);
             login(interactionType, authenticationRequest)
-                .then(result => setResult(result))
-                .catch(error => setError(error));
+                .then(result => {
+                    isMounted.current && setResponse([result, null]);
+                })
+                .catch(error => {
+                    isMounted.current && setResponse([null, error]);
+                });
         }
 
-    }, [isAuthenticated, inProgress]);
+    }, [isAuthenticated, inProgress, hasBeenCalled]);
 
     return { login, result, error };
 }
