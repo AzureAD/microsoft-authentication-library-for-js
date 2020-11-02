@@ -227,7 +227,7 @@ export class BrowserCacheManager extends CacheManager {
         }
         const parsedRefreshToken = this.validateAndParseJson(value);
         const refreshToken: RefreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), parsedRefreshToken);
-        if (AccessTokenEntity.isAccessTokenEntity(refreshToken)) {
+        if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
             return refreshToken;
         }
         return null;
