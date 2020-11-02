@@ -34,6 +34,10 @@ jobs:
       working-directory: samples/msal-node-samples/EndToEndTestApp
       run: npm install
 
+    - name: Link MSAL Common
+      working-directory: lib/msal-common
+      run: npm link
+
     - name: Link MSAL Node
       working-directory: lib/msal-node
       run: npm link
@@ -41,7 +45,7 @@ jobs:
     - name: Build Package
       working-directory: samples/msal-node-samples/EndToEndTestApp
       run: |
-        npm link @azure/msal-node
+        npm link @azure/msal-common @azure/msal-node
         npm run build:package
 
     - name: E2E Tests
