@@ -10,10 +10,13 @@ import { useMsal } from "../hooks/useMsal";
 import { useMsalAuthentication } from "../hooks/useMsalAuthentication";
 import { useIsAuthenticated } from "../hooks/useIsAuthenticated";
 import { InteractionType, PopupRequest, RedirectRequest, SsoSilentRequest } from "@azure/msal-browser";
+import { InteractionStatus } from "../utils/Constants";
 
 export type MsalAuthenticationProps = PropsWithChildren<AccountIdentifiers & {
     interactionType: InteractionType;
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest;
+    loadingComponent?: React.ReactNode;
+    errorComponent?: React.ReactNode;
 }>;
 
 /**
@@ -25,6 +28,8 @@ export function MsalAuthenticationTemplate({
     username, 
     homeAccountId, 
     authenticationRequest, 
+    loadingComponent,
+    errorComponent,
     children 
 }: MsalAuthenticationProps) {
     const accountIdentifier: AccountIdentifiers = useMemo(() => {
@@ -34,17 +39,33 @@ export function MsalAuthenticationTemplate({
         };
     }, [username, homeAccountId]);
     const context = useMsal();
-    const { error } = useMsalAuthentication(interactionType, authenticationRequest, accountIdentifier);
-    if (error) {
-        throw error;
-    }
+    const msalAuthResult = useMsalAuthentication(interactionType, authenticationRequest, accountIdentifier);
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
-    // TODO: What if the user authentiction is InProgress? How will user show a loading state?
+    if (msalAuthResult.error) {
+        if (!!errorComponent) {
+            return (
+                <React.Fragment>
+                    {getChildrenOrFunction(errorComponent, msalAuthResult)}
+                </React.Fragment>
+            );
+        }
+
+        throw msalAuthResult.error;
+    }
+    
     if (isAuthenticated) {
         return (
             <React.Fragment>
-                {getChildrenOrFunction(children, context)}
+                {getChildrenOrFunction(children, msalAuthResult)}
+            </React.Fragment>
+        );
+    } 
+    
+    if (!!loadingComponent || context.inProgress !== InteractionStatus.None) {
+        return (
+            <React.Fragment>
+                {getChildrenOrFunction(loadingComponent, context)}
             </React.Fragment>
         );
     }
