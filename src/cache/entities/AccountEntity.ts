@@ -16,6 +16,7 @@ import { StringUtils } from "../../utils/StringUtils";
 import { AccountInfo } from "../../account/AccountInfo";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
+import { Logger } from "../../logger/Logger";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -128,17 +129,16 @@ export class AccountEntity {
      */
     static createAccount(
         clientInfo: string,
+        homeAccountId: string,
         authority: Authority,
         idToken: AuthToken,
-        crypto: ICrypto,
         oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         account.clientInfo = clientInfo;
-        const clientInfoObj = buildClientInfo(clientInfo, crypto);
-        account.homeAccountId = `${clientInfoObj.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfoObj.utid}`;
+        account.homeAccountId = homeAccountId;
 
         const env = Authority.generateEnvironmentFromAuthority(authority);
         if (StringUtils.isEmpty(env)) {
@@ -175,13 +175,14 @@ export class AccountEntity {
      */
     static createGenericAccount(
         authority: Authority,
+        homeAccountId: string,
         idToken: AuthToken,
         oboAssertion?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = (authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
-        account.homeAccountId = idToken.claims.sub;
+        account.homeAccountId = homeAccountId;
         // non AAD scenarios can have empty realm
         account.realm = "";
         account.oboAssertion = oboAssertion;
@@ -200,6 +201,24 @@ export class AccountEntity {
          */
 
         return account;
+    }
+
+    /**
+     *
+     * @param serverClientInfo
+     * @param authType
+     */
+    static generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, idToken?: AuthToken): string {
+        if (serverClientInfo && authType !== AuthorityType.Adfs) {
+            const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
+            if (!StringUtils.isEmpty(clientInfo.uid) && !StringUtils.isEmpty(clientInfo.utid)) {
+                return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
+            }
+        }
+
+        // default to "sub" claim
+        logger.verbose("No client info in response, could be an ADFS client");
+        return idToken && idToken.claims.sub ? idToken.claims.sub : "";
     }
 
     /**
