@@ -1,8 +1,8 @@
 {
-  "type": "patch",
+  "type": "minor",
   "comment": "Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516)",
   "packageName": "@azure/msal-browser",
   "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-11-03T01:11:52.801Z"
 }
