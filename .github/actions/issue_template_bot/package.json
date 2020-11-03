@@ -8,15 +8,14 @@
     "@actions/github": "^4.0.0"
   },
   "devDependencies": {
+    "@vercel/ncc": "^0.24.1",
     "husky": "^4.3.0",
     "typescript": "^4.0.5"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "ncc build index.ts"
   },
   "husky": {
-    "hooks": {
-      "pre-commit": "npm run build && git add \"**/*.js\""
-    }
+    "pre-commit": "npm run build && git add \"**/*.js\""
   }
 }

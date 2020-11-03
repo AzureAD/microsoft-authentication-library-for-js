@@ -2,4 +2,4 @@ name: 'Issue Template Bot'
 description: 'Verifies the issue template was filled out and applies relevant labels'
 runs:
   using: 'node12'
-  main: 'index.js'
+  main: './dist/index.js'
