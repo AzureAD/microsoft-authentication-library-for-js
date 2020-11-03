@@ -2,7 +2,7 @@
 name: Bug report
 about: Broken or unintended behavior with one of our libraries.
 title: ''
-labels: bug
+labels: question
 assignees: ''
 
 ---
