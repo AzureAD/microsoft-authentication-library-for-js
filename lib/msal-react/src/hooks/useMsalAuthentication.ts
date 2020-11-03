@@ -25,7 +25,7 @@ export function useMsalAuthentication(
     useEffect(() => {
         return () => {
             isMounted.current = false;
-        }
+        };
     }, []);
 
     const { instance, inProgress } = useMsal();

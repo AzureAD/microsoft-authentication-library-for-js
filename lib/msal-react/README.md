@@ -2,277 +2,82 @@
 
 `msal-react` is under development. **We do not recommend using this in a production environment yet**.
 
-## Documentation
+| [AAD Docs](https://aka.ms/aaddevv2) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples)
+| --- | --- | --- |
 
-### Installation
+1. [About](#about)
+1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
+1. [Prerequisites](#prerequisites)
+1. [Installation](#installation)
+1. [Getting Started](#https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md)
+1. [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples)
+1. [Build and Test](#build-and-test)
+1. [Security Reporting](#security-reporting)
+1. [License](#license)
+1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
 
-MSAL React will have `@azure/msal-browser` listed as a peer dependency.
+## About
+
+The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
+
+The `@azure/msal-react` package described by the code in this folder uses the [`@azure/msal-browser` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) as a peer dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#implicit-flow-vs-authorization-code-flow-with-pkce).
+
+## Prerequisites
+
+- `@azure/msal-react` is meant to be used in [Single-Page Application scenarios](https://docs.microsoft.com/azure/active-directory/develop/scenario-spa-overview).
+
+- Before using `@azure/msal-react` you will need to [register a Single Page Application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
+
+## Installation
+
+The MSAL React package is available on NPM.
 
 ```sh
 npm install react react-dom
 npm install @azure/msal-react @azure/msal-browser
 ```
 
-### API
+## Build and Test
 
-#### MsalProvider
+See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information. 
 
-MSAL React will be configured with the same configuration for MSAL.js itself, along with any configuration options that are specific to MSAL React (TBD). This will be passed to the `MsalProvider` component, which will put an instance of `PublicClientApplication` in the React context. Using `MsalProvider` will be a requirement for the other APIs. It will be recommended to use `MsalProvider` at the top-level of your application.
+### Building the package
 
-`MsalProvider` and `MsalConsumer` are built on the [React context API](https://reactjs.org/docs/context.html). There are various ways of recieving the context values, including components and hooks.
+To build the `@azure/msal-react` library, you can do the following:
 
-```javascript
-// index.js
-import React from "react";
-import ReactDOM from "react-dom";
-
-import { MsalProvider } from "@azure/msal-react";
-import { Configuration } from "@azure/msal-browser";
-
-import App from "./app.jsx";
-
-// MSAL configuration
-const configuration: Configuration = {
-    auth: {
-        clientId: "client-id"
-    }
-};
-
-// Component
-const AppProvider = () => (
-    <MsalProvider configuration={configuration}>
-        <App />
-    </MsalProvider>
-);
-
-ReactDOM.render(<AppProvider />, document.getElementById("root"));
+```bash
+// Change to the msal-react package directory
+cd lib/msal-react/
+// To run build only for react package
+npm run build
 ```
 
-#### useMsal
-
-A hook that returns the instance of `PublicClientApplication` to be used within a function component. Changes to the context from the `MsalProvider` will allow your function component to update as required.
-
-```js
-import React from 'react';
-import { useMsal } from "@azure/msal-react";
-
-export function HomePage() {
-    const msal = useMsal();
-
-    if (msal.isAuthenticated) {
-        return <span>You are currently authenticated.</span>
-    } else {
-        return <span>You are not authenticated yet.</span>
-    }
-}
+To build both the `@azure/msal-react` library and `@azure/msal-browser` and `@azure/msal-common` libraries, you can do the following:
+```bash
+// Change to the msal-react package directory
+cd lib/msal-react/
+// To run build only for react package
+npm run build:all
 ```
 
-#### MsalContext
+### Running Tests
+`@azure/msal-react` uses [jest](https://jestjs.io/) to run unit tests and coverage.
 
-The raw context for MSAL React. It will not be recommended to use this directly, except when your application needs to access the context type itself (e.g. consuming the MSAL React context directly).
-
-```js
-// app.js
-import React from "react";
-import { MsalContext } from "@azure/msal-react";
-
-class App extends React.Component {
-    static contextType = MsalContext;
-
-    render() {
-        return (
-            <div>
-                {!this.context.getAccount() ? (
-                    <button
-                        onClick={e => {
-                            e.preventDefault();
-                            this.context.loginPopup();
-                        }}
-                    >
-                        Login
-                    </button>
-                ) : (
-                    <button
-                        onClick={e => {
-                            e.preventDefault();
-                            this.context.logout();
-                        }}
-                    >
-                        Logout
-                    </button>
-                )}
-            </div>
-        )
-    }
-}
-
-export default App;
+```bash
+// To run tests
+npm test
+// To run tests with code coverage
+npm run test:coverage
 ```
 
-#### withMsal
+## Security Reporting
 
-A higher-order component which will pass the MSAL instance as a prop (instead of via context). The instance of `withMsal` must be a child (at any level) of `MsalProvider`.
+If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/security/dd252948) and subscribing to Security Advisory Alerts.
 
-```js
-// app.js
-import React from "react";
-import { IMsalPropType } from "@azure/msal-react";
+## License
 
-const scopes = ['user.read'];
+Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License.
 
-class App extends React.Component {
-    static propTypes = {
-        msal: IMsalPropType
-    }
+## We Value and Adhere to the Microsoft Open Source Code of Conduct
 
-    render() {
-        if (this.props.msal.isAuthenticated) {
-            return (
-                <button
-                    onClick={e => {
-                        this.props.msal.logout();
-                    }}
-                >
-                    Logout
-                </button>
-            );
-        } else {
-            return (
-                <button
-                    onClick={e => {
-                        this.props.msal.loginPopup({ scopes });
-                    }}
-                >
-                    Login
-                </button>
-            );
-        }
-    }
-}
-
-export const WrappedApplication = withMsal(App);
-
-// index.js
-import { WrappedApplication } from "./app.js";
-
-const AppProvider = () => (
-    <MsalProvider configuration={configuration}>
-        <WrappedApplication />
-    </MsalProvider>
-);
-
-ReactDOM.render(<AppProvider />, document.getElementById("root"));
-```
-
-#### AuthenticatedTemplate
-
-The `AuthenticatedTemplate` component will only render the children if the user has a currently authenticated account. This allows conditional rendering of content or components that require a certain authentication state.
-
-Additionally, the `AuthenticatedTemplate` provides the option to pass a function as a child using the [function-as-a-child pattern](https://reactjs.org/docs/context.html#contextconsumer). This will pass down the instance of `PubliClientApplication` as the only argument for more advanced conditional logic.
-
-```js
-import React from 'react';
-import { AuthenticatedTemplate } from "@azure/msal-react";
-
-export function HomePage() {
-    return (
-        <React.Fragment>
-            <p>Anyone can see this paragraph.</p>
-            <AuthenticatedTemplate>
-                <p>But only authenticated users will see this paragraph.</p>
-            </AuthenticatedTemplate>
-            <AuthenticatedTemplate>
-                {(msal) => {
-                    return (
-                        <p>You have {msal.accounts.length} accounts authenticated.</p>
-                    );
-                }}
-            </AuthenticatedTemplate>
-        </React.Fragment>
-    );
-}
-```
-
-#### UnauthenticatedTemplate
-
-The `UnauthenticatedTemplate` component will only render the children if the user has a no accounts currently authenticated. This allows conditional rendering of content or components that require a certain authentication state.
-
-Additionally, the `UnauthenticatedTemplate` provides the option to pass a function as a child using the [function-as-a-child pattern](https://reactjs.org/docs/context.html#contextconsumer). This will pass down the instance of `PubliClientApplication` as the only argument for more advanced conditional logic.
-
-```js
-import React from 'react';
-import { UnauthenticatedTemplate } from "@azure/msal-react";
-
-export function HomePage() {
-    return (
-        <React.Fragment>
-            <p>Anyone can see this paragraph.</p>
-            <UnauthenticatedTemplate>
-                <p>But only user's who have no authenticated accounts will see this paragraph.</p>
-            </UnauthenticatedTemplate>
-            <UnauthenticatedTemplate>
-                {(msal) => {
-                    return (
-                        <button onClick={(e) => { msal.logout(); }}>Logout</button>
-                    );
-                }}
-            </UnauthenticatedTemplate>
-        </React.Fragment>
-    );
-}
-```
-
-#### MsalAuthentication
-
-The `MsalAuthentication` component takes props that allow you to configure the authentication method and guarentees that authentication will be executed when the component is rendered. A default authentication flow will be initiated using the instance methods of `PublicClientApplication` provided by the `MsalProvider`.
-
-For more advanced use cases, the default authentication logic implemented with `MsalAuthentication` may not be suitable. In these situations, it may be better to write a custom hook or component that uses the instance of `PublicClientApplication` from the `MsalProvider` to support more specific behavior.
-
-```js
-import React from 'react';
-import { MsalAuthentication, AuthenticationType, UnauthenticatedTemplate, AuthenticatedTemplate } from "@azure/msal-react";
-
-export function ProtectedComponent() {
-    return (
-        <MsalAuthentication request={{ scopes: ['user.read'] }} forceLogin={true} type={AuthenticationType.POPUP}>
-            <h1>Protected Component</h1>
-            <p>Any children of the MsalAuthentication component will be rendered unless they are wrapped in a conditional template.</p>
-
-            <UnauthenticatedTemplate>
-                <p>Please login before viewing this page.</p>
-            </UnauthenticatedTemplate>
-            <AuthenticatedTemplate>
-                <p>Thank you for logging in with your account!</p>
-            </AuthenticatedTemplate>
-        </MsalAuthentication>
-    );
-}
-```
-
-
-
-
-#### useHandleRedirect
-
-React hook to receive the response from redirect operations (wrapper around `handleRedirectPromise`).
-
-TODO: Error handling
-
-```js
-export function RedirectPage() {
-    const redirectResult = useHandleRedirect();
-
-    if (redirectResult) {
-        return (
-            <React.Fragment>
-                <p>Redirect response:</p>
-                <pre>{JSON.stringify(redirectResult, null, 4)}</pre>
-            </React.Fragment>
-        );
-    } else {
-        return (
-            <p>This page is not returning from a redirect operation.</p>
-        );
-    }
-}
-```
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
