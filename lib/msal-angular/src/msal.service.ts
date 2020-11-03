@@ -39,7 +39,7 @@ export class MsalService implements IMsalService {
         @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
         private location: Location
     ) {
-        const hash = this.location.path(true).split('#').pop();
+        const hash = this.location.path(true).split("#").pop();
         if (hash) {
             this.redirectHash = `#${hash}`;
         }
@@ -62,7 +62,7 @@ export class MsalService implements IMsalService {
     }
     handleRedirectObservable(): Observable<AuthenticationResult> {
         const handleRedirect = from(this.msalInstance.handleRedirectPromise(this.redirectHash));
-        this.redirectHash = '';
+        this.redirectHash = "";
         return handleRedirect;
     }
     loginPopup(request?: AuthorizationUrlRequest): Observable<AuthenticationResult> {
