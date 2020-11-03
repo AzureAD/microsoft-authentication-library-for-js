@@ -5790,27 +5790,46 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 891:
+/***/ 67:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LabelLibrary = void 0;
+exports.LabelIssue = void 0;
 const core = __webpack_require__(186);
-function LabelLibrary(issueNo, body) {
-    const headerRegEx = RegExp("(##\s*(.*?\n))(.*?)(?=##|$)", "gs");
-    let match;
-    const issueContent = new Map(); // Key is the Header, value is content under header
-    while ((match = headerRegEx.exec(body)) !== null) {
-        core.info(`Found header: ${match[2]}`);
-        core.info(`Content: ${match[3]}`);
-        issueContent.set(match[2], match[3]);
+class LabelIssue {
+    constructor(issueNo, body) {
+        this.issueNo = issueNo;
+        this.issueContent = new Map();
+        this.parseBody(body);
     }
-    core.info("FINAL DICT");
-    core.info(issueContent.toString());
+    parseBody(body) {
+        const headerRegEx = RegExp("(##\s*(.*?\n))(.*?)(?=##|$)", "gs");
+        let match;
+        while ((match = headerRegEx.exec(body)) !== null) {
+            core.info(`Found header: ${match[2]}`);
+            core.info(`Content: ${match[3]}`);
+            this.issueContent.set(match[2], match[3]);
+        }
+    }
+    getLibraries(labelsToSearch) {
+        const librariesFound = [];
+        const libraryRegEx = RegExp("-\s*\[\s*[xX]\s*\]\s.*", "g");
+        let match;
+        labelsToSearch.forEach(label => {
+            const librarySelections = this.issueContent.get("Library") || "";
+            while ((match = libraryRegEx.exec(librarySelections)) !== null) {
+                if (match[0].includes(label)) {
+                    librariesFound.push(label);
+                    break;
+                }
+            }
+        });
+        return librariesFound;
+    }
 }
-exports.LabelLibrary = LabelLibrary;
+exports.LabelIssue = LabelIssue;
 
 
 /***/ }),
@@ -5823,7 +5842,7 @@ exports.LabelLibrary = LabelLibrary;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __webpack_require__(186);
 const github = __webpack_require__(438);
-const LabelLibrary_1 = __webpack_require__(891);
+const LabelIssue_1 = __webpack_require__(67);
 async function run() {
     core.info(`Event of type: ${github.context.eventName} triggered workflow`);
     if (github.context.eventName !== "issues") {
@@ -5843,7 +5862,9 @@ async function run() {
     core.info(`Issue number: ${issue.number}`);
     core.info(`Issue body: ${issue.body}`);
     if (issue.number && issue.body) {
-        LabelLibrary_1.LabelLibrary(issue.number, issue.body);
+        const labelIssue = new LabelIssue_1.LabelIssue(issue.number, issue.body);
+        const libraries = labelIssue.getLibraries(["msal@1.x", "msal-browser", "msal-angular", "msal-common", "msal-node"]);
+        core.info(`Libraries affected ${libraries.join(", ")}`);
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");
