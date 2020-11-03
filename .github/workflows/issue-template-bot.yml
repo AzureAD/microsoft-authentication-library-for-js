@@ -11,4 +11,4 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run Bot
-        uses: ./actions/issue_template_bot
+        uses: ./.github/actions/issue_template_bot

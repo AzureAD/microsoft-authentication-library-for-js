@@ -13,5 +13,10 @@
   },
   "scripts": {
     "build": "tsc"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run build && git add \"**/*.js\""
+    }
   }
 }
