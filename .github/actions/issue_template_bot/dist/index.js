@@ -5820,8 +5820,8 @@ class LabelIssue {
         labelsToSearch.forEach(label => {
             core.info(`Attempting to match: ${label}`);
             while ((match = libraryRegEx.exec(librarySelections)) !== null) {
-                core.info(`Selection: ${match[0]}`);
-                if (match[0].includes(label)) {
+                core.info(`Selection: ${match}`);
+                if (match.includes(label)) {
                     core.info(`Match!`);
                     librariesFound.push(label);
                     break;
@@ -5861,8 +5861,6 @@ async function run() {
         core.setFailed("No issue on payload!");
         return;
     }
-    core.info(`Issue number: ${issue.number}`);
-    core.info(`Issue body: ${issue.body}`);
     if (issue.number && issue.body) {
         const labelIssue = new LabelIssue_1.LabelIssue(issue.number, issue.body);
         const libraries = labelIssue.getLibraries(["msal@1.x", "msal-browser", "msal-angular", "msal-common", "msal-node"]);
