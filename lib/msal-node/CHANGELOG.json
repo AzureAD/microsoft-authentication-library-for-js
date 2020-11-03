@@ -2,6 +2,27 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 02 Nov 2020 23:33:39 GMT",
+      "tag": "@azure/msal-node_v1.0.0-alpha.14",
+      "version": "1.0.0-alpha.14",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Add getLogger and setLogger to msal-node (#2520)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "6fff8c1ed4d3dab2a74ff4b44a159645a6c2f535",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Remove `debug` from the `msal-node` library (#2496)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "e354c26ae74632943109fb9101319acf6c6a691c",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 26 Oct 2020 21:00:29 GMT",
       "tag": "@azure/msal-node_v1.0.0-alpha.13",
       "version": "1.0.0-alpha.13",
