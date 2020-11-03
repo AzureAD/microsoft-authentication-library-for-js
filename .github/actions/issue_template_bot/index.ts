@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 async function run() {
-    console.log(github.context.eventName);
+    console.log(github.context);
     if (github.context.eventName !== "issue") {
         core.setFailed("Can only run on issues!");
         return;
