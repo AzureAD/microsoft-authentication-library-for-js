@@ -33,7 +33,7 @@ export function useMsalAuthentication(
     const [[result, error], setResponse] = useState<[AuthenticationResult|null, AuthError|null]>([null, null]);
     const [hasBeenCalled, setHasBeenCalled] = useState<boolean>(false);
 
-    const login = useCallback((loginType: InteractionType, request?: PopupRequest|RedirectRequest|SsoSilentRequest): Promise<AuthenticationResult|null> => {
+    const login = useCallback(async (loginType: InteractionType, request?: PopupRequest|RedirectRequest|SsoSilentRequest): Promise<AuthenticationResult|null> => {
         switch (loginType) {
             case InteractionType.Popup:
                 return instance.loginPopup(request as PopupRequest);
