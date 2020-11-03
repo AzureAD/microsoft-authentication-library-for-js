@@ -1,0 +1,14 @@
+name: Issue Template Bot
+
+on:
+  issues:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run Bot
+        uses: ./actions/issue_template_bot

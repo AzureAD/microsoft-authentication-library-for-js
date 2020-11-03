@@ -1,0 +1,17 @@
+{
+  "name": "msal.js-actions",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Github Actions used by MSAL.js Repo",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/github": "^4.0.0"
+  },
+  "devDependencies": {
+    "husky": "^4.3.0",
+    "typescript": "^4.0.5"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}
