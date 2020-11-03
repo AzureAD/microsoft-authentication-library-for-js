@@ -13,25 +13,27 @@ export class LabelIssue {
 
     parseBody(body: string) {
         const headerRegEx = RegExp("(##\s*(.*?\n))(.*?)(?=##|$)", "gs");
-        let match;
+        let match: RegExpExecArray | null;
 
         while ((match = headerRegEx.exec(body)) !== null) {
-            core.info(`Found header: ${match[2]}`);
-            core.info(`Content: ${match[3]}`);
-            this.issueContent.set(match[2], match[3]);
+            this.issueContent.set(match[2].trim(), match[3]);
         }
     }
 
     getLibraries(labelsToSearch: string[]): Array<string> {
         const librariesFound: string[] = [];
+        const librarySelections = this.issueContent.get("Library") || "";
+        core.info(`Library Selections: ${librarySelections}`)
 
         const libraryRegEx = RegExp("-\s*\[\s*[xX]\s*\]\s.*", "g");
         let match: RegExpExecArray | null;
 
         labelsToSearch.forEach(label => {
-            const librarySelections = this.issueContent.get("Library") || "";
+            core.info(`Attempting to match: ${label}`);
             while((match = libraryRegEx.exec(librarySelections)) !== null) {
+                core.info(`Selection: ${match[0]}`);
                 if (match[0].includes(label)) {
+                    core.info(`Match!`);
                     librariesFound.push(label);
                     break;
                 }

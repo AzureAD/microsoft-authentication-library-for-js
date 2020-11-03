@@ -5808,19 +5808,21 @@ class LabelIssue {
         const headerRegEx = RegExp("(##\s*(.*?\n))(.*?)(?=##|$)", "gs");
         let match;
         while ((match = headerRegEx.exec(body)) !== null) {
-            core.info(`Found header: ${match[2]}`);
-            core.info(`Content: ${match[3]}`);
-            this.issueContent.set(match[2], match[3]);
+            this.issueContent.set(match[2].trim(), match[3]);
         }
     }
     getLibraries(labelsToSearch) {
         const librariesFound = [];
+        const librarySelections = this.issueContent.get("Library") || "";
+        core.info(`Library Selections: ${librarySelections}`);
         const libraryRegEx = RegExp("-\s*\[\s*[xX]\s*\]\s.*", "g");
         let match;
         labelsToSearch.forEach(label => {
-            const librarySelections = this.issueContent.get("Library") || "";
+            core.info(`Attempting to match: ${label}`);
             while ((match = libraryRegEx.exec(librarySelections)) !== null) {
+                core.info(`Selection: ${match[0]}`);
                 if (match[0].includes(label)) {
+                    core.info(`Match!`);
                     librariesFound.push(label);
                     break;
                 }
