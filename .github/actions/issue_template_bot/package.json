@@ -16,6 +16,6 @@
     "build": "ncc build index.ts"
   },
   "husky": {
-    "pre-commit": "npm run build && git add \"**/*.js\""
+    "pre-commit": "npm run build && git add **/*.js"
   }
 }
