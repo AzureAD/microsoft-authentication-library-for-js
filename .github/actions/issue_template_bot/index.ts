@@ -2,9 +2,8 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 async function run() {
-    core.info("START");
-    core.info(github.context.eventName);
-    if (github.context.eventName !== "issue") {
+    core.info(`Event of type: ${github.context.eventName} triggered workflow`);
+    if (github.context.eventName !== "issues") {
         core.setFailed("Can only run on issues!");
         return;
     }
