@@ -5799,6 +5799,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __webpack_require__(186);
 const github = __webpack_require__(438);
 async function run() {
+    core.info("START");
+    core.info(github.context.eventName);
     if (github.context.eventName !== "issue") {
         core.setFailed("Can only run on issues!");
         return;
@@ -5813,8 +5815,8 @@ async function run() {
         core.setFailed("No issue on payload!");
         return;
     }
-    console.log(`Issue number: ${issue.number}`);
-    console.log(`Issue body: ${issue.body}`);
+    core.info(`Issue number: ${issue.number}`);
+    core.info(`Issue body: ${issue.body}`);
 }
 run().catch(error => core.setFailed(`Workflow failed with error message: ${error.message}`));
 
