@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add getLogger and setLogger to msal-node (#2520)",
-  "packageName": "@azure/msal-node",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-29T20:30:16.899Z"
-}

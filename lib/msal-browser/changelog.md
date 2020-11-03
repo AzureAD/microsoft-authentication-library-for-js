@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Fri, 30 Oct 2020 00:52:19 GMT and should not be manually modified.
+This log was last generated on Mon, 02 Nov 2020 23:33:39 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.5.2
+
+Mon, 02 Nov 2020 23:33:39 GMT
+
+### Patches
+
+- Fix JSON.parse issue and cache value validation (#2527) (prkanher@microsoft.com)
 
 ## 2.5.1
 
