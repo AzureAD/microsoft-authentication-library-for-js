@@ -31,8 +31,8 @@ export class LabelIssue {
         labelsToSearch.forEach(label => {
             core.info(`Attempting to match: ${label}`);
             while((match = libraryRegEx.exec(librarySelections)) !== null) {
-                core.info(`Selection: ${match[0]}`);
-                if (match[0].includes(label)) {
+                core.info(`Selection: ${match}`);
+                if (match.includes(label)) {
                     core.info(`Match!`);
                     librariesFound.push(label);
                     break;

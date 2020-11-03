@@ -20,10 +20,7 @@ async function run() {
         core.setFailed("No issue on payload!");
         return;
     }
-
-    core.info(`Issue number: ${issue.number}`);
-    core.info(`Issue body: ${issue.body}`);
-
+    
     if (issue.number && issue.body) {
         const labelIssue = new LabelIssue(issue.number, issue.body);
         const libraries = labelIssue.getLibraries(["msal@1.x", "msal-browser", "msal-angular", "msal-common", "msal-node"]);
