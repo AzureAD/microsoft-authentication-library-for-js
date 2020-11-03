@@ -3,7 +3,7 @@
 `msal-react` is under development. **We do not recommend using this in a production environment yet**.
 
 | [AAD Docs](https://aka.ms/aaddevv2) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples)
-| --- | --- | --- | --- | --- |
+| --- | --- | --- |
 
 1. [About](#about)
 1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
