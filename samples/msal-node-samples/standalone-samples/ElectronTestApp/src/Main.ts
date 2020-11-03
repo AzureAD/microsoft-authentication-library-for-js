@@ -30,6 +30,7 @@ export default class Main {
         Main.mainWindow.on('closed', Main.onClose);
         Main.authProvider = new AuthProvider();
         Main.listenForLogin();
+        // Main.listenForProfile();
     }
 
     // Creates main application window
@@ -49,9 +50,15 @@ export default class Main {
         ipcMain.on('login', async () => {
             const account = await Main.login();
             await Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
-            Main.mainWindow.webContents.send('Account', account);
+            Main.mainWindow.webContents.send('welcome', account);
         });
     }
+
+    // private static listenForProfile(): void {
+    //     ipcMain.on('profile', async () => {
+    //         const 
+    //     })
+    // }
 
     private static async login(): Promise<AccountInfo> {
         return await Main.authProvider.login(Main.mainWindow);

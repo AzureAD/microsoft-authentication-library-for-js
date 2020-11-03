@@ -6,15 +6,16 @@ import { UIManager } from "./UIManager";
 
 const uiManager = new UIManager();
 
-// Set listener on 'AcquireToken' button
+// UI event handlers
 document.querySelector('#SignIn').addEventListener('click', () => {
     ipcRenderer.send('login');
 });
 
 document.querySelector('#seeProfile').addEventListener('click', () => {
-    ipcRenderer.send('seeProfile');
+    ipcRenderer.send('profile');
 });
 
-ipcRenderer.on('Account', (event, account) => {
+// Main process message subscribers
+ipcRenderer.on('welcome', (event, account) => {
     uiManager.showWelcomeMessage(account);
 });
