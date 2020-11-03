@@ -5790,6 +5790,26 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 891:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LabelLibrary = void 0;
+const core = __webpack_require__(186);
+function LabelLibrary(issueNo, body) {
+    const headerRegEx = RegExp("(##\s*(.*))", "g");
+    let match;
+    while ((match = headerRegEx.exec(body)) !== null) {
+        core.info(`Found match: ${match}`);
+    }
+}
+exports.LabelLibrary = LabelLibrary;
+
+
+/***/ }),
+
 /***/ 177:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -5798,6 +5818,7 @@ function wrappy (fn, cb) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __webpack_require__(186);
 const github = __webpack_require__(438);
+const LabelLibrary_1 = __webpack_require__(891);
 async function run() {
     core.info(`Event of type: ${github.context.eventName} triggered workflow`);
     if (github.context.eventName !== "issues") {
@@ -5816,6 +5837,12 @@ async function run() {
     }
     core.info(`Issue number: ${issue.number}`);
     core.info(`Issue body: ${issue.body}`);
+    if (issue.number && issue.body) {
+        LabelLibrary_1.LabelLibrary(issue.number, issue.body);
+    }
+    else {
+        core.setFailed("No issue number or body available, cannot label issue!");
+    }
 }
 run().catch(error => core.setFailed(`Workflow failed with error message: ${error.message}`));
 

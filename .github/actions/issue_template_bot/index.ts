@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import { LabelLibrary } from "./LabelLibrary";
 
 async function run() {
     core.info(`Event of type: ${github.context.eventName} triggered workflow`);
@@ -22,6 +23,12 @@ async function run() {
 
     core.info(`Issue number: ${issue.number}`);
     core.info(`Issue body: ${issue.body}`);
+
+    if (issue.number && issue.body) {
+        LabelLibrary(issue.number, issue.body);
+    } else {
+        core.setFailed("No issue number or body available, cannot label issue!");
+    }
 }
 
 run().catch(error => core.setFailed(`Workflow failed with error message: ${error.message}`));
