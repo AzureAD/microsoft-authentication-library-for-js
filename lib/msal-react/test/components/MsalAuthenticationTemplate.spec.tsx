@@ -7,8 +7,8 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { testAccount, testResult, TEST_CONFIG } from "../TestConstants";
-import { MsalProvider, MsalAuthenticationTemplate } from "../../src/index";
-import { PublicClientApplication, Configuration, InteractionType, EventType, AccountInfo, EventCallbackFunction, EventMessage, PopupRequest } from "@azure/msal-browser";
+import { MsalProvider, MsalAuthenticationTemplate, MsalAuthenticationResult, IMsalContext } from "../../src/index";
+import { PublicClientApplication, Configuration, InteractionType, EventType, AccountInfo, EventCallbackFunction, EventMessage, PopupRequest, AuthError } from "@azure/msal-browser";
 
 describe("MsalAuthenticationTemplate tests", () => {
     let pca: PublicClientApplication;
@@ -240,5 +240,77 @@ describe("MsalAuthenticationTemplate tests", () => {
         await waitFor(() => expect(ssoSilentSpy).toHaveBeenCalledTimes(1));
         expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
         expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
+    });
+
+    test("Renders provided error component when an error occurs", async () => {
+        const error = new AuthError("login_failed");
+        const loginPopupSpy = jest.spyOn(pca, "loginPopup").mockImplementation(() => {
+            const eventMessage: EventMessage = {
+                eventType: EventType.LOGIN_FAILURE,
+                interactionType: InteractionType.Popup,
+                payload: null,
+                error: error,
+                timestamp: 10000
+            }
+            eventCallback(eventMessage);
+            
+            return Promise.reject(error);
+        });
+
+        const errorMessage = ({error}: MsalAuthenticationResult) => {
+            if (error) {
+                return <p>Error Occurred: {error.errorCode}</p>
+            }
+
+            return null;
+        }
+
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <MsalAuthenticationTemplate interactionType={InteractionType.Popup} errorComponent={errorMessage}>
+                    <span> A user is authenticated!</span>
+                </MsalAuthenticationTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(loginPopupSpy).toHaveBeenCalledTimes(1));
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(await screen.findByText("Error Occurred: login_failed")).toBeInTheDocument();
+        expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
+    });
+
+    test("Renders provided loading component when interaction is in progress", async () => {
+        const loginPopupSpy = jest.spyOn(pca, "loginPopup").mockImplementation(() => {
+            let eventMessage: EventMessage = {
+                eventType: EventType.LOGIN_START,
+                interactionType: InteractionType.Popup,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            }
+            eventCallback(eventMessage);
+            return Promise.resolve(testResult);
+        });
+
+        const loadingMessage = ({inProgress}: IMsalContext) => {
+            return <p>In Progress: {inProgress}</p>
+        }
+
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <MsalAuthenticationTemplate interactionType={InteractionType.Popup} loadingComponent={loadingMessage}>
+                    <span> A user is authenticated!</span>
+                </MsalAuthenticationTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(loginPopupSpy).toHaveBeenCalledTimes(1));
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(await screen.findByText("In Progress: login")).toBeInTheDocument();
+        expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
 });
