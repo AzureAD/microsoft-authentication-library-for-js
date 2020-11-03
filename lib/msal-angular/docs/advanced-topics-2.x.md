@@ -16,18 +16,20 @@ export function loggerCallback(logLevel, message) {
 }
 
 @NgModule({
-    imports: [ MsalModule.forRoot({
-        auth: {
-            clientId: 'Your client ID',
-        },
-        system: {
-            loggerOptions: {
-                loggerCallback,
-                level: LogLevel.Verbose,
-                piiLoggingEnabled: true,
+    imports: [ 
+        MsalModule.forRoot({
+            auth: {
+                clientId: 'Your client ID',
             },
-        }
-    })]
+            system: {
+                loggerOptions: {
+                    loggerCallback,
+                    level: LogLevel.Verbose,
+                    piiLoggingEnabled: true
+                }
+            }
+        })
+    ]
 })
 ```
 

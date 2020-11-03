@@ -39,7 +39,6 @@ import { MsalModule, MsalService, MsalInterceptor } from '@azure/msal-angular';
                 storeAuthStateInCookie: true, // set to true for IE 11
             },
             framework: {
-                unprotectedResources: ["https://www.microsoft.com/en-us/"],
                 protectedResourceMap: new Map(protectedResourceMap)
             },
             system: {
@@ -104,7 +103,6 @@ function MSALAngularConfigFactory(): MsalAngularConfiguration {
       "profile",
       "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"
     ],
-    unprotectedResources: ["https://www.microsoft.com/en-us/"],
     protectedResourceMap,
     extraQueryParameters: {}
   };
@@ -213,7 +211,6 @@ fetch('/assets/configuration.json')
       "profile",
       "api://a88bb933-319c-41b5-9f04-eff36d985612/access_as_user"
     ],
-    "unprotectedResources": [],
     "protectedResourceMap": [
       ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
     ],

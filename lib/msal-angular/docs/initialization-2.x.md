@@ -60,14 +60,15 @@ MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `
 ```js
 @NgModule({
     imports: [
-        MsalModule.forRoot({
+        MsalModule.forRoot({ // MSAL Configuration
             auth: {
                 clientId: "Your client ID"
             }
         }, {
-        //MsalGuardConfiguation here
+            interactionType: InteractionType.Popup, // MSAL Guard Configuration
+            authRequest: PopupRequest
         }, {
-            protectedResourceMap: new Map([
+            protectedResourceMap: new Map([ // MSAL Interceptor Configuration
                 ['https://graph.microsoft.com/v1.0/me', ['user.read']],
                 ['https://api.myapplication.com/users/*', ['customscope.read']]
             ])
@@ -104,6 +105,8 @@ this.authService.handleRedirectObservable().subscribe({
 ### 1. How to subscribe to events
 
 ```js
+import { EventMessage, EventType } from '@azure/msal-browser';
+
 this.msalBroadcastService.msalSubject$
     .pipe(
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS)
@@ -113,28 +116,9 @@ this.msalBroadcastService.msalSubject$
     });
 ```
 
-### 2. List of available events
+### 2. Available events
 
-To subscribe to different events, replace the above `EventType` with one of the following:
-
-```js
-export enum EventType {
-    LOGIN_START = "msal:loginStart",
-    LOGIN_SUCCESS = "msal:loginSuccess",
-    LOGIN_FAILURE = "msal:loginFailure",
-    ACQUIRE_TOKEN_START = "msal:acquireTokenStart",
-    ACQUIRE_TOKEN_SUCCESS = "msal:acquireTokenSuccess",
-    ACQUIRE_TOKEN_FAILURE = "msal:acquireTokenFailure",
-    ACQUIRE_TOKEN_NETWORK_START = "msal:acquireTokenFromNetworkStart",
-    SSO_SILENT_START = "msal:ssoSilentStart",
-    SSO_SILENT_SUCCESS = "msal:ssoSilentSuccess",
-    SSO_SILENT_FAILURE = "msal:ssoSilentFailure",
-    HANDLE_REDIRECT_START = "msal:handleRedirectStart",
-    LOGOUT_START = "msal:logoutStart",
-    LOGOUT_SUCCESS = "msal:logoutSuccess",
-    LOGOUT_FAILURE = "msal:logoutFailure"
-}
-```
+The list of events available to MSAL can be found in the [`@azure/msal-browser` event documentation.](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md)
 
 ### 3. Unsubscribing
 
