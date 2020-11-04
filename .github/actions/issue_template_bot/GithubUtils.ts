@@ -132,16 +132,21 @@ export class GithubUtils {
           ref: github.context.sha
         });
 
+        const filenames: Array<string> = [];
         const templates: Map<string, string> = new Map();
 
-        await response.data.forEach(async (file: any) => {
+        response.data.forEach((file: any) => {
             if (file.type === "file" && file.name.endsWith(".md")) {
-                const fileContent = await this.getFileContents(`${templateDirectory}/${file.name}`);
-                templates.set(file.name, fileContent);
+                filenames.push(file.name);
             }
         });
 
-        core.info(`TESTING: ${templates.get("bug_report.md")}`);
+        const promises = filenames.map(async (filename) => {
+            const fileContents = await this.getFileContents(`${templateDirectory}/${filename}`);
+            templates.set(filename, fileContents);
+        });
+
+        await Promise.all(promises);
         return templates;
     }
 

@@ -5904,14 +5904,18 @@ class GithubUtils {
             path: templateDirectory,
             ref: github.context.sha
         });
+        const filenames = [];
         const templates = new Map();
-        await response.data.forEach(async (file) => {
+        response.data.forEach((file) => {
             if (file.type === "file" && file.name.endsWith(".md")) {
-                const fileContent = await this.getFileContents(`${templateDirectory}/${file.name}`);
-                templates.set(file.name, fileContent);
+                filenames.push(file.name);
             }
         });
-        core.info(`TESTING: ${templates.get("bug_report.md")}`);
+        const promises = filenames.map(async (filename) => {
+            const fileContents = await this.getFileContents(`${templateDirectory}/${filename}`);
+            templates.set(filename, fileContents);
+        });
+        await Promise.all(promises);
         return templates;
     }
     getIssueSections(issueBody) {
@@ -6063,7 +6067,6 @@ class TemplateEnforcer {
     }
     async getTemplates() {
         const templateMap = await this.githubUtils.getIssueTemplates();
-        core.info(`Trying: ${templateMap.get("question.md")}`);
         templateMap.forEach((contents, filename) => {
             core.info(`Reading: ${filename}`);
         });
