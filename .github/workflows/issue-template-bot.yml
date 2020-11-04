@@ -2,6 +2,7 @@ name: Issue Template Bot
 
 on:
   issues:
+    types: [opened, edited]
 
 jobs:
   run:

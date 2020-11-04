@@ -9,8 +9,6 @@ async function run() {
         return;
     }
 
-    core.info(JSON.stringify(github.context));
-
     const payload = github.context.payload;
     if (!payload) {
         core.setFailed("No payload!");
