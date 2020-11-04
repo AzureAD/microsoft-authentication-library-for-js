@@ -47,8 +47,23 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.networkClient).to.be.not.null.and.not.undefined;
         expect(emptyConfig.system.windowHashTimeout).to.be.not.null.and.not.undefined;
         expect(emptyConfig.system.windowHashTimeout).to.be.eq(DEFAULT_POPUP_TIMEOUT_MS);
+        expect(emptyConfig.system.navigateFrameWait).to.be.eq(0);
         expect(emptyConfig.system.tokenRenewalOffsetSeconds).to.be.eq(300);
         expect(emptyConfig.system.asyncPopups).to.be.false;
+    });
+
+    it("sets timeouts with loadFrameTimeout", () => {
+        const config: Configuration = buildConfiguration({
+            auth: null,
+            system: {
+                navigateFrameWait: 1,
+                loadFrameTimeout: 10000
+            }
+        });
+
+        expect(config.system.iframeHashTimeout).to.be.eq(10000);
+        expect(config.system.windowHashTimeout).to.be.eq(10000);
+        expect(config.system.navigateFrameWait).to.be.eq(1);
     });
 
     it("Tests logger", () => {
@@ -139,6 +154,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system.windowHashTimeout).to.be.eq(TEST_POPUP_TIMEOUT_MS);
         expect(newConfig.system.tokenRenewalOffsetSeconds).to.be.not.null;
         expect(newConfig.system.tokenRenewalOffsetSeconds).to.be.eq(TEST_OFFSET);
+        expect(newConfig.system.navigateFrameWait).to.be.eq(0);
         expect(newConfig.system.loggerOptions).to.be.not.null;
         expect(newConfig.system.loggerOptions.loggerCallback).to.be.not.null;
         expect(newConfig.system.loggerOptions.piiLoggingEnabled).to.be.true;
