@@ -24,15 +24,14 @@ export class LabelIssue {
         const librariesFound: string[] = [];
         const librarySelections = this.issueContent.get("Library") || "";
 
-        const libraryRegEx = RegExp("-\\s*\\[.*", "g");
+        const libraryRegEx = RegExp("-\\s*\\[\\s*[xX]\\s*\\]\\s*(.*)", "g");
         let match: RegExpExecArray | null;
 
         labelsToSearch.forEach(label => {
             core.info(`Attempting to match: ${label}`);
-            core.info(`library selections: ${librarySelections}`);
             while((match = libraryRegEx.exec(librarySelections)) !== null) {
-                core.info(`Selection: ${match[0]}`);
-                if (match[0].includes(label)) {
+                core.info(`Selection: ${match[1]}`);
+                if (match[1].includes(label)) {
                     core.info(`Match!`);
                     librariesFound.push(label);
                     break;
