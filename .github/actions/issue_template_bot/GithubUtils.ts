@@ -134,11 +134,9 @@ export class GithubUtils {
 
         const templates: Map<string, string> = new Map();
 
-        response.data.forEach(async (file: any) => {
+        await response.data.forEach(async (file: any) => {
             if (file.type === "file" && file.name.endsWith(".md")) {
                 const fileContent = await this.getFileContents(`${templateDirectory}/${file.name}`);
-                core.info(file.name);
-                core.info(fileContent);
                 templates.set(file.name, fileContent);
             }
         });
