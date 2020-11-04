@@ -3,7 +3,7 @@ description: 'Verifies the issue template was filled out and applies relevant la
 inputs:
   token:
     description: 'Github Token'
-    default: $
+    default: ${{ github.token }}
     required: true
 runs:
   using: 'node12'

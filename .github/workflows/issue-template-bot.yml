@@ -12,3 +12,5 @@ jobs:
 
       - name: Run Bot
         uses: ./.github/actions/issue_template_bot
+        with: 
+          token: ${{ secrets.GITHUB_TOKEN }}
