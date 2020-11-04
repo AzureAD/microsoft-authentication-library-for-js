@@ -5814,11 +5814,11 @@ class LabelIssue {
     getLibraries(labelsToSearch) {
         const librariesFound = [];
         const librarySelections = this.issueContent.get("Library") || "";
-        core.info(`Library Selections: ${librarySelections}`);
-        const libraryRegEx = RegExp("-\s*\[\s*x\s*\](.*)", "g");
+        const libraryRegEx = RegExp(".*", "g");
         let match;
         labelsToSearch.forEach(label => {
             core.info(`Attempting to match: ${label}`);
+            core.info(`library selections: ${librarySelections}`);
             while ((match = libraryRegEx.exec(librarySelections)) !== null) {
                 core.info(`Selection: ${match[1]}`);
                 if (match[1].includes(label)) {
