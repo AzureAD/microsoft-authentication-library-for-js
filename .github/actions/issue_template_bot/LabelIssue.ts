@@ -69,7 +69,7 @@ export class LabelIssue {
 
     async getConfig(): Promise<void> {
         const octokit = github.getOctokit(this.token);
-        const configPath = core.getInput("issue_label_config_path");
+        const configPath = core.getInput("issue_labeler_config_path");
         const response: any = await octokit.repos.getContent({
           ...this.repoParams,
           path: configPath,
