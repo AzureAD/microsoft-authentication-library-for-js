@@ -1,4 +1,5 @@
 import { UserInfo, MailInfo } from "./GraphReponseTypes";
+import * as axios from "axios";
 
 /**
  * Class that handles Bearer requests for data using Fetch.
@@ -11,19 +12,14 @@ export class FetchManager {
      * @param accessToken 
      */
     async callEndpointWithToken(endpoint: string, accessToken: string): Promise<UserInfo | MailInfo> {
-        const headers = new Headers();
-        const bearer = `Bearer ${accessToken}`;
-
-        headers.append("Authorization", bearer);
-
         const options = {
-            method: "GET",
-            headers: headers
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
         };
+        console.log('Request made at: ' + new Date().toString());
+        const response = await axios.default.get(endpoint, options);
 
-        console.log('request made at: ' + new Date().toString());
-
-        const response = await fetch(endpoint, options);
-        return (await response.json()) as UserInfo | MailInfo;
+        return (await response.data) as UserInfo | MailInfo;
     }
 }

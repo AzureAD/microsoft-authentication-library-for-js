@@ -1,4 +1,13 @@
-import { PublicClientApplication, Configuration, LogLevel, AccountInfo, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthenticationResult, SilentFlowRequest, InteractionRequiredAuthError } from "@azure/msal-node";
+import { 
+    PublicClientApplication,
+    Configuration,
+    LogLevel,
+    AccountInfo,
+    AuthorizationCodeRequest,
+    AuthorizationUrlRequest,
+    AuthenticationResult,
+    SilentFlowRequest,
+    InteractionRequiredAuthError } from "@azure/msal-node";
 import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
@@ -29,8 +38,8 @@ export default class AuthProvider {
     private account: AccountInfo;
     private authCodeUrlParams: AuthorizationUrlRequest;
     private authCodeRequest: AuthorizationCodeRequest;
-    private profileRedirectRequest: RequestRedirect;
     private silentProfileRequest: SilentFlowRequest;
+    private silentMailRequest: SilentFlowRequest;
     private authCodeListener: AuthCodeListener;
 
     constructor() {
@@ -39,12 +48,21 @@ export default class AuthProvider {
         this.setRequestObjects();
     }
 
+    public get currentAccount(): AccountInfo {
+        return this.account;
+    }
+
     /**
      * Initialize request objects used by this AuthModule.
      */
     private setRequestObjects(): void {
         const requestScopes =  ['openid', 'profile', 'User.Read'];
         const redirectUri = "msal://redirect";
+
+        const baseSilentRequest = {
+            account: null, 
+            forceRefresh: false
+        };
 
         this.authCodeUrlParams = {
             scopes: requestScopes,
@@ -58,43 +76,66 @@ export default class AuthProvider {
         }
 
         this.silentProfileRequest = {
-            scopes: ["openid", "profile", "User.Read"],
-            account: null,
-            forceRefresh: false
+            ...baseSilentRequest,
+            scopes: ["User.Read"],
+        };
+
+        this.silentMailRequest = {
+            ...baseSilentRequest,
+            scopes: ["Mail.Read"],
         };
     }
 
-    // async getToken(authWindow: BrowserWindow): string {
-    //     const account = this.account || this.getAccount();
+    async getProfileToken(authWindow: BrowserWindow): Promise<string> {
+        return await this.getToken(authWindow, this.silentProfileRequest);
+    }
 
-    //     if (account) {
-    //         this.silentProfileRequest.account = this.account;
-    //         try {
-    //             const response = this.clientApplication.acquireTokenSilent(this.silentProfileRequest);
-    //             return (await response).accessToken;
-    //         } catch (error) {
-    //             if (error instanceof InteractionRequiredAuthError) {
-    //                 console.log("Silent token acquisition failed, acquiring token using redirect");
-    //                 return this.getTokenInteractive(authWindow);
-    //             } else {
-    //                 console.error(error);
-    //             }
-    //         }
-    //     }
-    // }
+    async getMailToken(authWindow: BrowserWindow): Promise<string> {
+        return await this.getToken(authWindow, this.silentMailRequest);
+    }
 
-    async getTokenInteractive(authWindow: BrowserWindow): Promise<AuthenticationResult> {
-        const authCodeUrl = await this.clientApplication.getAuthCodeUrl(this.authCodeUrlParams);
+    async getToken(authWindow: BrowserWindow, request: SilentFlowRequest): Promise<string> {
+        let authResponse: AuthenticationResult;
+        const account = this.account || await this.getAccount();
+        if (account) {
+            request.account = account;
+            authResponse = await this.getTokenSilent(authWindow, request);
+        } else {
+            authResponse = await this.getTokenInteractive(authWindow, request);
+        }
+
+        return authResponse.accessToken || null;
+    }
+
+    async getTokenSilent(authWindow: BrowserWindow, tokenRequest: SilentFlowRequest): Promise<AuthenticationResult> {
+        try {
+            return await this.clientApplication.acquireTokenSilent(tokenRequest);
+        } catch (error) {
+            console.log("Silent token acquisition failed, acquiring token using redirect");
+                return await this.getTokenInteractive(authWindow, tokenRequest);
+        }
+    }
+
+    async getTokenInteractive(authWindow: BrowserWindow, tokenRequest: AuthorizationUrlRequest ): Promise<AuthenticationResult> {
+        const authCodeUrlParams = { ...this.authCodeUrlParams, scopes: tokenRequest.scopes };
+        const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
         this.authCodeListener = new CustomFileProtocolListener("msal");
         this.authCodeListener.start();
         const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
-        const authResult = await this.clientApplication.acquireTokenByCode({ ...this.authCodeRequest, code: authCode});
+        const authResult = await this.clientApplication.acquireTokenByCode({ ...this.authCodeRequest, scopes: tokenRequest.scopes, code: authCode});
         return authResult;
     }
 
     async login(authWindow: BrowserWindow): Promise<AccountInfo> {
-        const authResult = await this.getTokenInteractive(authWindow);
+        const authResult = await this.getTokenInteractive(authWindow, this.authCodeUrlParams);
         return this.handleResponse(authResult);
+    }
+
+    async logout(): Promise<void> {
+        if (this.account) {
+            await this.clientApplication.getTokenCache().removeAccount(this.account);
+            this.account = null;
+        }
     }
 
     private async listenForAuthCode(navigateUrl: string, authWindow: BrowserWindow): Promise<string> {

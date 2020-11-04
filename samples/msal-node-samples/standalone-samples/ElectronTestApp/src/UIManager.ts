@@ -9,6 +9,7 @@ export class UIManager {
     // Select DOM elements to work with
     private welcomeDiv: HTMLElement;
     private signInButton: HTMLElement;
+    private signOutButton: HTMLElement;
     private cardDiv: HTMLElement;
     private mailButton: HTMLElement; 
     private profileButton: HTMLElement;
@@ -19,6 +20,7 @@ export class UIManager {
     constructor() {
         this.welcomeDiv = document.getElementById("WelcomeMessage");
         this.signInButton = document.getElementById("SignIn");
+        this.signOutButton = document.getElementById("SignOut");
         this.cardDiv = document.getElementById("card-div");
         this.mailButton = document.getElementById("readMail");
         this.profileButton = document.getElementById("seeProfile");
@@ -31,10 +33,8 @@ export class UIManager {
         // Reconfiguring DOM elements
         this.cardDiv.style.display = 'initial';
         this.welcomeDiv.innerHTML = `Welcome ${account.username}`;
-        (this.signInButton.nextElementSibling as HTMLElement).style.display = 'none';
-        this.signInButton.setAttribute("onclick", "App.signOut();");
-        this.signInButton.setAttribute('class', "btn btn-success")
-        this.signInButton.innerHTML = "Sign Out";
+        this.signInButton.hidden = true;
+        this.signOutButton.hidden = false;
     }
 
     public clearTabs() {

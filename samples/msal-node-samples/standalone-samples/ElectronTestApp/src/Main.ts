@@ -2,18 +2,25 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { AccountInfo } from "@azure/msal-node";
 import AuthProvider from "./AuthProvider";
 import * as path from "path";
-import { UIManager } from "./UIManager";
+import { FetchManager } from "./FetchManager";
+
+import { GRAPH_CONFIG, IPC_MESSAGES } from "./Constants";
 
 export default class Main {
     static application: Electron.App;
     static mainWindow: Electron.BrowserWindow;
     static authProvider: AuthProvider;
     static accessToken: string;
+    static networkModule: FetchManager;
 
     static main(): void {
         Main.application = app;
         Main.application.on('window-all-closed', Main.onWindowAllClosed);
         Main.application.on('ready', Main.onReady);
+    }
+
+    private static async loadBaseUI(): Promise<void> {
+        await Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
     }
 
     private static onWindowAllClosed(): void {
@@ -29,8 +36,8 @@ export default class Main {
         Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
         Main.mainWindow.on('closed', Main.onClose);
         Main.authProvider = new AuthProvider();
-        Main.listenForLogin();
-        // Main.listenForProfile();
+        Main.networkModule = new FetchManager();
+        Main.registerSubscriptions();
     }
 
     // Creates main application window
@@ -44,24 +51,46 @@ export default class Main {
         });
     }
 
-    // Sets a listener for the AcquireToken event that when triggered
-    // performs the authorization code grant flow
-    private static listenForLogin(): void {
-        ipcMain.on('login', async () => {
-            const account = await Main.login();
-            await Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
-            Main.mainWindow.webContents.send('welcome', account);
-        });
+    private static publish(message: string, payload: any): void {
+        Main.mainWindow.webContents.send(message, payload);
     }
 
-    // private static listenForProfile(): void {
-    //     ipcMain.on('profile', async () => {
-    //         const 
-    //     })
-    // }
+    private static async login(): Promise<void> {
+        const account = await Main.authProvider.login(Main.mainWindow)
+        await Main.loadBaseUI();
+        Main.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
+    }
 
-    private static async login(): Promise<AccountInfo> {
-        return await Main.authProvider.login(Main.mainWindow);
+    private static async getProfile(): Promise<void> {
+        const token = await Main.authProvider.getProfileToken(Main.mainWindow);
+        const account = Main.authProvider.currentAccount;
+        await Main.loadBaseUI();
+        Main.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
+        const graphResponse = await Main.networkModule.callEndpointWithToken(GRAPH_CONFIG.GRAPH_ME_ENDPT, token);
+        Main.publish(IPC_MESSAGES.SET_PROFILE, graphResponse);
+    }
+
+    private static async getMail(): Promise<void> {
+        const token = await Main.authProvider.getMailToken(Main.mainWindow);
+        const account = Main.authProvider.currentAccount;
+        await Main.loadBaseUI();
+        Main.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
+        const graphResponse = await Main.networkModule.callEndpointWithToken(GRAPH_CONFIG.GRAPH_MAIL_ENDPT, token);
+        Main.publish(IPC_MESSAGES.SET_MAIL, graphResponse);
+    }
+
+    private static async logout(): Promise<void> {
+        await Main.authProvider.logout();
+        await Main.loadBaseUI();
+    }
+
+
+    // Router that maps callbacks/actions to specific messages received from the Renderer
+    private static registerSubscriptions(): void {
+        ipcMain.on(IPC_MESSAGES.LOGIN, Main.login);
+        ipcMain.on(IPC_MESSAGES.GET_PROFILE, Main.getProfile);
+        ipcMain.on(IPC_MESSAGES.GET_MAIL, Main.getMail);
+        ipcMain.on(IPC_MESSAGES.LOGOUT, Main.logout);
     }
 
 }
