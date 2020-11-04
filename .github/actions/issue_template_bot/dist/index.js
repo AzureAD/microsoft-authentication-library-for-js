@@ -5825,6 +5825,7 @@ class LabelIssue {
         let match;
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
             const issueContent = this.issueContent.get(header) || "";
+            core.info(`${header} Content: ${issueContent}`);
             Object.entries(value).forEach(([label, searchStrings]) => {
                 core.info(`Checking label: ${label}`);
                 let labelMatched = false;
