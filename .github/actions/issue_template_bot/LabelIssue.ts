@@ -154,12 +154,32 @@ export class LabelIssue {
         }
     }
 
+    async getLastCommentId(): Promise<number|null> {
+        const octokit = github.getOctokit(this.token);
+        const comments = await octokit.issues.listComments({
+            ...this.repoParams,
+            issue_number: this.issueNo
+        });
+
+        const lastComment = comments.data.pop();
+        if (lastComment) {
+            core.info(`CommentId: ${lastComment.id}`);
+            core.info(`Comment author: ${lastComment.user.login}`);
+            core.info(`Author Association: ${lastComment.body}`);
+
+            return lastComment.id
+        }
+
+        return null;
+    }
+
     async commentOnIssue() {
         if (this.noSelectionMadeHeaders.length <= 0) {
             core.info("All required sections contained valid selections");
             return;
         }
 
+        const lastCommentId = await this.getLastCommentId();
         let commentLines = ["Invalid Selections Detected:"]
 
         this.noSelectionMadeHeaders.forEach((header) => {
