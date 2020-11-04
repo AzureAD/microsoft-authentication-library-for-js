@@ -45,7 +45,7 @@ export class LabelIssue {
         const token = core.getInput("token");
         const octokit = github.getOctokit(token);
         const labelsToCheck = core.getInput("libraries").split(" ");
-        const labelsToAdd = [];
+        const labelsToAdd: string[] = [];
 
         const issueLabelResponse = await octokit.issues.listLabelsOnIssue({
             owner: github.context.repo.owner,
@@ -53,13 +53,15 @@ export class LabelIssue {
             issue_number: this.issueNo
         });
 
-        const currentLabels = [];
+        const currentLabels: string[] = [];
         issueLabelResponse.data.forEach((label) => {
             currentLabels.push(label.name);
-        })
+        });
+        core.info(`Current Labels: ${currentLabels.join(" ")}`)
 
         labelsToCheck.forEach(async (label) => {
             if (currentLabels.includes(label) && !librariesAffected.includes(label)) {
+                core.info(`Attempting to remove label: ${label}`)
                 await octokit.issues.removeLabel({
                     owner: github.context.repo.owner,
                     repo: github.context.repo.repo,
@@ -71,6 +73,7 @@ export class LabelIssue {
             }
         });
     
+        core.info(`Adding labels: ${labelsToAdd.join(" ")}`)
         await octokit.issues.addLabels({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,

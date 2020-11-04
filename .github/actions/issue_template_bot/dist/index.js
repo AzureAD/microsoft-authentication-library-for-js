@@ -5812,7 +5812,8 @@ class LabelIssue {
             this.issueContent.set(match[2].trim(), match[3]);
         }
     }
-    getLibraries(labelsToSearch) {
+    getLibraries() {
+        const labelsToSearch = core.getInput("libraries").split(" ");
         const librariesFound = [];
         const librarySelections = this.issueContent.get("Library") || "";
         const libraryRegEx = RegExp("-\\s*\\[\\s*[xX]\\s*\\]\\s*(.*)", "g");
@@ -5827,14 +5828,41 @@ class LabelIssue {
         });
         return librariesFound;
     }
-    async applyLabelsToIssue(labels) {
+    async updateIssueLabels(librariesAffected) {
         const token = core.getInput("token");
         const octokit = github.getOctokit(token);
+        const labelsToCheck = core.getInput("libraries").split(" ");
+        const labelsToAdd = [];
+        const issueLabelResponse = await octokit.issues.listLabelsOnIssue({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            issue_number: this.issueNo
+        });
+        const currentLabels = [];
+        issueLabelResponse.data.forEach((label) => {
+            currentLabels.push(label.name);
+        });
+        core.info(`Current Labels: ${currentLabels.join(" ")}`);
+        labelsToCheck.forEach(async (label) => {
+            if (currentLabels.includes(label) && !librariesAffected.includes(label)) {
+                core.info(`Attempting to remove label: ${label}`);
+                await octokit.issues.removeLabel({
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo,
+                    issue_number: this.issueNo,
+                    name: label
+                });
+            }
+            else if (!currentLabels.includes(label) && librariesAffected.includes(label)) {
+                labelsToAdd.push(label);
+            }
+        });
+        core.info(`Adding labels: ${labelsToAdd.join(" ")}`);
         await octokit.issues.addLabels({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             issue_number: this.issueNo,
-            labels: labels,
+            labels: labelsToAdd,
         });
     }
 }
@@ -5870,9 +5898,9 @@ async function run() {
     }
     if (issue.number && issue.body) {
         const labelIssue = new LabelIssue_1.LabelIssue(issue.number, issue.body);
-        const libraries = labelIssue.getLibraries(["msal@1.x", "msal-browser", "msal-angular", "msal-common", "msal-node"]);
-        core.info(`Libraries affected ${libraries.join(", ")}`);
-        await labelIssue.applyLabelsToIssue(libraries);
+        const affectedLibraries = labelIssue.getLibraries();
+        core.info(`Libraries affected ${affectedLibraries.join(", ")}`);
+        await labelIssue.updateIssueLabels(affectedLibraries);
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");
