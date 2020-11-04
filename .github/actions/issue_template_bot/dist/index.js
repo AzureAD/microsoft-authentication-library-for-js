@@ -5812,7 +5812,7 @@ class LabelIssue {
         this.parseBody(body);
     }
     parseBody(body) {
-        const headerRegEx = RegExp("(##\\s*(.*?\\n))(.*?)(?=##|$)", "gs");
+        const headerRegEx = RegExp("(##+\\s*(.*?\\n))(.*?)(?=##+|$)", "gs");
         let match;
         while ((match = headerRegEx.exec(body)) !== null) {
             this.issueContent.set(match[2].trim(), match[3]);
@@ -5884,7 +5884,7 @@ class LabelIssue {
                 });
             }
         });
-        core.info(`Adding labels: ${labelsToAdd.toString()}`);
+        core.info(`Adding labels: ${Array.from(labelsToAdd).join(" ")}`);
         await octokit.issues.addLabels({
             ...this.repoParams,
             issue_number: this.issueNo,
