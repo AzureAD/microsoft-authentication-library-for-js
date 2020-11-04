@@ -5813,14 +5813,19 @@ class LabelIssue {
         this.labelsToAdd = new Set();
         this.labelsToRemove = new Set();
     }
-    async parseIssue(issueBody) {
-        await this.getConfig();
+    getIssueSections(issueBody) {
         const headerRegEx = RegExp("(##+\\s*(.*?\\n))(.*?)(?=##+|$)", "gs");
         let match;
         const issueContent = new Map();
         while ((match = headerRegEx.exec(issueBody)) !== null) {
             issueContent.set(match[2].trim(), match[3]);
         }
+        return issueContent;
+    }
+    ;
+    async parseIssue(issueBody) {
+        await this.getConfig();
+        const issueContent = this.getIssueSections(issueBody);
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
             const headerContent = issueContent.get(header) || "";
             if (headerContent.trim() === "") {
@@ -5836,6 +5841,7 @@ class LabelIssue {
                 labelConfig.searchStrings.every(searchString => {
                     core.info(`Searching string: ${searchString}`);
                     const libraryRegEx = RegExp("-\\s*\\[\\s*[xX]\\s*\\]\\s*(.*)", "g");
+                    let match;
                     while ((match = libraryRegEx.exec(headerContent)) !== null) {
                         if (match[1].includes(searchString)) {
                             labelMatched = true;
@@ -5998,6 +6004,7 @@ async function run() {
         core.setFailed("Can only run on issues!");
         return;
     }
+    core.info(github.context.toString());
     const payload = github.context.payload;
     if (!payload) {
         core.setFailed("No payload!");

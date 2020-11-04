@@ -42,8 +42,7 @@ export class LabelIssue {
         this.labelsToRemove = new Set();
     }
 
-    async parseIssue(issueBody: string) {
-        await this.getConfig();
+    getIssueSections(issueBody: string): Map<string, string> {
         const headerRegEx = RegExp("(##+\\s*(.*?\\n))(.*?)(?=##+|$)", "gs");
         let match: RegExpExecArray | null;
         const issueContent = new Map();
@@ -51,6 +50,13 @@ export class LabelIssue {
         while ((match = headerRegEx.exec(issueBody)) !== null) {
             issueContent.set(match[2].trim(), match[3]);
         }
+
+        return issueContent;
+    };
+
+    async parseIssue(issueBody: string) {
+        await this.getConfig();
+        const issueContent = this.getIssueSections(issueBody);
 
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
             const headerContent = issueContent.get(header) || "";
@@ -68,6 +74,7 @@ export class LabelIssue {
                 labelConfig.searchStrings.every(searchString => {
                     core.info(`Searching string: ${searchString}`);
                     const libraryRegEx = RegExp("-\\s*\\[\\s*[xX]\\s*\\]\\s*(.*)", "g");
+                    let match: RegExpExecArray | null;
                     while((match = libraryRegEx.exec(headerContent)) !== null) {
                         if (match[1].includes(searchString)) {
                             labelMatched = true;
