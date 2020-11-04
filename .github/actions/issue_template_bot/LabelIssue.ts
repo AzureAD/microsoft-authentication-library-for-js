@@ -45,13 +45,12 @@ export class LabelIssue {
         let match: RegExpExecArray | null;
 
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
-            const issueContent = this.issueContent.get(header) || "";
-            core.info(`${header} Content: ${issueContent}`);
             Object.entries(value).forEach(([label, searchStrings]) => {
                 core.info(`Checking label: ${label}`);
                 let labelMatched = false;
                 searchStrings.every(searchString => {
                     core.info(`Searching string: ${searchString}`);
+                    const issueContent = this.issueContent.get(header) || "";
                     while((match = libraryRegEx.exec(issueContent)) !== null) {
                         core.info(`Match found: ${match}`);
                         core.info(`Match group 1: ${match[1]}`);
