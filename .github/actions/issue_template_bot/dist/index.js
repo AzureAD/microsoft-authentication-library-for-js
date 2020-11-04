@@ -5897,17 +5897,17 @@ class GithubUtils {
         return Buffer.from(response.data.content, response.data.encoding).toString();
     }
     async getIssueTemplates() {
+        const templateDirectory = ".github/ISSUE_TEMPLATE";
         const octokit = github.getOctokit(this.token);
         const response = await octokit.repos.getContent({
             ...this.repoParams,
-            path: ".github/ISSUE_TEMPLATE",
+            path: templateDirectory,
             ref: github.context.sha
         });
         const templates = new Map();
-        response.data.forEach((file) => {
-            core.info(JSON.stringify(file));
+        response.data.forEach(async (file) => {
             if (file.type === "file" && file.name.endsWith(".md")) {
-                const fileContent = Buffer.from(file.content, file.encoding).toString();
+                const fileContent = await this.getFileContents(`${templateDirectory}/${file.name}`);
                 templates.set(file.name, fileContent);
             }
         });
