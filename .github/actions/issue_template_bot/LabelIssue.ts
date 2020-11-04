@@ -23,13 +23,13 @@ export class LabelIssue {
     getLibraries(labelsToSearch: string[]): Array<string> {
         const librariesFound: string[] = [];
         const librarySelections = this.issueContent.get("Library") || "";
-        core.info(`Library Selections: ${librarySelections}`)
 
-        const libraryRegEx = RegExp("\[\s*x\s*\](.*)", "g");
+        const libraryRegEx = RegExp(".*", "g");
         let match: RegExpExecArray | null;
 
         labelsToSearch.forEach(label => {
             core.info(`Attempting to match: ${label}`);
+            core.info(`library selections: ${librarySelections}`);
             while((match = libraryRegEx.exec(librarySelections)) !== null) {
                 core.info(`Selection: ${match[1]}`);
                 if (match[1].includes(label)) {
