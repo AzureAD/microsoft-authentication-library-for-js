@@ -14,4 +14,4 @@ jobs:
         uses: ./.github/actions/issue_template_bot
         with: 
           token: ${{ secrets.GITHUB_TOKEN }}
-          libraries: "msal@1.x msal-browser msal-common msal-node msal-angular"
+          issue_label_config_path: "./.github/issue_labeler.json"

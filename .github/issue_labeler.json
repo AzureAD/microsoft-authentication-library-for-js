@@ -1,0 +1,9 @@
+{
+    "Library": {
+        "msal@1.x": ["msal@1.x"],
+        "msal-angular": ["msal-angular"],
+        "msal-browser": ["msal-browser"],
+        "msal-common": ["msal-common"],
+        "msal-node": ["msal-node"]
+    }
+}

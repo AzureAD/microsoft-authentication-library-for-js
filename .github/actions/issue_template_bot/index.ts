@@ -23,9 +23,7 @@ async function run() {
 
     if (issue.number && issue.body) {
         const labelIssue = new LabelIssue(issue.number, issue.body);
-        const affectedLibraries = labelIssue.getLibraries();
-        core.info(`Libraries affected ${affectedLibraries.join(", ")}`);
-        await labelIssue.updateIssueLabels(affectedLibraries);
+        await labelIssue.updateIssueLabels();
     } else {
         core.setFailed("No issue number or body available, cannot label issue!");
     }

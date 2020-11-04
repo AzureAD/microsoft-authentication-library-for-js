@@ -5801,8 +5801,14 @@ const core = __webpack_require__(186);
 const github = __webpack_require__(438);
 class LabelIssue {
     constructor(issueNo, body) {
+        this.token = core.getInput("token");
         this.issueNo = issueNo;
         this.issueContent = new Map();
+        this.issueLabelConfig = {};
+        this.repoParams = {
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo
+        };
         this.parseBody(body);
     }
     parseBody(body) {
@@ -5812,30 +5818,55 @@ class LabelIssue {
             this.issueContent.set(match[2].trim(), match[3]);
         }
     }
-    getLibraries() {
-        const labelsToSearch = core.getInput("libraries").split(" ");
-        const librariesFound = [];
-        const librarySelections = this.issueContent.get("Library") || "";
+    getLabelsToAddRemove() {
+        const labelsToAdd = new Set();
+        const labelsToRemove = new Set();
         const libraryRegEx = RegExp("-\\s*\\[\\s*[xX]\\s*\\]\\s*(.*)", "g");
         let match;
-        labelsToSearch.forEach(label => {
-            while ((match = libraryRegEx.exec(librarySelections)) !== null) {
-                if (match[1].includes(label)) {
-                    librariesFound.push(label);
-                    break;
+        Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
+            const issueContent = this.issueContent.get(header) || "";
+            Object.entries(value).forEach(([label, searchStrings]) => {
+                let labelMatched = false;
+                searchStrings.forEach(searchString => {
+                    while ((match = libraryRegEx.exec(issueContent)) !== null) {
+                        if (match[1].includes(searchString)) {
+                            labelsToAdd.add(label);
+                            labelMatched = true;
+                            break;
+                        }
+                    }
+                });
+                if (!labelMatched) {
+                    labelsToRemove.add(label);
                 }
-            }
+            });
         });
-        return librariesFound;
+        return [labelsToAdd, labelsToRemove];
     }
-    async updateIssueLabels(librariesAffected) {
-        const token = core.getInput("token");
-        const octokit = github.getOctokit(token);
-        const labelsToCheck = core.getInput("libraries").split(" ");
-        const labelsToAdd = [];
+    async getConfig() {
+        const octokit = github.getOctokit(this.token);
+        const configPath = core.getInput("issue_label_config_path");
+        const response = await octokit.repos.getContent({
+            ...this.repoParams,
+            path: configPath,
+            ref: github.context.sha
+        });
+        const fileContents = Buffer.from(response.data.content, response.data.encoding).toString();
+        try {
+            this.issueLabelConfig = JSON.parse(fileContents);
+        }
+        catch (e) {
+            core.setFailed("Unable to parse config file!");
+            this.issueLabelConfig = {};
+        }
+    }
+    ;
+    async updateIssueLabels() {
+        const octokit = github.getOctokit(this.token);
+        await this.getConfig();
+        const [labelsToAdd, labelsToRemove] = this.getLabelsToAddRemove();
         const issueLabelResponse = await octokit.issues.listLabelsOnIssue({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
+            ...this.repoParams,
             issue_number: this.issueNo
         });
         const currentLabels = [];
@@ -5843,26 +5874,21 @@ class LabelIssue {
             currentLabels.push(label.name);
         });
         core.info(`Current Labels: ${currentLabels.join(" ")}`);
-        labelsToCheck.forEach(async (label) => {
-            if (currentLabels.includes(label) && !librariesAffected.includes(label)) {
+        labelsToRemove.forEach(async (label) => {
+            if (currentLabels.includes(label)) {
                 core.info(`Attempting to remove label: ${label}`);
                 await octokit.issues.removeLabel({
-                    owner: github.context.repo.owner,
-                    repo: github.context.repo.repo,
+                    ...this.repoParams,
                     issue_number: this.issueNo,
                     name: label
                 });
             }
-            else if (!currentLabels.includes(label) && librariesAffected.includes(label)) {
-                labelsToAdd.push(label);
-            }
         });
-        core.info(`Adding labels: ${labelsToAdd.join(" ")}`);
+        core.info(`Adding labels: ${labelsToAdd.toString()}`);
         await octokit.issues.addLabels({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
+            ...this.repoParams,
             issue_number: this.issueNo,
-            labels: labelsToAdd,
+            labels: Array.from(labelsToAdd)
         });
     }
 }
@@ -5898,9 +5924,7 @@ async function run() {
     }
     if (issue.number && issue.body) {
         const labelIssue = new LabelIssue_1.LabelIssue(issue.number, issue.body);
-        const affectedLibraries = labelIssue.getLibraries();
-        core.info(`Libraries affected ${affectedLibraries.join(", ")}`);
-        await labelIssue.updateIssueLabels(affectedLibraries);
+        await labelIssue.updateIssueLabels();
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");

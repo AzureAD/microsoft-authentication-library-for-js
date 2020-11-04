@@ -5,7 +5,7 @@ inputs:
     description: 'Github Token'
     default: ${{ github.token }}
     required: true
-  libraries:
+  issue_labeler_config_path:
     description: 'Labels to search for in issue'
     required: false
 runs:
