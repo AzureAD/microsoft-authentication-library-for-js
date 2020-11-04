@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { LabelIssue } from "./LabelIssue";
+import { TemplateEnforcer } from "./TemplateEnforcer";
 
 async function run() {
     core.info(`Event of type: ${github.context.eventName} triggered workflow`);
@@ -27,6 +28,9 @@ async function run() {
         await labelIssue.updateIssueLabels();
         await labelIssue.assignUsersToIssue();
         await labelIssue.commentOnIssue();
+
+        const templateEnforcer = new TemplateEnforcer(issue.number);
+        await templateEnforcer.getTemplates();
     } else {
         core.setFailed("No issue number or body available, cannot label issue!");
     }

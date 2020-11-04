@@ -5790,28 +5790,127 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 67:
+/***/ 405:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LabelIssue = void 0;
+exports.GithubUtils = void 0;
 const core = __webpack_require__(186);
 const github = __webpack_require__(438);
-class LabelIssue {
+class GithubUtils {
     constructor(issueNo) {
         this.token = core.getInput("token");
         this.issueNo = issueNo;
-        this.issueLabelConfig = {};
         this.repoParams = {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo
         };
-        this.noSelectionMadeHeaders = [];
-        this.assignees = new Set();
-        this.labelsToAdd = new Set();
-        this.labelsToRemove = new Set();
+    }
+    async getLastCommentId(baseComment) {
+        const octokit = github.getOctokit(this.token);
+        const comments = await octokit.issues.listComments({
+            ...this.repoParams,
+            issue_number: this.issueNo
+        });
+        const lastComment = comments.data.pop();
+        if (lastComment && lastComment.user.login === "github-actions[bot]" && (!baseComment || lastComment.body.includes(baseComment))) {
+            return lastComment.id;
+        }
+        return null;
+    }
+    async addComment(comment) {
+        const octokit = github.getOctokit(this.token);
+        await octokit.issues.createComment({
+            ...this.repoParams,
+            issue_number: this.issueNo,
+            body: comment
+        });
+    }
+    async updateComment(commentId, comment) {
+        const octokit = github.getOctokit(this.token);
+        await octokit.issues.updateComment({
+            ...this.repoParams,
+            comment_id: commentId,
+            body: comment
+        });
+    }
+    async removeComment(commentId) {
+        const octokit = github.getOctokit(this.token);
+        await octokit.issues.deleteComment({
+            ...this.repoParams,
+            comment_id: commentId
+        });
+    }
+    async assignUsersToIssue(assignees) {
+        const usernames = Array.from(assignees);
+        if (usernames.length <= 0) {
+            core.info("No Users to assign");
+            return;
+        }
+        const octokit = github.getOctokit(this.token);
+        await octokit.issues.addAssignees({
+            ...this.repoParams,
+            issue_number: this.issueNo,
+            assignees: usernames
+        });
+    }
+    async updateIssueLabels(labelsToAdd, labelsToRemove) {
+        const octokit = github.getOctokit(this.token);
+        const issueLabelResponse = await octokit.issues.listLabelsOnIssue({
+            ...this.repoParams,
+            issue_number: this.issueNo
+        });
+        const currentLabels = [];
+        issueLabelResponse.data.forEach((label) => {
+            currentLabels.push(label.name);
+        });
+        core.info(`Current Labels: ${currentLabels.join(" ")}`);
+        labelsToRemove.forEach(async (label) => {
+            if (currentLabels.includes(label)) {
+                core.info(`Attempting to remove label: ${label}`);
+                await octokit.issues.removeLabel({
+                    ...this.repoParams,
+                    issue_number: this.issueNo,
+                    name: label
+                });
+            }
+        });
+        const labelsToAddArray = Array.from(labelsToAdd);
+        if (labelsToAddArray.length > 0) {
+            core.info(`Adding labels: ${Array.from(labelsToAddArray).join(" ")}`);
+            await octokit.issues.addLabels({
+                ...this.repoParams,
+                issue_number: this.issueNo,
+                labels: labelsToAddArray
+            });
+        }
+    }
+    async getFileContents(filepath) {
+        const octokit = github.getOctokit(this.token);
+        const response = await octokit.repos.getContent({
+            ...this.repoParams,
+            path: filepath,
+            ref: github.context.sha
+        });
+        return Buffer.from(response.data.content, response.data.encoding).toString();
+    }
+    async getIssueTemplates() {
+        const octokit = github.getOctokit(this.token);
+        const response = await octokit.repos.getContent({
+            ...this.repoParams,
+            path: ".github/ISSUE_TEMPLATE",
+            ref: github.context.sha
+        });
+        const templates = new Map();
+        response.data.forEach((file) => {
+            if (file.type === "file" && file.name.endsWith(".md")) {
+                const fileContent = Buffer.from(response.data.content, response.data.encoding).toString();
+                templates.set(file.name, fileContent);
+            }
+        });
+        return templates;
     }
     getIssueSections(issueBody) {
         const headerRegEx = RegExp("(##+\\s*(.*?\\n))(.*?)(?=##+|$)", "gs");
@@ -5823,9 +5922,33 @@ class LabelIssue {
         return issueContent;
     }
     ;
+}
+exports.GithubUtils = GithubUtils;
+
+
+/***/ }),
+
+/***/ 67:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LabelIssue = void 0;
+const core = __webpack_require__(186);
+const GithubUtils_1 = __webpack_require__(405);
+class LabelIssue {
+    constructor(issueNo) {
+        this.issueLabelConfig = {};
+        this.noSelectionMadeHeaders = [];
+        this.assignees = new Set();
+        this.labelsToAdd = new Set();
+        this.labelsToRemove = new Set();
+        this.githubUtils = new GithubUtils_1.GithubUtils(issueNo);
+    }
     async parseIssue(issueBody) {
         await this.getConfig();
-        const issueContent = this.getIssueSections(issueBody);
+        const issueContent = this.githubUtils.getIssueSections(issueBody);
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
             const headerContent = issueContent.get(header) || "";
             if (headerContent.trim() === "") {
@@ -5871,14 +5994,8 @@ class LabelIssue {
         });
     }
     async getConfig() {
-        const octokit = github.getOctokit(this.token);
         const configPath = core.getInput("issue_labeler_config_path");
-        const response = await octokit.repos.getContent({
-            ...this.repoParams,
-            path: configPath,
-            ref: github.context.sha
-        });
-        const fileContents = Buffer.from(response.data.content, response.data.encoding).toString();
+        const fileContents = await this.githubUtils.getFileContents(configPath);
         try {
             this.issueLabelConfig = JSON.parse(fileContents);
         }
@@ -5889,60 +6006,16 @@ class LabelIssue {
     }
     ;
     async updateIssueLabels() {
-        const octokit = github.getOctokit(this.token);
-        const issueLabelResponse = await octokit.issues.listLabelsOnIssue({
-            ...this.repoParams,
-            issue_number: this.issueNo
-        });
-        const currentLabels = [];
-        issueLabelResponse.data.forEach((label) => {
-            currentLabels.push(label.name);
-        });
-        core.info(`Current Labels: ${currentLabels.join(" ")}`);
-        this.labelsToRemove.forEach(async (label) => {
-            if (currentLabels.includes(label)) {
-                core.info(`Attempting to remove label: ${label}`);
-                await octokit.issues.removeLabel({
-                    ...this.repoParams,
-                    issue_number: this.issueNo,
-                    name: label
-                });
-            }
-        });
-        const labelsToAdd = Array.from(this.labelsToAdd);
-        if (labelsToAdd.length > 0) {
-            core.info(`Adding labels: ${Array.from(this.labelsToAdd).join(" ")}`);
-            await octokit.issues.addLabels({
-                ...this.repoParams,
-                issue_number: this.issueNo,
-                labels: labelsToAdd
-            });
-        }
-    }
-    async getLastCommentId(baseComment) {
-        const octokit = github.getOctokit(this.token);
-        const comments = await octokit.issues.listComments({
-            ...this.repoParams,
-            issue_number: this.issueNo
-        });
-        const lastComment = comments.data.pop();
-        if (lastComment && lastComment.user.login === "github-actions[bot]" && lastComment.body.includes(baseComment)) {
-            return lastComment.id;
-        }
-        return null;
+        this.githubUtils.updateIssueLabels(this.labelsToAdd, this.labelsToRemove);
     }
     async commentOnIssue() {
         const baseComment = "Invalid Selections Detected:";
-        const octokit = github.getOctokit(this.token);
-        const lastCommentId = await this.getLastCommentId(baseComment);
+        const lastCommentId = await this.githubUtils.getLastCommentId(baseComment);
         if (this.noSelectionMadeHeaders.length <= 0) {
             core.info("All required sections contained valid selections");
             if (lastCommentId) {
                 core.info("Removing last comment from bot");
-                await octokit.issues.deleteComment({
-                    ...this.repoParams,
-                    comment_id: lastCommentId
-                });
+                this.githubUtils.removeComment(lastCommentId);
             }
             return;
         }
@@ -5955,36 +6028,45 @@ class LabelIssue {
         });
         if (lastCommentId) {
             core.info("Updating last comment from bot");
-            await octokit.issues.updateComment({
-                ...this.repoParams,
-                comment_id: lastCommentId,
-                body: commentLines.join("\n")
-            });
+            this.githubUtils.updateComment(lastCommentId, commentLines.join("\n"));
         }
         else {
             core.info("Creating new comment");
-            await octokit.issues.createComment({
-                ...this.repoParams,
-                issue_number: this.issueNo,
-                body: commentLines.join("\n")
-            });
+            this.githubUtils.addComment(commentLines.join("\n"));
         }
     }
     async assignUsersToIssue() {
-        const usernames = Array.from(this.assignees);
-        if (usernames.length <= 0) {
-            core.info("No Users to assign");
-            return;
-        }
-        const octokit = github.getOctokit(this.token);
-        await octokit.issues.addAssignees({
-            ...this.repoParams,
-            issue_number: this.issueNo,
-            assignees: usernames
-        });
+        this.githubUtils.assignUsersToIssue(this.assignees);
     }
 }
 exports.LabelIssue = LabelIssue;
+
+
+/***/ }),
+
+/***/ 687:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TemplateEnforcer = void 0;
+const core = __webpack_require__(186);
+const GithubUtils_1 = __webpack_require__(405);
+class TemplateEnforcer {
+    constructor(issueNo) {
+        this.issueNo = issueNo;
+        this.templates = [];
+        this.githubUtils = new GithubUtils_1.GithubUtils(issueNo);
+    }
+    async getTemplates() {
+        const templateMap = await this.githubUtils.getIssueTemplates();
+        templateMap.forEach((contents, filename) => {
+            core.info(filename);
+        });
+    }
+}
+exports.TemplateEnforcer = TemplateEnforcer;
 
 
 /***/ }),
@@ -5998,6 +6080,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __webpack_require__(186);
 const github = __webpack_require__(438);
 const LabelIssue_1 = __webpack_require__(67);
+const TemplateEnforcer_1 = __webpack_require__(687);
 async function run() {
     core.info(`Event of type: ${github.context.eventName} triggered workflow`);
     if (github.context.eventName !== "issues") {
@@ -6020,6 +6103,8 @@ async function run() {
         await labelIssue.updateIssueLabels();
         await labelIssue.assignUsersToIssue();
         await labelIssue.commentOnIssue();
+        const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number);
+        await templateEnforcer.getTemplates();
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");
