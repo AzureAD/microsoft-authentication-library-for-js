@@ -12,7 +12,7 @@ export class LabelIssue {
     }
 
     parseBody(body: string) {
-        const headerRegEx = RegExp("(##\s*(.*?\n))(.*?)(?=##|$)", "gs");
+        const headerRegEx = RegExp("(##\\s*(.*?\\n))(.*?)(?=##|$)", "gs");
         let match: RegExpExecArray | null;
 
         while ((match = headerRegEx.exec(body)) !== null) {
@@ -24,7 +24,7 @@ export class LabelIssue {
         const librariesFound: string[] = [];
         const librarySelections = this.issueContent.get("Library") || "";
 
-        const libraryRegEx = RegExp("-\s*\[.*", "g");
+        const libraryRegEx = RegExp("-\\s*\\[.*", "g");
         let match: RegExpExecArray | null;
 
         labelsToSearch.forEach(label => {

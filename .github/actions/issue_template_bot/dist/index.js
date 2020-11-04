@@ -5805,7 +5805,7 @@ class LabelIssue {
         this.parseBody(body);
     }
     parseBody(body) {
-        const headerRegEx = RegExp("(##\s*(.*?\n))(.*?)(?=##|$)", "gs");
+        const headerRegEx = RegExp("(##\\s*(.*?\\n))(.*?)(?=##|$)", "gs");
         let match;
         while ((match = headerRegEx.exec(body)) !== null) {
             this.issueContent.set(match[2].trim(), match[3]);
@@ -5814,7 +5814,7 @@ class LabelIssue {
     getLibraries(labelsToSearch) {
         const librariesFound = [];
         const librarySelections = this.issueContent.get("Library") || "";
-        const libraryRegEx = RegExp("-\s*\[.*", "g");
+        const libraryRegEx = RegExp("-\\s*\\[.*", "g");
         let match;
         labelsToSearch.forEach(label => {
             core.info(`Attempting to match: ${label}`);
