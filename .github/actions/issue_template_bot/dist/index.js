@@ -5903,12 +5903,15 @@ class LabelIssue {
                 });
             }
         });
-        core.info(`Adding labels: ${Array.from(this.labelsToAdd).join(" ")}`);
-        await octokit.issues.addLabels({
-            ...this.repoParams,
-            issue_number: this.issueNo,
-            labels: Array.from(this.labelsToAdd)
-        });
+        const labelsToAdd = Array.from(this.labelsToAdd);
+        if (labelsToAdd.length > 0) {
+            core.info(`Adding labels: ${Array.from(this.labelsToAdd).join(" ")}`);
+            await octokit.issues.addLabels({
+                ...this.repoParams,
+                issue_number: this.issueNo,
+                labels: labelsToAdd
+            });
+        }
     }
     async commentOnIssue() {
         if (this.noSelectionMadeHeaders.length <= 0) {
