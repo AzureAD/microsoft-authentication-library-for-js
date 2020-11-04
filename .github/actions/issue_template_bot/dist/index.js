@@ -5826,17 +5826,24 @@ class LabelIssue {
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
             const issueContent = this.issueContent.get(header) || "";
             Object.entries(value).forEach(([label, searchStrings]) => {
+                core.info(`Checking label: ${label}`);
                 let labelMatched = false;
-                searchStrings.forEach(searchString => {
+                searchStrings.every(searchString => {
+                    core.info(`Searching string: ${searchString}`);
                     while ((match = libraryRegEx.exec(issueContent)) !== null) {
                         if (match[1].includes(searchString)) {
-                            labelsToAdd.add(label);
                             labelMatched = true;
                             break;
                         }
                     }
+                    return !labelMatched;
                 });
-                if (!labelMatched) {
+                if (labelMatched) {
+                    core.info("Found!");
+                    labelsToAdd.add(label);
+                }
+                else {
+                    core.info(`Not Found!`);
                     labelsToRemove.add(label);
                 }
             });
