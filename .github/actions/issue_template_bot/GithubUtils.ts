@@ -141,6 +141,7 @@ export class GithubUtils {
             }
         });
 
+        core.info(`TESTING: ${templates.get("bug_report.md")}`);
         return templates;
     }
 

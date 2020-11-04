@@ -5911,6 +5911,7 @@ class GithubUtils {
                 templates.set(file.name, fileContent);
             }
         });
+        core.info(`TESTING: ${templates.get("bug_report.md")}`);
         return templates;
     }
     getIssueSections(issueBody) {
@@ -6062,6 +6063,7 @@ class TemplateEnforcer {
     }
     async getTemplates() {
         const templateMap = await this.githubUtils.getIssueTemplates();
+        core.info(`Trying: ${templateMap.get("question.md")}`);
         templateMap.forEach((contents, filename) => {
             core.info(`Reading: ${filename}`);
         });
