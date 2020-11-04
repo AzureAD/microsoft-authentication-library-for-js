@@ -154,7 +154,7 @@ export class LabelIssue {
         }
     }
 
-    async getLastCommentId(): Promise<number|null> {
+    async getLastCommentId(baseComment: string): Promise<number|null> {
         const octokit = github.getOctokit(this.token);
         const comments = await octokit.issues.listComments({
             ...this.repoParams,
@@ -162,25 +162,29 @@ export class LabelIssue {
         });
 
         const lastComment = comments.data.pop();
-        if (lastComment) {
-            core.info(`CommentId: ${lastComment.id}`);
-            core.info(`Comment author: ${lastComment.user.login}`);
-            core.info(`Author Association: ${lastComment.body}`);
-
-            return lastComment.id
+        if (lastComment && lastComment.user.login === "github-actions[bot]" && lastComment.body.includes(baseComment)) {
+            return lastComment.id;
         }
 
         return null;
     }
 
     async commentOnIssue() {
+        const baseComment = "Invalid Selections Detected:"
+        const octokit = github.getOctokit(this.token);
+        const lastCommentId = await this.getLastCommentId(baseComment);
         if (this.noSelectionMadeHeaders.length <= 0) {
             core.info("All required sections contained valid selections");
+            if (lastCommentId) {
+                await octokit.issues.deleteComment({
+                    ...this.repoParams,
+                    comment_id: lastCommentId
+                });
+            }
             return;
         }
 
-        const lastCommentId = await this.getLastCommentId();
-        let commentLines = ["Invalid Selections Detected:"]
+        let commentLines = [baseComment]
 
         this.noSelectionMadeHeaders.forEach((header) => {
             const headerConfig = this.issueLabelConfig[header];
@@ -189,12 +193,19 @@ export class LabelIssue {
             }
         });
 
-        const octokit = github.getOctokit(this.token);
-        await octokit.issues.createComment({
-            ...this.repoParams,
-            issue_number: this.issueNo,
-            body: commentLines.join("\n")
-        });
+        if (lastCommentId) {
+            await octokit.issues.updateComment({
+                ...this.repoParams,
+                comment_id: lastCommentId,
+                body: commentLines.join("\n")
+            });
+        } else {
+            await octokit.issues.createComment({
+                ...this.repoParams,
+                issue_number: this.issueNo,
+                body: commentLines.join("\n")
+            });
+        }
     }
 
     async assignUsersToIssue() {
