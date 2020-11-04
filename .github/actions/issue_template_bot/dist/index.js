@@ -5905,6 +5905,7 @@ class GithubUtils {
         });
         const templates = new Map();
         response.data.forEach((file) => {
+            core.info(JSON.stringify(file));
             if (file.type === "file" && file.name.endsWith(".md")) {
                 const fileContent = Buffer.from(file.content, file.encoding).toString();
                 templates.set(file.name, fileContent);
@@ -6006,7 +6007,7 @@ class LabelIssue {
     }
     ;
     async updateIssueLabels() {
-        this.githubUtils.updateIssueLabels(this.labelsToAdd, this.labelsToRemove);
+        await this.githubUtils.updateIssueLabels(this.labelsToAdd, this.labelsToRemove);
     }
     async commentOnIssue() {
         const baseComment = "Invalid Selections Detected:";
@@ -6015,7 +6016,7 @@ class LabelIssue {
             core.info("All required sections contained valid selections");
             if (lastCommentId) {
                 core.info("Removing last comment from bot");
-                this.githubUtils.removeComment(lastCommentId);
+                await this.githubUtils.removeComment(lastCommentId);
             }
             return;
         }
@@ -6028,15 +6029,15 @@ class LabelIssue {
         });
         if (lastCommentId) {
             core.info("Updating last comment from bot");
-            this.githubUtils.updateComment(lastCommentId, commentLines.join("\n"));
+            await this.githubUtils.updateComment(lastCommentId, commentLines.join("\n"));
         }
         else {
             core.info("Creating new comment");
-            this.githubUtils.addComment(commentLines.join("\n"));
+            await this.githubUtils.addComment(commentLines.join("\n"));
         }
     }
     async assignUsersToIssue() {
-        this.githubUtils.assignUsersToIssue(this.assignees);
+        await this.githubUtils.assignUsersToIssue(this.assignees);
     }
 }
 exports.LabelIssue = LabelIssue;

@@ -134,6 +134,7 @@ export class GithubUtils {
         const templates: Map<string, string> = new Map();
 
         response.data.forEach((file: any) => {
+            core.info(JSON.stringify(file));
             if (file.type === "file" && file.name.endsWith(".md")) {
                 const fileContent = Buffer.from(file.content, file.encoding).toString();
                 templates.set(file.name, fileContent);
