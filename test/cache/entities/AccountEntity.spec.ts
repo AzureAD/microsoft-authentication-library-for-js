@@ -8,7 +8,7 @@ import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INet
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
 import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../../utils/StringConstants";
 import sinon from "sinon";
-import { AuthorityType, ClientAuthError, ClientAuthErrorMessage, ProtocolMode } from "../../../src";
+import { AuthorityType, ClientAuthError, ClientAuthErrorMessage, Logger, LogLevel, ProtocolMode } from "../../../src";
 import { ClientTestUtils } from "../../client/ClientTestUtils";
 
 const cryptoInterface: ICrypto = {
@@ -21,6 +21,8 @@ const cryptoInterface: ICrypto = {
                 return TEST_POP_VALUES.DECODED_REQ_CNF;
             case TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO:
                 return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO;
+            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS:
+                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS
             default:
                 return input;
         }
@@ -72,6 +74,14 @@ const authority =  AuthorityFactory.createInstance(
     ProtocolMode.AAD
 );
 
+const loggerOptions = {
+    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+        console.log(`Log level: ${level} Message: ${message}`);
+    },
+    piiLoggingEnabled: true,
+    logLevel: LogLevel.Verbose
+};
+
 describe("AccountEntity.ts Unit Tests", () => {
     beforeEach(() => {
         ClientTestUtils.setCloudDiscoveryMetadataStubs();
@@ -120,16 +130,24 @@ describe("AccountEntity.ts Unit Tests", () => {
             "nonce": "123523",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+
+        const logger = new Logger(loggerOptions);
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idToken);
 
         const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            homeAccountId,
             authority,
-            idToken,
-            cryptoInterface
+            idToken
         );
 
-        expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.generateAccountKey()).to.eql(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
         expect(acc.username).to.eq("AbeLi@microsoft.com");
         expect(acc.localAccountId).to.eql(idTokenClaims.oid);
     });
@@ -149,14 +167,22 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
+        const logger = new Logger(loggerOptions);
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idToken);
+
         const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            homeAccountId,
             authority,
-            idToken,
-            cryptoInterface
+            idToken
         );
 
-        expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.generateAccountKey()).to.eql(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
         expect(acc.username).to.eq("AbeLi@microsoft.com");
         expect(acc.localAccountId).to.eql(idTokenClaims.sub);
     });
@@ -177,14 +203,21 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
-            authority,
-            idToken,
-            cryptoInterface
-        );
+        const logger = new Logger(loggerOptions);
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idToken);
 
-        expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
+        const acc = AccountEntity.createAccount(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            homeAccountId,
+            authority,
+            idToken
+        );
+        expect(acc.generateAccountKey()).to.eql(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
         expect(acc.username).to.eq("AbeLi@microsoft.com");
     });
 
@@ -209,14 +242,22 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
+        const logger = new Logger(loggerOptions);
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idToken);
+
         const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            homeAccountId,
             authority,
-            idToken,
-            cryptoInterface
+            idToken
         );
 
-        expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.generateAccountKey()).to.eql(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
         expect(acc.username).to.eq("");
     });
 
@@ -242,8 +283,10 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
+        const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
             authority,
+            homeAccountId,
             idToken
         );
 
@@ -275,8 +318,10 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
+        const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
             authority,
+            homeAccountId,
             idToken
         );
 

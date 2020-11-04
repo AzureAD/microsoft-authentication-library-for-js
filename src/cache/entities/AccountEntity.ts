@@ -204,12 +204,21 @@ export class AccountEntity {
     }
 
     /**
-     *
+     * Generate HomeAccountId from server response
      * @param serverClientInfo
      * @param authType
      */
     static generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, idToken?: AuthToken): string {
-        if (serverClientInfo && authType !== AuthorityType.Adfs) {
+
+        const accountId = idToken && idToken.claims.sub ? idToken.claims.sub : "";
+
+        // since ADFS does not have tid and does not set client_info
+        if (authType === AuthorityType.Adfs) {
+            return accountId;
+        }
+
+        // for cases where there is clientInfo
+        if (serverClientInfo) {
             const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
             if (!StringUtils.isEmpty(clientInfo.uid) && !StringUtils.isEmpty(clientInfo.utid)) {
                 return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
@@ -217,8 +226,8 @@ export class AccountEntity {
         }
 
         // default to "sub" claim
-        logger.verbose("No client info in response, could be an ADFS client");
-        return idToken && idToken.claims.sub ? idToken.claims.sub : "";
+        logger.verbose("No client info in response");
+        return accountId;
     }
 
     /**
