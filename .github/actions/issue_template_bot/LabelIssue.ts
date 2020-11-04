@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import * as github from "@actions/github";
 
 export class LabelIssue {
     private issueNo: number;
@@ -28,11 +29,8 @@ export class LabelIssue {
         let match: RegExpExecArray | null;
 
         labelsToSearch.forEach(label => {
-            core.info(`Attempting to match: ${label}`);
             while((match = libraryRegEx.exec(librarySelections)) !== null) {
-                core.info(`Selection: ${match[1]}`);
                 if (match[1].includes(label)) {
-                    core.info(`Match!`);
                     librariesFound.push(label);
                     break;
                 }
@@ -40,6 +38,18 @@ export class LabelIssue {
         });
 
         return librariesFound;
+    }
+
+    async applyLabelsToIssue(labels: string[]) {
+        const token = core.getInput("token");
+        const octokit = github.getOctokit(token);
+    
+        await octokit.issues.addLabels({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            issue_number: this.issueNo,
+            labels: labels,
+        });
     }
 
 }

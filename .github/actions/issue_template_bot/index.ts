@@ -20,11 +20,12 @@ async function run() {
         core.setFailed("No issue on payload!");
         return;
     }
-    
+
     if (issue.number && issue.body) {
         const labelIssue = new LabelIssue(issue.number, issue.body);
         const libraries = labelIssue.getLibraries(["msal@1.x", "msal-browser", "msal-angular", "msal-common", "msal-node"]);
         core.info(`Libraries affected ${libraries.join(", ")}`);
+        await labelIssue.applyLabelsToIssue(libraries);
     } else {
         core.setFailed("No issue number or body available, cannot label issue!");
     }

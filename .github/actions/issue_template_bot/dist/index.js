@@ -5798,6 +5798,7 @@ function wrappy (fn, cb) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LabelIssue = void 0;
 const core = __webpack_require__(186);
+const github = __webpack_require__(438);
 class LabelIssue {
     constructor(issueNo, body) {
         this.issueNo = issueNo;
@@ -5817,17 +5818,24 @@ class LabelIssue {
         const libraryRegEx = RegExp("-\\s*\\[\\s*[xX]\\s*\\]\\s*(.*)", "g");
         let match;
         labelsToSearch.forEach(label => {
-            core.info(`Attempting to match: ${label}`);
             while ((match = libraryRegEx.exec(librarySelections)) !== null) {
-                core.info(`Selection: ${match[1]}`);
                 if (match[1].includes(label)) {
-                    core.info(`Match!`);
                     librariesFound.push(label);
                     break;
                 }
             }
         });
         return librariesFound;
+    }
+    async applyLabelsToIssue(labels) {
+        const token = core.getInput("token");
+        const octokit = github.getOctokit(token);
+        await octokit.issues.addLabels({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            issue_number: this.issueNo,
+            labels: labels,
+        });
     }
 }
 exports.LabelIssue = LabelIssue;
@@ -5864,6 +5872,7 @@ async function run() {
         const labelIssue = new LabelIssue_1.LabelIssue(issue.number, issue.body);
         const libraries = labelIssue.getLibraries(["msal@1.x", "msal-browser", "msal-angular", "msal-common", "msal-node"]);
         core.info(`Libraries affected ${libraries.join(", ")}`);
+        await labelIssue.applyLabelsToIssue(libraries);
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");

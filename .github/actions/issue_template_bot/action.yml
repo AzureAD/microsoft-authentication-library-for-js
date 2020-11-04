@@ -1,5 +1,10 @@
 name: 'Issue Template Bot'
 description: 'Verifies the issue template was filled out and applies relevant labels'
+inputs:
+  token:
+    description: 'Github Token'
+    default: $
+    required: true
 runs:
   using: 'node12'
   main: './dist/index.js'
