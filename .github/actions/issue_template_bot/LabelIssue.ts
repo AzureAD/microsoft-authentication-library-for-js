@@ -176,6 +176,7 @@ export class LabelIssue {
         if (this.noSelectionMadeHeaders.length <= 0) {
             core.info("All required sections contained valid selections");
             if (lastCommentId) {
+                core.info("Removing last comment from bot");
                 await octokit.issues.deleteComment({
                     ...this.repoParams,
                     comment_id: lastCommentId
@@ -194,12 +195,14 @@ export class LabelIssue {
         });
 
         if (lastCommentId) {
+            core.info("Updating last comment from bot");
             await octokit.issues.updateComment({
                 ...this.repoParams,
                 comment_id: lastCommentId,
                 body: commentLines.join("\n")
             });
         } else {
+            core.info("Creating new comment");
             await octokit.issues.createComment({
                 ...this.repoParams,
                 issue_number: this.issueNo,
