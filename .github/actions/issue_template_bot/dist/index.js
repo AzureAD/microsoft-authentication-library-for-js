@@ -5908,6 +5908,8 @@ class GithubUtils {
         response.data.forEach(async (file) => {
             if (file.type === "file" && file.name.endsWith(".md")) {
                 const fileContent = await this.getFileContents(`${templateDirectory}/${file.name}`);
+                core.info(file.name);
+                core.info(fileContent);
                 templates.set(file.name, fileContent);
             }
         });
@@ -6063,7 +6065,7 @@ class TemplateEnforcer {
     async getTemplates() {
         const templateMap = await this.githubUtils.getIssueTemplates();
         templateMap.forEach((contents, filename) => {
-            core.info(filename);
+            core.info(`Reading: ${filename}`);
         });
     }
 }

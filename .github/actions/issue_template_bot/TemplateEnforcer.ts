@@ -15,7 +15,7 @@ export class TemplateEnforcer {
     async getTemplates() {
         const templateMap = await this.githubUtils.getIssueTemplates();
         templateMap.forEach((contents, filename) => {
-            core.info(filename);
+            core.info(`Reading: ${filename}`);
         });
     }
 }
