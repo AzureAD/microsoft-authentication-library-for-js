@@ -53,6 +53,8 @@ export class LabelIssue {
                 searchStrings.every(searchString => {
                     core.info(`Searching string: ${searchString}`);
                     while((match = libraryRegEx.exec(issueContent)) !== null) {
+                        core.info(`Match found: ${match}`);
+                        core.info(`Match group 1: ${match[1]}`);
                         if (match[1].includes(searchString)) {
                             labelMatched = true;
                             break;
