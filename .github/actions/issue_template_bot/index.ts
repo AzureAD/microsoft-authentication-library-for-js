@@ -22,8 +22,11 @@ async function run() {
     }
 
     if (issue.number && issue.body) {
-        const labelIssue = new LabelIssue(issue.number, issue.body);
+        const labelIssue = new LabelIssue(issue.number);
+        await labelIssue.parseIssue(issue.body);
         await labelIssue.updateIssueLabels();
+        await labelIssue.assignUsersToIssue();
+        await labelIssue.commentOnIssue();
     } else {
         core.setFailed("No issue number or body available, cannot label issue!");
     }

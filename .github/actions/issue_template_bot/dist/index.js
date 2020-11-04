@@ -5800,39 +5800,43 @@ exports.LabelIssue = void 0;
 const core = __webpack_require__(186);
 const github = __webpack_require__(438);
 class LabelIssue {
-    constructor(issueNo, body) {
+    constructor(issueNo) {
         this.token = core.getInput("token");
         this.issueNo = issueNo;
-        this.issueContent = new Map();
         this.issueLabelConfig = {};
         this.repoParams = {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo
         };
-        this.parseBody(body);
+        this.noSelectionMadeHeaders = [];
+        this.assignees = new Set();
+        this.labelsToAdd = new Set();
+        this.labelsToRemove = new Set();
     }
-    parseBody(body) {
+    async parseIssue(issueBody) {
+        await this.getConfig();
         const headerRegEx = RegExp("(##+\\s*(.*?\\n))(.*?)(?=##+|$)", "gs");
         let match;
-        while ((match = headerRegEx.exec(body)) !== null) {
-            this.issueContent.set(match[2].trim(), match[3]);
+        const issueContent = new Map();
+        while ((match = headerRegEx.exec(issueBody)) !== null) {
+            issueContent.set(match[2].trim(), match[3]);
         }
-    }
-    getLabelsToAddRemove() {
-        const labelsToAdd = new Set();
-        const labelsToRemove = new Set();
-        let match;
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
-            const issueContent = this.issueContent.get(header) || "";
-            core.info(`${header} Content: ${issueContent}`);
+            const headerContent = issueContent.get(header) || "";
+            if (headerContent.trim() === "") {
+                core.info(`No Content found for header: ${header}`);
+                return;
+            }
+            core.info(`${header} Content: ${headerContent}`);
             const labels = value.labels;
-            Object.entries(labels).forEach(([label, searchStrings]) => {
+            let labelFoundForHeader = false;
+            Object.entries(labels).forEach(([label, labelConfig]) => {
                 core.info(`Checking label: ${label}`);
                 let labelMatched = false;
-                searchStrings.every(searchString => {
+                labelConfig.searchStrings.every(searchString => {
                     core.info(`Searching string: ${searchString}`);
                     const libraryRegEx = RegExp("-\\s*\\[\\s*[xX]\\s*\\]\\s*(.*)", "g");
-                    while ((match = libraryRegEx.exec(issueContent)) !== null) {
+                    while ((match = libraryRegEx.exec(headerContent)) !== null) {
                         if (match[1].includes(searchString)) {
                             labelMatched = true;
                             break;
@@ -5842,15 +5846,23 @@ class LabelIssue {
                 });
                 if (labelMatched) {
                     core.info("Found!");
-                    labelsToAdd.add(label);
+                    labelFoundForHeader = true;
+                    this.labelsToAdd.add(label);
+                    if (labelConfig.assignees) {
+                        labelConfig.assignees.forEach((username) => {
+                            this.assignees.add(username);
+                        });
+                    }
                 }
                 else {
                     core.info(`Not Found!`);
-                    labelsToRemove.add(label);
+                    this.labelsToRemove.add(label);
                 }
             });
+            if (!labelFoundForHeader && value.enforceSelection) {
+                this.noSelectionMadeHeaders.push(header);
+            }
         });
-        return [labelsToAdd, labelsToRemove];
     }
     async getConfig() {
         const octokit = github.getOctokit(this.token);
@@ -5872,8 +5884,6 @@ class LabelIssue {
     ;
     async updateIssueLabels() {
         const octokit = github.getOctokit(this.token);
-        await this.getConfig();
-        const [labelsToAdd, labelsToRemove] = this.getLabelsToAddRemove();
         const issueLabelResponse = await octokit.issues.listLabelsOnIssue({
             ...this.repoParams,
             issue_number: this.issueNo
@@ -5883,7 +5893,7 @@ class LabelIssue {
             currentLabels.push(label.name);
         });
         core.info(`Current Labels: ${currentLabels.join(" ")}`);
-        labelsToRemove.forEach(async (label) => {
+        this.labelsToRemove.forEach(async (label) => {
             if (currentLabels.includes(label)) {
                 core.info(`Attempting to remove label: ${label}`);
                 await octokit.issues.removeLabel({
@@ -5893,11 +5903,43 @@ class LabelIssue {
                 });
             }
         });
-        core.info(`Adding labels: ${Array.from(labelsToAdd).join(" ")}`);
+        core.info(`Adding labels: ${Array.from(this.labelsToAdd).join(" ")}`);
         await octokit.issues.addLabels({
             ...this.repoParams,
             issue_number: this.issueNo,
-            labels: Array.from(labelsToAdd)
+            labels: Array.from(this.labelsToAdd)
+        });
+    }
+    async commentOnIssue() {
+        if (this.noSelectionMadeHeaders.length <= 0) {
+            core.info("All required sections contained valid selections");
+            return;
+        }
+        let commentLines = ["Invalid Selections Detected:"];
+        this.noSelectionMadeHeaders.forEach((header) => {
+            const headerConfig = this.issueLabelConfig[header];
+            if (headerConfig.enforceSelection && headerConfig.message) {
+                commentLines.push(headerConfig.message);
+            }
+        });
+        const octokit = github.getOctokit(this.token);
+        await octokit.issues.createComment({
+            ...this.repoParams,
+            issue_number: this.issueNo,
+            body: commentLines.join("\n")
+        });
+    }
+    async assignUsersToIssue() {
+        const usernames = Array.from(this.assignees);
+        if (usernames.length <= 0) {
+            core.info("No Users to assign");
+            return;
+        }
+        const octokit = github.getOctokit(this.token);
+        await octokit.issues.addAssignees({
+            ...this.repoParams,
+            issue_number: this.issueNo,
+            assignees: usernames
         });
     }
 }
@@ -5932,8 +5974,11 @@ async function run() {
         return;
     }
     if (issue.number && issue.body) {
-        const labelIssue = new LabelIssue_1.LabelIssue(issue.number, issue.body);
+        const labelIssue = new LabelIssue_1.LabelIssue(issue.number);
+        await labelIssue.parseIssue(issue.body);
         await labelIssue.updateIssueLabels();
+        await labelIssue.assignUsersToIssue();
+        await labelIssue.commentOnIssue();
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");
