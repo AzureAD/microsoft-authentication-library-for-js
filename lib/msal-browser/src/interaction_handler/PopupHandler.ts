@@ -93,7 +93,7 @@ export class PopupHandler extends InteractionHandler {
                     // Timeout error
                     this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createMonitorWindowTimeoutError());
+                    reject(BrowserAuthError.createMonitorPopupTimeoutError());
                     return;
                 }
             }, BrowserConstants.POLL_INTERVAL_MS);
