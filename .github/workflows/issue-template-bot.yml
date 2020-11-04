@@ -14,4 +14,4 @@ jobs:
         uses: ./.github/actions/issue_template_bot
         with: 
           token: ${{ secrets.GITHUB_TOKEN }}
-          issue_labeler_config_path: "./.github/issue_labeler.json"
+          issue_labeler_config_path: ".github/issue_labeler.json"
