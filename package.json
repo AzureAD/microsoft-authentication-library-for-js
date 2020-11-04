@@ -45,7 +45,8 @@
     "clean:coverage": "rimraf ./.nyc_output/*",
     "beachball:check": "beachball check --branch origin/dev",
     "beachball:change": "beachball change --branch origin/dev",
-    "beachball:bump": "beachball bump",
+    "beachball:bump": "beachball bump --bumpDeps false",
+    "beachball:bumpDeps": "beachball bump",
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN"
   },
   "dependencies": {

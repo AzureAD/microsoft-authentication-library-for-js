@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 02 Nov 2020 23:33:39 GMT",
+      "tag": "@azure/msal-browser_v2.5.2",
+      "version": "2.5.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix JSON.parse issue and cache value validation (#2527)",
+            "author": "prkanher@microsoft.com",
+            "commit": "62cfc6bf4a8f299ba7160a70a71c84890b49a051",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 30 Oct 2020 00:52:19 GMT",
       "tag": "@azure/msal-browser_v2.5.1",
       "version": "2.5.1",
