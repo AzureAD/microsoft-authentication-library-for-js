@@ -29,6 +29,7 @@ async function run() {
         await labelIssue.assignUsersToIssue();
         await labelIssue.commentOnIssue();
 
+        core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer(issue.number);
         await templateEnforcer.getTemplates();
     } else {

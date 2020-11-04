@@ -135,7 +135,7 @@ export class GithubUtils {
 
         response.data.forEach((file: any) => {
             if (file.type === "file" && file.name.endsWith(".md")) {
-                const fileContent = Buffer.from(response.data.content, response.data.encoding).toString();
+                const fileContent = Buffer.from(file.content, file.encoding).toString();
                 templates.set(file.name, fileContent);
             }
         })

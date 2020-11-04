@@ -5906,7 +5906,7 @@ class GithubUtils {
         const templates = new Map();
         response.data.forEach((file) => {
             if (file.type === "file" && file.name.endsWith(".md")) {
-                const fileContent = Buffer.from(response.data.content, response.data.encoding).toString();
+                const fileContent = Buffer.from(file.content, file.encoding).toString();
                 templates.set(file.name, fileContent);
             }
         });
@@ -6103,6 +6103,7 @@ async function run() {
         await labelIssue.updateIssueLabels();
         await labelIssue.assignUsersToIssue();
         await labelIssue.commentOnIssue();
+        core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number);
         await templateEnforcer.getTemplates();
     }
