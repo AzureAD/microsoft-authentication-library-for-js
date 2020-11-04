@@ -5814,7 +5814,7 @@ class LabelIssue {
     getLibraries(labelsToSearch) {
         const librariesFound = [];
         const librarySelections = this.issueContent.get("Library") || "";
-        const libraryRegEx = RegExp(".*", "g");
+        const libraryRegEx = RegExp("-.*", "g");
         let match;
         labelsToSearch.forEach(label => {
             core.info(`Attempting to match: ${label}`);

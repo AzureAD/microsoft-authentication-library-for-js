@@ -24,7 +24,7 @@ export class LabelIssue {
         const librariesFound: string[] = [];
         const librarySelections = this.issueContent.get("Library") || "";
 
-        const libraryRegEx = RegExp(".*", "g");
+        const libraryRegEx = RegExp("-.*", "g");
         let match: RegExpExecArray | null;
 
         labelsToSearch.forEach(label => {
