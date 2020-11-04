@@ -1,9 +1,14 @@
 {
     "Library": {
-        "msal@1.x": ["msal@1.x"],
-        "msal-angular": ["msal-angular"],
-        "msal-browser": ["msal-browser"],
-        "msal-common": ["msal-common"],
-        "msal-node": ["msal-node"]
+        "labels": {
+            "msal@1.x": ["msal@1.x"],
+            "msal-angular": ["msal-angular@0.x", "msal-angular@1.x"],
+            "msal-angularjs": ["msal-angularjs@1.x"],
+            "msal-browser": ["msal-browser"],
+            "msal-common": ["msal-common"],
+            "msal-node": ["msal-node"]
+        },
+        "enforceSelection": true,
+        "message": "Please select which library this issue regards."
     }
 }
