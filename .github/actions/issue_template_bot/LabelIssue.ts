@@ -21,7 +21,8 @@ export class LabelIssue {
         }
     }
 
-    getLibraries(labelsToSearch: string[]): Array<string> {
+    getLibraries(): Array<string> {
+        const labelsToSearch = core.getInput("libraries").split(" ");
         const librariesFound: string[] = [];
         const librarySelections = this.issueContent.get("Library") || "";
 
@@ -40,15 +41,41 @@ export class LabelIssue {
         return librariesFound;
     }
 
-    async applyLabelsToIssue(labels: string[]) {
+    async updateIssueLabels(librariesAffected: string[]) {
         const token = core.getInput("token");
         const octokit = github.getOctokit(token);
+        const labelsToCheck = core.getInput("libraries").split(" ");
+        const labelsToAdd = [];
+
+        const issueLabelResponse = await octokit.issues.listLabelsOnIssue({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            issue_number: this.issueNo
+        });
+
+        const currentLabels = [];
+        issueLabelResponse.data.forEach((label) => {
+            currentLabels.push(label.name);
+        })
+
+        labelsToCheck.forEach(async (label) => {
+            if (currentLabels.includes(label) && !librariesAffected.includes(label)) {
+                await octokit.issues.removeLabel({
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo,
+                    issue_number: this.issueNo,
+                    name: label
+                });
+            } else if (!currentLabels.includes(label) && librariesAffected.includes(label)) {
+                labelsToAdd.push(label);
+            }
+        });
     
         await octokit.issues.addLabels({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             issue_number: this.issueNo,
-            labels: labels,
+            labels: labelsToAdd,
         });
     }
 
