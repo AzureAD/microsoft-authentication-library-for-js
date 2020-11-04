@@ -29,7 +29,7 @@ export class LabelIssue {
     }
 
     parseBody(body: string) {
-        const headerRegEx = RegExp("(##\\s*(.*?\\n))(.*?)(?=##|$)", "gs");
+        const headerRegEx = RegExp("(##+\\s*(.*?\\n))(.*?)(?=##+|$)", "gs");
         let match: RegExpExecArray | null;
 
         while ((match = headerRegEx.exec(body)) !== null) {
@@ -113,7 +113,7 @@ export class LabelIssue {
             }
         });
     
-        core.info(`Adding labels: ${labelsToAdd.toString()}`)
+        core.info(`Adding labels: ${Array.from(labelsToAdd).join(" ")}`)
         await octokit.issues.addLabels({
             ...this.repoParams,
             issue_number: this.issueNo,
