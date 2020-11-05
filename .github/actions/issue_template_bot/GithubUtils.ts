@@ -92,11 +92,8 @@ export class GithubUtils {
         return currentLabels;
     }
 
-    async updateIssueLabels(labelsToAdd: Set<string>, labelsToRemove: Set<string>) {
+    async removeIssueLabels(labelsToRemove: Array<string>, currentLabels: Array<string>) {
         const octokit = github.getOctokit(this.token);
-
-        const currentLabels = await this.getCurrentLabels();
-        core.info(`Current Labels: ${currentLabels.join(" ")}`);
 
         labelsToRemove.forEach(async (label) => {
             if (currentLabels.includes(label)) {
@@ -108,16 +105,29 @@ export class GithubUtils {
                 });
             }
         });
-    
-        const labelsToAddArray = Array.from(labelsToAdd);
-        if (labelsToAddArray.length > 0) {
-            core.info(`Adding labels: ${Array.from(labelsToAddArray).join(" ")}`)
+    }
+
+    async addIssueLabels(labelsToAdd: Array<string>) {
+        const octokit = github.getOctokit(this.token);
+        
+        if (labelsToAdd.length > 0) {
+            core.info(`Adding labels: ${Array.from(labelsToAdd).join(" ")}`)
             await octokit.issues.addLabels({
                 ...this.repoParams,
                 issue_number: this.issueNo,
-                labels: labelsToAddArray
+                labels: labelsToAdd
             });
         }
+    }
+
+    async updateIssueLabels(labelsToAdd: Set<string>, labelsToRemove: Set<string>) {
+        const currentLabels = await this.getCurrentLabels();
+        core.info(`Current Labels: ${currentLabels.join(" ")}`);
+
+        await this.removeIssueLabels(Array.from(labelsToRemove), currentLabels);
+    
+        const labelsToAddArray = Array.from(labelsToAdd);
+        await this.addIssueLabels(labelsToAddArray);
     }
 
     async getFileContents(filepath: string) {

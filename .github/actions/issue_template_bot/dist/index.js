@@ -5868,10 +5868,8 @@ class GithubUtils {
         });
         return currentLabels;
     }
-    async updateIssueLabels(labelsToAdd, labelsToRemove) {
+    async removeIssueLabels(labelsToRemove, currentLabels) {
         const octokit = github.getOctokit(this.token);
-        const currentLabels = await this.getCurrentLabels();
-        core.info(`Current Labels: ${currentLabels.join(" ")}`);
         labelsToRemove.forEach(async (label) => {
             if (currentLabels.includes(label)) {
                 core.info(`Attempting to remove label: ${label}`);
@@ -5882,15 +5880,24 @@ class GithubUtils {
                 });
             }
         });
-        const labelsToAddArray = Array.from(labelsToAdd);
-        if (labelsToAddArray.length > 0) {
-            core.info(`Adding labels: ${Array.from(labelsToAddArray).join(" ")}`);
+    }
+    async addIssueLabels(labelsToAdd) {
+        const octokit = github.getOctokit(this.token);
+        if (labelsToAdd.length > 0) {
+            core.info(`Adding labels: ${Array.from(labelsToAdd).join(" ")}`);
             await octokit.issues.addLabels({
                 ...this.repoParams,
                 issue_number: this.issueNo,
-                labels: labelsToAddArray
+                labels: labelsToAdd
             });
         }
+    }
+    async updateIssueLabels(labelsToAdd, labelsToRemove) {
+        const currentLabels = await this.getCurrentLabels();
+        core.info(`Current Labels: ${currentLabels.join(" ")}`);
+        await this.removeIssueLabels(Array.from(labelsToRemove), currentLabels);
+        const labelsToAddArray = Array.from(labelsToAdd);
+        await this.addIssueLabels(labelsToAddArray);
     }
     async getFileContents(filepath) {
         const octokit = github.getOctokit(this.token);
@@ -6067,15 +6074,66 @@ const GithubUtils_1 = __webpack_require__(405);
 class TemplateEnforcer {
     constructor(issueNo, action) {
         this.issueNo = issueNo;
-        this.action = action;
+        this.action = action || "edited";
         this.allTemplates = [];
         this.githubUtils = new GithubUtils_1.GithubUtils(issueNo);
     }
-    async getTemplate() {
+    async getTemplate(issueBody, templateMap, currentLabels) {
+        let templateName = null;
+        if (this.action === "opened") {
+            templateName = this.matchByLabel(templateMap, currentLabels);
+        }
+        else {
+            templateName = this.matchBySection(templateMap, issueBody);
+        }
+        if (!templateName) {
+            core.info("No matching template found!");
+            return null;
+        }
+        return templateMap.get(templateName) || null;
+    }
+    async enforceTemplate(issueBody) {
         const currentLabels = await this.githubUtils.getCurrentLabels();
-        let largestMatch = 0;
-        let templateName = "";
         const templateMap = await this.githubUtils.getIssueTemplates();
+        const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
+        let isIssueFilled = false;
+        if (templateUsed) {
+            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed);
+        }
+        const message = "Detected missing information: Please fill out the entire issue template so we can better assist you.";
+        const lastCommentId = await this.githubUtils.getLastCommentId(message);
+        if (isIssueFilled) {
+            await this.githubUtils.removeIssueLabels(["more-information-needed"], currentLabels);
+            if (lastCommentId) {
+                await this.githubUtils.removeComment(lastCommentId);
+            }
+        }
+        else {
+            await this.githubUtils.addIssueLabels(["more-information-needed"]);
+            if (!lastCommentId) {
+                await this.githubUtils.addComment(message);
+            }
+        }
+    }
+    didIssueFillOutTemplate(issueBody, template) {
+        const templateSections = this.githubUtils.getIssueSections(template);
+        const issueSections = this.githubUtils.getIssueSections(issueBody);
+        const templateHeaders = [...templateSections.keys()];
+        return templateHeaders.every((sectionHeader) => {
+            if (!issueSections.has(sectionHeader)) {
+                return false;
+            }
+            let templateContent = templateSections.get(sectionHeader).trim();
+            let issueContent = templateSections.get(sectionHeader).trim();
+            if (issueContent === templateContent || templateContent.includes(issueContent)) {
+                return false;
+            }
+            return true;
+        });
+    }
+    matchByLabel(templateMap, currentLabels) {
+        let largestMatch = 0;
+        let templateName = null;
         templateMap.forEach((contents, filename) => {
             this.allTemplates.push(this.githubUtils.getIssueSections(contents));
             const templateLabels = this.getLabelsFromTemplate(contents);
@@ -6088,7 +6146,40 @@ class TemplateEnforcer {
             }
         });
         core.info(`Best Possible Template Match: ${templateName}`);
-        return templateMap.get(templateName);
+        return templateName;
+    }
+    matchBySection(templateMap, issueBody) {
+        let largestFullMatch = 0;
+        let largestPartialMatch = 0;
+        let fullMatchTemplateName = null;
+        let partialMatchTemplateName = null;
+        const issueSections = this.githubUtils.getIssueSections(issueBody);
+        templateMap.forEach((contents, filename) => {
+            const templateSections = this.githubUtils.getIssueSections(contents);
+            let sectionsMatched = 0;
+            let templateHeaders = [...templateSections.keys()];
+            templateHeaders.forEach((sectionHeader) => {
+                if (issueSections.has(sectionHeader)) {
+                    sectionsMatched += 1;
+                }
+            });
+            if (sectionsMatched === templateSections.size && sectionsMatched > largestFullMatch) {
+                largestFullMatch = sectionsMatched;
+                fullMatchTemplateName = filename;
+            }
+            else if (sectionsMatched < templateSections.size && sectionsMatched > largestPartialMatch) {
+                largestPartialMatch = sectionsMatched;
+                partialMatchTemplateName = partialMatchTemplateName;
+            }
+        });
+        if (largestFullMatch >= largestPartialMatch) {
+            core.info(`Best Possible Template Match: ${fullMatchTemplateName}`);
+            return fullMatchTemplateName;
+        }
+        else {
+            core.info(`Best Possible Template Match: ${partialMatchTemplateName}`);
+            return partialMatchTemplateName;
+        }
     }
     getLabelsFromTemplate(templateBody) {
         const templateMetadataRegEx = RegExp("---.*?labels:\\s*(.*?)(?=\\n).*?---", "gs");
@@ -6138,8 +6229,8 @@ async function run() {
         await labelIssue.assignUsersToIssue();
         await labelIssue.commentOnIssue();
         core.info("Start Template Enforcer");
-        const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number, payload.action || "edited");
-        await templateEnforcer.getTemplate();
+        const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number, payload.action);
+        await templateEnforcer.enforceTemplate(issue.body);
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");
