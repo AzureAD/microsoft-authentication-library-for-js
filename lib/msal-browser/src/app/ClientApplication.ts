@@ -5,7 +5,7 @@
 
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AccountEntity } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -554,12 +554,33 @@ export abstract class ClientApplication {
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
-            const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-            const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
-            // create logout string and navigate user window to logout. Auth module will clear cache.
-            const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
-            return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+
+            /*
+             * Before navigating, clear browser cache.
+             * TODO: use sid and iss from query parameter from logout broadcast to clear specific account
+             */
+            if (logoutRequest && logoutRequest.account) {
+                // Clear given account.
+                this.browserStorage.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
+            } else {
+                // Clear all accounts and tokens
+                this.browserStorage.clear();
+            }
+
+            if (!BrowserUtils.isInIframe()) {
+                // When not in an iframe, build logout url and navigate
+                const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+                const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
+                const logoutUri = authClient.getLogoutUri(validLogoutRequest);
+
+                // Emittting logout event right before we navigate, so that it is not emitted if building url fails
+                this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
+
+                return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+            } else {
+                // If in iframe, do nothing further
+                this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Silent, logoutRequest);
+            }
         } catch(e) {
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
             throw e;
@@ -631,7 +652,7 @@ export abstract class ClientApplication {
      * @returns {string} post logout redirect URL
      */
     protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
-        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri;
     }
 
     /**
@@ -877,7 +898,10 @@ export abstract class ClientApplication {
 
         validLogoutRequest.correlationId = (validLogoutRequest && validLogoutRequest.correlationId) || this.browserCrypto.createNewGuid();
 
-        validLogoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
+        const postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
+        if (!StringUtils.isEmpty(postLogoutRedirectUri)) {
+            validLogoutRequest.postLogoutRedirectUri = postLogoutRedirectUri;
+        }
 
         return validLogoutRequest;
     }

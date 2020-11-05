@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { ProfileComponent } from './profile/profile.component';
 import { HomeComponent } from './home/home.component';
 import { MsalGuard } from './msal';
+import { LogoutComponent } from './logout/logout.component';
 
 const routes: Routes = [
   {
@@ -18,6 +19,10 @@ const routes: Routes = [
     component: HomeComponent
   },
   {
+      path: 'logout',
+      component: LogoutComponent
+  },
+  {
     path: '',
     component: HomeComponent
   }
@@ -27,7 +32,7 @@ const isIframe = window !== window.parent && !window.opener;
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
-      useHash: true,
+      useHash: false,
       // Don't perform initial navigation in iframes
       initialNavigation: !isIframe ? 'enabled' : 'disabled'
   })],

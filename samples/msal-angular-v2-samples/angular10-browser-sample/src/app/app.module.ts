@@ -13,16 +13,21 @@ import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { MsalService, MSAL_INSTANCE, MsalGuard, MsalInterceptor, MsalBroadcastService } from './msal';
-import { IPublicClientApplication, PublicClientApplication, InteractionType } from '@azure/msal-browser';
+import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation } from '@azure/msal-browser';
 import { MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG } from './msal/constants';
 import { MsalGuardConfiguration } from './msal/msal.guard.config';
 import { MsalInterceptorConfig } from './msal/msal.interceptor.config';
+import { LogoutComponent } from './logout/logout.component';
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
-      redirectUri: 'http://localhost:4200'
+      redirectUri: 'http://localhost:4200',
+      postLogoutRedirectUri: 'http://localhost:4200'
+    },
+    cache: {
+        cacheLocation: BrowserCacheLocation.LocalStorage
     }
   });
 }
@@ -41,7 +46,8 @@ function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
   declarations: [
     AppComponent,
     HomeComponent,
-    ProfileComponent
+    ProfileComponent,
+    LogoutComponent
   ],
   imports: [
     BrowserModule,

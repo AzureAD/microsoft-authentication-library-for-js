@@ -18,7 +18,6 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
-import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -105,24 +104,16 @@ export class AuthorizationCodeClient extends BaseClient {
             throw ClientConfigurationError.createEmptyLogoutRequestError();
         }
 
-        if (logoutRequest.account) {
-            // Clear given account.
-            this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
-        } else {
-            // Clear all accounts and tokens
-            this.cacheManager.clear();
-        }
-
-        // Get postLogoutRedirectUri.
+        // Post logout redirect uri is optional
         const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ?
-            `?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(logoutRequest.postLogoutRedirectUri)}` : "";
+            `&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(logoutRequest.postLogoutRedirectUri)}` : "";
 
+        // Correlation id should be included on every request
         const correlationIdParam = logoutRequest.correlationId ?
-            `&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(logoutRequest.correlationId)}` : "";
+            `?${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(logoutRequest.correlationId)}` : "";
 
         // Construct logout URI.
-        const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}${correlationIdParam}`;
-        return logoutUri;
+        return `${this.authority.endSessionEndpoint}${correlationIdParam}${postLogoutUriParam}`;
     }
 
     /**

@@ -57,6 +57,11 @@ function signOut() {
     myMSALObj.logout(logoutRequest);
 }
 
+// When app is loaded in an iframe with sid and iss query parameters, automatically logout
+if (window.location.search.includes("sid=") && window.location.search.includes("iss=")) {
+    myMSALObj.logout();
+}
+
 async function getTokenPopup(request, account) {
     request.account = account;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
