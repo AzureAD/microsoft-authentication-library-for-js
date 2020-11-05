@@ -42,7 +42,7 @@
         "Regression"
     ],
     "templateEnforcementLabel": "more-information-needed",
-    "incompleteTemplateMessage": "Please fill out the entire issue template so we can better assist you.",
-    "noTemplateMessage": "Please use one of the provided issue templates.",
+    "incompleteTemplateMessage": "Please update the original issue and make sure to fill out the entire issue template so we can better assist you.",
+    "noTemplateMessage": "Please open a new issue and use one of the provided issue templates. Thanks!",
     "noTemplateClose": true
 }
