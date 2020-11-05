@@ -105,19 +105,24 @@ export class TemplateEnforcer {
         const issueSections = this.githubUtils.getIssueSections(issueBody);
 
         templateMap.forEach((contents, filename) => {
+            core.info(`Checking: ${filename}`);
             const templateSections = this.githubUtils.getIssueSections(contents);
             let sectionsMatched = 0;
             let templateHeaders = [...templateSections.keys()];
             templateHeaders.forEach((sectionHeader) => {
+                core.info(`Checking Header: ${sectionHeader}`);
                 if (issueSections.has(sectionHeader)) {
+                    core.info("Found");
                     sectionsMatched += 1;
                 }
             });
 
             if (sectionsMatched === templateSections.size && sectionsMatched > largestFullMatch) {
+                core.info(`Full Match with ${sectionsMatched} sections!`);
                 largestFullMatch = sectionsMatched;
                 fullMatchTemplateName = filename;
             } else if (sectionsMatched < templateSections.size && sectionsMatched > largestPartialMatch) {
+                core.info(`Partial Match with ${sectionsMatched} sections!`);
                 largestPartialMatch = sectionsMatched;
                 partialMatchTemplateName = partialMatchTemplateName;
             }
