@@ -66,7 +66,7 @@ export class TemplateEnforcer {
                 return false;
             }
             let templateContent = templateSections.get(sectionHeader)!.trim();
-            let issueContent = templateSections.get(sectionHeader)!.trim();
+            let issueContent = issueSections.get(sectionHeader)!.trim();
 
             if (issueContent === templateContent || templateContent.includes(issueContent)) {
                 if (issueContent === templateContent) {
