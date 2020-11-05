@@ -71,7 +71,9 @@
   },
   "dependencies": {
     "@azure/msal-common": "^1.6.3",
+    "@types/express": "^4.17.8",
     "axios": "^0.19.2",
+    "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "uuid": "^8.3.0"
   }

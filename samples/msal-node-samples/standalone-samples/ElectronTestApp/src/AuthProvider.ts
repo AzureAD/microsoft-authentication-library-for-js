@@ -1,4 +1,4 @@
-import { 
+import {
     PublicClientApplication,
     Configuration,
     LogLevel,
@@ -12,6 +12,11 @@ import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
 import { CustomFileProtocolListener } from "./CustomFileProtocol";
+import { BrokerManager } from "@azure/msal-node";
+
+
+const brokerManager: BrokerManager = new BrokerManager();
+brokerManager.enableBrokering(cachePlugin);
 
 const MSAL_CONFIG: Configuration = {
     auth: {
@@ -19,7 +24,7 @@ const MSAL_CONFIG: Configuration = {
         authority: "https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660",
     },
     cache: {
-        cachePlugin
+        cachePlugin: cachePlugin
     },
     system: {
         loggerOptions: {
@@ -60,7 +65,7 @@ export default class AuthProvider {
         const redirectUri = "msal://redirect";
 
         const baseSilentRequest = {
-            account: null, 
+            account: null,
             forceRefresh: false
         };
 
@@ -155,7 +160,7 @@ export default class AuthProvider {
 
         /**
      * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
-     * @param response 
+     * @param response
      */
     private async handleResponse(response: AuthenticationResult) {
         if (response !== null) {
@@ -170,7 +175,7 @@ export default class AuthProvider {
     /**
      * Calls getAllAccounts and determines the correct account to sign into, currently defaults to first account found in cache.
      * TODO: Add account chooser code
-     * 
+     *
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
      */
     private async getAccount(): Promise<AccountInfo> {

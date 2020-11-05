@@ -52,6 +52,8 @@ export abstract class ClientApplication {
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
 
+    protected brokerExists: Promise<boolean>;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -106,6 +108,26 @@ export abstract class ClientApplication {
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
         this.defaultAuthority = null;
+
+        this.reachOutForBroker();
+
+    }
+
+    reachOutForBroker(): void {
+        this.brokerExists = new Promise((resolve, reject) => {
+            fetch("http://localhost:45678/auth/handshake")
+                .then((res) => {
+                    if(res.ok) {
+                        resolve(true);
+
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(() => {
+                    resolve(false);
+                });
+        })
     }
 
     // #region Redirect Flow
@@ -181,7 +203,7 @@ export abstract class ClientApplication {
                 // Replace current hash with non-msal hash, if present
                 BrowserUtils.replaceHash(loginRequestUrl);
             }
-            
+
             return handleHashResult;
         } else if (!this.config.auth.navigateToLoginRequestUrl) {
             return this.handleHash(responseHash);
@@ -580,6 +602,24 @@ export abstract class ClientApplication {
         return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts() : [];
     }
 
+    async getAllAccountsAsync(): Promise<Array<AccountInfo>> {
+        const hasBroker = await this.brokerExists;
+        if(hasBroker) {
+            console.log("GetAllAccountsAsync - We have determined that broker is running on the machine so we will broker the request there!");
+
+            const result = await fetch("http://localhost:45678/auth/get-accounts", {
+                method: "POST",
+                body: JSON.stringify({
+                    clientId: this.config.auth.clientId
+                })
+            });
+            const accountResult: Promise<Array<AccountInfo>> = Promise.resolve(result.json()) as any;
+            return accountResult;
+        } else {
+            return Promise.resolve(this.getAllAccounts());
+        }
+    }
+
     /**
      * Returns the signed in account matching username.
      * (the account object is created at the time of successful login)
@@ -745,8 +785,8 @@ export abstract class ClientApplication {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
-        if (interactionType === InteractionType.Redirect && 
-            this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage && 
+        if (interactionType === InteractionType.Redirect &&
+            this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
             !this.config.cache.storeAuthStateInCookie) {
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }

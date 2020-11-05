@@ -10,6 +10,7 @@ export { Storage } from "./cache/Storage";
 export { Serializer } from "./cache/serializer/Serializer";
 export { Deserializer } from "./cache/serializer/Deserializer";
 export { TokenCache } from "./cache/TokenCache";
+export { BrokerManager } from "./broker/BrokerManager";
 
 // crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";

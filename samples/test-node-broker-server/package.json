@@ -1,0 +1,16 @@
+{
+  "name": "test-node-broker-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/msal-node": "file:../../lib/msal-node",
+    "express": "^4.17.1"
+  }
+}
