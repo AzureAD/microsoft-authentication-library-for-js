@@ -42,6 +42,6 @@
         "Regression"
     ],
     "templateEnforcementLabel": "more-information-needed",
-    "incompleteTemplateMessage": "Detected missing information: Please fill out the entire issue template so we can better assist you.",
-    "noTemplateMessage": "string"
+    "incompleteTemplateMessage": "Please fill out the entire issue template so we can better assist you.",
+    "noTemplateMessage": "Please use one of the provided issue templates."
 }
