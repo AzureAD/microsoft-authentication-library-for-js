@@ -11,7 +11,8 @@ export type IssueBotConfigType = {
     optionalSections?: Array<string>,
     templateEnforcementLabel?: string,
     incompleteTemplateMessage?: string,
-    noTemplateMessage?: string
+    noTemplateMessage?: string,
+    noTemplateClose?: boolean
 }
 export type IssueLabelerConfigType = Record<string, HeaderConfigType>;
 export type HeaderConfigType = {
@@ -210,5 +211,14 @@ export class GithubUtils {
         } catch (e) {
             return null;
         }
+    };
+
+    async closeIssue(): Promise<void> {
+        const octokit = github.getOctokit(this.token);
+        await octokit.issues.update({
+          ...this.repoParams,
+          issue_number: this.issueNo,
+          state: "closed"
+        });
     };
 }

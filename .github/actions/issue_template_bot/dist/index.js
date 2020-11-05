@@ -5954,6 +5954,15 @@ class GithubUtils {
         }
     }
     ;
+    async closeIssue() {
+        const octokit = github.getOctokit(this.token);
+        await octokit.issues.update({
+            ...this.repoParams,
+            issue_number: this.issueNo,
+            state: "closed"
+        });
+    }
+    ;
 }
 exports.GithubUtils = GithubUtils;
 
@@ -6115,6 +6124,9 @@ class TemplateEnforcer {
         }
         await this.updateIssueLabel(config, currentLabels, !!templateUsed, isIssueFilled);
         await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
+        if (config.noTemplateClose) {
+            await this.githubUtils.closeIssue();
+        }
     }
     async commentOnIssue(config, isTemplateUsed, isIssueFilled) {
         const baseComment = "Invalid Issue Template:";

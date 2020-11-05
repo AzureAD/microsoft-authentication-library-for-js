@@ -43,5 +43,6 @@
     ],
     "templateEnforcementLabel": "more-information-needed",
     "incompleteTemplateMessage": "Please fill out the entire issue template so we can better assist you.",
-    "noTemplateMessage": "Please use one of the provided issue templates."
+    "noTemplateMessage": "Please use one of the provided issue templates.",
+    "noTemplateClose": true
 }

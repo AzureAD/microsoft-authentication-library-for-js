@@ -47,6 +47,10 @@ export class TemplateEnforcer {
 
         await this.updateIssueLabel(config, currentLabels, !!templateUsed, isIssueFilled);
         await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
+
+        if (config.noTemplateClose) {
+            await this.githubUtils.closeIssue();
+        }
     }
 
     async commentOnIssue(config: IssueBotConfigType, isTemplateUsed: boolean, isIssueFilled: boolean) {
