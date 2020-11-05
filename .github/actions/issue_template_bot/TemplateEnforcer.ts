@@ -110,9 +110,7 @@ export class TemplateEnforcer {
             let sectionsMatched = 0;
             let templateHeaders = [...templateSections.keys()];
             templateHeaders.forEach((sectionHeader) => {
-                core.info(`Checking Header: ${sectionHeader}`);
                 if (issueSections.has(sectionHeader)) {
-                    core.info("Found");
                     sectionsMatched += 1;
                 }
             });
@@ -124,7 +122,7 @@ export class TemplateEnforcer {
             } else if (sectionsMatched < templateSections.size && sectionsMatched > largestPartialMatch) {
                 core.info(`Partial Match with ${sectionsMatched} sections!`);
                 largestPartialMatch = sectionsMatched;
-                partialMatchTemplateName = partialMatchTemplateName;
+                partialMatchTemplateName = filename;
             }
         });
 
