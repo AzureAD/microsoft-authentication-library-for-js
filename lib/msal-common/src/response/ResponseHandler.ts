@@ -4,7 +4,7 @@
  */
 
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
-import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
+import { buildClientInfo} from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
@@ -40,7 +40,6 @@ export class ResponseHandler {
     private cacheStorage: CacheManager;
     private cryptoObj: ICrypto;
     private logger: Logger;
-    private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
     private serializableCache: ISerializableTokenCache;
     private persistencePlugin: ICachePlugin;
@@ -111,17 +110,6 @@ export class ResponseHandler {
         oboAssertion?: string,
         handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
-        // generate homeAccountId
-        if (serverTokenResponse.client_info) {
-            this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
-            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
-            }
-        } else {
-            this.logger.verbose("No client info in response");
-            this.homeAccountIdentifier = "";
-        }
-
         let idTokenObj: AuthToken = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
             // create an idToken object (not entity)
@@ -134,6 +122,9 @@ export class ResponseHandler {
                 }
             }
         }
+
+        // generate homeAccountId
+        this.homeAccountIdentifier = AccountEntity.generateHomeAccountId(serverTokenResponse.client_info, authority.authorityType, this.logger, this.cryptoObj, idTokenObj);
 
         // save the response tokens
         let requestStateObj: RequestStateObject = null;
@@ -271,7 +262,7 @@ export class ResponseHandler {
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
             this.logger.verbose("Authority type is ADFS, creating ADFS account");
-            return AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
+            return AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion);
         }
 
         // This fallback applies to B2C as well as they fall under an AAD account type.
@@ -280,8 +271,8 @@ export class ResponseHandler {
         }
 
         return serverTokenResponse.client_info ?
-            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion) :
-            AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
+            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, authority, idToken, oboAssertion) :
+            AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion);
     }
 
     /**
