@@ -6121,11 +6121,18 @@ class TemplateEnforcer {
         const templateHeaders = [...templateSections.keys()];
         return templateHeaders.every((sectionHeader) => {
             if (!issueSections.has(sectionHeader)) {
+                core.info(`Does not have header: ${sectionHeader}`);
                 return false;
             }
             let templateContent = templateSections.get(sectionHeader).trim();
             let issueContent = templateSections.get(sectionHeader).trim();
             if (issueContent === templateContent || templateContent.includes(issueContent)) {
+                if (issueContent === templateContent) {
+                    core.info("Content is same as template");
+                }
+                if (templateContent.includes(issueContent)) {
+                    core.info("Issue Content is subset of template content");
+                }
                 return false;
             }
             return true;
