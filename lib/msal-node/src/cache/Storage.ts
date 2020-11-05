@@ -13,9 +13,7 @@ import {
     ThrottlingEntity,
     CacheManager,
     Logger,
-    ValidCacheType,
-    CredentialEntity,
-    CredentialType
+    ValidCacheType
 } from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
