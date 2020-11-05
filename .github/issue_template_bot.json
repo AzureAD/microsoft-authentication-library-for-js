@@ -1,5 +1,5 @@
 {
-    "labeler": {
+    "selectors": {
         "Library": {
             "labels": {
                 "msal@1.x": {

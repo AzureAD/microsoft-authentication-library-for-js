@@ -6300,7 +6300,7 @@ async function run() {
         const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number, payload.action);
         const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
         core.info("Start selection detection");
-        const labelIssue = new LabelIssue_1.LabelIssue(issue.number, config.labeler);
+        const labelIssue = new LabelIssue_1.LabelIssue(issue.number, config.selectors);
         const isSelectionMade = await labelIssue.executeLabeler(issue.body);
         // Add/remove enforcement label
         if (config.enforceTemplate && config.templateEnforcementLabel) {

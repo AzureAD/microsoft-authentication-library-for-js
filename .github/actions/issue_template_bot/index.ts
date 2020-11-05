@@ -36,7 +36,7 @@ async function run() {
         const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
 
         core.info("Start selection detection");
-        const labelIssue = new LabelIssue(issue.number, config.labeler);
+        const labelIssue = new LabelIssue(issue.number, config.selectors);
         const isSelectionMade = await labelIssue.executeLabeler(issue.body);
 
 

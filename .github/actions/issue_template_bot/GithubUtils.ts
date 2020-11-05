@@ -6,7 +6,7 @@ export type RepoParamsType = {
     repo: string
 }
 export type IssueBotConfigType = {
-    labeler: IssueLabelerConfigType,
+    selectors: IssueLabelerConfigType,
     enforceTemplate: boolean,
     optionalSections?: Array<string>,
     templateEnforcementLabel?: string,
