@@ -6124,7 +6124,7 @@ class TemplateEnforcer {
         }
         await this.updateIssueLabel(config, currentLabels, !!templateUsed, isIssueFilled);
         await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
-        if (config.noTemplateClose) {
+        if (config.noTemplateClose && !templateUsed) {
             await this.githubUtils.closeIssue();
         }
     }
