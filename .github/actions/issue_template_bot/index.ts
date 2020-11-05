@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import { GithubUtils } from "./GithubUtils";
 import { LabelIssue } from "./LabelIssue";
 import { TemplateEnforcer } from "./TemplateEnforcer";
 
@@ -23,17 +24,22 @@ async function run() {
     }
 
     if (issue.number && issue.body) {
-        const labelIssue = new LabelIssue(issue.number);
-        await labelIssue.parseIssue(issue.body);
-        await labelIssue.updateIssueLabels();
-        await labelIssue.assignUsersToIssue();
-        await labelIssue.commentOnIssue();
+        const githubUtils = new GithubUtils(issue.number);
+        const config = await githubUtils.getConfig();
+        if (!config) {
+            core.setFailed("Unable to parse config file!");
+            return;
+        }
+
+        const labelIssue = new LabelIssue(issue.number, config.labeler);
+        await labelIssue.executeLabeler(issue.body);
 
         core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer(issue.number, payload.action);
-        await templateEnforcer.enforceTemplate(issue.body);
+        await templateEnforcer.enforceTemplate(issue.body, config);
     } else {
         core.setFailed("No issue number or body available, cannot label issue!");
+        return;
     }
 }
 

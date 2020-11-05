@@ -5,8 +5,8 @@ inputs:
     description: 'Github Token'
     default: ${{ github.token }}
     required: true
-  issue_labeler_config_path:
-    description: 'Labels to search for in issue'
+  config_path:
+    description: 'Json Config file for the bot'
     required: false
   
 runs:

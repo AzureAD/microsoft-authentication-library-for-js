@@ -5,6 +5,24 @@ export type RepoParamsType = {
     owner: string,
     repo: string
 }
+export type IssueBotConfigType = {
+    labeler: IssueLabelerConfigType,
+    enforceTemplate: boolean,
+    optionalSections?: Array<string>,
+    templateEnforcementLabel?: string,
+    incompleteTemplateMessage?: string,
+    noTemplateMessage?: string
+}
+export type IssueLabelerConfigType = Record<string, HeaderConfigType>;
+export type HeaderConfigType = {
+    labels: Record<string, LabelConfigType>,
+    enforceSelection?: boolean,
+    message?: string
+}
+export type LabelConfigType = {
+    searchStrings: Array<string>,
+    assignees?: Array<string>
+}
 
 export class GithubUtils {
     private token: string;
@@ -27,9 +45,12 @@ export class GithubUtils {
             issue_number: this.issueNo
         });
 
-        const lastComment = comments.data.pop();
-        if (lastComment && lastComment.user.login === "github-actions[bot]" && (!baseComment || lastComment.body.includes(baseComment))) {
-            return lastComment.id;
+        let comment = comments.data.pop();
+        while(comment) {
+            if (comment.user.login === "github-actions[bot]" && (!baseComment || comment.body.includes(baseComment))) {
+                return comment.id;
+            }
+            comment = comments.data.pop();
         }
 
         return null;
@@ -109,7 +130,7 @@ export class GithubUtils {
 
     async addIssueLabels(labelsToAdd: Array<string>) {
         const octokit = github.getOctokit(this.token);
-        
+
         if (labelsToAdd.length > 0) {
             core.info(`Adding labels: ${Array.from(labelsToAdd).join(" ")}`)
             await octokit.issues.addLabels({
@@ -178,5 +199,16 @@ export class GithubUtils {
         }
 
         return issueContent;
+    };
+
+    async getConfig(): Promise<IssueBotConfigType|null> {
+        const configPath = core.getInput("config_path");
+        const fileContents = await this.getFileContents(configPath);
+
+        try {
+            return JSON.parse(fileContents) as IssueBotConfigType;
+        } catch (e) {
+            return null;
+        }
     };
 }

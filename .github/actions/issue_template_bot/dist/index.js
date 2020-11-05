@@ -5814,9 +5814,12 @@ class GithubUtils {
             ...this.repoParams,
             issue_number: this.issueNo
         });
-        const lastComment = comments.data.pop();
-        if (lastComment && lastComment.user.login === "github-actions[bot]" && (!baseComment || lastComment.body.includes(baseComment))) {
-            return lastComment.id;
+        let comment = comments.data.pop();
+        while (comment) {
+            if (comment.user.login === "github-actions[bot]" && (!baseComment || comment.body.includes(baseComment))) {
+                return comment.id;
+            }
+            comment = comments.data.pop();
         }
         return null;
     }
@@ -5940,6 +5943,17 @@ class GithubUtils {
         return issueContent;
     }
     ;
+    async getConfig() {
+        const configPath = core.getInput("config_path");
+        const fileContents = await this.getFileContents(configPath);
+        try {
+            return JSON.parse(fileContents);
+        }
+        catch (e) {
+            return null;
+        }
+    }
+    ;
 }
 exports.GithubUtils = GithubUtils;
 
@@ -5956,16 +5970,21 @@ exports.LabelIssue = void 0;
 const core = __webpack_require__(186);
 const GithubUtils_1 = __webpack_require__(405);
 class LabelIssue {
-    constructor(issueNo) {
-        this.issueLabelConfig = {};
+    constructor(issueNo, issueLabelConfig) {
+        this.issueLabelConfig = issueLabelConfig;
         this.noSelectionMadeHeaders = [];
         this.assignees = new Set();
         this.labelsToAdd = new Set();
         this.labelsToRemove = new Set();
         this.githubUtils = new GithubUtils_1.GithubUtils(issueNo);
     }
+    async executeLabeler(issueBody) {
+        await this.parseIssue(issueBody);
+        await this.updateIssueLabels();
+        await this.assignUsersToIssue();
+        await this.commentOnIssue();
+    }
     async parseIssue(issueBody) {
-        await this.getConfig();
         const issueContent = this.githubUtils.getIssueSections(issueBody);
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
             const headerContent = issueContent.get(header) || "";
@@ -6011,18 +6030,6 @@ class LabelIssue {
             }
         });
     }
-    async getConfig() {
-        const configPath = core.getInput("issue_labeler_config_path");
-        const fileContents = await this.githubUtils.getFileContents(configPath);
-        try {
-            this.issueLabelConfig = JSON.parse(fileContents);
-        }
-        catch (e) {
-            core.setFailed("Unable to parse config file!");
-            this.issueLabelConfig = {};
-        }
-    }
-    ;
     async updateIssueLabels() {
         await this.githubUtils.updateIssueLabels(this.labelsToAdd, this.labelsToRemove);
     }
@@ -6092,7 +6099,7 @@ class TemplateEnforcer {
         }
         return templateMap.get(templateName) || null;
     }
-    async enforceTemplate(issueBody) {
+    async enforceTemplate(issueBody, config) {
         const currentLabels = await this.githubUtils.getCurrentLabels();
         const templateMap = await this.githubUtils.getIssueTemplates();
         const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
@@ -6100,20 +6107,57 @@ class TemplateEnforcer {
         if (templateUsed) {
             isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed);
         }
-        const message = "Detected missing information: Please fill out the entire issue template so we can better assist you.";
-        const lastCommentId = await this.githubUtils.getLastCommentId(message);
+        await this.updateIssueLabel(config, currentLabels, !!templateUsed, isIssueFilled);
+        await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
+    }
+    async commentOnIssue(config, isTemplateUsed, isIssueFilled) {
+        const baseComment = "Invalid Issue Template:";
+        if (!config.incompleteTemplateMessage && !config.noTemplateMessage) {
+            return;
+        }
+        const lastCommentId = await this.githubUtils.getLastCommentId(baseComment);
+        // Template used and complete, remove previous warning comment
         if (isIssueFilled) {
-            await this.githubUtils.removeIssueLabels(["more-information-needed"], currentLabels);
             if (lastCommentId) {
+                core.info("Removing last comment from bot");
                 await this.githubUtils.removeComment(lastCommentId);
             }
+            return;
+        }
+        let comment = baseComment + "\n";
+        // No Template Used
+        if (!isTemplateUsed && config.noTemplateMessage) {
+            comment += config.noTemplateMessage;
+        }
+        else if (isTemplateUsed && config.incompleteTemplateMessage) {
+            // Template used but incomplete
+            comment += config.incompleteTemplateMessage;
         }
         else {
-            await this.githubUtils.addIssueLabels(["more-information-needed"]);
-            if (!lastCommentId) {
-                await this.githubUtils.addComment(message);
-            }
+            return;
         }
+        if (!lastCommentId) {
+            await this.githubUtils.addComment(comment);
+            return;
+        }
+        else {
+            await this.githubUtils.updateComment(lastCommentId, comment);
+            return;
+        }
+    }
+    async updateIssueLabel(config, currentLabels, isTemplateUsed, isIssueFilled) {
+        if (!config.templateEnforcementLabel) {
+            return;
+        }
+        if (!isTemplateUsed) {
+            await this.githubUtils.addIssueLabels([config.templateEnforcementLabel]);
+            return;
+        }
+        if (!isIssueFilled) {
+            await this.githubUtils.addIssueLabels([config.templateEnforcementLabel]);
+            return;
+        }
+        await this.githubUtils.removeIssueLabels([config.templateEnforcementLabel], currentLabels);
     }
     didIssueFillOutTemplate(issueBody, template) {
         const templateSections = this.githubUtils.getIssueSections(template);
@@ -6216,6 +6260,7 @@ exports.TemplateEnforcer = TemplateEnforcer;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __webpack_require__(186);
 const github = __webpack_require__(438);
+const GithubUtils_1 = __webpack_require__(405);
 const LabelIssue_1 = __webpack_require__(67);
 const TemplateEnforcer_1 = __webpack_require__(687);
 async function run() {
@@ -6235,17 +6280,21 @@ async function run() {
         return;
     }
     if (issue.number && issue.body) {
-        const labelIssue = new LabelIssue_1.LabelIssue(issue.number);
-        await labelIssue.parseIssue(issue.body);
-        await labelIssue.updateIssueLabels();
-        await labelIssue.assignUsersToIssue();
-        await labelIssue.commentOnIssue();
+        const githubUtils = new GithubUtils_1.GithubUtils(issue.number);
+        const config = await githubUtils.getConfig();
+        if (!config) {
+            core.setFailed("Unable to parse config file!");
+            return;
+        }
+        const labelIssue = new LabelIssue_1.LabelIssue(issue.number, config.labeler);
+        await labelIssue.executeLabeler(issue.body);
         core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number, payload.action);
-        await templateEnforcer.enforceTemplate(issue.body);
+        await templateEnforcer.enforceTemplate(issue.body, config);
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");
+        return;
     }
 }
 run().catch(error => core.setFailed(`Workflow failed with error message: ${error.message}`));

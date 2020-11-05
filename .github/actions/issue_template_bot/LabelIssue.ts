@@ -1,34 +1,16 @@
 import * as core from "@actions/core";
-import * as github from "@actions/github";
-import { GithubUtils } from "./GithubUtils";
-
-export type RepoParamsType = {
-    owner: string,
-    repo: string
-}
-
-export type IssueLabelConfigType = Record<string, HeaderConfigType>;
-export type HeaderConfigType = {
-    labels: Record<string, LabelConfigType>,
-    enforceSelection?: boolean,
-    message?: string
-};
-
-export type LabelConfigType = {
-    searchStrings: Array<string>,
-    assignees?: Array<string>
-}
+import { GithubUtils, IssueLabelerConfigType } from "./GithubUtils";
 
 export class LabelIssue {
-    private issueLabelConfig: IssueLabelConfigType;
+    private issueLabelConfig: IssueLabelerConfigType;
     private noSelectionMadeHeaders: Array<string>
     private assignees: Set<string>;
     private labelsToAdd: Set<string>;
     private labelsToRemove: Set<string>;
     private githubUtils: GithubUtils;
 
-    constructor(issueNo: number){
-        this.issueLabelConfig = {};
+    constructor(issueNo: number, issueLabelConfig: IssueLabelerConfigType){
+        this.issueLabelConfig = issueLabelConfig;
         this.noSelectionMadeHeaders = [];
         this.assignees = new Set();
         this.labelsToAdd = new Set();
@@ -36,8 +18,14 @@ export class LabelIssue {
         this.githubUtils = new GithubUtils(issueNo);
     }
 
+    async executeLabeler(issueBody: string) {
+        await this.parseIssue(issueBody);
+        await this.updateIssueLabels();
+        await this.assignUsersToIssue();
+        await this.commentOnIssue();
+    }
+
     async parseIssue(issueBody: string) {
-        await this.getConfig();
         const issueContent = this.githubUtils.getIssueSections(issueBody);
 
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
@@ -87,18 +75,6 @@ export class LabelIssue {
             }
         });
     }
-
-    async getConfig(): Promise<void> {
-        const configPath = core.getInput("issue_labeler_config_path");
-        const fileContents = await this.githubUtils.getFileContents(configPath);
-
-        try {
-            this.issueLabelConfig = JSON.parse(fileContents) as IssueLabelConfigType;
-        } catch (e) {
-            core.setFailed("Unable to parse config file!");
-            this.issueLabelConfig = {};
-        }
-    };
 
     async updateIssueLabels() {
         await this.githubUtils.updateIssueLabels(this.labelsToAdd, this.labelsToRemove);

@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import { GithubUtils } from "./GithubUtils";
+import { GithubUtils, IssueBotConfigType } from "./GithubUtils";
 
 export class TemplateEnforcer {
     private action: string;
@@ -30,7 +30,7 @@ export class TemplateEnforcer {
         return templateMap.get(templateName) || null;
     }
 
-    async enforceTemplate(issueBody: string) {
+    async enforceTemplate(issueBody: string, config: IssueBotConfigType) {
         const currentLabels = await this.githubUtils.getCurrentLabels();
         const templateMap = await this.githubUtils.getIssueTemplates();
         const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
@@ -39,19 +39,63 @@ export class TemplateEnforcer {
             isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed);
         }
 
-        const message = "Detected missing information: Please fill out the entire issue template so we can better assist you.";
-        const lastCommentId = await this.githubUtils.getLastCommentId(message);
+        await this.updateIssueLabel(config, currentLabels, !!templateUsed, isIssueFilled);
+        await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
+    }
+
+    async commentOnIssue(config: IssueBotConfigType, isTemplateUsed: boolean, isIssueFilled: boolean) {
+        const baseComment = "Invalid Issue Template:"
+        if (!config.incompleteTemplateMessage && !config.noTemplateMessage) {
+            return;
+        }
+
+        const lastCommentId = await this.githubUtils.getLastCommentId(baseComment);
+
+        // Template used and complete, remove previous warning comment
         if (isIssueFilled) {
-            await this.githubUtils.removeIssueLabels(["more-information-needed"], currentLabels);
             if (lastCommentId) {
+                core.info("Removing last comment from bot");
                 await this.githubUtils.removeComment(lastCommentId);
             }
-        } else {
-            await this.githubUtils.addIssueLabels(["more-information-needed"]);
-            if (!lastCommentId) {
-                await this.githubUtils.addComment(message);
-            }
+            return;
         }
+
+        let comment = baseComment + "\n";
+        // No Template Used
+        if (!isTemplateUsed && config.noTemplateMessage) {
+            comment += config.noTemplateMessage;
+        } else if (isTemplateUsed && config.incompleteTemplateMessage) {
+            // Template used but incomplete
+            comment += config.incompleteTemplateMessage;
+        } else {
+            return;
+        }
+
+        if (!lastCommentId) {
+            await this.githubUtils.addComment(comment);
+            return;
+        } else {
+            await this.githubUtils.updateComment(lastCommentId, comment);
+            return;
+        }
+    }
+
+    async updateIssueLabel(config: IssueBotConfigType, currentLabels: Array<string>, isTemplateUsed: boolean, isIssueFilled: boolean) {
+        if (!config.templateEnforcementLabel) {
+            return
+        }
+
+        if (!isTemplateUsed) {
+            await this.githubUtils.addIssueLabels([config.templateEnforcementLabel]);
+            return;
+        }
+
+        if (!isIssueFilled) {
+            await this.githubUtils.addIssueLabels([config.templateEnforcementLabel]);
+            return;
+        }
+
+        await this.githubUtils.removeIssueLabels([config.templateEnforcementLabel], currentLabels);
     }
 
     didIssueFillOutTemplate(issueBody: string, template: string): boolean {
