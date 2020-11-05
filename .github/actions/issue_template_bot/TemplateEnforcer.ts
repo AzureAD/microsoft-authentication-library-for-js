@@ -74,6 +74,8 @@ export class TemplateEnforcer {
                 }
                 if (templateContent.includes(issueContent)) {
                     core.info(`Issue Content for ${sectionHeader} is subset of template content`);
+                    core.info(`Issue Content: ${issueContent}`);
+                    core.info(`Template Content: ${templateContent}`);
                 }
                 return false;
             }
