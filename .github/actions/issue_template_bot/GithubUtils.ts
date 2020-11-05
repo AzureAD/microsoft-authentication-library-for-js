@@ -76,7 +76,7 @@ export class GithubUtils {
         });
     }
 
-    async updateIssueLabels(labelsToAdd: Set<string>, labelsToRemove: Set<string>) {
+    async getCurrentLabels(): Promise<Array<string>> {
         const octokit = github.getOctokit(this.token);
 
         const issueLabelResponse = await octokit.issues.listLabelsOnIssue({
@@ -84,10 +84,18 @@ export class GithubUtils {
             issue_number: this.issueNo
         });
 
-        const currentLabels: string[] = [];
+        const currentLabels: Array<string> = [];
         issueLabelResponse.data.forEach((label) => {
             currentLabels.push(label.name);
         });
+
+        return currentLabels;
+    }
+
+    async updateIssueLabels(labelsToAdd: Set<string>, labelsToRemove: Set<string>) {
+        const octokit = github.getOctokit(this.token);
+
+        const currentLabels = await this.getCurrentLabels();
         core.info(`Current Labels: ${currentLabels.join(" ")}`);
 
         labelsToRemove.forEach(async (label) => {

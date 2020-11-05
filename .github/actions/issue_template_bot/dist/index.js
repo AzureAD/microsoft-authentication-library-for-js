@@ -5856,7 +5856,7 @@ class GithubUtils {
             assignees: usernames
         });
     }
-    async updateIssueLabels(labelsToAdd, labelsToRemove) {
+    async getCurrentLabels() {
         const octokit = github.getOctokit(this.token);
         const issueLabelResponse = await octokit.issues.listLabelsOnIssue({
             ...this.repoParams,
@@ -5866,6 +5866,11 @@ class GithubUtils {
         issueLabelResponse.data.forEach((label) => {
             currentLabels.push(label.name);
         });
+        return currentLabels;
+    }
+    async updateIssueLabels(labelsToAdd, labelsToRemove) {
+        const octokit = github.getOctokit(this.token);
+        const currentLabels = await this.getCurrentLabels();
         core.info(`Current Labels: ${currentLabels.join(" ")}`);
         labelsToRemove.forEach(async (label) => {
             if (currentLabels.includes(label)) {
@@ -6060,16 +6065,39 @@ exports.TemplateEnforcer = void 0;
 const core = __webpack_require__(186);
 const GithubUtils_1 = __webpack_require__(405);
 class TemplateEnforcer {
-    constructor(issueNo) {
+    constructor(issueNo, action) {
         this.issueNo = issueNo;
-        this.templates = [];
+        this.action = action;
+        this.allTemplates = [];
         this.githubUtils = new GithubUtils_1.GithubUtils(issueNo);
     }
-    async getTemplates() {
+    async getTemplate() {
+        const currentLabels = await this.githubUtils.getCurrentLabels();
+        let largestMatch = 0;
+        let templateName = "";
         const templateMap = await this.githubUtils.getIssueTemplates();
         templateMap.forEach((contents, filename) => {
-            core.info(`Reading: ${filename}`);
+            this.allTemplates.push(this.githubUtils.getIssueSections(contents));
+            const templateLabels = this.getLabelsFromTemplate(contents);
+            const templateMatch = templateLabels.every(templateLabel => {
+                return currentLabels.includes(templateLabel);
+            });
+            if (templateMatch && largestMatch < templateLabels.length) {
+                templateName = filename;
+                largestMatch = templateLabels.length;
+            }
         });
+        core.info(`Best Possible Template Match: ${templateName}`);
+        return templateMap.get(templateName);
+    }
+    getLabelsFromTemplate(templateBody) {
+        const templateMetadataRegEx = RegExp("---.*?labels:\\s*(.*?)(?=\\n).*?---", "gs");
+        let match;
+        const labels = [];
+        while ((match = templateMetadataRegEx.exec(templateBody)) !== null) {
+            labels.push(...match[1].split(" "));
+        }
+        return labels;
     }
 }
 exports.TemplateEnforcer = TemplateEnforcer;
@@ -6110,8 +6138,8 @@ async function run() {
         await labelIssue.assignUsersToIssue();
         await labelIssue.commentOnIssue();
         core.info("Start Template Enforcer");
-        const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number);
-        await templateEnforcer.getTemplates();
+        const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number, payload.action || "edited");
+        await templateEnforcer.getTemplate();
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");

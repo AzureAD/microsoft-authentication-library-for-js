@@ -30,8 +30,8 @@ async function run() {
         await labelIssue.commentOnIssue();
 
         core.info("Start Template Enforcer");
-        const templateEnforcer = new TemplateEnforcer(issue.number);
-        await templateEnforcer.getTemplates();
+        const templateEnforcer = new TemplateEnforcer(issue.number, payload.action || "edited");
+        await templateEnforcer.getTemplate();
     } else {
         core.setFailed("No issue number or body available, cannot label issue!");
     }
