@@ -6128,10 +6128,10 @@ class TemplateEnforcer {
             let issueContent = templateSections.get(sectionHeader).trim();
             if (issueContent === templateContent || templateContent.includes(issueContent)) {
                 if (issueContent === templateContent) {
-                    core.info("Content is same as template");
+                    core.info(`Content is same as template for section ${sectionHeader}`);
                 }
                 if (templateContent.includes(issueContent)) {
-                    core.info("Issue Content is subset of template content");
+                    core.info(`Issue Content for ${sectionHeader} is subset of template content`);
                 }
                 return false;
             }
