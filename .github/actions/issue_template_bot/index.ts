@@ -31,12 +31,24 @@ async function run() {
             return;
         }
 
-        const labelIssue = new LabelIssue(issue.number, config.labeler);
-        await labelIssue.executeLabeler(issue.body);
-
         core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer(issue.number, payload.action);
-        await templateEnforcer.enforceTemplate(issue.body, config);
+        const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
+
+        core.info("Start selection detection");
+        const labelIssue = new LabelIssue(issue.number, config.labeler);
+        const isSelectionMade = await labelIssue.executeLabeler(issue.body);
+
+
+        // Add/remove enforcement label
+        if (config.enforceTemplate && config.templateEnforcementLabel) {
+            if (isTemplateComplete && isSelectionMade) {
+                const currentLabels = await githubUtils.getCurrentLabels();
+                await githubUtils.removeIssueLabels([config.templateEnforcementLabel], currentLabels);
+            } else {
+                await githubUtils.addIssueLabels([config.templateEnforcementLabel]);
+            }
+        }
     } else {
         core.setFailed("No issue number or body available, cannot label issue!");
         return;

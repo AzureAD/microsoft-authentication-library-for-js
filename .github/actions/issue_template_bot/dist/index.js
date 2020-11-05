@@ -5992,6 +5992,8 @@ class LabelIssue {
         await this.updateIssueLabels();
         await this.assignUsersToIssue();
         await this.commentOnIssue();
+        // Return true if compliant, false if not compliant
+        return this.noSelectionMadeHeaders.length < 1;
     }
     async parseIssue(issueBody) {
         const issueContent = this.githubUtils.getIssueSections(issueBody);
@@ -6120,13 +6122,14 @@ class TemplateEnforcer {
         const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
         let isIssueFilled = false;
         if (templateUsed) {
-            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed);
+            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed, config.optionalSections);
         }
-        await this.updateIssueLabel(config, currentLabels, !!templateUsed, isIssueFilled);
         await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
         if (config.noTemplateClose && !templateUsed) {
             await this.githubUtils.closeIssue();
         }
+        // Return true if template filled out completely, false if not used or incomplete
+        return !!templateUsed && !!isIssueFilled;
     }
     async commentOnIssue(config, isTemplateUsed, isIssueFilled) {
         const baseComment = "Invalid Issue Template:";
@@ -6163,25 +6166,14 @@ class TemplateEnforcer {
             return;
         }
     }
-    async updateIssueLabel(config, currentLabels, isTemplateUsed, isIssueFilled) {
-        if (!config.templateEnforcementLabel) {
-            return;
-        }
-        if (!isTemplateUsed) {
-            await this.githubUtils.addIssueLabels([config.templateEnforcementLabel]);
-            return;
-        }
-        if (!isIssueFilled) {
-            await this.githubUtils.addIssueLabels([config.templateEnforcementLabel]);
-            return;
-        }
-        await this.githubUtils.removeIssueLabels([config.templateEnforcementLabel], currentLabels);
-    }
-    didIssueFillOutTemplate(issueBody, template) {
+    didIssueFillOutTemplate(issueBody, template, optionalSections) {
         const templateSections = this.githubUtils.getIssueSections(template);
         const issueSections = this.githubUtils.getIssueSections(issueBody);
         const templateHeaders = [...templateSections.keys()];
         return templateHeaders.every((sectionHeader) => {
+            if (optionalSections && optionalSections.includes(sectionHeader)) {
+                return true;
+            }
             if (!issueSections.has(sectionHeader)) {
                 core.info(`Does not have header: ${sectionHeader}`);
                 return false;
@@ -6304,11 +6296,22 @@ async function run() {
             core.setFailed("Unable to parse config file!");
             return;
         }
-        const labelIssue = new LabelIssue_1.LabelIssue(issue.number, config.labeler);
-        await labelIssue.executeLabeler(issue.body);
         core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number, payload.action);
-        await templateEnforcer.enforceTemplate(issue.body, config);
+        const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
+        core.info("Start selection detection");
+        const labelIssue = new LabelIssue_1.LabelIssue(issue.number, config.labeler);
+        const isSelectionMade = await labelIssue.executeLabeler(issue.body);
+        // Add/remove enforcement label
+        if (config.enforceTemplate && config.templateEnforcementLabel) {
+            if (isTemplateComplete && isSelectionMade) {
+                const currentLabels = await githubUtils.getCurrentLabels();
+                await githubUtils.removeIssueLabels([config.templateEnforcementLabel], currentLabels);
+            }
+            else {
+                await githubUtils.addIssueLabels([config.templateEnforcementLabel]);
+            }
+        }
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");

@@ -36,21 +36,23 @@ export class TemplateEnforcer {
         return templateMap.get(templateName) || null;
     }
 
-    async enforceTemplate(issueBody: string, config: IssueBotConfigType) {
+    async enforceTemplate(issueBody: string, config: IssueBotConfigType): Promise<boolean> {
         const currentLabels = await this.githubUtils.getCurrentLabels();
         const templateMap = await this.githubUtils.getIssueTemplates();
         const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
         let isIssueFilled = false;
         if (templateUsed) {
-            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed);
+            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed, config.optionalSections);
         }
 
-        await this.updateIssueLabel(config, currentLabels, !!templateUsed, isIssueFilled);
         await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
 
         if (config.noTemplateClose && !templateUsed) {
             await this.githubUtils.closeIssue();
         }
+
+        // Return true if template filled out completely, false if not used or incomplete
+        return !!templateUsed && !!isIssueFilled;
     }
 
     async commentOnIssue(config: IssueBotConfigType, isTemplateUsed: boolean, isIssueFilled: boolean) {
@@ -90,31 +92,17 @@ export class TemplateEnforcer {
         }
     }
 
-    async updateIssueLabel(config: IssueBotConfigType, currentLabels: Array<string>, isTemplateUsed: boolean, isIssueFilled: boolean) {
-        if (!config.templateEnforcementLabel) {
-            return
-        }
-
-        if (!isTemplateUsed) {
-            await this.githubUtils.addIssueLabels([config.templateEnforcementLabel]);
-            return;
-        }
-
-        if (!isIssueFilled) {
-            await this.githubUtils.addIssueLabels([config.templateEnforcementLabel]);
-            return;
-        }
-
-        await this.githubUtils.removeIssueLabels([config.templateEnforcementLabel], currentLabels);
-    }
-
-    didIssueFillOutTemplate(issueBody: string, template: string): boolean {
+    didIssueFillOutTemplate(issueBody: string, template: string, optionalSections?: Array<string>): boolean {
         const templateSections = this.githubUtils.getIssueSections(template);
         const issueSections = this.githubUtils.getIssueSections(issueBody);
 
         const templateHeaders = [...templateSections.keys()];
 
         return templateHeaders.every((sectionHeader) => {
+            if (optionalSections && optionalSections.includes(sectionHeader)) {
+                return true;
+            }
+
             if (!issueSections.has(sectionHeader)) {
                 core.info(`Does not have header: ${sectionHeader}`)
                 return false;

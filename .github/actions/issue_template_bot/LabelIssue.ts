@@ -18,11 +18,14 @@ export class LabelIssue {
         this.githubUtils = new GithubUtils(issueNo);
     }
 
-    async executeLabeler(issueBody: string) {
+    async executeLabeler(issueBody: string): Promise<boolean> {
         await this.parseIssue(issueBody);
         await this.updateIssueLabels();
         await this.assignUsersToIssue();
         await this.commentOnIssue();
+
+        // Return true if compliant, false if not compliant
+        return this.noSelectionMadeHeaders.length < 1;
     }
 
     async parseIssue(issueBody: string) {
