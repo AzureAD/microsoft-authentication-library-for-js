@@ -18,6 +18,12 @@ export class TemplateEnforcer {
         let templateName = null
         if (this.action === "opened") {
             templateName = this.matchByLabel(templateMap, currentLabels);
+            if (templateName) {
+                // To verify the chosen template was at least partially used
+                const chosenTemplate = new Map();
+                chosenTemplate.set(templateName, templateMap.get(templateName));
+                templateName = this.matchBySection(chosenTemplate, issueBody);
+            }
         } else {
             templateName = this.matchBySection(templateMap, issueBody);
         }
