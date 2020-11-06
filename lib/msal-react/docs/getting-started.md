@@ -1,9 +1,9 @@
 # Getting Started
 
-1. [Initialization](#Intialization)
+1. [Initialization](#Initialization)
 1. [Determinting whether a user is authenticated](#determining-whether-a-user-is-authenticated)
 1. [Signing a user in](#signing-a-user-in)
-1. [Acquiring an access token](#acquring-an-access-token)
+1. [Acquiring an access token](#acquiring-an-access-token)
 
 ## Initialization
 
@@ -37,7 +37,7 @@ const AppProvider = () => (
 ReactDOM.render(<AppProvider />, document.getElementById("root"));
 ```
 
-All components underneath `MsalProvider` will have access to the `PublicClientApplication` instance via context as well as all hooks and components provided by `msal-react`
+All components underneath `MsalProvider` will have access to the `PublicClientApplication` instance via context as well as all hooks and components provided by `msal-react`.
 
 ## Determining whether a user is authenticated
 
@@ -155,7 +155,7 @@ export function App() {
 
 #### Consuming the raw context
 
-If you are using a class component and can't use hooks you can consume the raw msal context through `MsalContext`
+If you are using a class component and can't use hooks you can consume the raw msal context through `MsalContext`.
 
 ```javascript
 import React from "react";
