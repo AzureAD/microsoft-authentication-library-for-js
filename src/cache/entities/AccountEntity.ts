@@ -69,7 +69,8 @@ export class AccountEntity {
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
-            username: this.username
+            username: this.username,
+            localAccountId: this.localAccountId
         });
     }
 
@@ -101,8 +102,8 @@ export class AccountEntity {
             environment: this.environment,
             tenantId: this.realm,
             username: this.username,
+            localAccountId: this.localAccountId,
             name: this.name,
-            localAccountId: this.localAccountId
         };
     }
 
