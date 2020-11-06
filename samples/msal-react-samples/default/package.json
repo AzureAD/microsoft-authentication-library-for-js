@@ -19,6 +19,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:package": "cd ../../../lib/msal-react && npm run build:all",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
