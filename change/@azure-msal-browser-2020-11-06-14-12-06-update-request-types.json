@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Update request types (#2512)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-06T22:10:48.420Z"
+}

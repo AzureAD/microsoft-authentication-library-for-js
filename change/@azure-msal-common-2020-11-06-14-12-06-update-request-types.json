@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Rename request types and change required fields (#2512)",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-06T22:11:53.157Z"
+}
