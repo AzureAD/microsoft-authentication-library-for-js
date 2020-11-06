@@ -48,13 +48,13 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
         this.logger = new Logger(this.config.system!.loggerOptions!);
-        this.storage = new Storage(this.logger);
+        this.cryptoProvider = new CryptoProvider();
+        this.storage = new Storage(this.logger, this.config.auth.clientId, this.cryptoProvider);
         this.tokenCache = new TokenCache(
             this.storage,
             this.logger,
             this.config.cache!.cachePlugin
         );
-        this.cryptoProvider = new CryptoProvider();
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
     }
 

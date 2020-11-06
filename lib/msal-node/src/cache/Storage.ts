@@ -15,7 +15,8 @@ import {
     Logger,
     ValidCacheType,
     CredentialEntity,
-    CredentialType
+    CredentialType,
+    ICrypto
 } from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -30,8 +31,8 @@ export class Storage extends CacheManager {
     private cache: CacheKVStore = {};
     private changeEmitters: Array<Function> = [];
 
-    constructor(logger: Logger) {
-        super();
+    constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
+        super(clientId, cryptoImpl);
         this.logger = logger;
     }
 
