@@ -10,6 +10,8 @@
  * - tenantId               - Full tenant or organizational id that this account belongs to
  * - username               - preferred_username claim of the id_token that represents this account
  * - name                   - Full name for the account, including given name and family name
+ * - idTokenClaims          - Object contains claims from ID token
+ * - localAccountId         - The user's account ID
  */
 export type AccountInfo = {
     homeAccountId: string;
@@ -17,5 +19,6 @@ export type AccountInfo = {
     tenantId: string;
     username: string;
     name?: string;
+    idTokenClaims?: object;
     localAccountId?: string;
 };
