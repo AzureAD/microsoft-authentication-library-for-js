@@ -1,10 +1,9 @@
 {
     "editor.formatOnSave": false,
-    "eslint.autoFixOnSave": true,
     "eslint.validate": [
         "javascript",
         "javascriptreact",
-        { "language": "typescript", "autoFix": true }
+        "typescript"
     ],
     "eslint.quiet": true,
     "files.eol": "\n",
@@ -12,5 +11,9 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
     },
+    "files.associations": {
+        "**/build/*.yml": "azure-pipelines"
+    },
+    "markiscodecoverage.searchCriteria": "**/*/coverage/lcov*.info",
     "java.configuration.updateBuildConfiguration": "interactive"
 }
