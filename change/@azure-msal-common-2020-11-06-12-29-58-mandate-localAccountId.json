@@ -3,6 +3,6 @@
   "comment": "Mandate localAccount in AccountInfo",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-11-06T20:29:58.050Z"
 }
