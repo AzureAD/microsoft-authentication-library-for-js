@@ -62,6 +62,7 @@
     "react-docgen-typescript-loader": "^3.7.2",
     "react-dom": "^16.13.1",
     "react-is": "^16.13.1",
+    "ts-jest": "^26.4.3",
     "ts-loader": "^8.0.1",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.0",
