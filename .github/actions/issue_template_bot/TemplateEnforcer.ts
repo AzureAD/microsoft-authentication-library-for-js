@@ -107,8 +107,8 @@ export class TemplateEnforcer {
                 core.info(`Does not have header: ${sectionHeader}`)
                 return false;
             }
-            let templateContent = templateSections.get(sectionHeader)!.trim();
-            let issueContent = issueSections.get(sectionHeader)!.trim();
+            let templateContent = this.normalizeString(templateSections.get(sectionHeader));
+            let issueContent = this.normalizeString(issueSections.get(sectionHeader));
             core.info(`Checking Header: ${sectionHeader}`);
             core.info(encodeURIComponent(templateContent));
             core.info(encodeURIComponent(issueContent));
@@ -127,6 +127,14 @@ export class TemplateEnforcer {
 
             return true;
         });
+    }
+
+    normalizeString(rawString?: string): string {
+        if (!rawString) {
+            return "";
+        }
+        
+        return rawString.trim().replace(/\\s*[\\n\\r]\\s*/gm, " ");
     }
 
     matchByLabel(templateMap: Map<string, string>, currentLabels: Array<string>): string|null {
