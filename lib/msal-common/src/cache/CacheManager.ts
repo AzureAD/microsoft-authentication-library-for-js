@@ -21,11 +21,20 @@ import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity";
+import { AuthToken } from "../account/AuthToken";
+import { ICrypto } from "../crypto/ICrypto";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
  */
 export abstract class CacheManager implements ICacheManager {
+    protected clientId: string;
+    protected cryptoImpl: ICrypto;
+
+    constructor(clientId: string, cryptoImpl: ICrypto) {
+        this.clientId = clientId;
+        this.cryptoImpl = cryptoImpl;
+    }
 
     /**
      * fetch the account entity from the platform cache
@@ -146,9 +155,15 @@ export abstract class CacheManager implements ICacheManager {
             return [];
         } else {
             const allAccounts = accountValues.map<AccountInfo>((value) => {
-                let accountObj: AccountEntity = new AccountEntity();
-                accountObj = CacheManager.toObject(accountObj, value) as AccountEntity;
-                return accountObj.getAccountInfo();
+                const accountEntity = CacheManager.toObject<AccountEntity>(new AccountEntity(), value);
+                const accountInfo = accountEntity.getAccountInfo();
+                const idToken = this.readIdTokenFromCache(this.clientId, accountInfo);
+                if (idToken && !accountInfo.idTokenClaims) {
+                    accountInfo.idTokenClaims = new AuthToken(idToken.secret, this.cryptoImpl).claims;
+                }
+
+                return accountInfo;
+                
             });
             return allAccounts;
         }
