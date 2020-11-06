@@ -5966,16 +5966,12 @@ class GithubUtils {
     async getProjectId(projectName) {
         const octokit = github.getOctokit(this.token);
         const response = await octokit.projects.listForRepo({
-            ...this.repoParams,
-            issue_number: this.issueNo
+            ...this.repoParams
         });
-        response.data.forEach((project) => {
-            core.info(JSON.stringify(project));
-            if (project.name === projectName) {
-                return project.id;
-            }
+        const project = response.data.find((project) => {
+            return project.name === projectName;
         });
-        return null;
+        return (project && project.id) || null;
     }
     async getProjectColumnId(projectId, columnName) {
         const octokit = github.getOctokit(this.token);
@@ -5983,12 +5979,10 @@ class GithubUtils {
             ...this.repoParams,
             project_id: projectId
         });
-        response.data.forEach((column) => {
-            if (column.name === columnName) {
-                return column.id;
-            }
+        const column = response.data.find((column) => {
+            return column.name === columnName;
         });
-        return null;
+        return (column && column.id) || null;
     }
     async addIssueToProject(project) {
         const projectId = await this.getProjectId(project.name);
