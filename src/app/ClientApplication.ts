@@ -181,7 +181,7 @@ export abstract class ClientApplication {
                 // Replace current hash with non-msal hash, if present
                 BrowserUtils.replaceHash(loginRequestUrl);
             }
-            
+
             return handleHashResult;
         } else if (!this.config.auth.navigateToLoginRequestUrl) {
             return this.handleHash(responseHash);
@@ -611,6 +611,21 @@ export abstract class ClientApplication {
         }
     }
 
+    /**
+     * Returns the signed in account matching localAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @returns {@link AccountInfo} - the account object stored in MSAL
+     */
+    getAccountByLocalId(localAccountId: string): AccountInfo | null {
+        const allAccounts = this.getAllAccounts();
+        if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
+        } else {
+            return null;
+        }
+    }
+
     // #endregion
 
     // #region Helpers
@@ -745,8 +760,8 @@ export abstract class ClientApplication {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
-        if (interactionType === InteractionType.Redirect && 
-            this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage && 
+        if (interactionType === InteractionType.Redirect &&
+            this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
             !this.config.cache.storeAuthStateInCookie) {
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
