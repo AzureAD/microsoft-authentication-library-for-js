@@ -74,7 +74,7 @@ export class PublicClientApplication extends ClientApplication {
     async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByUsernamePassword called");
         const validRequest = this.initializeRequest(request) as UsernamePasswordRequest;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByUsernamePassword, validRequest.correlationId!);
         try {
             const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
                 request.authority,
