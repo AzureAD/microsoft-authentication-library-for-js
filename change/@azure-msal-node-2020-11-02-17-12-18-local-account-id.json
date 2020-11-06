@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516)",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-03T01:12:18.883Z"
+}

@@ -7,10 +7,9 @@ import {
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     ID_TOKEN_CLAIMS,
-    TEST_TOKENS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, Constants, CredentialType, GrantType } from "../../src/utils/Constants";
+import { CredentialType } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
@@ -22,7 +21,7 @@ import { AuthToken } from "../../src/account/AuthToken";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testAccountEntity.localAccountId = "testId";
+testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
 testAccountEntity.environment = "login.windows.net";
 testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
@@ -79,7 +78,8 @@ describe("SilentFlowClient unit tests", () => {
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             environment: "login.windows.net",
             tenantId: "testTenantId",
-            username: "testname@contoso.com"
+            username: "testname@contoso.com",
+            localAccountId: ID_TOKEN_CLAIMS.oid
         };
 
         it("Throws error if account is not included in request object", async () => {
@@ -238,7 +238,8 @@ describe("SilentFlowClient unit tests", () => {
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name
+            name: ID_TOKEN_CLAIMS.name,
+            localAccountId: ID_TOKEN_CLAIMS.oid
         };
 
         beforeEach(async () => {
@@ -299,7 +300,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(refreshTokenClientSpy.called).to.be.true;
             expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).to.be.true;
         });
-    
+
         it("acquireCachedToken returns cached token", async () => {
             config.serverTelemetryManager = new ServerTelemetryManager({
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -315,7 +316,7 @@ describe("SilentFlowClient unit tests", () => {
                 account: testAccount,
                 forceRefresh: false
             };
-            
+
             const authResult: AuthenticationResult = await client.acquireCachedToken(silentFlowRequest);
             const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
             expect(telemetryCacheHitSpy.calledOnce).to.be.true;
@@ -339,7 +340,7 @@ describe("SilentFlowClient unit tests", () => {
                 account: testAccount,
                 forceRefresh: false
             };
-            
+
             await expect(client.acquireCachedToken(silentFlowRequest)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRefreshRequired.desc);
         });
     });
