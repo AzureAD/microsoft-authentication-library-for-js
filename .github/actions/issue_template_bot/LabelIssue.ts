@@ -127,8 +127,14 @@ export class LabelIssue {
     async addIssueToProjects(): Promise<void> {
         const projectArray = Array.from(this.projects);
 
+        const issueId = await this.githubUtils.getIssueId();
+        if (!issueId) {
+            core.info(`No issue id found!`);
+            return;
+        }
+
         const promises = projectArray.map(async (project) => {
-            await this.githubUtils.addIssueToProject(project);
+            await this.githubUtils.addIssueToProject(project, issueId);
         });
 
         await Promise.all(promises);

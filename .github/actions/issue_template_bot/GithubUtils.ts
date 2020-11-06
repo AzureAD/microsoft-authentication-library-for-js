@@ -257,7 +257,18 @@ export class GithubUtils {
         return (column && column.id) || null;
     }
 
-    async addIssueToProject(project: ProjectConfigType): Promise<void> {
+    async getIssueId(): Promise<number|null> {
+        const octokit = github.getOctokit(this.token);
+
+        const response = await octokit.issues.get({
+            ...this.repoParams,
+            issue_number: this.issueNo
+        });
+
+        return response.data.id || null;
+    }
+
+    async addIssueToProject(project: ProjectConfigType, issueId: number): Promise<void> {
         const projectId = await this.getProjectId(project.name);
         if (!projectId) {
             core.info(`No project id found for: ${project.name}`);
@@ -270,11 +281,10 @@ export class GithubUtils {
         }
 
         const octokit = github.getOctokit(this.token);
-
         await octokit.projects.createCard({
             ...this.repoParams,
             column_id: columnId,
-            content_id: this.issueNo,
+            content_id: issueId,
             content_type: "Issue"
         });
     }

@@ -5984,7 +5984,15 @@ class GithubUtils {
         });
         return (column && column.id) || null;
     }
-    async addIssueToProject(project) {
+    async getIssueId() {
+        const octokit = github.getOctokit(this.token);
+        const response = await octokit.issues.get({
+            ...this.repoParams,
+            issue_number: this.issueNo
+        });
+        return response.data.id || null;
+    }
+    async addIssueToProject(project, issueId) {
         const projectId = await this.getProjectId(project.name);
         if (!projectId) {
             core.info(`No project id found for: ${project.name}`);
@@ -5999,7 +6007,7 @@ class GithubUtils {
         await octokit.projects.createCard({
             ...this.repoParams,
             column_id: columnId,
-            content_id: this.issueNo,
+            content_id: issueId,
             content_type: "Issue"
         });
     }
@@ -6121,8 +6129,13 @@ class LabelIssue {
     }
     async addIssueToProjects() {
         const projectArray = Array.from(this.projects);
+        const issueId = await this.githubUtils.getIssueId();
+        if (!issueId) {
+            core.info(`No issue id found!`);
+            return;
+        }
         const promises = projectArray.map(async (project) => {
-            await this.githubUtils.addIssueToProject(project);
+            await this.githubUtils.addIssueToProject(project, issueId);
         });
         await Promise.all(promises);
     }
