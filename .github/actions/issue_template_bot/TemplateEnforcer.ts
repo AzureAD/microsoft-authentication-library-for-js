@@ -110,8 +110,8 @@ export class TemplateEnforcer {
             let templateContent = templateSections.get(sectionHeader)!.trim();
             let issueContent = issueSections.get(sectionHeader)!.trim();
             core.info(`Checking Header: ${sectionHeader}`);
-            core.info(templateContent);
-            core.info(issueContent);
+            core.info(encodeURIComponent(templateContent));
+            core.info(encodeURIComponent(issueContent));
 
             if (issueContent === templateContent || templateContent.includes(issueContent)) {
                 if (issueContent === templateContent) {
