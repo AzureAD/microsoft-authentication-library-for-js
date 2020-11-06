@@ -6266,8 +6266,6 @@ class TemplateEnforcer {
             const templateContent = this.normalizeString(templateSections.get(sectionHeader));
             const issueContent = this.normalizeString(issueSections.get(sectionHeader));
             core.info(`Checking Header: ${sectionHeader}`);
-            core.info(encodeURIComponent(templateContent));
-            core.info(encodeURIComponent(issueContent));
             if (issueContent === templateContent || templateContent.includes(issueContent)) {
                 if (issueContent === templateContent) {
                     core.info(`Content is same as template for section ${sectionHeader}`);
@@ -6286,10 +6284,7 @@ class TemplateEnforcer {
         if (!rawString) {
             return "";
         }
-        const trimmedString = rawString.replace(/\s*[\n\r]+\s*/g, " ").trim();
-        core.info(`RawString: ${rawString}`);
-        core.info(`TrimmedString: ${trimmedString}`);
-        return trimmedString;
+        return rawString.replace(/\s*[\n\r]+\s*/g, " ").trim();
     }
     matchByLabel(templateMap, currentLabels) {
         let largestMatch = 0;

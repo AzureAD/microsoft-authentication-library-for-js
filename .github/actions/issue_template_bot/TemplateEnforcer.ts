@@ -110,8 +110,6 @@ export class TemplateEnforcer {
             const templateContent = this.normalizeString(templateSections.get(sectionHeader));
             const issueContent = this.normalizeString(issueSections.get(sectionHeader));
             core.info(`Checking Header: ${sectionHeader}`);
-            core.info(encodeURIComponent(templateContent));
-            core.info(encodeURIComponent(issueContent));
 
             if (issueContent === templateContent || templateContent.includes(issueContent)) {
                 if (issueContent === templateContent) {
@@ -134,10 +132,7 @@ export class TemplateEnforcer {
             return "";
         }
 
-        const trimmedString = rawString.replace(/\s*[\n\r]+\s*/g, " ").trim();
-        core.info(`RawString: ${rawString}`);
-        core.info(`TrimmedString: ${trimmedString}`);
-        return trimmedString;
+        return rawString.replace(/\s*[\n\r]+\s*/g, " ").trim();
     }
 
     matchByLabel(templateMap: Map<string, string>, currentLabels: Array<string>): string|null {
