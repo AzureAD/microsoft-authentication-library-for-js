@@ -30,7 +30,7 @@ import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testAccountEntity.localAccountId = "testId";
+testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
 testAccountEntity.environment = "login.windows.net";
 testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
@@ -88,7 +88,8 @@ describe("RefreshTokenClient unit tests", () => {
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name
+            name: ID_TOKEN_CLAIMS.name,
+            localAccountId: ID_TOKEN_CLAIMS.oid
         };
 
         beforeEach(async () => {
@@ -166,7 +167,8 @@ describe("RefreshTokenClient unit tests", () => {
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
-            name: ID_TOKEN_CLAIMS.name
+            name: ID_TOKEN_CLAIMS.name,
+            localAccountId: ID_TOKEN_CLAIMS.oid
         };
 
         beforeEach(async () => {
@@ -266,7 +268,7 @@ describe("RefreshTokenClient unit tests", () => {
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = new AccountEntity();
             testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
-            testAccountEntity.localAccountId = "testId";
+            testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
             testAccountEntity.environment = "login.windows.net";
             testAccountEntity.realm = "testTenantId";
             testAccountEntity.username = "username@contoso.com";
