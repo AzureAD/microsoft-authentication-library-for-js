@@ -26,6 +26,7 @@ jobs:
             - msal-browser
             - msal-node
             - msal-angular
+            - msal-react
   
     steps:
     - uses: actions/checkout@v2
