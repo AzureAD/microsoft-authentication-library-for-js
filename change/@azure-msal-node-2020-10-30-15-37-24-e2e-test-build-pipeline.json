@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Build Pipeline Changes (#2406)",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-30T22:37:24.328Z"
+}
