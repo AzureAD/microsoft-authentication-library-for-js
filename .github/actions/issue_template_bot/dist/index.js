@@ -6286,7 +6286,7 @@ class TemplateEnforcer {
         if (!rawString) {
             return "";
         }
-        return rawString.trim().replace(/\\s*[\\n\\r]\\s*/gm, " ");
+        return rawString.trim().replace(/\\s*[\\n\\r]+\\s*/gm, " ");
     }
     matchByLabel(templateMap, currentLabels) {
         let largestMatch = 0;
