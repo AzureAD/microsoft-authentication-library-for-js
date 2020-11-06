@@ -16,7 +16,7 @@
                     "assignees": ["tnorling"],
                     "project": {
                         "name": "MSAL Browser",
-                        "column": "To Do"
+                        "column": "To do"
                     }
                 },
                 "msal-common": {
@@ -26,7 +26,7 @@
                     "searchStrings": ["msal-node"],
                     "project": {
                         "name": "MSAL Node",
-                        "column": "To Do"
+                        "column": "To do"
                     }
                 }
             },
