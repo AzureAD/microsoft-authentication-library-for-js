@@ -237,6 +237,7 @@ export class GithubUtils {
         });
 
         response.data.forEach((project) => {
+            core.info(JSON.stringify(project));
             if (project.name === projectName) {
                 return project.id;
             }

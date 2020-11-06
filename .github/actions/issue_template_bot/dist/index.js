@@ -5970,6 +5970,7 @@ class GithubUtils {
             issue_number: this.issueNo
         });
         response.data.forEach((project) => {
+            core.info(JSON.stringify(project));
             if (project.name === projectName) {
                 return project.id;
             }
