@@ -5963,6 +5963,51 @@ class GithubUtils {
         });
     }
     ;
+    async getProjectId(projectName) {
+        const octokit = github.getOctokit(this.token);
+        const response = await octokit.projects.listForRepo({
+            ...this.repoParams,
+            issue_number: this.issueNo
+        });
+        response.data.forEach((project) => {
+            if (project.name === projectName) {
+                return project.id;
+            }
+        });
+        return null;
+    }
+    async getProjectColumnId(projectId, columnName) {
+        const octokit = github.getOctokit(this.token);
+        const response = await octokit.projects.listColumns({
+            ...this.repoParams,
+            project_id: projectId
+        });
+        response.data.forEach((column) => {
+            if (column.name === columnName) {
+                return column.id;
+            }
+        });
+        return null;
+    }
+    async addIssueToProject(project) {
+        const projectId = await this.getProjectId(project.name);
+        if (!projectId) {
+            core.info(`No project id found for: ${project.name}`);
+            return;
+        }
+        const columnId = await this.getProjectColumnId(projectId, project.column);
+        if (!columnId) {
+            core.info(`No column id found for ${project.column} on project ${project.name}`);
+            return;
+        }
+        const octokit = github.getOctokit(this.token);
+        await octokit.projects.createCard({
+            ...this.repoParams,
+            column_id: columnId,
+            content_id: this.issueNo,
+            content_type: "Issue"
+        });
+    }
 }
 exports.GithubUtils = GithubUtils;
 
@@ -5983,6 +6028,7 @@ class LabelIssue {
         this.issueLabelConfig = issueLabelConfig;
         this.noSelectionMadeHeaders = [];
         this.assignees = new Set();
+        this.projects = new Set();
         this.labelsToAdd = new Set();
         this.labelsToRemove = new Set();
         this.githubUtils = new GithubUtils_1.GithubUtils(issueNo);
@@ -5992,6 +6038,7 @@ class LabelIssue {
         await this.updateIssueLabels();
         await this.assignUsersToIssue();
         await this.commentOnIssue();
+        await this.addIssueToProjects();
         // Return true if compliant, false if not compliant
         return this.noSelectionMadeHeaders.length < 1;
     }
@@ -6029,6 +6076,9 @@ class LabelIssue {
                         labelConfig.assignees.forEach((username) => {
                             this.assignees.add(username);
                         });
+                    }
+                    if (labelConfig.project) {
+                        this.projects.add(labelConfig.project);
                     }
                 }
                 else {
@@ -6073,6 +6123,13 @@ class LabelIssue {
     }
     async assignUsersToIssue() {
         await this.githubUtils.assignUsersToIssue(this.assignees);
+    }
+    async addIssueToProjects() {
+        const projectArray = Array.from(this.projects);
+        const promises = projectArray.map(async (project) => {
+            await this.githubUtils.addIssueToProject(project);
+        });
+        await Promise.all(promises);
     }
 }
 exports.LabelIssue = LabelIssue;

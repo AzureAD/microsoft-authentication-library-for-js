@@ -22,7 +22,13 @@ export type HeaderConfigType = {
 }
 export type LabelConfigType = {
     searchStrings: Array<string>,
-    assignees?: Array<string>
+    assignees?: Array<string>,
+    project?: ProjectConfigType
+}
+
+export type ProjectConfigType = {
+    name: string,
+    column: string
 }
 
 export class GithubUtils {
@@ -221,4 +227,60 @@ export class GithubUtils {
           state: "closed"
         });
     };
+
+    async getProjectId(projectName: string): Promise<number|null> {
+        const octokit = github.getOctokit(this.token);
+
+        const response = await octokit.projects.listForRepo({
+            ...this.repoParams,
+            issue_number: this.issueNo
+        });
+
+        response.data.forEach((project) => {
+            if (project.name === projectName) {
+                return project.id;
+            }
+        });
+
+        return null;
+    }
+
+    async getProjectColumnId(projectId: number, columnName: string): Promise<number|null> {
+        const octokit = github.getOctokit(this.token);
+
+        const response = await octokit.projects.listColumns({
+            ...this.repoParams,
+            project_id: projectId
+        });
+
+        response.data.forEach((column) => {
+            if (column.name === columnName) {
+                return column.id;
+            }
+        });
+
+        return null;
+    }
+
+    async addIssueToProject(project: ProjectConfigType): Promise<void> {
+        const projectId = await this.getProjectId(project.name);
+        if (!projectId) {
+            core.info(`No project id found for: ${project.name}`);
+            return;
+        }
+        const columnId = await this.getProjectColumnId(projectId, project.column);
+        if (!columnId) {
+            core.info(`No column id found for ${project.column} on project ${project.name}`);
+            return;
+        }
+
+        const octokit = github.getOctokit(this.token);
+
+        await octokit.projects.createCard({
+            ...this.repoParams,
+            column_id: columnId,
+            content_id: this.issueNo,
+            content_type: "Issue"
+        });
+    }
 }

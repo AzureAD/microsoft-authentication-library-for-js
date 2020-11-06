@@ -1,10 +1,11 @@
 import * as core from "@actions/core";
-import { GithubUtils, IssueLabelerConfigType } from "./GithubUtils";
+import { GithubUtils, IssueLabelerConfigType, ProjectConfigType } from "./GithubUtils";
 
 export class LabelIssue {
     private issueLabelConfig: IssueLabelerConfigType;
     private noSelectionMadeHeaders: Array<string>
     private assignees: Set<string>;
+    private projects: Set<ProjectConfigType>;
     private labelsToAdd: Set<string>;
     private labelsToRemove: Set<string>;
     private githubUtils: GithubUtils;
@@ -13,6 +14,7 @@ export class LabelIssue {
         this.issueLabelConfig = issueLabelConfig;
         this.noSelectionMadeHeaders = [];
         this.assignees = new Set();
+        this.projects = new Set();
         this.labelsToAdd = new Set();
         this.labelsToRemove = new Set();
         this.githubUtils = new GithubUtils(issueNo);
@@ -23,6 +25,7 @@ export class LabelIssue {
         await this.updateIssueLabels();
         await this.assignUsersToIssue();
         await this.commentOnIssue();
+        await this.addIssueToProjects();
 
         // Return true if compliant, false if not compliant
         return this.noSelectionMadeHeaders.length < 1;
@@ -66,6 +69,10 @@ export class LabelIssue {
                         labelConfig.assignees.forEach((username) => {
                             this.assignees.add(username);
                         });
+                    }
+
+                    if (labelConfig.project) {
+                        this.projects.add(labelConfig.project);
                     }
                 } else {
                     core.info(`Not Found!`);
@@ -115,5 +122,15 @@ export class LabelIssue {
 
     async assignUsersToIssue() {
         await this.githubUtils.assignUsersToIssue(this.assignees);
+    }
+
+    async addIssueToProjects(): Promise<void> {
+        const projectArray = Array.from(this.projects);
+
+        const promises = projectArray.map(async (project) => {
+            await this.githubUtils.addIssueToProject(project);
+        });
+
+        await Promise.all(promises);
     }
 }

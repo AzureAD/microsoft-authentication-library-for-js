@@ -13,13 +13,21 @@
                 },
                 "msal-browser": {
                     "searchStrings": ["msal-browser"],
-                    "assignees": ["tnorling"]
+                    "assignees": ["tnorling"],
+                    "project": {
+                        "name": "MSAL Browser",
+                        "column": "To Do"
+                    }
                 },
                 "msal-common": {
                     "searchStrings": ["msal-common"]
                 },
                 "msal-node": {
-                    "searchStrings": ["msal-node"]
+                    "searchStrings": ["msal-node"],
+                    "project": {
+                        "name": "MSAL Node",
+                        "column": "To Do"
+                    }
                 }
             },
             "enforceSelection": true,
