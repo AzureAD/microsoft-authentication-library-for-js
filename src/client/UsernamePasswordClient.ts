@@ -5,7 +5,7 @@
 
 import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
-import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
+import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { Authority } from "../authority/Authority";
@@ -31,7 +31,7 @@ export class UsernamePasswordClient extends BaseClient {
      * password_grant
      * @param request
      */
-    async acquireToken(request: UsernamePasswordRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
 
         const response = await this.executeTokenRequest(this.authority, request);
@@ -57,7 +57,7 @@ export class UsernamePasswordClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: UsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: CommonUsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -73,7 +73,7 @@ export class UsernamePasswordClient extends BaseClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private createTokenRequestBody(request: UsernamePasswordRequest): string {
+    private createTokenRequestBody(request: CommonUsernamePasswordRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
