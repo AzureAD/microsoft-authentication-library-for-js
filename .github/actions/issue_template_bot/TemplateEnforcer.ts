@@ -134,7 +134,7 @@ export class TemplateEnforcer {
             return "";
         }
 
-        return rawString.trim().replace(/\\s*[\\n\\r]+\\s*/gm, " ");
+        return rawString.replace(/[\\n\\r]+/g, "").trim();
     }
 
     matchByLabel(templateMap: Map<string, string>, currentLabels: Array<string>): string|null {
