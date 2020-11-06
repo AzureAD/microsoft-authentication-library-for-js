@@ -109,6 +109,36 @@ export class TokenCache implements ISerializableTokenCache {
     }
 
     /**
+     * Returns the signed in account matching homeAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @returns {@link AccountInfo} - the account object stored in MSAL
+     */
+    async getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null> {
+        const allAccounts = await this.getAllAccounts();
+        if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the signed in account matching localAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @returns {@link AccountInfo} - the account object stored in MSAL
+     */
+    async getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null> {
+        const allAccounts = await this.getAllAccounts();
+        if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * API to remove a specific account and the relevant data from cache
      * @param account
      */
