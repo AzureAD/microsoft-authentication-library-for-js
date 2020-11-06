@@ -5993,6 +5993,10 @@ class GithubUtils {
         return response.data.id || null;
     }
     async isOnProject(columnId, issueId) {
+        const issueCard = await this.getProjectCardId(columnId, issueId);
+        return !!issueCard;
+    }
+    async getProjectCardId(columnId, issueId) {
         const octokit = github.getOctokit(this.token);
         const cardsResponse = await octokit.projects.listCards({
             ...this.repoParams,
@@ -6005,7 +6009,7 @@ class GithubUtils {
             });
             return issue.data.id === issueId;
         });
-        return !!issueCard;
+        return (issueCard && issueCard.id) || null;
     }
     async addIssueToProject(project, issueId) {
         const projectId = await this.getProjectId(project.name);
@@ -6031,6 +6035,29 @@ class GithubUtils {
             content_type: "Issue"
         });
     }
+    async removeIssueFromProject(project, issueId) {
+        const projectId = await this.getProjectId(project.name);
+        if (!projectId) {
+            core.info(`No project id found for: ${project.name}`);
+            return;
+        }
+        const columnId = await this.getProjectColumnId(projectId, project.column);
+        if (!columnId) {
+            core.info(`No column id found for ${project.column} on project ${project.name}`);
+            return;
+        }
+        const cardId = await this.getProjectCardId(columnId, issueId);
+        if (!cardId) {
+            core.info(`Not on project: ${project.name}`);
+            return;
+        }
+        core.info(`Attempting to remove from project: ${project.name}`);
+        const octokit = github.getOctokit(this.token);
+        await octokit.projects.deleteCard({
+            ...this.repoParams,
+            card_id: cardId
+        });
+    }
 }
 exports.GithubUtils = GithubUtils;
 
@@ -6051,7 +6078,8 @@ class LabelIssue {
         this.issueLabelConfig = issueLabelConfig;
         this.noSelectionMadeHeaders = [];
         this.assignees = new Set();
-        this.projects = new Set();
+        this.projectsToAdd = new Set();
+        this.allProjects = new Set();
         this.labelsToAdd = new Set();
         this.labelsToRemove = new Set();
         this.githubUtils = new GithubUtils_1.GithubUtils(issueNo);
@@ -6061,7 +6089,7 @@ class LabelIssue {
         await this.updateIssueLabels();
         await this.assignUsersToIssue();
         await this.commentOnIssue();
-        await this.addIssueToProjects();
+        await this.updateIssueProjects();
         // Return true if compliant, false if not compliant
         return this.noSelectionMadeHeaders.length < 1;
     }
@@ -6101,12 +6129,15 @@ class LabelIssue {
                         });
                     }
                     if (labelConfig.project) {
-                        this.projects.add(labelConfig.project);
+                        this.projectsToAdd.add(labelConfig.project);
                     }
                 }
                 else {
                     core.info(`Not Found!`);
                     this.labelsToRemove.add(label);
+                }
+                if (labelConfig.project) {
+                    this.allProjects.add(labelConfig.project);
                 }
             });
             if (!labelFoundForHeader && value.enforceSelection) {
@@ -6147,15 +6178,20 @@ class LabelIssue {
     async assignUsersToIssue() {
         await this.githubUtils.assignUsersToIssue(this.assignees);
     }
-    async addIssueToProjects() {
-        const projectArray = Array.from(this.projects);
+    async updateIssueProjects() {
+        const projects = Array.from(this.allProjects);
         const issueId = await this.githubUtils.getIssueId();
         if (!issueId) {
             core.info(`No issue id found!`);
             return;
         }
-        const promises = projectArray.map(async (project) => {
-            await this.githubUtils.addIssueToProject(project, issueId);
+        const promises = projects.map(async (project) => {
+            if (this.projectsToAdd.has(project)) {
+                await this.githubUtils.addIssueToProject(project, issueId);
+            }
+            else {
+                await this.githubUtils.removeIssueFromProject(project, issueId);
+            }
         });
         await Promise.all(promises);
     }

@@ -269,6 +269,11 @@ export class GithubUtils {
     }
 
     async isOnProject(columnId: number, issueId: number): Promise<boolean> {
+        const issueCard = await this.getProjectCardId(columnId, issueId);
+        return !!issueCard;
+    }
+
+    async getProjectCardId(columnId: number, issueId: number): Promise<number|null> {
         const octokit = github.getOctokit(this.token);
         const cardsResponse = await octokit.projects.listCards({
             ...this.repoParams,
@@ -284,7 +289,7 @@ export class GithubUtils {
             return issue.data.id === issueId;
         });
 
-        return !!issueCard;
+        return (issueCard && issueCard.id) || null;
     }
 
     async addIssueToProject(project: ProjectConfigType, issueId: number): Promise<void> {
@@ -311,6 +316,32 @@ export class GithubUtils {
             column_id: columnId,
             content_id: issueId,
             content_type: "Issue"
+        });
+    }
+
+    async removeIssueFromProject(project: ProjectConfigType, issueId: number): Promise<void> {
+        const projectId = await this.getProjectId(project.name);
+        if (!projectId) {
+            core.info(`No project id found for: ${project.name}`);
+            return;
+        }
+        const columnId = await this.getProjectColumnId(projectId, project.column);
+        if (!columnId) {
+            core.info(`No column id found for ${project.column} on project ${project.name}`);
+            return;
+        }
+
+        const cardId = await this.getProjectCardId(columnId, issueId);
+        if (!cardId) {
+            core.info(`Not on project: ${project.name}`);
+            return;
+        }
+
+        core.info(`Attempting to remove from project: ${project.name}`)
+        const octokit = github.getOctokit(this.token);
+        await octokit.projects.deleteCard({
+            ...this.repoParams,
+            card_id: cardId
         });
     }
 }

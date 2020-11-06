@@ -5,7 +5,8 @@ export class LabelIssue {
     private issueLabelConfig: IssueLabelerConfigType;
     private noSelectionMadeHeaders: Array<string>
     private assignees: Set<string>;
-    private projects: Set<ProjectConfigType>;
+    private projectsToAdd: Set<ProjectConfigType>;
+    private allProjects: Set<ProjectConfigType>;
     private labelsToAdd: Set<string>;
     private labelsToRemove: Set<string>;
     private githubUtils: GithubUtils;
@@ -14,7 +15,8 @@ export class LabelIssue {
         this.issueLabelConfig = issueLabelConfig;
         this.noSelectionMadeHeaders = [];
         this.assignees = new Set();
-        this.projects = new Set();
+        this.projectsToAdd = new Set();
+        this.allProjects = new Set();
         this.labelsToAdd = new Set();
         this.labelsToRemove = new Set();
         this.githubUtils = new GithubUtils(issueNo);
@@ -25,7 +27,7 @@ export class LabelIssue {
         await this.updateIssueLabels();
         await this.assignUsersToIssue();
         await this.commentOnIssue();
-        await this.addIssueToProjects();
+        await this.updateIssueProjects();
 
         // Return true if compliant, false if not compliant
         return this.noSelectionMadeHeaders.length < 1;
@@ -72,11 +74,15 @@ export class LabelIssue {
                     }
 
                     if (labelConfig.project) {
-                        this.projects.add(labelConfig.project);
+                        this.projectsToAdd.add(labelConfig.project);
                     }
                 } else {
                     core.info(`Not Found!`);
                     this.labelsToRemove.add(label);
+                }
+
+                if (labelConfig.project) {
+                    this.allProjects.add(labelConfig.project);
                 }
             });
 
@@ -124,8 +130,8 @@ export class LabelIssue {
         await this.githubUtils.assignUsersToIssue(this.assignees);
     }
 
-    async addIssueToProjects(): Promise<void> {
-        const projectArray = Array.from(this.projects);
+    async updateIssueProjects(): Promise<void> {
+        const projects = Array.from(this.allProjects);
 
         const issueId = await this.githubUtils.getIssueId();
         if (!issueId) {
@@ -133,8 +139,12 @@ export class LabelIssue {
             return;
         }
 
-        const promises = projectArray.map(async (project) => {
-            await this.githubUtils.addIssueToProject(project, issueId);
+        const promises = projects.map(async (project) => {
+            if (this.projectsToAdd.has(project)) {
+                await this.githubUtils.addIssueToProject(project, issueId);
+            } else {
+                await this.githubUtils.removeIssueFromProject(project, issueId);
+            }
         });
 
         await Promise.all(promises);
