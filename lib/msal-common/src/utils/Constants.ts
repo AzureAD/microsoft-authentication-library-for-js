@@ -298,3 +298,11 @@ export const Errors = {
     INVALID_GRANT_ERROR: "invalid_grant",
     CLIENT_MISMATCH_ERROR: "client_mismatch",
 };
+
+/**
+ * Password grant parameters
+ */
+export enum PasswordGrantConstants {
+    username = "username",
+    password = "password"
+}

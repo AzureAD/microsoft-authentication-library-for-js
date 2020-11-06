@@ -173,7 +173,7 @@ export class Storage extends CacheManager {
      */
     getAccount(accountKey: string): AccountEntity | null {
         const account = this.getItem(accountKey) as AccountEntity;
-        if (AccountEntity.isAccountEntity(account)) {
+        if (account && AccountEntity.isAccountEntity(account)) {
             return account;
         }
         return null;
@@ -194,8 +194,9 @@ export class Storage extends CacheManager {
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
         const credType = CredentialEntity.getCredentialType(idTokenKey);
-        if (credType === CredentialType.ID_TOKEN) {
-            return this.getItem(idTokenKey) as IdTokenEntity;
+        const idToken = this.getItem(idTokenKey);
+        if (idToken && credType === CredentialType.ID_TOKEN) {
+            return idToken as IdTokenEntity;
         }
         return null;
     }
@@ -215,8 +216,9 @@ export class Storage extends CacheManager {
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
         const credType = CredentialEntity.getCredentialType(accessTokenKey);
-        if (credType === CredentialType.ACCESS_TOKEN) {
-            return this.getItem(accessTokenKey) as AccessTokenEntity;
+        const accessToken = this.getItem(accessTokenKey);
+        if (accessToken && credType === CredentialType.ACCESS_TOKEN) {
+            return accessToken as AccessTokenEntity;
         }
         return null;
     }
@@ -236,8 +238,9 @@ export class Storage extends CacheManager {
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
         const credType = CredentialEntity.getCredentialType(refreshTokenKey);
-        if (credType === CredentialType.REFRESH_TOKEN) {
-            return this.getItem(refreshTokenKey) as RefreshTokenEntity;
+        const refreshToken = this.getItem(refreshTokenKey);
+        if (refreshToken && credType === CredentialType.REFRESH_TOKEN) {
+            return refreshToken as RefreshTokenEntity;
         }
         return null;
     }
@@ -257,7 +260,7 @@ export class Storage extends CacheManager {
      */
     getAppMetadata(appMetadataKey: string): AppMetadataEntity | null {
         const appMetadata: AppMetadataEntity = this.getItem(appMetadataKey) as AppMetadataEntity;
-        if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
+        if (appMetadata && AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
             return appMetadata;
         }
         return null;
@@ -278,7 +281,7 @@ export class Storage extends CacheManager {
      */
     getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null {
         const serverTelemetryEntity: ServerTelemetryEntity = this.getItem(serverTelemetrykey) as ServerTelemetryEntity;
-        if (ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetrykey, serverTelemetryEntity)) {
+        if (serverTelemetryEntity && ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetrykey, serverTelemetryEntity)) {
             return serverTelemetryEntity;
         }
         return null;
@@ -299,7 +302,7 @@ export class Storage extends CacheManager {
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
         const throttlingCache: ThrottlingEntity = this.getItem(throttlingCacheKey) as ThrottlingEntity;
-        if (ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
+        if (throttlingCache && ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
             return throttlingCache;
         }
         return null;
