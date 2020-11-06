@@ -6286,7 +6286,7 @@ class TemplateEnforcer {
         if (!rawString) {
             return "";
         }
-        const trimmedString = rawString.replace(/[\\n\\r]+/g, "").trim();
+        const trimmedString = rawString.replace(/\s*[\n\r]+\s*/g, " ").trim();
         core.info(`RawString: ${rawString}`);
         core.info(`TrimmedString: ${trimmedString}`);
         return trimmedString;
