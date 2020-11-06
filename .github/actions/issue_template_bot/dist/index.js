@@ -5992,6 +5992,21 @@ class GithubUtils {
         });
         return response.data.id || null;
     }
+    async isOnProject(columnId, issueId) {
+        const octokit = github.getOctokit(this.token);
+        const cardsResponse = await octokit.projects.listCards({
+            ...this.repoParams,
+            column_id: columnId
+        });
+        const issueCard = cardsResponse.data.find(async (card) => {
+            const issue = await octokit.projects.getCard({
+                ...this.repoParams,
+                card_id: card.id
+            });
+            return issue.data.id === issueId;
+        });
+        return !!issueCard;
+    }
     async addIssueToProject(project, issueId) {
         const projectId = await this.getProjectId(project.name);
         if (!projectId) {
@@ -6001,6 +6016,11 @@ class GithubUtils {
         const columnId = await this.getProjectColumnId(projectId, project.column);
         if (!columnId) {
             core.info(`No column id found for ${project.column} on project ${project.name}`);
+            return;
+        }
+        const isOnProject = await this.isOnProject(columnId, issueId);
+        if (isOnProject) {
+            core.info(`Already on project: ${project.name}`);
             return;
         }
         const octokit = github.getOctokit(this.token);
@@ -6245,6 +6265,9 @@ class TemplateEnforcer {
             }
             let templateContent = templateSections.get(sectionHeader).trim();
             let issueContent = issueSections.get(sectionHeader).trim();
+            core.info(`Checking Header: ${sectionHeader}`);
+            core.info(templateContent);
+            core.info(issueContent);
             if (issueContent === templateContent || templateContent.includes(issueContent)) {
                 if (issueContent === templateContent) {
                     core.info(`Content is same as template for section ${sectionHeader}`);
