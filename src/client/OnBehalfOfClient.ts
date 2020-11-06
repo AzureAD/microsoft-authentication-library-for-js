@@ -14,7 +14,6 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
 import { TimeUtils } from "../utils/TimeUtils";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
-
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccountEntity } from "../cache/entities/AccountEntity";
@@ -61,11 +60,13 @@ export class OnBehalfOfClient extends BaseClient {
         let cachedAccount: AccountEntity = null;
         if (cachedIdToken) {
             idTokenObject = new AuthToken(cachedIdToken.secret, this.config.cryptoInterface);
+            const localAccountId = idTokenObject.claims.oid ? idTokenObject.claims.oid : idTokenObject.claims.sub;
             const accountInfo: AccountInfo = {
                 homeAccountId: cachedIdToken.homeAccountId,
                 environment: cachedIdToken.environment,
                 tenantId: cachedIdToken.realm,
-                username: null
+                username: null,
+                localAccountId
             };
 
             cachedAccount = this.readAccountFromCache(accountInfo);
