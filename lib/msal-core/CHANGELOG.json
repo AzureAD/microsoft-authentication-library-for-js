@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Sat, 07 Nov 2020 01:50:14 GMT",
+      "tag": "msal_v1.4.3",
+      "version": "1.4.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Build Pipeline Changes (#2406)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "af8459c0d53a4dc2bf495017608c0bb03004d006",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 29 Oct 2020 20:36:48 GMT",
       "tag": "msal_v1.4.3",
       "version": "1.4.3",
