@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Support relative paths on redirectUri parameter (#2560)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-07T00:40:29.660Z"
+}
