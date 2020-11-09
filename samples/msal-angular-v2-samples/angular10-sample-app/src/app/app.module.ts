@@ -13,11 +13,11 @@ import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation } from '@azure/msal-browser';
-import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfig, MsalModule } from '@azure/msal-angular';
+import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfig, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG } from '@azure/msal-angular';
 
 const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1;
 
-function MSALInstanceFactory(): IPublicClientApplication {
+export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
@@ -31,7 +31,7 @@ function MSALInstanceFactory(): IPublicClientApplication {
   });
 }
 
-function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
   const protectedResourceMap = new Map<string, Array<string>>();
   protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
 
@@ -55,11 +55,7 @@ function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
     MatToolbarModule,
     MatListModule,
     HttpClientModule,
-    MsalModule.forRoot(
-      MSALInstanceFactory(), {
-        interactionType: InteractionType.Redirect
-      }, MSALInterceptorConfigFactory()
-    ),
+    MsalModule
   ],
   providers: [
     {
@@ -67,6 +63,19 @@ function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
       useClass: MsalInterceptor,
       multi: true
     },
+    {
+      provide: MSAL_INSTANCE,
+      useFactory: MSALInstanceFactory
+    },
+    {
+      provide: MSAL_GUARD_CONFIG,
+      useValue: { interactionType: InteractionType.Redirect }
+    },
+    {
+      provide: MSAL_INTERCEPTOR_CONFIG,
+      useFactory: MSALInterceptorConfigFactory
+    },
+    MsalService,
     MsalGuard,
     MsalBroadcastService
   ],

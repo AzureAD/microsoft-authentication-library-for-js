@@ -13,9 +13,13 @@
     ]
   },
   "angularCompilerOptions": {
+    "enableResourceInlining": true,
+    "genDir": "dist",
+    "debug": false,
     "skipTemplateCodegen": true,
+    "skipMetadataEmit": false,
     "strictMetadataEmit": true,
-    "enableResourceInlining": true
+    "enableIvy": false
   },
   "exclude": [
     "src/test.ts",
