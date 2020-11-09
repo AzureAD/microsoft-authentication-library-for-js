@@ -11,8 +11,8 @@ This guide will detail how to leverage each method for your application.
 MSAL for Angular accepts three configuration objects:
 
 1. [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_config_configuration_.html): This is the same configuration object that is used for the core `@azure/msal-browser` library. All configuration options can be found [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_config_configuration_.html).
-2. [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2-alpha0/lib/msal-angular/src/msal.guard.config.ts): A set of options specifically for the Angular guard.
-3. [`MsalInterceptorConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2-alpha0/lib/msal-angular/src/msal.interceptor.config.ts): A set of options specifically for the Angular interceptor.
+2. [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.guard.config.ts): A set of options specifically for the Angular guard.
+3. [`MsalInterceptorConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.interceptor.config.ts): A set of options specifically for the Angular interceptor.
 
 An `authRequest` object can be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration`. While scopes is the only required parameter, all other possible parameters for the request object can be found here: [`PopupRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_popuprequest_.html) and [`RedirectRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_redirectrequest_.html).
 

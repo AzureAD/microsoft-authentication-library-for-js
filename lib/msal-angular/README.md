@@ -5,7 +5,7 @@ Note: `msal-angular@2` is under development. **We do not recommend using this ve
 
 ![npm (scoped)](https://img.shields.io/npm/v/@azure/msal-angular)![npm](https://img.shields.io/npm/dw/@azure/msal-angular)
 
-| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-angular)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-angular/) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples)
+| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-angular)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-angular/) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v2/samples/msal-angular-v2-samples/angular10-sample-app)
 | --- | --- | --- | --- | --- |
 
 1. [About](#about)
@@ -33,9 +33,9 @@ This is an improvement upon the current `msal-angular` library which will utiliz
 
 ## Guides
 
-- [Upgrade Guide (1.x-2.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/1.x-2.x-upgrade-guide.md)
-- [Upgrade Guide (0.x-1.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/0.x-1.x-upgrade-guide.md)
-- [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/configuration.md)
+- [Upgrade Guide (1.x-2.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/1.x-2.x-upgrade-guide.md)
+- [Upgrade Guide (0.x-1.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/0.x-1.x-upgrade-guide.md)
+- [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/configuration-2.x.md)
 
 ## Version Support
 
@@ -61,9 +61,9 @@ npm install msal @azure/msal-angular --save
 ## Usage
 
 MSAL Angular Basics
-1. [Initialization](./docs/initialization.md)
-2. [Public APIs](./docs/public-apis.md)
-3. [Advanced Topics](./docs/advanced-topics.md)
+1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/initialization-2.x.md)
+2. [Public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/public-apis-2.x.md)
+3. [Advanced Topics](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/advanced-topics-2.x.md)
 
 ## Samples
 
@@ -76,7 +76,7 @@ MSAL Angular Basics
 * [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular9-sample-app)
 
 ### MSAL Angular 2.x Samples
-* [Angular v10]()
+* [Angular v10](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v2/samples/msal-angular-v2-samples/angular10-sample-app)
 
 ## Build and running tests
 
@@ -101,7 +101,7 @@ This library controls how users sign-in and access services. We recommend you al
 -   [Msal Browser FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md) for access to our frequently asked questions
 -   [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using tag "msal".
     We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
--   [GitHub Issues](../../issues) for reporting a bug or feature requests
+-   [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/templates/edit) for reporting a bug or feature requests
 -   [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
 
 ## Contribute
