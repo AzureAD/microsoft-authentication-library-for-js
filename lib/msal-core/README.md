@@ -18,8 +18,9 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 
 ## Via CDN:
 
+<!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.2/js/msal.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.3/js/msal.min.js"></script>
 ```
 
 [Complete details and best practices](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/cdn.md) for CDN usage are available in our documentation.
