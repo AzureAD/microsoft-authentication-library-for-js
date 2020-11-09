@@ -24,6 +24,7 @@ export const TEST_DATA_CLIENT_INFO = {
 
 export const testAccount: AccountInfo = {
     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED,
     environment: "login.windows.net",
     tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
     username: "example@microsoft.com",
@@ -41,4 +42,4 @@ export const testResult: AuthenticationResult = {
     expiresOn: new Date(Date.now() + (3600000)),
     account: testAccount,
     tokenType: "Bearer"
-}
+};
