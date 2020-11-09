@@ -1,6 +1,6 @@
 # Getting Started
 
-1. [Initialization](#Initialization)
+1. [Initialization](#initialization)
 1. [Determinting whether a user is authenticated](#determining-whether-a-user-is-authenticated)
 1. [Signing a user in](#signing-a-user-in)
 1. [Acquiring an access token](#acquiring-an-access-token)
