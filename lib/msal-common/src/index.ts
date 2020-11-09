@@ -64,6 +64,7 @@ export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { BrokerAuthenticationResult } from "./response/BrokerAuthenticationResult";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
+export { ScopeSet } from "./request/ScopeSet";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors

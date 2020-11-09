@@ -4,13 +4,12 @@
  */
 
 import { AuthorizationUrlRequest } from "@azure/msal-common";
-import { BrowserAuthRequest } from "./BrowserAuthRequest";
 
 /**
- * Request object passed by user to ssoSilent to retrieve a Code from the server (first leg of authorization code grant flow)
- *
- * - scopes                     - Array of scopes the application is requesting access to (optional for ssoSilent calls)
- * - claims                     - A stringified claims request which will be added to all /authorize and /token calls
+ * PopupRequest: Request object passed by user to retrieve a Code from the
+ * server (first leg of authorization code grant flow) with a popup window.
+ * 
+ * - scopes                     - Array of scopes the application is requesting access to.
  * - authority                  - Url of the authority which the application acquires tokens from.
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
@@ -28,8 +27,10 @@ import { BrowserAuthRequest } from "./BrowserAuthRequest";
  * - sid                        - Session ID, unique identifier for the session. Available as an optional claim on ID tokens.
  * - domainHint                 - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant.
  * - extraQueryParameters       - String to string map of custom query parameters.
+ * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  */
-export type SsoSilentRequest = Omit<BrowserAuthRequest, "scopes"> & {
-    scopes? : string[];
-};
+
+export type BrowserAuthRequest = AuthorizationUrlRequest & {
+    embeddedAppClientId?: string
+}

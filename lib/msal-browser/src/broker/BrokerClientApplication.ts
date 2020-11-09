@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { version } from "../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthenticationResult, StringUtils, AuthError, AuthorizationUrlRequest, PersistentCacheKeys, CacheSchemaType, IdToken, ProtocolUtils, ResponseMode } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthenticationResult, StringUtils, AuthError, AuthorizationUrlRequest, PersistentCacheKeys, CacheSchemaType, IdToken, ProtocolUtils, ResponseMode, ScopeSet } from "@azure/msal-common";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { Configuration } from "../config/Configuration";
@@ -114,6 +114,7 @@ export class BrokerClientApplication extends ClientApplication {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
         if (validMessage) {
             this.logger.verbose(`Broker auth request validated: ${validMessage}`);
+
             // TODO: Calculate request thumbprint
             const brokerResult = await this.cachedBrokerResponse;
             if (brokerResult) {
@@ -133,7 +134,9 @@ export class BrokerClientApplication extends ClientApplication {
                 case InteractionType.Redirect:
                 case InteractionType.Popup:
                 default:
-                    return this.interactiveBrokerRequest(this.config.system.brokerOptions.preferredInteractionType || validMessage.interactionType, validMessage, clientMessage);
+                    const interactionType = this.config.system.brokerOptions.preferredInteractionType && this.config.system.brokerOptions.preferredInteractionType !== InteractionType.None 
+                        ? this.config.system.brokerOptions.preferredInteractionType : validMessage.interactionType;
+                    return this.interactiveBrokerRequest(interactionType, validMessage, clientMessage);
             }
         }
     }
@@ -195,6 +198,7 @@ export class BrokerClientApplication extends ClientApplication {
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, null, err);
             this.logger.info(`Found auth error: ${err}`);
+            console.log(err);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         }
@@ -266,9 +270,13 @@ export class BrokerClientApplication extends ClientApplication {
             }
         }
 
+        const scopes = new ScopeSet(request.scopes);
+
         const browserState: BrowserStateObject = {
             interactionType: interactionType,
-            brokerClientId: this.config.auth.clientId
+            brokeredClientId: this.config.auth.clientId,
+            brokeredReqAuthority: (request && request.authority) || this.config.auth.authority,
+            brokeredReqScopes: scopes.printScopes()
         };
 
         validatedRequest.state = ProtocolUtils.setRequestState(

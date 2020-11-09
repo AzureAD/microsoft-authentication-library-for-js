@@ -55,7 +55,7 @@ export type CacheOptions = {
 export type BrokerOptions = {
     actAsBroker?: boolean;
     allowLogout?: boolean;
-    preferredInteractionType?: InteractionType.POPUP | InteractionType.REDIRECT | InteractionType.NONE;
+    preferredInteractionType?: InteractionType.Popup | InteractionType.Redirect | InteractionType.None;
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
     brokeredRedirectUri?: string;
@@ -138,7 +138,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
         actAsBroker: false,
         allowLogout: false,
-        preferredInteractionType: InteractionType.NONE,
+        preferredInteractionType: InteractionType.None,
         allowBrokering: false,
         trustedBrokerDomains: [],
         brokeredRedirectUri: "",
@@ -160,7 +160,22 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const overlayedConfig: Configuration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem }
+        system: { 
+            ...DEFAULT_BROWSER_SYSTEM_OPTIONS, 
+            ...userInputSystem,
+            loggerOptions: {
+                ...DEFAULT_LOGGER_OPTIONS, 
+                ...userInputSystem.loggerOptions,
+            },
+            brokerOptions: {
+                ...DEFAULT_BROKER_OPTIONS,
+                ...userInputSystem.brokerOptions
+            },
+            networkClient: {
+                ...DEFAULT_BROWSER_SYSTEM_OPTIONS.networkClient,
+                ...userInputSystem.networkClient
+            }
+        }
     };
     return overlayedConfig;
 }

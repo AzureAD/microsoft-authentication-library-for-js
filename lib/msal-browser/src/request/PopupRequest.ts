@@ -4,6 +4,7 @@
  */
 
 import { AuthorizationUrlRequest } from "@azure/msal-common";
+import { BrowserAuthRequest } from "./BrowserAuthRequest";
 
 /**
  * PopupRequest: Request object passed by user to retrieve a Code from the
@@ -30,4 +31,4 @@ import { AuthorizationUrlRequest } from "@azure/msal-common";
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  */
-export type PopupRequest = AuthorizationUrlRequest;
+export type PopupRequest = BrowserAuthRequest;
