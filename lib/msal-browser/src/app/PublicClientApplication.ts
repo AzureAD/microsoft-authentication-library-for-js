@@ -132,7 +132,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        this.preflightBrowserEnvironmentCheck();
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)

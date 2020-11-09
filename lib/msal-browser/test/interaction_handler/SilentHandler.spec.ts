@@ -1,16 +1,16 @@
 import chai from "chai";
 import "mocha";
 import chaiAsPromised from "chai-as-promised";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheManager, AuthorizationCodeClient } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheManager, AuthorizationCodeClient, ProtocolMode, Logger } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -45,7 +45,7 @@ const networkInterface = {
 
 describe("SilentHandler.ts Unit Tests", () => {
 
-    let browserStorage: BrowserStorage;
+    let browserStorage: BrowserCacheManager;
     let silentHandler: SilentHandler;
     let authCodeModule: AuthorizationCodeClient;
     beforeEach(() => {
@@ -55,8 +55,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        authCodeModule = new AuthorizationCodeClient({
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        const authConfig = {
             authOptions: {
                 ...configObj.auth,
                 authority: authorityInstance,
@@ -112,9 +112,11 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
                 piiLoggingEnabled: true,
             },
-        });
+        };
+        authCodeModule = new AuthorizationCodeClient(authConfig);
         const browserCrypto = new CryptoOps();
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto);
+        const logger = new Logger(authConfig.loggerOptions);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
         silentHandler = new SilentHandler(authCodeModule, browserStorage, DEFAULT_IFRAME_TIMEOUT_MS);
     });
 

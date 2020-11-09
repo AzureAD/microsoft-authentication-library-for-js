@@ -86,6 +86,7 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
         expect(mockCache.cacheManager.getAccount(accountKey).homeAccountId).to.eql("someUid.someUtid");
+        expect(mockCache.cacheManager.getAccount("")).to.be.null;
     });
 
     it("getAccessTokenCredential", () => {
@@ -350,6 +351,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readIdTokenFromCache", () => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubs();
         const idToken = mockCache.cacheManager.readIdTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO);
         expect(idToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID);
     });

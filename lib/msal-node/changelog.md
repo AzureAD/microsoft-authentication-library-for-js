@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 26 Oct 2020 21:00:29 GMT and should not be manually modified.
+This log was last generated on Sat, 07 Nov 2020 01:50:14 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.15
+
+Sat, 07 Nov 2020 01:50:14 GMT
+
+### Changes
+
+- Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516) (sameera.gajjarapu@microsoft.com)
+- Filtered lookup of IdTokens, AppMetadata; Error handling in Node Storage (#2530) (sameera.gajjarapu@microsoft.com)
+- Implement Password Grant Flow (#2204) (sameera.gajjarapu@microsoft.com)
+
+## 1.0.0-alpha.14
+
+Mon, 02 Nov 2020 23:33:39 GMT
+
+### Changes
+
+- Add getLogger and setLogger to msal-node (#2520) (joarroyo@microsoft.com)
+- Remove `debug` from the `msal-node` library (#2496) (sameera.gajjarapu@microsoft.com)
 
 ## 1.0.0-alpha.13
 
