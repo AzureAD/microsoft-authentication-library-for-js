@@ -13,6 +13,7 @@ on:
       - 'msal-browser/**/*' 
       - 'msal-common/**/*'
       - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
+      - '!**.md'
 
 jobs:
   run-e2e:
