@@ -15,6 +15,7 @@ assignees: ''
 - [ ] `@azure/msal-angular@0.x.x`
 - [ ] `@azure/msal-angular@1.x.x`
 - [ ] `@azure/msal-angularjs@1.x.x`
+- [ ] `@azure/msal-node@1.x.x-beta.x`
 
 **Important**: Please fill in your exact version number above, e.g. `msal@1.1.3`.
 
@@ -52,4 +53,5 @@ Version:
 - [ ] Edge
 - [ ] Safari
 - [ ] IE
-- [ ] Other (Please add browser name here)
+- [ ] Other Browser (Please add browser name here)
+- [ ] Node.js (Please add platform details)

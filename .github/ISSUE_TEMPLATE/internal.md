@@ -28,4 +28,3 @@ Please follow the issue template below.
 ## Priority
 
 ## Acceptance Criteria
-
