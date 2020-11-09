@@ -39,7 +39,7 @@ npm install @azure/msal-react @azure/msal-browser
 
 ## Build and Test
 
-See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information. 
+See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information.
 
 ### Building the package
 
@@ -52,15 +52,17 @@ cd lib/msal-react/
 npm run build
 ```
 
-To build both the `@azure/msal-react` library and `@azure/msal-browser` and `@azure/msal-common` libraries, you can do the following:
+To build both the `@azure/msal-react` library and `@azure/msal-browser` libraries, you can do the following:
+
 ```bash
 // Change to the msal-react package directory
 cd lib/msal-react/
-// To run build only for react package
+// To run build for react and browser packages
 npm run build:all
 ```
 
 ### Running Tests
+
 `@azure/msal-react` uses [jest](https://jestjs.io/) to run unit tests and coverage.
 
 ```bash
