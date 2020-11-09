@@ -18,7 +18,7 @@ import {
 import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from "rxjs";
 
-interface IMsalService {
+export interface IMsalService {
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Observable<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult>;

@@ -1,4 +1,8 @@
 # Microsoft Authentication Library for Angular
+
+
+Note: `msal-angular@2` is under development. **We do not recommend using this version in a production environment yet**.
+
 ![npm (scoped)](https://img.shields.io/npm/v/@azure/msal-angular)![npm](https://img.shields.io/npm/dw/@azure/msal-angular)
 
 | [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-angular)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-angular/) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples)

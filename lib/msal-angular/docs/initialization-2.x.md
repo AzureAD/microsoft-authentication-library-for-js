@@ -70,7 +70,8 @@ MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `
         }, {
             protectedResourceMap: new Map([ // MSAL Interceptor Configuration
                 ['https://graph.microsoft.com/v1.0/me', ['user.read']],
-                ['https://api.myapplication.com/users/*', ['customscope.read']]
+                ['https://api.myapplication.com/users/*', ['customscope.read']],
+                ['http://localhost:4200/about/', null]
             ])
         })
     ],
@@ -88,7 +89,7 @@ export class AppModule {}
 
 Using MsalInterceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
 
-As of `@azure/msal-angular@2`protectedResourceMap` supports wildcard patterns that are supported by [minimatch](https://github.com/isaacs/minimatch). `unprotectedResources` is deprecated and no longer an option fpr configuration. 
+As of `@azure/msal-angular@2`, `protectedResourceMap` supports wildcard patterns that are supported by [minimatch](https://github.com/isaacs/minimatch). `unprotectedResources` is deprecated and no longer an option for configuration. Instead, setting a scope value of `null` on a resource will prevent it from getting tokens.
 
 **Note:** When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`).
 
