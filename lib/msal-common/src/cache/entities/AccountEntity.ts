@@ -194,8 +194,20 @@ export class AccountEntity {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
+        if (idToken) {
+            // How do you account for MSA CID here?
+            const localAccountId = !StringUtils.isEmpty(idToken.claims.oid)
+                ? idToken.claims.oid
+                : idToken.claims.sub;
+            account.localAccountId = localAccountId;
+
+            // upn claim for most ADFS scenarios
+            account.username = idToken.claims.upn;
+            account.name = idToken.claims.name;
+        }
+
         account.environment = env;
-        account.username = idToken.claims.upn;
+
         /*
          * add uniqueName to claims
          * account.name = idToken.claims.uniqueName;
