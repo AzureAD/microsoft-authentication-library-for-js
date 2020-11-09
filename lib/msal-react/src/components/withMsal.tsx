@@ -12,7 +12,7 @@ export type WithMsalProps = {
     msalContext: IMsalContext;
 };
 
-export const withMsal = <P extends WithMsalProps>(Component: React.ComponentType<P>) => {
+export const withMsal = <P extends WithMsalProps>(Component: React.ComponentType<P>): React.FunctionComponent<Subtract<P,WithMsalProps>> => {
     const ComponentWithMsal: React.FunctionComponent<Subtract<P,WithMsalProps>> = props => {
         const msal = useMsal();
         return <Component {...(props as P)} msalContext={msal} />;

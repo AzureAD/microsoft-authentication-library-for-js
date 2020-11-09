@@ -45,7 +45,7 @@ export function useMsalAuthentication(
             default:
                 throw "Invalid interaction type provided.";
         }
-    }, [instance, authenticationRequest, interactionType]);
+    }, [instance]);
 
     useEffect(() => {
         if (!hasBeenCalled && !isAuthenticated && inProgress === InteractionStatus.None) {
@@ -60,7 +60,7 @@ export function useMsalAuthentication(
                 });
         }
 
-    }, [isAuthenticated, inProgress, hasBeenCalled]);
+    }, [isAuthenticated, inProgress, hasBeenCalled, interactionType, authenticationRequest, login]);
 
     return { login, result, error };
 }

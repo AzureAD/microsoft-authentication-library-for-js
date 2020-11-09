@@ -4,6 +4,6 @@
  */
 
 import { useContext } from "react";
-import { MsalContext } from "../MsalContext";
+import { IMsalContext, MsalContext } from "../MsalContext";
 
-export const useMsal = () => useContext(MsalContext);
+export const useMsal = (): IMsalContext => useContext(MsalContext);

@@ -17,7 +17,7 @@ export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
 }>;
 
-export function MsalProvider({instance, children}: MsalProviderProps) {
+export function MsalProvider({instance, children}: MsalProviderProps): React.ReactElement {
     // State hook to store accounts
     const [accounts, setAccounts] = useState<AccountInfo[]>(instance.getAllAccounts());
     // State hook to store in progress value
