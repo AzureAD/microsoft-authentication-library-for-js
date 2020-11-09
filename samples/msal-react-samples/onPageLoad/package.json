@@ -5,9 +5,6 @@
   "dependencies": {
     "@azure/msal-react": "file:../../../lib/msal-react",
     "@azure/msal-browser": "file:../../../lib/msal-browser",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.5.0",
-    "@testing-library/user-event": "^7.2.1",
     "bootstrap": "^4.5.3",
     "jquery": "^3.5.1",
     "popper.js": "^1.16.1",

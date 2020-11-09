@@ -9,9 +9,13 @@
 1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
-1. [Getting Started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md)
-1. [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples)
 1. [Build and Test](#build-and-test)
+1. [Usage](#usage)
+    - [Getting Started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md)
+    - [Msal Basics](#msal-basics)
+    - [Advanced Topics](#advanced-topics)
+    - [MSAL React Specific Concepts](#msal-react-specific-concepts)
+1. [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-react-feature-branch/samples/msal-react-samples)
 1. [Security Reporting](#security-reporting)
 1. [License](#license)
 1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
@@ -71,6 +75,31 @@ npm test
 // To run tests with code coverage
 npm run test:coverage
 ```
+
+## Usage
+
+For help getting started with `msal-react` please see our [getting started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md) doc.
+
+### MSAL Basics
+
+Since `msal-react` is built on top of `@azure/msal-browser` a lot of the same docs are relevant. For concepts specific to `msal-react` please see [below](#msal-react-specific-concepts)
+
+1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md)
+1. [Acquiring and using an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md)
+1. [Managing token lifetimes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/token-lifetimes.md)
+1. [Managing Accounts](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md)
+1. [Logging out](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md)
+
+### Advanced Topics
+
+- [Configuration Options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md)
+- [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
+- [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
+- [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
+
+### MSAL React Specific Concepts
+
+1. [Hooks](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-react-feature-branch/lib/msal-react/docs/hooks.md)
 
 ## Security Reporting
 
