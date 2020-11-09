@@ -12,6 +12,7 @@ on:
     paths: 
       - 'msal-core/**/*'
       - 'samples/msal-core-samples/VanillaJSTestApp/**/*'
+      - '!**.md'
 
 jobs:
   run-e2e:

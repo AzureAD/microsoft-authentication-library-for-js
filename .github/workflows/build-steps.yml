@@ -9,6 +9,8 @@ on:
       - 'dev'
       - 'master'
   pull_request:
+    paths-ignore:
+      - '**.md'
 
 jobs:
 
