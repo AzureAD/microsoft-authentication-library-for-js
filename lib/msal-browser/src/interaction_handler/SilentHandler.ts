@@ -8,6 +8,7 @@ import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
 
 export class SilentHandler extends InteractionHandler {
 
@@ -41,6 +42,10 @@ export class SilentHandler extends InteractionHandler {
      */
     monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
+            if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
+                this.authModule.logger.warning(`system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`);
+            }
+
             /*
              * Polling for iframes can be purely timing based,
              * since we don't need to account for interaction.
