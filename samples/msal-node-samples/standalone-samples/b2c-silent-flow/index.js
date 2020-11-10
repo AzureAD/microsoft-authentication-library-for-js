@@ -4,6 +4,7 @@
  */
 const express = require("express");
 const exphbs = require("express-handlebars");
+const fs = require("fs");
 const msal = require("@azure/msal-node");
 
 const api = require("./api");
@@ -17,12 +18,34 @@ const SERVER_PORT = process.env.PORT || 3000;
 const cachePath = "./data/example.cache.json"; // replace this string with the path to your valid cache file.
 
 const beforeCacheAccess = async (cacheContext) => {
-    cacheContext.tokenCache.deserialize(await fs.readFile(cachePath, "utf-8"));
+    return new Promise(async (resolve, reject) => {
+        if (fs.existsSync(cachePath)) {
+            fs.readFile(cachePath, "utf-8", (err, data) => {
+                if (err) {
+                    reject();
+                } else {
+                    console.log(data);
+                    cacheContext.tokenCache.deserialize(data);
+                    resolve();
+                }
+            });
+        } else {
+           fs.writeFile(cachePath, cacheContext.tokenCache.serialize(), (err) => {
+                if (err) {
+                    reject();
+                }
+            });
+        }
+    });
 };
 
 const afterCacheAccess = async (cacheContext) => {
     if(cacheContext.cacheHasChanged){
-        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());
+        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize(), (err) => {
+            if (err) {
+                console.log(err);
+            }
+        });
     }
 };
 
@@ -125,6 +148,8 @@ const app = express();
 
 // Store accessToken in memory
 app.locals.accessToken = null;
+// Store localAccountId in memory
+app.locals.localAccountId = null;
 
 // Set handlebars view engine
 app.engine(".hbs", exphbs({ extname: ".hbs" }));
@@ -181,26 +206,23 @@ app.get("/profile", (req, res) => {
 
 // Initiates auth code grant for web API call
 app.get("/api", async (req, res) => {
-
-    // get Accounts
-    accounts = await msalTokenCache.getAllAccounts();
-    console.log("Accounts: ", accounts);
+    const msalTokenCache = pca.getTokenCache();
+    // Find Account by Local Account Id
+    account = await msalTokenCache.getAccountByLocalId(app.locals.localAccountId);
 
     // build silent request
     const silentRequest = {
-        account: accounts[0], // index must match the account that is trying to acquire token silently
+        account: account,
         scopes: SCOPES.resource1
     };
 
     // acquire Token Silently to be used in when calling web API
     pca.acquireTokenSilent(silentRequest)
         .then((response) => {
-
             const username = response.account.username;
 
             // call web API after successfully acquiring token
             api.callWebApi(apiConfig.webApiUri, response.accessToken, (response) => {
-
                 const templateParams = { showLoginButton: false, username: username, profile: JSON.stringify(response, null, 4) };
                 res.render("api", templateParams);
             });
@@ -224,6 +246,7 @@ app.get("/redirect", (req, res) => {
 
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
+                app.locals.localAccountId = response.account.localAccountId;
                 const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
                 res.render("api", templateParams);
             }).catch((error) => {
