@@ -1,0 +1,74 @@
+{
+  "name": "@azure/msal-react",
+  "version": "2.0.0-alpha.0",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "description": "Microsoft Authentication Library for React",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build --tsconfig ./tsconfig.build.json",
+    "build:modules:watch": "tsdx watch --verbose",
+    "test": "tsdx test .*.spec.*",
+    "test:watch": "tsdx test .*.spec.* --watch",
+    "test:coverage": "tsdx test .*.spec.* --coverage",
+    "lint": "cd ../../ && npm run lint:react",
+    "lint:fix": "npm run lint -- -- --fix",
+    "build:all": "npm run build:common && npm run build:browser && npm run build",
+    "build:browser": "cd ../msal-browser && npm run build",
+    "build:common": "cd ../msal-common && npm run build",
+    "prepack": "npm run build:all",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
+  },
+  "peerDependencies": {
+    "@azure/msal-browser": "^2.6.1",
+    "react": "^16.13.0 || ^17"
+  },
+  "module": "dist/msal-react.esm.js",
+  "devDependencies": {
+    "@azure/msal-browser": "^2.6.1",
+    "@babel/core": "^7.10.5",
+    "@storybook/addon-actions": "^5.3.19",
+    "@storybook/addon-docs": "^5.3.19",
+    "@storybook/addon-info": "^5.3.19",
+    "@storybook/addon-links": "^5.3.19",
+    "@storybook/addons": "^5.3.19",
+    "@storybook/react": "^5.3.19",
+    "@testing-library/jest-dom": "^5.11.5",
+    "@testing-library/react": "^11.1.0",
+    "@types/jest": "^26.0.15",
+    "@types/react": "^16.9.43",
+    "@types/react-dom": "^16.9.8",
+    "babel-loader": "^8.1.0",
+    "jest": "^26.6.1",
+    "jest-environment-jsdom-fifteen": "^1.0.2",
+    "react": "^16.13.1",
+    "react-docgen-typescript-loader": "^3.7.2",
+    "react-dom": "^16.13.1",
+    "react-is": "^16.13.1",
+    "ts-jest": "^26.4.3",
+    "ts-loader": "^8.0.1",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {
+    "@storybook/addon-storysource": "^5.3.19"
+  }
+}

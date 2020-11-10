@@ -2,6 +2,44 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 10 Nov 2020 01:48:44 GMT",
+      "tag": "@azure/msal-browser_v2.6.1",
+      "version": "2.6.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Export stubbed PCA instance (#2540)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "612feaeb6e5099cae6d1f606d187f5e38063018f",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 07 Nov 2020 01:50:14 GMT",
+      "tag": "@azure/msal-browser_v2.6.0",
+      "version": "2.6.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "98f43038608fe66a256dabfff0810476e9e6b3ab",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Build Pipeline Changes (#2406)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "af8459c0d53a4dc2bf495017608c0bb03004d006",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Nov 2020 23:33:39 GMT",
       "tag": "@azure/msal-browser_v2.5.2",
       "version": "2.5.2",

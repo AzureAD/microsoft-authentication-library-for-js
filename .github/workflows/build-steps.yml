@@ -9,6 +9,9 @@ on:
       - 'dev'
       - 'master'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**/.vscode/*.json'
 
 jobs:
 
@@ -26,6 +29,7 @@ jobs:
             - msal-browser
             - msal-node
             - msal-angular
+            - msal-react
   
     steps:
     - uses: actions/checkout@v2
