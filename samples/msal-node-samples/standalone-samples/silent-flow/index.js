@@ -82,7 +82,6 @@ const authCodeUrlParameters = {
 
 const pca = new msal.PublicClientApplication(publicClientConfig);
 const msalTokenCache = pca.getTokenCache();
-let homeAccountId;
 
 /**
  * Express App
@@ -92,6 +91,9 @@ const app = express();
 // Set handlebars view engine
 app.engine(".hbs", exphbs({ extname: ".hbs" }));
 app.set("view engine", ".hbs");
+
+// Initialize homeAccountId in memory
+app.locals.homeAccountId = null;
 
 /**
  * App Routes
@@ -121,7 +123,7 @@ app.get("/redirect", (req, res) => {
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
         // Home account ID in the form uniqueId.tenantId to be used to find the right account before acquireTokenSilent
-        homeAccountId = `${response.uniqueId}.${response.tenantId}`;
+        app.locals.homeAccountId = response.account.homeAccountId;
         const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
         res.render("graph", templateParams);
     }).catch((error) => {
@@ -133,7 +135,7 @@ app.get("/redirect", (req, res) => {
 // Initiates Acquire Token Silent flow
 app.get("/graphCall", async (req, res) => {
     // Find account using homeAccountId built after receiving token response
-    const account = await msalTokenCache.getAccountByHomeId(homeAccountId);
+    const account = await msalTokenCache.getAccountByHomeId(app.locals.homeAccountId);
 
     // Build silent request
     const silentRequest = {
