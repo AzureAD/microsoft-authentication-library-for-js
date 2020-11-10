@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Add navigateFrameWait and change loadFrameTimeout to browser to match core behavior (#2545)",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-04T19:03:20.061Z"
+}
