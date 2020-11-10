@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Export stubbed PCA instance (#2540)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-06T19:43:23.111Z"
+}
