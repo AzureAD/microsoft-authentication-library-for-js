@@ -10,6 +10,7 @@ import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../auth
 import { msalConfig as b2cMsalConfig, request as b2cTokenRequest } from "../authConfigs/b2cAuthConfig.json";
 import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, enterCredentials, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
+import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = "http://localhost:30662/";
@@ -79,6 +80,24 @@ describe("Browser tests", function () {
             });
     
             it("Performs loginRedirect", async () => {
+                const testName = "redirectBaseCase";
+                const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
+                await clickLoginRedirect(screenshot, page);
+                await enterCredentials(page, screenshot, username, accountPwd);
+                await waitForReturnToApp(screenshot, page);
+                // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+                await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            });
+
+            it("Performs loginRedirect with relative redirectUri", async () => {
+                const relativeRedirectUriRequest: RedirectRequest = {
+                    ...aadTokenRequest,
+                    redirectUri: "/"
+                }
+                fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: relativeRedirectUriRequest}));
+                page.reload();
+
                 const testName = "redirectBaseCase";
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
