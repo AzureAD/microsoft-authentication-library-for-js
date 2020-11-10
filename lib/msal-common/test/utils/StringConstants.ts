@@ -1,6 +1,9 @@
-/**
- * This file contains the string constants used by the test classes.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
  */
+
+// This file contains the string constants used by the test classes.
 
 import { Constants } from "../../src/utils/Constants";
 import { RequestThumbprint, ThrottlingEntity, AccountInfo } from "../../src";
@@ -59,7 +62,9 @@ export const TEST_DATA_CLIENT_INFO = {
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
     TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
     TEST_CACHE_RAW_CLIENT_INFO: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-    TEST_CACHE_DECODED_CLIENT_INFO: "{\"uid\":\"uid\", \"utid\":\"utid\"}"
+    TEST_CACHE_DECODED_CLIENT_INFO: "{\"uid\":\"uid\", \"utid\":\"utid\"}",
+    TEST_RAW_CLIENT_INFO_GUIDS: "eyJ1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtNjZmMy0zMzMyZWNhN2VhODEiLCJ1dGlkIjoiMzMzODA0MGQtNmM2Ny00YzViLWIxMTItMzZhMzA0YjY2ZGFkIn0=",
+    TEST_CACHE_DECODED_CLIENT_INFO_GUIDS: "{\"uid\":\"00000000-0000-0000-66f3-3332eca7ea81\",\"utid\":\"3338040d-6c67-4c5b-b112-36a304b66dad\"}"
 };
 
 // Test Hashes
@@ -159,6 +164,9 @@ export const TEST_HOST_LIST = [
     "login.microsoftonline.de",
     "login.microsoftonline.us"
 ];
+
+export const PREFERRED_CACHE_ALIAS = "login.windows.net";
+export const ADFS_AUTHORITY = "myadfs.com/adfs";
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {

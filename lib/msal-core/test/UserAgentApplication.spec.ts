@@ -127,7 +127,7 @@ describe("UserAgentApplication.ts Class", function () {
     const setTestCacheItems = function () {
         accessTokenKey = {
             authority: TEST_CONFIG.validAuthority,
-            clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             scopes: "s1",
             homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
         };
@@ -150,7 +150,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         idTokenKey = {
             authority: TEST_CONFIG.validAuthority,
-            clientId: "0813e1d1-ad72-46a9-8665-399bba48c201",
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             scopes: undefined,
             homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
         };
@@ -1127,15 +1127,16 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                // Won't happen
-                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
-            }).catch(function(err: AuthError) {
-                expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleMatchingTokens.code);
-                expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-                expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-                expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.ts");
+                expect(response.idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.be.deep.eq(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.account).to.be.eq(account);
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
         });
 
@@ -1362,7 +1363,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             setAuthInstanceStubs();
             sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
-            const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+            const renewTokenSpy = sinon.stub(msal, <any>"renewToken").throws(AuthError);
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
@@ -1411,6 +1412,30 @@ describe("UserAgentApplication.ts Class", function () {
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
                 expect(err).to.be.instanceOf(AuthError);
+            });
+        });
+
+        it("tests getCachedToken returns correct Id Token when authority is passed and there are multiple ID tokens in the cache for the same account", (done) => {
+            const requestAuthority = 'https://login.onmicrosoft.com/common/';
+            const tokenRequest : AuthenticationParameters = {
+                authority: requestAuthority,
+                scopes: ["S1"],
+                account: account
+            };
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+            accessTokenKey.authority = requestAuthority;
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+            idTokenKey.authority = requestAuthority;
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                expect(response.idToken).to.not.be.null;
+                done();
+            }).catch(function(err: AuthError) {
+                console.log("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
         });
 
@@ -1489,7 +1514,7 @@ describe("UserAgentApplication.ts Class", function () {
                 throw `Shouldn't have response here. Data: ${JSON.stringify(response)}`;
             }).catch(done);
         });
-        
+
         describe("Response Type based AuthResponse", () => {
             describe("response_type = token", () => {
                 let tokenRequest : AuthenticationParameters;
@@ -1822,6 +1847,182 @@ describe("UserAgentApplication.ts Class", function () {
                         expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
                         done();
                     }).catch(done);
+                });
+            });
+        });
+
+        describe("Token cache item key semantic matching", () => {
+            describe("Access Tokens", () => {
+                let tokenRequest : AuthenticationParameters;
+                beforeEach(() => {
+                    tokenRequest = {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: ["s1"],
+                        account: account
+                    };
+                    setAuthInstanceStubs();
+                    sinon.stub(msal, "getAccount").returns(account);
+                    sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+                });
+
+                afterEach(() => {
+                    cacheStorage.clear();
+                    sinon.reset();
+                });
+
+                it("should match if key is valid JSON and contains scopes field", (done) => {
+                    const validAccessTokenKey = {
+                        authority: TEST_CONFIG.validAuthority,
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        scopes: "s1",
+                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
+                    };
+            
+                    cacheStorage.setItem(JSON.stringify(validAccessTokenKey), JSON.stringify(accessTokenValue));
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+                    msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                        expect(response.scopes).to.be.deep.eq(["s1"]);
+                        expect(response.account).to.be.eq(account);
+                        expect(response.idToken.rawIdToken).to.eq(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        done();
+                    }).catch(done);
+                });
+
+                it("should not match if key is valid JSON but does not contain scopes field", (done) => {
+                    const invalidAccessTokenKey = {
+                        authority: TEST_CONFIG.validAuthority,
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        scopes: undefined,
+                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
+                    };
+            
+                    cacheStorage.setItem(JSON.stringify(invalidAccessTokenKey), JSON.stringify(accessTokenValue));
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=s1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should not match if key is not valid JSON", (done) => {
+                    const invalidAccessTokenKey = `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID}.scopes`;
+
+                    cacheStorage.setItem(JSON.stringify(invalidAccessTokenKey), JSON.stringify(accessTokenValue));
+                    cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+                    const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=s1%20openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+            });
+
+            describe("ID Token", () => {
+                let tokenRequest : AuthenticationParameters;
+                beforeEach(() => {
+                    tokenRequest = {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: Constants.oidcScopes,
+                        account: account
+                    };
+                    setAuthInstanceStubs();
+                    sinon.stub(AuthorityFactory, "saveMetadataFromNetwork").returns(null);
+                });
+
+                afterEach(() => {
+                    cacheStorage.clear();
+                    sinon.reset();
+                });
+
+                it("should match if key is valid JSON and contains no scopes field", (done) => {
+                    const validIdTokenKey = {
+                        authority: TEST_CONFIG.validAuthority,
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        scopes: undefined,
+                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
+                    };
+            
+                    cacheStorage.setItem(JSON.stringify(validIdTokenKey), JSON.stringify(idToken));
+
+                    msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                        expect(response.scopes).to.be.deep.eq(["openid", "profile"]);
+                        expect(response.account).to.be.eq(account);
+                        expect(response.idToken.rawIdToken).to.eq(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                        done();
+                    }).catch(done);
+                });
+
+                it("should not match if key is valid JSON but contains scopes field", (done) => {
+                    const invalidIdTokenKey = {
+                        authority: TEST_CONFIG.validAuthority,
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        scopes: "S1",
+                        homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
+                    };
+
+                    cacheStorage.setItem(JSON.stringify(invalidIdTokenKey), JSON.stringify(idToken));
+                    const renewIdTokenSpy = sinon.spy(msal, <any>"renewIdToken");
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewIdTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
+                });
+
+                it("should not match if key is not valid JSON", (done) => {
+                    const invalidIdTokenKey = `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.${TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID}`;
+
+                    cacheStorage.setItem(invalidIdTokenKey, JSON.stringify(idToken));
+                    const renewIdTokenSpy = sinon.spy(msal, <any>"renewIdToken");
+
+                    sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
+                        return new Promise<void>(() => {
+                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
+                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).to.include("&state");
+                            expect(url).to.include("&client_info=1");
+                            expect(renewIdTokenSpy.calledOnce).to.be.true;
+                            done();
+                        });
+                    });
+
+                    msal.acquireTokenSilent(tokenRequest);
                 });
             });
         });

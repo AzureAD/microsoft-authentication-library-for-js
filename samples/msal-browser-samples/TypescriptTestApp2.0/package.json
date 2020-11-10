@@ -23,7 +23,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-browser": "^2.3.1",
+    "@azure/msal-browser": "^2.6.0",
     "@babel/runtime": "^7.10.4",
     "express": "^4.17.1",
     "fs": "0.0.1-security",

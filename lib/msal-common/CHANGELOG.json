@@ -2,6 +2,99 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Sat, 07 Nov 2020 01:50:14 GMT",
+      "tag": "@azure/msal-common_v1.7.0",
+      "version": "1.7.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Mandate localAccount in AccountInfo",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "ee770fc1f4ed1ef9e53b28a18487e9b7686ffa64",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Filtered lookup of IdTokens, AppMetadata; Error handling in Node Storage (#2530)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "354dd86449d792b7369fb240c5e2cfd70ca73488",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Build Pipeline Changes (#2406)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "af8459c0d53a4dc2bf495017608c0bb03004d006",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Implement Password Grant Flow (#2204)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "baf6d157e7bbeae439526aee13eb08962974925b",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "c2ec3b43f07d9c18eec14e109caddcf7941f50b4",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 26 Oct 2020 21:00:29 GMT",
+      "tag": "@azure/msal-common_v1.6.3",
+      "version": "1.6.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix ServerTelemetry maxErrorToSend bug (#2491)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "81575de28b78e7c09c5d475854e14a8bc1b7b567",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add missing default headers to device code",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "e007d2b425c8ceaed409ed9b11a1a72bc64fa955",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9d4c4a18de10eb3d918810dc10766fbd5547165d",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 20 Oct 2020 23:47:28 GMT",
+      "tag": "@azure/msal-common_v1.6.2",
+      "version": "1.6.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Adds support for any OIDC-compliant authority (#2389).",
+            "author": "jamckenn@microsoft.com",
+            "commit": "2b6b9ec9033a8b829393e44c3feb7b19b163d2cd",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Updated eslint rules (#2345)",
+            "author": "janutter@microsoft.com",
+            "commit": "64a4f9e868e63346dfd711dec717abe7fd14d949",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 15 Oct 2020 00:49:18 GMT",
       "tag": "@azure/msal-common_v1.6.1",
       "version": "1.6.1",

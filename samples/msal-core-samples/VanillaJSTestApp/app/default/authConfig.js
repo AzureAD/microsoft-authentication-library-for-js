@@ -28,6 +28,6 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["openid", "profile", "User.Read"],
+    scopes: ["User.Read"],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };

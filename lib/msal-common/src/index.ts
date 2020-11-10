@@ -9,6 +9,7 @@ export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { ClientCredentialClient } from "./client/ClientCredentialClient";
 export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
+export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
 export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
@@ -26,7 +27,7 @@ export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
 // Cache
 export { CacheManager } from "./cache/CacheManager";
-export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType } from "./cache/utils/CacheTypes";
+export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType } from "./cache/utils/CacheTypes";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
@@ -58,6 +59,7 @@ export { OnBehalfOfRequest } from "./request/OnBehalfOfRequest";
 export { SilentFlowRequest } from "./request/SilentFlowRequest";
 export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
+export { UsernamePasswordRequest } from "./request/UsernamePasswordRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 // Logger Callback
@@ -69,7 +71,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, AuthenticationScheme } from "./utils/Constants";
+export { Constants, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";

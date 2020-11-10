@@ -2,6 +2,216 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Sat, 07 Nov 2020 01:50:14 GMT",
+      "tag": "@azure/msal-browser_v2.6.0",
+      "version": "2.6.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "98f43038608fe66a256dabfff0810476e9e6b3ab",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Build Pipeline Changes (#2406)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "af8459c0d53a4dc2bf495017608c0bb03004d006",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 02 Nov 2020 23:33:39 GMT",
+      "tag": "@azure/msal-browser_v2.5.2",
+      "version": "2.5.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix JSON.parse issue and cache value validation (#2527)",
+            "author": "prkanher@microsoft.com",
+            "commit": "62cfc6bf4a8f299ba7160a70a71c84890b49a051",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 30 Oct 2020 00:52:19 GMT",
+      "tag": "@azure/msal-browser_v2.5.1",
+      "version": "2.5.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Restore string to cacheLocation type (#2523)",
+            "author": "janutter@microsoft.com",
+            "commit": "7f45b2d37f6784f25aa454f599d0cb7f81463b5c",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 29 Oct 2020 20:36:48 GMT",
+      "tag": "@azure/msal-browser_v2.5.0",
+      "version": "2.5.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add handleRedirect End Event (#2518)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "22369204b53bbd7b791d83f5b9476661eebdeda5",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Ensure history.replaceState is a function",
+            "author": "janutter@microsoft.com",
+            "commit": "77143b3994fb16313324fb91799e38a462bac1c1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Allow hash to be passed into handleRedirectPromise, reset non-msal after processing",
+            "author": "janutter@microsoft.com",
+            "commit": "689c9df7a9fe3f9dabb7cdd604a84707fd216154",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add getLogger and setLogger to msal-browser (#2513)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "664b02b2c8075ef0a5fd3880ce38117523ed3e74",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Adding memory storage option for cache location (#2481)",
+            "author": "prkanher@microsoft.com",
+            "commit": "f07cef165707ffa46827069a0d0d202eb0313312",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add script to automate generation and updating of browser SRI hashes",
+            "author": "janutter@microsoft.com",
+            "commit": "894453a2e68a9570ba6984da6f692ed05188ae8f",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 26 Oct 2020 21:00:29 GMT",
+      "tag": "@azure/msal-browser_v2.4.1",
+      "version": "2.4.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update SRI hashes for msal@1.4.2 and browser@2.4.0",
+            "author": "janutter@microsoft.com",
+            "commit": "2edf8ba703ad49c78f548e17ace9ee494abf30f1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update Readme (#2468)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "dca9f652c157ee621302225c04ec87f488b2c8cb",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add docs for event API (#2459)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "9b6fd4426eac56327a6180739888ecaa4b54af7e",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9d4c4a18de10eb3d918810dc10766fbd5547165d",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 20 Oct 2020 23:47:28 GMT",
+      "tag": "@azure/msal-browser_v2.4.0",
+      "version": "2.4.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updated cdn docs for MSAL Browser",
+            "author": "janutter@microsoft.com",
+            "commit": "034fc94ad59499932fe7530b0e5ab3152bcbf11e",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update FAQ (#2440)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "1de35f42e0340d2b3020ba7938d0ae5d7d067a42",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Updated eslint rules (#2345)",
+            "author": "janutter@microsoft.com",
+            "commit": "64a4f9e868e63346dfd711dec717abe7fd14d949",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add removeEventCallback API (#2462)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f934892a769d3287a8edda8ec3f72928ff288ea8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add event api to msal-browser (#2394)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "b1a6ccc6348b556cd4636511aeb8e58060154daa",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Use history API to clear hash for msal-browser",
+            "author": "janutter@microsoft.com",
+            "commit": "9a3618b430e9f174505529949ebacf4bccd04858",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Export InteractionType (#2438)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9fc76a676ed0e157e43e6a9512352fcb29099aae",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add extraQueryParameters to acquireTokenSilent in msal-browser",
+            "author": "janutter@microsoft.com",
+            "commit": "d2132c15c759f33c299761b9869dd1144907c0a8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix unexpected interaction_required error in redirect flow (#2404)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c22bb29b8880de4bf0b9437a1c2ad48776a9d88f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Adds support for any OIDC-compliant authority (#2389).",
+            "author": "jamckenn@microsoft.com",
+            "commit": "2b6b9ec9033a8b829393e44c3feb7b19b163d2cd",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Oct 2020 23:45:07 GMT",
       "tag": "@azure/msal-browser_v2.3.1",
       "version": "2.3.1",

@@ -2,6 +2,36 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Sat, 07 Nov 2020 01:50:14 GMT",
+      "tag": "@azure/msal-angular_v1.1.1",
+      "version": "1.1.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Build Pipeline Changes (#2406)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "af8459c0d53a4dc2bf495017608c0bb03004d006",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 20 Oct 2020 23:47:28 GMT",
+      "tag": "@azure/msal-angular_v1.1.1",
+      "version": "1.1.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add eslint rules for imports, unused variables, and copyright header (#2345)",
+            "author": "janutter@microsoft.com",
+            "commit": "64a4f9e868e63346dfd711dec717abe7fd14d949",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Oct 2020 17:42:35 GMT",
       "tag": "@azure/msal-angular_v1.1.1",
       "version": "1.1.1",

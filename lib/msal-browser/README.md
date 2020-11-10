@@ -22,8 +22,6 @@
 
 ## About
 
-**Important:** MSAL.js 2.0 with Authorization Code Flow is **not** yet available for B2C tenants (coming soon).
-
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 The `@azure/msal-browser` package described by the code in this folder uses the [`@azure/msal-common` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-common) as a dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#implicit-flow-vs-authorization-code-flow-with-pkce). If you are looking for the version of the library that uses the implicit flow, please see the [`msal-core` library](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core).
@@ -56,21 +54,14 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 ```javascript
 npm install @azure/msal-browser
 ```
-### Via CDN (with SRI Hash):
+### Via CDN:
 
-See [here](./docs/cdn-usage.md) for more info on how to use this package from the Microsoft CDN.
-
-### Compiled
-
-```javascript
-<script src="https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.js" integrity="sha384-M9bRB06LdiYadS+F9rPQnntFCYR3UJvtb2Vr4Tmhw9WBwWUfxH8VDRAFKNn3VTc/" crossorigin="anonymous"></script>
+<!-- CDN_LATEST -->
+```html
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.6.0/js/msal-browser.min.js"></script>
 ```
 
-### Minified
-
-```javascript
-<script src="https://alcdn.msauth.net/browser/2.1.0/js/msal-browser.min.js" integrity="sha384-EmYPwkfj+VVmL1brMS1h6jUztl4QMS8Qq8xlZNgIT/luzg7MAzDVrRa2JxbNmk/e" crossorigin="anonymous"></script>
-```
+See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/cdn-usage.md) for more info on how to use this package from the Microsoft CDN.
 
 ## Usage
 
