@@ -1,0 +1,20 @@
+{
+  "name": "@azure/msal-react",
+  "entries": [
+    {
+      "date": "Tue, 10 Nov 2020 01:48:44 GMT",
+      "tag": "@azure/msal-react_v2.0.0-alpha.0",
+      "version": "2.0.0-alpha.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "msal-react first alpha release (#2540)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "612feaeb6e5099cae6d1f606d187f5e38063018f",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    }
+  ]
+}
