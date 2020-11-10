@@ -10,7 +10,8 @@
         "@typescript-eslint/eslint-plugin-tslint",
         "security",
         "import",
-        "header"
+        "header",
+        "react"
     ],
     "extends": [
         "plugin:@typescript-eslint/eslint-recommended",
@@ -52,6 +53,24 @@
         "no-console": 2,
         "prefer-const": 2,
         "quotes": [2, "double"],
-        "spaced-comment": 2
+        "spaced-comment": 2,
+        "react/jsx-closing-bracket-location": 2,
+        "react/jsx-closing-tag-location": 2,
+        "react/jsx-curly-spacing": [2, {"when": "always"}],
+        "react/jsx-filename-extension": [2, {"extensions": [".jsx", ".tsx"], "allow": "as-needed"}],
+        "react/jsx-pascal-case": 2,
+        "react/jsx-tag-spacing": 2,
+        "react/jsx-wrap-multilines": 2,
+        "react/no-multi-comp": 2,
+        "react/no-array-index-key": 2,
+        "react/no-string-refs": 2,
+        "react/prefer-stateless-function": 2,
+        "react/self-closing-comp": 2,
+        "react/sort-comp": 2
+    },
+    "settings": {
+        "react": {
+            "version": "17.0.0"
+        }
     }
 }
