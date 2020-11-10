@@ -3,6 +3,6 @@
   "comment": "Enhance lookup for IdTokens/AppMetadata (#2530)",
   "packageName": "@azure/msal-node",
   "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-11-10T00:20:27.945Z"
 }
