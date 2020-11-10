@@ -96,12 +96,23 @@ export class ClientAssertion {
         return this.expirationTime < TimeUtils.nowSeconds();
     }
 
+
+    /**
+     * Extracts the raw certs from a given certificate string and returns them in an array.
+     * @param publicCertificate
+     */
     public static parseCertificate(publicCertificate: string): Array<string> {
-        const re = /-----BEGIN CERTIFICATE-----\n(.+?)\n-----END CERTIFICATE-----/gm;
-        const certs = Array<string>();
+        // This is regex to identify the certs in a given certificate string.
+        // We want to look for the contents between the BEGIN and END certificate strings, without the associated newlines.
+        // The information in parens "(.+?)" is the capture group to represent the cert we want isolated.
+        // "." means any string character, "+" means match 1 or more times, and "?" means the shortest match.
+        // the "g" at the end of the regex means search the string globally, and the "m" means search across multiple lines.
+        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\n(.+?)\n-----END CERTIFICATE-----/gm;
+        const certs: string[] = [];
 
         let matches;
-        while ((matches = re.exec(publicCertificate)) !== null) {
+        while ((matches = regexToFindCerts.exec(publicCertificate)) !== null) {
+            // matches[1] represents the first parens capture group in the regex.
             certs.push(matches[1]);
         }
         
