@@ -165,19 +165,12 @@ export class ResponseHandler {
     }
 
     async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): Promise<BrokerAuthenticationResult> {
-        // generate homeAccountId
-        if (serverTokenResponse.client_info) {
-            this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
-            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
-            }
-        } else {
-            this.homeAccountIdentifier = "";
-        }
-        
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
 
+        // generate homeAccountId
+        this.homeAccountIdentifier = AccountEntity.generateHomeAccountId(serverTokenResponse.client_info, authority.authorityType, this.logger, this.cryptoObj, idTokenObj);
+        
         // token nonce check (TODO: Add a warning if no nonce is given?)
         if (!StringUtils.isEmpty(cachedNonce)) {
             if (idTokenObj.claims.nonce !== cachedNonce) {

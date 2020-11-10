@@ -10,7 +10,8 @@ const msalConfig = {
     },
     system: {
         brokerOptions: {
-            actAsBroker: true
+            actAsBroker: true,
+            preferredInteractionType: "redirect"
         },
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {

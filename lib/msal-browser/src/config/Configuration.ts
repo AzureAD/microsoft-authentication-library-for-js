@@ -171,10 +171,6 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             brokerOptions: {
                 ...DEFAULT_BROKER_OPTIONS,
                 ...userInputSystem.brokerOptions
-            },
-            networkClient: {
-                ...DEFAULT_BROWSER_SYSTEM_OPTIONS.networkClient,
-                ...userInputSystem.networkClient
             }
         }
     };

@@ -13,11 +13,11 @@ import { BrokerAuthRequest } from "./BrokerAuthRequest";
 import { InteractionType } from "../utils/BrowserConstants";
 import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
 import { BrokerAuthResponse } from "./BrokerAuthResponse";
-import { BrowserStorage } from "../cache/BrowserStorage";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
 import { version } from "../../package.json";
 import { BrokerHandleRedirectRequest } from "./BrokerHandleRedirectRequest";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
@@ -29,14 +29,14 @@ export class EmbeddedClientApplication {
     private config: Configuration;
     private version: string;
     private brokerOrigin: string;
-    private browserStorage: BrowserStorage;
+    private browserStorage: BrowserCacheManager;
 
     private get trustedBrokersProvided(): boolean {
         return this.config.system.brokerOptions.trustedBrokerDomains && this.config.system.brokerOptions.trustedBrokerDomains.length >= 1;
     }
     public brokerConnectionEstablished: boolean;
 
-    constructor(configuration: Configuration, logger: Logger, browserStorage: BrowserStorage) {
+    constructor(configuration: Configuration, logger: Logger, browserStorage: BrowserCacheManager) {
         this.config = configuration;
         this.logger = logger;
         this.browserStorage = browserStorage;

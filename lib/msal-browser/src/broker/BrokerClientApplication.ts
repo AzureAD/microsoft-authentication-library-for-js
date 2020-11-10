@@ -2,8 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { version } from "../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthenticationResult, StringUtils, AuthError, AuthorizationUrlRequest, PersistentCacheKeys, CacheSchemaType, IdToken, ProtocolUtils, ResponseMode, ScopeSet } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, StringUtils, AuthorizationUrlRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, ScopeSet } from "@azure/msal-common";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { Configuration } from "../config/Configuration";
@@ -83,7 +84,6 @@ export class BrokerClientApplication extends ClientApplication {
      * @param clientMessage 
      */
     async handleBrokerRedirectResponse(clientMessage: MessageEvent): Promise<void> {
-        console.log("Broker handle redirect request");
         const validMessage = BrokerHandleRedirectRequest.validate(clientMessage);
         if (validMessage) {
             // TODO: Calculate request thumbprint
@@ -91,7 +91,6 @@ export class BrokerClientApplication extends ClientApplication {
             const brokerResult = await this.cachedBrokerResponse;
             if (brokerResult) {
                 // TODO: Replace with in-memory cache lookup
-                console.log(brokerResult);
                 this.cachedBrokerResponse = null;
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
                 this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
@@ -198,7 +197,6 @@ export class BrokerClientApplication extends ClientApplication {
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, null, err);
             this.logger.info(`Found auth error: ${err}`);
-            console.log(err);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         }
