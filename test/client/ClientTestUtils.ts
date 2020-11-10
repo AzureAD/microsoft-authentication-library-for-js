@@ -4,7 +4,7 @@
  */
 
 import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory } from "../../src";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../utils/StringConstants";
+import { ADFS_AUTHORITY, PREFERRED_CACHE_ALIAS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../utils/StringConstants";
 
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 import sinon from "sinon";
@@ -208,9 +208,20 @@ export class ClientTestUtils {
     static setCloudDiscoveryMetadataStubs(): void {
         sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
         const stubbedCloudDiscoveryMetadata: CloudDiscoveryMetadata = {
-            preferred_cache: "login.windows.net",
+            preferred_cache: PREFERRED_CACHE_ALIAS, // login.windows.net
             preferred_network: "login.microsoftonline.com",
             aliases: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"]
+        };
+        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
+        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
+    }
+
+    static setCloudDiscoveryMetadataStubsForADFS(): void {
+        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
+        const stubbedCloudDiscoveryMetadata: CloudDiscoveryMetadata = {
+            preferred_cache: ADFS_AUTHORITY,
+            preferred_network: ADFS_AUTHORITY,
+            aliases: [ADFS_AUTHORITY]
         };
         sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
         sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
