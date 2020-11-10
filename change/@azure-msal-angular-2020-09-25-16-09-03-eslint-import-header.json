@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add eslint rules for imports, unused variables, and copyright header (#2345)",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-09-25T23:07:28.325Z"
-}

@@ -14,13 +14,13 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { TimeUtils } from "../utils/TimeUtils";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
-
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { AuthToken } from "../account/AuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * On-Behalf-Of client
@@ -60,14 +60,16 @@ export class OnBehalfOfClient extends BaseClient {
         let cachedAccount: AccountEntity = null;
         if (cachedIdToken) {
             idTokenObject = new AuthToken(cachedIdToken.secret, this.config.cryptoInterface);
-            const accountKey = AccountEntity.generateAccountCacheKey({
+            const localAccountId = idTokenObject.claims.oid ? idTokenObject.claims.oid : idTokenObject.claims.sub;
+            const accountInfo: AccountInfo = {
                 homeAccountId: cachedIdToken.homeAccountId,
                 environment: cachedIdToken.environment,
                 tenantId: cachedIdToken.realm,
-                username: null
-            });
+                username: null,
+                localAccountId
+            };
 
-            cachedAccount = this.cacheManager.getAccount(accountKey);
+            cachedAccount = this.readAccountFromCache(accountInfo);
         }
 
         return await ResponseHandler.generateAuthenticationResult(
@@ -119,6 +121,10 @@ export class OnBehalfOfClient extends BaseClient {
             return null;
         }
         return idTokens[0] as IdTokenEntity;
+    }
+
+    private readAccountFromCache(account: AccountInfo): AccountEntity {
+        return this.cacheManager.readAccountFromCache(account);
     }
 
     private async executeTokenRequest(request: OnBehalfOfRequest, authority: Authority)

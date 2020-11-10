@@ -1,8 +1,40 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 15 Oct 2020 00:49:18 GMT and should not be manually modified.
+This log was last generated on Sat, 07 Nov 2020 01:50:14 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.7.0
+
+Sat, 07 Nov 2020 01:50:14 GMT
+
+### Minor changes
+
+- Implement Password Grant Flow (#2204) (sameera.gajjarapu@microsoft.com)
+- Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Mandate localAccount in AccountInfo (sameera.gajjarapu@microsoft.com)
+- Filtered lookup of IdTokens, AppMetadata; Error handling in Node Storage (#2530) (sameera.gajjarapu@microsoft.com)
+
+## 1.6.3
+
+Mon, 26 Oct 2020 21:00:29 GMT
+
+### Patches
+
+- Fix ServerTelemetry maxErrorToSend bug (#2491) (thomas.norling@microsoft.com)
+- Add missing default headers to device code (sameera.gajjarapu@microsoft.com)
+- msal-browser and msal-node cache Interfaces to msal-common updated (#2415) (sameera.gajjarapu@microsoft.com)
+
+## 1.6.2
+
+Tue, 20 Oct 2020 23:47:28 GMT
+
+### Patches
+
+- Adds support for any OIDC-compliant authority (#2389). (jamckenn@microsoft.com)
 
 ## 1.6.1
 

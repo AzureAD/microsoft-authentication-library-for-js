@@ -5,11 +5,12 @@
 
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserCacheLocation } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows and iframes in milliseconds
 const DEFAULT_POPUP_TIMEOUT_MS = 60000;
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
+const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
 
 /**
  * Use this to configure the auth options in the Configuration object
@@ -43,7 +44,7 @@ export type BrowserAuthOptions = {
  * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
  */
 export type CacheOptions = {
-    cacheLocation?: string;
+    cacheLocation?: BrowserCacheLocation | string;
     storeAuthStateInCookie?: boolean;
 };
 
@@ -56,6 +57,7 @@ export type CacheOptions = {
  * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup
  * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe
  * - loadFrameTimeout             - Maximum time the library should wait for a frame to load
+ * - redirectNavigationTimeout    - Time to wait for redirection to occur before resolving promise
  * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
  */
 export type BrowserSystemOptions = SystemOptions & {
@@ -64,6 +66,7 @@ export type BrowserSystemOptions = SystemOptions & {
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
+    redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
 };
 
@@ -107,7 +110,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
 
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-        cacheLocation: BrowserConstants.CACHE_LOCATION_SESSION,
+        cacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false
     };
 
@@ -125,6 +128,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
         loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
+        redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false
     };
 
