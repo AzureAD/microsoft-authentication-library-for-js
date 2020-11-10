@@ -111,9 +111,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                     message: string,
                     containsPii: boolean
                 ): void => {
-                    if (containsPii) {
-                        console.log(`Log level: ${level} Message: ${message}`);
-                    }
+                    console.log(`Log level: ${level} Message: ${message}`);
                 },
                 piiLoggingEnabled: true,
             },
@@ -169,7 +167,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
             const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
             const authFrame = await silentHandler.initiateAuthRequest(testNavUrl, testTokenReq);
-            expect(loadFrameSyncSpy.calledOnce).to.be.true;
             expect(loadFrameSpy.called).to.be.true;
             expect(authFrame instanceof HTMLIFrameElement).to.be.true;
         }).timeout(DEFAULT_IFRAME_TIMEOUT_MS + 1000);
