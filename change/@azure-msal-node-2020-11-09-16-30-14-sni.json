@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Add support for SubjectName/Issuer authentication.",
+  "packageName": "@azure/msal-node",
+  "email": "jamckenn@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-10T00:30:14.663Z"
+}
