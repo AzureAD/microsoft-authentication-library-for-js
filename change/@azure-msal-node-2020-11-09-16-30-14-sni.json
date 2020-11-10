@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "prerelease",
   "comment": "Add support for SubjectName/Issuer authentication (#2471).",
   "packageName": "@azure/msal-node",
   "email": "jamckenn@microsoft.com",
