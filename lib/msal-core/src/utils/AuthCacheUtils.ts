@@ -16,10 +16,8 @@ export class AuthCacheUtils {
             const cachedScopes = cacheItem.key.scopes.split(" ");
             const searchScopes = ScopeSet.removeDefaultScopes(requestScopes);
 
-            const defaultScopesOnlyMatchToken = (searchScopes.length === 0 && ScopeSet.containsScope(cachedScopes, requestScopes));
-            const searchScopesMatchToken = ScopeSet.containsScope(cachedScopes, searchScopes);
-
-            return (defaultScopesOnlyMatchToken || searchScopesMatchToken);
+            // If requestScopes contain only default scopes search for default scopes otherwise search for everything but default scopes
+            return searchScopes.length === 0 ? ScopeSet.containsScope(cachedScopes, requestScopes): ScopeSet.containsScope(cachedScopes, searchScopes);
         });
 
     }
