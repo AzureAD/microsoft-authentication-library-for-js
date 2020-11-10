@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Pass generic to ModuleWithProviders for MsalModule v1",
+  "packageName": "@azure/msal-angular",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-10T20:09:45.661Z"
+}
