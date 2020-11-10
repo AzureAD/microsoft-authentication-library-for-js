@@ -15,7 +15,7 @@
     - [Msal Basics](#msal-basics)
     - [Advanced Topics](#advanced-topics)
     - [MSAL React Specific Concepts](#msal-react-specific-concepts)
-1. [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-react-feature-branch/samples/msal-react-samples)
+1. [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples)
 1. [Security Reporting](#security-reporting)
 1. [License](#license)
 1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
@@ -99,7 +99,7 @@ Since `msal-react` is built on top of `@azure/msal-browser` a lot of the same do
 
 ### MSAL React Specific Concepts
 
-1. [Hooks](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-react-feature-branch/lib/msal-react/docs/hooks.md)
+1. [Hooks](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md)
 
 ## Security Reporting
 
