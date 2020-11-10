@@ -14,6 +14,5 @@
     "files.associations": {
         "**/build/*.yml": "azure-pipelines"
     },
-    "markiscodecoverage.searchCriteria": "**/*/coverage/lcov*.info",
     "java.configuration.updateBuildConfiguration": "interactive"
 }
