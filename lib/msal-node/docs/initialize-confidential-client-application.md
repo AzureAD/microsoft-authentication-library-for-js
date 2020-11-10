@@ -3,10 +3,12 @@
 Before you get started, please ensure you have completed all the [prerequisites](../README.md#prerequisites).
 
 In this document:
-- [Initializing the ConfidentialClientApplication object](#initializing-the-confidentialclientapplication-object)
-- [Configuration](#configuration_basics)
-- [(Optional) Configure Authority](#optional-configure-authority)
-- [(Optional) Advanced Configuration](#advanced-configuration)
+- [Initialization of MSAL](#initialization-of-msal)
+  - [Initializing the ConfidentialClientApplication object](#initializing-the-confidentialclientapplication-object)
+  - [Configuration Basics](#configuration-basics)
+  - [Configure Authority](#configure-authority)
+  - [Advanced Configuration](#advanced-configuration)
+  - [Next Steps](#next-steps)
 
 ## Initializing the ConfidentialClientApplication object
 
@@ -38,7 +40,7 @@ const pca = new msal.ConfidentialClient(clientConfig);
 - `authority` defaults to `https://login.microsoftonline.com/common/` if the user does not set it during configuration
 - A Client credential is mandatory for confidential clients. Client credential can be a:
     - `clientSecret` is secret string generated set on the app registration. 
-    - `clientCertificate` is a certificate set on the app registration. The `thumbprint` is a X.509 SHA-1 thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. 
+    - `clientCertificate` is a certificate set on the app registration. The `thumbprint` is a X.509 SHA-1 thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. `x5c` is the optional X.509 certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
     - `clientAssertion` is string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer. 
 
 
