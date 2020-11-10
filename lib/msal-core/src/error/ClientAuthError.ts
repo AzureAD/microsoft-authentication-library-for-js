@@ -6,18 +6,8 @@
 import { AuthError } from "./AuthError";
 import { IdToken } from "../IdToken";
 import { StringUtils } from "../utils/StringUtils";
-import { ServerHashParamKeys } from "../utils/Constants";
 
 export const ClientAuthErrorMessage = {
-    multipleMatchingTokens: {
-        code: "multiple_matching_tokens",
-        desc: "The cache contains multiple tokens satisfying the requirements. " +
-            "Call AcquireToken again providing more requirements like authority."
-    },
-    multipleMatchingIdTokens: {
-        code: "multiple_matching_id_tokens",
-        desc: "The cache contains multiple ID tokens satisfying the request."
-    },
     multipleCacheAuthorities: {
         code: "multiple_authorities",
         desc: "Multiple authorities found in the cache. Pass authority in the API overload."
@@ -122,19 +112,6 @@ export class ClientAuthError extends AuthError {
             errorMessage += ` Details: ${errDetail}`;
         }
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, errorMessage);
-    }
-
-    static createMultipleMatchingTokensInCacheError(tokenType: string, scopes: Array<string>): ClientAuthError {
-        let errorType;
-        let errorDescriptionExtension = "";
-        if (tokenType === ServerHashParamKeys.ACCESS_TOKEN) {
-            errorType = ClientAuthErrorMessage.multipleMatchingTokens;
-            errorDescriptionExtension = `Cache error for scope ${scopes.toString()}: `;
-        } else {
-            errorType = ClientAuthErrorMessage.multipleMatchingIdTokens;
-        }
-        return new ClientAuthError(errorType.code,
-            `${errorDescriptionExtension}${errorType.desc}.`);
     }
 
     static createMultipleAuthoritiesInCacheError(scope: string): ClientAuthError {
