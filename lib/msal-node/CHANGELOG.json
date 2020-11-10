@@ -2,6 +2,41 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Sat, 07 Nov 2020 01:50:14 GMT",
+      "tag": "@azure/msal-node_v1.0.0-alpha.15",
+      "version": "1.0.0-alpha.15",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "98f43038608fe66a256dabfff0810476e9e6b3ab",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Filtered lookup of IdTokens, AppMetadata; Error handling in Node Storage (#2530)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "354dd86449d792b7369fb240c5e2cfd70ca73488",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Implement Password Grant Flow (#2204)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "baf6d157e7bbeae439526aee13eb08962974925b",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Build Pipeline Changes (#2406)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "af8459c0d53a4dc2bf495017608c0bb03004d006",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Nov 2020 23:33:39 GMT",
       "tag": "@azure/msal-node_v1.0.0-alpha.14",
       "version": "1.0.0-alpha.14",

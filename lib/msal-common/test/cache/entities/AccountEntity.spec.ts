@@ -6,9 +6,9 @@ import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { CacheAccountType, Constants } from "../../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
-import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../../utils/StringConstants";
+import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS } from "../../utils/StringConstants";
 import sinon from "sinon";
-import { AuthorityType, ClientAuthError, ClientAuthErrorMessage, ProtocolMode } from "../../../src";
+import { AuthorityType, ClientAuthError, ClientAuthErrorMessage, Logger, LogLevel, ProtocolMode } from "../../../src";
 import { ClientTestUtils } from "../../client/ClientTestUtils";
 
 const cryptoInterface: ICrypto = {
@@ -21,6 +21,8 @@ const cryptoInterface: ICrypto = {
                 return TEST_POP_VALUES.DECODED_REQ_CNF;
             case TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO:
                 return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO;
+            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS:
+                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS
             default:
                 return input;
         }
@@ -72,6 +74,14 @@ const authority =  AuthorityFactory.createInstance(
     ProtocolMode.AAD
 );
 
+const loggerOptions = {
+    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+        console.log(`Log level: ${level} Message: ${message}`);
+    },
+    piiLoggingEnabled: true,
+    logLevel: LogLevel.Verbose
+};
+
 describe("AccountEntity.ts Unit Tests", () => {
     beforeEach(() => {
         ClientTestUtils.setCloudDiscoveryMetadataStubs();
@@ -120,20 +130,70 @@ describe("AccountEntity.ts Unit Tests", () => {
             "nonce": "123523",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+
+        const logger = new Logger(loggerOptions);
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idToken);
 
         const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            homeAccountId,
             authority,
-            idToken,
-            cryptoInterface
+            idToken
         );
 
-        expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.generateAccountKey()).to.eql(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.homeAccountId).to.eq(homeAccountId);
+        expect(acc.environment).to.eq(PREFERRED_CACHE_ALIAS);
+        expect(acc.realm).to.eq(idTokenClaims.tid);
         expect(acc.username).to.eq("AbeLi@microsoft.com");
+        expect(acc.localAccountId).to.eql(idTokenClaims.oid);
     });
 
-    it("create an Account with emails claim instead of preferred_username claim", () => {       
+    it("create an Account with sub instead of oid as localAccountId", () => {
+        // Set up stubs
+        const idTokenClaims = {
+            "ver": "2.0",
+            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            "exp": 1536361411,
+            "name": "Abe Lincoln",
+            "preferred_username": "AbeLi@microsoft.com",
+            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+            "nonce": "123523",
+        };
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+
+        const logger = new Logger(loggerOptions);
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idToken);
+
+        const acc = AccountEntity.createAccount(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            homeAccountId,
+            authority,
+            idToken
+        );
+
+        expect(acc.generateAccountKey()).to.eql(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.homeAccountId).to.eq(homeAccountId);
+        expect(acc.environment).to.eq(PREFERRED_CACHE_ALIAS);
+        expect(acc.realm).to.eq(idTokenClaims.tid);
+        expect(acc.username).to.eq("AbeLi@microsoft.com");
+        expect(acc.localAccountId).to.eql(idTokenClaims.sub);
+    });
+
+    it("create an Account with emails claim instead of preferred_username claim", () => {
         // Set up stubs
         const idTokenClaims = {
             "ver": "2.0",
@@ -149,18 +209,29 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
-            authority,
-            idToken,
-            cryptoInterface
-        );
+        const logger = new Logger(loggerOptions);
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idToken);
 
-        expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
+        const acc = AccountEntity.createAccount(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            homeAccountId,
+            authority,
+            idToken
+        );
+        expect(acc.generateAccountKey()).to.eql(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.homeAccountId).to.eq(homeAccountId);
+        expect(acc.environment).to.eq(PREFERRED_CACHE_ALIAS);
+        expect(acc.realm).to.eq(idTokenClaims.tid);
         expect(acc.username).to.eq("AbeLi@microsoft.com");
+        expect(acc.localAccountId).to.eql(idTokenClaims.oid);
     });
 
-    it("create an Account no preferred_username or emails claim", () => {       
+    it("create an Account no preferred_username or emails claim", () => {
         const authority =  AuthorityFactory.createInstance(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
@@ -181,15 +252,27 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
+        const logger = new Logger(loggerOptions);
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idToken);
+
         const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            homeAccountId,
             authority,
-            idToken,
-            cryptoInterface
+            idToken
         );
 
-        expect(acc.generateAccountKey()).to.eql(`uid.utid-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.generateAccountKey()).to.eql(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.homeAccountId).to.eq(homeAccountId);
+        expect(acc.environment).to.eq(PREFERRED_CACHE_ALIAS);
+        expect(acc.realm).to.eq(idTokenClaims.tid);
         expect(acc.username).to.eq("");
+        expect(acc.localAccountId).to.eql(idTokenClaims.oid);
     });
 
     it("creates a generic account", () => {
@@ -214,23 +297,47 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
+        const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
             authority,
+            homeAccountId,
             idToken
         );
 
         expect(acc.generateAccountKey()).to.eql(`${idTokenClaims.sub.toLowerCase()}-login.windows.net-`);
+        expect(acc.homeAccountId).to.eq(homeAccountId);
+        expect(acc.environment).to.eq(PREFERRED_CACHE_ALIAS);
+        expect(acc.realm).to.eq(""); // Realm empty for generic accounts
         expect(acc.username).to.eq("testupn");
+        expect(acc.localAccountId).to.eq(idTokenClaims.oid);
         expect(acc.authorityType).to.eq(CacheAccountType.GENERIC_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).to.eql(true);
     });
 
+    it("verify if an object is an account entity", () => {
+        expect(AccountEntity.isAccountEntity(mockAccountEntity)).to.eql(true);
+    });
+
+    it("verify if an object is not an account entity", () => {
+        expect(AccountEntity.isAccountEntity(mockIdTokenEntity)).to.eql(false);
+    });
+});
+
+describe("AccountEntity.ts Unit Tests for ADFS", () => {
+    beforeEach(() => {
+        ClientTestUtils.setCloudDiscoveryMetadataStubsForADFS();
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
     it("creates a generic ADFS account", () => {
-        const authority =  AuthorityFactory.createInstance(
+        const authority = AuthorityFactory.createInstance(
             "https://myadfs.com/adfs",
             networkInterface,
-            ProtocolMode.AAD
-		);
+            ProtocolMode.OIDC
+        );
 
         // Set up stubs
         const idTokenClaims = {
@@ -245,26 +352,60 @@ describe("AccountEntity.ts Unit Tests", () => {
             "upn": "testupn"
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
+        const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
             authority,
+            homeAccountId,
             idToken
         );
 
-        expect(acc.generateAccountKey()).to.eql(`${idTokenClaims.sub.toLowerCase()}-login.windows.net-`);
+        expect(acc.generateAccountKey()).to.eql(`${idTokenClaims.sub.toLowerCase()}-myadfs.com/adfs-`);
+        expect(acc.homeAccountId).to.eq(homeAccountId);
+        expect(acc.environment).to.eq("myadfs.com/adfs");
+        expect(acc.realm).to.eq("");
         expect(acc.username).to.eq("testupn");
+        expect(acc.localAccountId).to.eq(idTokenClaims.oid);
         expect(acc.authorityType).to.eq(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).to.eql(true);
     });
 
-    it("verify if an object is an account entity", () => {
-        expect(AccountEntity.isAccountEntity(mockAccountEntity)).to.eql(true);
+    it("creates a generic ADFS account without OID", () => {
+        const authority = AuthorityFactory.createInstance(
+            "https://adfs.com/adfs",
+            networkInterface,
+            ProtocolMode.OIDC
+        );
+
+        // Set up stubs
+        const idTokenClaims = {
+            "ver": "2.0",
+            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            "exp": 1536361411,
+            "name": "Abe Lincoln",
+            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+            "nonce": "123523",
+            "upn": "testupn"
+        };
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+
+        const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
+        const acc = AccountEntity.createGenericAccount(
+            authority,
+            homeAccountId,
+            idToken
+        );
+
+        expect(acc.generateAccountKey()).to.eql(`${idTokenClaims.sub.toLowerCase()}-myadfs.com/adfs-`);
+        expect(acc.homeAccountId).to.eq(homeAccountId);
+        expect(acc.environment).to.eq("myadfs.com/adfs");
+        expect(acc.realm).to.eq("");
+        expect(acc.username).to.eq("testupn");
+        expect(acc.authorityType).to.eq(CacheAccountType.ADFS_ACCOUNT_TYPE);
+        expect(acc.localAccountId).to.eq(idTokenClaims.sub);
+        expect(AccountEntity.isAccountEntity(acc)).to.eql(true);
     });
-
-    it("verify if an object is not an account entity", () => {
-        expect(AccountEntity.isAccountEntity(mockIdTokenEntity)).to.eql(false);
-    });
-
-
 });

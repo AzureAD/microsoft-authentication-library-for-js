@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 02 Nov 2020 23:33:39 GMT and should not be manually modified.
+This log was last generated on Sat, 07 Nov 2020 01:50:14 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.6.0
+
+Sat, 07 Nov 2020 01:50:14 GMT
+
+### Minor changes
+
+- Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516) (sameera.gajjarapu@microsoft.com)
 
 ## 2.5.2
 
