@@ -33,9 +33,9 @@ This is an improvement upon the current `msal-angular` library which will utiliz
 
 ## Guides
 
-- [Upgrade Guide (1.x-2.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/1.x-2.x-upgrade-guide.md)
-- [Upgrade Guide (0.x-1.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/0.x-1.x-upgrade-guide.md)
-- [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/configuration-2.x.md)
+- [Upgrade Guide (1.x-2.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/1.x-2.x-upgrade-guide.md)
+- [Upgrade Guide (0.x-1.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v1-docs/0.x-1.x-upgrade-guide.md)
+- [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/configuration.md)
 
 ## Version Support
 
@@ -61,9 +61,18 @@ npm install msal @azure/msal-angular --save
 ## Usage
 
 MSAL Angular Basics
-1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/initialization-2.x.md)
-2. [Public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/public-apis-2.x.md)
-3. [Advanced Topics](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/advanced-topics-2.x.md)
+1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/initialization.md)
+2. [Public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/public-apis.md)
+3. [Known issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/known-issues.md)
+
+Advanced Topics
+1. [Logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/logging.md)
+2. [CORS API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/cors-api.md)
+3. [Mult-Tenant](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/multi-tenant.md)
+4. [Security](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/security.md)
+5. [Internet Explorer Support](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/ie-support.md)
+
+All documentation for MSAL Angular v1 can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v1-docs/).
 
 ## Samples
 

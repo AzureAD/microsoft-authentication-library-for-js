@@ -1,6 +1,6 @@
-## MSAL Angular Public APIs
+## MSAL Angular Public APIs for MSAL Angular v2
 
-Before you start here, make sure you understand how to [initialize the application object](./initialization.md).
+Before you start here, make sure you understand how to [initialize the application object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/initialization.md).
 
 The login APIs in MSAL retrieve an `authorization code` which can be exchanged for an [ID token](https://docs.microsoft.com/azure/active-directory/develop/id-tokens) for a signed in user, while consenting scopes for an additional resource, and an [access token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) containing the user consented scopes to allow your app to securely call the API.
 

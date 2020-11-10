@@ -145,4 +145,4 @@ ngOnDestroy(): void {
 
 # Next Steps
 
-You are ready to use MSAL Angular's [public APIs](./public-apis.md)!
+You are ready to use MSAL Angular's [public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/public-apis.md)!
