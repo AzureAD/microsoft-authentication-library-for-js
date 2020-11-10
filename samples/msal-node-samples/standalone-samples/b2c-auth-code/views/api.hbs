@@ -1,0 +1,17 @@
+<div class="col-md-3" style="margin:auto">
+  <div class="card text-center">
+    <div class="card-body">
+      <h5 class="card-title">Welcome {{username}}, you have signed in successfully!</h5>
+      <br>
+      <br>
+      <a class="btn btn-primary" href="/api">Call API</a>
+      <br>
+      <br>
+      <div>
+        {{#if profile}}
+          <pre>{{profile}}</pre>
+        {{/if}}
+      </div>
+  </div>
+  </div>
+</div>
