@@ -148,8 +148,8 @@ const app = express();
 
 // Store accessToken in memory
 app.locals.accessToken = null;
-// Store localAccountId in memory
-app.locals.localAccountId = null;
+// Store homeAccountId in memory
+app.locals.homeAccountId = null;
 
 // Set handlebars view engine
 app.engine(".hbs", exphbs({ extname: ".hbs" }));
@@ -208,7 +208,7 @@ app.get("/profile", (req, res) => {
 app.get("/api", async (req, res) => {
     const msalTokenCache = pca.getTokenCache();
     // Find Account by Local Account Id
-    account = await msalTokenCache.getAccountByLocalId(app.locals.localAccountId);
+    account = await msalTokenCache.getAccountByHomeId(app.locals.homeAccountId);
 
     // build silent request
     const silentRequest = {
@@ -246,7 +246,9 @@ app.get("/redirect", (req, res) => {
 
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
-                app.locals.localAccountId = response.account.localAccountId;
+                console.log(response);
+                console.log(response.account);
+                app.locals.homeAccountId = response.account.homeAccountId;
                 const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
                 res.render("api", templateParams);
             }).catch((error) => {
