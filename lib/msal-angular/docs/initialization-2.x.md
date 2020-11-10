@@ -71,7 +71,7 @@ MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `
             protectedResourceMap: new Map([ // MSAL Interceptor Configuration
                 ['https://graph.microsoft.com/v1.0/me', ['user.read']],
                 ['https://api.myapplication.com/users/*', ['customscope.read']],
-                ['http://localhost:4200/about/', null]
+                ['http://localhost:4200/about/', null] 
             ])
         })
     ],
