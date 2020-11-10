@@ -82,9 +82,10 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
 | `loggerOptions` | Config object for logger. | See [below](#logger-config-options). | See [below](#logger-config-options). |
-| `windowHashTimeout` | Timeout in milliseconds to wait for popup authentication to resolve. | integer (milliseconds) | `60000` |
-| `iframeHashTimeout` | Timeout in milliseconds to wait for iframe authentication to resolve | integer (milliseconds) | `6000` |
-| `loadFrameTimeout` | Timeout in milliseconds to wait for the iframe to load in the window. | integer (milliseconds) | In IE or Edge: `500`, in all other browsers: `0` |
+| `windowHashTimeout` | Timeout in milliseconds to wait for popup operations to resolve. | integer (milliseconds) | `60000` |
+| `iframeHashTimeout` | Timeout in milliseconds to wait for iframe opeations to resolve. | integer (milliseconds) | `6000` |
+| `loadFrameTimeout` | Timeout in milliseconds to wait for iframe/popup operations resolve. If provided, will set default values for `windowHashTimeout` and `iframeHashTimeout`. | integer (milliseconds) | `undefined` |
+| `navigateFrameWait ` | Delay in milliseconds to wait for the iframe to load in the window. | integer (milliseconds) | In IE or Edge: `500`, in all other browsers: `0` |
 | `asyncPopups` | Sets whether popups are opened asynchronously. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request. Can be set to true for scenarios where `about:blank` is not supported, e.g. desktop apps or progressive web apps | boolean | `false` |
 
 ### Logger Config Options

@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Pass generic to ModuleWithProviders for MsalModule v1, set supported Angular versions to 6-9 (#2577)",
+  "packageName": "@azure/msal-angular",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-10T20:09:45.661Z"
+}
