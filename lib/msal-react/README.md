@@ -1,0 +1,114 @@
+# Microsoft Authentication Library for React (msal-react)
+
+`msal-react` is under development. **We do not recommend using this in a production environment yet**.
+
+| [AAD Docs](https://aka.ms/aaddevv2) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples)
+| --- | --- | --- |
+
+1. [About](#about)
+1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
+1. [Prerequisites](#prerequisites)
+1. [Installation](#installation)
+1. [Build and Test](#build-and-test)
+1. [Usage](#usage)
+    - [Getting Started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md)
+    - [Msal Basics](#msal-basics)
+    - [Advanced Topics](#advanced-topics)
+    - [MSAL React Specific Concepts](#msal-react-specific-concepts)
+1. [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-react-feature-branch/samples/msal-react-samples)
+1. [Security Reporting](#security-reporting)
+1. [License](#license)
+1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
+
+## About
+
+The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
+
+The `@azure/msal-react` package described by the code in this folder uses the [`@azure/msal-browser` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) as a peer dependency to enable authentication in Javascript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section in the [msal-browser readme](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/README.md#implicit-flow-vs-authorization-code-flow-with-pkce).
+
+## Prerequisites
+
+- `@azure/msal-react` is meant to be used in [Single-Page Application scenarios](https://docs.microsoft.com/azure/active-directory/develop/scenario-spa-overview).
+
+- Before using `@azure/msal-react` you will need to [register a Single Page Application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
+
+## Installation
+
+The MSAL React package is available on NPM.
+
+```sh
+npm install react react-dom
+npm install @azure/msal-react @azure/msal-browser
+```
+
+## Build and Test
+
+See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information.
+
+### Building the package
+
+To build the `@azure/msal-react` library, you can do the following:
+
+```bash
+// Change to the msal-react package directory
+cd lib/msal-react/
+// To run build only for react package
+npm run build
+```
+
+To build both the `@azure/msal-react` library and `@azure/msal-browser` libraries, you can do the following:
+
+```bash
+// Change to the msal-react package directory
+cd lib/msal-react/
+// To run build for react and browser packages
+npm run build:all
+```
+
+### Running Tests
+
+`@azure/msal-react` uses [jest](https://jestjs.io/) to run unit tests and coverage.
+
+```bash
+// To run tests
+npm test
+// To run tests with code coverage
+npm run test:coverage
+```
+
+## Usage
+
+For help getting started with `msal-react` please see our [getting started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md) doc.
+
+### MSAL Basics
+
+Since `msal-react` is built on top of `@azure/msal-browser` a lot of the same docs are relevant. For concepts specific to `msal-react` please see [below](#msal-react-specific-concepts)
+
+1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md)
+1. [Acquiring and using an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md)
+1. [Managing token lifetimes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/token-lifetimes.md)
+1. [Managing Accounts](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md)
+1. [Logging out](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md)
+
+### Advanced Topics
+
+- [Configuration Options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md)
+- [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
+- [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
+- [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
+
+### MSAL React Specific Concepts
+
+1. [Hooks](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-react-feature-branch/lib/msal-react/docs/hooks.md)
+
+## Security Reporting
+
+If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/security/dd252948) and subscribing to Security Advisory Alerts.
+
+## License
+
+Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License.
+
+## We Value and Adhere to the Microsoft Open Source Code of Conduct
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
