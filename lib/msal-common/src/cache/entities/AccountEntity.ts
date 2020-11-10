@@ -252,6 +252,7 @@ export class AccountEntity {
         if (!entity) {
             return false;
         }
+
         return (
             entity.hasOwnProperty("homeAccountId") &&
             entity.hasOwnProperty("environment") &&
