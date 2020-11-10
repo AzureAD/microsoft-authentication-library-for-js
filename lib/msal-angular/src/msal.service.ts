@@ -7,11 +7,9 @@ import { Inject, Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import {
     IPublicClientApplication,
-    AccountInfo,
     EndSessionRequest,
     AuthorizationUrlRequest,
     AuthenticationResult,
-    PopupRequest,
     RedirectRequest,
     SilentRequest
 } from "@azure/msal-browser";
