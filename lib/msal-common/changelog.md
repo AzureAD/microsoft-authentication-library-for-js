@@ -1,8 +1,31 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 26 Oct 2020 21:00:29 GMT and should not be manually modified.
+This log was last generated on Tue, 10 Nov 2020 01:48:44 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.7.1
+
+Tue, 10 Nov 2020 01:48:44 GMT
+
+### Patches
+
+- Enhance lookup for IdTokens/AppMetadata (#2530) (sameera.gajjarapu@microsoft.com)
+- Add LocalAccountId for ADFS usecases (#2573) (sameera.gajjarapu@microsoft.com)
+
+## 1.7.0
+
+Sat, 07 Nov 2020 01:50:14 GMT
+
+### Minor changes
+
+- Implement Password Grant Flow (#2204) (sameera.gajjarapu@microsoft.com)
+- Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Mandate localAccount in AccountInfo (sameera.gajjarapu@microsoft.com)
+- Filtered lookup of IdTokens, AppMetadata; Error handling in Node Storage (#2530) (sameera.gajjarapu@microsoft.com)
 
 ## 1.6.3
 
