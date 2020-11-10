@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Fix multiple matching tokens error (#2582)",
+  "packageName": "msal",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-10T19:43:41.658Z"
+}
