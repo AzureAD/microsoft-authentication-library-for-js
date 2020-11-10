@@ -122,7 +122,7 @@ app.get("/redirect", (req, res) => {
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
-        // Home account ID in the form uniqueId.tenantId to be used to find the right account before acquireTokenSilent
+        // Home account ID from token response account is used here to find the same account from the cache
         app.locals.homeAccountId = response.account.homeAccountId;
         const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
         res.render("graph", templateParams);
@@ -168,4 +168,3 @@ app.get("/graphCall", async (req, res) => {
 });
 
 app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
-

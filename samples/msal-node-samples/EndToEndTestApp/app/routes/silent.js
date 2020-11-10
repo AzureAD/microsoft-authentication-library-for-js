@@ -71,7 +71,6 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
     app.get('/graphCall', async (req, res) => {
         // get Accounts
         const account = await msalTokenCache.getAccountByHomeId(app.locals.homeAccountId);
-        console.log(account);
         /** 
          * Account index must match the account's position in the cache. The sample cache file contains a dummy account
          * entry in index 0, hence the actual account that is logged in will be index 1
