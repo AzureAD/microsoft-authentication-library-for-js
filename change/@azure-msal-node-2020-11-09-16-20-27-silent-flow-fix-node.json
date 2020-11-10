@@ -1,8 +1,8 @@
 {
   "type": "prerelease",
-  "comment": "Filtered lookup of IdTokens, AppMetadata; Error handling in Node Storage (#2530)",
+  "comment": "Enhance lookup for IdTokens/AppMetadata (#2530)",
   "packageName": "@azure/msal-node",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "none",
-  "date": "2020-10-31T00:12:07.072Z"
+  "date": "2020-11-10T00:20:27.945Z"
 }

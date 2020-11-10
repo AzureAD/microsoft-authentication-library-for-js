@@ -69,7 +69,8 @@ export class AccountEntity {
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
-            username: this.username
+            username: this.username,
+            localAccountId: this.localAccountId
         });
     }
 
@@ -101,8 +102,8 @@ export class AccountEntity {
             environment: this.environment,
             tenantId: this.realm,
             username: this.username,
+            localAccountId: this.localAccountId,
             name: this.name,
-            localAccountId: this.localAccountId
         };
     }
 
@@ -193,8 +194,20 @@ export class AccountEntity {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
+        if (idToken) {
+            // How do you account for MSA CID here?
+            const localAccountId = !StringUtils.isEmpty(idToken.claims.oid)
+                ? idToken.claims.oid
+                : idToken.claims.sub;
+            account.localAccountId = localAccountId;
+
+            // upn claim for most ADFS scenarios
+            account.username = idToken.claims.upn;
+            account.name = idToken.claims.name;
+        }
+
         account.environment = env;
-        account.username = idToken.claims.upn;
+
         /*
          * add uniqueName to claims
          * account.name = idToken.claims.uniqueName;
@@ -239,6 +252,7 @@ export class AccountEntity {
         if (!entity) {
             return false;
         }
+
         return (
             entity.hasOwnProperty("homeAccountId") &&
             entity.hasOwnProperty("environment") &&
