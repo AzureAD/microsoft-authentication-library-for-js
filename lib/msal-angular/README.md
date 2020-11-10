@@ -68,7 +68,7 @@ MSAL Angular Basics
 Advanced Topics
 1. [Logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/logging.md)
 2. [CORS API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/cors-api.md)
-3. [Mult-Tenant](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/multi-tenant.md)
+3. [Multi-Tenant](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/multi-tenant.md)
 4. [Security](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/security.md)
 5. [Internet Explorer Support](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/ie-support.md)
 

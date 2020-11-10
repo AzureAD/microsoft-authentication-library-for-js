@@ -71,7 +71,7 @@ export class MsalGuard implements CanActivate {
         return this.authService.handleRedirectObservable()
             .pipe(
                 concatMap(() => {
-                    if (!this.authService.getAllAccounts().length) {
+                    if (!this.authService.instance.getAllAccounts().length) {
                         return this.loginInteractively(state.url);
                     }
                     return of(true);

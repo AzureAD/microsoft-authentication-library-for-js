@@ -31,7 +31,7 @@ export class MsalInterceptor implements HttpInterceptor {
         }
 
         const scopes = this.getScopesForEndpoint(req.url);
-        const account = this.authService.getAllAccounts()[0];
+        const account = this.authService.instance.getAllAccounts()[0];
 
         if (!scopes || scopes.length === 0) {
             return next.handle(req);

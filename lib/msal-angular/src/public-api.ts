@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-export { MsalService, IMsalService } from "./msal.service";
+export { MsalService } from "./msal.service";
+export { IMsalService } from "./IMsalService";
 export { MsalGuard } from "./msal.guard";
 export { MsalGuardConfiguration } from "./msal.guard.config";
 export { MsalInterceptor } from "./msal.interceptor";

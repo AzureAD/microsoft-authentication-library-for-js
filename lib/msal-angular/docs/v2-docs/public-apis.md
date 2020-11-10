@@ -1,4 +1,4 @@
-## MSAL Angular Public APIs for MSAL Angular v2
+# MSAL Angular Public APIs for MSAL Angular v2
 
 Before you start here, make sure you understand how to [initialize the application object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/initialization.md).
 
@@ -6,17 +6,17 @@ The login APIs in MSAL retrieve an `authorization code` which can be exchanged f
 
 You can read more about ID tokens on our [Azure Docs pages](https://docs.microsoft.com/azure/active-directory/develop/id-tokens).
 
-### Login and AcquireToken APIs
+## Public APIs
 
-The wrapper exposes APIs for login, logout, acquiring access token and more.
+MSAL Angular exposes the following, along with their configurations 
+1. [`MsalService`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.service.ts/)
+2. [`MsalGuard`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.guard.ts/)
+    * [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.guard.config.ts/)
+3. [`MsalInterceptor`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.interceptor.ts/)
+    * [`MsalInterceptorConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.interceptor.config.ts/)
+4. [`MsalBroadcastService`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.broadcast.service.ts/)
+5. [`MsalModule`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.module.ts/)
 
-1. `loginPopup()`
-2. `loginRedirect()`
-3. `logout()`
-4. `acquireTokenPopup()`
-5. `acquireTokenRedirect()`
-6. `acquireTokenSilent()`
-7. `getAllAccounts()`
-8. `getAccountByUsername()`
-9. `ssoSilent()`
-10. `handleRedirectObservable()`
+The login and acquire token functions using Angular observables are found on the [IMsalService](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/IMsalService.ts/).
+
+Additional functions from `@azure/msal-browser` are found on [`IPublicClientApplication`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/src/app/IPublicClientApplication.ts), with corresponding documentation [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md).

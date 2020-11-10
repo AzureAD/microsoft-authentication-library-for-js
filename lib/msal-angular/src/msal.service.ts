@@ -17,26 +17,14 @@ import {
 } from "@azure/msal-browser";
 import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from "rxjs";
-
-export interface IMsalService {
-    acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult>;
-    acquireTokenRedirect(request: RedirectRequest): Observable<void>;
-    acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult>;
-    getAccountByUsername(userName: string): AccountInfo | null;
-    getAllAccounts(): AccountInfo[];
-    handleRedirectObservable(): Observable<AuthenticationResult | null>;
-    loginPopup(request?: PopupRequest): Observable<AuthenticationResult>;
-    loginRedirect(request?: RedirectRequest): Observable<void>;
-    logout(logoutRequest?: EndSessionRequest): Observable<void>;
-    ssoSilent(request: AuthorizationUrlRequest): Observable<AuthenticationResult>;
-}
+import { IMsalService } from "./IMsalService";
 
 @Injectable()
 export class MsalService implements IMsalService {
     private redirectHash: string;
 
     constructor(
-        @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
+        @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
         private location: Location
     ) {
         const hash = this.location.path(true).split("#").pop();
@@ -46,36 +34,30 @@ export class MsalService implements IMsalService {
     }
 
     acquireTokenPopup(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
-        return from(this.msalInstance.acquireTokenPopup(request));
+        return from(this.instance.acquireTokenPopup(request));
     }
     acquireTokenRedirect(request: RedirectRequest): Observable<void> {
-        return from(this.msalInstance.acquireTokenRedirect(request));
+        return from(this.instance.acquireTokenRedirect(request));
     }
     acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult> {
-        return from(this.msalInstance.acquireTokenSilent(silentRequest));
-    }
-    getAccountByUsername(userName: string): AccountInfo {
-        return this.msalInstance.getAccountByUsername(userName);
-    }
-    getAllAccounts(): AccountInfo[] {
-        return this.msalInstance.getAllAccounts();
+        return from(this.instance.acquireTokenSilent(silentRequest));
     }
     handleRedirectObservable(): Observable<AuthenticationResult> {
-        const handleRedirect = from(this.msalInstance.handleRedirectPromise(this.redirectHash));
+        const handleRedirect = from(this.instance.handleRedirectPromise(this.redirectHash));
         this.redirectHash = "";
         return handleRedirect;
     }
     loginPopup(request?: AuthorizationUrlRequest): Observable<AuthenticationResult> {
-        return from(this.msalInstance.loginPopup(request));
+        return from(this.instance.loginPopup(request));
     }
     loginRedirect(request?: RedirectRequest): Observable<void> {
-        return from(this.msalInstance.loginRedirect(request));
+        return from(this.instance.loginRedirect(request));
     }
     logout(logoutRequest?: EndSessionRequest): Observable<void> {
-        return from(this.msalInstance.logout(logoutRequest));
+        return from(this.instance.logout(logoutRequest));
     }
     ssoSilent(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
-        return from(this.msalInstance.ssoSilent(request));
+        return from(this.instance.ssoSilent(request));
     }
 
 }
