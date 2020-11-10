@@ -7,7 +7,7 @@ import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from "@angul
 import { MsalService } from "./msal.service";
 import { Injectable, Inject } from "@angular/core";
 import { Location } from "@angular/common";
-import { InteractionType} from "@azure/msal-browser";
+import { InteractionType, BrowserConfigurationAuthError } from "@azure/msal-browser";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MSAL_GUARD_CONFIG } from "./constants";
 import { concatMap, catchError, map } from "rxjs/operators";
@@ -46,7 +46,7 @@ export class MsalGuard implements CanActivate {
         return `${baseUrl}${path}`;
     }
 
-    private loginInteractively(url: string): Observable<boolean> {
+    private loginInteractively(url: string): Observable<boolean> {        
         if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
             return this.authService.loginPopup({...this.msalGuardConfig.authRequest})
                 .pipe(
@@ -57,14 +57,17 @@ export class MsalGuard implements CanActivate {
 
         const redirectStartPage = this.getDestinationUrl(url);
         this.authService.loginRedirect({
-            ...this.msalGuardConfig.authRequest,
             redirectStartPage,
-            scopes: [],
+            ...this.msalGuardConfig.authRequest
         });
         return of(false);
     }
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Observable<boolean> {
+        if (this.msalGuardConfig.interactionType !== InteractionType.Popup && this.msalGuardConfig.interactionType !== InteractionType.Redirect) {
+            throw new BrowserConfigurationAuthError("invalid_interaction_type", "Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration");
+        }
+
         return this.authService.handleRedirectObservable()
             .pipe(
                 concatMap(() => {

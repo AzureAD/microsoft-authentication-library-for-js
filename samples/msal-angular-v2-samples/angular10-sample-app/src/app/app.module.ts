@@ -13,7 +13,7 @@ import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation } from '@azure/msal-browser';
-import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfig, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG } from '@azure/msal-angular';
+import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
 
 const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1;
 
@@ -31,14 +31,18 @@ export function MSALInstanceFactory(): IPublicClientApplication {
   });
 }
 
-export function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
   protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
 
   return {
     interactionType: InteractionType.Redirect,
-    protectedResourceMap,
+    protectedResourceMap
   };
+}
+
+export function MSALGuardConfigFactory(): MsalGuardConfiguration {
+  return { interactionType: InteractionType.Redirect };
 }
 
 @NgModule({
@@ -69,7 +73,7 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
     },
     {
       provide: MSAL_GUARD_CONFIG,
-      useValue: { interactionType: InteractionType.Redirect }
+      useFactory: MSALGuardConfigFactory
     },
     {
       provide: MSAL_INTERCEPTOR_CONFIG,

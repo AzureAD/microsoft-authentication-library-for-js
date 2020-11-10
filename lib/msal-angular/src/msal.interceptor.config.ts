@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { PopupRequest, RedirectRequest, InteractionType } from "@azure/msal-browser";
+import { PopupRequest, RedirectRequest, InteractionType, SilentRequest } from "@azure/msal-browser";
 
-export type MsalInterceptorConfig = {
+export type MsalInterceptorConfiguration = {
     interactionType: InteractionType.Popup | InteractionType.Redirect;
     protectedResourceMap: Map<string, Array<string>>;
-    authRequest?: PopupRequest | RedirectRequest;
+    authRequest?: Omit<PopupRequest, "scopes"> | Omit<RedirectRequest, "scopes"> | Omit<SilentRequest, "scopes">;
 };

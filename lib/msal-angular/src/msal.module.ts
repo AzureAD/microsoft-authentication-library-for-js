@@ -7,7 +7,7 @@ import { ModuleWithProviders, NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { IPublicClientApplication } from "@azure/msal-browser";
 import { MsalGuardConfiguration } from "./msal.guard.config";
-import { MsalInterceptorConfig } from "./msal.interceptor.config";
+import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
 import { MsalGuard } from "./msal.guard";
 import { MsalBroadcastService } from "./msal.broadcast.service";
 import { MsalService } from "./msal.service";
@@ -27,7 +27,7 @@ export class MsalModule {
     static forRoot(
         msalInstance: IPublicClientApplication,
         guardConfig: MsalGuardConfiguration,
-        interceptorConfig: MsalInterceptorConfig
+        interceptorConfig: MsalInterceptorConfiguration
     ): ModuleWithProviders<MsalModule> {
         return {
             ngModule: MsalModule,

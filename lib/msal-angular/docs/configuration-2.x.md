@@ -14,7 +14,7 @@ MSAL for Angular accepts three configuration objects:
 2. [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.guard.config.ts): A set of options specifically for the Angular guard.
 3. [`MsalInterceptorConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/src/msal.interceptor.config.ts): A set of options specifically for the Angular interceptor.
 
-An `authRequest` object can be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration`. While scopes is the only required parameter, all other possible parameters for the request object can be found here: [`PopupRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_popuprequest_.html) and [`RedirectRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_redirectrequest_.html).
+An `authRequest` object can be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration` to set additional options. This is an advanced featured that is not required. All possible parameters for the request object can be found here: [`PopupRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_popuprequest_.html) and [`RedirectRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_redirectrequest_.html).
 
 ## MsalModule.forRoot
 
@@ -30,12 +30,9 @@ import { IPublicClientApplication, PublicClientApplication, InteractionType, Bro
             auth: {
                 clientId: "clientid",
                 authority: "https://login.microsoftonline.com/common/",
-                knownAuthorities: [],
-                cloudDiscoveryMetadata: "",
                 redirectUri: "http://localhost:4200/",
                 postLogoutRedirectUri: "http://localhost:4200/",
-                navigateToLoginRequestUrl: true,
-                clientCapabilities: []
+                navigateToLoginRequestUrl: true
             },
             cache: {
                 cacheLocation : BrowserCacheLocation.LocalStorage,
@@ -48,16 +45,10 @@ import { IPublicClientApplication, PublicClientApplication, InteractionType, Bro
                 }
             }
         }, {
-            interactionType: InteractionType.Popup, // MSAL Guard Configuration
-            authRequest: {
-              scopes: ["User.Read"]
-            }
+            interactionType: InteractionType.Popup // MSAL Guard Configuration
         }, {
             interactionType: InteractionType.Redirect, // MSAL Interceptor Configuration
-            protectedResourceMap,
-            authRequest: {
-              scopes: ["User.Read"]
-            }
+            protectedResourceMap
         })
     ],
     providers: [
@@ -87,7 +78,7 @@ import {
 } from "@azure/msal-angular";
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
 
-function MSALInstanceFactory(): IPublicClientApplication {
+export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: "6226576d-37e9-49eb-b201-ec1eeb0029b6",
@@ -101,7 +92,7 @@ function MSALInstanceFactory(): IPublicClientApplication {
   });
 }
 
-function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
   const protectedResourceMap = new Map<string, Array<string>>();
   protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
 
@@ -111,19 +102,31 @@ function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
   };
 }
 
+export function MSALGuardConfigFactory(): MsalGuardConfiguration {
+  return { interactionType: InteractionType.Redirect };
+}
+
 @NgModule({
   imports: [
-    MsalModule.forRoot(
-      MSALInstanceFactory(), {
-        interactionType: InteractionType.Redirect
-      }, MSALInterceptorConfigFactory()
-    ),
+    MsalModule
   ],
   providers: [
     {
       provide: HTTP_INTERCEPTORS,
       useClass: MsalInterceptor,
       multi: true
+    },
+    {
+      provide: MSAL_INSTANCE,
+      useFactory: MSALInstanceFactory
+    },
+    {
+      provide: MSAL_GUARD_CONFIG,
+      useFactory: MSALGuardConfigFactory
+    },
+    {
+      provide: MSAL_INTERCEPTOR_CONFIG,
+      useFactory: MSALInterceptorConfigFactory
     },
     MsalGuard,
     MsalBroadcastService

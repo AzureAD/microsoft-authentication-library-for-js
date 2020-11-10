@@ -13,19 +13,23 @@ import { Observable, EMPTY } from "rxjs";
 import { switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
 import { Minimatch } from "minimatch";
-import { AuthenticationResult, InteractionType } from "@azure/msal-browser";
+import { AuthenticationResult, BrowserConfigurationAuthError, InteractionType } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
-import { MsalInterceptorConfig } from "./msal.interceptor.config";
+import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
     constructor(
-        @Inject(MSAL_INTERCEPTOR_CONFIG) private msalInterceptorConfig: MsalInterceptorConfig,
+        @Inject(MSAL_INTERCEPTOR_CONFIG) private msalInterceptorConfig: MsalInterceptorConfiguration,
         private authService: MsalService
     ) {}
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        if (this.msalInterceptorConfig.interactionType !== InteractionType.Popup && this.msalInterceptorConfig.interactionType !== InteractionType.Redirect) {
+            throw new BrowserConfigurationAuthError("invalid_interaction_type", "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect or InteractionType.Silent must be provided in the msalInterceptorConfiguration");
+        }
+
         const scopes = this.getScopesForEndpoint(req.url);
         const account = this.authService.getAllAccounts()[0];
 
@@ -34,7 +38,7 @@ export class MsalInterceptor implements HttpInterceptor {
         }
 
         // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
-        return this.authService.acquireTokenSilent({scopes, account})
+        return this.authService.acquireTokenSilent({...this.msalInterceptorConfig.authRequest, scopes, account})
             .pipe(
                 catchError(() => {
                     if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
