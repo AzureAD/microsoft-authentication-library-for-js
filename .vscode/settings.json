@@ -1,16 +1,18 @@
 {
     "editor.formatOnSave": false,
-    "eslint.autoFixOnSave": true,
     "eslint.validate": [
         "javascript",
         "javascriptreact",
-        { "language": "typescript", "autoFix": true }
+        "typescript"
     ],
     "eslint.quiet": true,
     "files.eol": "\n",
     "github-pr.targetBranch": "dev",
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
+    },
+    "files.associations": {
+        "**/build/*.yml": "azure-pipelines"
     },
     "java.configuration.updateBuildConfiguration": "interactive"
 }

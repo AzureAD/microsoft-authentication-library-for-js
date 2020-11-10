@@ -66,6 +66,11 @@ export class AppMetadataEntity {
      * @param entity
      */
     static isAppMetadataEntity(key: string, entity: object): boolean {
+
+        if (!entity) {
+            return false;
+        }
+
         return (
             key.indexOf(APP_METADATA) === 0 &&
             entity.hasOwnProperty("clientId") &&
