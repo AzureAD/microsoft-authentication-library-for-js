@@ -11,9 +11,12 @@ function configureExpressApp(app) {
     // Set handlebars view engine
     app.engine('.hbs', exphbs({extname: '.hbs'}));
     app.set('view engine', '.hbs');
+
+    // Set homeAccountId in memory
+    app.locals.homeAccountId = null;
 }
 
-function handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache, scenarioConfig) {
+function handleAuthorizationResponse(res, authResponse, templateParams, scenarioConfig) {
     // Get scenario specific resource API
     const resourceApi = require(RESOURCE_API_PATH)(scenarioConfig.resourceApi);
 
@@ -54,6 +57,8 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
     app.get('/redirect', (req, res) => {
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
         clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
+            console.log(response);
+            app.locals.homeAccountId = response.account.homeAccountId;
             const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
             res.render("graph", templateParams);
         }).catch((error) => {
@@ -65,19 +70,19 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
     // Initiates Acquire Token Silent flow
     app.get('/graphCall', async (req, res) => {
         // get Accounts
-        const accounts = await msalTokenCache.getAllAccounts();
-
+        const account = await msalTokenCache.getAccountByHomeId(app.locals.homeAccountId);
+        console.log(account);
         /** 
          * Account index must match the account's position in the cache. The sample cache file contains a dummy account
          * entry in index 0, hence the actual account that is logged in will be index 1
          */
-        const silentRequest = { ...requestConfig.silentRequest, account: accounts[0] };
+        const silentRequest = { ...requestConfig.silentRequest, account: account };
     
         let templateParams = { showLoginButton: false };
         // Acquire Token Silently to be used in MS Graph call
         clientApplication.acquireTokenSilent(silentRequest)
             .then((authResponse) => {
-                handleAuthorizationResponse(res, authResponse, templateParams, msalTokenCache, scenarioConfig);
+                handleAuthorizationResponse(res, authResponse, templateParams, scenarioConfig);
             })
             .catch((error) => {
                 console.log(error);
