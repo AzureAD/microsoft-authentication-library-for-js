@@ -36,7 +36,8 @@ export const Constants = {
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
-    EMPTY_STRING: ""
+    EMPTY_STRING: "",
+    FORWARD_SLASH: "/" 
 };
 
 /**
