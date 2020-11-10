@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update Docs and Deps (#2581)",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-10T17:57:09.726Z"
+}
