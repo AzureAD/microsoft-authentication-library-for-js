@@ -1,7 +1,7 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Run CI (Build and Test)
+name: Run CI
 
 on:
   push:
@@ -9,13 +9,26 @@ on:
       - 'dev'
       - 'master'
   pull_request:
+    paths-ignore:
+      - '**.md'
 
 jobs:
-  build:
+
+  build-test:
     runs-on: ubuntu-latest
     env: 
-      NOT_FROM_FORK: ${{ (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push')) }}
+      NOT_FROM_FORK: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
 
+    strategy:
+        fail-fast: false
+        matrix:
+          library:
+            - msal-core
+            - msal-common
+            - msal-browser
+            - msal-node
+            - msal-angular
+  
     steps:
     - uses: actions/checkout@v2
 
@@ -28,34 +41,35 @@ jobs:
       run: npm ci
 
     - name: Build packages
-      run: npm run build
+      working-directory: lib/${{ matrix.library }}
+      run: npm run build:all
 
     - name: Lint
+      working-directory: lib/${{ matrix.library }}
       run: npm run lint
 
-    - name: Unit Tests
-      run: |
-        npm run test:coverage
-        npm run test:report
+    - name: Unit Tests with coverage
+      working-directory: lib/${{ matrix.library }}
+      run: npm run test:coverage
 
     - name: Coveralls
-      if: env.NOT_FROM_FORK == 'true'
+      if: success() && ${{ env.NOT_FROM_FORK == 'true' }}
       uses: coverallsapp/github-action@master
       with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.github_token }}
+        flag-name: ${{ matrix.library }}
+        base-path: lib/${{ matrix.library }}
+        path-to-lcov: lib/${{ matrix.library }}/coverage/lcov.info
+        parallel: true
 
-    - name: E2E Tests
-      timeout-minutes: 5
-      env:
-        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      if: env.NOT_FROM_FORK == 'true'
-      run: npm run test:e2e
+  Coveralls:
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
 
-    - name: Upload E2E Test Screenshots
-      uses: actions/upload-artifact@v2
-      if: failure()
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
       with:
-        name: e2e-test-screenshots
-        path: samples/**/screenshots
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true

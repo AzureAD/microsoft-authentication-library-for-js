@@ -1,7 +1,7 @@
 {
-  "name": "msal-node-auth-code-pkce",
+  "name": "msal-node-username-password",
   "version": "1.0.0",
-  "description": "sample app for msal-node",
+  "description": "Command line app that uses Oauth password grant flow to get a token from Azure AD",
   "main": "index.js",
   "private": true,
   "scripts": {
@@ -12,7 +12,6 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.0-alpha.15",
-    "express": "^4.17.1"
+    "@azure/msal-node": "^1.0.0-alpha.15"
   }
 }
