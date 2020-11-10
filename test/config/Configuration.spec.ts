@@ -1,14 +1,9 @@
 import { expect } from "chai";
-import { Configuration, buildConfiguration } from "../../src/config/Configuration";
+import { Configuration, buildConfiguration, DEFAULT_POPUP_TIMEOUT_MS, DEFAULT_IFRAME_TIMEOUT_MS } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { LogLevel, Constants } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
-
-/**
- * Defaults for the Configuration Options
- */
-const DEFAULT_POPUP_TIMEOUT_MS = 60000;
 
 /**
  * Test values for the Configuration Options
@@ -47,6 +42,8 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system.networkClient).to.be.not.null.and.not.undefined;
         expect(emptyConfig.system.windowHashTimeout).to.be.not.null.and.not.undefined;
         expect(emptyConfig.system.windowHashTimeout).to.be.eq(DEFAULT_POPUP_TIMEOUT_MS);
+        expect(emptyConfig.system.iframeHashTimeout).to.be.not.null.and.not.undefined;
+        expect(emptyConfig.system.iframeHashTimeout).to.be.eq(DEFAULT_IFRAME_TIMEOUT_MS);
         expect(emptyConfig.system.navigateFrameWait).to.be.eq(0);
         expect(emptyConfig.system.tokenRenewalOffsetSeconds).to.be.eq(300);
         expect(emptyConfig.system.asyncPopups).to.be.false;
@@ -57,12 +54,42 @@ describe("Configuration.ts Class Unit Tests", () => {
             auth: null,
             system: {
                 navigateFrameWait: 1,
-                loadFrameTimeout: 10000
+                loadFrameTimeout: 100
             }
         });
 
-        expect(config.system.iframeHashTimeout).to.be.eq(10000);
-        expect(config.system.windowHashTimeout).to.be.eq(10000);
+        expect(config.system.iframeHashTimeout).to.be.eq(100);
+        expect(config.system.windowHashTimeout).to.be.eq(100);
+        expect(config.system.navigateFrameWait).to.be.eq(1);
+    });
+
+    it("sets timeouts with hash timeouts", () => {
+        const config: Configuration = buildConfiguration({
+            auth: null,
+            system: {
+                iframeHashTimeout: 5000,
+                windowHashTimeout: 50000
+            }
+        });
+
+        expect(config.system.iframeHashTimeout).to.be.eq(5000);
+        expect(config.system.windowHashTimeout).to.be.eq(50000);
+    });
+
+    it("sets timeouts with loadFrameTimeout and hash timeouts", () => {
+        const config: Configuration = buildConfiguration({
+            auth: null,
+            system: {
+                navigateFrameWait: 1,
+                iframeHashTimeout: 6001,
+                windowHashTimeout: 6002,
+                loadFrameTimeout: 500
+            }
+        });
+
+        expect(config.system.iframeHashTimeout).to.be.eq(6001);
+        expect(config.system.windowHashTimeout).to.be.eq(6002);
+        expect(config.system.loadFrameTimeout).to.be.eq(500);
         expect(config.system.navigateFrameWait).to.be.eq(1);
     });
 

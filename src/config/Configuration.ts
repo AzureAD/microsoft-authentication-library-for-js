@@ -8,9 +8,9 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows and iframes in milliseconds
-const DEFAULT_POPUP_TIMEOUT_MS = 60000;
-const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
-const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
+export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
+export const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
+export const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
 
 /**
  * Use this to configure the auth options in the Configuration object
