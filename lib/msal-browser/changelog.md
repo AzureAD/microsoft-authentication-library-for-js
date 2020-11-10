@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Sat, 07 Nov 2020 01:50:14 GMT and should not be manually modified.
+This log was last generated on Tue, 10 Nov 2020 01:48:44 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.6.1
+
+Tue, 10 Nov 2020 01:48:44 GMT
+
+### Patches
+
+- Export stubbed PCA instance (#2540) (thomas.norling@microsoft.com)
 
 ## 2.6.0
 
