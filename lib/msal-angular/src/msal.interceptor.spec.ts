@@ -86,6 +86,7 @@ describe('MsalInterceptor', () => {
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
       homeAccountId: "test",
+      localAccountId: "test",
       environment: "test",
       tenantId: "test",
       username: "test"
@@ -113,6 +114,7 @@ describe('MsalInterceptor', () => {
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
       homeAccountId: "test",
+      localAccountId: "test",
       environment: "test",
       tenantId: "test",
       username: "test"
@@ -140,6 +142,7 @@ describe('MsalInterceptor', () => {
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
       homeAccountId: "test",
+      localAccountId: "test",
       environment: "test",
       tenantId: "test",
       username: "test"
@@ -168,6 +171,7 @@ describe('MsalInterceptor', () => {
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
       homeAccountId: "test",
+      localAccountId: "test",
       environment: "test",
       tenantId: "test",
       username: "test"
@@ -195,6 +199,7 @@ describe('MsalInterceptor', () => {
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
       homeAccountId: "test",
+      localAccountId: "test",
       environment: "test",
       tenantId: "test",
       username: "test"
