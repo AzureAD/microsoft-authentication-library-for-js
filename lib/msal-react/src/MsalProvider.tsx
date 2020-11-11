@@ -77,7 +77,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
     };
 
     return (
-        <MsalContext.Provider value={ contextValue }>
+        <MsalContext.Provider value={contextValue}>
             {children}
         </MsalContext.Provider>
     );

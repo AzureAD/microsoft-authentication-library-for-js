@@ -56,7 +56,7 @@
         "spaced-comment": 2,
         "react/jsx-closing-bracket-location": 2,
         "react/jsx-closing-tag-location": 2,
-        "react/jsx-curly-spacing": [2, {"when": "always"}],
+        "react/jsx-curly-spacing": [2, {"when": "never", "attributes": {"allowMultiline": false }, "children": true}],
         "react/jsx-filename-extension": [2, {"extensions": [".jsx", ".tsx"], "allow": "as-needed"}],
         "react/jsx-pascal-case": 2,
         "react/jsx-tag-spacing": 2,
