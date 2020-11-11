@@ -246,8 +246,6 @@ app.get("/redirect", (req, res) => {
 
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
-                console.log(response);
-                console.log(response.account);
                 app.locals.homeAccountId = response.account.homeAccountId;
                 const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
                 res.render("api", templateParams);
