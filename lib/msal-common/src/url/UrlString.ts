@@ -8,7 +8,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { IUri } from "./IUri";
-import { AADAuthorityConstants } from "../utils/Constants";
+import { AADAuthorityConstants, Constants } from "../utils/Constants";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -156,6 +156,17 @@ export class UrlString {
         }
 
         return match[2];
+    }
+
+    static getAbsoluteUrl(relativeUrl: string, baseUrl: string): string {
+        if (relativeUrl[0] === Constants.FORWARD_SLASH) {
+            const url = new UrlString(baseUrl);
+            const baseComponents = url.getUrlComponents();
+
+            return baseComponents.Protocol + "//" + baseComponents.HostNameAndPort + relativeUrl;
+        }
+        
+        return relativeUrl;
     }
     
     /**

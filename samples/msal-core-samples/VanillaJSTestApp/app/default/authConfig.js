@@ -7,8 +7,9 @@ const msalLogger = new Msal.Logger((level, message, pii) => {
 
 const msalConfig = {
     auth: {
-        clientId: "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0",
-        redirectUri: "http://localhost:30662/"
+        clientId: "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
+        redirectUri: "http://localhost:30662/",
+        authority: "https://login.windows-ppe.net/common"
     },
     cache: {
         cacheLocation: "localStorage", // This configures where your cache will be stored

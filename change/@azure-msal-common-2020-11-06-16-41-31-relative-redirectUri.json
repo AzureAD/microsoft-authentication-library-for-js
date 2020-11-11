@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Add getAbsolutePath helper function to UrlString class (#2560)",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-07T00:41:31.385Z"
+}

@@ -17,7 +17,7 @@ function setupScreenshotDir() {
 
 async function setupCredentials() {
     const testCreds = new LabClient();
-    const userParams: ILabApiParams = {envName: "azurecloud"};
+    const userParams: ILabApiParams = {azureEnvironment: "azureppe"};
     const envResponse = await testCreds.getUserVarsByCloudEnvironment(userParams);
     const testEnv = envResponse[0];
     if (testEnv.upn) {

@@ -48,27 +48,6 @@ describe("ClientAuthError.ts Class", () => {
 
   });
 
-  it("createMultipleMatchingTokensInCacheError creates a ClientAuthError object", () => {
-
-    const scopes: Array<string> = ["user.read"];
-    const errorDetail: string = "Cache error for scope";
-    const multipleMatchingTokensError = ClientAuthError.createMultipleMatchingTokensInCacheError(ServerHashParamKeys.ACCESS_TOKEN, scopes);
-    let err: ClientAuthError;
-
-    try {
-      throw multipleMatchingTokensError;
-    } catch (error) {
-      err = error;
-    }
-
-    expect(err.errorCode).to.equal(ClientAuthErrorMessage.multipleMatchingTokens.code);
-    expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-    expect(err.errorMessage).to.include(`${errorDetail} ${scopes.toString()}`);
-    expect(err.message).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-    expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.ts");
-  });
-
   it("createMultipleAuthoritiesInCacheError creates a ClientAuthError object", () => {
 
     const scope: string = "user.read";
