@@ -22,8 +22,10 @@ export class TestStorageManager extends CacheManager {
         }
         return null;
     }
-    setAccount(key: string, value: AccountEntity): void {
-        this.store[key] = value;
+
+    setAccount(account: AccountEntity): void {
+        const key = account.generateAccountKey();
+        this.store[key] = account;
     }
 
     // Credentials (idtokens)
@@ -34,8 +36,10 @@ export class TestStorageManager extends CacheManager {
         }
         return null;
     }
-    setIdTokenCredential(key: string, value: CredentialEntity): void {
-        this.store[key] = value;
+
+    setIdTokenCredential(idToken: IdTokenEntity): void {
+        const idTokenKey = idToken.generateCredentialKey();
+        this.store[idTokenKey] = idToken;
     }
 
     // Credentials (accesstokens)
@@ -46,8 +50,10 @@ export class TestStorageManager extends CacheManager {
         }
         return null;
     }
-    setAccessTokenCredential(key: string, value: AccessTokenEntity): void {
-        this.store[key] = value;
+
+    setAccessTokenCredential(accessToken: AccessTokenEntity): void {
+        const accessTokenKey = accessToken.generateCredentialKey();
+        this.store[accessTokenKey] = accessToken;
     }
 
     // Credentials (accesstokens)
@@ -58,16 +64,18 @@ export class TestStorageManager extends CacheManager {
         }
         return null;
     }
-    setRefreshTokenCredential(key: string, value: RefreshTokenEntity): void {
-        this.store[key] = value;
+    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
+        const refreshTokenKey = refreshToken.generateCredentialKey();
+        this.store[refreshTokenKey] = refreshToken;
     }
 
     // AppMetadata
     getAppMetadata(key: string): AppMetadataEntity | null {
         return this.store[key] as AppMetadataEntity;
     }
-    setAppMetadata(key: string, value: AppMetadataEntity): void {
-        this.store[key] = value;
+    setAppMetadata(appMetadata: AppMetadataEntity): void {
+        const appMetadataKey = appMetadata.generateAppMetadataKey();
+        this.store[appMetadataKey] = appMetadata;
     }
 
     // Telemetry cache

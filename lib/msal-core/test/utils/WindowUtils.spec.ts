@@ -267,4 +267,24 @@ describe("WindowUtils", () => {
             expect(resetTempCacheSpy.notCalled).to.be.true;
         });
     });
+
+    describe("clearUrlFragment", () => {
+        it("clearHash() clears the window hash", () => {
+            window.location.hash = "thisIsAHash";
+            WindowUtils.clearUrlFragment();
+            expect(window.location.href.includes("#thisIsAHash")).to.be.false;
+        });
+    
+        it("clearHash() clears the window hash (office addin)", () => {
+            // Office.js sets replaceState to null: https://github.com/OfficeDev/office-js/issues/429
+            const oldReplaceState = history.replaceState;
+            history.replaceState = null;
+    
+            window.location.hash = "thisIsAHash";
+            WindowUtils.clearUrlFragment();
+            expect(window.location.href.includes("#thisIsAHash")).to.be.false;
+            
+            history.replaceState = oldReplaceState;
+        });
+    });
 });

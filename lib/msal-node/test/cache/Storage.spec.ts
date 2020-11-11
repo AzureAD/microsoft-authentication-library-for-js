@@ -2,7 +2,6 @@ import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity } from
 import { JsonCache, InMemoryCache } from './../../src/cache/serializer/SerializerTypes';
 import { Deserializer } from './../../src/cache/serializer/Deserializer';
 import { Storage } from './../../src/cache/Storage';
-import debug from 'debug';
 
 const cacheJson = require('./serializer/cache.json');
 
@@ -24,12 +23,8 @@ describe("Storage tests for msal-node: ", () => {
         inMemoryCache = Deserializer.deserializeAllCache(jsonCache);
 
         const loggerOptions = {
-            loggerCallback: (
-                level: LogLevel,
-                message: string,
-                containsPii: boolean
-            ) => {
-                debug(`msal:${LogLevel[level]}${containsPii ? '-Pii' : ''}`)(message);
+            loggerCallback: () => {
+               // allow user to not set a loggerCallback
             },
             piiLoggingEnabled: false,
             logLevel: LogLevel.Info,

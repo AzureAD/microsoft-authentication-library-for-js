@@ -93,6 +93,18 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         expect(window.location.href.includes("#thisIsAHash")).to.be.false;
     });
 
+    it("clearHash() clears the window hash (office addin)", () => {
+        // Office.js sets replaceState to null: https://github.com/OfficeDev/office-js/issues/429
+        const oldReplaceState = history.replaceState;
+        history.replaceState = null;
+
+        window.location.hash = "thisIsAHash";
+        BrowserUtils.clearHash();
+        expect(window.location.href.includes("#thisIsAHash")).to.be.false;
+        
+        history.replaceState = oldReplaceState;
+    });
+
     it("replaceHash replaces the current window hash with the hash from the provided url", () => {
         window.location.hash = "thisIsAHash";
         const url = "http://localhost/#";

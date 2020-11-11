@@ -39,7 +39,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   checkAccount() {
-    this.loggedIn = this.authService.getAllAccounts().length > 0;
+    this.loggedIn = this.authService.instance.getAllAccounts().length > 0;
   }
 
   login() {

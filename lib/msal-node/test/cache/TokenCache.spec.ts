@@ -1,7 +1,6 @@
 import { LogLevel, Logger, TokenCacheContext, ICachePlugin } from '@azure/msal-common';
 import { Storage } from './../../src/cache/Storage';
 import { TokenCache } from '../../src/cache/TokenCache';
-import { debug } from 'debug';
 import { promises as fs } from 'fs';
 
 describe("TokenCache tests", () => {
@@ -10,12 +9,8 @@ describe("TokenCache tests", () => {
 
     beforeEach(() => {
         const loggerOptions = {
-            loggerCallback: (
-                level: LogLevel,
-                message: string,
-                containsPii: boolean
-            ) => {
-                debug(`msal:${LogLevel[level]}${containsPii ? '-Pii' : ''}`)(message);
+            loggerCallback: () => {
+                // allow users to not set loggerCallback
             },
             piiLoggingEnabled: false,
             logLevel: LogLevel.Info,
@@ -46,7 +41,7 @@ describe("TokenCache tests", () => {
 
     it("TokenCache serialize/deserialize, does not remove unrecognized entities", () => {
         // TokenCache should not remove unrecognized entities from JSON file, even if they
-        // are deeply nested, and should write them back out 
+        // are deeply nested, and should write them back out
         const cache = require('./cache-test-files/cache-unrecognized-entities.json');
         const storage: Storage = new Storage(logger);
         const tokenCache = new TokenCache(storage, logger);
@@ -61,7 +56,7 @@ describe("TokenCache tests", () => {
 
     it("TokenCache.mergeRemovals removes entities from the cache, but does not remove other entities", async () => {
         // TokenCache should not remove unrecognized entities from JSON file, even if they
-        // are deeply nested, and should write them back out 
+        // are deeply nested, and should write them back out
         const cache = require('./cache-test-files/cache-unrecognized-entities.json');
         const storage: Storage = new Storage(logger);
         const tokenCache = new TokenCache(storage, logger);

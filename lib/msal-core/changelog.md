@@ -1,8 +1,17 @@
 # Change Log - msal
 
-This log was last generated on Tue, 20 Oct 2020 23:47:28 GMT and should not be manually modified.
+This log was last generated on Thu, 29 Oct 2020 20:36:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.3
+
+Thu, 29 Oct 2020 20:36:48 GMT
+
+### Patches
+
+- Fix ID token matching logic to ignore non-JSON cache keys (#2510) (hemoral@microsoft.com)
+- Ensure history.replaceState is a function (janutter@microsoft.com)
 
 ## 1.4.2
 

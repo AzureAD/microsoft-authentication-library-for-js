@@ -7,7 +7,8 @@ import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, Authorizat
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import { DEFAULT_POPUP_TIMEOUT_MS } from "../config/Configuration";
 
 /**
  * This class implements the interaction handler base class for browsers. It is written specifically for handling
@@ -17,7 +18,7 @@ export class PopupHandler extends InteractionHandler {
 
     private currentWindow: Window;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         super(authCodeModule, storageImpl);
 
         // Properly sets this reference for the unload event.
@@ -53,6 +54,10 @@ export class PopupHandler extends InteractionHandler {
      */
     monitorPopupForHash(popupWindow: Window, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
+            if (timeout < DEFAULT_POPUP_TIMEOUT_MS) {
+                this.authModule.logger.warning(`system.loadFrameTimeout or system.windowHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_POPUP_TIMEOUT_MS}ms). This may result in timeouts.`);
+            }
+
             const maxTicks = timeout / BrowserConstants.POLL_INTERVAL_MS;
             let ticks = 0;
 
@@ -93,7 +98,7 @@ export class PopupHandler extends InteractionHandler {
                     // Timeout error
                     this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createMonitorWindowTimeoutError());
+                    reject(BrowserAuthError.createMonitorPopupTimeoutError());
                     return;
                 }
             }, BrowserConstants.POLL_INTERVAL_MS);

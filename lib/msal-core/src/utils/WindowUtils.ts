@@ -342,7 +342,8 @@ export class WindowUtils {
      * Removes url fragment from browser url
      */
     static clearUrlFragment() {
-        if ("replaceState" in history) {
+        // Office.js sets history.replaceState to null
+        if (typeof history.replaceState === "function") {
             // Full removes "#" from url
             history.replaceState(null, null, `${window.location.pathname}${window.location.search}`);
         } else {

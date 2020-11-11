@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix ServerTelemetry maxErrorToSend bug (#2491)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-26T17:27:03.375Z"
-}
