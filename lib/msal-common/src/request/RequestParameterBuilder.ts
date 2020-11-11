@@ -59,6 +59,14 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * Add clientId for broker
+     * @param clientId 
+     */
+    addBrokerClientId(clientId: string) {
+        this.parameters.set(AADServerParamKeys.BROKER_CLIENT_ID, encodeURIComponent(clientId));
+    }
+
+    /**
      * add redirect_uri
      * @param redirectUri
      */
