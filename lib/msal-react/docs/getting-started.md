@@ -69,7 +69,7 @@ export function App() {
 ### `useIsAuthenticated` hook
 
 As an alternative to the wrapper components above your app can use the `useIsAuthenticated` hook.
-You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#useisauthenticated-hook)
+You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#useisauthenticated-hook).
 
 ```javascript
 import React from 'react';
@@ -103,7 +103,7 @@ It will return the result of the login operation, any error that occurred and th
 
 Note: If you choose to use the redirect interaction type, this hook will only return if an error occurs. After the user signs in, the IDP will redirect the user back to your app at which point msal will reflect that the user has been signed in.
 
-You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsalauthentication-hook)
+You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsalauthentication-hook).
 
 ```javascript
 import React from 'react';
@@ -134,7 +134,7 @@ Another way to trigger a sign-in is by using `msal-browser` APIs directly from t
 
 A hook that returns the `PublicClientApplication` instance, an array of all accounts currently signed in and an `inProgress` value that tells you what msal is currently doing.
 
-You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsal-hook)
+You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsal-hook).
 
 ```javascript
 import React from 'react'l
