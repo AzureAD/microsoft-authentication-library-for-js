@@ -15,14 +15,15 @@ export type AuthenticatedTemplateProps = PropsWithChildren<AccountIdentifiers>;
  * Renders child components if user is authenticated
  * @param props 
  */
-export function AuthenticatedTemplate({ username, homeAccountId, children }: AuthenticatedTemplateProps): React.ReactElement|null {
+export function AuthenticatedTemplate({ username, homeAccountId, localAccountId, children }: AuthenticatedTemplateProps): React.ReactElement|null {
     const context = useMsal();
     const accountIdentifier: AccountIdentifiers = useMemo(() => {
         return {
             username,
-            homeAccountId
+            homeAccountId,
+            localAccountId
         };
-    }, [username, homeAccountId]);
+    }, [username, homeAccountId, localAccountId]);
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
     if (isAuthenticated) {

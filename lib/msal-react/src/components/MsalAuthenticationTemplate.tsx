@@ -27,6 +27,7 @@ export function MsalAuthenticationTemplate({
     interactionType, 
     username, 
     homeAccountId, 
+    localAccountId,
     authenticationRequest, 
     loadingComponent,
     errorComponent,
@@ -35,9 +36,10 @@ export function MsalAuthenticationTemplate({
     const accountIdentifier: AccountIdentifiers = useMemo(() => {
         return {
             username,
-            homeAccountId
+            homeAccountId,
+            localAccountId
         };
-    }, [username, homeAccountId]);
+    }, [username, homeAccountId, localAccountId]);
     const context = useMsal();
     const msalAuthResult = useMsalAuthentication(interactionType, authenticationRequest, accountIdentifier);
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
