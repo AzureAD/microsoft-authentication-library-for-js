@@ -1,8 +1,16 @@
 # Change Log - msal
 
-This log was last generated on Thu, 29 Oct 2020 20:36:48 GMT and should not be manually modified.
+This log was last generated on Wed, 11 Nov 2020 23:33:20 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.4
+
+Wed, 11 Nov 2020 23:33:20 GMT
+
+### Patches
+
+- Fix multiple matching tokens error (#2582) (thomas.norling@microsoft.com)
 
 ## 1.4.3
 
