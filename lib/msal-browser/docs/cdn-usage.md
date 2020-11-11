@@ -16,7 +16,7 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
 <!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.4.1/js/msal-browser.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.6.1/js/msal-browser.min.js"></script>
 ```
 
 ## Unminified builds
@@ -84,6 +84,16 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 <!-- SRI_TABLE_START -->
 Version      | Build               | SRI Hash
 ------------ | ------------------- | ---------------------------
+2.6.1        | msal-browser.js     | `sha384-kHVR+hnKKUXpL5UEI3dgmdIKZgopBagC1RdQytFqglEGROvOSAGJRkaFWfu8VsSx`
+2.6.1        | msal-browser.min.js | `sha384-ry0iBug2qnSSs0YiS8IfxgvYZvgsCCXiplbiwrf9tQWkpCFMcezBMuLDbVtYrKIl`
+2.6.0        | msal-browser.js     | `sha384-MOtTwBzAcbzhOnPuklGgFJINWfT6ekHPIhI0GkJdUihkt/AtO/ttlrT93yen631k`
+2.6.0        | msal-browser.min.js | `sha384-sGG/3pGinkV/9X/+VrbuRSSJmOaYKq9Bdyet6ICHajSN8wSG9DpJHda6vls5BkUd`
+2.5.2        | msal-browser.js     | `sha384-ZOWQBoErNmfc9sfHh6PXYc9NZ+02cf5d+wdsnvfKHSEyQ2x+YSWaf12KInVhfurI`
+2.5.2        | msal-browser.min.js | `sha384-A9ludGsBPhx3Ec8zLyd3vZEqJrRbvD6fJWpasbzAFyaaa/AMR6rtCUtbUmP07rsj`
+2.5.1        | msal-browser.js     | `sha384-MFZe/UOLz61FRpO06noy2uBkJEZUaxccyYYwrSrwBOEY59Fi0GxyRzPiiZKLvvkC`
+2.5.1        | msal-browser.min.js | `sha384-/cOXpDxWc4bzFZUDf49Sp31Im+bSjki6UxTPadEDitHw0277qGX5teCOdieziPZh`
+2.5.0        | msal-browser.js     | `sha384-JtZbGQvK0HbNDG42cgeg3XxEllLbMW8aAiSCXoLdW7iJhkdC7v4Kzqvl4LWOSiFF`
+2.5.0        | msal-browser.min.js | `sha384-+sjqS/ee1BeZqojCMFh8gGTbZ0ATgrA/rEIANI0l0Y6QdA+MDwmXLhj3JGvHueL7`
 2.4.1        | msal-browser.js     | `sha384-4Equw/X3Wp2XPnMSCbe2OQQRE/8MzlwepR53zKGbAz/6eO//yRXOcn3LKf1MnBWS`
 2.4.1        | msal-browser.min.js | `sha384-vazVaX5+cCJf+t0Dzdb8CxX9jLLvWuSZqEI2lBSMeLUBPQovS4IlwFQI6epI2tJD`
 2.4.0        | msal-browser.js     | `sha384-Bz0kggjHC0kxcxxtRzWgjaF0JGsmHuO1atz26xKETeu5WgdarvGmr9Pr/f/pKtrq`

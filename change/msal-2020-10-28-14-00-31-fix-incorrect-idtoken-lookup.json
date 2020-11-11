@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix ID token matching logic to ignore non-JSON cache keys (#2510)",
-  "packageName": "msal",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-28T21:00:31.872Z"
-}

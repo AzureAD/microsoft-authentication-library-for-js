@@ -36,7 +36,8 @@ export const Constants = {
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
-    EMPTY_STRING: ""
+    EMPTY_STRING: "",
+    FORWARD_SLASH: "/" 
 };
 
 /**
@@ -298,3 +299,11 @@ export const Errors = {
     INVALID_GRANT_ERROR: "invalid_grant",
     CLIENT_MISMATCH_ERROR: "client_mismatch",
 };
+
+/**
+ * Password grant parameters
+ */
+export enum PasswordGrantConstants {
+    username = "username",
+    password = "password"
+}

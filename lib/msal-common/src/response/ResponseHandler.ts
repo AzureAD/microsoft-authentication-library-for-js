@@ -4,7 +4,7 @@
  */
 
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
-import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
+import { buildClientInfo} from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
@@ -25,7 +25,7 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
-import { AuthenticationScheme } from "../utils/Constants";
+import { AuthenticationScheme, THE_FAMILY_ID } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
@@ -40,7 +40,6 @@ export class ResponseHandler {
     private cacheStorage: CacheManager;
     private cryptoObj: ICrypto;
     private logger: Logger;
-    private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
     private serializableCache: ISerializableTokenCache;
     private persistencePlugin: ICachePlugin;
@@ -111,17 +110,6 @@ export class ResponseHandler {
         oboAssertion?: string,
         handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
-        // generate homeAccountId
-        if (serverTokenResponse.client_info) {
-            this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
-            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
-            }
-        } else {
-            this.logger.verbose("No client info in response");
-            this.homeAccountIdentifier = "";
-        }
-
         let idTokenObj: AuthToken = null;
         if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
             // create an idToken object (not entity)
@@ -134,6 +122,9 @@ export class ResponseHandler {
                 }
             }
         }
+
+        // generate homeAccountId
+        this.homeAccountIdentifier = AccountEntity.generateHomeAccountId(serverTokenResponse.client_info, authority.authorityType, this.logger, this.cryptoObj, idTokenObj);
 
         // save the response tokens
         let requestStateObj: RequestStateObject = null;
@@ -152,7 +143,7 @@ export class ResponseHandler {
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
              * If not present, we should return null, as it's the case that another application called removeAccount in between
-             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal. 
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal.
              */
             if (handlingRefreshTokenResponse && cacheRecord.account) {
                 const key = cacheRecord.account.generateAccountKey();
@@ -268,7 +259,7 @@ export class ResponseHandler {
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
             this.logger.verbose("Authority type is ADFS, creating ADFS account");
-            return AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
+            return AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion);
         }
 
         // This fallback applies to B2C as well as they fall under an AAD account type.
@@ -277,8 +268,8 @@ export class ResponseHandler {
         }
 
         return serverTokenResponse.client_info ?
-            AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, this.cryptoObj, oboAssertion) :
-            AccountEntity.createGenericAccount(authority, idToken, oboAssertion);
+            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, authority, idToken, oboAssertion) :
+            AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion);
     }
 
     /**
@@ -309,7 +300,7 @@ export class ResponseHandler {
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
         }
         if (cacheRecord.appMetadata) {
-            familyId = cacheRecord.appMetadata.familyId || null;
+            familyId = cacheRecord.appMetadata.familyId === THE_FAMILY_ID ? THE_FAMILY_ID : null;
         }
         const uid = idTokenObj ? idTokenObj.claims.oid || idTokenObj.claims.sub : "";
         const tid = idTokenObj ? idTokenObj.claims.tid : "";

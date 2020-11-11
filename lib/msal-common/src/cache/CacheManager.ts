@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType } from "./utils/CacheTypes";
+import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
 import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
@@ -379,6 +379,58 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * retrieve appMetadata matching all provided filters; if no filter is set, get all appMetadata
+     * @param filter
+     */
+    getAppMetadataFilteredBy(filter: AppMetadataFilter): AppMetadataCache {
+        return this.getAppMetadataFilteredByInternal(
+            filter.environment,
+            filter.clientId,
+        );
+    }
+
+    /**
+     * Support function to help match appMetadata
+     * @param environment
+     * @param clientId
+     */
+    private getAppMetadataFilteredByInternal(
+        environment?: string,
+        clientId?: string
+    ): AppMetadataCache {
+
+        const allCacheKeys = this.getKeys();
+        const matchingAppMetadata: AppMetadataCache = {};
+
+        allCacheKeys.forEach((cacheKey) => {
+            // don't parse any non-appMetadata type cache entities
+            if (!this.isAppMetadata(cacheKey)) {
+                return;
+            }
+
+            // Attempt retrieval
+            const entity = this.getAppMetadata(cacheKey);
+
+            if (!entity) {
+                return;
+            }
+
+            if (!StringUtils.isEmpty(environment) && !this.matchEnvironment(entity, environment)) {
+                return;
+            }
+
+            if (!StringUtils.isEmpty(clientId) && !this.matchClientId(entity, clientId)) {
+                return;
+            }
+
+            matchingAppMetadata[cacheKey] = entity;
+
+        });
+
+        return matchingAppMetadata;
+    }
+
+    /**
      * Removes all accounts and related tokens from cache.
      */
     removeAllAccounts(): boolean {
@@ -492,15 +544,25 @@ export abstract class CacheManager implements ICacheManager {
      * @param inputRealm
      */
     readIdTokenFromCache(clientId: string, account: AccountInfo): IdTokenEntity | null {
-        const idTokenKey: string = CredentialEntity.generateCredentialCacheKey(
-            account.homeAccountId,
-            account.environment,
-            CredentialType.ID_TOKEN,
-            clientId,
-            account.tenantId
-        );
+        const idTokenFilter: CredentialFilter = {
+            homeAccountId: account.homeAccountId,
+            environment: account.environment,
+            credentialType: CredentialType.ID_TOKEN,
+            clientId: clientId,
+            realm: account.tenantId,
+        };
 
-        return this.getIdTokenCredential(idTokenKey) as IdTokenEntity;
+        const credentialCache: CredentialCache = this.getCredentialsFilteredBy(idTokenFilter);
+        const idTokens = Object.keys(credentialCache.idTokens).map((key) => credentialCache.idTokens[key]);
+        const numIdTokens = idTokens.length;
+
+        if (numIdTokens < 1) {
+            return null;
+        } else if (numIdTokens > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+        }
+
+        return idTokens[0] as IdTokenEntity;
     }
 
     /**
@@ -565,8 +627,22 @@ export abstract class CacheManager implements ICacheManager {
      * Retrieve AppMetadataEntity from cache
      */
     readAppMetadataFromCache(environment: string, clientId: string): AppMetadataEntity {
-        const cacheKey = AppMetadataEntity.generateAppMetadataCacheKey(environment, clientId);
-        return this.getAppMetadata(cacheKey);
+        const appMetadataFilter: AppMetadataFilter = {
+            environment,
+            clientId,
+        };
+
+        const appMetadata: AppMetadataCache = this.getAppMetadataFilteredBy(appMetadataFilter);
+        const appMetadataEntries: AppMetadataEntity[] = Object.keys(appMetadata).map((key) => appMetadata[key]);
+
+        const numAppMetadata = appMetadataEntries.length;
+        if (numAppMetadata < 1) {
+            return null;
+        } else if (numAppMetadata > 1) {
+            throw ClientAuthError.createMultipleMatchingAppMetadataInCacheError();
+        }
+
+        return appMetadataEntries[0] as AppMetadataEntity;
     }
 
     /**

@@ -13,6 +13,7 @@ on:
       - 'msal-node/**/*' 
       - 'msal-common/**/*'
       - 'samples/msal-node-samples/EndToEndTestApp/**/*'
+      - '!**.md'
 
 jobs:
   run-e2e:
@@ -29,20 +30,12 @@ jobs:
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
-
-    - name: Install Dependencies
-      working-directory: samples/msal-node-samples/EndToEndTestApp
-      run: npm install
-
-    - name: Link MSAL Node
-      working-directory: lib/msal-node
-      run: npm link
     
     - name: Build Package
       working-directory: samples/msal-node-samples/EndToEndTestApp
       run: |
-        npm link @azure/msal-node
         npm run build:package
+        npm install
 
     - name: E2E Tests
       working-directory: samples/msal-node-samples/EndToEndTestApp

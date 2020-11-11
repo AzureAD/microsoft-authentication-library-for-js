@@ -165,15 +165,28 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });
 
-    it("createMonitorWindowTimeoutError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createMonitorWindowTimeoutError();
+    it("createMonitorPopupTimeoutError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createMonitorPopupTimeoutError();
 
         expect(err instanceof BrowserAuthError).to.be.true;
         expect(err instanceof AuthError).to.be.true;
         expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.monitorWindowTimeoutError.code);
-        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.monitorWindowTimeoutError.desc);
-        expect(err.message).to.include(BrowserAuthErrorMessage.monitorWindowTimeoutError.desc);
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.monitorPopupTimeoutError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.monitorPopupTimeoutError.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.monitorPopupTimeoutError.desc);
+        expect(err.name).to.equal("BrowserAuthError");
+        expect(err.stack).to.include("BrowserAuthError.spec.ts");
+    });
+
+    it("createMonitorIframeTimeoutError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createMonitorIframeTimeoutError();
+
+        expect(err instanceof BrowserAuthError).to.be.true;
+        expect(err instanceof AuthError).to.be.true;
+        expect(err instanceof Error).to.be.true;
+        expect(err.errorCode).to.equal(BrowserAuthErrorMessage.monitorIframeTimeoutError.code);
+        expect(err.errorMessage).to.include(BrowserAuthErrorMessage.monitorIframeTimeoutError.desc);
+        expect(err.message).to.include(BrowserAuthErrorMessage.monitorIframeTimeoutError.desc);
         expect(err.name).to.equal("BrowserAuthError");
         expect(err.stack).to.include("BrowserAuthError.spec.ts");
     });

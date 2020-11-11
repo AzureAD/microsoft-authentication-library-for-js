@@ -90,7 +90,9 @@ export class AuthCache extends BrowserStorage {// Singleton
      */
     private matchKeyForType(key:string, clientId: string, homeAccountIdentifier: string, tokenType: string): AccessTokenKey {
         // All valid token cache item keys are valid JSON objects, ignore keys that aren't
-        if (!StringUtils.isValidJson(key)) {
+        const parsedKey = StringUtils.validateAndParseJsonCacheKey(key);
+
+        if (!parsedKey) {
             return null;
         }
 
@@ -110,7 +112,7 @@ export class AuthCache extends BrowserStorage {// Singleton
                 break;
         }
 
-        return (accountMatches && tokenTypeMatches) ? JSON.parse(key) : null;
+        return (accountMatches && tokenTypeMatches) ? parsedKey : null;
     }
 
     /**
@@ -255,6 +257,17 @@ export class AuthCache extends BrowserStorage {// Singleton
      */
     getAllIdTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
         return this.getAllTokensByType(clientId, homeAccountIdentifier, ServerHashParamKeys.ID_TOKEN);
+    }
+
+    /**
+     * Get all access and ID tokens in the cache
+     * @param clientId 
+     * @param homeAccountIdentifier 
+     */
+    getAllTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+        const accessTokens = this.getAllAccessTokens(clientId, homeAccountIdentifier);
+        const idTokens =  this.getAllIdTokens(clientId, homeAccountIdentifier);
+        return [...accessTokens, ...idTokens];
     }
 
     /**
