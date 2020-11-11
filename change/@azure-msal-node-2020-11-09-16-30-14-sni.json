@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Add support for SubjectName/Issuer authentication (#2471).",
+  "packageName": "@azure/msal-node",
+  "email": "jamckenn@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-10T00:30:14.663Z"
+}

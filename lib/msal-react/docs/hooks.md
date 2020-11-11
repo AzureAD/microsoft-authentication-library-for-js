@@ -10,7 +10,17 @@
 The `useAccount` hook accepts an `accountIdentifier` parameter and returns the `AccountInfo` object for that account if it is signed in or `null` if it is not.
 You can read more about the `AccountInfo` object returned in the `msal-browser` docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#account-apis).
 
-Note: Only one account identifier should be provided, if both are provided `homeAccountId` is used and `username` is ignored.
+Note: Only one account identifier should be provided, if more than one are provided precedence is given in the following order: `localAccountId`, `homeAccountId`, `username`.
+
+### Get an account by localAccountId
+
+```javascript
+const accountIdentifier = {
+    localAccountId: "example-local-account-identifier"
+}
+
+const accountInfo = useAccount(accountIdentifier);
+```
 
 ### Get an account by homeAccountId
 
@@ -36,7 +46,7 @@ const accountInfo = useAccount(accountIdentifier);
 
 The `useIsAuthenticated` hook returns a boolean indicating whether or not an account is signed in. It optionally accepts an `accountIdentifier` object you can provide if you need to know whether or not a specific account is signed in.
 
-Note: Only one account identifier should be provided, if both are provided `homeAccountId` is used and `username` is ignored.
+Note: Only one account identifier should be provided, if more than one are provided precedence is given in the following order: `localAccountId`, `homeAccountId`, `username`.
 
 ### Determine if any account is currently signed in
 
@@ -62,6 +72,33 @@ export function App() {
 ```
 
 ### Determine if specific user is signed in
+
+#### By localAccountId
+
+```javascript
+import React from 'react';
+import { useIsAuthenticated } from "@azure/msal-react";
+
+export function App() {
+    const accountIdentifier = {
+        localAccountId: "example-local-account-identifier"
+    }
+
+    const isAuthenticated = useIsAuthenticated(accountIdentifier);
+
+    return (
+        <React.Fragment>
+            <p>Anyone can see this paragraph.</p>
+            {isAuthenticated && (
+                <p>User with specified localAccountId is signed in!</p>
+            )}
+            {!isAuthenticated && (
+                <p>User with specified localAccountId is not signed in!</p>
+            )}
+        </React.Fragment>
+    );
+}
+```
 
 #### By homeAccountId
 
