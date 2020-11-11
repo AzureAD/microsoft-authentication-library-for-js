@@ -5,6 +5,7 @@
 
 import { StringUtils } from "../utils/StringUtils";
 import { LoggerOptions } from "../config/ClientConfiguration";
+import { Constants } from "../utils/Constants";
 
 /**
  * Options for logger messages.
@@ -56,15 +57,15 @@ export class Logger {
     // Package version implementing this logger
     private packageVersion: string;
 
-    constructor(loggerOptions: LoggerOptions, packageName: string, packageVersion: string) {
+    constructor(loggerOptions: LoggerOptions, packageName?: string, packageVersion?: string) {
         if (loggerOptions) {
             this.localCallback = loggerOptions.loggerCallback;
             this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled;
             this.level = loggerOptions.logLevel;
         }
 
-        this.packageName = packageName;
-        this.packageVersion = packageVersion;
+        this.packageName = packageName || Constants.EMPTY_STRING;
+        this.packageVersion = packageVersion || Constants.EMPTY_STRING;
     }
 
     /**
