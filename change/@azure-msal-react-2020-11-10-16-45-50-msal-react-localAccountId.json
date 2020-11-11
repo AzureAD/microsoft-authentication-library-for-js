@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Add localAccountId to AccountIdentifiers (#2588)",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-11T00:45:49.973Z"
+}
