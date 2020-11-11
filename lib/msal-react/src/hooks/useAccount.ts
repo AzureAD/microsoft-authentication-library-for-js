@@ -9,7 +9,9 @@ import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 
 function getAccount(instance: IPublicClientApplication, accountIdentifiers: AccountIdentifiers): AccountInfo | null {
-    if (accountIdentifiers.homeAccountId) {
+    if (accountIdentifiers.localAccountId) {
+        return instance.getAccountByLocalId(accountIdentifiers.localAccountId);
+    } else if (accountIdentifiers.homeAccountId) {
         return instance.getAccountByHomeId(accountIdentifiers.homeAccountId);
     } else if (accountIdentifiers.username) {
         return instance.getAccountByUsername(accountIdentifiers.username);

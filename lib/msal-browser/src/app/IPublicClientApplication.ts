@@ -17,6 +17,7 @@ export interface IPublicClientApplication {
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
+    getAccountByLocalId(localId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
@@ -47,6 +48,9 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     getAccountByUsername: () => {	
         return null;	
     },	
+    getAccountByLocalId: () => {
+        return null;
+    },
     handleRedirectPromise: () => {	
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
     },	

@@ -10,7 +10,7 @@ import { useAccount } from "./useAccount";
 import { AccountInfo } from "@azure/msal-browser";
 
 function isAuthenticated(allAccounts: AccountInfo[], account: AccountInfo | null, accountIdentifiers?: AccountIdentifiers): boolean {
-    if(accountIdentifiers && (accountIdentifiers.username || accountIdentifiers.homeAccountId)) {
+    if(accountIdentifiers && (accountIdentifiers.username || accountIdentifiers.homeAccountId || accountIdentifiers.localAccountId)) {
         return !!account;
     }   
 
