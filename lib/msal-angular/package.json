@@ -5,7 +5,11 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:all": "npm run build:common && npm run build:browser && npm run build",
+    "build:browser": "cd ../msal-browser && npm run build",
+    "build:common": "cd ../msal-common && npm run build",
     "test": "ng test",
+    "test:coverage": "npm test",
     "lint": "cd ../../ && npm run lint:angular",
     "lint:fix": "npm run lint -- -- --fix",
     "e2e": "ng e2e"
