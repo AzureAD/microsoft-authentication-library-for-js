@@ -139,7 +139,7 @@ app.get("/graphCall", async (req, res) => {
 
     // Build silent request
     const silentRequest = {
-        account: account, // Index must match the account that is trying to acquire token silently
+        account: account,
         scopes: scopes,
     };
 

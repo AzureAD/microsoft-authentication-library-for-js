@@ -8,55 +8,20 @@ export type AccountInfo = {
     environment: string;
     tenantId: string;
     username: string;
+    localAccountId: string;
+    name?: string;
 };
 ```
 
-## Usage
+## Account retrieval APIs
 
-* We provide a public API `getAllAccounts()` which lists all the accounts currently in the cache. An application must choose an account to acquire tokens silently.
-* `msal-browser` provides a public API `getAccountByUsername()` for an application to retrieve a specific account based on `username`
+* Both `msal-browser` and `msal-node` provide their own implementations of the following public APIs:
+    * `getAllAccounts()`: returns all the accounts currently in the cache. An application must choose an account to acquire tokens silently.
+    * `getAccountByHomeId()`: receives a `homeAccountId` string and returns the matching account from the cache.
+    * `getAccountByLocalId()`: receives a `localAccountId` string and returns the matching account from the cache.
+* In addition, `msal-browser` provides a public API `getAccountByUsername()` for an application to retrieve a specific account based on `username`.
 
-Sample usage is as below:
+For detailed usage examples of these APIs, please visit the platform specific documentation on accounts:
 
-``` javascript
-
-function handleResponse(resp) {
-    if (resp !== null) {
-        username = resp.account.username;
-        ...
-    } else {
-        // need to call getAccount here?
-        const currentAccounts = myMSALObj.getAllAccounts();
-        if (currentAccounts === null) {
-            return;
-        } else if (currentAccounts.length > 1) {
-            // Add choose account code here
-        } else if (currentAccounts.length === 1) {
-            // Single Account usecase
-            username = currentAccounts[0].username;
-            ...
-        }
-    }
-}
-
-async function getTokenPopup(request, account) {
-    request.account = account;
-    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
-        console.log("silent token acquisition fails.");
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            console.log("acquiring token using popup");
-            return myMSALObj.acquireTokenPopup(request).catch(error => {
-                console.error(error);
-            });
-        } else {
-            console.error(error);
-        }
-    });
-}
-```
-
-## Notes
-
-* The current msal-browser default [sample](../../samples/msal-browser-samples/VanillaJSTestApp2.0) has a working single account scenario.
-* If you have a multiple accounts scenario, please modify the [sample](../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/default/auth.js) (in `handleResponse()`) to list all cached accounts and choose a specific account
-* If an application wants to retrieve an account based on the `username`, it needs to save the `username` (from the response of a `loginAPI` for a specific user) prior to using `getAccountByUsername()` API
+* [Accounts on msal-browser](../../msal-browser/docs/accounts.md)
+* [Accounts on msal-node](../../msal-node/docs/accounts.md)
