@@ -49,6 +49,7 @@
     "@storybook/addon-info": "^5.3.19",
     "@storybook/addon-links": "^5.3.19",
     "@storybook/addons": "^5.3.19",
+    "@storybook/addon-storysource": "^5.3.19",
     "@storybook/react": "^5.3.19",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^11.1.0",
@@ -67,8 +68,5 @@
     "tsdx": "^0.14.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.7"
-  },
-  "dependencies": {
-    "@storybook/addon-storysource": "^5.3.19"
   }
 }
