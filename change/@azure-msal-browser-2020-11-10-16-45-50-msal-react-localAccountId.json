@@ -3,6 +3,6 @@
   "comment": "Adds getAccountByLocalId to PCA Interface (#2588)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-11-11T00:45:32.367Z"
 }
