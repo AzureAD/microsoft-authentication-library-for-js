@@ -1333,22 +1333,26 @@ describe("UserAgentApplication.ts Class", function () {
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
+
+            sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
+                return new Promise<void>(() => {
+                    expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
+                    expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
+                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).to.include("&state");
+                    expect(url).to.include("&client_info=1");
+                    done();
+                });
+            });
+
             accessTokenKey.authority = accessTokenKey.authority;
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             accessTokenKey.scopes = "S1 S2";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
-            msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
-            }).catch(function(err: AuthError) {
-                expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleMatchingTokens.code);
-                expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-                expect(err.message).to.contain(ClientAuthErrorMessage.multipleMatchingTokens.desc);
-                expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.ts");
-                done();
-            });
+            msal.acquireTokenSilent(tokenRequest);
         });
 
         it("tests getCachedToken when authority is passed and no matching accessToken is found", function (done) {

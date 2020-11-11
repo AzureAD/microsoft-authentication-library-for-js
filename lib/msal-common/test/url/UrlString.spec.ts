@@ -184,4 +184,24 @@ describe("UrlString.ts Class Unit Tests", () => {
             expect(UrlString.getDomainFromUrl("domain.com/?queryString=1")).to.eq("domain.com");
         });
     });
+
+    describe("getAbsoluteUrl tests", () => {
+        it("Returns url provided if it's already absolute", () => {
+            const absoluteUrl = "https://localhost:30662"
+            expect(UrlString.getAbsoluteUrl(absoluteUrl, absoluteUrl + "/testPath")).to.eq(absoluteUrl);
+        });
+
+        it("Returns absolute url if relativeUrl provided", () => {
+            const basePath = "https://localhost:30662"
+            const absoluteUrl = "https://localhost:30662/testPath";
+            expect(UrlString.getAbsoluteUrl("/testPath", basePath)).to.eq(absoluteUrl);
+            expect(UrlString.getAbsoluteUrl("/testPath", basePath + "/")).to.eq(absoluteUrl);
+        });
+
+        it("Replaces path if relativeUrl provided and baseUrl contains different path", () => {
+            const basePath = "https://localhost:30662/differentPath"
+            const expectedUrl = "https://localhost:30662/testPath";
+            expect(UrlString.getAbsoluteUrl("/testPath", basePath)).to.eq(expectedUrl);
+        });
+    });
 });
