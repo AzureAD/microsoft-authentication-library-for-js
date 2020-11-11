@@ -1,8 +1,8 @@
 {
   "type": "none",
-  "comment": "msal-react first alpha release (#2540)",
+  "comment": "Update Docs and Deps (#2581)",
   "packageName": "@azure/msal-react",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "none",
-  "date": "2020-11-06T19:43:57.899Z"
+  "date": "2020-11-10T17:57:09.726Z"
 }

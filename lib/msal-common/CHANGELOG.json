@@ -2,6 +2,27 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 10 Nov 2020 01:48:44 GMT",
+      "tag": "@azure/msal-common_v1.7.1",
+      "version": "1.7.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Enhance lookup for IdTokens/AppMetadata (#2530)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "e51446295f8c857f1abc7f6874a4c7fde157699e",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add LocalAccountId for ADFS usecases (#2573)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "d8247d8e74fc8854ffdb5a6001df00b36fdddd62",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 07 Nov 2020 01:50:14 GMT",
       "tag": "@azure/msal-common_v1.7.0",
       "version": "1.7.0",

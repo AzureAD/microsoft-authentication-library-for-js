@@ -2,6 +2,21 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 10 Nov 2020 01:48:44 GMT",
+      "tag": "@azure/msal-node_v1.0.0-alpha.16",
+      "version": "1.0.0-alpha.16",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Enhance lookup for IdTokens/AppMetadata (#2530)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "e51446295f8c857f1abc7f6874a4c7fde157699e",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 07 Nov 2020 01:50:14 GMT",
       "tag": "@azure/msal-node_v1.0.0-alpha.15",
       "version": "1.0.0-alpha.15",

@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add LocalAccountId for ADFS usecases (#2573)",
-  "packageName": "@azure/msal-common",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-11-10T00:03:49.567Z"
-}

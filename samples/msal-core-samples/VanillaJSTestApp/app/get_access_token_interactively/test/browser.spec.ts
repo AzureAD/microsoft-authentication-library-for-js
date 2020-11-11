@@ -17,7 +17,7 @@ function setupScreenshotDir() {
 
 async function setupCredentials() {
     const testCreds = new LabClient();
-    const userParams: ILabApiParams = {envName: "azurecloud"};
+    const userParams: ILabApiParams = {azureEnvironment: "azureppe"};
     const envResponse = await testCreds.getUserVarsByCloudEnvironment(userParams);
     const testEnv = envResponse[0];
     if (testEnv.upn) {
@@ -104,7 +104,6 @@ describe("Browser tests", function () {
 
         // Acquire Access Token using acquireTokenRedirect
         await page.click("#seeProfileRedirect");
-        await page.waitForNavigation({ waitUntil: "networkidle0"});
         await page.waitForSelector("#profile-info");
         await takeScreenshot(page, testName, "samplePageGotToken");
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
@@ -136,7 +135,6 @@ describe("Browser tests", function () {
 
         // Acquire Access Token using acquireTokenRedirect
         await page.click("#seeProfileRedirect");
-        await page.waitForNavigation({ waitUntil: "networkidle0"});
         await page.waitForSelector("#profile-info");
         await takeScreenshot(page, testName, "samplePageGotToken");
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
@@ -169,7 +167,6 @@ describe("Browser tests", function () {
 
         // Acquire Access Token using acquireTokenRedirect
         await page.click("#seeProfileRedirect");
-        await page.waitForNavigation({ waitUntil: "networkidle0"});
         await page.waitForSelector("#profile-info");
         await takeScreenshot(page, testName, "samplePageGotToken");
         localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));

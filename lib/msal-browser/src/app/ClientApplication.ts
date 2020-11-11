@@ -532,7 +532,7 @@ export abstract class ClientApplication {
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.loadFrameTimeout);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -637,7 +637,8 @@ export abstract class ClientApplication {
      *
      */
     protected getRedirectUri(requestRedirectUri?: string): string {
-        return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+        const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+        return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
 
     /**
@@ -646,7 +647,8 @@ export abstract class ClientApplication {
      * @returns {string} post logout redirect URL
      */
     protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
-        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+        const postLogoutRedirectUri = requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+        return UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
     }
 
     /**

@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@azure/msal-react": "file:../../../lib/msal-react",
-    "@azure/msal-browser": "file:../../../lib/msal-browser",
+    "@azure/msal-react": "2.0.0-alpha.0",
+    "@azure/msal-browser": "2.6.1",
     "bootstrap": "^4.5.3",
     "jquery": "^3.5.1",
     "popper.js": "^1.16.1",

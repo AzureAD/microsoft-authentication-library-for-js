@@ -11,6 +11,7 @@ on:
   pull_request:
     paths-ignore:
       - '**.md'
+      - '**/.vscode/*.json'
 
 jobs:
 
