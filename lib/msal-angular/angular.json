@@ -5,8 +5,8 @@
   "projects": {
     "msal-angular": {
       "projectType": "library",
-      "root": "./",
-      "sourceRoot": "./src",
+      "root": "",
+      "sourceRoot": "src",
       "prefix": "lib",
       "architect": {
         "build": {
@@ -26,7 +26,8 @@
           "options": {
             "main": "./src/test.ts",
             "tsConfig": "./tsconfig.spec.json",
-            "karmaConfig": "./karma.conf.js"
+            "karmaConfig": "./karma.conf.js",
+            "codeCoverage": true
           }
         },
         "lint": {
