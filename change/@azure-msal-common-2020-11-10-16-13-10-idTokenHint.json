@@ -1,8 +1,8 @@
 {
   "type": "minor",
-  "comment": "Support id_token_hint on logout request",
+  "comment": "Support id_token_hint on logout request (#2587)",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-11-11T00:13:10.374Z"
 }

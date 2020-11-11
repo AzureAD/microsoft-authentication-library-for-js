@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Doc update",
+  "comment": "Doc update (#2587)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "none",
