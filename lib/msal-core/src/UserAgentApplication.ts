@@ -1390,7 +1390,11 @@ export class UserAgentApplication {
             return filteredAuthorityItems[0];
         }
         else if (filteredAuthorityItems.length > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError(tokenType, requestScopes);
+            this.logger.warning("Multiple matching tokens found. Cleaning cache and requesting a new token.");
+            filteredAuthorityItems.forEach((accessTokenCacheItem) => {
+                this.cacheStorage.removeItem(JSON.stringify(accessTokenCacheItem.key));
+            });
+            return null;
         }
         else {
             this.logger.verbose(`No matching tokens of type ${tokenType} found`);
