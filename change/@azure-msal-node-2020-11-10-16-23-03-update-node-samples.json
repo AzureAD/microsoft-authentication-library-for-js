@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Documentation update for new account retrieval APIs (#2585)",
+  "packageName": "@azure/msal-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-11T00:23:03.009Z"
+}
