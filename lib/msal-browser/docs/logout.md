@@ -9,7 +9,7 @@ The logout process for MSAL takes two steps.
 1. Clear the MSAL cache.
 2. Clear the session on the identity server.
 
-The `PublicClientApplication` object exposes an API that performs these actions. 
+The `PublicClientApplication` object exposes an API that performs these actions.
 
 ```javascript
 msalInstance.logout();
@@ -33,6 +33,7 @@ const msalConfig = {
 # End Session Request
 
 The logout API also accepts an object for different configuration options:
+
 ```
 {
     // Account to log out of
@@ -43,6 +44,8 @@ The logout API also accepts an object for different configuration options:
     authority?: string,
     // Correlation ID to attach to URL
     correlationId?: string
+    // B2C Only: id_token_hint to attach to URL
+    idTokenHint?: string
 }
 ```
 
@@ -59,6 +62,7 @@ msalInstance.logout({
 ```
 
 Important Notes:
+
 - If no account is passed to the logout API, or no EndSessionRequest object, it will log out of all accounts.
 - If an account is passed to the logout API, MSAL will only clear tokens related to that account.
 
