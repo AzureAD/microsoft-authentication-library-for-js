@@ -46,7 +46,7 @@ function callAcquireTokenSilent()
 
 ### getAccountByHomeId and getAccountByLocalId
 
-Single account scenario, the `homeAccountId` or `localAccountId` must be obtained from the initial `AuthResponse` object received from a non-silent authorization flow, such as the `Auth Code` flow.
+For a single account scenario, the `homeAccountId` or `localAccountId` must be obtained from the initial `AuthResponse` object received from a non-silent authorization flow, such as the `Auth Code` flow.
 
 ```javascript
 

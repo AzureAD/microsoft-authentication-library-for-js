@@ -52,5 +52,5 @@ async function getTokenPopup(request, account) {
 ## Notes
 
 * The current msal-browser default [sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0) has a working single account scenario.
-* If you have a multiple accounts scenario, please modify the [sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/default/auth.js) (in `handleResponse()`) to list all cached accounts and choose a specific account
-* If an application wants to retrieve an account based on the `username`, it needs to save the `username` (from the response of a `loginAPI` for a specific user) prior to using `getAccountByUsername()` API
+* If you have a multiple accounts scenario, please modify the [sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/default/auth.js) (in `handleResponse()`) to list all cached accounts and choose a specific account.
+* If an application wants to retrieve an account based on the `username`, it needs to save the `username` (from the response of a `loginAPI` for a specific user) prior to using `getAccountByUsername()` API.
