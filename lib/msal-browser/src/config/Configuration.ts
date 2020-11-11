@@ -8,9 +8,9 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows and iframes in milliseconds
-const DEFAULT_POPUP_TIMEOUT_MS = 60000;
-const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
-const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
+export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
+export const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
+export const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
 
 /**
  * Use this to configure the auth options in the Configuration object
@@ -54,9 +54,10 @@ export type CacheOptions = {
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
  * - loggerOptions                - Used to initialize the Logger object (See ClientConfiguration.ts)
  * - networkClient                - Network interface implementation
- * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup
- * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe
- * - loadFrameTimeout             - Maximum time the library should wait for a frame to load
+ * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup. Will take precedence over loadFrameTimeout if both are set.
+ * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe. Will take precedence over loadFrameTimeout if both are set.
+ * - loadFrameTimeout             - Sets the timeout for waiting for a response hash in an iframe or popup
+ * - navigateFrameWait            - Maximum time the library should wait for a frame to load
  * - redirectNavigationTimeout    - Time to wait for redirection to occur before resolving promise
  * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
  */
@@ -66,6 +67,7 @@ export type BrowserSystemOptions = SystemOptions & {
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
+    navigateFrameWait?: number;
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
 };
@@ -125,9 +127,10 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: BrowserUtils.getBrowserNetworkClient(),
-        windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
-        iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
-        loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
+        // If loadFrameTimeout is provided, use that as default.
+        windowHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_POPUP_TIMEOUT_MS,
+        iframeHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_IFRAME_TIMEOUT_MS,
+        navigateFrameWait: BrowserUtils.detectIEOrEdge() ? 500 : 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false
     };
