@@ -8,15 +8,17 @@
     "build:all": "npm run build:common && npm run build:browser && npm run build",
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
+    "build:pack": "npm run build && cd dist && npm pack",
+    "deploy": "npm run build:all && npm publish dist",
     "test": "ng test",
     "test:coverage": "npm test",
     "lint": "cd ../../ && npm run lint:angular",
     "lint:fix": "npm run lint -- -- --fix",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "prepack": "npm run build:all"
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
-  "private": true,
   "dependencies": {
     "minimatch": "^3.0.4",
     "path": "^0.12.7"
