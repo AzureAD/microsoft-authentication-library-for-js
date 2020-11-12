@@ -12,7 +12,8 @@
     "test:coverage": "npm test",
     "lint": "cd ../../ && npm run lint:angular",
     "lint:fix": "npm run lint -- -- --fix",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "prepack": "npm run build:all"
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
