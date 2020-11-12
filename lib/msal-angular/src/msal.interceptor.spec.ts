@@ -2,8 +2,14 @@ import { TestBed } from '@angular/core/testing';
 import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { RouterTestingModule } from "@angular/router/testing";
-import { InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+import { AuthError, InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
 import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService } from './public-api';
+import { MsalInterceptorConfiguration } from './msal.interceptor.config';
+
+let interceptor: MsalInterceptor;
+let httpMock: HttpTestingController;
+let httpClient: HttpClient;
+let testInteractionType = InteractionType.Popup;
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -14,46 +20,63 @@ function MSALInstanceFactory(): IPublicClientApplication {
   });
 }
 
+function MSALInterceptorFactory(): MsalInterceptorConfiguration {
+  return {
+    //@ts-ignore
+    interactionType: testInteractionType,
+    protectedResourceMap: new Map([
+      ["https://graph.microsoft.com/v1.0/me", ["user.read"]],
+      ["https://myapplication.com/user/*", ["customscope.read"]],
+      ["http://localhost:4200/details", ["details.read"]],
+      ["https://*.myapplication.com/*", ["mail.read"]],
+      ["https://api.test.com", ["default.scope1"]],
+      ["https://*.test.com", ["default.scope2"]],
+      ["http://localhost:3000", ["base.scope"]]
+    ])
+  }
+}
+
+function initializeMsal() {
+  TestBed.resetTestingModule();
+
+  TestBed.configureTestingModule({
+    imports: [
+      HttpClientTestingModule,
+      RouterTestingModule,
+      MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory())
+    ],
+    providers: [
+      MsalInterceptor,
+      MsalService,
+      MsalBroadcastService,
+      {
+        provide: HTTP_INTERCEPTORS,
+        useClass: MsalInterceptor,
+        multi: true,
+      }
+    ],
+  });
+
+  interceptor = TestBed.inject(MsalInterceptor);
+  httpMock = TestBed.inject(HttpTestingController);
+  httpClient = TestBed.inject(HttpClient);
+}
+
 describe('MsalInterceptor', () => {
-  let interceptor: MsalInterceptor;
-  let httpMock: HttpTestingController;
-  let httpClient: HttpClient;
+  beforeEach(initializeMsal);
 
-  beforeAll(() => {
-    TestBed.resetTestingModule();
+  it("throws error if incorrect interaction type set in interceptor configuration", (done) => {
+    testInteractionType = InteractionType.Silent;
+    initializeMsal();
 
-    TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-        MsalModule.forRoot(MSALInstanceFactory(), null, {
-          interactionType: InteractionType.Popup, 
-          protectedResourceMap: new Map([
-            ["https://graph.microsoft.com/v1.0/me", ["user.read"]],
-            ["https://myapplication.com/user/*", ["customscope.read"]],
-            ["http://localhost:4200/details", ["details.read"]],
-            ["https://*.myapplication.com/*", ["mail.read"]],
-            ["https://api.test.com", ["default.scope1"]],
-            ["https://*.test.com", ["default.scope2"]],
-            ["http://localhost:3000", ["base.scope"]]
-        ])
-        })
-      ],
-      providers: [
-        MsalInterceptor,
-        MsalService,
-        MsalBroadcastService,
-        {
-          provide: HTTP_INTERCEPTORS,
-          useClass: MsalInterceptor,
-          multi: true,
-        }
-      ],
+    httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe({
+      error: (error) => {
+        expect(error.errorCode).toBe("invalid_interaction_type");
+        expect(error.errorMessage).toBe("Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration");
+        testInteractionType = InteractionType.Popup;
+        done();
+      }
     });
-
-    interceptor = TestBed.inject(MsalInterceptor);
-    httpMock = TestBed.inject(HttpTestingController);
-    httpClient = TestBed.inject(HttpClient);
   });
 
   it("does not attach authorization header for unprotected resource", () => {
@@ -158,7 +181,7 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
-  
+
   it("attaches authorization header with access token for base url as protected resource", done => {
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
@@ -210,6 +233,76 @@ describe('MsalInterceptor', () => {
       const request = httpMock.expectOne("https://api.test.com");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token from acquireTokenPopup if acquireTokenSilent fails in interceptor and interaction type is Popup", done => {
+    const sampleError = new AuthError("123", "message");
+    const sampleAccessToken = {
+      accessToken: "123abc"
+    };
+
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve, reject) => {
+        reject(sampleError);
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "acquireTokenPopup").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve(sampleAccessToken);
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+      homeAccountId: "test",
+      localAccountId: "test",
+      environment: "test",
+      tenantId: "test",
+      username: "test"
+    }]);
+
+    httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer 123abc");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("does not attach authorization header if acquireTokenSilent fails in interceptor and interaction type is Redirect", done => {
+    const sampleError = new AuthError("123", "message");
+
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve, reject) => {
+        reject(sampleError);
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "acquireTokenRedirect").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve();
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+      homeAccountId: "test",
+      localAccountId: "test",
+      environment: "test",
+      tenantId: "test",
+      username: "test"
+    }]);
+
+    httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectNone("https://graph.microsoft.com/v1.0/me");
+      expect(request).toBeUndefined();
       httpMock.verify();
       done();
     }, 200);
