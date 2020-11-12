@@ -60,6 +60,7 @@ export type CacheOptions = {
  * - navigateFrameWait            - Maximum time the library should wait for a frame to load
  * - redirectNavigationTimeout    - Time to wait for redirection to occur before resolving promise
  * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
+ * - allowRedirectInIframe        - Flag to enable redirect opertaions when the app is rendered in an iframe (to support scenarios such as embedded B2C login).
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -70,6 +71,7 @@ export type BrowserSystemOptions = SystemOptions & {
     navigateFrameWait?: number;
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
+    allowRedirectInIframe?: boolean;
 };
 
 /**
@@ -132,7 +134,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         iframeHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_IFRAME_TIMEOUT_MS,
         navigateFrameWait: BrowserUtils.detectIEOrEdge() ? 500 : 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
-        asyncPopups: false
+        asyncPopups: false,
+        allowRedirectInIframe: false
     };
 
     const overlayedConfig: Configuration = {
