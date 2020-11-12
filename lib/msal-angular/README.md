@@ -55,7 +55,7 @@ Before using MSAL.js, [register an application in Azure AD](https://docs.microso
 
 The MSAL Angular package is available on NPM:
 ```
-npm install msal @azure/msal-angular --save
+npm install @azure/msal-browser @azure/msal-angular@alpha
 ```
 
 ## Usage
