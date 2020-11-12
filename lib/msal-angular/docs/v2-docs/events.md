@@ -10,6 +10,9 @@ Events in `@azure/msal-angular` are managed by the `MsalBroadcastService`, and a
 
 Here is an example of how you can consume the emitted events in your application:
 ```javascript
+import { MsalBroadcastService } from '@azure/msal-angular';
+import { EventMessage, EventType } from '@azure/msal-browser';
+
 export class AppComponent implements OnInit, OnDestroy {
   private readonly _destroying$ = new Subject<void>();
 
