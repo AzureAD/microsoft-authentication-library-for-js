@@ -2,6 +2,29 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 11 Nov 2020 23:33:20 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.1",
+      "version": "1.0.0-beta.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Documentation update for new account retrieval APIs (#2585)",
+            "author": "hemoral@microsoft.com",
+            "commit": "cb782967cc8f07581488de71c4509fa12a702774",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Add support for SubjectName/Issuer authentication (#2471).",
+            "author": "jamckenn@microsoft.com",
+            "commit": "4e889b3f8e28b8fd46c0e63d0f142fb61b442510",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 10 Nov 2020 01:48:44 GMT",
       "tag": "@azure/msal-node_v1.0.0-alpha.16",
       "version": "1.0.0-alpha.16",
