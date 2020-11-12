@@ -2,6 +2,21 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Thu, 12 Nov 2020 00:45:30 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.0",
+      "version": "2.0.0-alpha.0",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Add msal-angular-v2-alpha-0 (#2463)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "31127561c00ce7d24e9a3059399140ab7984eb31",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Nov 2020 23:33:20 GMT",
       "tag": "@azure/msal-angular_v1.1.2",
       "version": "1.1.2",
