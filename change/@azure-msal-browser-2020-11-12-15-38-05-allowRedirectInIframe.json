@@ -1,8 +1,8 @@
 {
   "type": "patch",
-  "comment": "Add allowRedirectInIframe flag to browser",
+  "comment": "Add allowRedirectInIframe flag to browser (#2593)",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-11-12T23:38:04.897Z"
 }
