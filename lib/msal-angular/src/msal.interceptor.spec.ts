@@ -9,7 +9,7 @@ import { MsalInterceptorConfiguration } from './msal.interceptor.config';
 let interceptor: MsalInterceptor;
 let httpMock: HttpTestingController;
 let httpClient: HttpClient;
-let testInteractionType = InteractionType.Popup;
+let testInteractionType: InteractionType;
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -63,7 +63,10 @@ function initializeMsal() {
 }
 
 describe('MsalInterceptor', () => {
-  beforeEach(initializeMsal);
+  beforeEach(() => {
+    testInteractionType = InteractionType.Popup;
+    initializeMsal();
+  });
 
   it("throws error if incorrect interaction type set in interceptor configuration", (done) => {
     testInteractionType = InteractionType.Silent;
@@ -180,7 +183,6 @@ describe('MsalInterceptor', () => {
       done();
     }, 200);
   });
-
 
   it("attaches authorization header with access token for base url as protected resource", done => {
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
