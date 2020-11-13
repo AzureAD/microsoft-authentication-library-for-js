@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { RouterTestingModule } from "@angular/router/testing";
-import { AuthError, InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+import { AccountInfo, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
 import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService } from './public-api';
 import { MsalInterceptorConfiguration } from './msal.interceptor.config';
 
@@ -10,6 +10,14 @@ let interceptor: MsalInterceptor;
 let httpMock: HttpTestingController;
 let httpClient: HttpClient;
 let testInteractionType: InteractionType;
+
+const sampleAccountInfo: AccountInfo = {
+  homeAccountId: "test",
+  localAccountId: "test",
+  environment: "test",
+  tenantId: "test",
+  username: "test"
+}
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -110,13 +118,7 @@ describe('MsalInterceptor', () => {
       })
     ));
 
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
-      homeAccountId: "test",
-      localAccountId: "test",
-      environment: "test",
-      tenantId: "test",
-      username: "test"
-    }]);
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
     setTimeout(() => {
@@ -138,13 +140,7 @@ describe('MsalInterceptor', () => {
       })
     ));
 
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
-      homeAccountId: "test",
-      localAccountId: "test",
-      environment: "test",
-      tenantId: "test",
-      username: "test"
-    }]);
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://myapplication.com/user/1").subscribe();
     setTimeout(() => {
@@ -166,13 +162,7 @@ describe('MsalInterceptor', () => {
       })
     ));
 
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
-      homeAccountId: "test",
-      localAccountId: "test",
-      environment: "test",
-      tenantId: "test",
-      username: "test"
-    }]);
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://mail.myapplication.com/me").subscribe();
     setTimeout(() => {
@@ -194,13 +184,7 @@ describe('MsalInterceptor', () => {
       })
     ));
 
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
-      homeAccountId: "test",
-      localAccountId: "test",
-      environment: "test",
-      tenantId: "test",
-      username: "test"
-    }]);
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("http://localhost:3000/details").subscribe();
     setTimeout(() => {
@@ -222,13 +206,7 @@ describe('MsalInterceptor', () => {
       })
     ));
 
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
-      homeAccountId: "test",
-      localAccountId: "test",
-      environment: "test",
-      tenantId: "test",
-      username: "test"
-    }]);
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://api.test.com").subscribe();
     setTimeout(() => {
@@ -259,13 +237,7 @@ describe('MsalInterceptor', () => {
       })
     ));
 
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
-      homeAccountId: "test",
-      localAccountId: "test",
-      environment: "test",
-      tenantId: "test",
-      username: "test"
-    }]);
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
     setTimeout(() => {
@@ -295,13 +267,7 @@ describe('MsalInterceptor', () => {
       })
     ));
 
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
-      homeAccountId: "test",
-      localAccountId: "test",
-      environment: "test",
-      tenantId: "test",
-      username: "test"
-    }]);
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
     setTimeout(() => {
