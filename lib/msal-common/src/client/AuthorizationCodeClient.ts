@@ -264,7 +264,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * This API validates the `EndSessionRequest` and creates a URL
      * @param request
      */
-    private createLogoutUrlQueryString(request: EndSessionRequest): string {
+    private createLogoutUrlQueryString(request: CommonEndSessionRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         if (request.postLogoutRedirectUri) {

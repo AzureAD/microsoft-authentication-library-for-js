@@ -30,7 +30,6 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 
 export abstract class ClientApplication {
     private _authority: Authority;
@@ -73,7 +72,7 @@ export abstract class ClientApplication {
         const validRequest: CommonAuthorizationUrlRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
-            responseMode: request.responseMode || ResponseMode.FRAGMENT,
+            responseMode: request.responseMode || ResponseMode.QUERY,
             authenticationScheme: AuthenticationScheme.BEARER 
         };
         const authClientConfig = await this.buildOauthClientConfiguration(
@@ -253,7 +252,7 @@ export abstract class ClientApplication {
      * Generates a request with the default scopes & generates a correlationId.
      * @param authRequest
      */
-    protected initializeBaseRequest(authRequest: AuthorizationCodeRequest|AuthorizationUrlRequest|RefreshTokenRequest|SilentFlowRequest|ClientCredentialRequest): BaseAuthRequest {
+    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest {
         this.logger.verbose("initializeRequestScopes called");
 
         return {
