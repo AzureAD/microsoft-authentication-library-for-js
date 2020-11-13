@@ -276,6 +276,8 @@ describe('MsalInterceptor', () => {
   });
 
   it("does not attach authorization header if acquireTokenSilent fails in interceptor and interaction type is Redirect", done => {
+    testInteractionType = InteractionType.Redirect;
+    initializeMsal();
     const sampleError = new AuthError("123", "message");
 
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
