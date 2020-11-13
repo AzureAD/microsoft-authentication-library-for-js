@@ -11,7 +11,7 @@ import { ScopeSet } from "../request/ScopeSet";
 import { GrantType, AADServerParamKeys , CredentialType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
+import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { TimeUtils } from "../utils/TimeUtils";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
@@ -33,7 +33,7 @@ export class OnBehalfOfClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult> {
+    public async acquireToken(request: OnBehalfOfRequest): Promise<AuthenticationResult> {
         this.scopeSet = new ScopeSet(request.scopes || []);
 
         if (request.skipCache) {
@@ -48,7 +48,7 @@ export class OnBehalfOfClient extends BaseClient {
         }
     }
 
-    private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult> {
+    private async getCachedAuthenticationResult(request: OnBehalfOfRequest): Promise<AuthenticationResult> {
         const cachedAccessToken = this.readAccessTokenFromCache(request);
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
@@ -83,7 +83,7 @@ export class OnBehalfOfClient extends BaseClient {
             }, idTokenObject, true);
     }
 
-    private readAccessTokenFromCache(request: CommonOnBehalfOfRequest): AccessTokenEntity {
+    private readAccessTokenFromCache(request: OnBehalfOfRequest): AccessTokenEntity {
         const accessTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
@@ -105,7 +105,7 @@ export class OnBehalfOfClient extends BaseClient {
         return accessTokens[0] as AccessTokenEntity;
     }
 
-    private readIdTokenFromCache(request: CommonOnBehalfOfRequest): IdTokenEntity {
+    private readIdTokenFromCache(request: OnBehalfOfRequest): IdTokenEntity {
         const idTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ID_TOKEN,
@@ -127,7 +127,7 @@ export class OnBehalfOfClient extends BaseClient {
         return this.cacheManager.readAccountFromCache(account);
     }
 
-    private async executeTokenRequest(request: CommonOnBehalfOfRequest, authority: Authority)
+    private async executeTokenRequest(request: OnBehalfOfRequest, authority: Authority)
         : Promise<AuthenticationResult> {
 
         const requestBody = this.createTokenRequestBody(request);
@@ -164,7 +164,7 @@ export class OnBehalfOfClient extends BaseClient {
         return tokenResponse;
     }
 
-    private createTokenRequestBody(request: CommonOnBehalfOfRequest): string {
+    private createTokenRequestBody(request: OnBehalfOfRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
