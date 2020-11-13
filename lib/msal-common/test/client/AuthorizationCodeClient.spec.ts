@@ -2,6 +2,8 @@ import * as Mocha from "mocha";
 import * as chai from "chai";
 import sinon from "sinon";
 import chaiAsPromised from "chai-as-promised";
+const expect = chai.expect;	
+chai.use(chaiAsPromised);
 import {
     Authority,
     AuthorizationCodeClient,
