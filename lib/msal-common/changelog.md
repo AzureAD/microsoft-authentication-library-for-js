@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 10 Nov 2020 01:48:44 GMT and should not be manually modified.
+This log was last generated on Wed, 11 Nov 2020 23:33:20 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.7.2
+
+Wed, 11 Nov 2020 23:33:20 GMT
+
+### Patches
+
+- Add getAbsolutePath helper function to UrlString class (#2560) (thomas.norling@microsoft.com)
 
 ## 1.7.1
 

@@ -68,6 +68,23 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * add post logout redirectUri
+     * @param redirectUri
+     */
+    addPostLogoutRedirectUri(redirectUri: string): void {
+        RequestValidator.validateRedirectUri(redirectUri);
+        this.parameters.set(AADServerParamKeys.POST_LOGOUT_URI, encodeURIComponent(redirectUri));
+    }
+
+    /**
+     * add id_token_hint to logout request
+     * @param idTokenHint 
+     */
+    addIdTokenHint(idTokenHint: string): void {
+        this.parameters.set(AADServerParamKeys.ID_TOKEN_HINT, encodeURIComponent(idTokenHint));
+    }
+
+    /**
      * add domain_hint
      * @param domainHint
      */
