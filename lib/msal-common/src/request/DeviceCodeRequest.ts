@@ -16,7 +16,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
-export type CommonDeviceCodeRequest = BaseAuthRequest &  {
+export type DeviceCodeRequest = BaseAuthRequest &  {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
     cancel?: boolean;
 };

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonUsernamePasswordRequest } from "@azure/msal-common";
+import { UsernamePasswordRequest as CommonUsernamePasswordRequest } from "@azure/msal-common";
 
 /**
  * UsernamePassword parameters passed by the user to retrieve credentials

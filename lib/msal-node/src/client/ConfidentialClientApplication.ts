@@ -12,7 +12,10 @@ import {
     OnBehalfOfClient, 
     AuthenticationResult, 
     StringUtils, 
-    ClientAuthError, CommonClientCredentialRequest, CommonOnBehalfOfRequest } from "@azure/msal-common";
+    ClientAuthError, 
+    ClientCredentialRequest as CommonClientCredentialRequest, 
+    OnBehalfOfRequest as CommonOnBehalfOfRequest 
+} from "@azure/msal-common";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 

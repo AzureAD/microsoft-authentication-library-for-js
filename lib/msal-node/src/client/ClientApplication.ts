@@ -17,7 +17,13 @@ import {
     SilentFlowClient,
     Logger,
     ServerTelemetryManager,
-    ServerTelemetryRequest, CommonSilentFlowRequest, CommonRefreshTokenRequest, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthenticationScheme, ResponseMode
+    ServerTelemetryRequest, 
+    SilentFlowRequest as CommonSilentFlowRequest, 
+    RefreshTokenRequest as CommonRefreshTokenRequest, 
+    AuthorizationCodeRequest as CommonAuthorizationCodeRequest, 
+    AuthorizationUrlRequest as CommonAuthorizationUrlRequest, 
+    AuthenticationScheme, 
+    ResponseMode
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";

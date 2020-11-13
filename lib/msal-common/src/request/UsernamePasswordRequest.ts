@@ -16,7 +16,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - username               - username of the client
  * - password               - credentials
  */
-export type CommonUsernamePasswordRequest = BaseAuthRequest & {
+export type UsernamePasswordRequest = BaseAuthRequest & {
     username: string;
     password: string;
 };

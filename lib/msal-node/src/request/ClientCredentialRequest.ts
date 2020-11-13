@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonClientCredentialRequest } from "@azure/msal-common";
+import { ClientCredentialRequest as CommonClientCredentialRequest } from "@azure/msal-common";
 
 /**
  * CommonClientCredentialRequest

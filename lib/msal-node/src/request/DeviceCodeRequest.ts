@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonDeviceCodeRequest , DeviceCodeResponse } from "@azure/msal-common";
+import { DeviceCodeRequest as CommonDeviceCodeRequest , DeviceCodeResponse } from "@azure/msal-common";
 
 /**
  * Parameters for Oauth2 device code flow.

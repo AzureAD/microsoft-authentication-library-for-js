@@ -4,7 +4,13 @@
  */
 
 import { ApiId } from "../utils/Constants";
-import { DeviceCodeClient, AuthenticationResult, CommonDeviceCodeRequest, CommonUsernamePasswordRequest, UsernamePasswordClient } from "@azure/msal-common";
+import { 
+    DeviceCodeClient, 
+    AuthenticationResult, 
+    DeviceCodeRequest as CommonDeviceCodeRequest, 
+    UsernamePasswordRequest as CommonUsernamePasswordRequest, 
+    UsernamePasswordClient 
+} from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
