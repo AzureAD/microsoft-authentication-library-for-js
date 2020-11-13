@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "major",
   "comment": "Rename request types and change required fields (#2512)",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
