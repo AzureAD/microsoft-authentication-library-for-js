@@ -6,7 +6,7 @@
 import chai from "chai";
 import "mocha";
 import chaiAsPromised from "chai-as-promised";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
@@ -138,7 +138,7 @@ describe("SilentHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", async () => {
-            const testTokenReq: CommonAuthorizationCodeRequest = {
+            const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -155,7 +155,7 @@ describe("SilentHandler.ts Unit Tests", () => {
         });
 
         it("Creates a frame asynchronously when created with default timeout", async () => {
-            const testTokenReq: CommonAuthorizationCodeRequest = {
+            const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -172,7 +172,7 @@ describe("SilentHandler.ts Unit Tests", () => {
         }).timeout(DEFAULT_IFRAME_TIMEOUT_MS + 1000);
 
         it("Creates a frame synchronously when created with a timeout of 0", async () => {
-            const testTokenReq: CommonAuthorizationCodeRequest = {
+            const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,

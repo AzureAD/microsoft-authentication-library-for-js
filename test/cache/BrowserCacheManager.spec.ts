@@ -9,7 +9,7 @@ import "mocha";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { CacheManager, Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel, AuthenticationScheme } from "@azure/msal-common";
+import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel, AuthenticationScheme } from "@azure/msal-common";
 import { BrowserCacheLocation, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -544,7 +544,7 @@ describe("BrowserCacheManager tests", () => {
 
         it("Successfully retrieves and decodes response from cache", async () => {
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
-            const tokenRequest: CommonAuthorizationCodeRequest = {
+            const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
                 code: "thisIsAnAuthCode",
@@ -577,7 +577,7 @@ describe("BrowserCacheManager tests", () => {
             });
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const cryptoObj = new CryptoOps();
-            const tokenRequest: CommonAuthorizationCodeRequest = {
+            const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
                 code: "thisIsAnAuthCode",
@@ -602,7 +602,7 @@ describe("BrowserCacheManager tests", () => {
             const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;
             browserStorage.setItem(authorityKey, alternateAuthority);
 
-            const cachedRequest: CommonAuthorizationCodeRequest = {
+            const cachedRequest: AuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 code: "thisIsACode",
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,

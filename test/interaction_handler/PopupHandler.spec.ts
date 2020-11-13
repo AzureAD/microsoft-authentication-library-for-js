@@ -5,7 +5,7 @@
 
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
@@ -134,7 +134,7 @@ describe("PopupHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if request uri is empty", () => {
-            const testTokenReq: CommonAuthorizationCodeRequest = {
+            const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -150,7 +150,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         });
 
         it("opens a popup window", () => {
-            const testTokenReq: CommonAuthorizationCodeRequest = {
+            const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -253,7 +253,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 focus: focusSpy
             };
 
-            const testRequest: CommonAuthorizationCodeRequest = {
+            const testRequest: AuthorizationCodeRequest = {
                 redirectUri: "",
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -274,7 +274,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             sinon.stub(window, "open").returns(window);
             sinon.stub(window, "focus");
 
-            const testRequest: CommonAuthorizationCodeRequest = {
+            const testRequest: AuthorizationCodeRequest = {
                 redirectUri: "",
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -291,7 +291,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         it("throws error if no popup passed in but window.open returns null", () => {
             sinon.stub(window, "open").returns(null);
 
-            const testRequest: CommonAuthorizationCodeRequest = {
+            const testRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -305,7 +305,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         });
 
         it("throws error if popup passed in is null", () => {
-            const testRequest: CommonAuthorizationCodeRequest = {
+            const testRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
