@@ -290,7 +290,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeCommonAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
@@ -367,7 +367,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeCommonAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
@@ -427,7 +427,7 @@ export abstract class ClientApplication {
      *
      * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
-     * @param {@link CommonAuthorizationUrlRequest}
+     * @param {@link AuthorizationUrlRequest}
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
@@ -447,7 +447,7 @@ export abstract class ClientApplication {
 
     /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. To be used for silent refresh token acquisition and renewal.
-     * @param {@link CommonAuthorizationUrlRequest}
+     * @param {@link AuthorizationUrlRequest}
      * @param request
      */
     private async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
@@ -471,7 +471,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeCommonAuthorizationCodeRequest(silentRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
@@ -858,7 +858,7 @@ export abstract class ClientApplication {
      * Generates an auth code request tied to the url request.
      * @param request
      */
-    protected async initializeCommonAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
+    protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
         const authCodeRequest: AuthorizationCodeRequest = {

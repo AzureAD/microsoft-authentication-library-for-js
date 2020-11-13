@@ -147,7 +147,7 @@ describe("DeviceCodeClient unit tests", async () => {
 
     describe("Device code exceptions", () => {
 
-        it("Throw device code flow cancelled exceptio.cancel=true", async () => {
+        it("Throw device code flow cancelled exception if DeviceCodeRequest.cancel=true", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 

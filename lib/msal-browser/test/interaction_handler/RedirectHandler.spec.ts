@@ -7,7 +7,7 @@ import chai from "chai";
 import "mocha";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger } from "@azure/msal-common";
 import { Configuration, buildConfiguration, DEFAULT_REDIRECT_TIMEOUT_MS } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -139,7 +139,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", () => {
-            const testTokenReq: CommonAuthorizationCodeRequest = {
+            const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -155,7 +155,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
 
         it("throws error if we are not in top frame", () => {
-            const testTokenReq: CommonAuthorizationCodeRequest = {
+            const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -177,7 +177,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            const testTokenReq: CommonAuthorizationCodeRequest = {
+            const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -244,7 +244,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 dbStorage = {};
             });
 
-            const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
+            const testAuthCodeRequest: AuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["scope1", "scope2"],
                 code: ""

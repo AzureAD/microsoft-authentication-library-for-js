@@ -12,7 +12,7 @@ import {
     LogLevel,
     AccountInfo,
     AuthorityFactory,
-    CommonAuthorizationCodeRequest,
+    AuthorizationCodeRequest,
     AuthenticationResult,
     AuthorizationCodeClient,
     AuthenticationScheme,
@@ -43,7 +43,7 @@ class TestInteractionHandler extends InteractionHandler {
     }
 }
 
-const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
+const testAuthCodeRequest: AuthorizationCodeRequest = {
     redirectUri: TEST_URIS.TEST_REDIR_URI,
     scopes: ["scope1", "scope2"],
     code: ""

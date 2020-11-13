@@ -18,7 +18,7 @@ import { AADServerParamKeys, GrantType, Constants } from "../../src/utils/Consta
 import { ClientTestUtils } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient";
-import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest";
+import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
 import { AuthToken } from "../../src/account/AuthToken";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
@@ -100,20 +100,20 @@ describe("OnBehalfOf unit tests", () => {
         const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
 
         const client = new OnBehalfOfClient(config);
-        const CommonOnBehalfOfRequest: CommonOnBehalfOfRequest = {
+        const OnBehalfOfRequest: OnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
             skipCache: false
         };
 
-        const authResult = await client.acquireToken(CommonOnBehalfOfRequest);
+        const authResult = await client.acquireToken(OnBehalfOfRequest);
         const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).to.deep.eq(expectedScopes);
         expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
         expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
         expect(authResult.state).to.be.empty;
 
-        expect(createTokenRequestBodySpy.calledWith(CommonOnBehalfOfRequest)).to.be.true;
+        expect(createTokenRequestBodySpy.calledWith(OnBehalfOfRequest)).to.be.true;
 
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
@@ -145,12 +145,12 @@ describe("OnBehalfOf unit tests", () => {
         sinon.stub(OnBehalfOfClient.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
 
         const client = new OnBehalfOfClient(config);
-        const CommonOnBehalfOfRequest: CommonOnBehalfOfRequest = {
+        const OnBehalfOfRequest: OnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN
         };
 
-        const authResult = await client.acquireToken(CommonOnBehalfOfRequest);
+        const authResult = await client.acquireToken(OnBehalfOfRequest);
         expect(authResult.scopes).to.deep.eq(ScopeSet.fromString(expectedAtEntity.target).asArray());
         expect(authResult.idToken).to.deep.eq(TEST_TOKENS.IDTOKEN_V2);
         expect(authResult.accessToken).to.deep.eq(expectedAtEntity.secret);
@@ -170,20 +170,20 @@ describe("OnBehalfOf unit tests", () => {
         const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
 
         const client = new OnBehalfOfClient(config);
-        const CommonOnBehalfOfRequest: CommonOnBehalfOfRequest = {
+        const OnBehalfOfRequest: OnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
             skipCache: true
         };
 
-        const authResult = await client.acquireToken(CommonOnBehalfOfRequest);
+        const authResult = await client.acquireToken(OnBehalfOfRequest);
         const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).to.deep.eq(expectedScopes);
         expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
         expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
         expect(authResult.state).to.be.empty;
 
-        expect(createTokenRequestBodySpy.calledWith(CommonOnBehalfOfRequest)).to.be.true;
+        expect(createTokenRequestBodySpy.calledWith(OnBehalfOfRequest)).to.be.true;
 
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
@@ -212,11 +212,11 @@ describe("OnBehalfOf unit tests", () => {
         sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
 
         const client = new OnBehalfOfClient(config);
-        const CommonOnBehalfOfRequest: CommonOnBehalfOfRequest = {
+        const OnBehalfOfRequest: OnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN
         };
 
-        await expect(client.acquireToken(CommonOnBehalfOfRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+        await expect(client.acquireToken(OnBehalfOfRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 });

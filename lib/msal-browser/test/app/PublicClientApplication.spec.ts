@@ -9,7 +9,7 @@ import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, TimeUtils, AuthorizationCodeClient, ResponseMode, TrustedAuthority, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, CommonEndSessionRequest, LogLevel } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, TimeUtils, AuthorizationCodeClient, ResponseMode, TrustedAuthority, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, LogLevel } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -23,7 +23,6 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { SilentFlowRequest } from "../../../msal-node/src/request/SilentFlowRequest";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
@@ -416,7 +415,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
-                const testTokenReq: CommonAuthorizationCodeRequest = {
+                const testTokenReq: AuthorizationCodeRequest = {
                     redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                     code: "thisIsATestCode",
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -488,7 +487,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("gets hash from cache and processes error", (done) => {
-                const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
+                const testAuthCodeRequest: AuthorizationCodeRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["scope1", "scope2"],
                     code: "",
@@ -531,7 +530,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
 
-                const testTokenReq: CommonAuthorizationCodeRequest = {
+                const testTokenReq: AuthorizationCodeRequest = {
                     redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                     code: "thisIsATestCode",
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -621,7 +620,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
 
-                const testTokenReq: CommonAuthorizationCodeRequest = {
+                const testTokenReq: AuthorizationCodeRequest = {
                     redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                     code: "thisIsATestCode",
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -730,7 +729,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
-                const loginRequest: CommonAuthorizationUrlRequest = {
+                const loginRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["user.read"],
                     state: TEST_STATE_VALUES.USER_STATE,
@@ -760,7 +759,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("Updates cache entries correctly", async () => {
-                const emptyRequest: CommonAuthorizationUrlRequest = {
+                const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
                     state: TEST_STATE_VALUES.USER_STATE,
@@ -795,7 +794,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("Caches token request correctly", async () => {
-                const tokenRequest: CommonAuthorizationUrlRequest = {
+                const tokenRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
                     correlationId: RANDOM_TEST_GUID,
@@ -824,7 +823,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const testLogger = new Logger(loggerOptions);
                 const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 await pca.loginRedirect(tokenRequest);
-                const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
+                const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
                 expect(cachedRequest.scopes).to.be.deep.eq([]);
                 expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
                 expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
@@ -832,7 +831,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("Cleans cache before error is thrown", async () => {
-                const emptyRequest: CommonAuthorizationUrlRequest = {
+                const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
                     state: TEST_STATE_VALUES.USER_STATE,
@@ -900,7 +899,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve();
                 });
-                const emptyRequest: CommonAuthorizationUrlRequest = {
+                const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
                     state: TEST_STATE_VALUES.USER_STATE,
@@ -911,7 +910,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 await pca.loginRedirect(emptyRequest);
-                const validatedRequest: CommonAuthorizationUrlRequest = {
+                const validatedRequest: AuthorizationUrlRequest = {
                     ...emptyRequest,
                     scopes: [],
                     loginHint: idTokenClaims.upn,
@@ -956,7 +955,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve();
                 });
-                const loginRequest: CommonAuthorizationUrlRequest = {
+                const loginRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [],
                     loginHint: "AbeLi@microsoft.com",
@@ -968,7 +967,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 await pca.loginRedirect(loginRequest);
-                const validatedRequest: CommonAuthorizationUrlRequest = {
+                const validatedRequest: AuthorizationUrlRequest = {
                     ...loginRequest,
                     scopes: [],
                     state: TEST_STATE_VALUES.TEST_STATE,
@@ -1002,7 +1001,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
-                const loginRequest: CommonAuthorizationUrlRequest = {
+                const loginRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["user.read", "openid", "profile"],
                     state: TEST_STATE_VALUES.USER_STATE,
@@ -1017,7 +1016,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("Updates cache entries correctly", async () => {
                 const testScope = "testscope";
-                const emptyRequest: CommonAuthorizationUrlRequest = {
+                const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [testScope],
                     state: TEST_STATE_VALUES.USER_STATE,
@@ -1050,7 +1049,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("Caches token request correctly", async () => {
                 const testScope = "testscope";
-                const tokenRequest: CommonAuthorizationUrlRequest = {
+                const tokenRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [testScope],
                     correlationId: RANDOM_TEST_GUID,
@@ -1075,7 +1074,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const testLogger = new Logger(loggerOptions);
                 const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 await pca.acquireTokenRedirect(tokenRequest);
-                const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
+                const cachedRequest: AuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true)));
                 expect(cachedRequest.scopes).to.be.deep.eq([testScope]);
                 expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
                 expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
@@ -1084,7 +1083,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("Cleans cache before error is thrown", async () => {
                 const testScope = "testscope";
-                const emptyRequest: CommonAuthorizationUrlRequest = {
+                const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [testScope],
                     state: "",
@@ -1152,7 +1151,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve();
                 });
-                const emptyRequest: CommonAuthorizationUrlRequest = {
+                const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [testScope],
                     state: TEST_STATE_VALUES.USER_STATE,
@@ -1163,7 +1162,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 await pca.acquireTokenRedirect(emptyRequest);
-                const validatedRequest: CommonAuthorizationUrlRequest = {
+                const validatedRequest: AuthorizationUrlRequest = {
                     ...emptyRequest,
                     scopes: [...emptyRequest.scopes],
                     loginHint: idTokenClaims.upn,
@@ -1209,7 +1208,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve();
                 });
                 const testScope = "testscope";
-                const loginRequest: CommonAuthorizationUrlRequest = {
+                const loginRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: [testScope],
                     loginHint: "AbeLi@microsoft.com",
@@ -1221,7 +1220,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
                 await pca.acquireTokenRedirect(loginRequest);
-                const validatedRequest: CommonAuthorizationUrlRequest = {
+                const validatedRequest: AuthorizationUrlRequest = {
                     ...loginRequest,
                     scopes: [...loginRequest.scopes],
                     state: TEST_STATE_VALUES.TEST_STATE,
@@ -1370,7 +1369,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("opens popup window before network request by default", async () => {
-                const request: CommonAuthorizationUrlRequest = {
+                const request: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["scope"],
                     loginHint: "AbeLi@microsoft.com",
@@ -1410,7 +1409,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
 
-                const request: CommonAuthorizationUrlRequest = {
+                const request: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["scope"],
                     loginHint: "AbeLi@microsoft.com",
@@ -1537,7 +1536,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if prompt is not set to 'none'", async () => {
-            const req: CommonAuthorizationUrlRequest = {
+            const req: AuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
                 prompt: PromptValue.SELECT_ACCOUNT,
@@ -1715,7 +1714,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false
             };
-            const expectedTokenRequest: CommonSilentFlowRequest = {
+            const expectedTokenRequest: SilentFlowRequest = {
                 ...tokenRequest,
                 scopes: ["scope1"],
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
@@ -1812,7 +1811,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }, 
                 forceRefresh: false
             };
-            const expectedRequest: CommonAuthorizationUrlRequest = {
+            const expectedRequest: AuthorizationUrlRequest = {
                 ...silentFlowRequest,
                 scopes: ["User.Read"],
                 correlationId: RANDOM_TEST_GUID,
