@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 11 Nov 2020 23:33:20 GMT",
+      "tag": "@azure/msal-common_v1.7.2",
+      "version": "1.7.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Documentation update for new account retrieval APIs (#2585)",
+            "author": "hemoral@microsoft.com",
+            "commit": "cb782967cc8f07581488de71c4509fa12a702774",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Add getAbsolutePath helper function to UrlString class (#2560)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "12ccf0441f8735e9d2875cebac6065447ecc622d",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 10 Nov 2020 01:48:44 GMT",
       "tag": "@azure/msal-common_v1.7.1",
       "version": "1.7.1",

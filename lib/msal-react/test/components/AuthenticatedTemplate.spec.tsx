@@ -97,7 +97,25 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
     });
 
-    test("Shows child component if specific username is not signed in", async () => {        
+    test("Shows child component if specific localAccountId is signed in", async () => {        
+        const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
+        const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
+        getAllAccountsSpy.mockImplementation(() => [testAccount]);
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <AuthenticatedTemplate localAccountId={testAccount.localAccountId}>
+                    <span> A user is authenticated!</span>
+                </AuthenticatedTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
+    });
+
+    test("Does not show child component if specific username is not signed in", async () => {        
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -115,7 +133,7 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
 
-    test("Shows child component if specific homeAccountId is not signed in", async () => {        
+    test("Does not show child component if specific homeAccountId is not signed in", async () => {        
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -123,6 +141,24 @@ describe("AuthenticatedTemplate tests", () => {
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <AuthenticatedTemplate homeAccountId={"homeAccountId_does_not_exist"}>
+                    <span> A user is authenticated!</span>
+                </AuthenticatedTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
+    });
+
+    test("Does not show child component if specific localAccountId is not signed in", async () => {        
+        const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
+        const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
+        getAllAccountsSpy.mockImplementation(() => [testAccount]);
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <AuthenticatedTemplate localAccountId={"localAccountId_does_not_exist"}>
                     <span> A user is authenticated!</span>
                 </AuthenticatedTemplate>
             </MsalProvider>
