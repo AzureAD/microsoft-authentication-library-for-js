@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, CommonSilentFlowRequest, CommonEndSessionRequest } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
@@ -245,7 +245,7 @@ export abstract class ClientApplication {
      */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
         const encodedTokenRequest = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
-        const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as CommonAuthorizationCodeRequest;
+        const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
         // Deserialize hash fragment response parameters.
@@ -285,12 +285,12 @@ export abstract class ClientApplication {
             this.emitEvent(EventType.LOGIN_START, InteractionType.Redirect, request);
         }
 
-        const validRequest: CommonAuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeCommonAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeCommonAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
@@ -362,12 +362,12 @@ export abstract class ClientApplication {
         }
 
         // Preflight request
-        const validRequest: CommonAuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeCommonAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeCommonAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
@@ -462,7 +462,7 @@ export abstract class ClientApplication {
         }
 
         // Create silent request
-        const silentRequest: CommonAuthorizationUrlRequest = this.initializeAuthorizationRequest({
+        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
             ...request,
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
@@ -471,7 +471,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeCommonAuthorizationCodeRequest(silentRequest);
+            const authCodeRequest: AuthorizationCodeRequest = await this.initializeCommonAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
@@ -499,11 +499,11 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+    protected async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
-        const silentRequest: CommonSilentFlowRequest = {
+        const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
@@ -530,7 +530,7 @@ export abstract class ClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
+    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
@@ -739,7 +739,7 @@ export abstract class ClientApplication {
     /**
      * Helper to validate app environment before making a request.
      */
-    protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): CommonAuthorizationUrlRequest {
+    protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -773,7 +773,7 @@ export abstract class ClientApplication {
      * Initializer function for all request APIs
      * @param request
      */
-    protected initializeBaseRequest(request: PopupRequest|RedirectRequest|CommonSilentFlowRequest|SsoSilentRequest): BaseAuthRequest {
+    protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
         let authority = request.authority;
         if (StringUtils.isEmpty(authority)) {
             authority = this.config.auth.authority;
@@ -807,7 +807,7 @@ export abstract class ClientApplication {
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): CommonAuthorizationUrlRequest {
+    protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
@@ -827,7 +827,7 @@ export abstract class ClientApplication {
 
         const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
 
-        const validatedRequest: CommonAuthorizationUrlRequest = {
+        const validatedRequest: AuthorizationUrlRequest = {
             ...this.initializeBaseRequest(request),
             redirectUri: redirectUri,
             state: state,
@@ -858,10 +858,10 @@ export abstract class ClientApplication {
      * Generates an auth code request tied to the url request.
      * @param request
      */
-    protected async initializeCommonAuthorizationCodeRequest(request: CommonAuthorizationUrlRequest): Promise<CommonAuthorizationCodeRequest> {
+    protected async initializeCommonAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
-        const authCodeRequest: CommonAuthorizationCodeRequest = {
+        const authCodeRequest: AuthorizationCodeRequest = {
             ...request,
             redirectUri: request.redirectUri,
             code: "",
