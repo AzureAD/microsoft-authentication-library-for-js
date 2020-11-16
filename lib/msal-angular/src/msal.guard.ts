@@ -19,7 +19,7 @@ export class MsalGuard implements CanActivate {
         @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
         private authService: MsalService,
         private location: Location,
-    ) {}
+    ) { }
 
     /**
      * Builds the absolute url for the destination page
@@ -46,9 +46,9 @@ export class MsalGuard implements CanActivate {
         return `${baseUrl}${path}`;
     }
 
-    private loginInteractively(url: string): Observable<boolean> {        
+    private loginInteractively(url: string): Observable<boolean> {
         if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
-            return this.authService.loginPopup({...this.msalGuardConfig.authRequest})
+            return this.authService.loginPopup({ ...this.msalGuardConfig.authRequest })
                 .pipe(
                     map(() => true),
                     catchError(() => of(false))
@@ -63,7 +63,7 @@ export class MsalGuard implements CanActivate {
         return of(false);
     }
 
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Observable<boolean> {
+    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
         if (this.msalGuardConfig.interactionType !== InteractionType.Popup && this.msalGuardConfig.interactionType !== InteractionType.Redirect) {
             throw new BrowserConfigurationAuthError("invalid_interaction_type", "Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration");
         }
