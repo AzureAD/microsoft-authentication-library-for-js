@@ -51,7 +51,7 @@ export class Logger {
     // Callback to send messages to.
     private localCallback: ILoggerCallback;
 
-    constructor(loggerOptions: LoggerOptions) {
+    constructor(loggerOptions: Required<LoggerOptions>) {
         if (loggerOptions) {
             this.localCallback = loggerOptions.loggerCallback;
             this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled;
@@ -70,7 +70,7 @@ export class Logger {
         const logHeader: string = StringUtils.isEmpty(this.correlationId) ? `[${timestamp}] : ` : `[${timestamp}] : [${this.correlationId}]`;
         const log = `${logHeader} : ${pkg.version} : ${LogLevel[options.logLevel]} - ${logMessage}`;
         // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
-        this.executeCallback(options.logLevel, log, options.containsPii);
+        this.executeCallback(options.logLevel, log, options.containsPii || false);
     }
 
     /**
