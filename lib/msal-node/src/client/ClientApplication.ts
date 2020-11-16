@@ -17,12 +17,12 @@ import {
     SilentFlowClient,
     Logger,
     ServerTelemetryManager,
-    ServerTelemetryRequest, 
-    SilentFlowRequest as CommonSilentFlowRequest, 
-    RefreshTokenRequest as CommonRefreshTokenRequest, 
-    AuthorizationCodeRequest as CommonAuthorizationCodeRequest, 
-    AuthorizationUrlRequest as CommonAuthorizationUrlRequest, 
-    AuthenticationScheme, 
+    ServerTelemetryRequest,
+    SilentFlowRequest as CommonSilentFlowRequest,
+    RefreshTokenRequest as CommonRefreshTokenRequest,
+    AuthorizationCodeRequest as CommonAuthorizationCodeRequest,
+    AuthorizationUrlRequest as CommonAuthorizationUrlRequest,
+    AuthenticationScheme,
     ResponseMode
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
@@ -79,7 +79,7 @@ export abstract class ClientApplication {
             ...request,
             ...this.initializeBaseRequest(request),
             responseMode: request.responseMode || ResponseMode.QUERY,
-            authenticationScheme: AuthenticationScheme.BEARER 
+            authenticationScheme: AuthenticationScheme.BEARER
         };
         const authClientConfig = await this.buildOauthClientConfiguration(
             validRequest.authority
@@ -99,7 +99,7 @@ export abstract class ClientApplication {
      * Authorization Code flow. Ensure that values for redirectUri and scopes in AuthorizationCodeUrlRequest and
      * AuthorizationCodeRequest are the same.
      */
-    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByCode called");
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -130,7 +130,7 @@ export abstract class ClientApplication {
      * recommended that you use `acquireTokenSilent()` for silent scenarios. When using `acquireTokenSilent()`, MSAL will
      * handle the caching and refreshing of tokens automatically.
      */
-    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
+    async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByRefreshToken called");
         const validRequest: CommonRefreshTokenRequest = {
             ...request,
@@ -163,7 +163,7 @@ export abstract class ClientApplication {
      * In case the refresh_token is expired or not found, an error is thrown
      * and the guidance is for the user to call any interactive token acquisition API (eg: `acquireTokenByCode()`).
      */
-    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
         const validRequest: CommonSilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),

@@ -51,12 +51,12 @@ export class Logger {
     // Callback to send messages to.
     private localCallback: ILoggerCallback;
 
-    constructor(loggerOptions: Required<LoggerOptions>) {
-        if (loggerOptions) {
-            this.localCallback = loggerOptions.loggerCallback;
-            this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled;
-            this.level = loggerOptions.logLevel;
-        }
+    constructor(loggerOptions: LoggerOptions) {
+
+        const defaultLoggerCallback = () => {};
+        this.localCallback = loggerOptions.loggerCallback || defaultLoggerCallback;
+        this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled || false;
+        this.level = loggerOptions.logLevel || LogLevel.Info;
     }
 
     /**
