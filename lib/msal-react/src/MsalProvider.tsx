@@ -62,7 +62,10 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
             }
         });
 
-        instance.handleRedirectPromise();
+        instance.handleRedirectPromise().catch(() => {
+            // Errors should be handled by listening to the LOGIN_FAILURE event
+            return;
+        });
 
         return () => {
             callbackId && instance.removeEventCallback(callbackId);
