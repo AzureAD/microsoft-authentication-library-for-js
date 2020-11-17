@@ -113,7 +113,7 @@ export class ConfidentialClientApplication extends ClientApplication {
         if (!certificateNotEmpty) {
             throw ClientAuthError.createInvalidCredentialError();
         } else {
-            this.clientAssertion = ClientAssertion.fromCertificate(certificate.thumbprint, certificate.privateKey);
+            this.clientAssertion = ClientAssertion.fromCertificate(certificate.thumbprint, certificate.privateKey, configuration.auth.clientCertificate?.x5c);
         }
     }
 }

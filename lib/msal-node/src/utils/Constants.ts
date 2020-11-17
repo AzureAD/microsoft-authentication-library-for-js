@@ -69,7 +69,8 @@ export enum ApiId {
 export const JwtConstants = {
     ALGORITHM: "alg",
     RSA_256: "RS256",
-    X5T: "x5t",
+    X5T: "x5t", 
+    X5C: "x5c",
     AUDIENCE: "aud",
     EXPIRATION_TIME: "exp",
     ISSUER: "iss",
