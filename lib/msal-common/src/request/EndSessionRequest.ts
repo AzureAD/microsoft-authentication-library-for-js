@@ -11,10 +11,12 @@ import { AccountInfo } from "../account/AccountInfo";
  * - postLogoutRedirectUri  - URI to navigate to after logout page.
  * - authority              - Authority to send logout request to.
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
+ * - idTokenHint            - ID Token used by B2C to validate logout if required by the policy
  */
 export type EndSessionRequest = {
     account?: AccountInfo,
     postLogoutRedirectUri?: string,
     authority?: string,
-    correlationId?: string
+    correlationId?: string,
+    idTokenHint?: string
 };
