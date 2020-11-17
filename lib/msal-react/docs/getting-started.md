@@ -14,7 +14,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 import { MsalProvider } from "@azure/msal-react";
-import { Configuration } from "@azure/msal-browser";
+import { Configuration,  PublicClientApplication } from "@azure/msal-browser";
 
 import App from "./app.jsx";
 
