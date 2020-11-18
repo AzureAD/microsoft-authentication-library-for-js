@@ -11,7 +11,8 @@ import {
     AuthorizationUrlRequest,
     AuthenticationResult,
     RedirectRequest,
-    SilentRequest
+    SilentRequest,
+    Logger
 } from "@azure/msal-browser";
 import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from "rxjs";
@@ -20,6 +21,7 @@ import { IMsalService } from "./IMsalService";
 @Injectable()
 export class MsalService implements IMsalService {
     private redirectHash: string;
+    public logger: Logger;
 
     constructor(
         @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
@@ -29,6 +31,7 @@ export class MsalService implements IMsalService {
         if (hash) {
             this.redirectHash = `#${hash}`;
         }
+        this.logger = this.instance.getLogger();
     }
 
     acquireTokenPopup(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {

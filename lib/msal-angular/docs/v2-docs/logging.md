@@ -9,6 +9,8 @@ The logger definition has the following properties:
 You can enable logging in your app as shown below:
 
 ```js
+import { LogLevel } from '@azure/msal-browser';
+
 export function loggerCallback(logLevel, message) {
     console.log(message);
 }
@@ -22,7 +24,7 @@ export function loggerCallback(logLevel, message) {
             system: {
                 loggerOptions: {
                     loggerCallback,
-                    level: LogLevel.Verbose,
+                    logLevel: LogLevel.Verbose,
                     piiLoggingEnabled: true
                 }
             }
