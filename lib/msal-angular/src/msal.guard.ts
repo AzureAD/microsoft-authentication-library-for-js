@@ -88,7 +88,7 @@ export class MsalGuard implements CanActivate {
                 }),
                 catchError(() => {
                     this.authService.logger.verbose("Guard - error while logging in, unable to activate");
-                    return of(false)
+                    return of(false);
                 })
             );
     }
