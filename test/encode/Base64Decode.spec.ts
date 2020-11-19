@@ -67,7 +67,7 @@ describe("Base64Decode.ts Unit Tests", () => {
                 "ver": "2.0",
                 "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "exp": "1536361411",
+                "exp": 1536361411,
                 "name": "Abe Lincoln",
                 "preferred_username": "AbeLi@microsoft.com",
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
@@ -88,6 +88,11 @@ describe("Base64Decode.ts Unit Tests", () => {
             };
             const stringifiedReq = JSON.stringify(tokenRequest);
             expect(b64Decode.decode(b64Encode.encode(stringifiedReq))).to.be.eq(stringifiedReq);
+        });
+
+        it("Percent encoded URI", ()=> {
+            const b64Encode = new Base64Encode();
+            expect(b64Decode.decode(b64Encode.encode(TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI))).to.be.eq(TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI);
         });
     });
 });

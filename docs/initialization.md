@@ -3,11 +3,15 @@
 Before you get started, please ensure you have completed all the [prerequisites](../README.md#prerequisites).
 
 In this document:
-- [Initializing the PublicClientApplication object](#initializing-the-publicclientapplication-object)
-- [(Optional) Configure Authority](#optional-configure-authority)
-- [(Optional) Configure Redirect URI](#optional-configure-redirect-uri)
-- [(Optional) Additional Configuration](./configuration.md)
-- [Choosing an Interaction Type](#choosing-an-interaction-type)
+- [Initialization of MSAL](#initialization-of-msal)
+  - [Initializing the PublicClientApplication object](#initializing-the-publicclientapplication-object)
+  - [(Optional) Configure Authority](#optional-configure-authority)
+  - [(Optional) Configure Redirect URI](#optional-configure-redirect-uri)
+  - [(Optional) Additional Configuration](#optional-additional-configuration)
+  - [Choosing an Interaction Type](#choosing-an-interaction-type)
+    - [Popup APIs](#popup-apis)
+    - [Redirect APIs](#redirect-apis)
+- [Next Steps](#next-steps)
 
 ## Initializing the PublicClientApplication object
 
@@ -42,6 +46,18 @@ const msalConfig = {
     auth: {
         clientId: 'your_client_id',
         authority: 'https://login.microsoftonline.com/{your_tenant_id}'
+    }
+};
+```
+
+If your application is using a separate OIDC-compliant authority like `"https://login.live.com"` or an IdentityServer, you will need to provide it in the `knownAuthorities` field and set your `protocolMode` to `"OIDC"`.
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: 'your_client_id',
+        authority: 'https://login.live.com',
+        knownAuthorities: ["login.live.com"],
+        protocolMode: "OIDC"
     }
 };
 ```
@@ -83,21 +99,21 @@ The popup APIs use ES6 Promises that resolve when the authentication flow in the
 - `loginRedirect`
 - `acquireTokenRedirect`
 
-The redirect APIs do not use Promises, but are `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, be aware that there is a small delay after loading the MSAL object where the exchanging of the auth code for the token is occurring. You can use the following function to perform an action when this token exchange is completed:
+The redirect APIs are asynchronous (i.e. return a promise) `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, be aware that you MUST call `handleRedirectPromise()` to correctly handle the API. You can use the following function to perform an action when this token exchange is completed:
 ```javascript
-msalInstance.handleRedirectPromise()
-.then((tokenResponse) => {
+msalInstance.handleRedirectPromise().then((tokenResponse) => {
     // Check if the tokenResponse is null
     // If the tokenResponse !== null, then you are coming back from a successful authentication redirect. 
     // If the tokenResponse === null, you are not coming back from an auth redirect.
-})
-.catch((error) => {
+}).catch((error) => {
     // handle error, either in the library or coming back from the server
 });
 ```
-This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
+This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
 
 It is not recommended to use both interaction types in a single application.
+
+**Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
 # Next Steps
 

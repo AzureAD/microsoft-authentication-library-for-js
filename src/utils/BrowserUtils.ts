@@ -2,7 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { INetworkModule, UrlString } from "@azure/msal-common";
+
+import { INetworkModule, Logger, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -19,19 +20,43 @@ export class BrowserUtils {
      * @param {string} urlNavigate - URL of the authorization endpoint
      * @param {boolean} noHistory - boolean flag, uses .replace() instead of .assign() if true
      */
-    static navigateWindow(urlNavigate: string, noHistory?: boolean): void {
+    static navigateWindow(urlNavigate: string, navigationTimeout: number, logger: Logger, noHistory?: boolean): Promise<void> {
         if (noHistory) {
             window.location.replace(urlNavigate);
         } else {
             window.location.assign(urlNavigate);
         }
+
+        // To block code from running after navigation, this should not throw if navigation succeeds
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                logger.warning("Expected to navigate away from the current page but timeout occurred.");
+                resolve();
+            }, navigationTimeout);
+        });
     }
 
     /**
      * Clears hash from window url.
      */
     static clearHash(): void {
-        window.location.hash = "";
+        // Office.js sets history.replaceState to null
+        if (typeof history.replaceState === "function") {
+            // Full removes "#" from url
+            history.replaceState(null, null, `${window.location.pathname}${window.location.search}`);
+        } else {
+            window.location.hash = "";
+        }
+    }
+
+    /**
+     * Replaces current hash with hash from provided url
+     */
+    static replaceHash(url: string): void {
+        const urlParts = url.split("#");
+        urlParts.shift(); // Remove part before the hash
+        
+        window.location.hash = urlParts.length > 0 ? urlParts.join("#") : "";
     }
 
     /**
@@ -51,10 +76,19 @@ export class BrowserUtils {
     }
 
     /**
+     * Gets the homepage url for the current window location.
+     */
+    static getHomepage(): string {
+        const currentUrl = new UrlString(window.location.href);
+        const urlComponents = currentUrl.getUrlComponents();
+        return `${urlComponents.Protocol}//${urlComponents.HostNameAndPort}/`;
+    }
+
+    /**
      * Returns best compatible network client object. 
      */
     static getBrowserNetworkClient(): INetworkModule {
-        if (window.fetch) {
+        if (window.fetch && window.Headers) {
             return new FetchClient();
         } else {
             return new XhrClient();
@@ -70,6 +104,16 @@ export class BrowserUtils {
         // return an error if called from the hidden iframe created by the msal js silent calls
         if (isResponseHash && BrowserUtils.isInIframe()) {
             throw BrowserAuthError.createBlockReloadInHiddenIframeError();
+        }
+    }
+
+    /**
+     * Throws error if token requests are made in non-browser environment
+     * @param isBrowserEnvironment Flag indicating if environment is a browser.
+     */
+    static blockNonBrowserEnvironment(isBrowserEnvironment: boolean): void {
+        if (!isBrowserEnvironment) {
+            throw BrowserAuthError.createNonBrowserEnvironmentError();
         }
     }
 

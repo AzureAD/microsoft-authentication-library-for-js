@@ -1,15 +1,30 @@
 import { expect } from "chai";
+import "mocha";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, IAccount, AuthorityFactory, AuthorizationCodeRequest, AuthenticationResult } from "@azure/msal-common";
+import {
+    PkceCodes,
+    NetworkRequestOptions,
+    LogLevel,
+    AccountInfo,
+    AuthorityFactory,
+    AuthorizationCodeRequest,
+    AuthenticationResult,
+    AuthorizationCodeClient,
+    AuthenticationScheme,
+    ProtocolMode,
+    Logger,
+} from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES } from "../utils/StringConstants";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
+import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { TestStorageManager } from "../cache/TestStorageManager";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 class TestInteractionHandler extends InteractionHandler {
 
-    constructor(authCodeModule: SPAClient, storageImpl: BrowserStorage) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         super(authCodeModule, storageImpl);
     }
 
@@ -18,27 +33,15 @@ class TestInteractionHandler extends InteractionHandler {
     }
 
     initiateAuthRequest(requestUrl: string): Window | Promise<HTMLIFrameElement> {
-		this.authCodeRequest = testAuthCodeRequest;
-		return null;
+        this.authCodeRequest = testAuthCodeRequest;
+        return null;
     }
 }
 
 const testAuthCodeRequest: AuthorizationCodeRequest = {
-	redirectUri: TEST_URIS.TEST_REDIR_URI,
-	scopes: ["scope1", "scope2"],
-	code: ""
-};
-
-const clearFunc = (): void => {
-    return;
-};
-
-const removeFunc = (key: string): boolean => {
-    return true;
-};
-
-const setFunc = (key: string, value: string): void => {
-    return;
+    redirectUri: TEST_URIS.TEST_REDIR_URI,
+    scopes: ["scope1", "scope2"],
+    code: ""
 };
 
 const testPkceCodes = {
@@ -53,40 +56,41 @@ const testNetworkResult = {
 const testKeySet = ["testKey1", "testKey2"];
 
 const networkInterface = {
-	sendGetRequestAsync<T>(
-		url: string,
-		options?: NetworkRequestOptions
-	): T {
-		return null;
-	},
-	sendPostRequestAsync<T>(
-		url: string,
-		options?: NetworkRequestOptions
-	): T {
-		return null;
-	},
+    sendGetRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): T {
+        return null;
+    },
+    sendPostRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): T {
+        return null;
+    },
 };
 
 describe("InteractionHandler.ts Unit Tests", () => {
 
-    let authCodeModule: SPAClient;
-    let browserStorage: BrowserStorage;
+    let authCodeModule: AuthorizationCodeClient;
+    let browserStorage: BrowserCacheManager;
+    const cryptoOpts = new CryptoOps();
+
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-		const configObj = buildConfiguration(appConfig);
-		const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        authCodeModule = new SPAClient({
+        const configObj = buildConfiguration(appConfig);
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        const authConfig = {
             authOptions: {
-				...configObj.auth,
-				authority: authorityInstance,
-			},
+                ...configObj.auth,
+                authority: authorityInstance,
+            },
             systemOptions: {
-                tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds,
-                telemetry: configObj.system.telemetry
+                tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds
             },
             cryptoInterface: {
                 createNewGuid: (): string => {
@@ -100,28 +104,15 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
                     return testPkceCodes;
+                },
+                getPublicKeyThumbprint: async (): Promise<string> => {
+                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                },
+                signJwt: async (): Promise<string> => {
+                    return "signedJwt";
                 }
             },
-            storageInterface: {
-                getCache: (): object => {
-                    return {};
-                },
-                setCache: (): void => {
-                    // dummy impl;
-                },
-                clear: clearFunc,
-                containsKey: (key: string): boolean => {
-                    return true;
-                },
-                getItem: (key: string): string => {
-                    return "cacheItem";
-                },
-                getKeys: (): string[] => {
-                    return testKeySet;
-                },
-                removeItem: removeFunc,
-                setItem: setFunc
-            },
+            storageInterface: new TestStorageManager(),
             networkInterface: {
                 sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
                     return testNetworkResult;
@@ -138,8 +129,10 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 },
                 piiLoggingEnabled: true
             }
-        });
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
+        };
+        authCodeModule = new AuthorizationCodeClient(authConfig);
+        const logger = new Logger(authConfig.loggerOptions);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOpts, logger);
     });
 
     afterEach(() => {
@@ -164,6 +157,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             await expect(interactionHandler.handleCodeResponse(null)).to.be.rejectedWith(BrowserAuthError);
         });
 
+        // TODO: Need to improve this test
         it("successfully handles response", async () => {
             const testCodeResponse = "authcode";
             const idTokenClaims = {
@@ -178,7 +172,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 "nonce": "123523"
             };
 
-            const testAccount: IAccount = {
+            const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: idTokenClaims.tid,
@@ -187,21 +181,25 @@ describe("InteractionHandler.ts Unit Tests", () => {
             const testTokenResponse: AuthenticationResult = {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
+                fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
-                state: "testState"
-			};
-			sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-			const acquireTokenSpy = sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
+                state: "testState",
+                tokenType: AuthenticationScheme.BEARER
+            };
+            browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE);
+            browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), idTokenClaims.nonce);
+            sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
-			interactionHandler.initiateAuthRequest("testNavUrl");
+            interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
-			expect(tokenResponse).to.deep.eq(testTokenResponse);
-			expect(acquireTokenSpy.calledWith(testAuthCodeRequest, "", null)).to.be.true;
+            expect(tokenResponse).to.deep.eq(testTokenResponse);
+            expect(acquireTokenSpy.calledWith(testAuthCodeRequest, idTokenClaims.nonce, TEST_STATE_VALUES.TEST_STATE)).to.be.true;
         });
     });
 });

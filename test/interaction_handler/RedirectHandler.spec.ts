@@ -1,30 +1,25 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import chai from "chai";
-import chaiAsPromised from "chai-as-promised"
-chai.use(chaiAsPromised);
-const expect = chai.expect;
+import "mocha";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
-import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { SPAClient, PkceCodes, NetworkRequestOptions, LogLevel, IAccount, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType } from "@azure/msal-common";
-import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES } from "../utils/StringConstants";
-import { BrowserStorage } from "../../src/cache/BrowserStorage";
+import { Configuration, buildConfiguration, DEFAULT_REDIRECT_TIMEOUT_MS } from "../../src/config/Configuration";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger } from "@azure/msal-common";
+import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
-import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
-const clearFunc = (): void => {
-    return;
-};
-
-const removeFunc = (key: string): boolean => {
-    return;
-};
-
-const setFunc = (key: string, value: string): void => {
-    return;
-};
+chai.use(chaiAsPromised);
+const expect = chai.expect;
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -35,26 +30,26 @@ const testNetworkResult = {
     testParam: "testValue"
 };
 
-const testKeySet = ["testKey1", "testKey2"];
+const browserCrypto = new CryptoOps();
 
 const networkInterface = {
-	sendGetRequestAsync<T>(
-		url: string,
-		options?: NetworkRequestOptions
-	): T {
-		return null;
-	},
-	sendPostRequestAsync<T>(
-		url: string,
-		options?: NetworkRequestOptions
-	): T {
-		return null;
-	},
+    sendGetRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): T {
+        return null;
+    },
+    sendPostRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): T {
+        return null;
+    },
 };
 
 describe("RedirectHandler.ts Unit Tests", () => {
 
-    let browserStorage: BrowserStorage;
+    let browserStorage: BrowserCacheManager;
     let redirectHandler: RedirectHandler;
     beforeEach(() => {
         const appConfig: Configuration = {
@@ -62,18 +57,31 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-		const configObj = buildConfiguration(appConfig);
-        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface);
-        browserStorage = new BrowserStorage(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache);
-        const authCodeModule = new SPAClient({
+        const configObj = buildConfiguration(appConfig);
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        const browserCrypto = new CryptoOps();
+        const loggerConfig = {
+            loggerCallback: (
+                level: LogLevel,
+                message: string,
+                containsPii: boolean
+            ): void => {
+                if (containsPii) {
+                    console.log(`Log level: ${level} Message: ${message}`);
+                }
+            },
+            piiLoggingEnabled: true,
+        };
+        const logger = new Logger(loggerConfig);
+        browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
+        const authConfig = {
             authOptions: {
-				...configObj.auth,
-				authority: authorityInstance,
-			},
+                ...configObj.auth,
+                authority: authorityInstance,
+            },
             systemOptions: {
                 tokenRenewalOffsetSeconds:
                     configObj.system.tokenRenewalOffsetSeconds,
-                telemetry: configObj.system.telemetry,
             },
             cryptoInterface: {
                 createNewGuid: (): string => {
@@ -88,6 +96,12 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 generatePkceCodes: async (): Promise<PkceCodes> => {
                     return testPkceCodes;
                 },
+                getPublicKeyThumbprint: async (): Promise<string> => {
+                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                },
+                signJwt: async (): Promise<string> => {
+                    return "signedJwt";
+                }
             },
             storageInterface: browserStorage,
             networkInterface: {
@@ -104,21 +118,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     return testNetworkResult;
                 },
             },
-            loggerOptions: {
-                loggerCallback: (
-                    level: LogLevel,
-                    message: string,
-                    containsPii: boolean
-                ): void => {
-                    if (containsPii) {
-                        console.log(`Log level: ${level} Message: ${message}`);
-                    }
-                },
-                piiLoggingEnabled: true,
-            },
-        });
+            loggerOptions: loggerConfig,
+        };        
+        const authCodeModule = new AuthorizationCodeClient(authConfig);
         
-        redirectHandler = new RedirectHandler(authCodeModule, browserStorage);
+        redirectHandler = new RedirectHandler(authCodeModule, browserStorage, browserCrypto);
     });
 
     afterEach(() => {
@@ -129,59 +133,66 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
         it("creates a subclass of InteractionHandler called RedirectHandler", () => {
             expect(redirectHandler instanceof RedirectHandler).to.be.true;
-            expect(redirectHandler instanceof InteractionHandler).to.be.true;
         });
     });
 
     describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", () => {
-			const testTokenReq: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-				code: "thisIsATestCode",
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
-				correlationId: RANDOM_TEST_GUID
-			};
-            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthError);
+            const testTokenReq: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
+            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, 3000)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, 3000)).to.throw(BrowserAuthError);
 
-            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, 3000)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, 3000)).to.throw(BrowserAuthError);
         });
 
         it("throws error if we are not in top frame", () => {
-			const testTokenReq: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-				code: "thisIsATestCode",
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
-				correlationId: RANDOM_TEST_GUID
-			};
-			const browserCrypto = new CryptoOps();
+            const testTokenReq: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, browserCrypto)).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, browserCrypto)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, DEFAULT_REDIRECT_TIMEOUT_MS, "")).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, DEFAULT_REDIRECT_TIMEOUT_MS, "")).to.throw(BrowserAuthError);
         });
 
-        it("navigates browser window to given window location", () => {
-			const testTokenReq: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-				code: "thisIsATestCode",
-				scopes: TEST_CONFIG.DEFAULT_SCOPES,
-				codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-				authority: `${Constants.DEFAULT_AUTHORITY}/`,
-				correlationId: RANDOM_TEST_GUID
-			};
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl) => {
-                expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+        it("navigates browser window to given window location", (done) => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
             });
-            const windowObj = redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, new CryptoOps());
-            expect(window).to.be.eq(windowObj);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI), CacheSchemaType.TEMPORARY)).to.be.eq(TEST_URIS.TEST_REDIR_URI);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            const testTokenReq: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+                expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                expect(timeout).to.be.eq(3000);
+                expect(logger).to.be.instanceOf(Logger);
+                expect(browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+                return Promise.resolve(done());
+            });
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, 3000);
         });
     });
 
@@ -209,7 +220,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 "nonce": "123523"
             };
 
-            const testAccount: IAccount = {
+            const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: idTokenClaims.tid,
@@ -218,29 +229,36 @@ describe("RedirectHandler.ts Unit Tests", () => {
             const testTokenResponse: AuthenticationResult = {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
+                fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
-                uniqueId: idTokenClaims.oid
-			};
-			const browserCrypto = new CryptoOps();
-			const testAuthCodeRequest: AuthorizationCodeRequest = {
-				redirectUri: TEST_URIS.TEST_REDIR_URI,
-				scopes: ["scope1", "scope2"],
-				code: ""
-			};
-			browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)), CacheSchemaType.TEMPORARY);
-            browserStorage.setItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, CacheSchemaType.TEMPORARY);
-            browserStorage.setItem(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), TEST_HASHES.TEST_SUCCESS_CODE_HASH, CacheSchemaType.TEMPORARY);
-            sinon.stub(SPAClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(SPAClient.prototype, "acquireToken").resolves(testTokenResponse);
+                uniqueId: idTokenClaims.oid,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
 
-            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, browserCrypto);
+            const testAuthCodeRequest: AuthorizationCodeRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope1", "scope2"],
+                code: ""
+            };
+            browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE);
+            browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
+            browserStorage.setTemporaryCache(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY), CacheSchemaType.TEMPORARY)).to.be.null;
-            expect(browserStorage.getItem(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), CacheSchemaType.TEMPORARY)).to.be.null;
+            expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY))).to.be.null;
+            expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH))).to.be.null;
         });
     });
 });

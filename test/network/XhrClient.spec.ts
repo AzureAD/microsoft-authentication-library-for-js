@@ -54,8 +54,7 @@ describe("XhrClient.ts Unit Tests", () => {
 
         it("sends headers with the requests", async () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
-            const reqHeaders = new Map<string, string>();
-            reqHeaders.set("Content-Type", Constants.URL_FORM_CONTENT_TYPE);
+            const reqHeaders: Record<string, string> = { "Content-Type": Constants.URL_FORM_CONTENT_TYPE }
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
                 headers: reqHeaders

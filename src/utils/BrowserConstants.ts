@@ -3,14 +3,12 @@
  * Licensed under the MIT License.
  */
 
+import { AuthorizationUrlRequest, Constants } from "@azure/msal-common";
+
 /**
  * Constants
  */
 export const BrowserConstants = {
-    // Local storage constant string
-    CACHE_LOCATION_LOCAL: "localStorage",
-    // Session storage constant string
-    CACHE_LOCATION_SESSION: "sessionStorage",
     // Interaction status key (only used for browsers)
     INTERACTION_STATUS_KEY: "interaction.status",
     // Interaction in progress cache value
@@ -27,13 +25,19 @@ export const BrowserConstants = {
     MSAL_SKU: "msal.js.browser",
 };
 
+export enum BrowserCacheLocation {
+    LocalStorage = "localStorage",
+    SessionStorage = "sessionStorage",
+    MemoryStorage = "memoryStorage"
+}
+
 /**
  * HTTP Request types supported by MSAL.
  */
 export enum HTTP_REQUEST_TYPE {
     GET = "GET",
     POST = "POST"
-};
+}
 
 /**
  * Temporary cache keys for MSAL, deleted after any request.
@@ -49,4 +53,35 @@ export enum TemporaryCacheKeys {
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes"
+}
+
+/**
+ * API Codes for Telemetry purposes. 
+ * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
+ * 0-99 Silent Flow
+ * 800-899 Auth Code Flow
+ */
+export enum ApiId {
+    acquireTokenRedirect = 861,
+    acquireTokenPopup = 862,
+    ssoSilent = 863,
+    acquireTokenSilent_authCode = 864,
+    handleRedirectPromise = 865,
+    acquireTokenSilent_silentFlow = 61
+}
+
+/*
+ * Interaction type of the API - used for state and telemetry
+ */
+export enum InteractionType {
+    Redirect = "redirect",
+    Popup = "popup",
+    Silent = "silent"
+}
+
+export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
+    scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
+
+// JWK Key Format string (Type MUST be defined for window crypto APIs)
+export const KEY_FORMAT_JWK = "jwk";
