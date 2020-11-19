@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SilentFlowRequest } from "./SilentFlowRequest";
+import { SilentFlowRequest } from "../SilentFlowRequest";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -17,5 +17,6 @@ import { SilentFlowRequest } from "./SilentFlowRequest";
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type BrokeredSilentFlowRequest = SilentFlowRequest & {
-    brokerClientId: string;
+    brokeredClientId?: string;
+    brokerRedirectUri?: string;
 };

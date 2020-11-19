@@ -55,6 +55,7 @@ export class RefreshTokenClient extends BaseClient {
             true
         );
     }
+
     /**
      * Gets cached refresh token and attaches to request, then calls acquireToken API
      * @param request
@@ -172,7 +173,7 @@ export class RefreshTokenClient extends BaseClient {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
             parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
         }
-        
+
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }

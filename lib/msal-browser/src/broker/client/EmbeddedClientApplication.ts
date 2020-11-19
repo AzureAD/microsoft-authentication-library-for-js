@@ -3,21 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import { Configuration } from "../config/Configuration";
+import { Configuration } from "../../config/Configuration";
 import { Logger, AuthenticationResult } from "@azure/msal-common";
-import { BrokerHandshakeRequest } from "./BrokerHandshakeRequest";
-import { BrokerHandshakeResponse } from "./BrokerHandshakeResponse";
-import { PopupRequest } from "../request/PopupRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { BrokerAuthRequest } from "./BrokerAuthRequest";
-import { InteractionType } from "../utils/BrowserConstants";
-import { BrokerRedirectResponse } from "./BrokerRedirectResponse";
-import { BrokerAuthResponse } from "./BrokerAuthResponse";
-import { BrowserAuthError } from "../error/BrowserAuthError";
-import { SilentRequest } from "../request/SilentRequest";
-import { version } from "../../package.json";
-import { BrokerHandleRedirectRequest } from "./BrokerHandleRedirectRequest";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import { BrokerHandshakeRequest } from "../msg/req/BrokerHandshakeRequest";
+import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
+import { PopupRequest } from "../../request/PopupRequest";
+import { RedirectRequest } from "../../request/RedirectRequest";
+import { BrokerAuthRequest } from "../msg/req/BrokerAuthRequest";
+import { InteractionType } from "../../utils/BrowserConstants";
+import { BrokerRedirectResponse } from "../msg/resp/BrokerRedirectResponse";
+import { BrokerAuthResponse } from "../msg/resp/BrokerAuthResponse";
+import { BrowserAuthError } from "../../error/BrowserAuthError";
+import { SilentRequest } from "../../request/SilentRequest";
+import { version } from "../../../package.json";
+import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
+import { BrowserCacheManager } from "../../cache/BrowserCacheManager";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;

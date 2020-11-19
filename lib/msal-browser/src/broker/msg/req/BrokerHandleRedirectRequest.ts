@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { BrokerMessageType } from "../utils/BrowserConstants";
-import { BrokerMessage } from "./BrokerMessage";
+import { BrokerMessageType } from "../../../utils/BrowserConstants";
+import { BrokerMessage } from "../BrokerMessage";
 
 export class BrokerHandleRedirectRequest extends BrokerMessage {
     public embeddedClientId: string;

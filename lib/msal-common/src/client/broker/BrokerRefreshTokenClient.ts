@@ -8,15 +8,18 @@ import { ResponseHandler } from "../../response/ResponseHandler";
 import { RequestParameterBuilder } from "../../request/RequestParameterBuilder";
 import { StringUtils } from "../../utils/StringUtils";
 import { BrokerAuthenticationResult } from "../../response/BrokerAuthenticationResult";
-import { BrokeredRefreshTokenRequest } from "../../request/BrokeredRefreshTokenRequest";
-import { BrokeredSilentFlowRequest } from "../../request/BrokeredSilentFlowRequest";
 import { ClientAuthError } from "../../error/ClientAuthError";
+import { AuthenticationScheme, GrantType } from "../../utils/Constants";
+import { PopTokenGenerator } from "../../crypto/PopTokenGenerator";
+import { AuthenticationResult } from "../../response/AuthenticationResult";
+import { BrokeredRefreshTokenRequest } from "../../request/broker/BrokeredRefreshTokenRequest";
+import { BrokeredSilentFlowRequest } from "../../request/broker/BrokeredSilentFlowRequest";
 
 /**
  * Oauth2.0 Refresh Token client implementing the broker protocol for browsers.
  */
 export class BrokerRefreshTokenClient extends RefreshTokenClient {
-    async acquireToken(request: BrokeredRefreshTokenRequest): Promise<BrokerAuthenticationResult>{
+    async acquireToken(request: BrokeredRefreshTokenRequest): Promise<AuthenticationResult | BrokerAuthenticationResult>{
         const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
@@ -27,19 +30,24 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleBrokeredServerTokenResponse(
-            response.body,
-            this.authority
-        );
-
-        return tokenResponse;
+        if (request.brokeredClientId) {
+            return responseHandler.handleBrokeredServerTokenResponse(
+                response.body,
+                this.authority
+            );
+        } else {
+            return responseHandler.handleServerTokenResponse(
+                response.body,
+                this.authority,
+            );
+        }
     }
 
     /**
      * makes a network call to acquire tokens by exchanging RefreshToken available in userCache; throws if refresh token is not cached
      * @param request
      */
-    protected async acquireTokenWithCachedRefreshToken(request: BrokeredSilentFlowRequest, foci: boolean) {
+    protected async acquireTokenWithCachedRefreshToken(request: BrokeredSilentFlowRequest, foci: boolean): Promise<AuthenticationResult | BrokerAuthenticationResult> {
         // fetches family RT or application RT based on FOCI value
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
 
@@ -61,16 +69,38 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
      * @param request
      */
     protected async createTokenRequestBody(request: BrokeredRefreshTokenRequest): Promise<string> {
+        if (!request.brokeredClientId) {
+            return super.createTokenRequestBody(request);
+        }
+
         const parameterBuilder = new RequestParameterBuilder();
 
-        // Add broker params
-        parameterBuilder.addBrokerClientId(request.brokerClientId);
+        parameterBuilder.addClientId(request.brokeredClientId);
 
-        const tokenRequestString = parameterBuilder.createQueryString();
-        return StringUtils.isEmpty(tokenRequestString) ? 
-            // No broker params
-            super.createTokenRequestBody(request) : 
-            // Append broker params to other request params
-            `${super.createTokenRequestBody(request)}&${tokenRequestString}`;
+        parameterBuilder.addScopes(request.scopes);
+
+        parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
+
+        parameterBuilder.addClientInfo();
+
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        parameterBuilder.addCorrelationId(correlationId);
+
+        parameterBuilder.addRefreshToken(request.refreshToken);
+
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
+        }
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
+
+        // Add broker params
+        parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
+        parameterBuilder.addRedirectUri(request.brokerRedirectUri, this.config.authOptions.clientId);
+
+        return parameterBuilder.createQueryString();
     }
 }

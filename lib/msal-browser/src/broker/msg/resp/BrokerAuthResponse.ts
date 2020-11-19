@@ -1,7 +1,12 @@
-import { BrokerMessage } from "./BrokerMessage";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { BrokerMessage } from "../BrokerMessage";
 import { BrokerAuthenticationResult, AccessTokenEntity, IdTokenEntity, AccountEntity, CacheManager, AuthenticationResult, CacheRecord } from "@azure/msal-common";
-import { InteractionType, BrokerMessageType } from "../utils/BrowserConstants";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import { InteractionType, BrokerMessageType } from "../../../utils/BrowserConstants";
+import { BrowserCacheManager } from "../../../cache/BrowserCacheManager";
 
 export class BrokerAuthResponse extends BrokerMessage {
     public interactionType: InteractionType;
@@ -23,7 +28,7 @@ export class BrokerAuthResponse extends BrokerMessage {
 
             // TODO: verify version compat
 
-            return new BrokerAuthResponse(message.data.interactionType, message.data.result);
+            return new BrokerAuthResponse(message.data.interactionType, message.data.result, message.data.error);
         }
 
         return null;

@@ -4,7 +4,6 @@
  */
 
 import { AuthorizationUrlRequest } from "@azure/msal-common";
-import { BrowserAuthRequest } from "./BrowserAuthRequest";
 
 /**
  * RedirectRequest: Request object passed by user to retrieve a Code from the
@@ -32,6 +31,6 @@ import { BrowserAuthRequest } from "./BrowserAuthRequest";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - redirectStartPage          - The page that should be returned to after loginRedirect or acquireTokenRedirect. This should only be used if this is different from the redirectUri and will default to the page that initiates the request. When the navigateToLoginRequestUrl config option is set to false this parameter will be ignored.
  */
-export type RedirectRequest = BrowserAuthRequest & {
+export type RedirectRequest = AuthorizationUrlRequest & {
     redirectStartPage?: string;
 };

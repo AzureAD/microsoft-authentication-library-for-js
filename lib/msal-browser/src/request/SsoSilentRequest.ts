@@ -4,7 +4,6 @@
  */
 
 import { AuthorizationUrlRequest } from "@azure/msal-common";
-import { BrowserAuthRequest } from "./BrowserAuthRequest";
 
 /**
  * Request object passed by user to ssoSilent to retrieve a Code from the server (first leg of authorization code grant flow)
@@ -30,6 +29,6 @@ import { BrowserAuthRequest } from "./BrowserAuthRequest";
  * - extraQueryParameters       - String to string map of custom query parameters.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  */
-export type SsoSilentRequest = Omit<BrowserAuthRequest, "scopes"> & {
+export type SsoSilentRequest = Omit<AuthorizationUrlRequest, "scopes"> & {
     scopes? : string[];
 };

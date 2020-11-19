@@ -1,8 +1,7 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "3fba556e-5d4a-48e3-8e1a-fd57c12cb82e",
-        authority: "https://login.windows-ppe.net/common/"
+        clientId: "654736c7-9f4e-4158-9c22-54081d1896c6"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -40,7 +39,10 @@ const msalConfig = {
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
     scopes: ["User.Read"],
-    prompt: "login"
+    prompt: "select_account",
+    extraQueryParameters: {
+        "dc": "ESTS-PUB-WUS2-AZ1-TEST1"
+    }
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.

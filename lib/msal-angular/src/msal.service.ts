@@ -56,7 +56,7 @@ export class MsalService extends UserAgentApplication {
                 this.setloginInProgress(false);
             }
             else if (this.getAcquireTokenInProgress()) {
-                broadcastService.broadcast("msal:acquireTokenFailure", msalError);
+                broadcastService.broadcast("msal:acquireToken", msalError);
                 this.setAcquireTokenInProgress(false);
             }
         });

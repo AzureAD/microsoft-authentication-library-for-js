@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { RefreshTokenRequest } from "./RefreshTokenRequest";
+import { RefreshTokenRequest } from "../RefreshTokenRequest";
 
 /**
  * RefreshTokenRequest
@@ -17,5 +17,6 @@ import { RefreshTokenRequest } from "./RefreshTokenRequest";
  * - brokerClientId          - clientId of the broker
  */
 export type BrokeredRefreshTokenRequest = RefreshTokenRequest & {
-    brokerClientId?: string;
+    brokeredClientId?: string;
+    brokerRedirectUri?: string;
 };
