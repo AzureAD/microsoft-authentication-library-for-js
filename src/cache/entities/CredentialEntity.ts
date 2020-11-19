@@ -4,14 +4,15 @@
  */
 
 import { Separators, CredentialType, CacheType, Constants } from "../../utils/Constants";
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
- * 
+ *
  * Key:Value Schema:
- * 
+ *
  * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
- * 
+ *
  * Value Schema:
  * {
  *      homeAccountId: home account identifier for the auth scheme,
@@ -22,6 +23,7 @@ import { Separators, CredentialType, CacheType, Constants } from "../../utils/Co
  *      familyId: Family ID identifier, usually only used for refresh tokens
  *      realm: Full tenant or organizational identifier that the account belongs to
  *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
+ *      oboAssertion: access token passed in as part of OBO request
  * }
  */
 export class CredentialEntity {
@@ -33,6 +35,7 @@ export class CredentialEntity {
     familyId?: string;
     realm?: string;
     target?: string;
+    oboAssertion?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -87,8 +90,7 @@ export class CredentialEntity {
             case CredentialType.REFRESH_TOKEN:
                 return CacheType.REFRESH_TOKEN;
             default: {
-                console.log("Unexpected credential type");
-                return null;
+                throw ClientAuthError.createUnexpectedCredentialTypeError();
             }
         }
     }
@@ -98,11 +100,11 @@ export class CredentialEntity {
      * @param key
      */
     static getCredentialType(key: string): string {
-        if (key.indexOf(CredentialType.ACCESS_TOKEN) !== -1) {
+        if (key.indexOf(CredentialType.ACCESS_TOKEN.toLowerCase()) !== -1) {
             return CredentialType.ACCESS_TOKEN;
-        } else if (key.indexOf(CredentialType.ID_TOKEN) !== -1) {
+        } else if (key.indexOf(CredentialType.ID_TOKEN.toLowerCase()) !== -1) {
             return CredentialType.ID_TOKEN;
-        } else if (key.indexOf(CredentialType.REFRESH_TOKEN) !== -1) {
+        } else if (key.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) !== -1) {
             return CredentialType.REFRESH_TOKEN;
         }
 

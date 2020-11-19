@@ -1,13 +1,12 @@
 import { expect } from "chai";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { AadAuthority } from "../../src/authority/AadAuthority";
-import { B2cAuthority } from "../../src/authority/B2cAuthority";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { Constants } from "../../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { Authority } from "../../src/authority/Authority";
-import { AdfsAuthority } from "../../src/authority/AdfsAuthority";
+import { AuthorityType } from "../../src/authority/AuthorityType";
+import { ProtocolMode } from "../../src";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
     const networkInterface: INetworkModule = {
@@ -25,67 +24,56 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         }
     };
 
-    beforeEach(() => {
-        // Reinitializes the B2C Trusted Host List between tests
-        while (B2cAuthority.B2CTrustedHostList.length) {
-            B2cAuthority.B2CTrustedHostList.pop();
-        }
-    });
-
     it("AuthorityFactory returns null if given url is null or empty", () => {
-        expect(() => AuthorityFactory.createInstance("", networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
-        expect(() => AuthorityFactory.createInstance(null, networkInterface)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        expect(() => AuthorityFactory.createInstance("", networkInterface, ProtocolMode.AAD)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        expect(() => AuthorityFactory.createInstance(null, networkInterface, ProtocolMode.AAD)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
     });
 
     it("Throws error for malformed url strings", () => {
         expect(() =>
             AuthorityFactory.createInstance(
-                `http://login.microsoftonline.com/common`,
-                networkInterface
+                "http://login.microsoftonline.com/common",
+                networkInterface,
+                ProtocolMode.AAD
             )
         ).to.throw(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
         expect(() =>
             AuthorityFactory.createInstance(
-                `https://login.microsoftonline.com/`,
-                networkInterface
-            )
-        ).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
-        expect(() =>
-            AuthorityFactory.createInstance(
                 "This is not a URI",
-                networkInterface
+                networkInterface,
+                ProtocolMode.AAD
             )
         ).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
         expect(() =>
-            AuthorityFactory.createInstance("", networkInterface)
+            AuthorityFactory.createInstance("", networkInterface, ProtocolMode.AAD)
         ).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
     });
 
-    it("createInstance returns an AAD instance if knownAuthorities not provided", () => {
-        const authorityInstance = AuthorityFactory.createInstance(Constants.DEFAULT_AUTHORITY, networkInterface);
-        expect(authorityInstance instanceof AadAuthority);
+    it("createInstance returns Default instance if AAD Authority", () => {
+        const authorityInstance = AuthorityFactory.createInstance(Constants.DEFAULT_AUTHORITY, networkInterface, ProtocolMode.AAD);
+        expect(authorityInstance.authorityType).to.be.eq(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
     });
 
-    it("createInstance returns B2C instance if knownAuthorities is provided", () => {
-        B2cAuthority.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
-        const authorityInstance = AuthorityFactory.createInstance(TEST_CONFIG.b2cValidAuthority, networkInterface);
-        expect(authorityInstance instanceof B2cAuthority);
+    it("createInstance returns Default instance if B2C Authority", () => {
+        const authorityInstance = AuthorityFactory.createInstance(TEST_CONFIG.b2cValidAuthority, networkInterface, ProtocolMode.AAD);
+        expect(authorityInstance.authorityType).to.be.eq(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
     });
 
     it("createInstance return ADFS instance if /adfs in path", () => {
-        const authorityInstance = AuthorityFactory.createInstance(TEST_CONFIG.ADFS_VALID_AUTHORITY, networkInterface);
-        expect(authorityInstance instanceof AdfsAuthority);
+        const authorityInstanceAAD = AuthorityFactory.createInstance(TEST_CONFIG.ADFS_VALID_AUTHORITY, networkInterface, ProtocolMode.AAD);
+        expect(authorityInstanceAAD.authorityType).to.be.eq(AuthorityType.Adfs);
+        expect(authorityInstanceAAD instanceof Authority);
+
+        const authorityInstanceOIDC = AuthorityFactory.createInstance(TEST_CONFIG.ADFS_VALID_AUTHORITY, networkInterface, ProtocolMode.OIDC);
+        expect(authorityInstanceOIDC.authorityType).to.be.eq(AuthorityType.Adfs);
+        expect(authorityInstanceOIDC instanceof Authority);
+    });
+
+    it("createInstance returns (non v2) OIDC endpoint with ProtocolMode: OIDC", () => {
+        const authorityInstance = AuthorityFactory.createInstance(Constants.DEFAULT_AUTHORITY, networkInterface, ProtocolMode.OIDC);
+        expect(authorityInstance.authorityType).to.be.eq(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
-    });
-
-    it("Do not add additional authorities to trusted host list if it has already been populated", () => {
-        B2cAuthority.setKnownAuthorities(["fabrikamb2c.b2clogin.com"]);
-        B2cAuthority.setKnownAuthorities(["fake.b2clogin.com"]);
-
-        expect(B2cAuthority.B2CTrustedHostList).to.include("fabrikamb2c.b2clogin.com");
-        expect(B2cAuthority.B2CTrustedHostList).not.to.include("fake.b2clogin.com");
-        expect(B2cAuthority.B2CTrustedHostList.length).to.equal(1);
-    });
+    })
 });

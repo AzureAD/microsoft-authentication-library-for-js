@@ -7,12 +7,15 @@ import { DeviceCodeResponse, ServerDeviceCodeResponse } from "../response/Device
 import { BaseClient } from "./BaseClient";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { RequestParameterBuilder } from "../server/RequestParameterBuilder";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { TimeUtils } from "../utils/TimeUtils";
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { ScopeSet } from "../request/ScopeSet";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { StringUtils } from "../utils/StringUtils";
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * OAuth2.0 Device code client
@@ -28,7 +31,7 @@ export class DeviceCodeClient extends BaseClient {
      * polls token endpoint to exchange device code for tokens
      * @param request
      */
-    public async acquireToken(request: DeviceCodeRequest): Promise<string> {
+    public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult> {
 
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
@@ -36,8 +39,23 @@ export class DeviceCodeClient extends BaseClient {
             request,
             deviceCodeResponse);
 
-        // TODO handle response
-        return JSON.stringify(response);
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId,
+            this.cacheManager,
+            this.cryptoUtils,
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
+        );
+
+        // Validate response. This function throws a server error if an error is returned by the server.
+        responseHandler.validateTokenResponse(response);
+        return await responseHandler.handleServerTokenResponse(
+            response,
+            this.authority,
+            request.resourceRequestMethod,
+            request.resourceRequestUri
+        );
     }
 
     /**
@@ -45,11 +63,15 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
-
         const queryString = this.createQueryString(request);
-        const headers = this.createDefaultLibraryHeaders();
+        const headers = this.createDefaultTokenRequestHeaders();
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: request.authority,
+            scopes: request.scopes
+        };
 
-        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers);
+        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers, thumbprint);
     }
 
     /**
@@ -61,7 +83,8 @@ export class DeviceCodeClient extends BaseClient {
     private async executePostRequestToDeviceCodeEndpoint(
         deviceCodeEndpoint: string,
         queryString: string,
-        headers: Map<string, string>): Promise<DeviceCodeResponse> {
+        headers: Record<string, string>,
+        thumbprint: RequestThumbprint): Promise<DeviceCodeResponse> {
 
         const {
             body: {
@@ -72,7 +95,8 @@ export class DeviceCodeClient extends BaseClient {
                 interval,
                 message
             }
-        } = await this.networkClient.sendPostRequestAsync<ServerDeviceCodeResponse>(
+        } = await this.networkManager.sendPostRequest<ServerDeviceCodeResponse>(
+            thumbprint,
             deviceCodeEndpoint,
             {
                 body: queryString,
@@ -96,9 +120,12 @@ export class DeviceCodeClient extends BaseClient {
 
         const parameterBuilder: RequestParameterBuilder = new RequestParameterBuilder();
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        parameterBuilder.addScopes(scopeSet);
+        parameterBuilder.addScopes(request.scopes);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
 
         return parameterBuilder.createQueryString();
     }
@@ -114,13 +141,15 @@ export class DeviceCodeClient extends BaseClient {
         deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
 
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
-        const headers: Map<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
 
-        // Poll token endpoint while (device code is not expired AND operation has not been cancelled by
-        // setting CancellationToken.cancel = true). POST request is sent at interval set by pollingIntervalMilli
+        /*
+         * Poll token endpoint while (device code is not expired AND operation has not been cancelled by
+         * setting CancellationToken.cancel = true). POST request is sent at interval set by pollingIntervalMilli
+         */
         return new Promise<ServerAuthorizationTokenResponse>((resolve, reject) => {
 
             const intervalId: ReturnType<typeof setTimeout> = setInterval(async () => {
@@ -137,10 +166,16 @@ export class DeviceCodeClient extends BaseClient {
                         reject(ClientAuthError.createDeviceCodeExpiredError());
 
                     } else {
+                        const thumbprint: RequestThumbprint = {
+                            clientId: this.config.authOptions.clientId,
+                            authority: request.authority,
+                            scopes: request.scopes
+                        };
                         const response = await this.executePostToTokenEndpoint(
                             this.authority.tokenEndpoint,
                             requestBody,
-                            headers);
+                            headers,
+                            thumbprint);
 
                         if (response.body && response.body.error == Constants.AUTHORIZATION_PENDING) {
                             // user authorization is pending. Sleep for polling interval and try again
@@ -167,11 +202,17 @@ export class DeviceCodeClient extends BaseClient {
 
         const requestParameters: RequestParameterBuilder = new RequestParameterBuilder();
 
-        const scopeSet = new ScopeSet(request.scopes || []);
-        requestParameters.addScopes(scopeSet);
+        requestParameters.addScopes(request.scopes);
         requestParameters.addClientId(this.config.authOptions.clientId);
         requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
         requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        requestParameters.addCorrelationId(correlationId);
+        requestParameters.addClientInfo();
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            requestParameters.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
         return requestParameters.createQueryString();
     }
 }

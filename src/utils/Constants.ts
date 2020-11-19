@@ -2,17 +2,19 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     SKU: "msal.js.common",
     // Prefix for all library cache entries
     CACHE_PREFIX: "msal",
     // default authority
-    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common",
+    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
+    DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
     // ADFS String
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
-    AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance",
+    AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -33,14 +35,21 @@ export const Constants = {
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending",
-    NOT_DEFINED: "not_defined"
+    NOT_DEFINED: "not_defined",
+    EMPTY_STRING: "",
+    FORWARD_SLASH: "/" 
 };
 
 /**
  * Request header names
  */
 export enum HeaderNames {
-    CONTENT_TYPE = "Content-Type"
+    CONTENT_TYPE = "Content-Type",
+    X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
+    X_CLIENT_LAST_TELEM = "x-client-last-telemetry",
+    RETRY_AFTER = "Retry-After",
+    X_MS_LIB_CAPABILITY = "x-ms-lib-capability",
+    X_MS_LIB_CAPABILITY_VALUE = "retry-after, h429"
 }
 
 /**
@@ -53,30 +62,6 @@ export enum PersistentCacheKeys {
     ERROR = "error",
     ERROR_DESC = "error.description"
 }
-
-/**
- * List of pre-established trusted host URLs.
- */
-export const AADTrustedHostList: string[] = [
-    "login.windows.net",
-    "login.chinacloudapi.cn",
-    "login.cloudgovapi.us",
-    "login.microsoftonline.com",
-    "login.microsoftonline.de",
-    "login.microsoftonline.us"
-];
-
-/**
- * TODO: placeholder for discovery endpoint call. dynamically generate preferredCache and cacheAliases per cloud
- */
-export const EnvironmentAliases: string[] = [
-    "login.microsoftonline.com",
-    "login.windows.net",
-    "login.windows-ppe.net",
-    "login.microsoft.com",
-    "sts.windows.net"
-];
-export const PreferredCacheEnvironment: string = "login.windows.net";
 
 /**
  * String constants related to AAD Authority
@@ -119,25 +104,25 @@ export enum AADServerParamKeys {
     X_CLIENT_OS = "x-client-OS",
     X_CLIENT_CPU = "x-client-CPU",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
-    DEVICE_CODE = "device_code"
+    ID_TOKEN_HINT= "id_token_hint",
+    DEVICE_CODE = "device_code",
+    CLIENT_SECRET = "client_secret",
+    CLIENT_ASSERTION = "client_assertion",
+    CLIENT_ASSERTION_TYPE = "client_assertion_type",
+    TOKEN_TYPE = "token_type",
+    REQ_CNF = "req_cnf",
+    OBO_ASSERTION = "assertion",
+    REQUESTED_TOKEN_USE = "requested_token_use",
+    ON_BEHALF_OF = "on_behalf_of",
+    FOCI = "foci"
 }
 
 /**
- * IdToken claim string constants
+ * Claims request keys
  */
-export enum IdTokenClaimName {
-    ISSUER = "iss",
-    OBJID = "oid",
-    SUBJECT = "sub",
-    TENANTID = "tid",
-    VERSION = "ver",
-    PREF_USERNAME = "preferred_username",
-    NAME = "name",
-    NONCE = "nonce",
-    EXPIRATION = "exp",
-    HOME_OBJID = "home_oid",
-    SESSIONID = "sid",
-    CLOUD_INSTANCE_HOSTNAME = "cloud_instance_host_name"
+export enum ClaimsRequestKeys {
+    ACCESS_TOKEN = "access_token",
+    XMS_CC = "xms_cc"
 }
 
 /**
@@ -211,7 +196,8 @@ export enum GrantType {
     CLIENT_CREDENTIALS_GRANT = "client_credentials",
     RESOURCE_OWNER_PASSWORD_GRANT = "password",
     REFRESH_TOKEN_GRANT = "refresh_token",
-    DEVICE_CODE_GRANT = "device_code"
+    DEVICE_CODE_GRANT = "device_code",
+    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer"
 }
 
 /**
@@ -233,22 +219,28 @@ export enum Separators {
 }
 
 /**
- * Credentail Type stored in the cache
+ * Credential Type stored in the cache
  */
 export enum CredentialType {
-    ID_TOKEN = "idtoken",
-    ACCESS_TOKEN = "accesstoken",
-    REFRESH_TOKEN = "refreshtoken",
+    ID_TOKEN = "IdToken",
+    ACCESS_TOKEN = "AccessToken",
+    REFRESH_TOKEN = "RefreshToken",
 }
 
 /**
- * Credentail Type stored in the cache
+ * Credential Type stored in the cache
  */
 export enum CacheSchemaType {
     ACCOUNT = "Account",
     CREDENTIAL = "Credential",
-    APP_META_DATA = "AppMetadata",
-    TEMPORARY = "TempCache"
+    ID_TOKEN = "IdToken",
+    ACCESS_TOKEN = "AccessToken",
+    REFRESH_TOKEN = "RefreshToken",
+    APP_METADATA = "AppMetadata",
+    TEMPORARY = "TempCache",
+    TELEMETRY = "Telemetry",
+    UNDEFINED = "Undefined",
+    THROTTLING = "Throttling"
 }
 
 /**
@@ -262,11 +254,57 @@ export enum CacheType {
     ACCESS_TOKEN = 2001,
     REFRESH_TOKEN = 2002,
     ID_TOKEN = 2003,
-    APP_META_DATA = 3001
-};
+    APP_METADATA = 3001,
+    UNDEFINED = 9999
+}
 
 /**
  * More Cache related constants
  */
-export const APP_META_DATA = "appmetadata";
+export const APP_METADATA = "appmetadata";
 export const ClientInfo = "client_info";
+export const THE_FAMILY_ID = "1";
+
+export const SERVER_TELEM_CONSTANTS = {
+    SCHEMA_VERSION: 2,
+    MAX_HEADER_BYTES: 4000, // Max is 4KB, 4000 Bytes provides 96 Byte buffer for separators, schema version, etc. 
+    CACHE_KEY: "server-telemetry",
+    CATEGORY_SEPARATOR: "|",
+    VALUE_SEPARATOR: ",",
+    OVERFLOW_TRUE: "1",
+    OVERFLOW_FALSE: "0",
+    UNKNOWN_ERROR: "unknown_error"
+};
+
+/**
+ * Type of the authentication request
+ */
+export enum AuthenticationScheme {
+    POP = "pop",
+    BEARER = "Bearer"
+}
+
+/**
+ * Constants related to throttling
+ */
+export const ThrottlingConstants = {
+    // Default time to throttle RequestThumbprint in seconds
+    DEFAULT_THROTTLE_TIME_SECONDS: 60,
+    // Default maximum time to throttle in seconds, overrides what the server sends back
+    DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600,
+    // Prefix for storing throttling entries
+    THROTTLING_PREFIX: "throttling"
+};
+
+export const Errors = {
+    INVALID_GRANT_ERROR: "invalid_grant",
+    CLIENT_MISMATCH_ERROR: "client_mismatch",
+};
+
+/**
+ * Password grant parameters
+ */
+export enum PasswordGrantConstants {
+    username = "username",
+    password = "password"
+}

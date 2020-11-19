@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
 import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";
@@ -57,7 +62,6 @@ export const mockRefreshTokenEntityWithFamilyId = {
     familyId: "1"
 };
 
-
 export const mockAccountEntity = {
     homeAccountId: "uid.utid",
     environment:  "login.microsoftonline.com",
@@ -72,7 +76,7 @@ export const mockAppMetaDataEntity = {
     clientId: "mock_client_id",
     environment: "login.microsoftonline.com",
     familyId: "1"
-}
+};
 
 // generate mockCache
 export class mockCache {
@@ -92,35 +96,35 @@ export class mockCache {
     }
 
     static createMockIdT(): IdTokenEntity {
-        let idt = new IdTokenEntity();
+        const idt = new IdTokenEntity();
         Object.assign(idt, mockIdTokenEntity);
 
         return idt;
     }
 
     static createMockRT(): RefreshTokenEntity {
-        let rt = new RefreshTokenEntity();
+        const rt = new RefreshTokenEntity();
         Object.assign(rt, mockRefreshTokenEntity);
 
         return rt;
     }
 
     static createMockRTWithFamilyId(): RefreshTokenEntity {
-        let rt = new RefreshTokenEntity();
+        const rt = new RefreshTokenEntity();
         Object.assign(rt, mockRefreshTokenEntityWithFamilyId);
 
         return rt;
     }
 
     static createMockAcc(): AccountEntity {
-        let acc = new AccountEntity();
+        const acc = new AccountEntity();
         Object.assign(acc, mockAccountEntity);
 
         return acc;
     }
 
     static createMockAmdt(): AppMetadataEntity {
-        let amdt = new AppMetadataEntity();
+        const amdt = new AppMetadataEntity();
         Object.assign(amdt, mockAppMetaDataEntity);
 
         return amdt;
@@ -141,5 +145,5 @@ export const MockCache = {
     acc: mockCache.createMockAcc(),
     accKey: mockCache.createMockAcc().generateAccountKey(),
     amdt: mockCache.createMockAmdt(),
-    amdtKey: mockCache.createMockAmdt().generateAppMetaDataEntityKey()
-}
+    amdtKey: mockCache.createMockAmdt().generateAppMetadataKey()
+};

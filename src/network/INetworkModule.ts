@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import {NetworkResponse} from "./NetworkManager";
+import { NetworkResponse } from "./NetworkManager";
 
 /**
  * Options allowed by network request APIs.
  */
 export type NetworkRequestOptions = {
-    headers?: Map<string, string>,
+    headers?: Record<string, string>,
     body?: string;
 };
 

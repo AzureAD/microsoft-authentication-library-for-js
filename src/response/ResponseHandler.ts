@@ -2,15 +2,16 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { ServerAuthorizationTokenResponse } from "../server/ServerAuthorizationTokenResponse";
-import { buildClientInfo, ClientInfo } from "../account/ClientInfo";
+
+import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
+import { buildClientInfo} from "../account/ClientInfo";
 import { ICrypto } from "../crypto/ICrypto";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
-import { ServerAuthorizationCodeResponse } from "../server/ServerAuthorizationCodeResponse";
+import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
 import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
-import { IdToken } from "../account/IdToken";
+import { AuthToken } from "../account/AuthToken";
 import { ScopeSet } from "../request/ScopeSet";
 import { TimeUtils } from "../utils/TimeUtils";
 import { AuthenticationResult } from "./AuthenticationResult";
@@ -22,10 +23,15 @@ import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { EnvironmentAliases, PreferredCacheEnvironment } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
+import { AuthenticationScheme, THE_FAMILY_ID } from "../utils/Constants";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
+import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
+import { ICachePlugin } from "../cache/interface/ICachePlugin";
+import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
+import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 
 /**
  * Class that handles response parsing.
@@ -35,14 +41,17 @@ export class ResponseHandler {
     private cacheStorage: CacheManager;
     private cryptoObj: ICrypto;
     private logger: Logger;
-    private clientInfo: ClientInfo;
     private homeAccountIdentifier: string;
+    private serializableCache: ISerializableTokenCache;
+    private persistencePlugin: ICachePlugin;
 
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache?: ISerializableTokenCache, persistencePlugin?: ICachePlugin) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
+        this.serializableCache = serializableCache;
+        this.persistencePlugin = persistencePlugin;
     }
 
     /**
@@ -52,7 +61,7 @@ export class ResponseHandler {
      * @param cryptoObj
      */
     validateServerAuthorizationCodeResponse(serverResponseHash: ServerAuthorizationCodeResponse, cachedState: string, cryptoObj: ICrypto): void {
-        if (serverResponseHash.state !== cachedState) {
+        if (decodeURIComponent(serverResponseHash.state) !== decodeURIComponent(cachedState)) {
             throw ClientAuthError.createStateMismatchError();
         }
 
@@ -84,14 +93,6 @@ export class ResponseHandler {
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
             throw new ServerError(serverResponse.error, errString);
         }
-
-        // generate homeAccountId
-        if (serverResponse.client_info) {
-            this.clientInfo = buildClientInfo(serverResponse.client_info, this.cryptoObj);
-            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
-            }
-        }
     }
 
     /**
@@ -99,72 +100,68 @@ export class ResponseHandler {
      * @param serverTokenResponse
      * @param authority
      */
-    generateAuthenticationResult(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, authCodePayload?: AuthorizationCodePayload): AuthenticationResult {
-        const cachedNonce = authCodePayload ? authCodePayload.nonce : "";
-        const cachedState = authCodePayload ? authCodePayload.state : "";
+    async handleServerTokenResponse(
+        serverTokenResponse: ServerAuthorizationTokenResponse,
+        authority: Authority,
+        resourceRequestMethod?: string,
+        resourceRequestUri?: string,
+        cachedNonce?: string,
+        cachedState?: string,
+        requestScopes?: string[],
+        oboAssertion?: string,
+        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
-        // create an idToken object (not entity)
-        const idTokenObj = new IdToken(serverTokenResponse.id_token, this.cryptoObj);
+        let idTokenObj: AuthToken = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
+            // create an idToken object (not entity)
+            idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
 
-        // token nonce check (TODO: Add a warning if no nonce is given?)
-        if (!StringUtils.isEmpty(cachedNonce)) {
-            if (idTokenObj.claims.nonce !== cachedNonce) {
-                throw ClientAuthError.createNonceMismatchError();
+            // token nonce check (TODO: Add a warning if no nonce is given?)
+            if (!StringUtils.isEmpty(cachedNonce)) {
+                if (idTokenObj.claims.nonce !== cachedNonce) {
+                    throw ClientAuthError.createNonceMismatchError();
+                }
             }
         }
+
+        // generate homeAccountId
+        this.homeAccountIdentifier = AccountEntity.generateHomeAccountId(serverTokenResponse.client_info, authority.authorityType, this.logger, this.cryptoObj, idTokenObj);
 
         // save the response tokens
         let requestStateObj: RequestStateObject = null;
         if (!StringUtils.isEmpty(cachedState)) {
-            requestStateObj = ProtocolUtils.parseRequestState(cachedState, this.cryptoObj); 
+            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
-        this.cacheStorage.saveCacheRecord(cacheRecord, responseScopes);
-
-        const authenticationResult: AuthenticationResult = {
-            authority: authority.canonicalAuthority,
-            uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub,
-            tenantId: idTokenObj.claims.tid,
-            scopes: responseScopes.asArray(),
-            account: cacheRecord.account.getAccountInfo(),
-            idToken: idTokenObj.rawIdToken,
-            idTokenClaims: idTokenObj.claims,
-            accessToken: serverTokenResponse.access_token,
-            fromCache: true,
-            expiresOn: new Date(cacheRecord.accessToken.expiresOn),
-            extExpiresOn: new Date(cacheRecord.accessToken.extendedExpiresOn),
-            familyId: serverTokenResponse.foci || null,
-            state: requestStateObj ? requestStateObj.userRequestState : "",
-            cloudGraphHostName: authCodePayload.cloud_graph_host_name,
-            msGraphHost: authCodePayload.msgraph_host
-        };
-
-        return authenticationResult;
-    }
-
-    /**
-     * Generate Account
-     * @param serverTokenResponse
-     * @param idToken
-     * @param authority
-     */
-    generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: IdToken, authority: Authority): AccountEntity {
-        const authorityType = authority.authorityType;
-
-        if (!serverTokenResponse.client_info)
-            throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
-
-        switch (authorityType) {
-            case AuthorityType.B2C:
-                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, "policy", this.cryptoObj);
-            case AuthorityType.Adfs:
-                return AccountEntity.createADFSAccount(authority, idToken);
-            // default to AAD
-            default:
-                return AccountEntity.createAccount(serverTokenResponse.client_info, authority, idToken, null, this.cryptoObj);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState, requestScopes, oboAssertion);
+        let cacheContext;
+        try {
+            if (this.persistencePlugin && this.serializableCache) {
+                this.logger.verbose("Persistence enabled, calling beforeCacheAccess");
+                cacheContext = new TokenCacheContext(this.serializableCache, true);
+                await this.persistencePlugin.beforeCacheAccess(cacheContext);
+            }
+            /*
+             * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
+             * If not present, we should return null, as it's the case that another application called removeAccount in between
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal.
+             */
+            if (handlingRefreshTokenResponse && cacheRecord.account) {
+                const key = cacheRecord.account.generateAccountKey();
+                const account = this.cacheStorage.getAccount(key);
+                if (!account) {
+                    this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
+                    return null;
+                }
+            }
+            this.cacheStorage.saveCacheRecord(cacheRecord);
+        } finally {
+            if (this.persistencePlugin && this.serializableCache && cacheContext) {
+                this.logger.verbose("Persistence enabled, calling afterCacheAccess");
+                await this.persistencePlugin.afterCacheAccess(cacheContext);
+            }
         }
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
     /**
@@ -173,57 +170,159 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: IdToken, authority: Authority, libraryState?: LibraryStateObject): CacheRecord {
-        // Account
-        const cachedAccount  = this.generateAccountEntity(
-            serverTokenResponse,
-            idTokenObj,
-            authority
-        );
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: AuthToken, authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
 
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        const env = EnvironmentAliases.includes(reqEnvironment) ? PreferredCacheEnvironment : reqEnvironment;
+        const env = Authority.generateEnvironmentFromAuthority(authority);
 
-        // IdToken
-        const cachedIdToken = IdTokenEntity.createIdTokenEntity(
-            this.homeAccountIdentifier,
-            env,
-            serverTokenResponse.id_token,
-            this.clientId,
-            idTokenObj.claims.tid
-        );
+        if (StringUtils.isEmpty(env)) {
+            throw ClientAuthError.createInvalidCacheEnvironmentError();
+        }
+
+        // IdToken: non AAD scenarios can have empty realm
+        let cachedIdToken: IdTokenEntity = null;
+        let cachedAccount: AccountEntity = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
+            cachedIdToken = IdTokenEntity.createIdTokenEntity(
+                this.homeAccountIdentifier,
+                env,
+                serverTokenResponse.id_token,
+                this.clientId,
+                idTokenObj.claims.tid || "",
+                oboAssertion
+            );
+
+            cachedAccount = this.generateAccountEntity(
+                serverTokenResponse,
+                idTokenObj,
+                authority,
+                oboAssertion
+            );
+        }
 
         // AccessToken
-        const responseScopes = ScopeSet.fromString(serverTokenResponse.scope);
+        let cachedAccessToken: AccessTokenEntity = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
 
-        // Expiration calculation
-        const currentTime = TimeUtils.nowSeconds();
+            // If scopes not returned in server response, use request scopes
+            const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
 
-        // If the request timestamp was sent in the library state, use that timestamp to calculate expiration. Otherwise, use current time.
-        const timestamp = libraryState ? libraryState.ts : currentTime;
-        const tokenExpirationSeconds = timestamp + serverTokenResponse.expires_in;
-        const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
+            // Expiration calculation
+            const currentTime = TimeUtils.nowSeconds();
 
-        const cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
-            this.homeAccountIdentifier,
-            env,
-            serverTokenResponse.access_token,
-            this.clientId,
-            idTokenObj.claims.tid,
-            responseScopes.asArray().join(" "),
-            tokenExpirationSeconds,
-            extendedTokenExpirationSeconds
-        );
+            // If the request timestamp was sent in the library state, use that timestamp to calculate expiration. Otherwise, use current time.
+            const timestamp = libraryState ? libraryState.ts : currentTime;
+            const tokenExpirationSeconds = timestamp + serverTokenResponse.expires_in;
+            const extendedTokenExpirationSeconds = tokenExpirationSeconds + serverTokenResponse.ext_expires_in;
+
+            // non AAD scenarios can have empty realm
+            cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
+                this.homeAccountIdentifier,
+                env,
+                serverTokenResponse.access_token,
+                this.clientId,
+                idTokenObj ? idTokenObj.claims.tid || "" : authority.tenant,
+                responseScopes.printScopes(),
+                tokenExpirationSeconds,
+                extendedTokenExpirationSeconds,
+                serverTokenResponse.token_type,
+                oboAssertion
+            );
+        }
 
         // refreshToken
-        const cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
-            this.homeAccountIdentifier,
-            env,
-            serverTokenResponse.refresh_token,
-            this.clientId,
-            serverTokenResponse.foci
-        );
+        let cachedRefreshToken: RefreshTokenEntity = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
+            cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
+                this.homeAccountIdentifier,
+                env,
+                serverTokenResponse.refresh_token,
+                this.clientId,
+                serverTokenResponse.foci,
+                oboAssertion
+            );
+        }
 
-        return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken);
+        // appMetadata
+        let cachedAppMetadata: AppMetadataEntity = null;
+        if (!StringUtils.isEmpty(serverTokenResponse.foci)) {
+            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(this.clientId, env, serverTokenResponse.foci);
+        }
+
+        return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken, cachedAppMetadata);
+    }
+
+    /**
+     * Generate Account
+     * @param serverTokenResponse
+     * @param idToken
+     * @param authority
+     */
+    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority, oboAssertion?: string): AccountEntity {
+        const authorityType = authority.authorityType;
+
+        // ADFS does not require client_info in the response
+        if (authorityType === AuthorityType.Adfs) {
+            this.logger.verbose("Authority type is ADFS, creating ADFS account");
+            return AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion);
+        }
+
+        // This fallback applies to B2C as well as they fall under an AAD account type.
+        if (StringUtils.isEmpty(serverTokenResponse.client_info) && authority.protocolMode === "AAD") {
+            throw ClientAuthError.createClientInfoEmptyError(serverTokenResponse.client_info);
+        }
+
+        return serverTokenResponse.client_info ?
+            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, authority, idToken, oboAssertion) :
+            AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion);
+    }
+
+    /**
+     * Creates an @AuthenticationResult from @CacheRecord , @IdToken , and a boolean that states whether or not the result is from cache.
+     *
+     * Optionally takes a state string that is set as-is in the response.
+     *
+     * @param cacheRecord
+     * @param idTokenObj
+     * @param fromTokenCache
+     * @param stateString
+     */
+    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, idTokenObj: AuthToken, fromTokenCache: boolean, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
+        let accessToken: string = "";
+        let responseScopes: Array<string> = [];
+        let expiresOn: Date = null;
+        let extExpiresOn: Date = null;
+        let familyId: string = null;
+        if (cacheRecord.accessToken) {
+            if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
+                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
+                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, resourceRequestMethod, resourceRequestUri);
+            } else {
+                accessToken = cacheRecord.accessToken.secret;
+            }
+            responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target).asArray();
+            expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
+            extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
+        }
+        if (cacheRecord.appMetadata) {
+            familyId = cacheRecord.appMetadata.familyId === THE_FAMILY_ID ? THE_FAMILY_ID : null;
+        }
+        const uid = idTokenObj ? idTokenObj.claims.oid || idTokenObj.claims.sub : "";
+        const tid = idTokenObj ? idTokenObj.claims.tid : "";
+        return {
+            authority: null,
+            uniqueId: uid,
+            tenantId: tid,
+            scopes: responseScopes,
+            account: cacheRecord.account ? cacheRecord.account.getAccountInfo() : null,
+            idToken: idTokenObj ? idTokenObj.rawToken : "",
+            idTokenClaims: idTokenObj ? idTokenObj.claims : null,
+            accessToken: accessToken,
+            fromCache: fromTokenCache,
+            expiresOn: expiresOn,
+            extExpiresOn: extExpiresOn,
+            familyId: familyId,
+            tokenType: cacheRecord.accessToken ? cacheRecord.accessToken.tokenType : "",
+            state: requestState ? requestState.userRequestState : ""
+        };
     }
 }

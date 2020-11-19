@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { SignedHttpRequest } from "./SignedHttpRequest";
+
 /**
  * The PkceCodes type describes the structure
  * of objects that contain PKCE code
@@ -35,4 +37,15 @@ export interface ICrypto {
      * Generate PKCE codes for OAuth. See RFC here: https://tools.ietf.org/html/rfc7636
      */
     generatePkceCodes(): Promise<PkceCodes>;
+    /**
+     * Generates an JWK RSA S256 Thumbprint
+     * @param resourceRequestMethod 
+     * @param resourceRequestUri 
+     */
+    getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string>;
+    /** 
+     * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
+     * @param accessToken 
+     */
+    signJwt(payload: SignedHttpRequest, kid: string): Promise<string>;
 }

@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccountCache, AccountFilter, CredentialFilter, CredentialCache } from "./utils/CacheTypes";
+import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, EnvironmentAliases, APP_META_DATA } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -17,6 +17,10 @@ import { AuthError } from "../error/AuthError";
 import { ICacheManager } from "./interface/ICacheManager";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { AccountInfo } from "../account/AccountInfo";
+import { TrustedAuthority } from "../authority/TrustedAuthority";
+import { AppMetadataEntity } from "./entities/AppMetadataEntity";
+import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
+import { ThrottlingEntity } from "./entities/ThrottlingEntity";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -24,17 +28,90 @@ import { AccountInfo } from "../account/AccountInfo";
 export abstract class CacheManager implements ICacheManager {
 
     /**
-     * Function to set item in cache.
-     * @param key
-     * @param value
+     * fetch the account entity from the platform cache
+     *  @param accountKey
      */
-    abstract setItem(key: string, value: string | object, type?: string): void;
+    abstract getAccount(accountKey: string): AccountEntity | null;
 
     /**
-     * Function which retrieves item from cache.
-     * @param key
+     * set account entity in the platform cache
+     * @param account
      */
-    abstract getItem(key: string, type?: string): string | object;
+    abstract setAccount(account: AccountEntity): void;
+
+    /**
+     * fetch the idToken entity from the platform cache
+     * @param idTokenKey
+     */
+    abstract getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
+
+    /**
+     * set idToken entity to the platform cache
+     * @param idToken
+     */
+    abstract setIdTokenCredential(idToken: IdTokenEntity): void;
+
+    /**
+     * fetch the idToken entity from the platform cache
+     * @param accessTokenKey
+     */
+    abstract getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
+
+    /**
+     * set idToken entity to the platform cache
+     * @param accessToken
+     */
+    abstract setAccessTokenCredential(accessToken: AccessTokenEntity): void;
+
+    /**
+     * fetch the idToken entity from the platform cache
+     * @param refreshTokenKey
+     */
+    abstract getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null;
+
+    /**
+     * set idToken entity to the platform cache
+     * @param refreshToken
+     */
+    abstract setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void;
+
+    /**
+     * fetch appMetadata entity from the platform cache
+     * @param appMetadataKey
+     */
+    abstract getAppMetadata(appMetadataKey: string): AppMetadataEntity | null;
+
+    /**
+     * set appMetadata entity to the platform cache
+     * @param appMetadata
+     */
+    abstract setAppMetadata(appMetadata: AppMetadataEntity): void;
+
+    /**
+     * fetch server telemetry entity from the platform cache
+     * @param serverTelemetryKey
+     */
+    abstract getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null;
+
+    /**
+     * set server telemetry entity to the platform cache
+     * @param serverTelemetryKey
+     * @param serverTelemetry
+     */
+    abstract setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void;
+
+    /**
+     * fetch throttling entity from the platform cache
+     * @param throttlingCacheKey
+     */
+    abstract getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null;
+
+    /**
+     * set throttling entity to the platform cache
+     * @param throttlingCacheKey
+     * @param throttlingCache
+     */
+    abstract setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void;;
 
     /**
      * Function to remove an item from cache given its key.
@@ -63,14 +140,14 @@ export abstract class CacheManager implements ICacheManager {
      */
     getAllAccounts(): AccountInfo[] {
         const currentAccounts: AccountCache = this.getAccountsFilteredBy();
-        const accountValues: AccountEntity[] = Object.values(currentAccounts);
+        const accountValues: AccountEntity[] = Object.keys(currentAccounts).map(accountKey => currentAccounts[accountKey]);
         const numAccounts = accountValues.length;
         if (numAccounts < 1) {
-            return null;
+            return [];
         } else {
             const allAccounts = accountValues.map<AccountInfo>((value) => {
                 let accountObj: AccountEntity = new AccountEntity();
-                accountObj = CacheManager.toObject(accountObj, JSON.parse(JSON.stringify(value)));
+                accountObj = CacheManager.toObject(accountObj, value) as AccountEntity;
                 return accountObj.getAccountInfo();
             });
             return allAccounts;
@@ -81,93 +158,55 @@ export abstract class CacheManager implements ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    saveCacheRecord(cacheRecord: CacheRecord, responseScopes?: ScopeSet): void {
+    saveCacheRecord(cacheRecord: CacheRecord): void {
         if (!cacheRecord) {
             throw ClientAuthError.createNullOrUndefinedCacheRecord();
         }
 
         if (!!cacheRecord.account) {
-            this.saveAccount(cacheRecord.account);
+            this.setAccount(cacheRecord.account);
         }
 
         if (!!cacheRecord.idToken) {
-            this.saveCredential(cacheRecord.idToken);
+            this.setIdTokenCredential(cacheRecord.idToken);
         }
 
         if (!!cacheRecord.accessToken) {
-            this.saveAccessToken(cacheRecord.accessToken, responseScopes);
+            this.saveAccessToken(cacheRecord.accessToken);
         }
 
         if (!!cacheRecord.refreshToken) {
-            this.saveCredential(cacheRecord.refreshToken);
+            this.setRefreshTokenCredential(cacheRecord.refreshToken);
         }
-    }
 
-    /**
-     * saves account into cache
-     * @param account
-     */
-    private saveAccount(account: AccountEntity): void {
-        const key = account.generateAccountKey();
-        this.setItem(
-            key,
-            account,
-            CacheSchemaType.ACCOUNT
-        );
-    }
-
-    /**
-     * saves credential - accessToken, idToken or refreshToken into cache
-     * @param credential
-     */
-    private saveCredential(credential: CredentialEntity): void {
-        const key = credential.generateCredentialKey();
-        this.setItem(
-            key,
-            credential,
-            CacheSchemaType.CREDENTIAL
-        );
+        if (!!cacheRecord.appMetadata) {
+            this.setAppMetadata(cacheRecord.appMetadata);
+        }
     }
 
     /**
      * saves access token credential
-     * @param credential 
+     * @param credential
      */
-    private saveAccessToken(credential: AccessTokenEntity, responseScopes: ScopeSet): void {
+    private saveAccessToken(credential: AccessTokenEntity): void {
         const currentTokenCache = this.getCredentialsFilteredBy({
             clientId: credential.clientId,
             credentialType: CredentialType.ACCESS_TOKEN,
             environment: credential.environment,
             homeAccountId: credential.homeAccountId,
-            realm: credential.realm
+            realm: credential.realm,
         });
-        const currentAccessTokens: AccessTokenEntity[] = Object.values(currentTokenCache.accessTokens) as AccessTokenEntity[];
+        const currentScopes = ScopeSet.fromString(credential.target);
+        const currentAccessTokens: AccessTokenEntity[] = Object.keys(currentTokenCache.accessTokens).map(key => currentTokenCache.accessTokens[key]);
         if (currentAccessTokens) {
             currentAccessTokens.forEach((tokenEntity) => {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
-                if (tokenScopeSet.intersectingScopeSets(responseScopes)) {
+                if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
                     this.removeCredential(tokenEntity);
                 }
             });
         }
-        this.saveCredential(credential);
-    }
-
-    /**
-     * Given account key retrieve an account
-     * @param key
-     */
-    getAccount(key: string): AccountEntity {
-        const account = this.getItem(key, CacheSchemaType.ACCOUNT) as AccountEntity;
-        return account;
-    }
-
-    /**
-     * retrieve a credential - accessToken, idToken or refreshToken; given the cache key
-     * @param key
-     */
-    getCredential(key: string): CredentialEntity {
-        return this.getItem(key, CacheSchemaType.CREDENTIAL) as CredentialEntity;
+        this.setAccessTokenCredential(credential);
     }
 
     /**
@@ -201,28 +240,25 @@ export abstract class CacheManager implements ICacheManager {
         const matchingAccounts: AccountCache = {};
 
         allCacheKeys.forEach((cacheKey) => {
-            let matches: boolean = true;
-            // don't parse any non-account type cache entities
-            if (CredentialEntity.getCredentialType(cacheKey) !== Constants.NOT_DEFINED || this.isAppMetadata(cacheKey)) {
+            const entity: AccountEntity | null = this.getAccount(cacheKey);
+
+            if (!entity) {
+                return null;
+            }
+
+            if (!StringUtils.isEmpty(homeAccountId) && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
-            const entity: AccountEntity = this.getItem(cacheKey, CacheSchemaType.ACCOUNT) as AccountEntity;
 
-            if (!StringUtils.isEmpty(homeAccountId)) {
-                matches = this.matchHomeAccountId(entity, homeAccountId);
+            if (!StringUtils.isEmpty(environment) && !this.matchEnvironment(entity, environment)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(environment)) {
-                matches = matches && this.matchEnvironment(entity, environment);
+            if (!StringUtils.isEmpty(realm) && !this.matchRealm(entity, realm)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(realm)) {
-                matches = matches && this.matchRealm(entity, realm);
-            }
-
-            if (matches) {
-                matchingAccounts[cacheKey] = entity;
-            }
+            matchingAccounts[cacheKey] = entity;
         });
 
         return matchingAccounts;
@@ -243,8 +279,10 @@ export abstract class CacheManager implements ICacheManager {
             filter.environment,
             filter.credentialType,
             filter.clientId,
+            filter.familyId,
             filter.realm,
-            filter.target
+            filter.target,
+            filter.oboAssertion
         );
     }
 
@@ -262,64 +300,78 @@ export abstract class CacheManager implements ICacheManager {
         environment?: string,
         credentialType?: string,
         clientId?: string,
+        familyId?: string,
         realm?: string,
-        target?: string
+        target?: string,
+        oboAssertion?: string
     ): CredentialCache {
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
             idTokens: {},
             accessTokens: {},
-            refreshTokens: {}
+            refreshTokens: {},
         };
 
         allCacheKeys.forEach((cacheKey) => {
-            let matches: boolean = true;
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
             if (credType === Constants.NOT_DEFINED) {
                 return;
             }
 
-            const entity: CredentialEntity = this.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as CredentialEntity;
+            // Attempt retrieval
+            const entity = this.getSpecificCredential(cacheKey, credType);
 
-            if (!StringUtils.isEmpty(homeAccountId)) {
-                matches = this.matchHomeAccountId(entity, homeAccountId);
+            if (!entity) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(environment)) {
-                matches = matches && this.matchEnvironment(entity, environment);
+            if (!StringUtils.isEmpty(oboAssertion) && !this.matchOboAssertion(entity, oboAssertion)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(realm)) {
-                matches = matches && this.matchRealm(entity, realm);
+            if (!StringUtils.isEmpty(homeAccountId) && !this.matchHomeAccountId(entity, homeAccountId)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(credentialType)) {
-                matches = matches && this.matchCredentialType(entity, credentialType);
+            if (!StringUtils.isEmpty(environment) && !this.matchEnvironment(entity, environment)) {
+                return;
             }
 
-            if (!StringUtils.isEmpty(clientId)) {
-                matches = matches && this.matchClientId(entity, clientId);
+            if (!StringUtils.isEmpty(realm) && !this.matchRealm(entity, realm)) {
+                return;
             }
 
-            // idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
-            // TODO: Add case for target specific refresh tokens
-            if (!StringUtils.isEmpty(target) && credType === CredentialType.ACCESS_TOKEN) {
-                matches = matches && this.matchTarget(entity, target);
+            if (!StringUtils.isEmpty(credentialType) && !this.matchCredentialType(entity, credentialType)) {
+                return;
             }
 
-            if (matches) {
-                switch (credType) {
-                    case CredentialType.ID_TOKEN:
-                        matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
-                        break;
-                    case CredentialType.ACCESS_TOKEN:
-                        matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
-                        break;
-                    case CredentialType.REFRESH_TOKEN:
-                        matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
-                        break;
-                }
+            if (!StringUtils.isEmpty(clientId) && !this.matchClientId(entity, clientId)) {
+                return;
+            }
+
+            if (!StringUtils.isEmpty(familyId) && !this.matchFamilyId(entity, familyId)) {
+                return;
+            }
+
+            /*
+             * idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
+             * Resource specific refresh tokens case will be added when the support is deemed necessary
+             */
+            if (!StringUtils.isEmpty(target) && !this.matchTarget(entity, target)) {
+                return;
+            }
+
+            switch (credType) {
+                case CredentialType.ID_TOKEN:
+                    matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
+                    break;
+                case CredentialType.ACCESS_TOKEN:
+                    matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
+                    break;
+                case CredentialType.REFRESH_TOKEN:
+                    matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
+                    break;
             }
         });
 
@@ -327,11 +379,79 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * retrieve appMetadata matching all provided filters; if no filter is set, get all appMetadata
+     * @param filter
+     */
+    getAppMetadataFilteredBy(filter: AppMetadataFilter): AppMetadataCache {
+        return this.getAppMetadataFilteredByInternal(
+            filter.environment,
+            filter.clientId,
+        );
+    }
+
+    /**
+     * Support function to help match appMetadata
+     * @param environment
+     * @param clientId
+     */
+    private getAppMetadataFilteredByInternal(
+        environment?: string,
+        clientId?: string
+    ): AppMetadataCache {
+
+        const allCacheKeys = this.getKeys();
+        const matchingAppMetadata: AppMetadataCache = {};
+
+        allCacheKeys.forEach((cacheKey) => {
+            // don't parse any non-appMetadata type cache entities
+            if (!this.isAppMetadata(cacheKey)) {
+                return;
+            }
+
+            // Attempt retrieval
+            const entity = this.getAppMetadata(cacheKey);
+
+            if (!entity) {
+                return;
+            }
+
+            if (!StringUtils.isEmpty(environment) && !this.matchEnvironment(entity, environment)) {
+                return;
+            }
+
+            if (!StringUtils.isEmpty(clientId) && !this.matchClientId(entity, clientId)) {
+                return;
+            }
+
+            matchingAppMetadata[cacheKey] = entity;
+
+        });
+
+        return matchingAppMetadata;
+    }
+
+    /**
+     * Removes all accounts and related tokens from cache.
+     */
+    removeAllAccounts(): boolean {
+        const allCacheKeys = this.getKeys();
+        allCacheKeys.forEach((cacheKey) => {
+            const entity: AccountEntity = this.getAccount(cacheKey);
+            if (!entity) {
+                return;
+            }
+            this.removeAccount(cacheKey);
+        });
+
+        return true;
+    }
+
+    /**
      * returns a boolean if the given account is removed
      * @param account
      */
     removeAccount(accountKey: string): boolean {
-        const account = this.getAccount(accountKey) as AccountEntity;
+        const account = this.getAccount(accountKey);
         if (!account) {
             throw ClientAuthError.createNoAccountFoundError();
         }
@@ -348,12 +468,12 @@ export abstract class CacheManager implements ICacheManager {
 
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
-            if (CredentialEntity.getCredentialType(cacheKey) === Constants.NOT_DEFINED) {
+            const credType = CredentialEntity.getCredentialType(cacheKey);
+            if (credType === Constants.NOT_DEFINED) {
                 return;
             }
 
-            const cacheEntity: CredentialEntity = this.getItem(cacheKey, CacheSchemaType.CREDENTIAL) as CredentialEntity;
-
+            const cacheEntity = this.getSpecificCredential(cacheKey, credType);
             if (!!cacheEntity && accountId === cacheEntity.generateAccountId()) {
                 this.removeCredential(cacheEntity);
             }
@@ -372,31 +492,195 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     *
-     * @param value
-     * @param homeAccountId
+     * Removes all app metadata objects from cache.
      */
-    private matchHomeAccountId(
-        entity: AccountEntity | CredentialEntity,
-        homeAccountId: string
-    ): boolean {
-        return homeAccountId === entity.homeAccountId;
+    removeAppMetadata(): boolean {
+        const allCacheKeys = this.getKeys();
+        allCacheKeys.forEach((cacheKey) => {
+            if (this.isAppMetadata(cacheKey)) {
+                this.removeItem(cacheKey, CacheSchemaType.APP_METADATA);
+            }
+        });
+
+        return true;
     }
 
     /**
-     *
+     * Retrieve the cached credentials into a cacherecord
+     * @param account
+     * @param clientId
+     * @param scopes
+     * @param environment
+     */
+    readCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet, environment: string): CacheRecord {
+        const cachedAccount = this.readAccountFromCache(account);
+        const cachedIdToken = this.readIdTokenFromCache(clientId, account);
+        const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, scopes);
+        const cachedRefreshToken = this.readRefreshTokenFromCache(clientId, account, false);
+        const cachedAppMetadata = this.readAppMetadataFromCache(environment, clientId);
+
+        return {
+            account: cachedAccount,
+            idToken: cachedIdToken,
+            accessToken: cachedAccessToken,
+            refreshToken: cachedRefreshToken,
+            appMetadata: cachedAppMetadata,
+        };
+    }
+
+    /**
+     * Retrieve AccountEntity from cache
+     * @param account
+     */
+    readAccountFromCache(account: AccountInfo): AccountEntity | null {
+        const accountKey: string = AccountEntity.generateAccountCacheKey(account);
+        return this.getAccount(accountKey);
+    }
+
+    /**
+     * Retrieve IdTokenEntity from cache
+     * @param clientId
+     * @param account
+     * @param inputRealm
+     */
+    readIdTokenFromCache(clientId: string, account: AccountInfo): IdTokenEntity | null {
+        const idTokenFilter: CredentialFilter = {
+            homeAccountId: account.homeAccountId,
+            environment: account.environment,
+            credentialType: CredentialType.ID_TOKEN,
+            clientId: clientId,
+            realm: account.tenantId,
+        };
+
+        const credentialCache: CredentialCache = this.getCredentialsFilteredBy(idTokenFilter);
+        const idTokens = Object.keys(credentialCache.idTokens).map((key) => credentialCache.idTokens[key]);
+        const numIdTokens = idTokens.length;
+
+        if (numIdTokens < 1) {
+            return null;
+        } else if (numIdTokens > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+        }
+
+        return idTokens[0] as IdTokenEntity;
+    }
+
+    /**
+     * Retrieve AccessTokenEntity from cache
+     * @param clientId
+     * @param account
+     * @param scopes
+     * @param inputRealm
+     */
+    readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet): AccessTokenEntity | null {
+        const accessTokenFilter: CredentialFilter = {
+            homeAccountId: account.homeAccountId,
+            environment: account.environment,
+            credentialType: CredentialType.ACCESS_TOKEN,
+            clientId,
+            realm: account.tenantId,
+            target: scopes.printScopesLowerCase(),
+        };
+
+        const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
+        const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
+
+        const numAccessTokens = accessTokens.length;
+        if (numAccessTokens < 1) {
+            return null;
+        } else if (numAccessTokens > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+        }
+
+        return accessTokens[0] as AccessTokenEntity;
+    }
+
+    /**
+     * Helper to retrieve the appropriate refresh token from cache
+     * @param clientId
+     * @param account
+     * @param familyRT
+     */
+    readRefreshTokenFromCache(clientId: string, account: AccountInfo, familyRT: boolean): RefreshTokenEntity | null {
+        const id = familyRT ? THE_FAMILY_ID : null;
+        const refreshTokenFilter: CredentialFilter = {
+            homeAccountId: account.homeAccountId,
+            environment: account.environment,
+            credentialType: CredentialType.REFRESH_TOKEN,
+            clientId: clientId,
+            familyId: id
+        };
+
+        const credentialCache: CredentialCache = this.getCredentialsFilteredBy(refreshTokenFilter);
+        const refreshTokens = Object.keys(credentialCache.refreshTokens).map((key) => credentialCache.refreshTokens[key]);
+
+        const numRefreshTokens = refreshTokens.length;
+        if (numRefreshTokens < 1) {
+            return null;
+        }
+        // address the else case after remove functions address environment aliases
+
+        return refreshTokens[0] as RefreshTokenEntity;
+    }
+
+    /**
+     * Retrieve AppMetadataEntity from cache
+     */
+    readAppMetadataFromCache(environment: string, clientId: string): AppMetadataEntity {
+        const appMetadataFilter: AppMetadataFilter = {
+            environment,
+            clientId,
+        };
+
+        const appMetadata: AppMetadataCache = this.getAppMetadataFilteredBy(appMetadataFilter);
+        const appMetadataEntries: AppMetadataEntity[] = Object.keys(appMetadata).map((key) => appMetadata[key]);
+
+        const numAppMetadata = appMetadataEntries.length;
+        if (numAppMetadata < 1) {
+            return null;
+        } else if (numAppMetadata > 1) {
+            throw ClientAuthError.createMultipleMatchingAppMetadataInCacheError();
+        }
+
+        return appMetadataEntries[0] as AppMetadataEntity;
+    }
+
+    /**
+     * Return the family_id value associated  with FOCI
+     * @param environment
+     * @param clientId
+     */
+    isAppMetadataFOCI(environment: string, clientId: string): boolean {
+        const appMetadata = this.readAppMetadataFromCache(environment, clientId);
+        return appMetadata && appMetadata.familyId === THE_FAMILY_ID;
+    }
+
+    /**
+     * helper to match account ids
+     * @param value
+     * @param homeAccountId
+     */
+    private matchHomeAccountId(entity: AccountEntity | CredentialEntity, homeAccountId: string): boolean {
+        return entity.homeAccountId && homeAccountId === entity.homeAccountId;
+    }
+
+    /**
+     * helper to match assertion
+     * @param value
+     * @param oboAssertion
+     */
+    private matchOboAssertion(entity: AccountEntity | CredentialEntity, oboAssertion: string): boolean {
+        return entity.oboAssertion && oboAssertion === entity.oboAssertion;
+    }
+
+    /**
+     * helper to match environment
      * @param value
      * @param environment
-     * // TODO: Add Cloud specific aliases based on current cloud
      */
-    private matchEnvironment(
-        entity: AccountEntity | CredentialEntity,
-        environment: string
-    ): boolean {
-        if (
-            EnvironmentAliases.includes(environment) &&
-            EnvironmentAliases.includes(entity.environment)
-        ) {
+    private matchEnvironment(entity: AccountEntity | CredentialEntity | AppMetadataEntity, environment: string): boolean {
+        const cloudMetadata = TrustedAuthority.getCloudDiscoveryMetadata(environment);
+        if (cloudMetadata && cloudMetadata.aliases.indexOf(entity.environment) > -1) {
             return true;
         }
 
@@ -404,30 +688,39 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     *
+     * helper to match credential type
      * @param entity
      * @param credentialType
      */
     private matchCredentialType(entity: CredentialEntity, credentialType: string): boolean {
-        return credentialType.toLowerCase() === entity.credentialType.toLowerCase();
+        return (entity.credentialType && credentialType.toLowerCase() === entity.credentialType.toLowerCase());
     }
 
     /**
-     *
+     * helper to match client ids
      * @param entity
      * @param clientId
      */
-    private matchClientId(entity: CredentialEntity, clientId: string): boolean {
-        return clientId === entity.clientId;
+    private matchClientId(entity: CredentialEntity | AppMetadataEntity, clientId: string): boolean {
+        return entity.clientId && clientId === entity.clientId;
     }
 
     /**
-     *
+     * helper to match family ids
+     * @param entity
+     * @param familyId
+     */
+    private matchFamilyId(entity: CredentialEntity | AppMetadataEntity, familyId: string): boolean {
+        return entity.familyId && familyId === entity.familyId;
+    }
+
+    /**
+     * helper to match realm
      * @param entity
      * @param realm
      */
     private matchRealm(entity: AccountEntity | CredentialEntity, realm: string): boolean {
-        return realm === entity.realm;
+        return entity.realm && realm === entity.realm;
     }
 
     /**
@@ -436,8 +729,16 @@ export abstract class CacheManager implements ICacheManager {
      * @param target
      */
     private matchTarget(entity: CredentialEntity, target: string): boolean {
+        if (entity.credentialType !== CredentialType.ACCESS_TOKEN || StringUtils.isEmpty(entity.target)) {
+            return false;
+        }
+
         const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target);
         const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target);
+
+        if (!requestTargetScopeSet.containsOnlyDefaultScopes()) {
+            requestTargetScopeSet.removeDefaultScopes(); // ignore default scopes
+        }
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }
 
@@ -446,7 +747,28 @@ export abstract class CacheManager implements ICacheManager {
      * @param key
      */
     private isAppMetadata(key: string): boolean {
-        return key.indexOf(APP_META_DATA) !== -1;
+        return key.indexOf(APP_METADATA) !== -1;
+    }
+
+    /**
+     * Returns the specific credential (IdToken/AccessToken/RefreshToken) from the cache
+     * @param key
+     * @param credType
+     */
+    private getSpecificCredential(key: string, credType: string): ValidCredentialType | null {
+        switch (credType) {
+            case CredentialType.ID_TOKEN: {
+                return this.getIdTokenCredential(key);
+            }
+            case CredentialType.ACCESS_TOKEN: {
+                return this.getAccessTokenCredential(key);
+            }
+            case CredentialType.REFRESH_TOKEN: {
+                return this.getRefreshTokenCredential(key);
+            }
+            default:
+                return null;
+        }
     }
 
     /**
@@ -463,12 +785,60 @@ export abstract class CacheManager implements ICacheManager {
 }
 
 export class DefaultStorageClass extends CacheManager {
-    setItem(): void {
-        const notImplErr = "Storage interface - setItem() has not been implemented for the cacheStorage interface.";
+    setAccount(): void {
+        const notImplErr = "Storage interface - setAccount() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    getItem(): string | object {
-        const notImplErr = "Storage interface - getItem() has not been implemented for the cacheStorage interface.";
+    getAccount(): AccountEntity {
+        const notImplErr = "Storage interface - getAccount() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setIdTokenCredential(): void {
+        const notImplErr = "Storage interface - setIdTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getIdTokenCredential(): IdTokenEntity {
+        const notImplErr = "Storage interface - getIdTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setAccessTokenCredential(): void {
+        const notImplErr = "Storage interface - setAccessTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getAccessTokenCredential(): AccessTokenEntity {
+        const notImplErr = "Storage interface - getAccessTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setRefreshTokenCredential(): void {
+        const notImplErr = "Storage interface - setRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getRefreshTokenCredential(): RefreshTokenEntity {
+        const notImplErr = "Storage interface - getRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setAppMetadata(): void {
+        const notImplErr = "Storage interface - setAppMetadata() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getAppMetadata(): AppMetadataEntity {
+        const notImplErr = "Storage interface - getAppMetadata() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setServerTelemetry(): void {
+        const notImplErr = "Storage interface - setServerTelemetry() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getServerTelemetry(): ServerTelemetryEntity {
+        const notImplErr = "Storage interface - getServerTelemetry() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setThrottlingCache(): void {
+        const notImplErr = "Storage interface - setThrottlingCache() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getThrottlingCache(): ThrottlingEntity {
+        const notImplErr = "Storage interface - getThrottlingCache() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
     removeItem(): boolean {
@@ -485,6 +855,6 @@ export class DefaultStorageClass extends CacheManager {
     }
     clear(): void {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);   
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 }
