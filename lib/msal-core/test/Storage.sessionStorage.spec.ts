@@ -9,13 +9,14 @@ import { AccessTokenValue } from "../src/cache/AccessTokenValue";
 import { Account } from "../src/Account";
 import { AuthErrorMessage } from "../src/error/AuthError";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../src/error/ClientConfigurationError";
+import { RequestUtils } from "../src/utils/RequestUtils";
 
 describe("CacheStorage.ts Class - Session Storage", function () {
     const TEST_KEY = "test_key";
     const TEST_VALUE = "test value";
     const TEST_ACCOUNT_ID = "1234";
-    const TEST_STATE = "state5678";
-    const TEST_STATE2 = "state9012";
+    const TEST_STATE = RequestUtils.generateLibraryState(Constants.interactionTypePopup);
+    const TEST_STATE2 = RequestUtils.generateLibraryState(Constants.interactionTypeRedirect);
     const SESSION_STORAGE = "sessionStorage";
     let cacheStorage : BrowserStorage;
     let ACCESS_TOKEN_KEY : AccessTokenKey;
@@ -269,20 +270,20 @@ describe("CacheStorage.ts Class - Session Storage", function () {
             let stateLoginString = "stateLogin";
             let loginRequestString = "loginRequest";
             let stateAcquireTokenString = "stateAcquireToken";
-            msalCacheStorage.setItemCookie(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`, idTokenNonceString);
-            msalCacheStorage.setItemCookie(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM_GUID`, stateLoginString);
-            msalCacheStorage.setItemCookie(`${TemporaryCacheKeys.LOGIN_REQUEST}|RANDOM_GUID`, loginRequestString);
-            msalCacheStorage.setItemCookie(`${TemporaryCacheKeys.STATE_ACQ_TOKEN}|RANDOM_GUID`, stateAcquireTokenString);
-            msalCacheStorage.clearMsalCookie("RANDOM_GUID");
+            msalCacheStorage.setItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_STATE), idTokenNonceString);
+            msalCacheStorage.setItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, TEST_STATE), stateLoginString);
+            msalCacheStorage.setItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, TEST_STATE), loginRequestString);
+            msalCacheStorage.setItemCookie(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, TEST_STATE), stateAcquireTokenString);
+            msalCacheStorage.clearMsalCookie(TEST_STATE);
             expect(document.cookie).to.be.empty;
         });
 
         it("resetCacheItems deletes msal related cache items", function () {
             let clientInfoKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${PersistentCacheKeys.CLIENT_INFO}`;
-            let stateLoginKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${TemporaryCacheKeys.STATE_LOGIN}|RANDOM_GUID`;
+            let stateLoginKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN,  TEST_STATE)}`;
             let idTokenKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${PersistentCacheKeys.IDTOKEN}`;
-            let nonceIdTokenKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`;
-            let renewStatusKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${TemporaryCacheKeys.RENEW_STATUS}|RANDOM_GUID`;
+            let nonceIdTokenKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_STATE)}`;
+            let renewStatusKey = `${Constants.cachePrefix}.${MSAL_CLIENT_ID}.${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.RENEW_STATUS, TEST_STATE)}`;
 
             window.sessionStorage.setItem(clientInfoKey, "clientInfo");
             window.sessionStorage.setItem(stateLoginKey, "stateLogin");
@@ -291,37 +292,20 @@ describe("CacheStorage.ts Class - Session Storage", function () {
             window.sessionStorage.setItem(renewStatusKey, "Completed");
 
             expect(msalCacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO)).to.be.eq("clientInfo");
-            expect(msalCacheStorage.getItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM_GUID`)).to.be.eq("stateLogin");
+            expect(msalCacheStorage.getItem(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, TEST_STATE)}`)).to.be.eq("stateLogin");
             expect(msalCacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.be.eq("idToken1");
-            expect(msalCacheStorage.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`)).to.be.eq("idTokenNonce");
-            expect(msalCacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}|RANDOM_GUID`)).to.be.eq("Completed");
+            expect(msalCacheStorage.getItem(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_STATE)}`)).to.be.eq("idTokenNonce");
+            expect(msalCacheStorage.getItem(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.RENEW_STATUS, TEST_STATE)}`)).to.be.eq("Completed");
 
             msalCacheStorage.resetCacheItems();
 
             expect(msalCacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO)).to.be.null;
-            expect(msalCacheStorage.getItem(`${TemporaryCacheKeys.STATE_LOGIN}|RANDOM_GUID`)).to.be.null;
+            expect(msalCacheStorage.getItem(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, TEST_STATE)}`)).to.be.null;
             expect(msalCacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.be.null;
-            expect(msalCacheStorage.getItem(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`)).to.be.null;
-            expect(msalCacheStorage.getItem(`${TemporaryCacheKeys.RENEW_STATUS}|RANDOM_GUID`)).to.be.null;
+            expect(msalCacheStorage.getItem(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_STATE)}`)).to.be.null;
+            expect(msalCacheStorage.getItem(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.RENEW_STATUS, TEST_STATE)}`)).to.be.null;
         });
 
         it.skip("tests that resetCacheItems only deletes instance-specific cache items");
     });
-
-    describe("static key generators", function () {
-
-        it("generates acquireToken account key", function () {
-            let acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(TEST_ACCOUNT_ID, TEST_STATE);
-            expect(acquireTokenAccountKey).to.include(TEST_ACCOUNT_ID);
-            expect(acquireTokenAccountKey).to.include(TEST_STATE);
-            expect(acquireTokenAccountKey).to.include(`${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}|${TEST_ACCOUNT_ID}|${TEST_STATE}`);
-        });
-
-        it("generates authority key", function () {
-            let authorityKey = AuthCache.generateAuthorityKey(TEST_STATE);
-            expect(authorityKey).to.include(TEST_STATE);
-            expect(authorityKey).to.include(`${TemporaryCacheKeys.AUTHORITY}|${TEST_STATE}`);
-        });
-    });
-
 });

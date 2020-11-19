@@ -39,11 +39,10 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
     });
 
-    it("validateAsUri throws error if uri is not valid", () => {
-        const shortPathUrlString = "https://login.microsoft.com";
-        let urlObj = new UrlString(shortPathUrlString);
-        expect(() => urlObj.validateAsUri()).to.throw(`${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: Given url string: ${shortPathUrlString}/`);
-        expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
+    it("validateAsUri validates any valid URI", () => {
+        const insecureUrlString = "https://example.com/";
+        let urlObj = new UrlString(insecureUrlString);
+        expect(() => urlObj.validateAsUri()).to.not.throw;
     });
 
     it("urlRemoveQueryStringParameter removes required path components",() => {
@@ -61,6 +60,12 @@ describe("UrlString.ts Class Unit Tests", () => {
         urlObj2.urlRemoveQueryStringParameter("param1");
         expect(urlObj2.urlString).to.not.contain("param1=value1");
         expect(urlObj2.urlString).to.not.contain("param2=value2");
+    });
+
+    it("removes hash from url provided", () => {
+        const baseUrl = "https://localhost/";
+        const fullUrl = baseUrl + "#thisIsATestHash";
+        expect(UrlString.removeHashFromUrl(fullUrl)).to.eq(baseUrl);
     });
 
     it("replaceTenantPath correctly replaces common with tenant id", () => {
@@ -114,19 +119,18 @@ describe("UrlString.ts Class Unit Tests", () => {
             "param2": "value2",
             "param3": "value3",
         };
-        const urlWithHash = TEST_URIS.TEST_AUTH_ENDPT + serializedHash;
-        const urlObjWithHash = new UrlString(urlWithHash);
 
-        expect(urlObjWithHash.getDeserializedHash()).to.be.deep.eq(deserializedHash);
+        expect(UrlString.getDeserializedHash(serializedHash)).to.be.deep.eq(deserializedHash);
     });
 
     it("getUrlComponents returns all path components", () => {
-        const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS1);
+        const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2);
         expect(urlObj.getUrlComponents()).to.be.deep.eq({
             Protocol: "https:",
             HostNameAndPort: "login.microsoftonline.com",
             AbsolutePath: "/common/oauth2/v2.0/authorize",
-            PathSegments: ["common", "oauth2", "v2.0", "authorize"]
+            PathSegments: ["common", "oauth2", "v2.0", "authorize"],
+            QueryString: "param1=value1&param2=value2"
         } as IUri);
     });
 
@@ -151,5 +155,53 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("hashContainsKnownProperties returns false if incorrect hash is given", () => {
         const exampleUnknownHash = "#param1=value1&param2=value2&param3=value3";
         expect(UrlString.hashContainsKnownProperties(exampleUnknownHash)).to.be.false;
+    });
+
+    describe("getDomainFromUrl tests", () => {
+        it("tests domain is returned when provided url includes protocol", () => {
+            expect(UrlString.getDomainFromUrl("https://domain.com")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("https://domain.com/")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("http://domain.com")).to.eq("domain.com");
+        });
+
+        it("tests domain is returned when only domain is provided", () => {
+            expect(UrlString.getDomainFromUrl("domain.com/")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("domain.com")).to.eq("domain.com");
+        });
+
+        it("tests domain is returned when provided url is not homepage", () => {
+            expect(UrlString.getDomainFromUrl("domain.com/page")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("domain.com/index.html")).to.eq("domain.com");
+        });
+
+        it("tests domain is returned when provided url includes hash", () => {
+            expect(UrlString.getDomainFromUrl("domain.com#customHash")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("domain.com/#customHash")).to.eq("domain.com");
+        });
+
+        it("tests domain is returned when provided url includes query string", () => {
+            expect(UrlString.getDomainFromUrl("domain.com?queryString=1")).to.eq("domain.com");
+            expect(UrlString.getDomainFromUrl("domain.com/?queryString=1")).to.eq("domain.com");
+        });
+    });
+
+    describe("getAbsoluteUrl tests", () => {
+        it("Returns url provided if it's already absolute", () => {
+            const absoluteUrl = "https://localhost:30662"
+            expect(UrlString.getAbsoluteUrl(absoluteUrl, absoluteUrl + "/testPath")).to.eq(absoluteUrl);
+        });
+
+        it("Returns absolute url if relativeUrl provided", () => {
+            const basePath = "https://localhost:30662"
+            const absoluteUrl = "https://localhost:30662/testPath";
+            expect(UrlString.getAbsoluteUrl("/testPath", basePath)).to.eq(absoluteUrl);
+            expect(UrlString.getAbsoluteUrl("/testPath", basePath + "/")).to.eq(absoluteUrl);
+        });
+
+        it("Replaces path if relativeUrl provided and baseUrl contains different path", () => {
+            const basePath = "https://localhost:30662/differentPath"
+            const expectedUrl = "https://localhost:30662/testPath";
+            expect(UrlString.getAbsoluteUrl("/testPath", basePath)).to.eq(expectedUrl);
+        });
     });
 });

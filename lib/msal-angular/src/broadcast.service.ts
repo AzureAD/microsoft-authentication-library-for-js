@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable, Subscription } from "rxjs";
 import { filter, map } from "rxjs/operators";
@@ -10,8 +15,8 @@ export class BroadcastService {
     private msalItem$:  Observable<any>;
 
     constructor() {
-     this._msalSubject = new BehaviorSubject<any>(1);
-     this.msalItem$  = this._msalSubject.asObservable();
+        this._msalSubject = new BehaviorSubject<any>(1);
+        this.msalItem$  = this._msalSubject.asObservable();
     }
 
     broadcast(type: string, payload: any) {

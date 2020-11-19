@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes } from '@azure/msal-common';
-import { GuidGenerator } from './GuidGenerator';
-import { EncodingUtils } from './../utils/EncodingUtils';
-import { PkceGenerator } from './PkceGenerator';
+import { ICrypto, PkceCodes } from "@azure/msal-common";
+import { GuidGenerator } from "./GuidGenerator";
+import { EncodingUtils } from "../utils/EncodingUtils";
+import { PkceGenerator } from "./PkceGenerator";
 
 /**
  * This class implements MSAL node's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
@@ -49,5 +49,13 @@ export class CryptoProvider implements ICrypto {
      */
     generatePkceCodes(): Promise<PkceCodes> {
         return this.pkceGenerator.generatePkceCodes();
+    }
+
+    getPublicKeyThumbprint(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+
+    signJwt(): Promise<string> {
+        throw new Error("Method not implemented.");
     }
 }

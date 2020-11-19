@@ -1,0 +1,19 @@
+{
+  "name": "msal-node-extensions-sample",
+  "version": "1.0.0",
+  "description": "sample app for msal-node",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "build:package": "cd ../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "start:build": "npm run build:package && npm start"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "^1.0.0-beta.1",
+    "@azure/msal-node-extensions": "1.0.0-alpha.4",
+    "express": "^4.17.1"
+  }
+}

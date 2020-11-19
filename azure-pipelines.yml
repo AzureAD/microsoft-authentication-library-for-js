@@ -11,4 +11,3 @@ jobs:
       name: Hosted VS2017
     steps:
       - template: build/sdl-tasks.yml
-      - template: build/npm-build-steps.yml

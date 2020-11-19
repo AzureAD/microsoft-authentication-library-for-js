@@ -24,10 +24,30 @@ describe("UrlUtils.ts class", () => {
     const TEST_URL_HASH_SINGLE_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_1}`;
     const TEST_URL_HASH_TWO_CHAR = `${TEST_URL_NO_HASH}${TEST_SUCCESS_HASH_2}`;
 
-    it("replaceTenantPath", () => {
-        expect(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678")).to.eq("http://a.com/1234-5678/d/");
-        expect(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778")).to.eq("http://a.com/1234-56778/");
-        expect(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678")).to.eq("http://a.com/1234-5678/");
+    describe("replaceTenantPath", () => {
+        it("/common", () => {
+            expect(UrlUtils.replaceTenantPath("http://a.com/common/d?e=f", "1234-5678")).to.eq("http://a.com/1234-5678/d/");
+            expect(UrlUtils.replaceTenantPath("http://a.com/common/", "1234-56778")).to.eq("http://a.com/1234-56778/");
+            expect(UrlUtils.replaceTenantPath("http://a.com/common", "1234-5678")).to.eq("http://a.com/1234-5678/");
+        });
+
+        it("/organizations", () => {
+            expect(UrlUtils.replaceTenantPath("http://a.com/organizations", "1234-5678")).to.eq("http://a.com/1234-5678/");
+        });
+    });
+
+    it("isCommonAuthority", () => {
+        expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/common/")).to.eq(true);
+        expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/common")).to.eq(true);
+        expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/organizations/")).to.eq(false);
+        expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/123456789/")).to.eq(false);
+    });
+
+    it("isOrganizationsAuthority", () => {
+        expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/organizations/")).to.eq(true);
+        expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/organizations")).to.eq(true);
+        expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/common/")).to.eq(false);
+        expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/123456789/")).to.eq(false);
     });
 
     it("test getHashFromUrl returns hash from url if hash is single character", () => {
@@ -98,16 +118,24 @@ describe("UrlUtils.ts class", () => {
     });
 
     describe("deserializeHash", () => {
-        it("properly decodes a twice encoded value", () => {
-            // This string is double encoded
-            // "%257C" = | encoded twice
-            const hash = "#state=eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%257Chello";
+        it("properly decodes an encoded value", () => {
+            // This string once encoded
+            const hash = "#state=eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%7Chello";
 
             const { state } = UrlUtils.deserializeHash(hash);
 
             const stateParts = state.split(Constants.resourceDelimiter);
             expect(stateParts[0]).to.equal("eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9");
             expect(stateParts[1]).to.equal("hello");
+        });
+
+        it("properly decodes a twice encoded value", () => {
+            // This string is twice encoded
+            const hash = "#state=eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%257Chello";
+
+            const { state } = UrlUtils.deserializeHash(hash);
+
+            expect(state).to.equal("eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%7Chello");
         });
     })
 

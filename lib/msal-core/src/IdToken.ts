@@ -58,6 +58,8 @@ export class IdToken {
 
                 if (this.claims.hasOwnProperty("preferred_username")) {
                     this.preferredName = this.claims["preferred_username"];
+                } else if (this.claims.hasOwnProperty("upn")) {
+                    this.preferredName = this.claims["upn"];
                 }
 
                 if (this.claims.hasOwnProperty("name")) {

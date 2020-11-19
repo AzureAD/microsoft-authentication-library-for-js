@@ -2,16 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { AuthError, StringUtils } from "@azure/msal-common";
 
 /**
  * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
  */
 export const BrowserAuthErrorMessage = {
-    noWindowObjectError: {
-        code: "no_window_object",
-        desc: "No window object detected."
-    },
     pkceNotGenerated: {
         code: "pkce_not_created",
         desc: "The PKCE code challenge and verifier could not be generated."
@@ -48,9 +45,13 @@ export const BrowserAuthErrorMessage = {
         code: "user_cancelled",
         desc: "User cancelled the flow."
     },
-    monitorWindowTimeoutError: {
+    monitorPopupTimeoutError: {
         code: "monitor_window_timeout",
         desc: "Token acquisition in popup failed due to timeout."
+    },
+    monitorIframeTimeoutError: {
+        code: "monitor_window_timeout",
+        desc: "Token acquisition in iframe failed due to timeout."
     },
     redirectInIframeError: {
         code: "redirect_in_iframe",
@@ -66,7 +67,7 @@ export const BrowserAuthErrorMessage = {
     },
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
-        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a login_hint, sid or account object."
+        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
     },
     silentPromptValueError: {
         code: "silent_prompt_value_error",
@@ -76,6 +77,14 @@ export const BrowserAuthErrorMessage = {
         code: "token_request_cache_error",
         desc: "The token request could not be fetched from the cache correctly."
     },
+    invalidCacheType: {
+        code: "invalid_cache_type",
+        desc: "Invalid cache type"
+    },
+    notInBrowserEnvironment: {
+        code: "non_browser_environment",
+        desc: "Login and token requests are not supported in non-browser environments."
+    }
 };
 
 /**
@@ -88,13 +97,6 @@ export class BrowserAuthError extends AuthError {
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
         this.name = "BrowserAuthError";
-    }
-
-    /**
-     * Creates error thrown when no window object can be found.
-     */
-    static createNoWindowObjectError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.noWindowObjectError.code, BrowserAuthErrorMessage.noWindowObjectError.desc);
     }
 
     /**
@@ -173,13 +175,19 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when monitorWindowFromHash times out for a given popup.
-     * @param urlNavigate 
+     * Creates an error thrown when monitorPopupFromHash times out for a given popup.
      */
-    static createMonitorWindowTimeoutError(urlNavigate: string): BrowserAuthError {
-        const errorMessage = `URL navigated to is ${urlNavigate}, ${BrowserAuthErrorMessage.monitorWindowTimeoutError.desc}`;
-        return new BrowserAuthError(BrowserAuthErrorMessage.monitorWindowTimeoutError.code,
-            errorMessage);
+    static createMonitorPopupTimeoutError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.monitorPopupTimeoutError.code,
+            BrowserAuthErrorMessage.monitorPopupTimeoutError.desc);
+    }
+
+    /**
+     * Creates an error thrown when monitorIframeFromHash times out for a given iframe.
+     */
+    static createMonitorIframeTimeoutError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.monitorIframeTimeoutError.code,
+            BrowserAuthErrorMessage.monitorIframeTimeoutError.desc);
     }
 
     /**
@@ -227,5 +235,19 @@ export class BrowserAuthError extends AuthError {
     static createTokenRequestCacheError(errDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.tokenRequestCacheError.code,
             `${BrowserAuthErrorMessage.tokenRequestCacheError.desc} Error Detail: ${errDetail}`);
+    }
+
+    /**
+     * Creates an error thrown if cache type is invalid.
+     */
+    static createInvalidCacheTypeError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.invalidCacheType.code, `${BrowserAuthErrorMessage.invalidCacheType.desc}`);
+    }
+
+    /**
+     * Create an error thrown when login and token requests are made from a non-browser environment
+     */
+    static createNonBrowserEnvironmentError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.notInBrowserEnvironment.code, BrowserAuthErrorMessage.notInBrowserEnvironment.desc);
     }
 }

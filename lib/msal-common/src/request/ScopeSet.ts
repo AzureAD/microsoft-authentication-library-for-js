@@ -6,24 +6,27 @@
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { Constants } from "../utils/Constants";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
- * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings to ensure uniqueness of strings.
+ * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings in intersection and union functions
+ * to ensure uniqueness of strings.
  */
-export class ScopeSet {;
+export class ScopeSet {
     // Scopes as a Set of strings
     private scopes: Set<string>;
 
     constructor(inputScopes: Array<string>) {
         // Filter empty string and null/undefined array items
-        const scopeArr = inputScopes ? StringUtils.trimAndConvertArrayEntriesToLowerCase([...inputScopes]) : [];
+        const scopeArr = inputScopes ? StringUtils.trimArrayEntries([...inputScopes]) : [];
         const filteredInput = scopeArr ? StringUtils.removeEmptyStringsFromArray(scopeArr) : [];
 
         // Validate and filter scopes (validate function throws if validation fails)
         this.validateInputScopes(filteredInput);
 
-        this.scopes = new Set<string>(filteredInput);
+        this.scopes = new Set<string>(); // Iterator in constructor not supported by IE11
+        filteredInput.forEach(scope => this.scopes.add(scope));
     }
 
     /**
@@ -31,7 +34,7 @@ export class ScopeSet {;
      * @param inputScopeString
      * @param appClientId
      * @param scopesRequired
-    */
+     */
     static fromString(inputScopeString: string): ScopeSet {
         inputScopeString = inputScopeString || "";
         const inputScopes: Array<string> = inputScopeString.split(" ");
@@ -42,7 +45,7 @@ export class ScopeSet {;
      * Used to validate the scopes input parameter requested  by the developer.
      * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
-    */
+     */
     private validateInputScopes(inputScopes: Array<string>): void {
         // Check if scopes are required but not given or is an empty array
         if (!inputScopes || inputScopes.length < 1) {
@@ -55,7 +58,10 @@ export class ScopeSet {;
      * @param scope
      */
     containsScope(scope: string): boolean {
-        return !StringUtils.isEmpty(scope) ? this.scopes.has(scope) : false;
+        const lowerCaseScopes = this.printScopesLowerCase().split(" ");
+        const lowerCaseScopesSet = new ScopeSet(lowerCaseScopes);
+        // compare lowercase scopes
+        return !StringUtils.isEmpty(scope) ? lowerCaseScopesSet.scopes.has(scope.toLowerCase()) : false;
     }
 
     /**
@@ -63,7 +69,7 @@ export class ScopeSet {;
      * @param scopeSet
      */
     containsScopeSet(scopeSet: ScopeSet): boolean {
-        if (!scopeSet) {
+        if (!scopeSet || scopeSet.scopes.size <= 0) {
             return false;
         }
 
@@ -71,14 +77,31 @@ export class ScopeSet {;
     }
 
     /**
+     * Check if set of scopes contains only the defaults
+     */
+    containsOnlyDefaultScopes(): boolean {
+        let defaultScopeCount = 0;
+        if (this.containsScope(Constants.OPENID_SCOPE)) {
+            defaultScopeCount += 1;
+        }
+        if (this.containsScope(Constants.PROFILE_SCOPE)) {
+            defaultScopeCount += 1;
+        }
+        if (this.containsScope(Constants.OFFLINE_ACCESS_SCOPE)) {
+            defaultScopeCount += 1;
+        }
+
+        return this.scopes.size === defaultScopeCount;
+    }
+
+    /**
      * Appends single scope if passed
      * @param newScope
      */
     appendScope(newScope: string): void {
-        if (StringUtils.isEmpty(newScope)) {
-            throw ClientAuthError.createAppendEmptyScopeToSetError(newScope);
+        if (!StringUtils.isEmpty(newScope)) {
+            this.scopes.add(newScope.trim());
         }
-        this.scopes.add(newScope.trim().toLowerCase());
     }
 
     /**
@@ -87,7 +110,7 @@ export class ScopeSet {;
      */
     appendScopes(newScopes: Array<string>): void {
         try {
-            newScopes.forEach(newScope => this.scopes.add(newScope));
+            newScopes.forEach(newScope => this.appendScope(newScope));
         } catch (e) {
             throw ClientAuthError.createAppendScopeSetError(e);
         }
@@ -101,7 +124,17 @@ export class ScopeSet {;
         if (StringUtils.isEmpty(scope)) {
             throw ClientAuthError.createRemoveEmptyScopeFromSetError(scope);
         }
-        this.scopes.delete(scope.trim().toLowerCase());
+        this.scopes.delete(scope.trim());
+    }
+
+    /**
+     * Removes default scopes from set of scopes
+     * Primarily used to prevent cache misses if the default scopes are not returned from the server
+     */
+    removeDefaultScopes(): void {
+        this.scopes.delete(Constants.OFFLINE_ACCESS_SCOPE);
+        this.scopes.delete(Constants.OPENID_SCOPE);
+        this.scopes.delete(Constants.PROFILE_SCOPE);
     }
 
     /**
@@ -112,12 +145,15 @@ export class ScopeSet {;
         if (!otherScopes) {
             throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
         }
-        return new Set<string>([...otherScopes.asArray(), ...Array.from(this.scopes)]);
+        const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
+        otherScopes.scopes.forEach(scope => unionScopes.add(scope.toLowerCase()));
+        this.scopes.forEach(scope => unionScopes.add(scope.toLowerCase()));
+        return unionScopes;
     }
 
     /**
      * Check if scopes intersect between this set and another.
-     * @param otherScopes 
+     * @param otherScopes
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
         if (!otherScopes) {
@@ -126,7 +162,10 @@ export class ScopeSet {;
 
         const unionScopes = this.unionScopeSets(otherScopes);
 
-        // Do not allow offline_access to be the only intersecting scope
+        // Do not allow default scopes to be the only intersecting scopes
+        if (!otherScopes.containsOnlyDefaultScopes()) {
+            otherScopes.removeDefaultScopes();
+        }
         const sizeOtherScopes = otherScopes.getScopeCount();
         const sizeThisScopes = this.getScopeCount();
         const sizeUnionScopes = unionScopes.size;
@@ -144,7 +183,9 @@ export class ScopeSet {;
      * Returns the scopes as an array of string values
      */
     asArray(): Array<string> {
-        return Array.from(this.scopes);
+        const array: Array<string> = [];
+        this.scopes.forEach(val => array.push(val));
+        return array;
     }
 
     /**
@@ -156,5 +197,12 @@ export class ScopeSet {;
             return scopeArr.join(" ");
         }
         return "";
+    }
+
+    /**
+     * Prints scopes into a space-delimited lower-case string (used for caching)
+     */
+    printScopesLowerCase(): string {
+        return this.printScopes().toLowerCase();
     }
 }

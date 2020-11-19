@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils } from "./../utils/StringUtils";
-import { ClientConfigurationError } from "./../error/ClientConfigurationError";
-import { PromptValue, CodeChallengeMethodValues} from "./../utils/Constants";
+import { StringUtils } from "../utils/StringUtils";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { PromptValue, CodeChallengeMethodValues} from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 
 /**
@@ -37,6 +37,14 @@ export class RequestValidator {
             ].indexOf(prompt) < 0
         ) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
+        }
+    }
+
+    static validateClaims(claims: string) : void {
+        try {
+            JSON.parse(claims);
+        } catch(e) {
+            throw ClientConfigurationError.createInvalidClaimsRequestError();
         }
     }
 
@@ -80,7 +88,6 @@ export class RequestValidator {
         // Remove any query parameters already included in SSO params
         queryParams.forEach((value, key) => {
             if (eQParams[key]) {
-                console.log("Removed param " + key + " from extraQueryParameters since it was already present in library query parameters.");
                 delete eQParams[key];
             }
         });

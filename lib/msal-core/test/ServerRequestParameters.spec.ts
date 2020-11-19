@@ -4,6 +4,7 @@ import { Authority, ClientConfigurationError, Account } from "../src";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 import { UrlUtils } from "../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "./TestConstants";
+import { Constants } from "../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 import { AuthenticationParameters } from "../src/AuthenticationParameters";
 import { RequestUtils } from "../src/utils/RequestUtils";
@@ -33,7 +34,7 @@ describe("ServerRequestParameters.ts Class", function () {
             expect(scopes.length).to.be.eql(1);
         });
 
-        it("Scopes are set to client id if null or empty scopes object passed", function () {
+        it("Scopes are set to OIDC scopes if null or empty scopes object passed", function () {
             const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
             sinon.stub(authority, "AuthorizationEndpoint").value(TEST_URIS.TEST_AUTH_ENDPT);
             const req = new ServerRequestParameters(
@@ -45,8 +46,8 @@ describe("ServerRequestParameters.ts Class", function () {
                 TEST_CONFIG.STATE,
                 TEST_CONFIG.CorrelationId
             );
-            expect(req.scopes).to.be.eql([TEST_CONFIG.MSAL_CLIENT_ID]);
-            expect(req.scopes.length).to.be.eql(1);
+            expect(req.scopes).to.be.eql(Constants.oidcScopes);
+            expect(req.scopes.length).to.be.eql(2);
         });
 
     });
@@ -156,10 +157,10 @@ describe("ServerRequestParameters.ts Class", function () {
 
     describe("populateQueryParams", () => {
         const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
-        const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
+        const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_CONFIG.validAuthority);
 
         it("populates parameters", () => {
-            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
 
             serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), {
                 scopes: [ "user.read" ],
@@ -173,7 +174,7 @@ describe("ServerRequestParameters.ts Class", function () {
         });
 
         it("populates parameters (null request)", () => {
-            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
 
             serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), null);
 

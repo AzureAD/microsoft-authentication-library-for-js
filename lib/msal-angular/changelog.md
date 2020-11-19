@@ -1,4 +1,24 @@
-# Changelog
+# Change Log - @azure/msal-angular
+
+This log was last generated on Wed, 11 Nov 2020 23:33:20 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+## 1.1.2
+
+Wed, 11 Nov 2020 23:33:20 GMT
+
+### Patches
+
+- Pass generic to ModuleWithProviders for MsalModule v1, set supported Angular versions to 6-9 (#2577) (janutter@microsoft.com)
+
+## 1.1.0
+
+Tue, 25 Aug 2020 00:40:45 GMT
+
+### Minor changes
+
+- Update protectedResources with wildcard, remove unprotectedResources from msal-angular (#2029) (joarroyo@microsoft.com)
 
 ## 1.0.0
 
@@ -107,4 +127,3 @@ Initial upgrade to use `msal@1.2.0`.
 
 ## 0.1.0
 Preview Release
-

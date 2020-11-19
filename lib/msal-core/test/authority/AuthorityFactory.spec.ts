@@ -5,11 +5,10 @@ import { TEST_CONFIG, OPENID_CONFIGURATION, TENANT_DISCOVERY_RESPONSE } from "..
 import sinon from "sinon";
 import { Authority } from "../../src/authority/Authority";
 
-
 describe("AuthorityFactory.ts Class", function () {
     afterEach(function() {
         sinon.restore();
-    })
+    });
 
     describe("CreateInstance", () => {
         it("tests if empty authority url returns null", function () {
@@ -39,8 +38,8 @@ describe("AuthorityFactory.ts Class", function () {
 
     describe("saveMetadataFromConfig", () => {
         it("does nothing if json is falsey", () => {
-            AuthorityFactory.saveMetadataFromConfig(TEST_CONFIG.validAuthority, "");
-            expect(AuthorityFactory.getMetadata(TEST_CONFIG.validAuthority)).to.be.undefined;
+            AuthorityFactory.saveMetadataFromConfig("testJsonFalsey.com", "");
+            expect(AuthorityFactory.getMetadata("testJsonFalsey.com")).to.be.undefined;
         });
 
         it("throws if invalid json is provided", done => {

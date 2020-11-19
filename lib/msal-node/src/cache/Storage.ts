@@ -2,213 +2,337 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import {
-    CredentialType,
-    CacheSchemaType,
     AccountEntity,
+    IdTokenEntity,
     AccessTokenEntity,
     RefreshTokenEntity,
-    IdTokenEntity,
     AppMetadataEntity,
+    ServerTelemetryEntity,
+    ThrottlingEntity,
     CacheManager,
-    CredentialEntity
-} from '@azure/msal-common';
-import { CacheOptions } from '../config/Configuration';
+    Logger,
+    ValidCacheType
+} from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
-import { InMemoryCache, JsonCache } from "./serializer/SerializerTypes";
+import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerTypes";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
 export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;
-    private inMemoryCache: InMemoryCache;
+    private logger: Logger;
+    private cache: CacheKVStore = {};
+    private changeEmitters: Array<Function> = [];
 
-    constructor(cacheConfig: CacheOptions) {
+    constructor(logger: Logger) {
         super();
-        this.cacheConfig = cacheConfig;
-        if (this.cacheConfig.cacheLocation! === 'fileCache')
-            this.inMemoryCache = this.cacheConfig.cacheInMemory!;
+        this.logger = logger;
+    }
+
+    registerChangeEmitter(func: () => void): void {
+        this.changeEmitters.push(func);
+    }
+
+    emitChange(): void {
+        this.changeEmitters.forEach(func => func.call(null));
+    }
+
+    /**
+     * Converts cacheKVStore to InMemoryCache
+     * @param cache
+     */
+    cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache {
+
+        const inMemoryCache: InMemoryCache = {
+            accounts: {},
+            idTokens: {},
+            accessTokens: {},
+            refreshTokens: {},
+            appMetadata: {},
+        };
+
+        for (const key in cache) {
+            if (cache[key as string] instanceof AccountEntity) {
+                inMemoryCache.accounts[key] = cache[key] as AccountEntity;
+            } else if (cache[key] instanceof IdTokenEntity) {
+                inMemoryCache.idTokens[key] = cache[key] as IdTokenEntity;
+            } else if (cache[key] instanceof AccessTokenEntity) {
+                inMemoryCache.accessTokens[key] = cache[key] as AccessTokenEntity;
+            } else if (cache[key] instanceof RefreshTokenEntity) {
+                inMemoryCache.refreshTokens[key] = cache[key] as RefreshTokenEntity;
+            } else if (cache[key] instanceof AppMetadataEntity) {
+                inMemoryCache.appMetadata[key] = cache[key] as AppMetadataEntity;
+            } else {
+                continue;
+            }
+        }
+
+        return inMemoryCache;
+    }
+
+    /**
+     * converts inMemoryCache to CacheKVStore
+     * @param inMemoryCache
+     */
+    inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore {
+        // convert in memory cache to a flat Key-Value map
+        let cache = this.getCache();
+
+        cache = {
+            ...inMemoryCache.accounts,
+            ...inMemoryCache.idTokens,
+            ...inMemoryCache.accessTokens,
+            ...inMemoryCache.refreshTokens,
+            ...inMemoryCache.appMetadata
+        };
+        return cache;
     }
 
     /**
      * gets the current in memory cache for the client
      */
-    getCache(): object {
-        return this.inMemoryCache;
+    getInMemoryCache(): InMemoryCache {
+        this.logger.verbose("Getting in-memory cache");
+
+        // convert the cache key value store to inMemoryCache
+        const inMemoryCache = this.cacheToInMemoryCache(this.getCache());
+        return inMemoryCache;
     }
 
     /**
      * sets the current in memory cache for the client
      * @param inMemoryCache
      */
-    setCache(inMemoryCache: InMemoryCache) {
-        this.inMemoryCache = inMemoryCache;
+    setInMemoryCache(inMemoryCache: InMemoryCache): void{
+        this.logger.verbose("Setting in-memory cache");
+
+        // convert and append the inMemoryCache to cacheKVStore
+        const cache = this.inMemoryCacheToCache(inMemoryCache);
+        this.setCache(cache);
+
+        this.emitChange();
     }
 
     /**
-     * Set Item in memory
-     * @param key
-     * @param value
-     * @param type
-     * @param inMemory
+     * get the current cache key-value store
      */
-    setItem(
-        key: string,
-        value: string | object,
-        type?: string
-    ): void {
-        // read inMemoryCache
-        const cache = this.getCache() as InMemoryCache;
+    getCache(): CacheKVStore {
+        this.logger.verbose("Getting cache key-value store");
+        return this.cache;
+    }
 
-        // save the cacheItem
-        switch (type) {
-            case CacheSchemaType.ACCOUNT: {
-                cache.accounts[key] = value as AccountEntity;
-                break;
-            }
-            case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CredentialEntity.getCredentialType(key);
-                switch (credentialType) {
-                    case CredentialType.ID_TOKEN: {
-                        cache.idTokens[key] = value as IdTokenEntity;
-                        break;
-                    }
-                    case CredentialType.ACCESS_TOKEN: {
-                        cache.accessTokens[key] = value as AccessTokenEntity;
-                        break;
-                    }
-                    case CredentialType.REFRESH_TOKEN: {
-                        cache.refreshTokens[key] = value as RefreshTokenEntity;
-                        break;
-                    }
-                }
-                break;
-            }
-            case CacheSchemaType.APP_META_DATA: {
-                cache.appMetadata[key] = value as AppMetadataEntity;
-                break;
-            }
-            default: {
-                console.log('Invalid Cache Type');
-                return;
-            }
-        }
+    /**
+     * sets the current cache (key value store)
+     * @param cacheMap
+     */
+    setCache(cache: CacheKVStore): void {
+        this.logger.verbose("Setting cache key value store");
+        this.cache = cache;
 
-        // update inMemoryCache
-        this.setCache(cache);
+        // mark change in cache
+        this.emitChange();
     }
 
     /**
      * Gets cache item with given key.
-     * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
-     * @param type
-     * @param inMemory
      */
-    getItem(key: string, type?: string): string | object {
-        // read inMemoryCache
-        const cache = this.getCache() as InMemoryCache;
+    getItem(key: string): ValidCacheType {
+        this.logger.verbosePii(`Item key: ${key}`);
 
-        // save the cacheItem
-        switch (type!) {
-            case CacheSchemaType.ACCOUNT: {
-                return (cache.accounts[key] as AccountEntity) || null;
-            }
-            case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CredentialEntity.getCredentialType(key);
-                let credential = null;
-                switch (credentialType) {
-                    case CredentialType.ID_TOKEN: {
-                        credential = (cache.idTokens[key] as IdTokenEntity) || null;
-                        break;
-                    }
-                    case CredentialType.ACCESS_TOKEN: {
-                        credential = (cache.accessTokens[key] as AccessTokenEntity) || null;
-                        break;
-                    }
-                    case CredentialType.REFRESH_TOKEN: {
-                        credential = (cache.refreshTokens[key] as RefreshTokenEntity) || null;
-                        break;
-                    }
-                }
-                return credential!;
-            }
-            case CacheSchemaType.APP_META_DATA: {
-                return (cache.appMetadata[key] as AppMetadataEntity) || null;
-            }
-            default: {
-                console.log('Invalid Cache Type');
-                return {};
-            }
+        // read cache
+        const cache = this.getCache();
+        return cache[key];
+    }
+
+    /**
+     * Gets cache item with given <key, value>
+     * @param key
+     * @param value
+     */
+    setItem(key: string, value: ValidCacheType): void {
+        this.logger.verbosePii(`Item key: ${key}`);
+
+        // read cache
+        const cache = this.getCache();
+        cache[key] = value;
+
+        // write to cache
+        this.setCache(cache);
+    }
+
+    /**
+     * fetch the account entity
+     * @param accountKey
+     */
+    getAccount(accountKey: string): AccountEntity | null {
+        const account = this.getItem(accountKey) as AccountEntity;
+        if (AccountEntity.isAccountEntity(account)) {
+            return account;
         }
+        return null;
+    }
+
+    /**
+     * set account entity
+     * @param account
+     */
+    setAccount(account: AccountEntity): void {
+        const accountKey = account.generateAccountKey();
+        this.setItem(accountKey, account);
+    }
+
+    /**
+     * fetch the idToken credential
+     * @param idTokenKey
+     */
+    getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
+        const idToken = this.getItem(idTokenKey) as IdTokenEntity;
+        if (IdTokenEntity.isIdTokenEntity(idToken)) {
+            return idToken;
+        }
+        return null;
+    }
+
+    /**
+     * set idToken credential
+     * @param idToken
+     */
+    setIdTokenCredential(idToken: IdTokenEntity): void {
+        const idTokenKey = idToken.generateCredentialKey();
+        this.setItem(idTokenKey, idToken);
+    }
+
+    /**
+     * fetch the accessToken credential
+     * @param accessTokenKey
+     */
+    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
+        const accessToken = this.getItem(accessTokenKey) as AccessTokenEntity;
+        if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
+            return accessToken;
+        }
+        return null;
+    }
+
+    /**
+     * set accessToken credential
+     * @param accessToken
+     */
+    setAccessTokenCredential(accessToken: AccessTokenEntity): void {
+        const accessTokenKey = accessToken.generateCredentialKey();
+        this.setItem(accessTokenKey, accessToken);
+    }
+
+    /**
+     * fetch the refreshToken credential
+     * @param refreshTokenKey
+     */
+    getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
+        const refreshToken = this.getItem(refreshTokenKey) as RefreshTokenEntity;
+        if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
+            return refreshToken as RefreshTokenEntity;
+        }
+        return null;
+    }
+
+    /**
+     * set refreshToken credential
+     * @param refreshToken
+     */
+    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
+        const refreshTokenKey = refreshToken.generateCredentialKey();
+        this.setItem(refreshTokenKey, refreshToken);
+    }
+
+    /**
+     * fetch appMetadata entity from the platform cache
+     * @param appMetadataKey
+     */
+    getAppMetadata(appMetadataKey: string): AppMetadataEntity | null {
+        const appMetadata: AppMetadataEntity = this.getItem(appMetadataKey) as AppMetadataEntity;
+        if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
+            return appMetadata;
+        }
+        return null;
+    }
+
+    /**
+     * set appMetadata entity to the platform cache
+     * @param appMetadata
+     */
+    setAppMetadata(appMetadata: AppMetadataEntity): void {
+        const appMetadataKey = appMetadata.generateAppMetadataKey();
+        this.setItem(appMetadataKey, appMetadata);
+    }
+
+    /**
+     * fetch server telemetry entity from the platform cache
+     * @param serverTelemetrykey
+     */
+    getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null {
+        const serverTelemetryEntity: ServerTelemetryEntity = this.getItem(serverTelemetrykey) as ServerTelemetryEntity;
+        if (serverTelemetryEntity && ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetrykey, serverTelemetryEntity)) {
+            return serverTelemetryEntity;
+        }
+        return null;
+    }
+
+    /**
+     * set server telemetry entity to the platform cache
+     * @param serverTelemetryKey
+     * @param serverTelemetry
+     */
+    setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void {
+        this.setItem(serverTelemetryKey, serverTelemetry);
+    }
+
+    /**
+     * fetch throttling entity from the platform cache
+     * @param throttlingCacheKey
+     */
+    getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
+        const throttlingCache: ThrottlingEntity = this.getItem(throttlingCacheKey) as ThrottlingEntity;
+        if (throttlingCache && ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
+            return throttlingCache;
+        }
+        return null;
+    }
+
+    /**
+     * set throttling entity to the platform cache
+     * @param throttlingCacheKey
+     * @param throttlingCache
+     */
+    setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void {
+        this.setItem(throttlingCacheKey, throttlingCache);
     }
 
     /**
      * Removes the cache item from memory with the given key.
      * @param key
-     * @param type
      * @param inMemory
      */
-    removeItem(key: string, type?: string): boolean {
-        // read inMemoryCache
-        const cache = this.getCache() as InMemoryCache;
-        let result: boolean = false;
+    removeItem(key: string): boolean {
+        this.logger.verbosePii(`Item key: ${key}`);
 
-        // save the cacheItem
-        switch (type) {
-            case CacheSchemaType.ACCOUNT: {
-                if (!!cache.accounts[key]) {
-                    delete cache.accounts[key];
-                    result = true;
-                }
-                break;
-            }
-            case CacheSchemaType.CREDENTIAL: {
-                const credentialType = CredentialEntity.getCredentialType(key);
-                switch (credentialType) {
-                    case CredentialType.ID_TOKEN: {
-                        if (!!cache.idTokens[key]) {
-                            delete cache.idTokens[key];
-                            result = true;
-                        }
-                        break;
-                    }
-                    case CredentialType.ACCESS_TOKEN: {
-                        if (!!cache.accessTokens[key]) {
-                            delete cache.accessTokens[key];
-                            result = true;
-                        }
-                        break;
-                    }
-                    case CredentialType.REFRESH_TOKEN: {
-                        if (!!cache.refreshTokens[key]) {
-                            delete cache.refreshTokens[key];
-                            result = true;
-                        }
-                        break;
-                    }
-                }
-                break;
-            }
-            case CacheSchemaType.APP_META_DATA: {
-                if (!!cache.appMetadata[key]) {
-                    delete cache.appMetadata[key];
-                    result = true;
-                }
-                break;
-            }
-            default: {
-                console.log('Invalid Cache Type');
-                break;
-            }
+        // read inMemoryCache
+        let result: boolean = false;
+        const cache = this.getCache();
+
+        if (!!cache[key]) {
+            delete cache[key];
+            result = true;
         }
 
         // write to the cache after removal
         if (result) {
             this.setCache(cache);
+            this.emitChange();
         }
         return result;
     }
@@ -216,43 +340,36 @@ export class Storage extends CacheManager {
     /**
      * Checks whether key is in cache.
      * @param key
-     * TODO: implement after the lookup implementation
      */
     containsKey(key: string): boolean {
-        return key ? true : false;
+        return this.getKeys().includes(key);
     }
 
     /**
      * Gets all keys in window.
      */
     getKeys(): string[] {
-        // read inMemoryCache
+        this.logger.verbose("Retrieving all cache keys");
+
+        // read cache
         const cache = this.getCache();
-        let cacheKeys: string[] = [];
-
-        // read all keys
-        Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
-                cacheKeys.push(internalKey);
-            });
-        });
-
-        return cacheKeys;
+        return [ ...Object.keys(cache)];
     }
 
     /**
      * Clears all cache entries created by MSAL (except tokens).
      */
     clear(): void {
-        // read inMemoryCache
-        const cache = this.getCache();
+        this.logger.verbose("Clearing cache entries created by MSAL");
 
-        // read all keys
-        Object.keys(cache).forEach(key => {
-            Object.keys(key).forEach(internalKey => {
-                this.removeItem(internalKey);
-            });
+        // read inMemoryCache
+        const cacheKeys = this.getKeys();
+
+        // delete each element
+        cacheKeys.forEach(key => {
+            this.removeItem(key);
         });
+        this.emitChange();
     }
 
     /**

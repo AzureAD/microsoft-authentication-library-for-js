@@ -1,0 +1,14 @@
+{
+    "name": "samples",
+    "version": "0.0.1",
+    "license": "MIT",
+    "private": true,
+    "dependencies": {
+        "@azure/identity": "^1.0.2",
+        "axios": "^0.19.2",
+        "puppeteer": "^5.2.1"
+    },
+    "devDependencies": {
+        "@types/puppeteer": "^2.0.1"
+    }
+}

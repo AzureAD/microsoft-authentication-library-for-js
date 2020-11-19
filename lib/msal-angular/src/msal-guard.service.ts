@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Inject, Injectable } from "@angular/core";
 import {
     ActivatedRoute,
@@ -43,8 +48,10 @@ export class MsalGuard implements CanActivate {
             return `${baseUrl}/${pathUrl}`;
         }
 
-        // If using path location strategy, pathUrl will include the relative portion of the base path (e.g. /base/page).
-        // Since baseUrl also includes /base, can just concatentate baseUrl + path
+        /*
+         * If using path location strategy, pathUrl will include the relative portion of the base path (e.g. /base/page).
+         * Since baseUrl also includes /base, can just concatentate baseUrl + path
+         */
         return `${baseUrl}${path}`;
     }
 
@@ -74,8 +81,10 @@ export class MsalGuard implements CanActivate {
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | Promise<boolean> {
         this.authService.getLogger().verbose("location change event from old url to new url");
 
-        // If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
-        // short-circuit to prevent redirecting or popups.
+        /*
+         * If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
+         * short-circuit to prevent redirecting or popups.
+         */
         if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
             this.authService.getLogger().warning("redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication.");
             return false;
@@ -91,7 +100,7 @@ export class MsalGuard implements CanActivate {
             .then(() => true)
             .catch((error: AuthError) => {
                 if (InteractionRequiredAuthError.isInteractionRequiredError(error.errorCode)) {
-                    this.authService.getLogger().info(`Interaction required error in MSAL Guard, prompting for interaction.`);
+                    this.authService.getLogger().info("Interaction required error in MSAL Guard, prompting for interaction.");
                     return this.loginInteractively(state.url);
                 }
 

@@ -126,27 +126,7 @@ describe("ClientConfigurationError.ts Class", () => {
     expect(err.name).to.equal("ClientConfigurationError");
     expect(err.stack).to.include("ClientConfigurationError.spec.ts");
   });
-
-  it("createClientIdSingleScopeError creates a ClientConfigurationError object", () => {
-
-    const scopesValue = "user.read";
-    const singleScopeError = ClientConfigurationError.createClientIdSingleScopeError(scopesValue);
-    let err: ClientConfigurationError;
-
-    try {
-      throw singleScopeError;
-    } catch (error) {
-      err = error;
-    }
-
-    expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.clientScope.code);
-    expect(err.errorMessage).to.include(ClientConfigurationErrorMessage.clientScope.desc);
-    expect(err.errorMessage).to.include(`Given value: ${scopesValue}`);
-    expect(err.message).to.include(ClientConfigurationErrorMessage.clientScope.desc);
-    expect(err.name).to.equal("ClientConfigurationError");
-    expect(err.stack).to.include("ClientConfigurationError.spec.ts");
-  });
-
+  
   it("createScopesRequiredError creates a ClientConfigurationError object", () => {
 
     const scopesValue = "random";

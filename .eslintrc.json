@@ -1,0 +1,76 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "modules": true
+        }
+    },
+    "plugins": [
+        "@typescript-eslint/eslint-plugin-tslint",
+        "security",
+        "import",
+        "header",
+        "react"
+    ],
+    "extends": [
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:security/recommended",
+        "plugin:import/typescript"
+    ],
+    "rules": {
+        "@typescript-eslint/array-type": 0,
+        "@typescript-eslint/ban-ts-comment": 1,
+        "@typescript-eslint/ban-types": 0,
+        "@typescript-eslint/camelcase": 0,
+        "@typescript-eslint/explicit-member-accessibility": 0,
+        "@typescript-eslint/indent": [2, 4, { "SwitchCase": 1 }],
+        "@typescript-eslint/interface-name-prefix": 0,
+        "@typescript-eslint/member-delimiter-style": 0,
+        "@typescript-eslint/no-angle-bracket-type-assertion": 0,
+        "@typescript-eslint/no-empty-function": 1,
+        "@typescript-eslint/no-inferrable-types": 0,
+        "@typescript-eslint/no-object-literal-type-assertion": 0,
+        "@typescript-eslint/no-unused-vars": 2,
+        "@typescript-eslint/prefer-interface": 0,
+        "@typescript-eslint/semi": 2,
+        "@typescript-eslint/type-annotation-spacing": 0,
+        "eol-last": 2,
+        "header/header": [2, "block", [ "", " * Copyright (c) Microsoft Corporation. All rights reserved.", " * Licensed under the MIT License.", " " ], 2],
+        "import/first": 2,
+        "import/no-unresolved": 2,
+        "import/no-useless-path-segments": 2,
+        "import/no-extraneous-dependencies": 2,
+        "import/no-unused-modules": 2,
+        "import/no-commonjs": 2,
+        "import/no-duplicates": 2,
+        "multiline-comment-style": [2, "starred-block" ],
+        "no-multiple-empty-lines": [2, { "max": 1 }],
+        "no-var": 2,
+        "no-console": 2,
+        "prefer-const": 2,
+        "quotes": [2, "double"],
+        "spaced-comment": 2,
+        "react/jsx-closing-bracket-location": 2,
+        "react/jsx-closing-tag-location": 2,
+        "react/jsx-curly-spacing": [2, {"when": "never", "attributes": {"allowMultiline": false }, "children": true}],
+        "react/jsx-filename-extension": [2, {"extensions": [".jsx", ".tsx"], "allow": "as-needed"}],
+        "react/jsx-pascal-case": 2,
+        "react/jsx-tag-spacing": 2,
+        "react/jsx-wrap-multilines": 2,
+        "react/no-multi-comp": 2,
+        "react/no-array-index-key": 2,
+        "react/no-string-refs": 2,
+        "react/prefer-stateless-function": 2,
+        "react/self-closing-comp": 2,
+        "react/sort-comp": 2
+    },
+    "settings": {
+        "react": {
+            "version": "17.0.0"
+        }
+    }
+}

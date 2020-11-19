@@ -8,17 +8,22 @@ import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
+import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
+import { ThrottlingEntity } from "../entities/ThrottlingEntity";
 
-export type AccountCache = { [key: string]: AccountEntity };
-export type IdTokenCache = { [key: string]: IdTokenEntity };
-export type AccessTokenCache = { [key: string]: AccessTokenEntity };
-export type RefreshTokenCache = { [key: string]: RefreshTokenEntity };
-export type AppMetadataCache = { [key: string]: AppMetadataEntity };
+export type AccountCache = Record<string, AccountEntity>;
+export type IdTokenCache = Record<string, IdTokenEntity>;
+export type AccessTokenCache = Record<string, AccessTokenEntity>;
+export type RefreshTokenCache = Record<string, RefreshTokenEntity>;
+export type AppMetadataCache = Record<string, AppMetadataEntity>;
 export type CredentialCache = {
     idTokens: IdTokenCache;
     accessTokens: AccessTokenCache;
     refreshTokens: RefreshTokenCache;
 };
+
+export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | ServerTelemetryEntity | ThrottlingEntity | string;
+export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 /**
  * Account:	<home_account_id>-<environment>-<realm*>
@@ -30,13 +35,23 @@ export type AccountFilter = {
 };
 
 /**
- * Credential:	<home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
+ * Credential: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
  */
 export type CredentialFilter = {
     homeAccountId?: string;
     environment?: string;
     credentialType?: string;
     clientId?: string;
+    familyId?: string;
     realm?: string;
     target?: string;
+    oboAssertion?: string;
+};
+
+/**
+ * AppMetadata: appmetadata-<environment>-<client_id>
+ */
+export type AppMetadataFilter = {
+    environment?: string;
+    clientId?: string;
 };

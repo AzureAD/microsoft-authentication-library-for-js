@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { PkceCodes } from '@azure/msal-common';
-import { CharSet, Hash, RANDOM_OCTET_SIZE } from '../utils/Constants';
-import { EncodingUtils } from './../utils/EncodingUtils';
-import crypto from 'crypto';
+import { PkceCodes } from "@azure/msal-common";
+import { CharSet, Hash, RANDOM_OCTET_SIZE } from "../utils/Constants";
+import { EncodingUtils } from "../utils/EncodingUtils";
+import crypto from "crypto";
 
 /**
  * https://tools.ietf.org/html/rfc7636#page-8
@@ -37,7 +37,7 @@ export class PkceGenerator {
      */
     private generateCodeChallengeFromVerifier(codeVerifier: string): string {
         return EncodingUtils.base64EncodeUrl(
-            this.sha256(codeVerifier).toString('ascii')
+            this.sha256(codeVerifier).toString("ascii")
         );
     }
 
@@ -62,6 +62,6 @@ export class PkceGenerator {
             const index = buffer[i] % CharSet.CV_CHARSET.length;
             charArr.push(CharSet.CV_CHARSET[index]);
         }
-        return charArr.join('');
+        return charArr.join("");
     }
 }

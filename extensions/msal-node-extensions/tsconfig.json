@@ -1,0 +1,18 @@
+{
+  "include": ["src", "types"],
+  "compilerOptions": {
+    "module": "esnext",
+    "lib": ["dom", "esnext"],
+    "importHelpers": true,
+    "declaration": true,
+    "sourceMap": true,
+    "rootDir": "./src",
+    "noUnusedLocals": true,
+    "baseUrl": "./",
+    "paths": {
+      "*": ["src/*", "node_modules/*", "build/"]
+    },
+    "jsx": "react",
+    "esModuleInterop": true
+  }
+}

@@ -5,7 +5,8 @@
         "declaration": true,
         "experimentalDecorators": true,
         "importHelpers": true,
-        "noImplicitAny": true
+        "noImplicitAny": true,
+        "downlevelIteration": true
     },
     "compileOnSave": false,
     "buildOnSave": false

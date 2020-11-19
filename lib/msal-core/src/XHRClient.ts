@@ -24,7 +24,7 @@ export class XhrClient {
                  */
             }
 
-            xhr.onload = (ev) => {
+            xhr.onload = () => {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     reject(this.handleError(xhr.responseText));
                 }
@@ -41,7 +41,7 @@ export class XhrClient {
                 resolve(response);
             };
 
-            xhr.onerror = (ev) => {
+            xhr.onerror = () => {
                 reject(xhr.status);
             };
 

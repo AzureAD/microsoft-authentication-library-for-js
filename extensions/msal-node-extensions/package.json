@@ -1,0 +1,52 @@
+{
+  "name": "@azure/msal-node-extensions",
+  "version": "1.0.0-alpha.4",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "keywords": [
+    "js",
+    "ts",
+    "node",
+    "AAD",
+    "msal",
+    "extensions"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "binding.gyp"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "build:common": "cd ../../lib/msal-common && npm i && npm run build && npm link",
+    "link:common": "npm link @azure/msal-common",
+    "test": "tsdx test",
+    "lint": "cd ../../ && npm run lint:node:extensions",
+    "lint:fix": "npm run lint -- -- --fix",
+    "prepack": "npm run build"
+  },
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "module": "dist/test.esm.js",
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "@azure/msal-common": "^1.7.2",
+    "keytar": "6.0.1",
+    "nan": "^2.13.2"
+  },
+  "devDependencies": {
+    "husky": "^4.2.5",
+    "node-gyp": "^7.0.0",
+    "tsdx": "^0.13.3",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.3"
+  }
+}

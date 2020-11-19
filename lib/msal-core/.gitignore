@@ -264,3 +264,4 @@ lib-commonjs/
 lib-es6/
 dist/
 ref/
+.env

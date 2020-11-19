@@ -1,3 +1,72 @@
+# Change Log - msal
+
+This log was last generated on Wed, 11 Nov 2020 23:33:20 GMT and should not be manually modified.
+
+<!-- Start content -->
+
+## 1.4.4
+
+Wed, 11 Nov 2020 23:33:20 GMT
+
+### Patches
+
+- Fix multiple matching tokens error (#2582) (thomas.norling@microsoft.com)
+
+## 1.4.3
+
+Thu, 29 Oct 2020 20:36:48 GMT
+
+### Patches
+
+- Fix ID token matching logic to ignore non-JSON cache keys (#2510) (hemoral@microsoft.com)
+- Ensure history.replaceState is a function (janutter@microsoft.com)
+
+## 1.4.2
+
+Tue, 20 Oct 2020 23:47:28 GMT
+
+### Patches
+
+- Fix issue where concurrent acquireTokenSilent call closed window used by acquireTokenPopup (#2355) (hemoral@microsoft.com)
+- Use history API to clear hash to remove # sign (janutter@microsoft.com)
+- Fix issues with ID token caching and cache lookup (#2376) (hemoral@microsoft.com)
+
+## 1.4.1
+
+Wed, 30 Sep 2020 17:58:33 GMT
+
+### Patches
+
+- Fix ID Token cache lookup. PR #2206 (hemoral@microsoft.com)
+
+## 1.4.0
+
+Tue, 25 Aug 2020 00:40:45 GMT
+
+### Minor changes
+
+- B2C Multiple Policy Support (#1757) (thomas.norling@microsoft.com)
+- ADFS 2019 Support (#1668) (thomas.l.norling@gmail.com)
+- Enables idToken acquisition in acquireToken API calls through the use of OIDC scopes by redefining the way response_type is determined. (PR #2022) (hemoral@microsoft.com)
+
+# 1.3.4
+
+## Bugs
+* Fix lowercase scopes issue (#1945)
+* Fix Redirect Error Callback (#1942)
+* Replace /organizations with tenant ID in replaceTenantPath (#1974)
+* Fix cache miss when common authority is provided (#2015)
+* Fix back button behavior (#2081)
+
+# 1.3.3
+
+##  Enhancements
+* Add monitorIframeForHash to ensure silent requests timeout. (#1823)
+* Use instance discovery for trusted hosts and combine authority classes. ([#1583](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/1583)
+* Add custom authority lookup. (#1836)
+* Ensure cookies are minimal size and deleted when necessary. (#1829)
+* Logging improvements. (#1777, #1767, #1752)
+
 # 1.3.2
 
 ## Bugs

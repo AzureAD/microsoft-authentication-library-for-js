@@ -1,6 +1,7 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
 import { AuthorizationCodeRequest, Configuration } from './../../src/index';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
+import { version, name } from '../../package.json';
 import { mocked } from 'ts-jest/utils';
 import {
     Authority,
@@ -13,6 +14,9 @@ import {
     RefreshTokenClient,
     RefreshTokenRequest,
     ClientConfiguration,
+    ProtocolMode,
+    Logger,
+    LogLevel
 } from '@azure/msal-common';
 
 jest.mock('@azure/msal-common');
@@ -41,6 +45,9 @@ describe('PublicClientApplication', () => {
             clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: authority,
             knownAuthorities: [],
+            cloudDiscoveryMetadata: "",
+            clientCapabilities: [],
+            protocolMode: ProtocolMode.AAD
         },
     };
 
@@ -143,7 +150,8 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByRefreshToken(request);
         expect(AuthorityFactory.createInstance).toHaveBeenCalledWith(
             Constants.DEFAULT_AUTHORITY,
-            {}
+            {},
+            ProtocolMode.AAD
         );
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(
@@ -165,11 +173,32 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByRefreshToken(request);
         expect(AuthorityFactory.createInstance).toHaveBeenCalledWith(
             TEST_CONSTANTS.ALTERNATE_AUTHORITY,
-            {}
+            {},
+            ProtocolMode.AAD
         );
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
+    });
+
+    test("getLogger and setLogger", async () => {
+        const authApp = new PublicClientApplication(appConfig);
+        const logger = new Logger({
+            loggerCallback: (level, message, containsPii) => {
+                expect(message).toContain("Message");
+                expect(message).toContain(LogLevel.Info);
+
+                expect(level).toEqual(LogLevel.Info);
+                expect(containsPii).toEqual(false);
+            },
+            piiLoggingEnabled: false
+        }, name, version);
+
+        authApp.setLogger(logger);
+
+        expect(authApp.getLogger()).toEqual(logger);
+
+        authApp.getLogger().info("Message");
     });
 });

@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 /**
@@ -15,10 +16,10 @@ export class Base64Encode {
      * @param input 
      */
     urlEncode(input: string): string {
-        return this.encode(input)
+        return encodeURIComponent(this.encode(input)
             .replace(/=/g, "")
             .replace(/\+/g, "-")
-            .replace(/\//g, "_");
+            .replace(/\//g, "_"));
     }
 
     /**
@@ -37,7 +38,7 @@ export class Base64Encode {
      * @param input 
      */
     encode(input: string): string {
-        const inputUtf8Arr = BrowserStringUtils.stringToUtf8Arr(encodeURIComponent(input));
+        const inputUtf8Arr = BrowserStringUtils.stringToUtf8Arr(input);
         return this.base64EncArr(inputUtf8Arr);
     }
 
@@ -53,8 +54,8 @@ export class Base64Encode {
             nMod3 = nIdx % 3;
             /* Uncomment the following line in order to split the output in lines 76-character long: */
             /*
-            if (nIdx > 0 && (nIdx * 4 / 3) % 76 === 0) { sB64Enc += "\r\n"; }
-            */
+             *if (nIdx > 0 && (nIdx * 4 / 3) % 76 === 0) { sB64Enc += "\r\n"; }
+             */
             nUint24 |= aBytes[nIdx] << (16 >>> nMod3 & 24);
             if (nMod3 === 2 || aBytes.length - nIdx === 1) {
                 sB64Enc += String.fromCharCode(

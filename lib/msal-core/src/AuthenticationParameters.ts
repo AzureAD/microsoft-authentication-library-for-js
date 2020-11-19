@@ -33,9 +33,8 @@ export function validateClaimsRequest(request: AuthenticationParameters) {
     if (!request.claimsRequest) {
         return;
     }
-    let claims;
     try {
-        claims = JSON.parse(request.claimsRequest);
+        JSON.parse(request.claimsRequest);
     } catch (e) {
         throw ClientConfigurationError.createClaimsRequestParsingError(e);
     }

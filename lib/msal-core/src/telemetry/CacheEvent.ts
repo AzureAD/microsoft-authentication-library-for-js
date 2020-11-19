@@ -1,5 +1,9 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import TelemetryEvent from "./TelemetryEvent";
-import { EVENT_NAME_PREFIX } from "./TelemetryConstants";
 import { prependEventNamePrefix } from "./TelemetryUtils";
 
 export const CACHE_EVENT_TYPES = {

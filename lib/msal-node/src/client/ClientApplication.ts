@@ -15,104 +15,186 @@ import {
     AuthorityFactory,
     ClientAuthError,
     Constants,
-    B2cAuthority,
-    AccountInfo,
-    BaseAuthRequest
-} from '@azure/msal-common';
-import { Configuration, buildAppConfiguration } from '../config/Configuration';
-import { CryptoProvider } from '../crypto/CryptoProvider';
-import { Storage } from '../cache/Storage';
-import { version } from '../../package.json';
-import { Constants as NodeConstants } from './../utils/Constants';
-import { CacheContext } from '../cache/CacheContext';
-import { JsonCache, InMemoryCache } from "../cache/serializer/SerializerTypes";
-import { Serializer } from "../cache/serializer/Serializer";
+    TrustedAuthority,
+    BaseAuthRequest,
+    SilentFlowRequest,
+    SilentFlowClient,
+    Logger,
+    ServerTelemetryManager,
+    ServerTelemetryRequest
+} from "@azure/msal-common";
+import { Configuration, buildAppConfiguration } from "../config/Configuration";
+import { CryptoProvider } from "../crypto/CryptoProvider";
+import { Storage } from "../cache/Storage";
+import { Constants as NodeConstants, ApiId } from "../utils/Constants";
+import { TokenCache } from "../cache/TokenCache";
+import { ClientAssertion } from "./ClientAssertion";
+import { version, name } from "../../package.json";
 
 export abstract class ClientApplication {
-    private config: Configuration;
     private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
-    private storage: Storage;
-    private cacheContext: CacheContext;
+    protected storage: Storage;
+    private tokenCache: TokenCache;
+    protected logger: Logger;
+    protected config: Configuration;
+
+    protected clientAssertion: ClientAssertion;
+    protected clientSecret: string;
 
     /**
-     * @constructor
      * Constructor for the ClientApplication
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
-
+        this.logger = new Logger(this.config.system!.loggerOptions!, name, version);
+        this.storage = new Storage(this.logger);
+        this.tokenCache = new TokenCache(
+            this.storage,
+            this.logger,
+            this.config.cache!.cachePlugin
+        );
         this.cryptoProvider = new CryptoProvider();
-        this.storage = new Storage(this.config.cache!);
-        B2cAuthority.setKnownAuthorities(this.config.auth.knownAuthorities!);
-        this.cacheContext = new CacheContext();
+        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
     }
 
     /**
-     * Creates the URL of the authorization request letting the user input credentials and consent to the
-     * application. The URL target the /authorize endpoint of the authority configured in the
+     * Creates the URL of the authorization request, letting the user input credentials and consent to the
+     * application. The URL targets the /authorize endpoint of the authority configured in the
      * application object.
      *
      * Once the user inputs their credentials and consents, the authority will send a response to the redirect URI
      * sent in the request and should contain an authorization code, which can then be used to acquire tokens via
-     * acquireToken(AuthorizationCodeRequest)
-     * @param request
+     * `acquireTokenByCode(AuthorizationCodeRequest)`.
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
+        this.logger.info("getAuthCodeUrl called");
         const authClientConfig = await this.buildOauthClientConfiguration(
             request.authority
         );
+        this.logger.verbose("Auth client config generated");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequestScopes(request) as AuthorizationUrlRequest);
+        return authorizationCodeClient.getAuthCodeUrl(this.initializeRequest(request) as AuthorizationUrlRequest);
     }
 
     /**
      * Acquires a token by exchanging the Authorization Code received from the first step of OAuth2.0
      * Authorization Code flow.
      *
-     * getAuthCodeUrl(AuthorizationCodeUrlRequest) can be used to create the URL for the first step of OAuth2.0
+     * `getAuthCodeUrl(AuthorizationCodeUrlRequest)` can be used to create the URL for the first step of OAuth2.0
      * Authorization Code flow. Ensure that values for redirectUri and scopes in AuthorizationCodeUrlRequest and
      * AuthorizationCodeRequest are the same.
-     *
-     * @param request
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
-        const authClientConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        const authorizationCodeClient = new AuthorizationCodeClient(
-            authClientConfig
-        );
-        return authorizationCodeClient.acquireToken(this.initializeRequestScopes(request) as AuthorizationCodeRequest);
+        this.logger.info("acquireTokenByCode called");
+        const validRequest = this.initializeRequest(request) as AuthorizationCodeRequest;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByCode, validRequest.correlationId!);
+        try {
+            const authClientConfig = await this.buildOauthClientConfiguration(
+                request.authority,
+                serverTelemetryManager
+            );
+            this.logger.verbose("Auth client config generated");
+            const authorizationCodeClient = new AuthorizationCodeClient(
+                authClientConfig
+            );
+            return authorizationCodeClient.acquireToken(validRequest);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 
     /**
      * Acquires a token by exchanging the refresh token provided for a new set of tokens.
      *
-     * This API is provided only for scenarios where you would like to migrate from ADAL to MSAL. Instead, it is
-     * recommended that you use acquireTokenSilent() for silent scenarios. When using acquireTokenSilent, MSAL will
+     * This API is provided only for scenarios where you would like to migrate from ADAL to MSAL. Otherwise, it is
+     * recommended that you use `acquireTokenSilent()` for silent scenarios. When using `acquireTokenSilent()`, MSAL will
      * handle the caching and refreshing of tokens automatically.
-     * @param request
      */
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
-        const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
-            request.authority
-        );
-        const refreshTokenClient = new RefreshTokenClient(
-            refreshTokenClientConfig
-        );
-        return refreshTokenClient.acquireToken(this.initializeRequestScopes(request) as RefreshTokenRequest);
+        this.logger.info("acquireTokenByRefreshToken called");
+        const validRequest = this.initializeRequest(request) as RefreshTokenRequest;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByRefreshToken, validRequest.correlationId!);
+        try {
+            const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
+                request.authority,
+                serverTelemetryManager
+            );
+            this.logger.verbose("Auth client config generated");
+            const refreshTokenClient = new RefreshTokenClient(
+                refreshTokenClientConfig
+            );
+            return refreshTokenClient.acquireToken(validRequest);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
     }
 
-    protected async buildOauthClientConfiguration(authority?: string): Promise<ClientConfiguration> {
+    /**
+     * Acquires a token silently when a user specifies the account the token is requested for.
+     *
+     * This API expects the user to provide an account object and looks into the cache to retrieve the token if present.
+     * There is also an optional "forceRefresh" boolean the user can send to bypass the cache for access_token and id_token.
+     * In case the refresh_token is expired or not found, an error is thrown
+     * and the guidance is for the user to call any interactive token acquisition API (eg: `acquireTokenByCode()`).
+     */
+    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        const validRequest = this.initializeRequest(request) as SilentFlowRequest;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent, validRequest.correlationId!, validRequest.forceRefresh);
+        try {
+            const silentFlowClientConfig = await this.buildOauthClientConfiguration(
+                request.authority,
+                serverTelemetryManager
+            );
+            const silentFlowClient = new SilentFlowClient(
+                silentFlowClientConfig
+            );
+            return silentFlowClient.acquireToken(validRequest);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
+    }
+
+    /**
+     * Gets the token cache for the application.
+     */
+    getTokenCache(): TokenCache {
+        this.logger.info("getTokenCache called");
+        return this.tokenCache;
+    }
+
+    /**
+     * Returns the logger instance
+     */
+    getLogger(): Logger {
+        return this.logger;
+    }
+
+    /**
+     * Replaces the default logger set in configurations with new Logger with new configurations
+     * @param logger Logger instance
+     */
+    setLogger(logger: Logger): void {
+        this.logger = logger;
+    }
+
+    protected async buildOauthClientConfiguration(authority?: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration> {
+        this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
+
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
                 knownAuthorities: this.config.auth.knownAuthorities,
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+                clientCapabilities: this.config.auth.clientCapabilities,
+                protocolMode: this.config.auth.protocolMode
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!
@@ -123,24 +205,52 @@ export abstract class ClientApplication {
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,
             storageInterface: this.storage,
+            serverTelemetryManager: serverTelemetryManager,
+            clientCredentials: {
+                clientSecret: this.clientSecret,
+                clientAssertion: this.clientAssertion ? this.getClientAssertion() : undefined,
+            },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
-                cpu: process.arch || '',
-                os: process.platform || '',
+                cpu: process.arch || "",
+                os: process.platform || "",
             },
+            persistencePlugin: this.config.cache!.cachePlugin,
+            serializableCache: this.tokenCache,
+        };
+    }
+
+    private getClientAssertion(): { assertion: string, assertionType: string } {
+        return {
+            assertion: this.clientAssertion.getJwt(this.cryptoProvider, this.config.auth.clientId, this._authority.tokenEndpoint),
+            assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
         };
     }
 
     /**
-     * Generates a request with the default scopes.
-     * @param authRequest 
+     * Generates a request with the default scopes & generates a correlationId.
+     * @param authRequest
      */
-    protected initializeRequestScopes(authRequest: BaseAuthRequest): BaseAuthRequest {
+    protected initializeRequest(authRequest: BaseAuthRequest): BaseAuthRequest {
+        this.logger.verbose("initializeRequestScopes called");
+
         return {
             ...authRequest,
-            scopes: [...authRequest.scopes, Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE]
+            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE],
+            correlationId: authRequest && authRequest.correlationId || this.cryptoProvider.createNewGuid()
         };
+    }
+
+    protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
+        const telemetryPayload: ServerTelemetryRequest = {
+            clientId: this.config.auth.clientId,
+            correlationId: correlationId,
+            apiId: apiId,
+            forceRefresh: forceRefresh || false
+        };
+
+        return new ServerTelemetryManager(telemetryPayload, this.storage);
     }
 
     /**
@@ -149,11 +259,16 @@ export abstract class ClientApplication {
      * @param authorityString
      */
     private async createAuthority(authorityString?: string): Promise<Authority> {
-        const authority: Authority = authorityString
-            ? AuthorityFactory.createInstance(
-                authorityString,
-                this.config.system!.networkClient!
-            ) : this.authority;
+        this.logger.verbose("createAuthority called");
+
+        let authority: Authority;
+        if (authorityString) {
+            this.logger.verbose("Authority passed in, creating authority instance");
+            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!, this.config.auth.protocolMode!);
+        } else {
+            this.logger.verbose("No authority passed in request, defaulting to authority set on application object");
+            authority = this.authority;
+        }
 
         if (authority.discoveryComplete()) {
             return authority;
@@ -174,30 +289,10 @@ export abstract class ClientApplication {
 
         this._authority = AuthorityFactory.createInstance(
             this.config.auth.authority || Constants.DEFAULT_AUTHORITY,
-            this.config.system!.networkClient!
+            this.config.system!.networkClient!,
+            this.config.auth.protocolMode!
         );
 
         return this._authority;
-    }
-
-    /**
-     * Initialize cache from a user provided Json file
-     * @param cacheObject
-     */
-    initializeCache(cacheObject: JsonCache) {
-        this.cacheContext.setCurrentCache(this.storage, cacheObject);
-    }
-
-    /**
-     * read the cache as a Json convertible object from memory
-     */
-    readCache(): JsonCache {
-        return Serializer.serializeAllCache(
-            this.storage.getCache() as InMemoryCache
-        );
-    }
-
-    getAllAccounts(): AccountInfo[] {
-        return this.storage.getAllAccounts();
     }
 }

@@ -2,9 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import pkg from "../../package.json";
+
 import { StringUtils } from "../utils/StringUtils";
 import { LoggerOptions } from "../config/ClientConfiguration";
+import { Constants } from "../utils/Constants";
 
 /**
  * Options for logger messages.
@@ -24,7 +25,7 @@ export enum LogLevel {
     Warning,
     Info,
     Verbose
-};
+}
 
 /**
  * Callback to send the messages to.
@@ -50,12 +51,21 @@ export class Logger {
     // Callback to send messages to.
     private localCallback: ILoggerCallback;
 
-    constructor(loggerOptions: LoggerOptions) {
+    // Package name implementing this logger
+    private packageName: string;
+
+    // Package version implementing this logger
+    private packageVersion: string;
+
+    constructor(loggerOptions: LoggerOptions, packageName?: string, packageVersion?: string) {
         if (loggerOptions) {
             this.localCallback = loggerOptions.loggerCallback;
             this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled;
             this.level = loggerOptions.logLevel;
         }
+
+        this.packageName = packageName || Constants.EMPTY_STRING;
+        this.packageVersion = packageVersion || Constants.EMPTY_STRING;
     }
 
     /**
@@ -67,7 +77,7 @@ export class Logger {
         }
         const timestamp = new Date().toUTCString();
         const logHeader: string = StringUtils.isEmpty(this.correlationId) ? `[${timestamp}] : ` : `[${timestamp}] : [${this.correlationId}]`;
-        const log = `${logHeader} : ${pkg.version} : ${LogLevel[options.logLevel]} - ${logMessage}`;
+        const log = `${logHeader} : ${this.packageName}@${this.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
         // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
         this.executeCallback(options.logLevel, log, options.containsPii);
     }

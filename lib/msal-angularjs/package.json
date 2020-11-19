@@ -24,7 +24,7 @@
     "node": ">=0.8.0"
   },
   "dependencies": {
-    "msal": "0.2.2"
+    "msal": "1.4.4"
   },
   "devDependencies": {
     "angular": "^1.7.0",
@@ -53,7 +53,11 @@
   },
   "scripts": {
     "test": "webpack && karma start --browsers ChromeHeadlessNoSandbox karma.conf.js",
+    "lint": "cd ../../ && npm run lint:angularjs",
+    "lint:fix": "npm run lint -- -- --fix",
     "build": "webpack",
-    "build:modules": "npm run build"
+    "build:modules": "npm run build",
+    "build:all": "npm run build:core && npm run build",
+    "build:core": "cd ../msal-core && npm run build"
   }
 }

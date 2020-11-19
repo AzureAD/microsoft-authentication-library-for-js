@@ -1,0 +1,12 @@
+{
+  "client_id" : "c00b7538-3846-41b0-8221-7618803ef069",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msauth://com.msalreactnativesampleapp/Xo8WBi6jzSxKDVR4drqm84yr9iU%3D",
+  "account_mode" : "SINGLE",
+  "authorities" : [
+    {
+      "type": "AAD",
+      "authority_url": "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
+    }
+  ]
+}

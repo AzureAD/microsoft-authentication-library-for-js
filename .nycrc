@@ -4,5 +4,5 @@
         ".ts"
     ],
     "all": true,
-    "reporter": "text-lcov"
+    "reporter": "lcov"
 }
