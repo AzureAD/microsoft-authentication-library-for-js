@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Log messages contain package name and version (#2589)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-11T20:56:04.762Z"
+}

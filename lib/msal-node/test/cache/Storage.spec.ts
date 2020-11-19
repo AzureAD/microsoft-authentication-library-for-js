@@ -2,6 +2,7 @@ import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity } from
 import { JsonCache, InMemoryCache } from './../../src/cache/serializer/SerializerTypes';
 import { Deserializer } from './../../src/cache/serializer/Deserializer';
 import { Storage } from './../../src/cache/Storage';
+import { version, name } from '../../package.json';
 
 const cacheJson = require('./serializer/cache.json');
 
@@ -29,7 +30,7 @@ describe("Storage tests for msal-node: ", () => {
             piiLoggingEnabled: false,
             logLevel: LogLevel.Info,
         };
-        logger = new Logger(loggerOptions!);
+        logger = new Logger(loggerOptions!, name, version);
     });
 
     it("Constructor tests: ", () => {
