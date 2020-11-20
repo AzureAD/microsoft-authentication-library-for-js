@@ -30,7 +30,7 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        if (request.brokeredClientId) {
+        if (request.embeddedAppClientId) {
             return responseHandler.handleBrokeredServerTokenResponse(
                 response.body,
                 this.authority
@@ -69,13 +69,13 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
      * @param request
      */
     protected async createTokenRequestBody(request: BrokeredRefreshTokenRequest): Promise<string> {
-        if (!request.brokeredClientId) {
+        if (!request.embeddedAppClientId) {
             return super.createTokenRequestBody(request);
         }
 
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(request.brokeredClientId);
+        parameterBuilder.addClientId(request.embeddedAppClientId);
 
         parameterBuilder.addScopes(request.scopes);
 
@@ -99,7 +99,7 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
 
         // Add broker params
         parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
-        parameterBuilder.addRedirectUri(request.brokerRedirectUri, this.config.authOptions.clientId);
+        parameterBuilder.addRedirectUri(request.embeddedAppRedirectUri, this.config.authOptions.clientId);
 
         return parameterBuilder.createQueryString();
     }

@@ -18,6 +18,7 @@ import { SilentRequest } from "../../request/SilentRequest";
 import { version } from "../../../package.json";
 import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager";
+import { BrowserUtils } from "../../utils/BrowserUtils";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
@@ -120,7 +121,6 @@ export class EmbeddedClientApplication {
      */
     async sendSilentRefreshRequest(request: SilentRequest): Promise<AuthenticationResult> {
         await this.preflightBrokerRequest();
-
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Silent, DEFAULT_MESSAGE_TIMEOUT);
         return BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
     }
@@ -132,8 +132,7 @@ export class EmbeddedClientApplication {
      * @param timeoutMs 
      */
     private async sendRequest(request: PopupRequest|RedirectRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
-        const brokerRequest = new BrokerAuthRequest(this.config.auth.clientId, interactionType, request);
-
+        const brokerRequest = new BrokerAuthRequest(this.config.auth.clientId, BrowserUtils.getCurrentUri(), interactionType, request);
         return this.messageBroker<MessageEvent>(brokerRequest, timeoutMs);
     }
 

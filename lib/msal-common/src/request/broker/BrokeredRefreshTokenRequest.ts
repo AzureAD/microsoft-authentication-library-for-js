@@ -17,6 +17,6 @@ import { RefreshTokenRequest } from "../RefreshTokenRequest";
  * - brokerClientId          - clientId of the broker
  */
 export type BrokeredRefreshTokenRequest = RefreshTokenRequest & {
-    brokeredClientId?: string;
-    brokerRedirectUri?: string;
+    embeddedAppClientId: string;
+    embeddedAppRedirectUri: string;
 };

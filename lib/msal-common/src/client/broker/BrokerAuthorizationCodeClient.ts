@@ -43,7 +43,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        if (!request.brokeredClientId) {
+        if (!request.embeddedAppClientId) {
             return responseHandler.handleServerTokenResponse(response.body, this.authority, cachedNonce, cachedState);
         } else {
             return responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, cachedNonce, cachedState);
@@ -55,12 +55,12 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
      * @param request
      */
     protected createAuthCodeUrlQueryString(request: BrokeredAuthorizationUrlRequest): string {
-        if (!request.brokeredClientId) {
+        if (!request.embeddedAppClientId) {
             return super.createAuthCodeUrlQueryString(request);
         }
         const parameterBuilder = new RequestParameterBuilder();
 
-        parameterBuilder.addClientId(request.brokeredClientId);
+        parameterBuilder.addClientId(request.embeddedAppClientId);
 
         const requestScopes = [...request.scopes || [], ...request.extraScopesToConsent || []];
         parameterBuilder.addScopes(requestScopes);
@@ -123,7 +123,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
 
         // Add broker params
         parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
-        parameterBuilder.addBrokerRedirectUri(request.redirectUri);
+        parameterBuilder.addBrokerRedirectUri(request.brokerRedirectUri);
 
         return parameterBuilder.createQueryString();
     }
@@ -133,12 +133,11 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
      * @param request
      */
     protected async createTokenRequestBody(request: BrokeredAuthorizationCodeRequest): Promise<string> {
-        if (!request.brokeredClientId) {
+        if (!request.embeddedAppClientId) {
             return super.createTokenRequestBody(request);
         }
         const parameterBuilder = new RequestParameterBuilder();
-
-        parameterBuilder.addClientId(request.brokeredClientId);
+        parameterBuilder.addClientId(request.embeddedAppClientId);
 
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri, this.config.authOptions.clientId);
@@ -172,7 +171,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
 
         // Add broker params
         parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
-        parameterBuilder.addBrokerRedirectUri(request.redirectUri);
+        parameterBuilder.addBrokerRedirectUri(request.brokerRedirectUri);
 
         return parameterBuilder.createQueryString();
     }

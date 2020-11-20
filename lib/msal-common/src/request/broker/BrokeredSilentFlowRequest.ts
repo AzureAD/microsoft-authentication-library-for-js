@@ -17,6 +17,6 @@ import { SilentFlowRequest } from "../SilentFlowRequest";
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type BrokeredSilentFlowRequest = SilentFlowRequest & {
-    brokeredClientId?: string;
-    brokerRedirectUri?: string;
+    embeddedAppClientId: string;
+    embeddedAppRedirectUri: string;
 };

@@ -20,5 +20,6 @@ import { AuthorizationCodeRequest } from "../AuthorizationCodeRequest";
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type BrokeredAuthorizationCodeRequest = AuthorizationCodeRequest & {
-    brokeredClientId: string;
+    embeddedAppClientId: string;
+    brokerRedirectUri: string;
 };

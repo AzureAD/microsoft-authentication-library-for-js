@@ -143,9 +143,11 @@ export class BrokerClientApplication extends ClientApplication {
                 clientPort.close();
                 return;
             }
+
             if (this.brokerAccount) {
                 return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], this.brokerAccount);
             }
+
             switch (validMessage.interactionType) {
                 case InteractionType.Silent:
                     return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], this.brokerAccount);
@@ -192,7 +194,9 @@ export class BrokerClientApplication extends ClientApplication {
         this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
 
         const redirectRequest = validMessage.request as BrokerRedirectRequest;
-        redirectRequest.brokeredClientId = validMessage.embeddedClientId;
+        redirectRequest.redirectUri = validMessage.embeddedAppRedirectUri;
+        redirectRequest.embeddedAppClientId = validMessage.embeddedClientId;
+        redirectRequest.brokerRedirectUri = this.getRedirectUri();
 
         // Call loginRedirect
         this.acquireTokenRedirect(redirectRequest);
@@ -206,7 +210,9 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredPopupRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const popupRequest = validMessage.request as BrokerPopupRequest;
-            popupRequest.brokeredClientId = validMessage.embeddedClientId;
+            popupRequest.redirectUri = validMessage.embeddedAppRedirectUri;
+            popupRequest.embeddedAppClientId = validMessage.embeddedClientId;
+            popupRequest.brokerRedirectUri = this.getRedirectUri();
             const response: BrokerAuthenticationResult = (await this.acquireTokenPopup(popupRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
@@ -228,8 +234,8 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort, account?: AccountInfo): Promise<void> {
         try {
             const silentRequest = validMessage.request as BrokerSilentRequest;
-            silentRequest.brokeredClientId = validMessage.embeddedClientId;
-            silentRequest.brokerRedirectUri = this.getRedirectUri();
+            silentRequest.embeddedAppClientId = validMessage.embeddedClientId;
+            silentRequest.embeddedAppRedirectUri = validMessage.embeddedAppRedirectUri;
             if (!silentRequest.account) {
                 silentRequest.account = account;
             }
