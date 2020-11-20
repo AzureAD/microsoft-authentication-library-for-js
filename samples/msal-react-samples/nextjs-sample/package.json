@@ -1,0 +1,21 @@
+{
+  "name": "learn-starter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@azure/msal-browser": "^2.7.0",
+    "@azure/msal-react": "^1.0.0-alpha.0",
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
+    "bootstrap": "^4.5.3",
+    "next": "^10.0.0",
+    "react": "16.13.1",
+    "react-bootstrap": "^1.4.0",
+    "react-dom": "16.13.1"
+  }
+}
