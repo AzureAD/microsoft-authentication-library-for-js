@@ -70,7 +70,6 @@ export class ClientCredentialClient extends BaseClient {
                 refreshToken: null,
                 appMetadata: null
             },
-            null,
             true
         );
     }

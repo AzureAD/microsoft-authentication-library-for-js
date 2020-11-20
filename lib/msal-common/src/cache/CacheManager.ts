@@ -245,15 +245,15 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!homeAccountId || !this.matchHomeAccountId(entity, homeAccountId)) {
+            if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
-            if (!environment || !this.matchEnvironment(entity, environment)) {
+            if (!!environment && !this.matchEnvironment(entity, environment)) {
                 return;
             }
 
-            if (!realm || !this.matchRealm(entity, realm)) {
+            if (!!realm && !this.matchRealm(entity, realm)) {
                 return;
             }
 
@@ -320,36 +320,35 @@ export abstract class CacheManager implements ICacheManager {
 
             // Attempt retrieval
             const entity = this.getSpecificCredential(cacheKey, credType);
-
             if (!entity) {
                 return;
             }
 
-            if (!oboAssertion || !this.matchOboAssertion(entity, oboAssertion)) {
+            if (!!oboAssertion && !this.matchOboAssertion(entity, oboAssertion)) {
                 return;
             }
 
-            if (!homeAccountId || !this.matchHomeAccountId(entity, homeAccountId)) {
+            if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
-            if (!environment || !this.matchEnvironment(entity, environment)) {
+            if (!!environment && !this.matchEnvironment(entity, environment)) {
                 return;
             }
 
-            if (!realm || !this.matchRealm(entity, realm)) {
+            if (!!realm && !this.matchRealm(entity, realm)) {
                 return;
             }
 
-            if (!credentialType || !this.matchCredentialType(entity, credentialType)) {
+            if (!!credentialType && !this.matchCredentialType(entity, credentialType)) {
                 return;
             }
 
-            if (!clientId || !this.matchClientId(entity, clientId)) {
+            if (!!clientId && !this.matchClientId(entity, clientId)) {
                 return;
             }
 
-            if (!familyId || !this.matchFamilyId(entity, familyId)) {
+            if (!!familyId && !this.matchFamilyId(entity, familyId)) {
                 return;
             }
 
@@ -357,7 +356,7 @@ export abstract class CacheManager implements ICacheManager {
              * idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
              * Resource specific refresh tokens case will be added when the support is deemed necessary
              */
-            if (!target || !this.matchTarget(entity, target)) {
+            if (!!target && !this.matchTarget(entity, target)) {
                 return;
             }
 

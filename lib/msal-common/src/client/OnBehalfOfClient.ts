@@ -64,7 +64,7 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         const cachedIdToken = this.readIdTokenFromCache(request);
-        let idTokenObject: AuthToken | null = null;
+        let idTokenObject: AuthToken | undefined;
         let cachedAccount: AccountEntity | null = null;
         if (cachedIdToken) {
             idTokenObject = new AuthToken(cachedIdToken.secret, this.config.cryptoInterface);
@@ -88,7 +88,7 @@ export class OnBehalfOfClient extends BaseClient {
                 idToken: cachedIdToken,
                 refreshToken: null,
                 appMetadata: null
-            }, idTokenObject, true);
+            }, true, idTokenObject);
     }
 
     /**

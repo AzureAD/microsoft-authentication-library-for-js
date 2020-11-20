@@ -117,15 +117,16 @@ export class ResponseHandler {
         handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult | null> {
 
         // create an idToken object (not entity)
-        const idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
-
-        if (!cachedNonce || !idTokenObj.claims.nonce) {
-            throw !!idTokenObj.claims.nonce ? ClientAuthError.createNonceNotFoundError("IdTokenClaims Nonce") : ClientAuthError.createNonceNotFoundError("Cached Nonce");
-        }
-
-        // token nonce check (TODO: Add a warning if no nonce is given?)
-        if (idTokenObj.claims.nonce !== cachedNonce) {
-            throw ClientAuthError.createNonceMismatchError();
+        let idTokenObj: AuthToken | undefined;
+        if (serverTokenResponse.id_token) {
+            idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
+    
+            // token nonce check (TODO: Add a warning if no nonce is given?)
+            if (!!cachedNonce) {
+                if (idTokenObj.claims.nonce !== cachedNonce) {
+                    throw ClientAuthError.createNonceMismatchError();
+                }
+            }
         }
 
         // generate homeAccountId
@@ -137,7 +138,7 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState, requestScopes, oboAssertion);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, idTokenObj, requestStateObj && requestStateObj.libraryState, requestScopes, oboAssertion);
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -165,7 +166,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
     /**
@@ -174,7 +175,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, idTokenObj: AuthToken , authority: Authority, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, idTokenObj?: AuthToken, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string): CacheRecord {
 
         const env = Authority.generateEnvironmentFromAuthority(authority);
 
@@ -183,9 +184,9 @@ export class ResponseHandler {
         }
 
         // IdToken: non AAD scenarios can have empty realm
-        let cachedIdToken: IdTokenEntity | null = null;
-        let cachedAccount: AccountEntity | null = null;
-        if (!StringUtils.isEmpty(serverTokenResponse.id_token)) {
+        let cachedIdToken: IdTokenEntity | undefined;
+        let cachedAccount: AccountEntity | undefined;
+        if (!StringUtils.isEmpty(serverTokenResponse.id_token) && !!idTokenObj) {
             cachedIdToken = IdTokenEntity.createIdTokenEntity(
                 this.homeAccountIdentifier,
                 env,
@@ -290,7 +291,7 @@ export class ResponseHandler {
      * @param fromTokenCache
      * @param stateString
      */
-    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, idTokenObj: AuthToken | null, fromTokenCache: boolean, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
+    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, fromTokenCache: boolean, idTokenObj?: AuthToken, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
@@ -316,10 +317,6 @@ export class ResponseHandler {
         }
         const uid = idTokenObj?.claims.oid || idTokenObj?.claims.sub || Constants.EMPTY_STRING;
         const tid = idTokenObj?.claims.tid || Constants.EMPTY_STRING;
-
-        if (!cacheRecord.account) {
-            throw ClientAuthError.createNoAccountFoundError();
-        }
 
         return {
             uniqueId: uid,

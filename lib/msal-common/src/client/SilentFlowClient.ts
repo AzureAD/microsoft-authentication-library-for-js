@@ -76,15 +76,15 @@ export class SilentFlowClient extends BaseClient {
      * @param cacheRecord
      */
     private async generateResultFromCacheRecord(cacheRecord: CacheRecord, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
-        let idTokenObj = null;
+        let idTokenObj: AuthToken | undefined;
         if (cacheRecord.idToken) {
             idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
         }
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             cacheRecord,
-            idTokenObj,
             true,
+            idTokenObj,
             undefined,
             resourceRequestMethod,
             resourceRequestUri
