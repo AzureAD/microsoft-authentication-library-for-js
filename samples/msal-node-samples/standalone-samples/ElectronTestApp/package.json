@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A sample Electron application that uses msal-node to acquire tokens",
   "main": "App.ts",
+  private: true,
   "scripts": {
     "build": "tsc",
     "start": "npm run build && electron dist/app.js",
