@@ -38,6 +38,8 @@ export default class Main {
         Main.authProvider = new AuthProvider();
         Main.networkModule = new FetchManager();
         Main.registerSubscriptions();
+
+        Main.attemptSSOSilent();
     }
 
     // Creates main application window
@@ -53,6 +55,16 @@ export default class Main {
 
     private static publish(message: string, payload: any): void {
         Main.mainWindow.webContents.send(message, payload);
+    }
+
+    private static async attemptSSOSilent(): Promise<void> {
+        const account = await Main.authProvider.loginSilent();
+        await Main.loadBaseUI();
+        
+        if (account) {
+            console.log("Successful silent account retrieval");
+            Main.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
+        }
     }
 
     private static async login(): Promise<void> {

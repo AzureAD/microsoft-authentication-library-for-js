@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 // Add here the endpoints for MS Graph API services you would like to use.
 export const GRAPH_CONFIG = {
     GRAPH_ME_ENDPT: "https://graph.microsoft.com/v1.0/me",
@@ -13,3 +18,5 @@ export const IPC_MESSAGES = {
     GET_MAIL: "GET_MAIL",
     SET_MAIL: "SET_MAIL"
 }
+
+export const CACHE_LOCATION = "./data/cache.json";

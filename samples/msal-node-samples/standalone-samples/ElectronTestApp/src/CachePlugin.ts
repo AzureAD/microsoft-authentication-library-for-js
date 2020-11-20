@@ -4,24 +4,27 @@
  */
 const fs = require('fs');
 
-import { CACHE_LOCATION } from "./utils/Constants";
+import { CACHE_LOCATION } from "./Constants";
 
 const beforeCacheAccess = async (cacheContext) => {
-    if (fs.existsSync(CACHE_LOCATION)) {
-        cacheContext.tokenCache.deserialize(await fs.readFile(CACHE_LOCATION, "utf-8", (err, data) => {
-            if (err) {
-                console.log(err);
-            } else {
-                return data;
-            }
-        }));
-    } else {
-        await fs.writeFile(CACHE_LOCATION, cacheContext.tokenCache.serialize(), (err) => {
-            if (err) {
-                console.log(err);
-            }
-        });
-    }
+    return new Promise<void>(async (resolve, reject) => {
+        if (fs.existsSync(CACHE_LOCATION)) {
+            fs.readFile(CACHE_LOCATION, "utf-8", (err, data) => {
+                if (err) {
+                    reject();
+                } else {
+                    cacheContext.tokenCache.deserialize(data);
+                    resolve();
+                }
+            });
+        } else {
+           fs.writeFile(CACHE_LOCATION, cacheContext.tokenCache.serialize(), (err) => {
+                if (err) {
+                    reject();
+                }
+            });
+        }
+    });
 };
 
 const afterCacheAccess = async (cacheContext) => {
@@ -38,3 +41,4 @@ export const cachePlugin = {
     beforeCacheAccess,
     afterCacheAccess
 }
+

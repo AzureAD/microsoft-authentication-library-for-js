@@ -112,7 +112,7 @@ export default class AuthProvider {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (error) {
             console.log("Silent token acquisition failed, acquiring token using redirect");
-                return await this.getTokenInteractive(authWindow, tokenRequest);
+            return await this.getTokenInteractive(authWindow, tokenRequest);
         }
     }
 
@@ -129,6 +129,10 @@ export default class AuthProvider {
     async login(authWindow: BrowserWindow): Promise<AccountInfo> {
         const authResult = await this.getTokenInteractive(authWindow, this.authCodeUrlParams);
         return this.handleResponse(authResult);
+    }
+
+    async loginSilent(): Promise<AccountInfo> {
+        return this.account || await this.getAccount();
     }
 
     async logout(): Promise<void> {
