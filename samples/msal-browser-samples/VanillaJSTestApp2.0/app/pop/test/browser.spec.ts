@@ -75,7 +75,7 @@ describe("Browser tests", function () {
         await browser.close();
     });
 
-    it("Performs loginRedirect", async () => {
+    it("Performs loginRedirect and validates PoP token", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page

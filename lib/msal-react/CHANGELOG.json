@@ -1,0 +1,47 @@
+{
+  "name": "@azure/msal-react",
+  "entries": [
+    {
+      "date": "Wed, 11 Nov 2020 23:33:20 GMT",
+      "tag": "@azure/msal-react_v1.0.0-alpha.0",
+      "version": "1.0.0-alpha.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Change MsalContext file extension (#2584)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f680d65c5b29593242605f815a2a98f126c280a1",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Add localAccountId to AccountIdentifiers (#2588)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b6e1692cc3e3ea8c0d9b5808c4469446c01cfb84",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Update Docs and Deps (#2581)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f27f3ccfbd691b69e0393358eb0c165f1fc1c714",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 10 Nov 2020 01:48:44 GMT",
+      "tag": "@azure/msal-react_v2.0.0-alpha.0",
+      "version": "2.0.0-alpha.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "msal-react first alpha release (#2540)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "612feaeb6e5099cae6d1f606d187f5e38063018f",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    }
+  ]
+}

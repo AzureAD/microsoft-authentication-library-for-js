@@ -7,7 +7,7 @@ import chai from "chai";
 import "mocha";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
-import { Configuration, buildConfiguration } from "../../src/config/Configuration";
+import { Configuration, buildConfiguration, DEFAULT_REDIRECT_TIMEOUT_MS } from "../../src/config/Configuration";
 import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
@@ -167,7 +167,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, DEFAULT_REDIRECT_TIMEOUT_MS, "")).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
             expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, DEFAULT_REDIRECT_TIMEOUT_MS, "")).to.throw(BrowserAuthError);

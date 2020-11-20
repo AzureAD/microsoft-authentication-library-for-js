@@ -18,7 +18,7 @@ import { PopupRequest } from "../request/PopupRequest";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { version } from "../../package.json";
+import { version, name } from "../../package.json";
 import { EventError, EventMessage, EventPayload, EventCallbackFunction } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -94,7 +94,7 @@ export abstract class ClientApplication {
         this.networkClient = this.config.system.networkClient;
 
         // Initialize logger
-        this.logger = new Logger(this.config.system.loggerOptions);
+        this.logger = new Logger(this.config.system.loggerOptions, name, version);
 
         // Initialize the browser storage class.
         this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger);
@@ -181,7 +181,7 @@ export abstract class ClientApplication {
                 // Replace current hash with non-msal hash, if present
                 BrowserUtils.replaceHash(loginRequestUrl);
             }
-            
+
             return handleHashResult;
         } else if (!this.config.auth.navigateToLoginRequestUrl) {
             return this.handleHash(responseHash);
@@ -532,7 +532,7 @@ export abstract class ClientApplication {
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.loadFrameTimeout);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -611,6 +611,21 @@ export abstract class ClientApplication {
         }
     }
 
+    /**
+     * Returns the signed in account matching localAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @returns {@link AccountInfo} - the account object stored in MSAL
+     */
+    getAccountByLocalId(localAccountId: string): AccountInfo | null {
+        const allAccounts = this.getAllAccounts();
+        if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
+        } else {
+            return null;
+        }
+    }
+
     // #endregion
 
     // #region Helpers
@@ -622,7 +637,8 @@ export abstract class ClientApplication {
      *
      */
     protected getRedirectUri(requestRedirectUri?: string): string {
-        return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+        const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+        return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
 
     /**
@@ -631,7 +647,8 @@ export abstract class ClientApplication {
      * @returns {string} post logout redirect URL
      */
     protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
-        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+        const postLogoutRedirectUri = requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+        return UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
     }
 
     /**
@@ -745,8 +762,8 @@ export abstract class ClientApplication {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
-        if (interactionType === InteractionType.Redirect && 
-            this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage && 
+        if (interactionType === InteractionType.Redirect &&
+            this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
             !this.config.cache.storeAuthStateInCookie) {
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
