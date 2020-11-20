@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Enable strict null checks (#2602)",
-  "packageName": "@azure/msal-angular",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-11-16T23:16:57.930Z"
-}
