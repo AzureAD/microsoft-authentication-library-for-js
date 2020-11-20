@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 import { 
     PublicClientApplication,
     Configuration,
@@ -6,8 +10,7 @@ import {
     AuthorizationCodeRequest,
     AuthorizationUrlRequest,
     AuthenticationResult,
-    SilentFlowRequest,
-    InteractionRequiredAuthError } from "@azure/msal-node";
+    SilentFlowRequest } from "@azure/msal-node";
 import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";

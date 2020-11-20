@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AccountInfo } from "@azure/msal-node";
 import { UserInfo, MailInfo } from "./GraphReponseTypes";
 import { GRAPH_CONFIG } from "./Constants";

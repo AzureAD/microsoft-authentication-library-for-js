@@ -1,5 +1,9 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { app, BrowserWindow, ipcMain } from "electron";
-import { AccountInfo } from "@azure/msal-node";
 import AuthProvider from "./AuthProvider";
 import * as path from "path";
 import { FetchManager } from "./FetchManager";
