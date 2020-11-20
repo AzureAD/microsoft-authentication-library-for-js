@@ -19,8 +19,6 @@ function configureExpressApp(app) {
 function handleAuthorizationResponse(res, authResponse, templateParams, scenarioConfig) {
     // Get scenario specific resource API
     const resourceApi = require(RESOURCE_API_PATH)(scenarioConfig.resourceApi);
-
-    console.log("\nSuccessful silent token acquisition:\nResponse: \n:", authResponse);
     const username = authResponse.account.username;
     // Call graph after successfully acquiring token
     resourceApi.call(authResponse.accessToken, (authResponse, endpoint) => {
@@ -57,7 +55,6 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
     app.get('/redirect', (req, res) => {
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
         clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
-            console.log(response);
             app.locals.homeAccountId = response.account.homeAccountId;
             const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
             res.render("graph", templateParams);
