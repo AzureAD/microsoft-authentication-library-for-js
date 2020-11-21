@@ -43,6 +43,8 @@
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
 1. [Why is there no access token returned from acquireTokenSilent?](#why-is-there-no-access-token-returned-from-acquiretokensilent)
+1. [I used to be able to get an access token when using acquireTokenSilent with clientId as scope, now I can't. Why?](#i-used-to-be-able-to-get-an-access-token-when-using-acquiretokensilent-with-clientId-as-scope-now-i-can't-why)
+1. [What should I do if I believe my issue is with the B2C service itself rather than with the library](#what-should-i-do-if-i-believe-my-issue-is-with-the-b2c-service-itself-rather-than-with-the-library)
 
 **Common Issues**
 1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/errors.md)
@@ -225,4 +227,14 @@ msal.acquireTokenSilent({
 ```
 
 :warning: `ssoSilent` will not work in browsers that disable 3rd party cookies, such as Safari. If you need to support these browsers, call `acquireTokenRedirect` or `acquireTokenPopup`
-    
+
+## I used to be able to get an access token when using acquireTokenSilent with clientId as scope, now I can't. Why?
+
+If you are sending `clientId` as the scope, you are requesting scopes for `openid` and `profile`, which are **ID token** scopes.
+Previously, MSAL.js would get an **ID token** and put it into the `accessToken` and `idToken` fields (both with the same value). We have since changed that behavior to be in-line with what the B2C server is sending back. Now MSAL.js gets the same **ID token** but puts it under `idToken` field and leaves `accessToken` field empty.
+
+See the [documentation on scopes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/scopes.md) for more information.
+
+## What should I do if I believe my issue is with the B2C service itself rather than with the library
+
+In that case, please file a support ticket with the B2C team by following the instructions here: [B2C support options](https://docs.microsoft.com/azure/active-directory-b2c/support-options). They can help you out further. They may ask for a public repo link or additional data. You can also link this Github issue in the support request.
