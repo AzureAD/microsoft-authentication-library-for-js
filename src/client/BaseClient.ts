@@ -15,6 +15,7 @@ import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { version, name } from "../../package.json";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -49,7 +50,7 @@ export abstract class BaseClient {
         this.config = buildClientConfiguration(configuration);
 
         // Initialize the logger
-        this.logger = new Logger(this.config.loggerOptions);
+        this.logger = new Logger(this.config.loggerOptions, name, version);
 
         // Initialize crypto
         this.cryptoUtils = this.config.cryptoInterface;
