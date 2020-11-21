@@ -2,6 +2,7 @@ import { LogLevel, Logger, TokenCacheContext, ICachePlugin } from '@azure/msal-c
 import { Storage } from './../../src/cache/Storage';
 import { TokenCache } from '../../src/cache/TokenCache';
 import { promises as fs } from 'fs';
+import { version, name } from '../../package.json';
 
 describe("TokenCache tests", () => {
 
@@ -15,7 +16,7 @@ describe("TokenCache tests", () => {
             piiLoggingEnabled: false,
             logLevel: LogLevel.Info,
         };
-        logger = new Logger(loggerOptions!);
+        logger = new Logger(loggerOptions!, name, version);
     });
 
     it("Constructor tests builds default token cache", async () => {

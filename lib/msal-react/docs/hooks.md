@@ -1,9 +1,9 @@
 # Hooks
 
-1. [`useAccount`](#useaccount)
-1. [`useIsAuthenticated`](#useisauthenticated)
-1. [`useMsal`](#usemsal)
-1. [`useMsalAuthentication`](#usemsalauthentication)
+1. [`useAccount`](#useaccount-hook)
+1. [`useIsAuthenticated`](#useisauthenticated-hook)
+1. [`useMsal`](#usemsal-hook)
+1. [`useMsalAuthentication`](#usemsalauthentication-hook)
 
 ## `useAccount` hook
 

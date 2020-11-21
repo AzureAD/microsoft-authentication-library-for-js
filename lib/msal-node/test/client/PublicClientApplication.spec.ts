@@ -1,6 +1,7 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
 import { AuthorizationCodeRequest, Configuration } from './../../src/index';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
+import { version, name } from '../../package.json';
 import { mocked } from 'ts-jest/utils';
 import {
     Authority,
@@ -193,7 +194,7 @@ describe('PublicClientApplication', () => {
                 expect(containsPii).toEqual(false);
             },
             piiLoggingEnabled: false
-        });
+        }, name, version);
 
         authApp.setLogger(logger);
 
