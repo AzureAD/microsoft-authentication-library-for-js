@@ -4,9 +4,9 @@ The sample applications contained in this directory are independent samples of M
 
 Once MSAL Node is installed, and you have the right files, come here to learn about this scenario.
 
-## Web app using auth code flow on Azure AD B2C
+## Web app using auth code flow with PKCE on Azure AD B2C
 
-This sample demonstrates a [confidential client application](https://docs.microsoft.com/azure/active-directory-b2c/application-types#web-applications) registered on Azure AD B2C. It features:
+This sample demonstrates a [public client application](https://docs.microsoft.com/azure/active-directory-b2c/application-types) registered on Azure AD B2C. It features:
 
 1. using [OIDC Connect protocol](https://docs.microsoft.com/azure/active-directory-b2c/openid-connect) to implement standard B2C [user-flows](https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview) to:
 
@@ -45,14 +45,13 @@ const b2cPolicies = {
 }
 ```
 
-In `index.js`, we setup the configuration object expected by MSAL Node `confidentialClientApplication` class constructor:
+In `index.js`, we setup the configuration object expected by MSAL Node `publicClientApplication` class constructor:
 
 ```javascript
-const confidentialClientConfig = {
+const publicClientConfig = {
     auth: {
         clientId: "e6e1bea3-d98f-4850-ba28-e80ed613cc72",
         authority: policies.authorities.signUpSignIn.authority, //signUpSignIn policy is our default authority
-        clientSecret: "wr7Q9R~Gg1Qb9l.3s4Dg8jp7Z6.9M~42K0",
         knownAuthorities: [policies.authorityDomain], // mark your tenant's custom domain as a trusted authority
         redirectUri: "http://localhost:3000/redirect",
     },
@@ -110,7 +109,7 @@ const tokenRequest = {
 #### Initialize MSAL Node
 
 ```javascript
-const cca = new msal.ConfidentialClientApplication(confidentialClientConfig);
+const pca = new msal.PublicClientApplication(publicClientConfig);
 ```
 
 #### Sign-in a user
@@ -144,7 +143,7 @@ const getAuthCode = (authority, scopes, state, res) => {
     tokenRequest.authority = authority;
 
     // request an authorization code to exchange for a token
-    return cca.getAuthCodeUrl(authCodeRequest)
+    return pca.getAuthCodeUrl(authCodeRequest)
         .then((response) => {
             res.redirect(response);
         })
@@ -171,7 +170,7 @@ app.get("/redirect", (req, res) => {
         tokenRequest.scopes = SCOPES.oidc;
         tokenRequest.code = req.query.code;
 
-        cca.acquireTokenByCode(tokenRequest)
+        pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
                 const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
                 res.render("api", templateParams);
@@ -199,7 +198,7 @@ app.get("/redirect", (req, res) => {
         tokenRequest.scopes = SCOPES.resource1;
         tokenRequest.code = req.query.code;
 
-        cca.acquireTokenByCode(tokenRequest)
+        pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
 
                 // store access token somewhere
