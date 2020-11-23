@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ProfileData } from "../src/ProfileData";
 import { callMsGraph } from "../src/MsGraphApiCall";
 import Paper from "@material-ui/core/Paper";
+import { Typography } from "@material-ui/core";
 
 const ProfileContent = () => {
     const { instance, accounts } = useMsal();
@@ -30,16 +31,28 @@ const ProfileContent = () => {
     );
 };
 
-export default function Profile() {
+const ErrorComponent = ({error}) => {
+    return <Typography variant="h6">An Error Occurred: {error.errorCode}</Typography>;
+}
 
+const Loading = () => {
+    return <Typography variant="h6">Authentication in progress...</Typography>
+}
+
+export default function Profile() {
     const authRequest = {
         ...loginRequest,
         redirectUri: "http://localhost:3000"
     };
 
     return (
-        <MsalAuthenticationTemplate interactionType="popup" authenticationRequest={authRequest}>
+        <MsalAuthenticationTemplate 
+            interactionType="popup" 
+            authenticationRequest={authRequest} 
+            errorComponent={ErrorComponent} 
+            loadingComponent={Loading}
+        >
             <ProfileContent />
         </MsalAuthenticationTemplate>
       )
-}
+};

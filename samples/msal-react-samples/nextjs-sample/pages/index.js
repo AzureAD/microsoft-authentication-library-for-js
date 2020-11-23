@@ -1,14 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
-import { Button, Typography } from "@material-ui/core";
+import Button from "@material-ui/core/Button";
+import Typography from "@material-ui/core/Typography";
 
 export default function Home() {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  return isClient ? (
+  return (
       <>
           <AuthenticatedTemplate>
               <Button variant="contained" color="primary" href="/profile">Request Profile Information</Button>
@@ -20,5 +16,5 @@ export default function Home() {
             </Typography>
           </UnauthenticatedTemplate>
       </>
-  ) : <></>;
+  );
 }

@@ -2,7 +2,11 @@ import React, {useState} from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
 import { loginRequest } from "../src/authConfig";
-import { AppBar, Toolbar, Typography } from "@material-ui/core";
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
+import Link from "@material-ui/core/Link";
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import IconButton from '@material-ui/core/IconButton';
@@ -21,23 +25,14 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const SignInSignOutButton = () => {
+const SignInButton = () => {
     const { instance } = useMsal();
-    const isAuthenticated = useIsAuthenticated();
 
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
 
-    const handleMenu = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-
     const handleLogin = (loginType) => {
-        handleClose();
+        setAnchorEl(null);
 
         if (loginType === "popup") {
             instance.loginPopup(loginRequest);
@@ -46,15 +41,51 @@ const SignInSignOutButton = () => {
         }
     }
 
+    return (
+        <div>
+            <Button
+                onClick={(event) => setAnchorEl(event.currentTarget)}
+                color="inherit"
+            >
+                Login
+            </Button>
+            <Menu
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+                }}
+                open={open}
+                onClose={() => setAnchorEl(null)}
+            >
+                <MenuItem onClick={() => handleLogin("popup")} key="loginPopup">Sign in using Popup</MenuItem>
+                <MenuItem onClick={() => handleLogin("redirect")} key="loginRedirect">Sign in using Redirect</MenuItem>
+            </Menu>
+        </div>
+    )
+};
+
+const SignOutButton = () => {
+    const { instance } = useMsal();
+
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const open = Boolean(anchorEl);
+
     const handleLogout = () => {
-        handleClose();
-        instance.logout();
+        setAnchorEl(null);
+        instance.logout({postLogoutRedirectUri: "http://localhost:3000/"});
     }
 
     return (
         <div>
             <IconButton
-                onClick={handleMenu}
+                onClick={(event) => setAnchorEl(event.currentTarget)}
                 color="inherit"
             >
                 <AccountCircle />
@@ -72,21 +103,43 @@ const SignInSignOutButton = () => {
                 horizontal: 'right',
                 }}
                 open={open}
-                onClose={handleClose}
+                onClose={() => setAnchorEl(null)}
             >
-                {isAuthenticated ?
-                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                :
-                [<MenuItem onClick={() => handleLogin("popup")} key="loginPopup">Sign in using Popup</MenuItem>,
-                <MenuItem onClick={() => handleLogin("redirect")} key="loginRedirect">Sign in using Redirect</MenuItem>]
-                }
+                <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
         </div>
     )
 };
 
+const SignInSignOutButton = () => {
+    const isAuthenticated = useIsAuthenticated();
+
+    if (isAuthenticated) {
+        return <SignOutButton />;
+    } else {
+        return <SignInButton />;
+    }
+}
+
 const NavBar = () => {
     const classes = useStyles();
+
+    return (
+        <div className={classes.root}>
+            <AppBar position="static">
+            <Toolbar>
+                <Typography className={classes.title}>
+                    <Link href="/" color="inherit" variant="h6">MS Identity Platform</Link>
+                </Typography>
+                <WelcomeName />
+                <SignInSignOutButton />
+            </Toolbar>
+            </AppBar>
+        </div>
+    );
+};
+
+const WelcomeName = () => {
     const { accounts } = useMsal();
     const [name, setName] = useState(null);
 
@@ -96,22 +149,12 @@ const NavBar = () => {
         }
     }, [accounts]);
 
-    return (
-        <div className={classes.root}>
-            <AppBar position="static">
-            <Toolbar>
-                <Typography variant="h6" className={classes.title}>
-                    MS Identity Platform
-                </Typography>
-                {name ? (<Typography variant="h6">
-                    Welcome, {name}
-                </Typography> ): null}
-                <SignInSignOutButton />
-            </Toolbar>
-            </AppBar>
-        </div>
-    );
-};
+    if (name) {
+        return <Typography variant="h6">Welcome, {name}</Typography>;
+    } else {
+        return null;
+    }
+}
 
 export const PageLayout = (props) => {
     return (
