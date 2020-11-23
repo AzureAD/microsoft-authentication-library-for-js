@@ -1777,7 +1777,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
             username: "example@microsoft.com",
-            name: "Abe Lincoln"
+            name: "Abe Lincoln",
+            localAccountId: TEST_CONFIG.OID
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -1796,7 +1797,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
             username: "anotherExample@microsoft.com",
-            name: "Abe Lincoln"
+            name: "Abe Lincoln",
+            localAccountId: TEST_CONFIG.OID
         };
 
         const testAccount2: AccountEntity = new AccountEntity();

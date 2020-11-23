@@ -12,12 +12,12 @@ Please follow the issue template below.
 ## Library
 - [ ] `msal@1.x.x` or `@azure/msal@1.x.x`
 - [ ] `@azure/msal-browser@2.x.x`
+- [ ] `@azure/msal-node@1.x.x`
+- [ ] `@azure/msal-react@1.x.x`
 - [ ] `@azure/msal-angular@0.x.x`
 - [ ] `@azure/msal-angular@1.x.x`
+- [ ] `@azure/msal-angular@2.x.x`
 - [ ] `@azure/msal-angularjs@1.x.x`
-
-## Upcoming Library
-- [ ] `@azure/msal-node@1.x`
 
 ## Source
 - [ ] Internal (MSAL.js team)

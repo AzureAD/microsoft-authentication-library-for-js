@@ -2,6 +2,36 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Wed, 11 Nov 2020 23:33:20 GMT",
+      "tag": "msal_v1.4.4",
+      "version": "1.4.4",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix multiple matching tokens error (#2582)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "30bfee30c63c2afaa7ffafb41a2744159cd1fff5",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 07 Nov 2020 01:50:14 GMT",
+      "tag": "msal_v1.4.3",
+      "version": "1.4.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Build Pipeline Changes (#2406)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "af8459c0d53a4dc2bf495017608c0bb03004d006",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 29 Oct 2020 20:36:48 GMT",
       "tag": "msal_v1.4.3",
       "version": "1.4.3",

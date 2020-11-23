@@ -103,9 +103,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                     message: string,
                     containsPii: boolean
                 ): void => {
-                    if (containsPii) {
-                        console.log(`Log level: ${level} Message: ${message}`);
-                    }
+                    console.log(`Log level: ${level} Message: ${message}`);
                 },
                 piiLoggingEnabled: true,
             },

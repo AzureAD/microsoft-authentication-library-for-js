@@ -2,6 +2,81 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 11 Nov 2020 23:33:20 GMT",
+      "tag": "@azure/msal-browser_v2.7.0",
+      "version": "2.7.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Adds getAccountByLocalId to PCA Interface (#2588)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b6e1692cc3e3ea8c0d9b5808c4469446c01cfb84",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add navigateFrameWait and change loadFrameTimeout to browser to match core behavior (#2545)",
+            "author": "janutter@microsoft.com",
+            "commit": "9427b1f3ae14b7e0c143900f8b6de911db12a134",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Documentation update for new account retrieval APIs (#2585)",
+            "author": "hemoral@microsoft.com",
+            "commit": "cb782967cc8f07581488de71c4509fa12a702774",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Support relative paths on redirectUri parameter (#2560)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "12ccf0441f8735e9d2875cebac6065447ecc622d",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 10 Nov 2020 01:48:44 GMT",
+      "tag": "@azure/msal-browser_v2.6.1",
+      "version": "2.6.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Export stubbed PCA instance (#2540)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "612feaeb6e5099cae6d1f606d187f5e38063018f",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 07 Nov 2020 01:50:14 GMT",
+      "tag": "@azure/msal-browser_v2.6.0",
+      "version": "2.6.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "98f43038608fe66a256dabfff0810476e9e6b3ab",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Build Pipeline Changes (#2406)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "af8459c0d53a4dc2bf495017608c0bb03004d006",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Nov 2020 23:33:39 GMT",
       "tag": "@azure/msal-browser_v2.5.2",
       "version": "2.5.2",

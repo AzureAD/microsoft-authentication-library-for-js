@@ -63,6 +63,10 @@ export const ClientAuthErrorMessage = {
         code: "multiple_matching_accounts",
         desc: "The cache contains multiple accounts satisfying the given parameters. Please pass more info to obtain the correct account"
     },
+    multipleMatchingAppMetadata: {
+        code: "multiple_matching_appMetadata",
+        desc: "The cache contains multiple appMetadata satisfying the given parameters. Please pass more info to obtain the correct appMetadata"
+    },
     tokenRequestCannotBeMade: {
         code: "request_cannot_be_made",
         desc: "Token request cannot be made without authorization code or refresh token."
@@ -239,8 +243,7 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Throws error when multiple tokens are in cache for the given scope.
-     * @param scope
+     * Throws error when multiple tokens are in cache.
      */
     static createMultipleMatchingTokensInCacheError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
@@ -248,12 +251,19 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Throws error when multiple tokens are in cache for the given scope.
-     * @param scope
+     * Throws error when multiple accounts are in cache for the given params
      */
     static createMultipleMatchingAccountsInCacheError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAccounts.code,
             ClientAuthErrorMessage.multipleMatchingAccounts.desc);
+    }
+
+    /**
+     * Throws error when multiple appMetada are in cache for the given clientId.
+     */
+    static createMultipleMatchingAppMetadataInCacheError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAppMetadata.code,
+            ClientAuthErrorMessage.multipleMatchingAppMetadata.desc);
     }
 
     /**
