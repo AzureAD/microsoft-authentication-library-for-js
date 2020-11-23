@@ -29,7 +29,7 @@ import { Storage } from "../cache/Storage";
 import { Constants as NodeConstants, ApiId } from "../utils/Constants";
 import { TokenCache } from "../cache/TokenCache";
 import { ClientAssertion } from "./ClientAssertion";
-import { version } from "../../package.json";
+import { version, name } from "../../package.json";
 
 export abstract class ClientApplication {
     private _authority: Authority;
@@ -47,7 +47,7 @@ export abstract class ClientApplication {
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
-        this.logger = new Logger(this.config.system!.loggerOptions!);
+        this.logger = new Logger(this.config.system!.loggerOptions!, name, version);
         this.storage = new Storage(this.logger);
         this.tokenCache = new TokenCache(
             this.storage,
