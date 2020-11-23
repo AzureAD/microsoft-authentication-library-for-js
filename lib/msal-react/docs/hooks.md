@@ -174,7 +174,7 @@ useEffect(() => {
             return null;
         });
     }
-}, [inProgress, account, instance]);
+}, [inProgress, accounts, instance]);
 
 if (inProgress === "login") {
     // Render loading component
