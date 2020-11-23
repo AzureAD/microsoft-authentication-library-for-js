@@ -237,4 +237,4 @@ See the [documentation on scopes](https://github.com/AzureAD/microsoft-authentic
 
 ## What should I do if I believe my issue is with the B2C service itself rather than with the library
 
-In that case, please file a support ticket with the B2C team by following the instructions here: [B2C support options](https://docs.microsoft.com/azure/active-directory-b2c/support-options). They can help you out further. They may ask for a public repo link or additional data. You can also link this Github issue in the support request.
+In that case, please file a support ticket with the B2C team by following the instructions here: [B2C support options](https://docs.microsoft.com/azure/active-directory-b2c/support-options).
