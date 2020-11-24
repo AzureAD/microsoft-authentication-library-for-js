@@ -19,6 +19,7 @@ import { MSAL_INSTANCE, MSAL_LOGGER_CONFIG } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
 import { MsalLoggerConfiguration } from "./msal.logger.config";
+import { name, version } from "./../package.json";
 
 @Injectable()
 export class MsalService implements IMsalService {
@@ -34,7 +35,7 @@ export class MsalService implements IMsalService {
         if (hash) {
             this.redirectHash = `#${hash}`;
         }
-        this.logger = new Logger(this.msalLoggerConfig);
+        this.logger = new Logger(this.msalLoggerConfig, name, version);
     }
 
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
