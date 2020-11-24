@@ -2,6 +2,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "rootDir": "./",
     "outDir": "./out-tsc/lib",
     "target": "es2015",
     "declaration": true,
