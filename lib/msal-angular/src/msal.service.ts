@@ -15,9 +15,10 @@ import {
     SsoSilentRequest,
     Logger
 } from "@azure/msal-browser";
-import { MSAL_INSTANCE } from "./constants";
+import { MSAL_INSTANCE, MSAL_LOGGER_CONFIG } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
+import { MsalLoggerConfiguration } from "./msal.logger.config";
 
 @Injectable()
 export class MsalService implements IMsalService {
@@ -26,13 +27,14 @@ export class MsalService implements IMsalService {
 
     constructor(
         @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
+        @Inject(MSAL_LOGGER_CONFIG) private msalLoggerConfig: MsalLoggerConfiguration,
         private location: Location
     ) {
         const hash = this.location.path(true).split("#").pop();
         if (hash) {
             this.redirectHash = `#${hash}`;
         }
-        this.logger = this.instance.getLogger();
+        this.logger = new Logger(this.msalLoggerConfig);
     }
 
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
