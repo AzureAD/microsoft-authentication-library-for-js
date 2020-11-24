@@ -95,6 +95,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         return {
             ...serverParams,
+            // Code param is optional in ServerAuthorizationCodeResponse but required in AuthorizationCodePaylod
             code: serverParams.code
         };
     }

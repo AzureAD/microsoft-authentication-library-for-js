@@ -26,7 +26,7 @@ export abstract class InteractionHandler {
      * Function to enable user interaction.
      * @param requestUrl
      */
-    abstract initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Window | Promise<HTMLIFrameElement>;
+    abstract initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Window | Promise<HTMLIFrameElement> | Promise<void>;
 
     /**
      * Function to handle response parameters from hash.
@@ -55,11 +55,7 @@ export abstract class InteractionHandler {
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            const cloudInstanceAuthorityUri = `https://${authCodeResponse.cloud_instance_host_name}/${authority.tenant}/`;
-            if (cloudInstanceAuthorityUri !== authority.canonicalAuthority) {
-                const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(this.authCodeRequest.authority, networkModule, authority.protocolMode);
-                this.authModule.updateAuthority(cloudInstanceAuthority);
-            }
+            this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
         authCodeResponse.nonce = cachedNonce;
@@ -69,5 +65,13 @@ export abstract class InteractionHandler {
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
         this.browserStorage.cleanRequest(serverParams.state);
         return tokenResponse;
+    }
+
+    protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule): Promise<void> {
+        const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
+        if (cloudInstanceAuthorityUri !== authority.canonicalAuthority) {
+            const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(this.authCodeRequest.authority, networkModule, authority.protocolMode);
+            this.authModule.updateAuthority(cloudInstanceAuthority);
+        }
     }
 }
