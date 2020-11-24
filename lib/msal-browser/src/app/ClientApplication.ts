@@ -256,7 +256,7 @@ export abstract class ClientApplication {
             const currentAuthority = this.browserStorage.getCachedAuthority(serverParams.state);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
-            return await interactionHandler.handleCodeResponse(responseHash, this.config.auth.clientId);
+            return await interactionHandler.handleCodeResponse(responseHash, this.config.auth.clientId, authClient.authority, this.networkClient);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(serverParams.state);
@@ -388,7 +388,7 @@ export abstract class ClientApplication {
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
 
             // Handle response from hash string.
-            const result = await interactionHandler.handleCodeResponse(hash);
+            const result = await interactionHandler.handleCodeResponse(hash, authClient.authority, this.networkClient);
 
             // If logged in, emit acquire token events
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
@@ -538,7 +538,7 @@ export abstract class ClientApplication {
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
         // Handle response from hash string
-        return silentHandler.handleCodeResponse(hash);
+        return silentHandler.handleCodeResponse(hash, authClient.authority, this.networkClient);
     }
 
     // #endregion
@@ -654,7 +654,7 @@ export abstract class ClientApplication {
     /**
      * Used to get a discovered version of the default authority.
      */
-    protected async getDiscoveredDefaultAuthority(): Promise<Authority> {
+    async getDiscoveredDefaultAuthority(): Promise<Authority> {
         if (!this.defaultAuthority) {
             this.defaultAuthority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.config.auth.protocolMode);
         }
@@ -855,7 +855,7 @@ export abstract class ClientApplication {
             ...this.initializeBaseRequest(validatedRequest)
         };
 
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
+        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority || this.defaultAuthority.canonicalAuthority);
 
         return validatedRequest;
     }

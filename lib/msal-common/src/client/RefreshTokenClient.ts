@@ -90,7 +90,6 @@ export class RefreshTokenClient extends BaseClient {
                 } else {
                     throw e;
                 }
-
             }
         }
 

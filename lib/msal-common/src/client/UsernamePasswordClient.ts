@@ -63,7 +63,7 @@ export class UsernamePasswordClient extends BaseClient {
             authority: authority.canonicalAuthority,
             scopes: request.scopes
         };
-        const requestBody = await this.createTokenRequestBody(request);
+        const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);

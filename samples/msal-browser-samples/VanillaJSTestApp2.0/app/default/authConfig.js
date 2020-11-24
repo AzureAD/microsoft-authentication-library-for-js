@@ -35,7 +35,10 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["User.Read"],
+    extraQueryParameters: {
+        "instance_aware": "true"
+    }
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.
@@ -47,11 +50,17 @@ const graphConfig = {
 // Add here scopes for access token to be used at MS Graph API endpoints.
 const tokenRequest = {
     scopes: ["Mail.Read"],
-    forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
+    forceRefresh: false, // Set this to "true" to skip a cached token and go to the server to get a new token
+    extraQueryParameters: {
+        "instance_aware": "true"
+    }
 };
 
 const silentRequest = {
-    scopes: ["openid", "profile", "User.Read", "Mail.Read"]
+    scopes: ["openid", "profile", "User.Read", "Mail.Read"],
+    extraQueryParameters: {
+        "instance_aware": "true"
+    }
 };
 
 const logoutRequest = {}

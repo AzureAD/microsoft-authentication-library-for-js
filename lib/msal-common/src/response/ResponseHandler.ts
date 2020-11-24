@@ -25,7 +25,6 @@ import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthEr
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
-import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { AuthenticationScheme, THE_FAMILY_ID } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
@@ -161,7 +160,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, idTokenObj, false, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
     /**
@@ -286,7 +285,15 @@ export class ResponseHandler {
      * @param fromTokenCache
      * @param stateString
      */
-    static async generateAuthenticationResult(cryptoObj: ICrypto, cacheRecord: CacheRecord, idTokenObj: AuthToken, fromTokenCache: boolean, requestState?: RequestStateObject, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
+    static async generateAuthenticationResult(
+        cryptoObj: ICrypto, 
+        authority: Authority,
+        cacheRecord: CacheRecord, 
+        idTokenObj: AuthToken, 
+        fromTokenCache: boolean, 
+        requestState?: RequestStateObject, 
+        resourceRequestMethod?: string, 
+        resourceRequestUri?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date = null;
@@ -309,7 +316,7 @@ export class ResponseHandler {
         const uid = idTokenObj ? idTokenObj.claims.oid || idTokenObj.claims.sub : "";
         const tid = idTokenObj ? idTokenObj.claims.tid : "";
         return {
-            authority: null,
+            authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes,
