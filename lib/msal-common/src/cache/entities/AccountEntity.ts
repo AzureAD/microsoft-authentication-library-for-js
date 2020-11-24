@@ -52,6 +52,8 @@ export class AccountEntity {
     lastModificationTime?: string;
     lastModificationApp?: string;
     oboAssertion?: string;
+    cloudGraphHostName?: string;
+    msGraphHost?: string; 
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -133,7 +135,9 @@ export class AccountEntity {
         homeAccountId: string,
         authority: Authority,
         idToken: AuthToken,
-        oboAssertion?: string
+        oboAssertion?: string,
+        cloudGraphHostName?: string,
+        msGraphHost?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -166,6 +170,9 @@ export class AccountEntity {
             account.name = idToken.claims.name;
         }
 
+        account.cloudGraphHostName = cloudGraphHostName;
+        account.msGraphHost = msGraphHost;
+
         return account;
     }
 
@@ -178,7 +185,9 @@ export class AccountEntity {
         authority: Authority,
         homeAccountId: string,
         idToken: AuthToken,
-        oboAssertion?: string
+        oboAssertion?: string,
+        cloudGraphHostName?: string,
+        msGraphHost?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -207,6 +216,9 @@ export class AccountEntity {
         }
 
         account.environment = env;
+
+        account.cloudGraphHostName = cloudGraphHostName;
+        account.msGraphHost = msGraphHost;
 
         /*
          * add uniqueName to claims

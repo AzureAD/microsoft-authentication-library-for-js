@@ -157,7 +157,6 @@ export class OnBehalfOfClient extends BaseClient {
             request.resourceRequestMethod,
             request.resourceRequestUri,
             null,
-            null,
             request.scopes,
             request.oboAssertion
         );

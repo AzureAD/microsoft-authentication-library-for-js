@@ -51,7 +51,6 @@ export class RefreshTokenClient extends BaseClient {
             null,
             null,
             null,
-            null,
             true
         );
     }
