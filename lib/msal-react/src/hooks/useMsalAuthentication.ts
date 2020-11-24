@@ -28,7 +28,7 @@ export function useMsalAuthentication(
 
     const login = useCallback(async (callbackInteractionType?: InteractionType, callbackRequest?: PopupRequest|RedirectRequest|SsoSilentRequest): Promise<AuthenticationResult|null> => {
         const loginType = callbackInteractionType || interactionType;
-        const loginRequest = callbackRequest || authenticationRequest || {};
+        const loginRequest = callbackRequest || authenticationRequest;
         switch (loginType) {
             case InteractionType.Popup:
                 return instance.loginPopup(loginRequest as PopupRequest);
@@ -47,17 +47,23 @@ export function useMsalAuthentication(
             switch(message.eventType) {
                 case EventType.LOGIN_SUCCESS:
                 case EventType.SSO_SILENT_SUCCESS:
-                    message.payload && setResponse([message.payload as AuthenticationResult, null]);
+                    if (message.payload) {
+                        setResponse([message.payload as AuthenticationResult, null]);
+                    }
                     break;
                 case EventType.LOGIN_FAILURE:
                 case EventType.SSO_SILENT_FAILURE:
-                    message.error && setResponse([null, message.error as AuthError]);
+                    if (message.error) {
+                        setResponse([null, message.error as AuthError]);
+                    }
                     break;
             }
         });
 
         return () => {
-            callbackId && instance.removeEventCallback(callbackId);
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
         };
     }, [instance]);
 

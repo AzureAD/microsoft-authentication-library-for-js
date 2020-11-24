@@ -68,7 +68,9 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
         });
 
         return () => {
-            callbackId && instance.removeEventCallback(callbackId);
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
         };
     }, [instance]);
 
