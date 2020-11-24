@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, AuthorityFactory, Authority, INetworkModule } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -57,7 +57,7 @@ export class RedirectHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponse(locationHash: string, clientId?: string): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, clientId: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
@@ -72,13 +72,27 @@ export class RedirectHandler {
         // Handle code response.
         const stateKey = this.browserStorage.generateStateKey(serverParams.state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
-        const authCode = this.authModule.handleFragmentResponse(locationHash, requestState);
+        const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
         this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, this.browserCrypto);
-        this.authCodeRequest.code = authCode;
+        
+        // Assign code to request
+        this.authCodeRequest.code = authCodeResponse.code;
+
+        // Check for new cloud instance
+        if (authCodeResponse.cloud_instance_host_name) {
+            const cloudInstanceAuthorityUri = `https://${authCodeResponse.cloud_instance_host_name}/${authority.tenant}/`;
+            if (cloudInstanceAuthorityUri !== authority.canonicalAuthority) {
+                const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(this.authCodeRequest.authority, networkModule, authority.protocolMode);
+                this.authModule.updateAuthority(cloudInstanceAuthority);
+            }
+        }
+
+        authCodeResponse.nonce = cachedNonce;
+        authCodeResponse.state = requestState;
 
         // Remove throttle if it exists
         if (clientId) {
@@ -86,7 +100,7 @@ export class RedirectHandler {
         }
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, cachedNonce, requestState);
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
 
         this.browserStorage.cleanRequest(serverParams.state);
         return tokenResponse;
