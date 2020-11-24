@@ -19,4 +19,5 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
 export type DeviceCodeRequest = BaseAuthRequest &  {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
     cancel?: boolean;
+    timeout?: number;
 };
