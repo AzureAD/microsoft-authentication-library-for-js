@@ -56,6 +56,7 @@ export class ClientCredentialClient extends BaseClient {
 
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
+            this.authority,
             {
                 account: null,
                 accessToken: cachedAccessToken,

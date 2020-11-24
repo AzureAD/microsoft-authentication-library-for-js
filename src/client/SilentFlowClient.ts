@@ -79,6 +79,7 @@ export class SilentFlowClient extends BaseClient {
         const idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
+            this.authority,
             cacheRecord,
             idTokenObj, 
             true,

@@ -74,6 +74,7 @@ export class OnBehalfOfClient extends BaseClient {
 
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
+            this.authority,
             {
                 account: cachedAccount,
                 accessToken: cachedAccessToken,
