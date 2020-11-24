@@ -3,23 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, AuthorityFactory, Authority, INetworkModule } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import { InteractionHandler } from "./InteractionHandler";
 
-export class RedirectHandler {
+export class RedirectHandler extends InteractionHandler {
 
-    private authModule: AuthorizationCodeClient;
-    private browserStorage: BrowserCacheManager;
     private browserCrypto: ICrypto;
-    private authCodeRequest: AuthorizationCodeRequest;
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, browserCrypto: ICrypto) {
-        this.authModule = authCodeModule;
-        this.browserStorage = storageImpl;
+        super(authCodeModule, storageImpl);
         this.browserCrypto = browserCrypto;
     }
 
@@ -27,7 +24,7 @@ export class RedirectHandler {
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectTimeout: number, redirectStartPage?: string): Promise<void> {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectTimeout?: number, redirectStartPage?: string): Promise<void> {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
@@ -57,7 +54,7 @@ export class RedirectHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponse(locationHash: string, clientId: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
@@ -84,11 +81,7 @@ export class RedirectHandler {
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            const cloudInstanceAuthorityUri = `https://${authCodeResponse.cloud_instance_host_name}/${authority.tenant}/`;
-            if (cloudInstanceAuthorityUri !== authority.canonicalAuthority) {
-                const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(this.authCodeRequest.authority, networkModule, authority.protocolMode);
-                this.authModule.updateAuthority(cloudInstanceAuthority);
-            }
+            this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
         authCodeResponse.nonce = cachedNonce;

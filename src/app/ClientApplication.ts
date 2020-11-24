@@ -256,7 +256,7 @@ export abstract class ClientApplication {
             const currentAuthority = this.browserStorage.getCachedAuthority(serverParams.state);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
-            return await interactionHandler.handleCodeResponse(responseHash, this.config.auth.clientId, authClient.authority, this.networkClient);
+            return await interactionHandler.handleCodeResponse(responseHash, authClient.authority, this.networkClient, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequest(serverParams.state);
