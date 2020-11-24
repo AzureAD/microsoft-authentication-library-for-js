@@ -13,8 +13,7 @@ const ProfileContent = () => {
     function requestProfileData() {
         instance.acquireTokenSilent({
             ...loginRequest,
-            account: accounts[0],
-            redirectUri: "http://localhost:3000"
+            account: accounts[0]
         }).then((response) => {
             callMsGraph(response.accessToken).then(response => setGraphData(response));
         });
@@ -41,8 +40,7 @@ const Loading = () => {
 
 export default function Profile() {
     const authRequest = {
-        ...loginRequest,
-        redirectUri: "http://localhost:3000"
+        ...loginRequest
     };
 
     return (

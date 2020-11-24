@@ -79,7 +79,7 @@ const SignOutButton = () => {
 
     const handleLogout = () => {
         setAnchorEl(null);
-        instance.logout({postLogoutRedirectUri: "http://localhost:3000/"});
+        instance.logout();
     }
 
     return (
