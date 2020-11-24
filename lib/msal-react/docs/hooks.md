@@ -195,7 +195,6 @@ If you use silent you should catch any errors and attempt an interactive login a
 
 ```javascript
 import React, { useEffect } from 'react';
-import './App.css';
 
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication } from "@azure/msal-react";
 import { InteractionType } from '@azure/msal-browser';
@@ -213,13 +212,13 @@ function App() {
         }
     }, [error]);
 
-    const msal = useMsal();
+    const { accounts } = useMsal();
 
     return (
         <React.Fragment>
             <p>Anyone can see this paragraph.</p>
             <AuthenticatedTemplate>
-                <p>Signed in as: {msal.accounts[0]?.username}</p>
+                <p>Signed in as: {accounts[0]?.username}</p>
             </AuthenticatedTemplate>
             <UnauthenticatedTemplate>
                 <p>No users are signed in!</p>
