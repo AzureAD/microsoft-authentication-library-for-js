@@ -36,7 +36,7 @@ function initializeMsal() {
       MsalModule.forRoot(
         MSALInstanceFactory(),
         MSALGuardConfigFactory(),
-        { interactionType: InteractionType.Popup, protectedResourceMap: new Map() }),
+        { interactionType: InteractionType.Popup, protectedResourceMap: new Map() }, null),
       HttpClientTestingModule
     ],
     providers: [
