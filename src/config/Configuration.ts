@@ -89,7 +89,7 @@ export type Configuration = {
 export type BrowserConfiguration = {
     auth: Required<BrowserAuthOptions>,
     cache: Required<CacheOptions>,
-    system: Required<Omit<BrowserSystemOptions, "loadFrameTimeout">>
+    system: Required<BrowserSystemOptions>
 };
 
 /**
@@ -130,10 +130,11 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     };
 
     // Default system options for browser
-    const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<Omit<BrowserSystemOptions, "loadFrameTimeout">> = {
+    const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: BrowserUtils.getBrowserNetworkClient(),
+        loadFrameTimeout: 0,
         // If loadFrameTimeout is provided, use that as default.
         windowHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_IFRAME_TIMEOUT_MS,
