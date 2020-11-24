@@ -8,7 +8,7 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AADServerParamKeys, AuthenticationScheme } from "../utils/Constants";
+import { GrantType, AuthenticationScheme } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -113,16 +113,10 @@ export class AuthorizationCodeClient extends BaseClient {
             this.cacheManager.clear();
         }
 
-        // Get postLogoutRedirectUri.
-        const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ?
-            `?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(logoutRequest.postLogoutRedirectUri)}` : "";
-
-        const correlationIdParam = logoutRequest.correlationId ?
-            `&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(logoutRequest.correlationId)}` : "";
+        const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
         // Construct logout URI.
-        const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}${correlationIdParam}`;
-        return logoutUri;
+        return StringUtils.isEmpty(queryString) ? this.authority.endSessionEndpoint : `${this.authority.endSessionEndpoint}?${queryString}`;
     }
 
     /**
@@ -261,6 +255,28 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.extraQueryParameters) {
             parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
+    }
+
+    /**
+     * This API validates the `EndSessionRequest` and creates a URL
+     * @param request
+     */
+    private createLogoutUrlQueryString(request: EndSessionRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.postLogoutRedirectUri) {
+            parameterBuilder.addPostLogoutRedirectUri(request.postLogoutRedirectUri);
+        }
+        
+        if (request.correlationId) {
+            parameterBuilder.addCorrelationId(request.correlationId);
+        }
+
+        if (request.idTokenHint) {
+            parameterBuilder.addIdTokenHint(request.idTokenHint);
         }
 
         return parameterBuilder.createQueryString();
