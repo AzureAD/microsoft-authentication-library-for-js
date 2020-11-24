@@ -45,7 +45,7 @@ export default function Profile() {
 
     return (
         <MsalAuthenticationTemplate 
-            interactionType="popup" 
+            interactionType={InteractionType.Popup} 
             authenticationRequest={authRequest} 
             errorComponent={ErrorComponent} 
             loadingComponent={Loading}
