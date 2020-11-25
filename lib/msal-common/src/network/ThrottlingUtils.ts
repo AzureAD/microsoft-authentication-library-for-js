@@ -66,7 +66,7 @@ export class ThrottlingUtils {
      * @param response
      */
     static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
-        return response.status == 429 || response.status >= 500 && response.status < 600;
+        return response.status === 429 || response.status >= 500 && response.status < 600;
     }
 
     /**

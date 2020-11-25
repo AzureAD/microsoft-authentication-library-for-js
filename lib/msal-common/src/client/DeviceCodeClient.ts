@@ -177,7 +177,7 @@ export class DeviceCodeClient extends BaseClient {
                             headers,
                             thumbprint);
 
-                        if (response.body && response.body.error == Constants.AUTHORIZATION_PENDING) {
+                        if (response.body && response.body.error === Constants.AUTHORIZATION_PENDING) {
                             // user authorization is pending. Sleep for polling interval and try again
                             this.logger.info(response.body.error_description);
                         } else {

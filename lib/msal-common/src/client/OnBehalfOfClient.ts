@@ -41,7 +41,7 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         const cachedAuthenticationResult = this.getCachedAuthenticationResult(request);
-        if (cachedAuthenticationResult != null) {
+        if (cachedAuthenticationResult !== null) {
             return cachedAuthenticationResult;
         } else {
             return await this.executeTokenRequest(request, this.authority);
