@@ -13,6 +13,9 @@ import {
     AuthenticationScheme,
     ProtocolMode,
     Logger,
+    Authority,
+    ClientConfiguration,
+    AuthorizationCodePayload,
 } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
@@ -70,6 +73,9 @@ const networkInterface = {
     },
 };
 
+let authorityInstance: Authority;
+let authConfig: ClientConfiguration;
+
 describe("InteractionHandler.ts Unit Tests", () => {
 
     let authCodeModule: AuthorizationCodeClient;
@@ -83,8 +89,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
-        const authConfig = {
+        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        authConfig = {
             authOptions: {
                 ...configObj.auth,
                 authority: authorityInstance,
@@ -150,16 +156,15 @@ describe("InteractionHandler.ts Unit Tests", () => {
 
         it("throws error if given location hash is empty", async () => {
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
-            await expect(interactionHandler.handleCodeResponse("")).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(interactionHandler.handleCodeResponse("")).to.be.rejectedWith(BrowserAuthError);
+            await expect(interactionHandler.handleCodeResponse("", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
+            await expect(interactionHandler.handleCodeResponse("", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
 
-            await expect(interactionHandler.handleCodeResponse(null)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(interactionHandler.handleCodeResponse(null)).to.be.rejectedWith(BrowserAuthError);
+            await expect(interactionHandler.handleCodeResponse(null, authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
+            await expect(interactionHandler.handleCodeResponse(null, authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
         });
 
         // TODO: Need to improve this test
         it("successfully handles response", async () => {
-            const testCodeResponse = "authcode";
             const idTokenClaims = {
                 "ver": "2.0",
                 "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -172,13 +177,21 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 "nonce": "123523"
             };
 
+            const testCodeResponse: AuthorizationCodePayload = {
+                code: "authcode",
+                nonce: idTokenClaims.nonce,
+                state: TEST_STATE_VALUES.TEST_STATE
+            };
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: idTokenClaims.tid,
-                username: idTokenClaims.preferred_username
+                username: idTokenClaims.preferred_username,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             };
             const testTokenResponse: AuthenticationResult = {
+                authority: authorityInstance.canonicalAuthority,
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
                 fromCache: false,
@@ -197,9 +210,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
             const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
             interactionHandler.initiateAuthRequest("testNavUrl");
-            const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, authorityInstance, authConfig.networkInterface);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
-            expect(acquireTokenSpy.calledWith(testAuthCodeRequest, idTokenClaims.nonce, TEST_STATE_VALUES.TEST_STATE)).to.be.true;
+            expect(acquireTokenSpy.calledWith(testAuthCodeRequest, testCodeResponse)).to.be.true;
         });
     });
 });

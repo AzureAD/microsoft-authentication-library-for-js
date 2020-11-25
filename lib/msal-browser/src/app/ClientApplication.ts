@@ -855,7 +855,7 @@ export abstract class ClientApplication {
             ...this.initializeBaseRequest(validatedRequest)
         };
 
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority || this.defaultAuthority.canonicalAuthority);
+        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
         return validatedRequest;
     }

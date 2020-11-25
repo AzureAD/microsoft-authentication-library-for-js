@@ -116,7 +116,7 @@ export class ResponseHandler {
             idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
-            if (!StringUtils.isEmpty(authCodePayload.nonce)) {
+            if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
                     throw ClientAuthError.createNonceMismatchError();
                 }
@@ -128,7 +128,7 @@ export class ResponseHandler {
 
         // save the response tokens
         let requestStateObj: RequestStateObject = null;
-        if (!StringUtils.isEmpty(authCodePayload.state)) {
+        if (authCodePayload && !StringUtils.isEmpty(authCodePayload.state)) {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 

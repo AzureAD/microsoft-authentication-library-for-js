@@ -66,7 +66,7 @@ const cryptoInterface: ICrypto = {
 
 const testCacheManager = new MockStorageClass();
 
-const authority = new Authority("https://login.microsoftonline.com/common", networkInterface, ProtocolMode.AAD);
+const testAuthority = new Authority("https://login.microsoftonline.com/common", networkInterface, ProtocolMode.AAD);
 
 describe("ResponseHandler.ts", () => {
     beforeEach(() => {
@@ -78,7 +78,8 @@ describe("ResponseHandler.ts", () => {
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             environment: "login.windows.net",
             tenantId: "testTenantId",
-            username: "test@contoso.com"
+            username: "test@contoso.com",
+            localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
         });
         ClientTestUtils.setCloudDiscoveryMetadataStubs();
     });
@@ -98,14 +99,15 @@ describe("ResponseHandler.ts", () => {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
-                username: "test@contoso.com"
+                username: "test@contoso.com",
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             });
             sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(null);
 
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
             try {
-                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, authority);
+                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
                 expect(tokenResp).to.be.undefined;
             } catch(e) {
                 if (e instanceof AuthError) {
@@ -124,7 +126,8 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+                expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.be.null;
                 expect(cacheRecord.refreshToken).to.not.be.null;
@@ -132,7 +135,7 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, authority);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
         });
 
         it("doesn't create RefreshTokenEntity if refresh_token not in response", (done) => {
@@ -141,7 +144,8 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+                expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.not.be.null;
                 expect(cacheRecord.refreshToken).to.be.null;
@@ -149,7 +153,7 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, authority);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
         });
 
         it("create CacheRecord with all token entities", (done) => {
@@ -157,7 +161,8 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+                expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.not.be.null;
                 expect(cacheRecord.refreshToken).to.not.be.null;
@@ -165,7 +170,7 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, authority);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
         });
     });
 
@@ -175,7 +180,7 @@ describe("ResponseHandler.ts", () => {
             testResponse.access_token = null;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, authority);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
 
             expect(result.accessToken).to.be.eq("");
             expect(result.scopes).to.be.length(0);
@@ -188,7 +193,7 @@ describe("ResponseHandler.ts", () => {
             testResponse.refresh_token = null;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, authority);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
 
             expect(result.familyId).to.be.null;
         });
@@ -215,12 +220,13 @@ describe("ResponseHandler.ts", () => {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
-                username: "test@contoso.com"
+                username: "test@contoso.com",
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             });
             ClientTestUtils.setCloudDiscoveryMetadataStubs();
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, authority, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
 
             expect(result.tokenType).to.be.eq(AuthenticationScheme.POP);
             expect(result.accessToken).to.be.eq(signedJwt);
