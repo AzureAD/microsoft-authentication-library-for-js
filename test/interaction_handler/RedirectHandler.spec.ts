@@ -68,11 +68,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 level: LogLevel,
                 message: string,
                 containsPii: boolean
-            ): void => {
-                if (containsPii) {
-                    console.log(`Log level: ${level} Message: ${message}`);
-                }
-            },
+            ): void => {},
             piiLoggingEnabled: true,
         };
         const logger = new Logger(loggerConfig);
