@@ -8,10 +8,6 @@ const msalConfig = {
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     },
     system: {
-        brokerOptions: {
-            actAsBroker: true,
-            preferredInteractionType: "redirect"
-        },
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
                 if (containsPii) {	
@@ -32,6 +28,13 @@ const msalConfig = {
                         return;	
                 }
             }
+        }
+    },
+    experimental: {
+        // TODO: Use interaction type enum
+        brokerOptions: {
+            actAsBroker: true,
+            preferredInteractionType: "redirect"
         }
     }
 };
