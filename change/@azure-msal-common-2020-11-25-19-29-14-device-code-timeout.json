@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Adding device code timeout to the device code request(#2656)",
+  "packageName": "@azure/msal-common",
+  "email": "kamausamuel11@gmail.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-25T16:28:12.416Z"
+}
