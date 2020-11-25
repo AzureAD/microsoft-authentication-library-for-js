@@ -106,6 +106,14 @@ export abstract class ClientApplication {
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
         this.defaultAuthority = null;
+
+        this.checkExperimentalConfig(configuration);
+    }
+
+    private checkExperimentalConfig(userConfig: Configuration) {
+        if (userConfig.experimental) {
+            this.logger.warning("Experimental features are subject to changes or removal without warning.");
+        }
     }
 
     // #region Redirect Flow
