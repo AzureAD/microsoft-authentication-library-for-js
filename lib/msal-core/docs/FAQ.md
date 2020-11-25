@@ -289,7 +289,7 @@ Token lifetimes are 1 hour and the session lifetime is 24 hours. This means that
 
 ## Why is the accessToken field in the response empty?
 
-If you are sending `clientId` as the scope, you are requesting scopes for `openid` and `profile`, which are **ID token** scopes. Previously, MSAL.js would get an **ID token** and put it into the `accessToken` and `idToken` fields (both with the same value). We have since changed that behavior to be in-line with what the AAD/B2C server is sending back. Now MSAL.js gets the same **ID token** but puts it under `idToken` field and leaves the `accessToken` field empty.
+If you are requesting scopes `clientId`, `openid` and/or `profile`, these are **ID token** scopes. Previously, in versions <1.4.0, MSAL.js would get an **ID token** and put it into the `accessToken` and `idToken` fields (both with the same value). In version 1.4.0 this behavior was changed to be in-line with what the AAD/B2C server is sending back. Now MSAL.js gets the same **ID token** but puts it under `idToken` field and leaves the `accessToken` field empty. If you need an access token you should request a scope other than `clientId`, `openid` or `profile`
 
 See the [documentation on scopes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/scopes.md) for more information.
 
