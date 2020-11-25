@@ -7,8 +7,8 @@ var msal = require('@azure/msal-node');
 
 const msalConfig = {
     auth: {
-       clientId: "6c04f413-f6e7-4690-b372-dbdd083e7e5a",
-       authority: "https://login.microsoftonline.com/sgonz.onmicrosoft.com", 
+        clientId: "6c04f413-f6e7-4690-b372-dbdd083e7e5a",
+        authority: "https://login.microsoftonline.com/sgonz.onmicrosoft.com", 
     }
 };
 
