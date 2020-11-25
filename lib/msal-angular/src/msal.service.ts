@@ -15,27 +15,23 @@ import {
     SsoSilentRequest,
     Logger
 } from "@azure/msal-browser";
-import { MSAL_INSTANCE, MSAL_LOGGER_CONFIG } from "./constants";
+import { MSAL_INSTANCE, name, version } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
-import { MsalLoggerConfiguration } from "./msal.logger.config";
-import { name, version } from "./../package.json";
 
 @Injectable()
 export class MsalService implements IMsalService {
     private redirectHash: string;
-    public logger: Logger;
+    private logger: Logger;
 
     constructor(
         @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
-        @Inject(MSAL_LOGGER_CONFIG) private msalLoggerConfig: MsalLoggerConfiguration,
         private location: Location
     ) {
         const hash = this.location.path(true).split("#").pop();
         if (hash) {
             this.redirectHash = `#${hash}`;
         }
-        this.logger = new Logger(this.msalLoggerConfig, name, version);
     }
 
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
@@ -63,6 +59,16 @@ export class MsalService implements IMsalService {
     }
     ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.ssoSilent(request));
+    }
+    getLogger(): Logger {
+        if (!this.logger) {
+            this.logger = this.instance.getLogger().clone(name, version);
+        }
+        return this.logger;
+    }
+    setLogger(logger: Logger): void {
+        this.logger = logger.clone(name, version);
+        this.instance.setLogger(logger);
     }
 
 }

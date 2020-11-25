@@ -30,12 +30,12 @@ export class MsalInterceptor implements HttpInterceptor {
             throw new BrowserConfigurationAuthError("invalid_interaction_type", "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration");
         }
 
-        this.authService.logger.verbose("MSAL Interceptor activated");
+        this.authService.getLogger().verbose("MSAL Interceptor activated");
         const scopes = this.getScopesForEndpoint(req.url);
         const account = this.authService.instance.getAllAccounts()[0];
 
         if (!scopes || scopes.length === 0) {
-            this.authService.logger.verbose("Interceptor - no scopes for endpoint");
+            this.authService.getLogger().verbose("Interceptor - no scopes for endpoint");
             return next.handle(req);
         }
 
@@ -44,16 +44,16 @@ export class MsalInterceptor implements HttpInterceptor {
             .pipe(
                 catchError(() => {
                     if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
-                        this.authService.logger.verbose("Interceptor - error acquiring token silently, acquiring by popup");
+                        this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
                         return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes});
                     }
-                    this.authService.logger.verbose("Interceptor - error acquiring token silently, acquiring by redirect");
+                    this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by redirect");
                     const redirectStartPage = window.location.href;
                     this.authService.acquireTokenRedirect({...this.msalInterceptorConfig.authRequest, scopes, redirectStartPage});
                     return EMPTY;
                 }),
                 switchMap((result: AuthenticationResult) => {
-                    this.authService.logger.verbose("Interceptor - setting authorization headers");
+                    this.authService.getLogger().verbose("Interceptor - setting authorization headers");
                     const headers = req.headers
                         .set("Authorization", `Bearer ${result.accessToken}`);
 
@@ -65,7 +65,7 @@ export class MsalInterceptor implements HttpInterceptor {
     }
 
     private getScopesForEndpoint(endpoint: string): Array<string>|null {
-        this.authService.logger.verbose("Interceptor - getting scopes for endpoint");
+        this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
         const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
             const minimatch = new Minimatch(key);

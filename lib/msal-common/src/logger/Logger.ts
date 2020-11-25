@@ -69,6 +69,13 @@ export class Logger {
     }
 
     /**
+     * Create new Logger with existing configurations.
+     */
+    public clone(packageName: string, packageVersion: string): Logger {
+        return new Logger({loggerCallback: this.localCallback, piiLoggingEnabled: this.piiLoggingEnabled, logLevel: this.level}, packageName, packageVersion);
+    }
+
+    /**
      * Log message with required options.
      */
     private logMessage(logMessage: string, options: LoggerMessageOptions): void {

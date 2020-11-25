@@ -11,8 +11,7 @@ import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
 import { MsalGuard } from "./msal.guard";
 import { MsalBroadcastService } from "./msal.broadcast.service";
 import { MsalService } from "./msal.service";
-import { MSAL_INSTANCE , MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG, MSAL_LOGGER_CONFIG } from "./constants";
-import { MsalLoggerConfiguration } from "./msal.logger.config";
+import { MSAL_INSTANCE , MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG } from "./constants";
 
 @NgModule({
     declarations: [],
@@ -28,8 +27,7 @@ export class MsalModule {
     static forRoot(
         msalInstance: IPublicClientApplication,
         guardConfig: MsalGuardConfiguration,
-        interceptorConfig: MsalInterceptorConfiguration,
-        loggerConfig: MsalLoggerConfiguration
+        interceptorConfig: MsalInterceptorConfiguration
     ): ModuleWithProviders<MsalModule> {
         return {
             ngModule: MsalModule,
@@ -45,10 +43,6 @@ export class MsalModule {
                 {
                     provide: MSAL_INTERCEPTOR_CONFIG,
                     useValue: interceptorConfig
-                },
-                {
-                    provide: MSAL_LOGGER_CONFIG,
-                    useValue: loggerConfig
                 },
                 MsalService
             ]

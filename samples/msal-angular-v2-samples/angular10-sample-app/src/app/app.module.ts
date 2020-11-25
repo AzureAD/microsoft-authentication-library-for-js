@@ -13,7 +13,7 @@ import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation, LogLevel } from '@azure/msal-browser';
-import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration, MSAL_LOGGER_CONFIG, MsalLoggerConfiguration } from '@azure/msal-angular';
+import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
 
 const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1;
 
@@ -56,14 +56,6 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return { interactionType: InteractionType.Redirect };
 }
 
-export function MsalLoggerConfigFactory(): MsalLoggerConfiguration {
-  return {
-    loggerCallback,
-    logLevel: LogLevel.Verbose,
-    piiLoggingEnabled: false
-  }
-}
-
 @NgModule({
   declarations: [
     AppComponent,
@@ -97,10 +89,6 @@ export function MsalLoggerConfigFactory(): MsalLoggerConfiguration {
     {
       provide: MSAL_INTERCEPTOR_CONFIG,
       useFactory: MSALInterceptorConfigFactory
-    },
-    {
-      provide: MSAL_LOGGER_CONFIG,
-      useFactory: MsalLoggerConfigFactory
     },
     MsalService,
     MsalGuard,
