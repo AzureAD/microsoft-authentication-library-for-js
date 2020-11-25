@@ -51,7 +51,7 @@ function initializeMsal() {
     imports: [
       HttpClientTestingModule,
       RouterTestingModule,
-      MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory(), null)
+      MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory())
     ],
     providers: [
       MsalInterceptor,

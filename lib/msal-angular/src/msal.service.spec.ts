@@ -17,7 +17,7 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(msalInstance, null, { interactionType: InteractionType.Popup, protectedResourceMap: new Map() }, null)
+      MsalModule.forRoot(msalInstance, null, { interactionType: InteractionType.Popup, protectedResourceMap: new Map() })
     ],
     providers: [
       MsalService,
