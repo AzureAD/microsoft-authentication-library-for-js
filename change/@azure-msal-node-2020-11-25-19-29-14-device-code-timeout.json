@@ -2,7 +2,7 @@
   "type": "prerelease",
   "comment": "Adding device code timeout to the device code request(#2656)",
   "packageName": "@azure/msal-node",
-  "email": "kamausamuel11@gmail.com",
+  "email": "samuel.kamau@microsoft.com",
   "dependentChangeType": "patch",
   "date": "2020-11-25T16:29:04.442Z"
 }
