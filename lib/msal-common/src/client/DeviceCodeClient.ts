@@ -143,8 +143,9 @@ export class DeviceCodeClient extends BaseClient {
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
-        const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
-        const pollingIntervalMilli = ((request.timeout && request.timeout < deviceCodeResponse.interval) ? request.timeout : deviceCodeResponse.interval) * 1000;
+        const expirationWindow =  (request.timeout && request.timeout < deviceCodeResponse.expiresIn) ? request.timeout : deviceCodeResponse.expiresIn;
+        const deviceCodeExpirationTime = TimeUtils.nowSeconds() + expirationWindow;
+        const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
 
         /*
          * Poll token endpoint while (device code is not expired AND operation has not been cancelled by
