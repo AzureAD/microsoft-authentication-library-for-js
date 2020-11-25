@@ -413,11 +413,11 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!environment || !this.matchEnvironment(entity, environment)) {
+            if (!!environment && !this.matchEnvironment(entity, environment)) {
                 return;
             }
 
-            if (!clientId || !this.matchClientId(entity, clientId)) {
+            if (!!clientId && !this.matchClientId(entity, clientId)) {
                 return;
             }
 
