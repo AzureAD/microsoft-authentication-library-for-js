@@ -59,15 +59,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return;
         }
 
-        if (this.config.system.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
-            if(this.config.system.brokerOptions.allowBrokering) {
+        if (this.config.experimental.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
+            if(this.config.experimental.brokerOptions.allowBrokering) {
                 this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
             }
 
             this.broker = new BrokerClientApplication(this.config);
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
-        } else if (this.config.system.brokerOptions.allowBrokering) {
+        } else if (this.config.experimental.brokerOptions.allowBrokering) {
             this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();

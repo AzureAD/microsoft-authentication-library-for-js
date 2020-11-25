@@ -33,7 +33,7 @@ export class EmbeddedClientApplication {
     private browserStorage: BrowserCacheManager;
 
     private get trustedBrokersProvided(): boolean {
-        return this.config.system.brokerOptions.trustedBrokerDomains && this.config.system.brokerOptions.trustedBrokerDomains.length >= 1;
+        return this.config.experimental.brokerOptions.trustedBrokerDomains && this.config.experimental.brokerOptions.trustedBrokerDomains.length >= 1;
     }
     public brokerConnectionEstablished: boolean;
 
@@ -148,7 +148,7 @@ export class EmbeddedClientApplication {
 
             const onHandshakeResponse = (message: MessageEvent) => {
                 try {
-                    const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.config.system.brokerOptions.trustedBrokerDomains);
+                    const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.config.experimental.brokerOptions.trustedBrokerDomains);
                     if (brokerHandshakeResponse) {
                         clearTimeout(timeoutId);
                         this.logger.info(`Received handshake response: ${JSON.stringify(brokerHandshakeResponse)}`);

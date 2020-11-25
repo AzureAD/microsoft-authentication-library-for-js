@@ -75,13 +75,16 @@ export type BrokerOptions = {
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
-    brokerOptions?: BrokerOptions;
     networkClient?: INetworkModule;
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
+};
+
+export type ExperimentalOptions = {
+    brokerOptions?: BrokerOptions;
 };
 
 /**
@@ -91,11 +94,13 @@ export type BrowserSystemOptions = SystemOptions & {
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
  * - cache: this is where you configure cache location and whether to store cache in cookies
  * - system: this is where you can configure the network client, logger, token renewal offset
+ * - experimental: this is where you can experiment with new featueres (i.e. broker)
  */
 export type Configuration = {
-    auth?: BrowserAuthOptions,
-    cache?: CacheOptions,
-    system?: BrowserSystemOptions
+    auth?: BrowserAuthOptions;
+    cache?: CacheOptions;
+    system?: BrowserSystemOptions;
+    experimental?: ExperimentalOptions;
 };
 
 /**
@@ -107,7 +112,7 @@ export type Configuration = {
  *
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration): Configuration {
+export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, experimental: userExperimental }: Configuration): Configuration {
 
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
@@ -148,13 +153,16 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
-        brokerOptions: DEFAULT_BROKER_OPTIONS,
         networkClient: BrowserUtils.getBrowserNetworkClient(),
         windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
         loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false
+    };
+
+    const DEFAULT_EXPERIMENTAL_OPTIONS: ExperimentalOptions = {
+        brokerOptions: DEFAULT_BROKER_OPTIONS
     };
 
     const overlayedConfig: Configuration = {
@@ -166,10 +174,14 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             loggerOptions: {
                 ...DEFAULT_LOGGER_OPTIONS, 
                 ...userInputSystem.loggerOptions,
-            },
+            }
+        },
+        experimental: {
+            ...DEFAULT_EXPERIMENTAL_OPTIONS,
+            ...userExperimental,
             brokerOptions: {
                 ...DEFAULT_BROKER_OPTIONS,
-                ...userInputSystem.brokerOptions
+                ...userExperimental.brokerOptions
             }
         }
     };

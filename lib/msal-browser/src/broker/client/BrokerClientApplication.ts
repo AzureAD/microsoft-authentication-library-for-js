@@ -42,9 +42,10 @@ export class BrokerClientApplication extends ClientApplication {
     async handleRedirectPromise(): Promise<BrokerAuthenticationResult | null> {
         this.cachedBrokerResponse = super.handleRedirectPromise() as Promise<BrokerAuthenticationResult>;
         const cachedResponse = (await this.cachedBrokerResponse);
+        // TODO: What to do in cases of multi-account in broker?
         if (cachedResponse) {
             this.brokerAccount = cachedResponse.account;
-            return cachedResponse;
+            // return cachedResponse;
         }
         
         return null;
@@ -154,8 +155,8 @@ export class BrokerClientApplication extends ClientApplication {
                 case InteractionType.Redirect:
                 case InteractionType.Popup:
                 default:
-                    const interactionType = this.config.system.brokerOptions.preferredInteractionType && this.config.system.brokerOptions.preferredInteractionType !== InteractionType.None 
-                        ? this.config.system.brokerOptions.preferredInteractionType : validMessage.interactionType;
+                    const interactionType = this.config.experimental.brokerOptions.preferredInteractionType && this.config.experimental.brokerOptions.preferredInteractionType !== InteractionType.None 
+                        ? this.config.experimental.brokerOptions.preferredInteractionType : validMessage.interactionType;
                     return this.interactiveBrokerRequest(interactionType, validMessage, clientMessage);
             }
         }
@@ -242,7 +243,7 @@ export class BrokerClientApplication extends ClientApplication {
             const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(silentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
             if (brokerAuthResponse.result.tokensToCache) {
-                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+                this.logger.info(`Sending auth response: ${JSON.stringify(brokerAuthResponse)}`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
             } else {
