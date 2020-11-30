@@ -94,7 +94,7 @@ describe("OnBehalfOf unit tests", () => {
 
     it("acquires a token, no token in the cache", async () => {
 
-        sinon.stub(OnBehalfOfClient.prototype, <any>"getCachedAuthenticationResult").returns(null);
+        sinon.stub(OnBehalfOfClient.prototype, <any>"getCachedAuthenticationResult").resolves(null);
         sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
 
         const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
