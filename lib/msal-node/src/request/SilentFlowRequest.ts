@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../account/AccountInfo";
-import { BaseAuthRequest } from "./BaseAuthRequest";
+import { AccountInfo, SilentFlowRequest as CommonSilentFlowRequest } from "@azure/msal-common";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -14,10 +13,8 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - account                - Account entity to lookup the credentials.
  * - forceRefresh           - Forces silent requests to make network calls if true.
- * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
- * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
-export type SilentFlowRequest = BaseAuthRequest & {
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account"|"scopes"|"resourceRequestMethod"|"resourceRequestUri">> & {
     account: AccountInfo;
-    forceRefresh: boolean;
+    scopes: Array<string>;
 };

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@azure/msal-react": "file../../../lib/msal-react",
+    "@azure/msal-react": "file:../../../lib/msal-react",
     "@azure/msal-browser": "file:../../../lib/msal-browser",
     "bootstrap": "^4.5.3",
     "jquery": "^3.5.1",
