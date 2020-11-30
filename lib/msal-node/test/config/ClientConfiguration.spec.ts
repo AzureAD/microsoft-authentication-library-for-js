@@ -64,7 +64,7 @@ describe('ClientConfiguration tests', () => {
         // expect(console.warn).toHaveBeenCalledTimes(1);
 
         // auth options
-        expect(config.auth!.authority).toEqual('');
+        expect(config.auth!.authority).toEqual(TEST_CONSTANTS.DEFAULT_AUTHORITY);
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
     });
 
