@@ -27,7 +27,7 @@ export class RedirectHandler {
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectTimeout: number, redirectStartPage?: string): Promise<void> {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectTimeout: number, redirectStartPage: string, onRedirectNavigate?: (url: string) => void | boolean): Promise<void> {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
@@ -44,8 +44,25 @@ export class RedirectHandler {
                 // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
                 throw BrowserAuthError.createRedirectInIframeError(isIframedApp);
             }
-            // Navigate window to request URL
-            return BrowserUtils.navigateWindow(requestUrl, redirectTimeout, this.authModule.logger);
+
+            // If onRedirectNavigate is implemented, invoke it and provide requestUrl
+            if (typeof onRedirectNavigate === "function") {
+                this.authModule.logger.verbose("Invoking onRedirectNavigate callback");
+                const navigate = onRedirectNavigate(requestUrl);
+
+                // Returning false from onRedirectNavigate will stop navigation
+                if (navigate !== false) {
+                    this.authModule.logger.verbose("onRedirectNavigate did not return false, navigating");
+                    return BrowserUtils.navigateWindow(requestUrl, redirectTimeout, this.authModule.logger);
+                } else {
+                    this.authModule.logger.verbose("onRedirectNavigate returned false, stopping navigation");
+                    return Promise.resolve();
+                }
+            } else {
+                // Navigate window to request URL
+                this.authModule.logger.verbose("Navigating window to navigate url");
+                return BrowserUtils.navigateWindow(requestUrl, redirectTimeout, this.authModule.logger);
+            }
         } else {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");

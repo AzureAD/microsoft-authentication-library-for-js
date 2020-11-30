@@ -303,7 +303,7 @@ export abstract class ClientApplication {
 
             const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.config.system.redirectNavigationTimeout, redirectStartPage);
+            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.config.system.redirectNavigationTimeout, redirectStartPage, request.onRedirectNavigate);
         } catch (e) {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
