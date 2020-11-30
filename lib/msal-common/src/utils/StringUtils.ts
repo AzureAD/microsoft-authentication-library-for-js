@@ -56,7 +56,7 @@ export class StringUtils {
      * @param query
      */
     static queryStringToObject<T>(query: string): T {
-        let match: Array<string>; // Regex for replacing addition symbol with a space
+        let match: Array<string> | null; // Regex for replacing addition symbol with a space
         const pl = /\+/g;
         const search = /([^&=]+)=([^&]*)/g;
         const decode = (s: string): string => decodeURIComponent(decodeURIComponent(s.replace(pl, " ")));
@@ -92,7 +92,7 @@ export class StringUtils {
      * Attempts to parse a string into JSON
      * @param str
      */
-    static jsonParseHelper<T>(str: string): T {
+    static jsonParseHelper<T>(str: string): T | null {
         try {
             return JSON.parse(str) as T;
         } catch (e) {
