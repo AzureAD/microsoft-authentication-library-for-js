@@ -13,11 +13,7 @@ const TEST_OFFSET = 100;
 
 describe("Configuration.ts Class Unit Tests", () => {
 
-    const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
-        if (containsPii) {
-            console.log(`Log level: ${level} Message: ${message}`);
-        }
-    }
+    const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {}
 
     it("buildConfiguration assigns default values", () => {
         let emptyConfig: Configuration = buildConfiguration({auth: null});
@@ -94,10 +90,10 @@ describe("Configuration.ts Class Unit Tests", () => {
     });
 
     it("Tests logger", () => {
-        const consoleErrorSpy = sinon.spy(console, "error");
-        const consoleInfoSpy = sinon.spy(console, "info");
-        const consoleDebugSpy = sinon.spy(console, "debug");
-        const consoleWarnSpy = sinon.spy(console, "warn");
+        const consoleErrorSpy = sinon.stub(console, "error");
+        const consoleInfoSpy = sinon.stub(console, "info");
+        const consoleDebugSpy = sinon.stub(console, "debug");
+        const consoleWarnSpy = sinon.stub(console, "warn");
         const message = "log message";
         let emptyConfig: Configuration = buildConfiguration({
             auth: null,
