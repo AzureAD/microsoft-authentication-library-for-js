@@ -142,6 +142,10 @@ export const ClientAuthErrorMessage = {
     tokenRefreshRequired: {
         code: "token_refresh_required",
         desc: "Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired."
+    },
+    userTimeoutReached: {
+        code: "user_timeout_reached",
+        desc: "User defined timeout reached",
     }
 };
 
@@ -402,5 +406,12 @@ export class ClientAuthError extends AuthError {
      */
     static createRefreshRequiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.tokenRefreshRequired.code, ClientAuthErrorMessage.tokenRefreshRequired.desc);
+    }
+
+    /**
+     * Throws error if the user defined timeout is reached.
+     */
+    static createUserTimeoutReachedError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.userTimeoutReached.code, ClientAuthErrorMessage.userTimeoutReached.desc);
     }
 }
