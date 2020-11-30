@@ -1,12 +1,16 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import "mocha";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
-import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, TEST_HASHES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { BrowserConfigurationAuthErrorMessage, BrowserConfigurationAuthError } from "../../src/error/BrowserConfigurationAuthError";
-import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, CacheSchemaType, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel } from "@azure/msal-common";
-import { BrowserCacheLocation, BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
+import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel, AuthenticationScheme } from "@azure/msal-common";
+import { BrowserCacheLocation, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -307,7 +311,7 @@ describe("BrowserCacheManager tests", () => {
 
         it("removeItem()", () => {
             const clearCookieSpy = sinon.spy(BrowserCacheManager.prototype, "clearItemCookie");
-             // sessionStorage
+            // sessionStorage
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserSessionStorage.removeItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).to.be.null;
@@ -509,7 +513,7 @@ describe("BrowserCacheManager tests", () => {
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const testNonce = "testNonce";
             const stateString = TEST_STATE_VALUES.TEST_STATE;
-            const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
+            ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             browserStorage.updateCacheEntries(stateString, testNonce, `${Constants.DEFAULT_AUTHORITY}/`);
 
             expect(authorityCacheSpy.calledOnce).to.be.true;
@@ -546,7 +550,8 @@ describe("BrowserCacheManager tests", () => {
                 code: "thisIsAnAuthCode",
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: `${RANDOM_TEST_GUID}`
+                correlationId: `${RANDOM_TEST_GUID}`,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
 
             browserStorage.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, browserCrypto.base64Encode(JSON.stringify(tokenRequest)), true);
@@ -560,15 +565,6 @@ describe("BrowserCacheManager tests", () => {
         it("Throws error if request cannot be retrieved from cache", async () => {
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const cryptoObj = new CryptoOps();
-            const tokenRequest: AuthorizationCodeRequest = {
-                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
-                code: "thisIsAnAuthCode",
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: `${RANDOM_TEST_GUID}`
-            };
-
             // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
             expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
@@ -587,7 +583,8 @@ describe("BrowserCacheManager tests", () => {
                 code: "thisIsAnAuthCode",
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: `${RANDOM_TEST_GUID}`
+                correlationId: `${RANDOM_TEST_GUID}`,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
             const stringifiedRequest = JSON.stringify(tokenRequest);
             browserStorage.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest.substring(0, stringifiedRequest.length / 2), true);
@@ -611,6 +608,8 @@ describe("BrowserCacheManager tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 correlationId: RANDOM_TEST_GUID,
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+                authority: "",
+                authenticationScheme: AuthenticationScheme.BEARER
             };
             const stringifiedRequest = browserCrypto.base64Encode(JSON.stringify(cachedRequest));
             browserStorage.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest, true);
