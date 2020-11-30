@@ -37,6 +37,24 @@ describe("Logger.ts Class Unit Tests", () => {
         });
     });
 
+    describe("clone() tests", () => {
+
+        it("Creates a new logger with logger configurations of existing logger", () => {
+            const logger = new Logger(loggerOptions);
+            const loggerClone = logger.clone("msal-common", "1.0.0");
+            expect(loggerClone.isPiiLoggingEnabled()).to.equal(logger.isPiiLoggingEnabled());
+        });
+
+        it("Creates a new logger with package name and package version", () => {
+            const logger = new Logger(loggerOptions);
+            const loggerClone = logger.clone("msal-common", "2.0.0");
+            loggerClone.info("Message");
+            expect(logStore[LogLevel.Info]).to.include("msal-common");
+            expect(logStore[LogLevel.Info]).to.include("2.0.0");
+            expect(logStore[LogLevel.Info]).to.include("msal-common@2.0.0");
+        });
+    });
+
     describe("executeCallback() tests", () => {
 
         it("Executes a callback if assigned", () => {
