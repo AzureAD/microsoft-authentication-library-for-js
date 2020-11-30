@@ -28,13 +28,6 @@ describe("Logger.ts Class Unit Tests", () => {
             const logger = new Logger(loggerOptions);
             expect(logger.isPiiLoggingEnabled()).to.be.true;
         });
-
-        it("Does not assign if logger options are null or empty", () => {
-            const logger = new Logger(null);
-            logger.executeCallback(LogLevel.Error, "Message", true);
-            expect(logStore).to.be.empty;
-            expect(logger.isPiiLoggingEnabled()).to.be.false;
-        });
     });
 
     describe("executeCallback() tests", () => {

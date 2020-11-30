@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Update Internal PCA Configuration (#2602)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-30T18:14:43.854Z"
+}

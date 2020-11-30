@@ -9,6 +9,7 @@ import { TokenClaims } from "../account/TokenClaims";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * See eSTS docs for more info.
@@ -45,9 +46,14 @@ export class PopTokenGenerator {
     }
 
     async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
-        const tokenClaims: TokenClaims = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
+        const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
         const resourceUrlString: UrlString = new UrlString(resourceRequestUri);
         const resourceUrlComponents: IUri = resourceUrlString.getUrlComponents();
+
+        if (!tokenClaims?.cnf?.kid) {
+            throw ClientAuthError.createTokenClaimsRequiredError();
+        }
+
         return await this.cryptoUtils.signJwt({
             at: accessToken,
             ts: `${TimeUtils.nowSeconds()}`,
