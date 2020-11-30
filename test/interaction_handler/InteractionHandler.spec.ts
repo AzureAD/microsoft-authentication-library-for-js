@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import "mocha";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
@@ -122,11 +127,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 }
             },
             loggerOptions: {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
-                    if (containsPii) {
-                        console.log(`Log level: ${level} Message: ${message}`);
-                    }
-                },
+                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
                 piiLoggingEnabled: true
             }
         };

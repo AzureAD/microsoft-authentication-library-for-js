@@ -17,6 +17,8 @@ export { PopupRequest } from "./request/PopupRequest";
 export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";
 export { SsoSilentRequest } from "./request/SsoSilentRequest";
+export { EndSessionRequest } from "./request/EndSessionRequest";
+export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 
 // Events
 export { EventMessage, EventPayload, EventError, EventCallbackFunction } from "./event/EventMessage";
@@ -27,9 +29,6 @@ export {
     AuthenticationScheme,
     // Account
     AccountInfo,
-    // Request
-    AuthorizationUrlRequest,
-    EndSessionRequest,
     // Response
     AuthenticationResult,
     // Error
