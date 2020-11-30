@@ -191,26 +191,31 @@ class App extends React.Component {
 We recommend that your app calls the `acquireTokenSilent` API on your `PublicClientApplication` object each time you need an access token to access an API. This can be done similar to the ways laid out in the previous section: [Call login APIs provided by `msal-browser`](#call-login-apis-provided-by-msal-browser)
 
 ```javascript
-import React from 'react'l
+import React, { useState, useEffect } from "react"
 import { useMsal } from "@azure/msal-react";
 
 export function App() {
     const { instance, accounts, inProgress } = useMsal();
     const [apiData, setApiData] = useState(null);
 
-    if (accounts.length > 0) {
-        const apiData = instance.acquireTokenSilent({
+    useEffect(() => {
+        if (accounts.length > 0) {
+            instance.acquireTokenSilent({
                 scopes: ["User.Read"],
                 account: accounts[0]
             }).then((response) => {
                 if(response) {
-                    callApi(response.accessToken).then((result) => setApiData(result))
+                    callMsGraph(response.accessToken).then((result) => setApiData(result));
                 }
             });
+        }
+    }, [accounts, instance]);
+
+    if (accounts.length > 0) {
         return (
             <>
                 <span>There are currently {accounts.length} users signed in!</span>
-                {apiData && (<span>Data retreived from API: {apiData}</span>)}
+                {apiData && (<span>Data retreived from API: {JSON.stringify(apiData)}</span>)}
             </>
         );
     } else if (inProgress === "login") {
