@@ -143,11 +143,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID
             };
-            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, 3000)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, 3000)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, 3000, "")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, 3000, "")).to.throw(BrowserAuthError);
 
-            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, 3000)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, 3000)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, 3000, "")).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, 3000, "")).to.throw(BrowserAuthError);
         });
 
         it("throws error if we are not in top frame", () => {
@@ -188,7 +188,58 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 expect(browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 return Promise.resolve(done());
             });
-            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, 3000);
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, 3000, "");
+        });
+
+        it("doesnt navigate if onRedirectNavigate returns false", done => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const testTokenReq: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+                done("Navigatation should not happen if onRedirectNavigate returns false");
+                return Promise.reject();
+            });
+
+            const onRedirectNavigate = url => {
+                expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                done();
+                return false;
+            }
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, 3000, "", onRedirectNavigate);
+        });
+
+        it("navigates if onRedirectNavigate doesnt return false", done => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const testTokenReq: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+                expect(requestUrl).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                done();
+                return Promise.resolve();
+            });
+
+            const onRedirectNavigate = url => {
+                expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            }
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, 3000, "", onRedirectNavigate);
         });
     });
 
