@@ -1,6 +1,6 @@
 {
-  "type": "prerelease",
-  "comment": "Adding device code timeout to the device code request(#2656)",
+  "type": "none",
+  "comment": "package.lock change",
   "packageName": "@azure/msal-node",
   "email": "samuel.kamau@microsoft.com",
   "dependentChangeType": "patch",
