@@ -58,11 +58,10 @@ export class Logger {
     private packageVersion: string;
 
     constructor(loggerOptions: LoggerOptions, packageName?: string, packageVersion?: string) {
-        if (loggerOptions) {
-            this.localCallback = loggerOptions.loggerCallback;
-            this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled;
-            this.level = loggerOptions.logLevel;
-        }
+        const defaultLoggerCallback = () => {};
+        this.localCallback = loggerOptions.loggerCallback || defaultLoggerCallback;
+        this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled || false;
+        this.level = loggerOptions.logLevel || LogLevel.Info;
 
         this.packageName = packageName || Constants.EMPTY_STRING;
         this.packageVersion = packageVersion || Constants.EMPTY_STRING;
@@ -79,7 +78,7 @@ export class Logger {
         const logHeader: string = StringUtils.isEmpty(this.correlationId) ? `[${timestamp}] : ` : `[${timestamp}] : [${this.correlationId}]`;
         const log = `${logHeader} : ${this.packageName}@${this.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
         // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
-        this.executeCallback(options.logLevel, log, options.containsPii);
+        this.executeCallback(options.logLevel, log, options.containsPii || false);
     }
 
     /**

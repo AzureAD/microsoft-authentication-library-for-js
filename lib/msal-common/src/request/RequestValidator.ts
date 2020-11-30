@@ -82,7 +82,7 @@ export class RequestValidator {
      */
     static sanitizeEQParams(eQParams: StringDict, queryParams: Map<string, string>) : StringDict {
         if (!eQParams) {
-            return null;
+            return {};
         }
 
         // Remove any query parameters already included in SSO params
