@@ -3,12 +3,15 @@
 The logger definition has the following properties:
 
 1. correlationId
-2. logLevel
-3. piiLoggingEnabled
+1. logLevel
+    * logLevels include: `Error`, `Warning`, `Info`, and `Verbose`
+1. piiLoggingEnabled
 
 You can enable logging in your app as shown below:
 
 ```js
+import { LogLevel } from '@azure/msal-browser';
+
 export function loggerCallback(logLevel, message) {
     console.log(message);
 }
@@ -22,7 +25,7 @@ export function loggerCallback(logLevel, message) {
             system: {
                 loggerOptions: {
                     loggerCallback,
-                    level: LogLevel.Verbose,
+                    logLevel: LogLevel.Info,
                     piiLoggingEnabled: true
                 }
             }
@@ -34,11 +37,10 @@ export function loggerCallback(logLevel, message) {
 The `logger` can also be set dynamically by using `MsalService.setLogger()`.
 
 ```js
-this.authService.setLogger(
-    (logLevel, message, piiEnabled) => {
+this.authService.setLogger(new Logger((logLevel, message, piiEnabled) => {
         console.log('MSAL Logging: ', message);
     },
     correlationId: CryptoUtils.createNewGuid(),
     piiLoggingEnabled: false
-);
+));
 ```
