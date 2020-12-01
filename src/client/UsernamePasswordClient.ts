@@ -31,7 +31,7 @@ export class UsernamePasswordClient extends BaseClient {
      * password_grant
      * @param request
      */
-    async acquireToken(request: UsernamePasswordRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
         this.logger.info("in acquireToken call");
 
         const response = await this.executeTokenRequest(this.authority, request);

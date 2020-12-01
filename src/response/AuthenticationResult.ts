@@ -24,12 +24,12 @@ export type AuthenticationResult = {
     uniqueId: string;
     tenantId: string;
     scopes: Array<string>;
-    account: AccountInfo;
+    account: AccountInfo | null;
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
     fromCache: boolean;
-    expiresOn: Date;
+    expiresOn: Date | null;
     tokenType: string;
     extExpiresOn?: Date;
     state?: string;
