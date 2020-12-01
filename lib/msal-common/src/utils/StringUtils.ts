@@ -6,8 +6,6 @@
 import { DecodedAuthToken } from "../account/DecodedAuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 
-import UrlPattern from "url-pattern";
-
 /**
  * @hidden
  */
