@@ -13,7 +13,6 @@ import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
-
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
