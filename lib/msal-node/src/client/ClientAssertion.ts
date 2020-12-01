@@ -42,7 +42,7 @@ export class ClientAssertion {
         // if assertion was created from certificate, check if jwt is expired and create new one.
         if (this.privateKey && this.thumbprint) {
 
-            if (this.jwt&& !this.isExpired() && issuer === this.issuer && jwtAudience === this.jwtAudience) {
+            if (this.jwt && !this.isExpired() && issuer === this.issuer && jwtAudience === this.jwtAudience) {
                 return this.jwt;
             }
 
