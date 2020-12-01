@@ -44,7 +44,7 @@ export class ClientCredentialClient extends BaseClient {
         }
 
         const cachedAuthenticationResult = await this.getCachedAuthenticationResult();
-        if (cachedAuthenticationResult !== null) {
+        if (cachedAuthenticationResult) {
             return cachedAuthenticationResult;
         } else {
             return await this.executeTokenRequest(request, this.authority);
