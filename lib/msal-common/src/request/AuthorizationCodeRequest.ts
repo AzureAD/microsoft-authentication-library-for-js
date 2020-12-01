@@ -21,8 +21,8 @@ import { AuthenticationScheme } from "../utils/Constants";
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type AuthorizationCodeRequest = BaseAuthRequest & {
-    redirectUri: string;
+    authenticationScheme: AuthenticationScheme;
     code: string;
+    redirectUri: string;
     codeVerifier?: string;
-    authenticationScheme?: AuthenticationScheme;
 };
