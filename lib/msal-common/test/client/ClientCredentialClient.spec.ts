@@ -48,6 +48,8 @@ describe("ClientCredentialClient unit tests", () => {
         const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: ClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
 
@@ -77,6 +79,8 @@ describe("ClientCredentialClient unit tests", () => {
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
         const clientCredentialRequest: ClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
 
@@ -99,6 +103,8 @@ describe("ClientCredentialClient unit tests", () => {
         const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: ClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             skipCache: true
         };
@@ -142,6 +148,8 @@ describe("ClientCredentialClient unit tests", () => {
 
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: ClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
 
