@@ -54,7 +54,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult | null> {
         this.logger.info("in acquireToken call");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
@@ -83,7 +83,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     handleFragmentResponse(hashFragment: string, cachedState: string): AuthorizationCodePayload {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger, null, null);
 
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
@@ -92,6 +92,11 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);
+
+        // throw when there is no auth code in the response
+        if (!serverParams.code) {
+            throw ClientAuthError.createNoAuthCodeInServerResponseError();
+        }
 
         return {
             ...serverParams,
@@ -136,7 +141,7 @@ export class AuthorizationCodeClient extends BaseClient {
             authority: authority.canonicalAuthority,
             scopes: request.scopes
         };
-        
+
         const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
@@ -179,7 +184,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
         parameterBuilder.addClientInfo();
 
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (request.authenticationScheme === AuthenticationScheme.POP && !!request.resourceRequestMethod && !!request.resourceRequestUri) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
             const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
             parameterBuilder.addPopToken(cnfString);
@@ -226,7 +231,7 @@ export class AuthorizationCodeClient extends BaseClient {
         // add client_info=1
         parameterBuilder.addClientInfo();
 
-        if (request.codeChallenge) {
+        if (request.codeChallenge && request.codeChallengeMethod) {
             parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
         }
 
@@ -276,7 +281,7 @@ export class AuthorizationCodeClient extends BaseClient {
         if (request.postLogoutRedirectUri) {
             parameterBuilder.addPostLogoutRedirectUri(request.postLogoutRedirectUri);
         }
-        
+
         if (request.correlationId) {
             parameterBuilder.addCorrelationId(request.correlationId);
         }
