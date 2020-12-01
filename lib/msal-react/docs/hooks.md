@@ -194,26 +194,31 @@ Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts
 If you use silent you should catch any errors and attempt an interactive login as a fallback.
 
 ```javascript
-import React from 'react';
-import { useMsalAuthentication } from "@azure/msal-react";
+import React, { useEffect } from 'react';
 
-export function App() {
+import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication } from "@azure/msal-react";
+import { InteractionType } from '@azure/msal-browser';
+
+function App() {
     const request = {
-        loginHint: "example_username",
+        loginHint: "name@example.com",
         scopes: ["User.Read"]
     }
-    const [login, response, error] = useMsalAuthentication("silent", request);
+    const { login, result, error } = useMsalAuthentication(InteractionType.Silent, request);
+
     useEffect(() => {
         if (error) {
-            login("popup", request);
+            login(InteractionType.Popup, request);
         }
     }, [error]);
+
+    const { accounts } = useMsal();
 
     return (
         <React.Fragment>
             <p>Anyone can see this paragraph.</p>
             <AuthenticatedTemplate>
-                <p>At least one account is signed in!</p>
+                <p>Signed in as: {accounts[0]?.username}</p>
             </AuthenticatedTemplate>
             <UnauthenticatedTemplate>
                 <p>No users are signed in!</p>
@@ -221,6 +226,8 @@ export function App() {
         </React.Fragment>
     );
 }
+
+export default App;
 ```
 
 ### Specific user example
