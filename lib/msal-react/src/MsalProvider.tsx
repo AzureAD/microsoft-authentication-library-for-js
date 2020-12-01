@@ -45,7 +45,9 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
 
         return () => {
             // Remove callback when component unmounts or accounts change
-            callbackId && instance.removeEventCallback(callbackId);
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
         };
     }, [instance, accounts]);
 
