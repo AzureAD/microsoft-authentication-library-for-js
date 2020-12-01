@@ -41,13 +41,16 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
 
   return {
     interactionType: InteractionType.Redirect,
-    protectedResourceMap
+    protectedResourceMap,
   };
 }
 
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return { 
-    interactionType: InteractionType.Redirect 
+    interactionType: InteractionType.Redirect,
+    authRequest: {
+      scopes: [...apiConfig.scopes],
+    },
   };
 }
 

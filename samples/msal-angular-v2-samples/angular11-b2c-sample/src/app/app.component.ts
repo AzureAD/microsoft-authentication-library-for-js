@@ -1,10 +1,16 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-import { EventMessage, EventType, InteractionType } from '@azure/msal-browser';
-import { BaseAuthRequest } from '@azure/msal-common'
+import { EventMessage, EventPayload, EventType, InteractionType } from '@azure/msal-browser';
+import { AuthenticationResult, BaseAuthRequest } from '@azure/msal-common'
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { b2cPolicies } from './b2c-config';
+
+interface IdTokenClaims extends AuthenticationResult {
+  idTokenClaims: {
+    acr?: string
+  }
+}
 
 @Component({
   selector: 'app-root',
@@ -34,17 +40,17 @@ export class AppComponent implements OnInit, OnDestroy {
         takeUntil(this._destroying$)
       )
       .subscribe((result) => {
+      
+        let payload: IdTokenClaims = <AuthenticationResult>result.payload;
 
         // We need to reject id tokens that were not issued with the default sign-in policy.
         // "acr" claim in the token tells us what policy is used (NOTE: for new policies (v2.0), use "tfp" instead of "acr")
         // To learn more about b2c tokens, visit https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
 
-        let policy = result.payload?.idTokenClaims?.acr;
-
-        if (policy === b2cPolicies.names.forgotPassword) {
+        if (payload.idTokenClaims?.acr === b2cPolicies.names.forgotPassword) {
           window.alert('Password has been reset successfully. \nPlease sign-in with your new password.');
           return this.authService.logout();
-        } else if (policy === b2cPolicies.names.editProfile) {
+        } else if (payload.idTokenClaims['acr'] === b2cPolicies.names.editProfile) {
           window.alert('Profile has been updated successfully. \nPlease sign-in again.');
           return this.authService.logout();
         }
