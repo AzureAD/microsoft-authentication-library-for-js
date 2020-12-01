@@ -7,17 +7,18 @@ import {
     Authority,
     AuthorityFactory,
     AuthorizationCodeClient,
-    AuthorizationUrlRequest,
     Constants,
     DeviceCodeClient,
-    DeviceCodeRequest,
     RefreshTokenClient,
-    RefreshTokenRequest,
     ClientConfiguration,
     ProtocolMode,
     Logger,
     LogLevel
 } from '@azure/msal-common';
+
+import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
+import { DeviceCodeRequest } from "../../src/request/DeviceCodeRequest";
+import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 
 jest.mock('@azure/msal-common');
 
@@ -72,7 +73,7 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValueOnce(authority);
+        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByDeviceCode(request);
@@ -89,7 +90,7 @@ describe('PublicClientApplication', () => {
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValueOnce(authority);
+        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request);
@@ -105,7 +106,7 @@ describe('PublicClientApplication', () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValueOnce(authority);
+        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
@@ -121,7 +122,7 @@ describe('PublicClientApplication', () => {
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValueOnce(authority);
+        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.getAuthCodeUrl(request);
@@ -144,7 +145,7 @@ describe('PublicClientApplication', () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValueOnce(authority);
+        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
@@ -167,7 +168,7 @@ describe('PublicClientApplication', () => {
             authority: TEST_CONSTANTS.ALTERNATE_AUTHORITY,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValueOnce(authority);
+        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 
@@ -86,6 +86,12 @@ export type Configuration = {
     system?: BrowserSystemOptions
 };
 
+export type BrowserConfiguration = {
+    auth: Required<BrowserAuthOptions>,
+    cache: Required<CacheOptions>,
+    system: Required<BrowserSystemOptions>
+};
+
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
  *
@@ -95,10 +101,10 @@ export type Configuration = {
  *
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration): Configuration {
+export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration): BrowserConfiguration {
 
     // Default auth options for browser
-    const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
+    const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
         clientId: "",
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
@@ -111,7 +117,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     };
 
     // Default cache options for browser
-    const DEFAULT_CACHE_OPTIONS: CacheOptions = {
+    const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false
     };
@@ -119,14 +125,16 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default logger options for browser
     const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         loggerCallback: (): void => {},
+        logLevel: LogLevel.Info,
         piiLoggingEnabled: false
     };
 
     // Default system options for browser
-    const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
+    const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: BrowserUtils.getBrowserNetworkClient(),
+        loadFrameTimeout: 0,
         // If loadFrameTimeout is provided, use that as default.
         windowHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_IFRAME_TIMEOUT_MS,
@@ -135,7 +143,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         asyncPopups: false
     };
 
-    const overlayedConfig: Configuration = {
+    const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem }
