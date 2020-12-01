@@ -19,7 +19,7 @@ export type MsalProviderProps = PropsWithChildren<{
 
 export function MsalProvider({instance, children}: MsalProviderProps): React.ReactElement {
     // State hook to store accounts
-    const [accounts, setAccounts] = useState<AccountInfo[]>(instance.getAllAccounts());
+    const [accounts, setAccounts] = useState<AccountInfo[]>([]);
     // State hook to store in progress value
     const [inProgress, setInProgress] = useState<InteractionStatus>(InteractionStatus.Startup);
 
@@ -62,10 +62,15 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
             }
         });
 
-        instance.handleRedirectPromise();
+        instance.handleRedirectPromise().catch(() => {
+            // Errors should be handled by listening to the LOGIN_FAILURE event
+            return;
+        });
 
         return () => {
-            callbackId && instance.removeEventCallback(callbackId);
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
         };
     }, [instance]);
 
