@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { AccountInfo } from "@azure/msal-browser";
+
 type FaaCFunction = <T>(args: T) => React.ReactNode;
 
 export function getChildrenOrFunction<T>(
@@ -29,12 +31,19 @@ export type Subtract<T extends T1, T1 extends object> = Pick<T,SetComplement<key
  * @param arrayA 
  * @param arrayB 
  */
-export function arraysAreEqual(arrayA: Array<object>, arrayB: Array<object>) {
+export function accountArraysAreEqual(arrayA: Array<AccountInfo>, arrayB: Array<AccountInfo>): boolean {
     if (arrayA.length !== arrayB.length) {
         return false;
     }
 
-    return arrayA.every((element, index) => {
-        return JSON.stringify(element) === JSON.stringify(arrayB[index]);
+    const comparisonArray = [...arrayB];
+
+    return arrayA.every((elementA) => {
+        const elementB = comparisonArray.shift();
+        if (!elementB) {
+            return false;
+        }
+
+        return (elementA.homeAccountId === elementB.homeAccountId) && (elementA.localAccountId === elementB.localAccountId);
     });
 }

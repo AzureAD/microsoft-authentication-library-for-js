@@ -12,7 +12,7 @@ import {
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 import { InteractionStatus } from "./utils/Constants";
-import { arraysAreEqual } from "./utils/utilities";
+import { accountArraysAreEqual } from "./utils/utilities";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
@@ -36,7 +36,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
                 case EventType.ACQUIRE_TOKEN_SUCCESS:
                 case EventType.ACQUIRE_TOKEN_FAILURE:
                     const currentAccounts = instance.getAllAccounts();
-                    if (!arraysAreEqual(currentAccounts, accounts)) {
+                    if (!accountArraysAreEqual(currentAccounts, accounts)) {
                         setAccounts(currentAccounts);
                     }
                     break;
