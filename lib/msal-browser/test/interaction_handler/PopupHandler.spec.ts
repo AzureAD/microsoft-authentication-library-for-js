@@ -1,8 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-chai.use(chaiAsPromised);
-const expect = chai.expect;
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheSchemaType, CacheManager, AuthorizationCodeClient, ProtocolMode, Logger } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
@@ -13,6 +16,8 @@ import { BrowserConstants } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+chai.use(chaiAsPromised);
+const expect = chai.expect;
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -102,9 +107,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                     level: LogLevel,
                     message: string,
                     containsPii: boolean
-                ): void => {
-                    console.log(`Log level: ${level} Message: ${message}`);
-                },
+                ): void => {},
                 piiLoggingEnabled: true,
             },
         };
@@ -151,7 +154,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
             // sinon.stub(window, "open").returns(window);
             window.focus = (): void => {
@@ -162,7 +166,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 return window;
             };
 
-            const popupWindow = popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
+            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
             expect(browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
@@ -253,7 +257,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
 
             // @ts-ignore
@@ -290,7 +295,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
 
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
@@ -303,7 +309,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
 
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, null)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);

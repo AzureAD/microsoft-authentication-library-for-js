@@ -115,11 +115,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 }
             },
             loggerOptions: {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
-                    if (containsPii) {
-                        console.log(`Log level: ${level} Message: ${message}`);
-                    }
-                },
+                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
                 piiLoggingEnabled: true
             },
             libraryInfo: {

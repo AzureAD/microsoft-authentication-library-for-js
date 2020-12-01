@@ -78,7 +78,7 @@ export class RequestParameterBuilder {
 
     /**
      * add id_token_hint to logout request
-     * @param idTokenHint 
+     * @param idTokenHint
      */
     addIdTokenHint(idTokenHint: string): void {
         this.parameters.set(AADServerParamKeys.ID_TOKEN_HINT, encodeURIComponent(idTokenHint));
@@ -112,7 +112,7 @@ export class RequestParameterBuilder {
      * add claims
      * @param claims
      */
-    addClaims(claims: string, clientCapabilities: Array<string>): void {
+    addClaims(claims?: string, clientCapabilities?: Array<string>): void {
         const mergedClaims = this.addClientCapabilitiesToClaims(claims, clientCapabilities);
         RequestValidator.validateClaims(mergedClaims);
         this.parameters.set(AADServerParamKeys.CLAIMS, encodeURIComponent(mergedClaims));
@@ -283,11 +283,11 @@ export class RequestParameterBuilder {
         });
     }
 
-    addClientCapabilitiesToClaims(claims: string, clientCapabilities: Array<string>): string {
+    addClientCapabilitiesToClaims(claims?: string, clientCapabilities?: Array<string>): string {
         let mergedClaims: object;
 
         // Parse provided claims into JSON object or initialize empty object
-        if (StringUtils.isEmpty(claims)) {
+        if (!claims) {
             mergedClaims = {};
         } else {
             try {
