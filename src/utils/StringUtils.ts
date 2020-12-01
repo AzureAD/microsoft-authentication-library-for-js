@@ -6,6 +6,8 @@
 import { DecodedAuthToken } from "../account/DecodedAuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 
+import UrlPattern from "url-pattern";
+
 /**
  * @hidden
  */
@@ -98,5 +100,17 @@ export class StringUtils {
         } catch (e) {
             return null;
         }
+    }
+
+    /**
+     * Tests if a given string matches a given pattern, with support for wildcards.
+     * @param pattern Wildcard pattern to string match. Supports "*" for wildcards
+     * @param input String to match against
+     */
+    static matchPattern(pattern: string, input: string): boolean {
+        // https://stackoverflow.com/a/3117248/4888559
+        const regex: RegExp = new RegExp(pattern.replace(/\*/g, "[^ ]*"));
+
+        return regex.test(input);
     }
 }
