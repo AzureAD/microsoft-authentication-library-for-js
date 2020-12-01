@@ -30,8 +30,8 @@ export const TEST_CONFIG = {
     MSAL_CLIENT_ID: "0813e1d1-ad72-46a9-8665-399bba48c201",
     MSAL_CLIENT_SECRET: "ThisIsASecret",
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
-    validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
-    alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
+    validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common/",
+    alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common/",
     ADFS_AUTHORITY: "https://authority.com/adfs",
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
@@ -40,9 +40,12 @@ export const TEST_CONFIG = {
     TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
     TOKEN_TYPE_BEARER: "Bearer",
     DEFAULT_SCOPES: ["openid", "profile"],
+    CORRELATION_ID: RANDOM_TEST_GUID,
     SID: "session-id",
     OID: "test-oid",
-    SUB: "test-sub"
+    SUB: "test-sub",
+    RESPONSE_MODE: "fragment",
+
 };
 
 // Test Tokens
