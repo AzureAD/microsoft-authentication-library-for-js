@@ -139,6 +139,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
         it("throws error if requestUrl is empty", () => {
             const testTokenReq: AuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.BEARER,
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -155,6 +156,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
         it("throws error if we are not in top frame", () => {
             const testTokenReq: AuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.BEARER,
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -177,6 +179,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 dbStorage = {};
             });
             const testTokenReq: AuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.BEARER,
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -250,9 +253,12 @@ describe("RedirectHandler.ts Unit Tests", () => {
             });
 
             const testAuthCodeRequest: AuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.BEARER,
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["scope1", "scope2"],
-                code: ""
+                code: "",
+                authority: authorityInstance.canonicalAuthority,
+                correlationId: RANDOM_TEST_GUID
             };
             browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE);
             browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
