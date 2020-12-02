@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "adding faq for b2c support and b2c clientId scope behavior in acquireTokenSilent",
+  "packageName": "@azure/msal-browser",
+  "email": "dogan.erisen@gmail.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-22T00:33:21.546Z"
+}

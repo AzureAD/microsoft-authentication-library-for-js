@@ -14,8 +14,6 @@ import {
     CacheManager,
     Logger,
     ValidCacheType,
-    CredentialEntity,
-    CredentialType,
     ICrypto
 } from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
@@ -194,9 +192,9 @@ export class Storage extends CacheManager {
      * @param idTokenKey
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(idTokenKey);
-        if (credType === CredentialType.ID_TOKEN) {
-            return this.getItem(idTokenKey) as IdTokenEntity;
+        const idToken = this.getItem(idTokenKey) as IdTokenEntity;
+        if (IdTokenEntity.isIdTokenEntity(idToken)) {
+            return idToken;
         }
         return null;
     }
@@ -215,9 +213,9 @@ export class Storage extends CacheManager {
      * @param accessTokenKey
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(accessTokenKey);
-        if (credType === CredentialType.ACCESS_TOKEN) {
-            return this.getItem(accessTokenKey) as AccessTokenEntity;
+        const accessToken = this.getItem(accessTokenKey) as AccessTokenEntity;
+        if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
+            return accessToken;
         }
         return null;
     }
@@ -236,9 +234,9 @@ export class Storage extends CacheManager {
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(refreshTokenKey);
-        if (credType === CredentialType.REFRESH_TOKEN) {
-            return this.getItem(refreshTokenKey) as RefreshTokenEntity;
+        const refreshToken = this.getItem(refreshTokenKey) as RefreshTokenEntity;
+        if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
+            return refreshToken as RefreshTokenEntity;
         }
         return null;
     }
@@ -279,7 +277,7 @@ export class Storage extends CacheManager {
      */
     getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null {
         const serverTelemetryEntity: ServerTelemetryEntity = this.getItem(serverTelemetrykey) as ServerTelemetryEntity;
-        if (ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetrykey, serverTelemetryEntity)) {
+        if (serverTelemetryEntity && ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetrykey, serverTelemetryEntity)) {
             return serverTelemetryEntity;
         }
         return null;
@@ -300,7 +298,7 @@ export class Storage extends CacheManager {
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
         const throttlingCache: ThrottlingEntity = this.getItem(throttlingCacheKey) as ThrottlingEntity;
-        if (ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
+        if (throttlingCache && ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
             return throttlingCache;
         }
         return null;

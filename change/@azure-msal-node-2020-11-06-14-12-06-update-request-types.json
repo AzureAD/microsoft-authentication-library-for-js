@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Update request types (#2512)",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-06T22:12:06.745Z"
+}

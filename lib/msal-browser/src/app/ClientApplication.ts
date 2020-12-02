@@ -4,8 +4,8 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
+import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, SilentFlowRequest, ServerError, InteractionRequiredAuthError, EndSessionRequest, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient } from "@azure/msal-common";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -16,11 +16,11 @@ import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { version } from "../../package.json";
+import { version, name } from "../../package.json";
 import { EventError, EventMessage, EventPayload, EventCallbackFunction } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
+import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 
 export abstract class ClientApplication {
@@ -94,7 +94,7 @@ export abstract class ClientApplication {
         this.networkClient = this.config.system.networkClient;
 
         // Initialize logger
-        this.logger = new Logger(this.config.system.loggerOptions);
+        this.logger = new Logger(this.config.system.loggerOptions, name, version);
 
         // Initialize the browser storage class.
         this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger);
@@ -499,7 +499,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    protected async acquireTokenByRefreshToken(request: SilentRequest): Promise<AuthenticationResult> {
+    protected async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
@@ -532,7 +532,7 @@ export abstract class ClientApplication {
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.loadFrameTimeout);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -555,7 +555,7 @@ export abstract class ClientApplication {
             this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-            const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
+            const authClient = await this.createAuthCodeClient(null, logoutRequest && logoutRequest.authority);
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
@@ -637,7 +637,8 @@ export abstract class ClientApplication {
      *
      */
     protected getRedirectUri(requestRedirectUri?: string): string {
-        return requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+        const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+        return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
 
     /**
@@ -646,7 +647,8 @@ export abstract class ClientApplication {
      * @returns {string} post logout redirect URL
      */
     protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
-        return requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+        const postLogoutRedirectUri = requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+        return UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
     }
 
     /**
@@ -771,16 +773,21 @@ export abstract class ClientApplication {
      * Initializer function for all request APIs
      * @param request
      */
-    protected initializeBaseRequest(request: BaseAuthRequest): BaseAuthRequest {
-        const validatedRequest: BaseAuthRequest = {
-            ...request
-        };
-
-        if (StringUtils.isEmpty(validatedRequest.authority)) {
-            validatedRequest.authority = this.config.auth.authority;
+    protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
+        let authority = request.authority;
+        if (StringUtils.isEmpty(authority)) {
+            authority = this.config.auth.authority;
         }
 
-        validatedRequest.correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+        const scopes = [...((request && request.scopes) || [])];
+        const correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+
+        const validatedRequest: BaseAuthRequest = {
+            ...request,
+            correlationId,
+            authority,
+            scopes
+        };
 
         return validatedRequest;
     }
@@ -797,27 +804,37 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Generates a request that will contain the openid and profile scopes.
-     * @param request
-     */
-    protected setDefaultScopes(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest): AuthorizationUrlRequest {
-        return {
-            ...request,
-            scopes: [...((request && request.scopes) || [])]
-        };
-    }
-
-    /**
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      */
-    protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        let validatedRequest: AuthorizationUrlRequest = {
-            ...request,
-            ...this.setDefaultScopes(request)
+    protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+        
+        const redirectUri = this.getRedirectUri(request.redirectUri);
+        const browserState: BrowserStateObject = {
+            interactionType: interactionType
         };
 
-        validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
+        const state = ProtocolUtils.setRequestState(
+            this.browserCrypto,
+            (request && request.state) || "",
+            browserState
+        );
+
+        let nonce = request.nonce;
+        if (StringUtils.isEmpty(nonce)) {
+            nonce = this.browserCrypto.createNewGuid();
+        }
+
+        const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
+
+        const validatedRequest: AuthorizationUrlRequest = {
+            ...this.initializeBaseRequest(request),
+            redirectUri: redirectUri,
+            state: state,
+            nonce: nonce,
+            responseMode: ResponseMode.FRAGMENT,
+            authenticationScheme: authenticationScheme,
+        };
 
         // Check for ADAL SSO
         if (StringUtils.isEmpty(validatedRequest.loginHint)) {
@@ -831,27 +848,6 @@ export abstract class ClientApplication {
                 }
             }
         }
-
-        const browserState: BrowserStateObject = {
-            interactionType: interactionType
-        };
-
-        validatedRequest.state = ProtocolUtils.setRequestState(
-            this.browserCrypto,
-            (request && request.state) || "",
-            browserState
-        );
-
-        if (StringUtils.isEmpty(validatedRequest.nonce)) {
-            validatedRequest.nonce = this.browserCrypto.createNewGuid();
-        }
-
-        validatedRequest.responseMode = ResponseMode.FRAGMENT;
-
-        validatedRequest = {
-            ...validatedRequest,
-            ...this.initializeBaseRequest(validatedRequest)
-        };
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
@@ -882,15 +878,11 @@ export abstract class ClientApplication {
      * Initializer for the logout request.
      * @param logoutRequest
      */
-    protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): EndSessionRequest {
+    protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
         const validLogoutRequest = {
+            correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest
         };
-        if (StringUtils.isEmpty(validLogoutRequest.authority)) {
-            validLogoutRequest.authority = this.config.auth.authority;
-        }
-
-        validLogoutRequest.correlationId = (validLogoutRequest && validLogoutRequest.correlationId) || this.browserCrypto.createNewGuid();
 
         validLogoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
 

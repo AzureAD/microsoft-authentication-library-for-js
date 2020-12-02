@@ -165,6 +165,9 @@ export const TEST_HOST_LIST = [
     "login.microsoftonline.us"
 ];
 
+export const PREFERRED_CACHE_ALIAS = "login.windows.net";
+export const ADFS_AUTHORITY = "myadfs.com/adfs";
+
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {
         "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"

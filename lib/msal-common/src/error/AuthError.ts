@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { Constants } from "../utils/Constants";
+
 /**
  * AuthErrorMessage class containing string constants used by error codes and messages.
  */
@@ -22,22 +24,22 @@ export class AuthError extends Error {
     errorCode: string;
     // Detailed description of error
     errorMessage: string;
-    suberror: string;
+    subError: string;
 
-    constructor(errorCode: string, errorMessage?: string, suberror?: string) {
+    constructor(errorCode?: string, errorMessage?: string, suberror?: string) {
         const errorString = errorMessage ? `${errorCode}: ${errorMessage}` : errorCode;
         super(errorString);
         Object.setPrototypeOf(this, AuthError.prototype);
 
-        this.errorCode = errorCode;
-        this.errorMessage = errorMessage;
-        this.suberror = suberror;
+        this.errorCode = errorCode || Constants.EMPTY_STRING;
+        this.errorMessage = errorMessage || "";
+        this.subError = suberror || "";
         this.name = "AuthError";
     }
 
     /**
      * Creates an error that is thrown when something unexpected happens in the library.
-     * @param errDesc 
+     * @param errDesc
      */
     static createUnexpectedError(errDesc: string): AuthError {
         return new AuthError(AuthErrorMessage.unexpectedError.code, `${AuthErrorMessage.unexpectedError.desc}: ${errDesc}`);
