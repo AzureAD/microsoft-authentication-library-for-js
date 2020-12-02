@@ -24,19 +24,15 @@ export class BrowserCacheManager extends CacheManager {
     // Window storage object (either local or sessionStorage)
     private browserStorage: IWindowStorage;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
-    private clientId: string;
-    private cryptoImpl: CryptoOps;
     private logger: Logger;
 
     // Cookie life calculation (hours * minutes * seconds * ms)
     private readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
     constructor(clientId: string, cacheConfig: CacheOptions, cryptoImpl: CryptoOps, logger: Logger) {
-        super();
+        super(clientId, cryptoImpl);
 
         this.cacheConfig = cacheConfig;
-        this.clientId = clientId;
-        this.cryptoImpl = cryptoImpl;
         this.logger = logger;
 
         this.browserStorage = this.setupBrowserStorage(cacheConfig.cacheLocation);

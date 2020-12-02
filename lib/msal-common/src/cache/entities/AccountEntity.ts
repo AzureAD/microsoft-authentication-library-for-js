@@ -18,6 +18,7 @@ import { AccountInfo } from "../../account/AccountInfo";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
 import { Logger } from "../../logger/Logger";
+import { TokenClaims } from "../../account/TokenClaims";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -39,6 +40,7 @@ import { Logger } from "../../logger/Logger";
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp:
  *      oboAssertion: access token passed in as part of OBO request
+ *      idTokenClaims: Object containing claims parsed from ID token
  * }
  */
 export class AccountEntity {
@@ -53,6 +55,7 @@ export class AccountEntity {
     lastModificationTime?: string;
     lastModificationApp?: string;
     oboAssertion?: string;
+    idTokenClaims?: TokenClaims;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -105,6 +108,7 @@ export class AccountEntity {
             username: this.username,
             localAccountId: this.localAccountId,
             name: this.name,
+            idTokenClaims: this.idTokenClaims
         };
     }
 
@@ -151,8 +155,10 @@ export class AccountEntity {
         // non AAD scenarios can have empty realm
         account.realm = idToken?.claims?.tid || "";
         account.oboAssertion = oboAssertion;
-
+        
         if (idToken) {
+            account.idTokenClaims = idToken.claims;
+
             // How do you account for MSA CID here?
             account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || "";
 
@@ -198,10 +204,11 @@ export class AccountEntity {
             // upn claim for most ADFS scenarios
             account.username = idToken?.claims?.upn || "";
             account.name = idToken?.claims?.name || "";
+            account.idTokenClaims = idToken?.claims;
         }
 
         account.environment = env;
-
+        
         /*
          * add uniqueName to claims
          * account.name = idToken.claims.uniqueName;
