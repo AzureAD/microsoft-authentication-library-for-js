@@ -147,11 +147,23 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID
             };
-            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, 3000)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, 3000)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, {
+                redirectTimeout: 3000,
+                redirectStartPage: ""
+            })).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, {
+                redirectTimeout: 3000,
+                redirectStartPage: ""
+            })).to.throw(BrowserAuthError);
 
-            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, 3000)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, 3000)).to.throw(BrowserAuthError);
+            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, {
+                redirectTimeout: 3000,
+                redirectStartPage: ""
+            })).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, {
+                redirectTimeout: 3000,
+                redirectStartPage: ""
+            })).to.throw(BrowserAuthError);
         });
 
         it("navigates browser window to given window location", (done) => {
@@ -175,7 +187,10 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 expect(browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 return Promise.resolve(done());
             });
-            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, 3000);
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, {
+                redirectTimeout: 3000,
+                redirectStartPage: ""
+            });
         });
     });
 

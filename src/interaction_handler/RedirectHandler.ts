@@ -9,8 +9,12 @@ import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants"
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { InteractionHandler } from "./InteractionHandler";
+import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 
+export type RedirectParams = InteractionParams & {
+    redirectTimeout: number;
+    redirectStartPage: string;
+};
 export class RedirectHandler extends InteractionHandler {
 
     private browserCrypto: ICrypto;
@@ -24,12 +28,12 @@ export class RedirectHandler extends InteractionHandler {
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, redirectTimeout?: number, redirectStartPage?: string): Promise<void> {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: RedirectParams): Promise<void> {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
-            if (redirectStartPage) {
-                this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, redirectStartPage, true);
+            if (params.redirectStartPage) {
+                this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, params.redirectStartPage, true);
             }
 
             // Set interaction status in the library.
@@ -38,7 +42,7 @@ export class RedirectHandler extends InteractionHandler {
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             
             // Navigate window to request URL
-            return BrowserUtils.navigateWindow(requestUrl, redirectTimeout, this.authModule.logger);
+            return BrowserUtils.navigateWindow(requestUrl, params.redirectTimeout, this.authModule.logger);
         } else {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");
