@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Expose idTokenClaims on AccountInfo",
+  "comment": "Expose idTokenClaims on AccountInfo (#2554)",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "patch",
