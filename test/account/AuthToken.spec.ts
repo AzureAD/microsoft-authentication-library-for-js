@@ -101,9 +101,9 @@ describe("AuthToken.ts Class Unit Tests", () => {
             expect(() => AuthToken.extractTokenClaims(null, cryptoInterface)).to.throw(ClientAuthError);
         });
 
-        it("returns null if decodeJwt returns null", () => {
+        it("throws if decodeJwt returns null", () => {
             sinon.stub(StringUtils, "decodeAuthToken").returns(null);
-            expect(AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.be.null;
+            expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.throw(ClientAuthErrorMessage.tokenParsingError.desc);
         });
 
         it("Throws error if payload cannot be parsed", () => {
