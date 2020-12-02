@@ -1,39 +1,13 @@
-import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity, AuthError, ICrypto, PkceCodes } from '@azure/msal-common';
+import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity } from '@azure/msal-common';
 import { JsonCache, InMemoryCache } from './../../src/cache/serializer/SerializerTypes';
 import { Deserializer } from './../../src/cache/serializer/Deserializer';
 import { Storage } from './../../src/cache/Storage';
 import { version, name } from '../../package.json';
 import { expect } from 'chai';
+import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
 
 const cacheJson = require('./serializer/cache.json');
-const clientId = "client-id";
-
-const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
-    createNewGuid: (): string => {
-        const notImplErr = "Crypto interface - createNewGuid() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    base64Decode: (): string => {
-        const notImplErr = "Crypto interface - base64Decode() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    base64Encode: (): string => {
-        const notImplErr = "Crypto interface - base64Encode() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    async generatePkceCodes(): Promise<PkceCodes> {
-        const notImplErr = "Crypto interface - generatePkceCodes() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    async getPublicKeyThumbprint(): Promise<string> {
-        const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
-    },
-    async signJwt(): Promise<string> {
-        const notImplErr = "Crypto interface - signJwt() has not been implemented";
-        throw AuthError.createUnexpectedError(notImplErr);
-    }
-};
+const clientId = TEST_CONSTANTS.CLIENT_ID;
 
 describe("Storage tests for msal-node: ", () => {
     let inMemoryCache: InMemoryCache = {
