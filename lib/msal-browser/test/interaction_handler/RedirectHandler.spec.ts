@@ -7,8 +7,8 @@ import chai from "chai";
 import "mocha";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger } from "@azure/msal-common";
 import { Configuration, buildConfiguration, DEFAULT_REDIRECT_TIMEOUT_MS } from "../../src/config/Configuration";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, CacheSchemaType, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger } from "@azure/msal-common";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -65,11 +65,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 level: LogLevel,
                 message: string,
                 containsPii: boolean
-            ): void => {
-                if (containsPii) {
-                    console.log(`Log level: ${level} Message: ${message}`);
-                }
-            },
+            ): void => {},
             piiLoggingEnabled: true,
         };
         const logger = new Logger(loggerConfig);
@@ -154,24 +150,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, 3000)).to.throw(BrowserAuthError);
         });
 
-        it("throws error if we are not in top frame", () => {
-            const testTokenReq: AuthorizationCodeRequest = {
-                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-                code: "thisIsATestCode",
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
-            };
-            let dbStorage = {};
-            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
-                dbStorage = {};
-            });
-            sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, DEFAULT_REDIRECT_TIMEOUT_MS, "")).to.throw(BrowserAuthErrorMessage.redirectInIframeError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, DEFAULT_REDIRECT_TIMEOUT_MS, "")).to.throw(BrowserAuthError);
-        });
-
         it("navigates browser window to given window location", (done) => {
             let dbStorage = {};
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
@@ -222,6 +200,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED,
                 environment: "login.windows.net",
                 tenantId: idTokenClaims.tid,
                 username: idTokenClaims.preferred_username

@@ -19,7 +19,7 @@ export class BrowserStorage {// Singleton
             throw AuthError.createNoWindowObjectError("Browser storage class could not find window object");
         }
 
-        const storageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] != null;
+        const storageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] !== null;
         if (!storageSupported) {
             throw ClientConfigurationError.createStorageNotSupportedError(cacheLocation);
         }
