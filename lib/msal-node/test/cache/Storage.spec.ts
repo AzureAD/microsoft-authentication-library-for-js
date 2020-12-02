@@ -3,7 +3,6 @@ import { JsonCache, InMemoryCache } from './../../src/cache/serializer/Serialize
 import { Deserializer } from './../../src/cache/serializer/Deserializer';
 import { Storage } from './../../src/cache/Storage';
 import { version, name } from '../../package.json';
-import { expect } from 'chai';
 import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
 
 const cacheJson = require('./serializer/cache.json');
