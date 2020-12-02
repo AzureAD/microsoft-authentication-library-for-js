@@ -21,7 +21,7 @@ export function useIsAuthenticated(accountIdentifiers?: AccountIdentifiers): boo
     const { accounts: allAccounts } = useMsal();
     const account = useAccount(accountIdentifiers || {});
 
-    const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(isAuthenticated(allAccounts, account, accountIdentifiers));
+    const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(false);
 
     useEffect(() => {
         setHasAuthenticated(isAuthenticated(allAccounts, account, accountIdentifiers));

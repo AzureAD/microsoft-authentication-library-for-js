@@ -4,12 +4,12 @@
  */
 
 import { ApiId } from "../utils/Constants";
-import { 
-    DeviceCodeClient, 
-    AuthenticationResult, 
-    DeviceCodeRequest as CommonDeviceCodeRequest, 
-    UsernamePasswordRequest as CommonUsernamePasswordRequest, 
-    UsernamePasswordClient 
+import {
+    DeviceCodeClient,
+    AuthenticationResult,
+    DeviceCodeRequest as CommonDeviceCodeRequest,
+    UsernamePasswordRequest as CommonUsernamePasswordRequest,
+    UsernamePasswordClient
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
@@ -51,7 +51,7 @@ export class PublicClientApplication extends ClientApplication {
      * Since the client cannot receive incoming requests, it polls the authorization server repeatedly
      * until the end-user completes input of credentials.
      */
-    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult> {
+    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByDeviceCode called");
         const validRequest: CommonDeviceCodeRequest = {
             ...request,
@@ -82,7 +82,7 @@ export class PublicClientApplication extends ClientApplication {
      *
      * @param request
      */
-    async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult> {
+    async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByUsernamePassword called");
         const validRequest: CommonUsernamePasswordRequest = {
             ...request,

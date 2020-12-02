@@ -24,7 +24,7 @@ export class Authority {
     // Canonical authority url string
     private _canonicalAuthority: UrlString;
     // Canonicaly authority url components
-    private _canonicalAuthorityUrlComponents: IUri;
+    private _canonicalAuthorityUrlComponents: IUri | null;
     // Tenant discovery response retrieved from OpenID Configuration Endpoint
     private tenantDiscoveryResponse: OpenIdConfigResponse;
     // Network interface to make requests with.
@@ -176,11 +176,9 @@ export class Authority {
         return this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(openIdConfigurationEndpoint);
     }
 
-    // Default AAD Instance Discovery Endpoint
-    private get aadInstanceDiscoveryEndpointUrl(): string {
-        return `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
-    }
-
+    /**
+     * Set the trusted hosts and validate subsequent calls
+     */
     private async validateAndSetPreferredNetwork(): Promise<void> {
         const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
         if (TrustedAuthority.getTrustedHostList().length === 0) {

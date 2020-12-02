@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
+import { ClientConfiguration, buildClientConfiguration, CommonClientConfiguration } from "../config/ClientConfiguration";
 import { INetworkModule } from "../network/INetworkModule";
 import { NetworkManager, NetworkResponse } from "../network/NetworkManager";
 import { ICrypto } from "../crypto/ICrypto";
@@ -25,7 +25,7 @@ export abstract class BaseClient {
     public logger: Logger;
 
     // Application config
-    protected config: ClientConfiguration;
+    protected config: CommonClientConfiguration;
 
     // Crypto Interface
     protected cryptoUtils: ICrypto;
@@ -37,7 +37,7 @@ export abstract class BaseClient {
     protected networkClient: INetworkModule;
 
     // Server Telemetry Manager
-    protected serverTelemetryManager: ServerTelemetryManager;
+    protected serverTelemetryManager: ServerTelemetryManager | null;
 
     // Network Manager
     protected networkManager: NetworkManager;
@@ -67,8 +67,10 @@ export abstract class BaseClient {
         // Set TelemetryManager
         this.serverTelemetryManager = this.config.serverTelemetryManager;
 
+        // Set TrustedAuthorities from config
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
 
+        // set Authority
         this.authority = this.config.authOptions.authority;
     }
 
@@ -113,7 +115,7 @@ export abstract class BaseClient {
     protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
             thumbprint,
-            tokenEndpoint, 
+            tokenEndpoint,
             { body: queryString, headers: headers }
         );
 
