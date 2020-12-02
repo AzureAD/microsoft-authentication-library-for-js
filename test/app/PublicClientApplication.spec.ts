@@ -1860,7 +1860,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
             username: "example@microsoft.com",
             name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID
+            localAccountId: TEST_CONFIG.OID,
+            idTokenClaims: undefined
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -1880,7 +1881,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
             username: "anotherExample@microsoft.com",
             name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID
+            localAccountId: TEST_CONFIG.OID,
+            idTokenClaims: undefined
         };
 
         const testAccount2: AccountEntity = new AccountEntity();
