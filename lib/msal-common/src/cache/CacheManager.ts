@@ -532,6 +532,10 @@ export abstract class CacheManager implements ICacheManager {
         const cachedRefreshToken = this.readRefreshTokenFromCache(clientId, account, false);
         const cachedAppMetadata = this.readAppMetadataFromCache(environment, clientId);
 
+        if (cachedAccount && cachedIdToken) {
+            cachedAccount.idTokenClaims = new AuthToken(cachedIdToken.secret, this.cryptoImpl).claims;
+        }
+
         return {
             account: cachedAccount,
             idToken: cachedIdToken,
