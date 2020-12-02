@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "patch",
   "comment": "Add exports to index.ts (#2680)",
   "packageName": "@azure/msal-browser",
   "email": "joarroyo@microsoft.com",
