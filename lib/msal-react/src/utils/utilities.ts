@@ -40,7 +40,7 @@ export function accountArraysAreEqual(arrayA: Array<AccountInfo>, arrayB: Array<
 
     return arrayA.every((elementA) => {
         const elementB = comparisonArray.shift();
-        if (!elementB) {
+        if (!elementA || !elementB) {
             return false;
         }
 

@@ -435,7 +435,11 @@ describe("withMsal tests", () => {
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
         });
 
-        test("AcquireTokenRedirect Failure", async () => {              
+        test("AcquireTokenRedirect Failure", async () => {        
+            jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
+                return Promise.reject(new Error("TEST ERROR: This should not break application flow"));
+            });      
+
             const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
