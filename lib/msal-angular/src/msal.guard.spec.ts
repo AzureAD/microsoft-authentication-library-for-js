@@ -1,7 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+import { BrowserUtils, InteractionType, IPublicClientApplication, PublicClientApplication, UrlString } from '@azure/msal-browser';
 import { of } from 'rxjs';
 import { MsalGuardConfiguration } from './msal.guard.config';
 import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from './public-api';
@@ -59,6 +59,16 @@ describe('MsalGuard', () => {
 
   it("is created", () => {
     expect(guard).toBeTruthy();
+  });
+
+  it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
+    spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
+    spyOn(BrowserUtils, "isInIframe").and.returnValue(true);
+
+    const listener = jasmine.createSpy();
+    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
+    expect(listener).toHaveBeenCalledWith(false);
+    done();
   });
 
   it("returns true for a logged in user", (done) => {
