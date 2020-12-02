@@ -47,9 +47,12 @@ class TestInteractionHandler extends InteractionHandler {
 }
 
 const testAuthCodeRequest: AuthorizationCodeRequest = {
+    authenticationScheme: AuthenticationScheme.BEARER,
+    authority: "",
     redirectUri: TEST_URIS.TEST_REDIR_URI,
     scopes: ["scope1", "scope2"],
-    code: ""
+    code: "",
+    correlationId: ""
 };
 
 const testPkceCodes = {
@@ -163,9 +166,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
             await expect(interactionHandler.handleCodeResponse(null, authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
             await expect(interactionHandler.handleCodeResponse(null, authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
         });
-
+        
         // TODO: Need to improve this test
-        it("successfully handles response", async () => {
+        it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
             const idTokenClaims = {
                 "ver": "2.0",
                 "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -181,7 +184,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             const testCodeResponse: AuthorizationCodePayload = {
                 code: "authcode",
                 nonce: idTokenClaims.nonce,
-                state: TEST_STATE_VALUES.TEST_STATE
+                state: TEST_STATE_VALUES.TEST_STATE,
+                cloud_instance_host_name: "contoso.com"
             };
 
             const testAccount: AccountInfo = {
@@ -208,12 +212,19 @@ describe("InteractionHandler.ts Unit Tests", () => {
             browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE);
             browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), idTokenClaims.nonce);
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+            sinon.stub(Authority.prototype, "isAuthorityAlias").returns(false);
+            const authority = new Authority("https://www.contoso.com/common/", networkInterface, ProtocolMode.AAD);
+            sinon.stub(AuthorityFactory, "createDiscoveredInstance").resolves(authority);
+            sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
+            const updateAuthoritySpy = sinon.spy(AuthorizationCodeClient.prototype, "updateAuthority");
             const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
-            interactionHandler.initiateAuthRequest("testNavUrl");
+            await interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, authorityInstance, authConfig.networkInterface);
+            expect(updateAuthoritySpy.calledWith(authority)).to.be.true;
             expect(tokenResponse).to.deep.eq(testTokenResponse);
             expect(acquireTokenSpy.calledWith(testAuthCodeRequest, testCodeResponse)).to.be.true;
+            expect(acquireTokenSpy.threw()).to.be.false;
         });
     });
 });

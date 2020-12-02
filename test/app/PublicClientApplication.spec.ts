@@ -451,11 +451,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 const testAccount: AccountInfo = {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                     environment: "login.windows.net",
                     tenantId: testIdTokenClaims.tid,
                     username: testIdTokenClaims.preferred_username
                 };
                 const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
                     uniqueId: testIdTokenClaims.oid,
                     tenantId: testIdTokenClaims.tid,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -569,12 +571,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const testAccount: AccountInfo = {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                     environment: "login.windows.net",
                     tenantId: testIdTokenClaims.tid,
                     username: testIdTokenClaims.preferred_username
                 };
 
                 const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
                     uniqueId: testIdTokenClaims.oid,
                     tenantId: testIdTokenClaims.tid,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -659,12 +663,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const testAccount: AccountInfo = {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                     environment: "login.windows.net",
                     tenantId: testIdTokenClaims.tid,
                     username: testIdTokenClaims.preferred_username
                 };
 
                 const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
                     uniqueId: testIdTokenClaims.oid,
                     tenantId: testIdTokenClaims.tid,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -1286,11 +1292,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 const testAccount: AccountInfo = {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                     environment: "login.windows.net",
                     tenantId: testIdTokenClaims.tid,
                     username: testIdTokenClaims.preferred_username
                 };
                 const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
                     uniqueId: testIdTokenClaims.oid,
                     tenantId: testIdTokenClaims.tid,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -1456,11 +1464,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 const testAccount: AccountInfo = {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                     environment: "login.windows.net",
                     tenantId: testIdTokenClaims.tid,
                     username: testIdTokenClaims.preferred_username
                 };
                 const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
                     uniqueId: testIdTokenClaims.oid,
                     tenantId: testIdTokenClaims.tid,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -1575,11 +1585,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid,
                 username: testIdTokenClaims.preferred_username
             };
             const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
                 uniqueId: testIdTokenClaims.oid,
                 tenantId: testIdTokenClaims.tid,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -1630,11 +1642,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid,
                 username: testIdTokenClaims.preferred_username
             };
             const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
                 uniqueId: testIdTokenClaims.oid,
                 tenantId: testIdTokenClaims.tid,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -1689,11 +1703,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid,
                 username: testIdTokenClaims.preferred_username
             };
             const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
                 uniqueId: testIdTokenClaims.oid,
                 tenantId: testIdTokenClaims.tid,
                 scopes: ["scope1"],
@@ -1733,6 +1749,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "username@contoso.com"
@@ -1779,11 +1796,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid,
                 username: testIdTokenClaims.preferred_username
             };
             const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
                 uniqueId: testIdTokenClaims.oid,
                 tenantId: testIdTokenClaims.tid,
                 scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],

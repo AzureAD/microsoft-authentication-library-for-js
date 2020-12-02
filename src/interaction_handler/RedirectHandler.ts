@@ -81,7 +81,7 @@ export class RedirectHandler extends InteractionHandler {
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
+            await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
         authCodeResponse.nonce = cachedNonce;
@@ -91,7 +91,7 @@ export class RedirectHandler extends InteractionHandler {
         if (clientId) {
             ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes);
         }
-
+        
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
 

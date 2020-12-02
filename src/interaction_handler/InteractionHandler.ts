@@ -55,7 +55,7 @@ export abstract class InteractionHandler {
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
+            await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
         authCodeResponse.nonce = cachedNonce;
