@@ -39,11 +39,7 @@ export class RedirectHandler {
             this.browserStorage.setTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserStorage.cacheCodeRequest(authCodeRequest, this.browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
-            const isIframedApp = BrowserUtils.isInIframe();
-            if (isIframedApp) {
-                // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
-                throw BrowserAuthError.createRedirectInIframeError(isIframedApp);
-            }
+            
             // Navigate window to request URL
             return BrowserUtils.navigateWindow(requestUrl, redirectTimeout, this.authModule.logger);
         } else {
