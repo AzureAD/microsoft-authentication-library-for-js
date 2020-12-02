@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add matchPattern string util for wildcard matching for urls",
+  "comment": "Add matchPattern string util for wildcard matching for urls (#2678)",
   "packageName": "@azure/msal-common",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "patch",
