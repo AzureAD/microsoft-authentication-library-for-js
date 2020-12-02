@@ -8,6 +8,8 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 
+export type InteractionParams = {};
+
 /**
  * Abstract class which defines operations for a browser interaction handling class.
  */
@@ -26,7 +28,7 @@ export abstract class InteractionHandler {
      * Function to enable user interaction.
      * @param requestUrl
      */
-    abstract initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Window | Promise<HTMLIFrameElement> | Promise<void>;
+    abstract initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: InteractionParams): Window | Promise<HTMLIFrameElement> | Promise<void>;
 
     /**
      * Function to handle response parameters from hash.
