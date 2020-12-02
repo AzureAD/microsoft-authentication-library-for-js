@@ -552,7 +552,7 @@ export abstract class ClientApplication {
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         try {
-            this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+            this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
             const authClient = await this.createAuthCodeClient(null, logoutRequest && logoutRequest.authority);
@@ -752,16 +752,20 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Helper to validate app environment before making a silent request
+     * Helper to validate app environment before making an auth request
      * * @param request
      */
     protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
 
-        // block the reload if it occurred inside a hidden iframe
+        // Block redirects if in an iframe
+        BrowserUtils.blockRedirectInIframe(interactionType, this.config.system.allowRedirectInIframe);
+
+        // Block auth requests inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
+        // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
         if (interactionType === InteractionType.Redirect &&
             this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
             !this.config.cache.storeAuthStateInCookie) {
