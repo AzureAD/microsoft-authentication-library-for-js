@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "Expose idTokenClaims on AccountInfo",
+  "packageName": "@azure/msal-common",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-12-02T01:42:04.581Z"
+}
