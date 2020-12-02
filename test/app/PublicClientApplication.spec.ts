@@ -990,10 +990,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         describe("acquireTokenRedirect", () => {
 
-            it("acquireTokenRedirect throws an error if interaction is currently in progress", async () => {
+            it("throws an error if interaction is currently in progress", async () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${BrowserConstants.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 await expect(pca.acquireTokenRedirect(null)).to.be.rejectedWith(BrowserAuthErrorMessage.interactionInProgress.desc);
                 await expect(pca.acquireTokenRedirect(null)).to.be.rejectedWith(BrowserAuthError);
+            });
+
+            it("throws an error if inside an iframe", async () => {
+                sinon.stub(BrowserUtils, "isInIframe").returns(true);
+                await expect(pca.acquireTokenRedirect({ scopes: [] })).to.be.rejectedWith(BrowserAuthErrorMessage.redirectInIframeError.desc);
             });
 
             it("acquireTokenRedirect navigates to created login url", (done) => {
@@ -1869,6 +1874,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
         });
+
+        it("throws an error if inside an iframe", async () => {
+            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            await expect(pca.logout()).to.be.rejectedWith(BrowserAuthErrorMessage.redirectInIframeError.desc);
+        });
     });
 
     describe("getAccount tests", () => {
@@ -1879,7 +1889,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
             username: "example@microsoft.com",
             name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID
+            localAccountId: TEST_CONFIG.OID,
+            idTokenClaims: undefined
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -1899,7 +1910,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
             username: "anotherExample@microsoft.com",
             name: "Abe Lincoln",
-            localAccountId: TEST_CONFIG.OID
+            localAccountId: TEST_CONFIG.OID,
+            idTokenClaims: undefined
         };
 
         const testAccount2: AccountEntity = new AccountEntity();
