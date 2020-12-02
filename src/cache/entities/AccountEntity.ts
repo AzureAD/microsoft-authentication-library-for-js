@@ -7,6 +7,7 @@ import {
     Separators,
     CacheAccountType,
     CacheType,
+    Constants,
 } from "../../utils/Constants";
 import { Authority } from "../../authority/Authority";
 import { AuthToken } from "../../account/AuthToken";
@@ -72,7 +73,8 @@ export class AccountEntity {
             homeAccountId: this.homeAccountId,
             environment: this.environment,
             tenantId: this.realm,
-            username: this.username
+            username: this.username,
+            localAccountId: this.localAccountId
         });
     }
 
@@ -104,9 +106,9 @@ export class AccountEntity {
             environment: this.environment,
             tenantId: this.realm,
             username: this.username,
+            localAccountId: this.localAccountId,
             name: this.name,
-            idTokenClaims: this.idTokenClaims,
-            localAccountId: this.localAccountId
+            idTokenClaims: this.idTokenClaims
         };
     }
 
@@ -151,24 +153,21 @@ export class AccountEntity {
 
         account.environment = env;
         // non AAD scenarios can have empty realm
-        account.realm = idToken.claims.tid || "";
+        account.realm = idToken?.claims?.tid || "";
         account.oboAssertion = oboAssertion;
         
         if (idToken) {
             account.idTokenClaims = idToken.claims;
 
             // How do you account for MSA CID here?
-            const localAccountId = !StringUtils.isEmpty(idToken.claims.oid)
-                ? idToken.claims.oid
-                : idToken.claims.sub;
-            account.localAccountId = localAccountId;
+            account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || "";
 
             /*
              * In B2C scenarios the emails claim is used instead of preferred_username and it is an array. In most cases it will contain a single email.
              * This field should not be relied upon if a custom policy is configured to return more than 1 email.
              */
-            account.username = idToken.claims.preferred_username || (idToken.claims.emails? idToken.claims.emails[0]: "");
-            account.name = idToken.claims.name;
+            account.username = idToken?.claims?.preferred_username || (idToken?.claims?.emails? idToken.claims.emails[0]: "");
+            account.name = idToken?.claims?.name;
         }
 
         return account;
@@ -199,9 +198,17 @@ export class AccountEntity {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
+        if (idToken) {
+            // How do you account for MSA CID here?
+            account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || "";
+            // upn claim for most ADFS scenarios
+            account.username = idToken?.claims?.upn || "";
+            account.name = idToken?.claims?.name || "";
+            account.idTokenClaims = idToken?.claims;
+        }
+
         account.environment = env;
-        account.username = idToken.claims.upn;
-        account.idTokenClaims = idToken.claims;
+        
         /*
          * add uniqueName to claims
          * account.name = idToken.claims.uniqueName;
@@ -217,7 +224,7 @@ export class AccountEntity {
      */
     static generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, idToken?: AuthToken): string {
 
-        const accountId = idToken && idToken.claims.sub ? idToken.claims.sub : "";
+        const accountId = idToken?.claims?.sub ? idToken.claims.sub : Constants.EMPTY_STRING;
 
         // since ADFS does not have tid and does not set client_info
         if (authType === AuthorityType.Adfs) {
@@ -246,6 +253,7 @@ export class AccountEntity {
         if (!entity) {
             return false;
         }
+
         return (
             entity.hasOwnProperty("homeAccountId") &&
             entity.hasOwnProperty("environment") &&

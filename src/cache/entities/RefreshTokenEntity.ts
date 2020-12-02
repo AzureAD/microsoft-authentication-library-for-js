@@ -64,6 +64,10 @@ export class RefreshTokenEntity extends CredentialEntity {
      */
     static isRefreshTokenEntity(entity: object): boolean {
 
+        if (!entity) {
+            return false;
+        }
+
         return (
             entity.hasOwnProperty("homeAccountId") &&
             entity.hasOwnProperty("environment") &&

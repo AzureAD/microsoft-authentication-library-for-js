@@ -63,8 +63,8 @@ export class ServerTelemetryManager {
         const lastRequests = this.getLastRequests();
         lastRequests.failedRequests.push(this.apiId, this.correlationId);
 
-        if (!StringUtils.isEmpty(error.suberror)) {
-            lastRequests.errors.push(error.suberror);
+        if (!StringUtils.isEmpty(error.subError)) {
+            lastRequests.errors.push(error.subError);
         } else if (!StringUtils.isEmpty(error.errorCode)) {
             lastRequests.errors.push(error.errorCode);
         } else if (!!error && error.toString()) {

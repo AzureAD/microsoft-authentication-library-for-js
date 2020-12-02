@@ -46,9 +46,17 @@ export const ClientAuthErrorMessage = {
         code: "state_mismatch",
         desc: "State mismatch error. Please check your network. Continued requests may cause cache overflow."
     },
+    stateNotFoundError: {
+        code: "state_not_found",
+        desc: "State not found"
+    },
     nonceMismatchError: {
         code: "nonce_mismatch",
         desc: "Nonce mismatch error. This may be caused by a race condition in concurrent requests."
+    },
+    nonceNotFoundError: {
+        code: "nonce_not_found",
+        desc: "nonce not found"
     },
     noTokensFoundError: {
         code: "no_tokens_found",
@@ -62,6 +70,10 @@ export const ClientAuthErrorMessage = {
     multipleMatchingAccounts: {
         code: "multiple_matching_accounts",
         desc: "The cache contains multiple accounts satisfying the given parameters. Please pass more info to obtain the correct account"
+    },
+    multipleMatchingAppMetadata: {
+        code: "multiple_matching_appMetadata",
+        desc: "The cache contains multiple appMetadata satisfying the given parameters. Please pass more info to obtain the correct appMetadata"
     },
     tokenRequestCannotBeMade: {
         code: "request_cannot_be_made",
@@ -138,6 +150,14 @@ export const ClientAuthErrorMessage = {
     tokenRefreshRequired: {
         code: "token_refresh_required",
         desc: "Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired."
+    },
+    tokenClaimsRequired: {
+        code: "token_claims_cnf_required_for_signedjwt",
+        desc: "Cannot generate a POP jwt if the token_claims are not populated"
+    },
+    noAuthorizationCodeFromServer: {
+        code: "authorization_code_missing_from_server_response",
+        desc: "Srver response does not contain an authorization code to proceed"
     }
 };
 
@@ -166,9 +186,9 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown if the client info is empty.
      * @param rawClientInfo
      */
-    static createClientInfoEmptyError(rawClientInfo: string): ClientAuthError {
+    static createClientInfoEmptyError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.clientInfoEmptyError.code,
-            `${ClientAuthErrorMessage.clientInfoEmptyError.desc} Given Object: ${rawClientInfo}`);
+            `${ClientAuthErrorMessage.clientInfoEmptyError.desc}`);
     }
 
     /**
@@ -224,11 +244,29 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown when the state is not present
+     * @param missingState
+     */
+    static createStateNotFoundError(missingState: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.stateNotFoundError.code,
+            `${ClientAuthErrorMessage.stateNotFoundError.desc}:  ${missingState}`);
+    }
+
+    /**
      * Creates an error thrown when the nonce does not match.
      */
     static createNonceMismatchError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
             ClientAuthErrorMessage.nonceMismatchError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the mnonce is not present
+     * @param missingNonce
+     */
+    static createNonceNotFoundError(missingNonce: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.nonceNotFoundError.code,
+            `${ClientAuthErrorMessage.nonceNotFoundError.desc}:  ${missingNonce}`);
     }
 
     /**
@@ -239,8 +277,7 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Throws error when multiple tokens are in cache for the given scope.
-     * @param scope
+     * Throws error when multiple tokens are in cache.
      */
     static createMultipleMatchingTokensInCacheError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingTokens.code,
@@ -248,12 +285,19 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Throws error when multiple tokens are in cache for the given scope.
-     * @param scope
+     * Throws error when multiple accounts are in cache for the given params
      */
     static createMultipleMatchingAccountsInCacheError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAccounts.code,
             ClientAuthErrorMessage.multipleMatchingAccounts.desc);
+    }
+
+    /**
+     * Throws error when multiple appMetada are in cache for the given clientId.
+     */
+    static createMultipleMatchingAppMetadataInCacheError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.multipleMatchingAppMetadata.code,
+            ClientAuthErrorMessage.multipleMatchingAppMetadata.desc);
     }
 
     /**
@@ -392,5 +436,19 @@ export class ClientAuthError extends AuthError {
      */
     static createRefreshRequiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.tokenRefreshRequired.code, ClientAuthErrorMessage.tokenRefreshRequired.desc);
+    }
+
+    /**
+     * Throws error if token claims are not populated for a signed jwt generation
+     */
+    static createTokenClaimsRequiredError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.tokenClaimsRequired.code, ClientAuthErrorMessage.tokenClaimsRequired.desc);
+    }
+
+    /**
+     * Throws error when the authorization code is missing from the server response
+     */
+    static createNoAuthCodeInServerResponseError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
     }
 }

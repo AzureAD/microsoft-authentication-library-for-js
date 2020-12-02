@@ -2,7 +2,7 @@ import * as Mocha from "mocha";
 import * as chai from "chai";
 import sinon from "sinon";
 import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;
+const expect = chai.expect;	
 chai.use(chaiAsPromised);
 import {
     Authority,
@@ -549,11 +549,12 @@ describe("AuthorizationCodeClient unit tests", () => {
             const logoutUri = client.getLogoutUri({
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
+                idTokenHint: "id_token_hint"
             });
 
             expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).to.be.true;
-            const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}`;
+            const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
             expect(logoutUri).to.be.eq(testLogoutUriWithParams);
         });
     });
