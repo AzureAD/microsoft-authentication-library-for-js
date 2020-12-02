@@ -1,10 +1,39 @@
-import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity } from '@azure/msal-common';
+import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity, AuthError, ICrypto, PkceCodes } from '@azure/msal-common';
 import { JsonCache, InMemoryCache } from './../../src/cache/serializer/SerializerTypes';
 import { Deserializer } from './../../src/cache/serializer/Deserializer';
 import { Storage } from './../../src/cache/Storage';
 import { version, name } from '../../package.json';
+import { expect } from 'chai';
 
 const cacheJson = require('./serializer/cache.json');
+const clientId = "client-id";
+
+const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
+    createNewGuid: (): string => {
+        const notImplErr = "Crypto interface - createNewGuid() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    base64Decode: (): string => {
+        const notImplErr = "Crypto interface - base64Decode() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    base64Encode: (): string => {
+        const notImplErr = "Crypto interface - base64Encode() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async generatePkceCodes(): Promise<PkceCodes> {
+        const notImplErr = "Crypto interface - generatePkceCodes() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getPublicKeyThumbprint(): Promise<string> {
+        const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async signJwt(): Promise<string> {
+        const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+};
 
 describe("Storage tests for msal-node: ", () => {
     let inMemoryCache: InMemoryCache = {
@@ -34,7 +63,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it("Constructor tests: ", () => {
-        const nodeStorage = new Storage(logger);
+        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         expect(nodeStorage).toBeInstanceOf(Storage);
 
         const cache = nodeStorage.getCache();
@@ -45,7 +74,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setInMemoryCache() and getInMemoryCache() tests - tests for an account', () => {
-        const nodeStorage = new Storage(logger);
+        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const cache = nodeStorage.getCache();
@@ -61,7 +90,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setItem() and getItem() tests - tests for an account', () => {
-        const nodeStorage = new Storage(logger);
+        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const accountKey = 'uid1.utid1-login.windows.net-samplerealm';
@@ -87,7 +116,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setAccount() and getAccount() tests', () => {
-        const nodeStorage = new Storage(logger);
+        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
         const fetchedAccount = nodeStorage.getAccount(accountKey);
@@ -112,7 +141,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setCache() and getCache() tests - tests for an accessToken', () => {
-        const nodeStorage = new Storage(logger);
+        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
         const accessTokenKey = 'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite';
         const newMockAT = {
@@ -142,7 +171,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setAccessTokenCredential() and getAccessTokenCredential() tests', () => {
-        const nodeStorage = new Storage(logger);
+        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
         const accessTokenKey = 'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite';
         const newMockATData = {
@@ -167,7 +196,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('containsKey() tests - tests for an accountKey', () => {
-        const nodeStorage = new Storage(logger);
+        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
@@ -175,7 +204,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('getKeys() tests - tests for an accountKey', () => {
-        const nodeStorage = new Storage(logger);
+        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
@@ -183,7 +212,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('removeItem() tests - removes an account', () => {
-        const nodeStorage = new Storage(logger);
+        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
