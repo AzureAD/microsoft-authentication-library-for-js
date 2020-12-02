@@ -33,13 +33,13 @@ export class AuthToken {
      * @param encodedToken
      */
     static extractTokenClaims(encodedToken: string, crypto: ICrypto): TokenClaims {
-        // token will be decoded to get the username
+
         const decodedToken: DecodedAuthToken = StringUtils.decodeAuthToken(encodedToken);
-        if (!decodedToken) {
-            return null;
-        }
+
+        // token will be decoded to get the username
         try {
             const base64TokenPayload = decodedToken.JWSPayload;
+
             // base64Decode() should throw an error if there is an issue
             const base64Decoded = crypto.base64Decode(base64TokenPayload);
             return JSON.parse(base64Decoded) as TokenClaims;

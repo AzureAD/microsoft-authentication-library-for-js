@@ -10,12 +10,9 @@ import { AuthError } from "./AuthError";
  */
 export class ServerError extends AuthError {
 
-    subError: string;
-
-    constructor(errorCode: string, errorMessage?: string, subError?: string) {
-        super(errorCode, errorMessage);
+    constructor(errorCode?: string, errorMessage?: string, subError?: string) {
+        super(errorCode, errorMessage, subError);
         this.name = "ServerError";
-        this.subError = subError;
 
         Object.setPrototypeOf(this, ServerError.prototype);
     }

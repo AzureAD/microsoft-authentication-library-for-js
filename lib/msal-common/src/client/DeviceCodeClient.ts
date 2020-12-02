@@ -31,7 +31,7 @@ export class DeviceCodeClient extends BaseClient {
      * polls token endpoint to exchange device code for tokens
      * @param request
      */
-    public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult> {
+    public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
 
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
@@ -177,9 +177,9 @@ export class DeviceCodeClient extends BaseClient {
                             headers,
                             thumbprint);
 
-                        if (response.body && response.body.error == Constants.AUTHORIZATION_PENDING) {
+                        if (response.body && response.body.error === Constants.AUTHORIZATION_PENDING) {
                             // user authorization is pending. Sleep for polling interval and try again
-                            this.logger.info(response.body.error_description);
+                            this.logger.info(response.body.error_description || "no_error_description");
                         } else {
                             clearInterval(intervalId);
                             resolve(response.body);

@@ -4,9 +4,17 @@
  */
 
 import { ApiId } from "../utils/Constants";
-import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult, UsernamePasswordRequest, UsernamePasswordClient} from "@azure/msal-common";
+import {
+    DeviceCodeClient,
+    AuthenticationResult,
+    DeviceCodeRequest as CommonDeviceCodeRequest,
+    UsernamePasswordRequest as CommonUsernamePasswordRequest,
+    UsernamePasswordClient
+} from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
+import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
+import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -43,13 +51,16 @@ export class PublicClientApplication extends ClientApplication {
      * Since the client cannot receive incoming requests, it polls the authorization server repeatedly
      * until the end-user completes input of credentials.
      */
-    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult> {
+    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByDeviceCode called");
-        const validRequest = this.initializeRequest(request) as DeviceCodeRequest;
+        const validRequest: CommonDeviceCodeRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
-                request.authority,
+                validRequest.authority,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
@@ -71,13 +82,16 @@ export class PublicClientApplication extends ClientApplication {
      *
      * @param request
      */
-    async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult> {
+    async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByUsernamePassword called");
-        const validRequest = this.initializeRequest(request) as UsernamePasswordRequest;
+        const validRequest: CommonUsernamePasswordRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByUsernamePassword, validRequest.correlationId!);
         try {
             const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
-                request.authority,
+                validRequest.authority,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
