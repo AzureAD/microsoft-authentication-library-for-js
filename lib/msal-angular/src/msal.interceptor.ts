@@ -67,8 +67,6 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
         const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
-            // const minimatch = new Minimatch(key);
-            // return minimatch.match(endpoint) || endpoint.indexOf(key) > -1;
             return StringUtils.matchPattern(key, endpoint);
         });
 
