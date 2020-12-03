@@ -1,0 +1,8 @@
+{
+  "type": "minor",
+  "comment": "Enable the instance_aware flow (#1804)",
+  "packageName": "@azure/msal-browser",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-25T00:50:19.569Z"
+}
