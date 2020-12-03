@@ -1,7 +1,7 @@
 # Getting Started
 
 1. [Initialization](#initialization)
-1. [Determinting whether a user is authenticated](#determining-whether-a-user-is-authenticated)
+1. [Determining whether a user is authenticated](#determining-whether-a-user-is-authenticated)
 1. [Signing a user in](#signing-a-user-in)
 1. [Acquiring an access token](#acquiring-an-access-token)
 
@@ -196,20 +196,21 @@ import { useMsal } from "@azure/msal-react";
 
 export function App() {
     const { instance, accounts, inProgress } = useMsal();
+    const account = useAccount(accounts[0]);
     const [apiData, setApiData] = useState(null);
 
     useEffect(() => {
-        if (accounts.length > 0) {
+        if (account) {
             instance.acquireTokenSilent({
                 scopes: ["User.Read"],
-                account: accounts[0]
+                account: account
             }).then((response) => {
                 if(response) {
                     callMsGraph(response.accessToken).then((result) => setApiData(result));
                 }
             });
         }
-    }, [accounts, instance]);
+    }, [account, instance]);
 
     if (accounts.length > 0) {
         return (

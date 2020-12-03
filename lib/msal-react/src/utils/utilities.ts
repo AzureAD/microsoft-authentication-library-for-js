@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "@azure/msal-browser";
+import { AccountIdentifiers } from "../types/AccountIdentifiers";
 
 type FaaCFunction = <T>(args: T) => React.ReactNode;
 
@@ -31,7 +31,7 @@ export type Subtract<T extends T1, T1 extends object> = Pick<T,SetComplement<key
  * @param arrayA 
  * @param arrayB 
  */
-export function accountArraysAreEqual(arrayA: Array<AccountInfo>, arrayB: Array<AccountInfo>): boolean {
+export function accountArraysAreEqual(arrayA: Array<AccountIdentifiers>, arrayB: Array<AccountIdentifiers>): boolean {
     if (arrayA.length !== arrayB.length) {
         return false;
     }
@@ -44,6 +44,8 @@ export function accountArraysAreEqual(arrayA: Array<AccountInfo>, arrayB: Array<
             return false;
         }
 
-        return (elementA.homeAccountId === elementB.homeAccountId) && (elementA.localAccountId === elementB.localAccountId);
+        return (elementA.homeAccountId === elementB.homeAccountId) && 
+               (elementA.localAccountId === elementB.localAccountId) &&
+               (elementA.username === elementB.username);
     });
 }

@@ -6,13 +6,13 @@
 import React, { useState, useEffect, PropsWithChildren } from "react";
 import {
     IPublicClientApplication,
-    AccountInfo,
     EventType,
     EventMessage, InteractionType
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 import { InteractionStatus } from "./utils/Constants";
 import { accountArraysAreEqual } from "./utils/utilities";
+import { AccountIdentifiers } from "./types/AccountIdentifiers";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
@@ -20,7 +20,7 @@ export type MsalProviderProps = PropsWithChildren<{
 
 export function MsalProvider({instance, children}: MsalProviderProps): React.ReactElement {
     // State hook to store accounts
-    const [accounts, setAccounts] = useState<AccountInfo[]>([]);
+    const [accounts, setAccounts] = useState<AccountIdentifiers[]>([]);
     // State hook to store in progress value
     const [inProgress, setInProgress] = useState<InteractionStatus>(InteractionStatus.Startup);
 
