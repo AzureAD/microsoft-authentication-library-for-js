@@ -1,4 +1,4 @@
-import { Screenshot } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot } from "../../../../e2eTestUtils/TestUtils";
 import { Page } from "puppeteer";
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
