@@ -145,7 +145,7 @@ export const ClientAuthErrorMessage = {
     },
     userTimeoutReached: {
         code: "user_timeout_reached",
-        desc: "User defined timeout reached",
+        desc: "User defined timeout for device code polling reached",
     }
 };
 

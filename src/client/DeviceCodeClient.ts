@@ -163,7 +163,7 @@ export class DeviceCodeClient extends BaseClient {
 
                     } else if (userSpecifiedTimeout && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
 
-                        this.logger.error(`User defined timeout reached. The timeout was set for ${userSpecifiedTimeout}`);   
+                        this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);   
                         clearInterval(intervalId);
                         reject(ClientAuthError.createUserTimeoutReachedError());
 
