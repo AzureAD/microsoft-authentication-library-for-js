@@ -12,7 +12,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "file:../../../../lib/msal-node",
-    "@azure/msal-common": "file:../../../../lib/msal-common"
+    "@azure/msal-node": "file:../../../../lib/msal-node"
   }
 }
