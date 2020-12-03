@@ -39,7 +39,8 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["https://*.myapplication.com/*", ["mail.read"]],
       ["https://api.test.com", ["default.scope1"]],
       ["https://*.test.com", ["default.scope2"]],
-      ["http://localhost:3000", ["base.scope"]]
+      ["http://localhost:3000/unprotect", null],
+      ["http://localhost:3000/", ["base.scope"]]
     ])
   }
 }
@@ -152,6 +153,28 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
+  it("attaches authorization header with access token to urlfor protected resource with wildcard, url has multiple slashes", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("https://myapplication.com/user/1/2/3").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("https://myapplication.com/user/1/2/3");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
   it("attaches authorization header with access token for protected resource with multiple wildcards", done => {
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
@@ -216,6 +239,15 @@ describe('MsalInterceptor', () => {
       httpMock.verify();
       done();
     }, 200);
+  });
+
+  it("does not attach authorization header when scopes set to null, and resource is before any base url or wildcards", () => {
+    httpClient.get("http://localhost:3000/unprotect").subscribe(response => expect(response).toBeTruthy());
+
+    const request = httpMock.expectOne("http://localhost:3000/unprotect");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toBeUndefined;
+    httpMock.verify();
   });
 
   it("attaches authorization header with access token from acquireTokenPopup if acquireTokenSilent fails in interceptor and interaction type is Popup", done => {
