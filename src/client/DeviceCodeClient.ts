@@ -161,7 +161,7 @@ export class DeviceCodeClient extends BaseClient {
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeCancelledError());
 
-                    } else if (userSpecifiedTimeout && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
+                    } else if (userSpecifiedTimeout && userSpecifiedTimeout < deviceCodeExpirationTime && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
 
                         this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);   
                         clearInterval(intervalId);
