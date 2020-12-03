@@ -12,8 +12,7 @@ import {
 import { Observable, EMPTY } from "rxjs";
 import { switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
-import { Minimatch } from "minimatch";
-import { AuthenticationResult, BrowserConfigurationAuthError, InteractionType } from "@azure/msal-browser";
+import { AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
 import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
@@ -68,8 +67,9 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
         const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
-            const minimatch = new Minimatch(key);
-            return minimatch.match(endpoint) || endpoint.indexOf(key) > -1;
+            // const minimatch = new Minimatch(key);
+            // return minimatch.match(endpoint) || endpoint.indexOf(key) > -1;
+            return StringUtils.matchPattern(key, endpoint);
         });
 
         // process all protected resources and send the first matched resource

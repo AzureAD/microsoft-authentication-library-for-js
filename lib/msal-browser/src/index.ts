@@ -44,5 +44,6 @@ export {
     // Protocol Mode
     ProtocolMode,
     // Utils
+    StringUtils,
     UrlString
 } from "@azure/msal-common";

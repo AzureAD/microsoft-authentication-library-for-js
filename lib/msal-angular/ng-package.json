@@ -4,9 +4,7 @@
   "lib": {
     "entryFile": "src/public-api.ts",
     "umdModuleIds": {
-      "@azure/msal-browser": "@azure/msal-browser",
-      "minimatch": "minimatch"
+      "@azure/msal-browser": "@azure/msal-browser"
     }
-  },
-  "whitelistedNonPeerDependencies": ["minimatch", "path"]
+  }
 }
