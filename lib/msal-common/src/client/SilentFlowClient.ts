@@ -82,6 +82,7 @@ export class SilentFlowClient extends BaseClient {
         }
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
+            this.authority,
             cacheRecord,
             true,
             idTokenObj,

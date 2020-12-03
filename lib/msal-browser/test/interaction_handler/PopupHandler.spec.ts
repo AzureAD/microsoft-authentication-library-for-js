@@ -87,7 +87,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                     return "signedJwt";
                 }
             },
-            storageInterface: new TestStorageManager(),
+            storageInterface: null,
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -111,6 +111,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true,
             },
         };
+        authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface);
         const authCodeModule = new AuthorizationCodeClient(authConfig);
         const logger = new Logger(authConfig.loggerOptions);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps, logger);
@@ -133,6 +134,7 @@ describe("PopupHandler.ts Unit Tests", () => {
 
         it("throws error if request uri is empty", () => {
             const testTokenReq: AuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.BEARER,
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -140,11 +142,11 @@ describe("PopupHandler.ts Unit Tests", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID
             };
-            expect(() => popupHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.initiateAuthRequest("", testTokenReq)).to.throw(BrowserAuthError);
+            expect(() => popupHandler.initiateAuthRequest("", testTokenReq, {})).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest("", testTokenReq, {})).to.throw(BrowserAuthError);
 
-            expect(() => popupHandler.initiateAuthRequest(null, testTokenReq)).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.initiateAuthRequest(null, testTokenReq)).to.throw(BrowserAuthError);
+            expect(() => popupHandler.initiateAuthRequest(null, testTokenReq, {})).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest(null, testTokenReq, {})).to.throw(BrowserAuthError);
         });
 
         it("opens a popup window", () => {
@@ -166,7 +168,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 return window;
             };
 
-            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq);
+            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq, {});
             expect(browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
@@ -261,8 +263,11 @@ describe("PopupHandler.ts Unit Tests", () => {
                 authenticationScheme: AuthenticationScheme.BEARER
             };
 
-            // @ts-ignore
-            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, windowObject);
+            
+            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {
+                // @ts-ignore
+                popup: windowObject
+            });
 
             expect(assignSpy.calledWith("http://localhost/#/code=hello")).to.be.true;
             expect(popupWindow).to.equal(windowObject);
@@ -273,6 +278,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             sinon.stub(window, "focus");
 
             const testRequest: AuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.BEARER,
                 redirectUri: "",
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -281,7 +287,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID
             };
 
-            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest);
+            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {});
 
             expect(popupWindow).to.equal(window);
         });
@@ -299,7 +305,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 authenticationScheme: AuthenticationScheme.BEARER
             };
 
-            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {})).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
         });
 
         it("throws error if popup passed in is null", () => {
@@ -313,8 +319,12 @@ describe("PopupHandler.ts Unit Tests", () => {
                 authenticationScheme: AuthenticationScheme.BEARER
             };
 
-            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, null)).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
-            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, null)).to.throw(BrowserAuthError);
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {
+                popup: null
+            })).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {
+                popup: null
+            })).to.throw(BrowserAuthError);
         });
     });
 
