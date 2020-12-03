@@ -90,6 +90,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `loadFrameTimeout` | Timeout in milliseconds to wait for iframe/popup operations resolve. If provided, will set default values for `windowHashTimeout` and `iframeHashTimeout`. | integer (milliseconds) | `undefined` |
 | `navigateFrameWait ` | Delay in milliseconds to wait for the iframe to load in the window. | integer (milliseconds) | In IE or Edge: `500`, in all other browsers: `0` |
 | `asyncPopups` | Sets whether popups are opened asynchronously. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request. Can be set to true for scenarios where `about:blank` is not supported, e.g. desktop apps or progressive web apps | boolean | `false` |
+| `allowRedirectInIframe` | By default, MSAL will not allow redirect operations to be initiated when the application is inside an iframe. Set this flag to `true` to remove this check. | boolean | `false` |
 
 ### Logger Config Options
 
