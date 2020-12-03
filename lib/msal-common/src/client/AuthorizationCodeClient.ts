@@ -23,6 +23,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -53,7 +54,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult | null> {
+    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult | null> {
         this.logger.info("in acquireToken call");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
@@ -72,7 +73,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, request.resourceRequestMethod, request.resourceRequestUri, cachedNonce, cachedState);
+        return await responseHandler.handleServerTokenResponse(response.body, this.authority, request.resourceRequestMethod, request.resourceRequestUri, authCodePayload);
     }
 
     /**
@@ -80,11 +81,11 @@ export class AuthorizationCodeClient extends BaseClient {
      * the client to exchange for a token in acquireToken.
      * @param hashFragment
      */
-    handleFragmentResponse(hashFragment: string, cachedState: string): string {
+    handleFragmentResponse(hashFragment: string, cachedState: string): AuthorizationCodePayload {
         // Handle responses.
         const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger, null, null);
 
-        // Create UrlString object to remove leading # using getHash()
+        // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hashUrlString.getHash());
@@ -97,7 +98,11 @@ export class AuthorizationCodeClient extends BaseClient {
             throw ClientAuthError.createNoAuthCodeInServerResponseError();
         }
 
-        return serverParams.code;
+        return {
+            ...serverParams,
+            // Code param is optional in ServerAuthorizationCodeResponse but required in AuthorizationCodePaylod
+            code: serverParams.code
+        };
     }
 
     /**
