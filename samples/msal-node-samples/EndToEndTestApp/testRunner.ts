@@ -1,4 +1,5 @@
 import { runCLI } from "jest";
+import { Config } from "@jest/types";
 
 const { readScenarioNames, readTestFiles } = require("./sampleUtils.js");
 const { runSample } = require("./index.js");
@@ -9,12 +10,14 @@ const tests = readTestFiles();
 // Filter so only scenarios that have tests are executed
 const testScenarios = scenarios.filter((scenario: string) => tests.includes(scenario));
 
-let testCacheLocation: string;
-
 async function runE2ETests() {
-  const globalResults = testScenarios.map(async (scenario: string) => {
-      return testScenario(scenario);
-  });
+    // Using reduce instead of map to chain each test scenario execution in serial, initial accumulator is a dummy Promise
+    const globalResults = await testScenarios.reduce(
+        (currentScenarioPromise: Promise<string>, nextScenario: string) => {
+            return currentScenarioPromise.then(() => {
+                return testScenario(nextScenario);
+            });
+        }, Promise.resolve(null));
 
   Promise.all(globalResults).then(globalResults => {
       const globalFailedTests = globalResults.reduce((totalFailedTests: number, scenarioResults: any) => {
@@ -26,16 +29,19 @@ async function runE2ETests() {
 }
 
 async function testScenario (scenario: string): Promise<any> {
-    testCacheLocation = `${__dirname}/app/test/${scenario}/data/testCache.json`;
+    const testCacheLocation = `${__dirname}/app/test/${scenario}/data/testCache.json`;
+    const testLocation = `./app/test/${scenario}`;
+    
     // Execute sample application under scenario configuration
-    return await runSample(scenario, 3000, testCacheLocation).then((server: any) => {
+    return await runSample(scenario, 3000, testCacheLocation).then(async (server: any) => {
         const args = {
             _: [] as any[],
             $0: '',
+            roots: [testLocation],
             testTimeout: 30000
         };
         // Run tests for current scenario
-        return runCLI(args as any, [`./app/test/${scenario}`]).then(results => {
+        return await runCLI(args as Config.Argv, [testLocation]).then(results => {
             if(server) {
                 console.log(`Tests for ${scenario} done, closing server`);
                 server.close();
