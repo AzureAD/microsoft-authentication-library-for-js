@@ -76,11 +76,15 @@ describe("BaseClient.ts Class Unit Tests", () => {
     });
 
     describe("Header utils", () => {
-
-        sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
-        it("Creates default library headers", async () => {
-
+        beforeEach(() => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("Creates default library headers", async () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
             const headers = client.createDefaultLibraryHeaders();
@@ -92,7 +96,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
         });
 
         it("Creates telemetry headers if serverTelemetryManager is available on BaseClient", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const telemetryPayload: ServerTelemetryRequest = {
                 clientId: config.authOptions.clientId,
@@ -115,8 +118,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
         });
 
         it("Creates default token request headers", async () => {
-
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
             const headers = client.createDefaultTokenRequestHeaders();
