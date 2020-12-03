@@ -302,11 +302,13 @@ export abstract class ClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
+
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, {
+            const redirectParameters = {
                 redirectTimeout: this.config.system.redirectNavigationTimeout, 
                 redirectStartPage: redirectStartPage
-            });
+            };
+            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectParameters);
         } catch (e) {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
@@ -382,9 +384,10 @@ export abstract class ClientApplication {
             const interactionHandler = new PopupHandler(authClient, this.browserStorage);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, {
+            const popupParameters = {
                 popup: popup
-            });
+            };
+            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, popupParameters);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
