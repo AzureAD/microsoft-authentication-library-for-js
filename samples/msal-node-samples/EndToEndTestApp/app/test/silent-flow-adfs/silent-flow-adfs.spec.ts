@@ -4,8 +4,8 @@ import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTe
 import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
-import { clickSignIn, enterCredentials } from "../testUtils";
+import { AppTypes, AzureEnvironments, FederationProviders, HomeDomains, UserTypes } from "../../../../../e2eTestUtils/Constants";
+import { clickSignIn, enterCredentials, enterCredentialsADFS } from "../testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = 'http://localhost:3000/';
@@ -14,19 +14,22 @@ const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 let username: string;
 let accountPwd: string;
 
-describe('Silent Flow AAD PPE Tests', () => {
+describe('Silent Flow ADFS 2019 Tests', () => {
     jest.setTimeout(60000);
     let browser: puppeteer.Browser;
 
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
+            federationProvider: FederationProviders.ADFS2019,
+            userType: UserTypes.FEDERATED
         }
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
+
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
         browser = await puppeteer.launch({
@@ -57,7 +60,7 @@ describe('Silent Flow AAD PPE Tests', () => {
             page.setDefaultNavigationTimeout(0);
             await page.goto(SAMPLE_HOME_URL);
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
         });
     
         afterEach(async () => {

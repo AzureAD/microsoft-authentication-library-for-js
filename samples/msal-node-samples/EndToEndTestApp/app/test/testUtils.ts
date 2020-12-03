@@ -19,3 +19,16 @@ export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<v
     await page.click("#SignIn");
     await screenshot.takeScreenshot(page, "signInClicked");
 }
+
+export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForNavigation({ waitUntil: "networkidle0"});
+    await page.waitForSelector("#i0116");
+    await screenshot.takeScreenshot(page, `loginPage`);
+    await page.type("#i0116", username);
+    await page.click("#idSIButton9");
+    await page.waitForSelector("#userNameInput");
+    await screenshot.takeScreenshot(page, `adfsUsernameInputPage`);
+    await page.type("#passwordInput", accountPwd);
+    await page.click("#submitButton");
+    await page.waitForNavigation({ waitUntil: "networkidle0"});
+}
