@@ -24,13 +24,16 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 ##### Installing @azure/msal-react and @azure/msal-browser from local builds
 
 ```bash
-// Install dev dependencies for msal-react and msal-browser from root of repo
+# Install dev dependencies for msal-react and msal-browser from root of repo
 npm install
-// Change directory to sample directory
+
+# Change directory to sample directory
 cd samples/msal-react-samples/default
-// Build packages locally
+
+# Build packages locally
 npm run build:package
-// Install sample dependencies
+
+#Install sample dependencies
 npm install
 ```
 
@@ -48,11 +51,13 @@ Note: If you suspect you are not using the local builds check that the `package.
 These samples are configured to be used with the development builds of our packages out of the box but there may be cases where you want to run the samples against a released version of the library. The steps to reconfigure the sample to use the released versions are as follows:
 
 ```bash
-// Change directory to sample directory
+# Change directory to sample directory
 cd samples/msal-react-samples/default
-// Install packages from npm
+
+# Install packages from npm
 npm install @azure/msal-react@latest @azure/msal-browser@latest react@17 react-dom@17
-// Install rest of dependencies
+
+# Install rest of dependencies
 npm install
 ```
 
