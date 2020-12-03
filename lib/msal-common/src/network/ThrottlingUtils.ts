@@ -5,7 +5,7 @@
 
 import { NetworkResponse } from "./NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { HeaderNames, CacheSchemaType, ThrottlingConstants } from "../utils/Constants";
+import { HeaderNames, CacheSchemaType, ThrottlingConstants, Constants } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerError } from "../error/ServerError";
 import { RequestThumbprint } from "./RequestThumbprint";
@@ -35,7 +35,7 @@ export class ThrottlingUtils {
                 cacheManager.removeItem(key, CacheSchemaType.THROTTLING);
                 return;
             }
-            throw new ServerError(value.errorCodes.join(" "), value.errorMessage, value.subError);
+            throw new ServerError(value.errorCodes?.join(" ") || Constants.EMPTY_STRING, value.errorMessage, value.subError);
         }
     }
 
@@ -66,7 +66,7 @@ export class ThrottlingUtils {
      * @param response
      */
     static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
-        return response.status == 429 || response.status >= 500 && response.status < 600;
+        return response.status === 429 || response.status >= 500 && response.status < 600;
     }
 
     /**
@@ -86,7 +86,7 @@ export class ThrottlingUtils {
      */
     static calculateThrottleTime(throttleTime: number): number {
         if(throttleTime <= 0) {
-            throttleTime = null;
+            throttleTime = 0;
         }
         const currentSeconds = Date.now() / 1000;
         return Math.floor(Math.min(

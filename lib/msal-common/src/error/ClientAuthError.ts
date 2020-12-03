@@ -46,9 +46,17 @@ export const ClientAuthErrorMessage = {
         code: "state_mismatch",
         desc: "State mismatch error. Please check your network. Continued requests may cause cache overflow."
     },
+    stateNotFoundError: {
+        code: "state_not_found",
+        desc: "State not found"
+    },
     nonceMismatchError: {
         code: "nonce_mismatch",
         desc: "Nonce mismatch error. This may be caused by a race condition in concurrent requests."
+    },
+    nonceNotFoundError: {
+        code: "nonce_not_found",
+        desc: "nonce not found"
     },
     noTokensFoundError: {
         code: "no_tokens_found",
@@ -146,6 +154,14 @@ export const ClientAuthErrorMessage = {
     userTimeoutReached: {
         code: "user_timeout_reached",
         desc: "User defined timeout for device code polling reached",
+    },
+    tokenClaimsRequired: {
+        code: "token_claims_cnf_required_for_signedjwt",
+        desc: "Cannot generate a POP jwt if the token_claims are not populated"
+    },
+    noAuthorizationCodeFromServer: {
+        code: "authorization_code_missing_from_server_response",
+        desc: "Srver response does not contain an authorization code to proceed"
     }
 };
 
@@ -174,9 +190,9 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown if the client info is empty.
      * @param rawClientInfo
      */
-    static createClientInfoEmptyError(rawClientInfo: string): ClientAuthError {
+    static createClientInfoEmptyError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.clientInfoEmptyError.code,
-            `${ClientAuthErrorMessage.clientInfoEmptyError.desc} Given Object: ${rawClientInfo}`);
+            `${ClientAuthErrorMessage.clientInfoEmptyError.desc}`);
     }
 
     /**
@@ -232,11 +248,29 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown when the state is not present
+     * @param missingState
+     */
+    static createStateNotFoundError(missingState: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.stateNotFoundError.code,
+            `${ClientAuthErrorMessage.stateNotFoundError.desc}:  ${missingState}`);
+    }
+
+    /**
      * Creates an error thrown when the nonce does not match.
      */
     static createNonceMismatchError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
             ClientAuthErrorMessage.nonceMismatchError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the mnonce is not present
+     * @param missingNonce
+     */
+    static createNonceNotFoundError(missingNonce: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.nonceNotFoundError.code,
+            `${ClientAuthErrorMessage.nonceNotFoundError.desc}:  ${missingNonce}`);
     }
 
     /**
@@ -413,5 +447,19 @@ export class ClientAuthError extends AuthError {
      */
     static createUserTimeoutReachedError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.userTimeoutReached.code, ClientAuthErrorMessage.userTimeoutReached.desc);
+    }
+
+    /*
+     * Throws error if token claims are not populated for a signed jwt generation
+     */
+    static createTokenClaimsRequiredError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.tokenClaimsRequired.code, ClientAuthErrorMessage.tokenClaimsRequired.desc);
+    }
+
+    /**
+     * Throws error when the authorization code is missing from the server response
+     */
+    static createNoAuthCodeInServerResponseError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
     }
 }

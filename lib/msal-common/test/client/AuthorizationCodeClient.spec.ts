@@ -2,7 +2,7 @@ import * as Mocha from "mocha";
 import * as chai from "chai";
 import sinon from "sinon";
 import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;
+const expect = chai.expect;	
 chai.use(chaiAsPromised);
 import {
     Authority,
@@ -249,8 +249,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 }
             };
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
-            const code = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
-            expect(code).to.be.eq("thisIsATestCode");
+            const authCodePayload = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
+            expect(authCodePayload.code).to.be.eq("thisIsATestCode");
+            expect(authCodePayload.state).to.be.eq(TEST_STATE_VALUES.ENCODED_LIB_STATE);
         });
 
         it("returns valid server code response when state is encoded twice", async () => {
@@ -280,8 +281,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 }
             };
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
-            const code = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
-            expect(code).to.be.eq("thisIsATestCode");
+            const authCodePayload = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
+            expect(authCodePayload.code).to.be.eq("thisIsATestCode");
+            expect(authCodePayload.state).to.be.eq(TEST_STATE_VALUES.ENCODED_LIB_STATE);
         });
 
         it("throws server error when error is in hash", async () => {
@@ -305,11 +307,11 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            await expect(client.acquireToken(null, "", "")).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+            await expect(client.acquireToken(null, null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
             expect(config.storageInterface.getKeys()).to.be.empty;
         });
 
-        it("Throws error if code response does not contain PKCE code", async () => {
+        it("Throws error if code response does not contain authorization code", async () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -319,7 +321,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 scopes: ["scope"],
                 code: null
             };
-            await expect(client.acquireToken(codeRequest, "", "")).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+            await expect(client.acquireToken(codeRequest, null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
             expect(config.storageInterface.getKeys()).to.be.empty;
         });
 
@@ -383,7 +385,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS
             };
 
-            const authenticationResult = await client.acquireToken(authCodeRequest, idTokenClaims.nonce, testState);
+            const authenticationResult = await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce,
+                state: testState
+            });
 
             expect(authenticationResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
             expect((Date.now() + (AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).to.be.true;
@@ -478,7 +484,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS
             };
 
-            const authenticationResult = await client.acquireToken(authCodeRequest, idTokenClaims.nonce, testState);
+            const authenticationResult = await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce,
+                state: testState
+            });
 
             expect(authenticationResult.accessToken).to.eq(signedJwt);
             expect((Date.now() + (POP_AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).to.be.true;
@@ -506,7 +516,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
-                username: "test@contoso.com"
+                username: "test@contoso.com",
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             };
 
             const removeAccountSpy = sinon.stub(MockStorageClass.prototype, "clear").returns();
@@ -524,7 +535,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
-                username: "test@contoso.com"
+                username: "test@contoso.com",
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             };
 
             const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);
@@ -542,7 +554,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
-                username: "test@contoso.com"
+                username: "test@contoso.com",
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             };
 
             const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);

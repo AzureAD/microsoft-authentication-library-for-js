@@ -30,7 +30,7 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
+    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>{
         const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
@@ -48,10 +48,9 @@ export class RefreshTokenClient extends BaseClient {
             this.authority,
             request.resourceRequestMethod,
             request.resourceRequestUri,
-            null,
-            null,
-            null,
-            null,
+            undefined,
+            [],
+            undefined,
             true
         );
     }
@@ -60,7 +59,7 @@ export class RefreshTokenClient extends BaseClient {
      * Gets cached refresh token and attaches to request, then calls acquireToken API
      * @param request
      */
-    public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -90,7 +89,6 @@ export class RefreshTokenClient extends BaseClient {
                 } else {
                     throw e;
                 }
-
             }
         }
 
@@ -114,7 +112,8 @@ export class RefreshTokenClient extends BaseClient {
 
         const refreshTokenRequest: RefreshTokenRequest = {
             ...request,
-            refreshToken: refreshToken.secret
+            refreshToken: refreshToken.secret,
+            authenticationScheme: AuthenticationScheme.BEARER
         };
 
         return this.acquireToken(refreshTokenRequest);
@@ -171,9 +170,13 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            if (!request.resourceRequestMethod || !request.resourceRequestUri) {
+                throw ClientConfigurationError.createResourceRequestParametersRequiredError();
+            }
+
             parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
         }
-        
+
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }

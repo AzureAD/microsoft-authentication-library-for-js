@@ -40,9 +40,9 @@ export class ClientAssertion {
 
     public getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string) {
         // if assertion was created from certificate, check if jwt is expired and create new one.
-        if (this.privateKey != null && this.thumbprint != null) {
+        if (this.privateKey && this.thumbprint) {
 
-            if (this.jwt != null && !this.isExpired() && issuer == this.issuer && jwtAudience == this.jwtAudience) {
+            if (this.jwt && !this.isExpired() && issuer === this.issuer && jwtAudience === this.jwtAudience) {
                 return this.jwt;
             }
 
@@ -53,7 +53,7 @@ export class ClientAssertion {
          * if assertion was created by caller, then we just append it. It is up to the caller to
          * ensure that it contains necessary claims and that it is not expired.
          */
-        if (this.jwt != null) {
+        if (this.jwt) {
             return this.jwt;
         }
 
