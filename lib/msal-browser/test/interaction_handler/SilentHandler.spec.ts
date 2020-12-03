@@ -90,7 +90,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                     return "signedJwt";
                 }
             },
-            storageInterface: new TestStorageManager(),
+            storageInterface: null,
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -114,6 +114,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 piiLoggingEnabled: true,
             },
         };
+        authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface);
         authCodeModule = new AuthorizationCodeClient(authConfig);
         const browserCrypto = new CryptoOps();
         const logger = new Logger(authConfig.loggerOptions);
