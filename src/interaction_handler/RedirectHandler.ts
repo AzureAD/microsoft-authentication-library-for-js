@@ -15,6 +15,7 @@ export type RedirectParams = InteractionParams & {
     redirectTimeout: number;
     redirectStartPage: string;
 };
+
 export class RedirectHandler extends InteractionHandler {
 
     private browserCrypto: ICrypto;
