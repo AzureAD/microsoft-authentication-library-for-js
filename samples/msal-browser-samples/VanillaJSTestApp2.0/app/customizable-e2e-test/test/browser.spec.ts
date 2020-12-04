@@ -12,7 +12,7 @@ import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginP
 import fs from "fs";
 import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 const SAMPLE_HOME_URL = "http://localhost:30662/";
 
 async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
@@ -26,7 +26,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(Object.keys(storage).length).to.be.eq(4);
 }
 
-describe("Browser tests", function () {
+describe("Default tests", function () {
     this.timeout(0);
     this.retries(1);
 
