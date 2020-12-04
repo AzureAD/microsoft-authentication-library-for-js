@@ -35,7 +35,7 @@ describe("LocalStorage Tests", function () {
     before(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
         });
 
