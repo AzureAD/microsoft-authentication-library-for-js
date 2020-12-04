@@ -1003,7 +1003,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await expect(pca.acquireTokenRedirect({ scopes: [] })).to.be.rejectedWith(BrowserAuthErrorMessage.redirectInIframeError.desc);
             });
 
-            it("acquireTokenRedirect navigates to created login url", (done) => {
+            it("navigates to created login url", (done) => {
                 sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Promise<void> => {
                     expect(navigateUrl).to.be.eq(testNavUrl);
                     return Promise.resolve(done());
@@ -1020,7 +1020,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     state: TEST_STATE_VALUES.USER_STATE,
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: TEST_CONFIG.CORRELATION_ID,
-                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
                     nonce: "",
                     authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
@@ -1035,7 +1034,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     done();
                 };
 
-                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl, authCodeREquest, timeout, redirectStartPage, onRedirectNavigateCb): Promise<void> => {
+                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl, authCodeREquest, {
+                    redirectTimeout: timeout, redirectStartPage, onRedirectNavigate: onRedirectNavigateCb
+                }): Promise<void> => {
                     expect(onRedirectNavigateCb).to.be.eq(onRedirectNavigate);
                     expect(navigateUrl).to.eq(expectedUrl);
                     onRedirectNavigateCb(navigateUrl);
