@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+/* eslint-disable react/no-multi-comp */
 import React from "react";
 import { act, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -19,14 +20,17 @@ describe("withMsal tests", () => {
         }
     };
 
-    let eventCallback: EventCallbackFunction;
+    let eventCallbacks: EventCallbackFunction[];
     let cachedAccounts: AccountInfo[] = [];
 
     beforeEach(() => {
+        eventCallbacks = [];
+        let eventId = 0;
         pca = new PublicClientApplication(msalConfig);
         jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn) => {
-            eventCallback = callbackFn;
-            return "callbackId";
+            eventCallbacks.push(callbackFn);
+            eventId += 1;
+            return eventId.toString();
         });
         jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
             const eventMessage: EventMessage = {
@@ -36,7 +40,10 @@ describe("withMsal tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            eventCallback(eventMessage);
+
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             return Promise.resolve(null);
         });
 
@@ -79,7 +86,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -94,7 +103,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -129,7 +140,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -144,7 +157,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -179,7 +194,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -194,7 +211,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -229,7 +248,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -244,7 +265,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -279,7 +302,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -294,7 +319,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -329,7 +356,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -344,7 +373,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -379,7 +410,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -394,13 +427,19 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
         });
 
-        test("AcquireTokenRedirect Failure", async () => {              
+        test("AcquireTokenRedirect Failure", async () => {        
+            jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
+                return Promise.reject(new Error("TEST ERROR: This should not break application flow"));
+            });      
+
             const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
@@ -429,7 +468,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -444,7 +485,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -479,7 +522,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -494,7 +539,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -529,7 +576,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
@@ -544,7 +593,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -579,7 +630,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("AcquireTokenSilent does not update inProgress value")).toBeInTheDocument();
@@ -594,7 +647,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
@@ -629,7 +684,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("AcquireTokenSilent does not update inProgress value")).toBeInTheDocument();
@@ -644,7 +701,9 @@ describe("withMsal tests", () => {
             cachedAccounts = [testAccount];
 
             act(() => {
-                eventCallback(eventMessage);
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();

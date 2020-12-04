@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MsalProvider, AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
+import { MsalProvider, AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useAccount } from "@azure/msal-react";
 import { PublicClientApplication } from "@azure/msal-browser";
 import { msalConfig, loginRequest } from "./authConfig";
 import { PageLayout } from "./ui.jsx";
@@ -9,12 +9,13 @@ import "./styles/App.css";
 
 const ProfileContent = () => {
     const { instance, accounts } = useMsal();
+    const account = useAccount(accounts[0] || {});
     const [graphData, setGraphData] = useState(null);
 
     function RequestProfileData() {
         instance.acquireTokenSilent({
             ...loginRequest,
-            account: accounts[0]
+            account: account
         }).then((response) => {
             callMsGraph(response.accessToken).then(response => setGraphData(response));
         });
@@ -22,7 +23,7 @@ const ProfileContent = () => {
 
     return (
         <>
-            <h5 className="card-title">Welcome {accounts[0].name}</h5>
+            <h5 className="card-title">Welcome {account.name}</h5>
             {graphData ? 
                 <ProfileData graphData={graphData} />
                 :
