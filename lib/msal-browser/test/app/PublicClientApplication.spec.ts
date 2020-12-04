@@ -1881,6 +1881,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
         });
+
+        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean) => {
+                // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
+                return Promise.resolve(done());
+            });
+            pca.logout({
+                onRedirectNavigate: (url) => {
+                    expect(url).to.be.eq(testLogoutUrl);
+                    done();
+                    return false;
+                }
+            });
+            const validatedLogoutRequest: CommonEndSessionRequest = {
+                correlationId: RANDOM_TEST_GUID,
+                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+            };
+            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+        })
     });
 
     describe("getAccount tests", () => {
