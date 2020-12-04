@@ -1,8 +1,8 @@
 {
   "type": "patch",
-  "comment": "Add onRedirectNavigate to redirect operations in browser",
+  "comment": "Add onRedirectNavigate to redirect operations in browser (#2669)",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch",
+  "dependentChangeType": "none",
   "date": "2020-11-30T23:01:27.640Z"
 }
