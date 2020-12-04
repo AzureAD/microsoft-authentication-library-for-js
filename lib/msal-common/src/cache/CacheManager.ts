@@ -3,14 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType } from "./utils/CacheTypes";
+import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
 import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
 import { AccessTokenEntity } from "./entities/AccessTokenEntity";
-import { StringUtils } from "../utils/StringUtils";
 import { IdTokenEntity } from "./entities/IdTokenEntity";
 import { RefreshTokenEntity } from "./entities/RefreshTokenEntity";
 import { AuthError } from "../error/AuthError";
@@ -21,11 +20,20 @@ import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity";
+import { AuthToken } from "../account/AuthToken";
+import { ICrypto } from "../crypto/ICrypto";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
  */
 export abstract class CacheManager implements ICacheManager {
+    protected clientId: string;
+    protected cryptoImpl: ICrypto;
+
+    constructor(clientId: string, cryptoImpl: ICrypto) {
+        this.clientId = clientId;
+        this.cryptoImpl = cryptoImpl;
+    }
 
     /**
      * fetch the account entity from the platform cache
@@ -146,9 +154,15 @@ export abstract class CacheManager implements ICacheManager {
             return [];
         } else {
             const allAccounts = accountValues.map<AccountInfo>((value) => {
-                let accountObj: AccountEntity = new AccountEntity();
-                accountObj = CacheManager.toObject(accountObj, value) as AccountEntity;
-                return accountObj.getAccountInfo();
+                const accountEntity = CacheManager.toObject<AccountEntity>(new AccountEntity(), value);
+                const accountInfo = accountEntity.getAccountInfo();
+                const idToken = this.readIdTokenFromCache(this.clientId, accountInfo);
+                if (idToken && !accountInfo.idTokenClaims) {
+                    accountInfo.idTokenClaims = new AuthToken(idToken.secret, this.cryptoImpl).claims;
+                }
+
+                return accountInfo;
+                
             });
             return allAccounts;
         }
@@ -243,18 +257,18 @@ export abstract class CacheManager implements ICacheManager {
             const entity: AccountEntity | null = this.getAccount(cacheKey);
 
             if (!entity) {
-                return null;
-            }
-
-            if (!StringUtils.isEmpty(homeAccountId) && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
-            if (!StringUtils.isEmpty(environment) && !this.matchEnvironment(entity, environment)) {
+            if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
-            if (!StringUtils.isEmpty(realm) && !this.matchRealm(entity, realm)) {
+            if (!!environment && !this.matchEnvironment(entity, environment)) {
+                return;
+            }
+
+            if (!!realm && !this.matchRealm(entity, realm)) {
                 return;
             }
 
@@ -321,36 +335,35 @@ export abstract class CacheManager implements ICacheManager {
 
             // Attempt retrieval
             const entity = this.getSpecificCredential(cacheKey, credType);
-
             if (!entity) {
                 return;
             }
 
-            if (!StringUtils.isEmpty(oboAssertion) && !this.matchOboAssertion(entity, oboAssertion)) {
+            if (!!oboAssertion && !this.matchOboAssertion(entity, oboAssertion)) {
                 return;
             }
 
-            if (!StringUtils.isEmpty(homeAccountId) && !this.matchHomeAccountId(entity, homeAccountId)) {
+            if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
-            if (!StringUtils.isEmpty(environment) && !this.matchEnvironment(entity, environment)) {
+            if (!!environment && !this.matchEnvironment(entity, environment)) {
                 return;
             }
 
-            if (!StringUtils.isEmpty(realm) && !this.matchRealm(entity, realm)) {
+            if (!!realm && !this.matchRealm(entity, realm)) {
                 return;
             }
 
-            if (!StringUtils.isEmpty(credentialType) && !this.matchCredentialType(entity, credentialType)) {
+            if (!!credentialType && !this.matchCredentialType(entity, credentialType)) {
                 return;
             }
 
-            if (!StringUtils.isEmpty(clientId) && !this.matchClientId(entity, clientId)) {
+            if (!!clientId && !this.matchClientId(entity, clientId)) {
                 return;
             }
 
-            if (!StringUtils.isEmpty(familyId) && !this.matchFamilyId(entity, familyId)) {
+            if (!!familyId && !this.matchFamilyId(entity, familyId)) {
                 return;
             }
 
@@ -358,7 +371,7 @@ export abstract class CacheManager implements ICacheManager {
              * idTokens do not have "target", target specific refreshTokens do exist for some types of authentication
              * Resource specific refresh tokens case will be added when the support is deemed necessary
              */
-            if (!StringUtils.isEmpty(target) && !this.matchTarget(entity, target)) {
+            if (!!target && !this.matchTarget(entity, target)) {
                 return;
             }
 
@@ -379,12 +392,64 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * retrieve appMetadata matching all provided filters; if no filter is set, get all appMetadata
+     * @param filter
+     */
+    getAppMetadataFilteredBy(filter: AppMetadataFilter): AppMetadataCache {
+        return this.getAppMetadataFilteredByInternal(
+            filter.environment,
+            filter.clientId,
+        );
+    }
+
+    /**
+     * Support function to help match appMetadata
+     * @param environment
+     * @param clientId
+     */
+    private getAppMetadataFilteredByInternal(
+        environment?: string,
+        clientId?: string
+    ): AppMetadataCache {
+
+        const allCacheKeys = this.getKeys();
+        const matchingAppMetadata: AppMetadataCache = {};
+
+        allCacheKeys.forEach((cacheKey) => {
+            // don't parse any non-appMetadata type cache entities
+            if (!this.isAppMetadata(cacheKey)) {
+                return;
+            }
+
+            // Attempt retrieval
+            const entity = this.getAppMetadata(cacheKey);
+
+            if (!entity) {
+                return;
+            }
+
+            if (!!environment && !this.matchEnvironment(entity, environment)) {
+                return;
+            }
+
+            if (!!clientId && !this.matchClientId(entity, clientId)) {
+                return;
+            }
+
+            matchingAppMetadata[cacheKey] = entity;
+
+        });
+
+        return matchingAppMetadata;
+    }
+
+    /**
      * Removes all accounts and related tokens from cache.
      */
     removeAllAccounts(): boolean {
         const allCacheKeys = this.getKeys();
         allCacheKeys.forEach((cacheKey) => {
-            const entity: AccountEntity = this.getAccount(cacheKey);
+            const entity = this.getAccount(cacheKey);
             if (!entity) {
                 return;
             }
@@ -467,6 +532,10 @@ export abstract class CacheManager implements ICacheManager {
         const cachedRefreshToken = this.readRefreshTokenFromCache(clientId, account, false);
         const cachedAppMetadata = this.readAppMetadataFromCache(environment, clientId);
 
+        if (cachedAccount && cachedIdToken) {
+            cachedAccount.idTokenClaims = new AuthToken(cachedIdToken.secret, this.cryptoImpl).claims;
+        }
+
         return {
             account: cachedAccount,
             idToken: cachedIdToken,
@@ -492,15 +561,25 @@ export abstract class CacheManager implements ICacheManager {
      * @param inputRealm
      */
     readIdTokenFromCache(clientId: string, account: AccountInfo): IdTokenEntity | null {
-        const idTokenKey: string = CredentialEntity.generateCredentialCacheKey(
-            account.homeAccountId,
-            account.environment,
-            CredentialType.ID_TOKEN,
-            clientId,
-            account.tenantId
-        );
+        const idTokenFilter: CredentialFilter = {
+            homeAccountId: account.homeAccountId,
+            environment: account.environment,
+            credentialType: CredentialType.ID_TOKEN,
+            clientId: clientId,
+            realm: account.tenantId,
+        };
 
-        return this.getIdTokenCredential(idTokenKey) as IdTokenEntity;
+        const credentialCache: CredentialCache = this.getCredentialsFilteredBy(idTokenFilter);
+        const idTokens = Object.keys(credentialCache.idTokens).map((key) => credentialCache.idTokens[key]);
+        const numIdTokens = idTokens.length;
+
+        if (numIdTokens < 1) {
+            return null;
+        } else if (numIdTokens > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+        }
+
+        return idTokens[0] as IdTokenEntity;
     }
 
     /**
@@ -540,7 +619,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param familyRT
      */
     readRefreshTokenFromCache(clientId: string, account: AccountInfo, familyRT: boolean): RefreshTokenEntity | null {
-        const id = familyRT ? THE_FAMILY_ID : null;
+        const id = familyRT ? THE_FAMILY_ID : undefined;
         const refreshTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
@@ -564,9 +643,23 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Retrieve AppMetadataEntity from cache
      */
-    readAppMetadataFromCache(environment: string, clientId: string): AppMetadataEntity {
-        const cacheKey = AppMetadataEntity.generateAppMetadataCacheKey(environment, clientId);
-        return this.getAppMetadata(cacheKey);
+    readAppMetadataFromCache(environment: string, clientId: string): AppMetadataEntity | null {
+        const appMetadataFilter: AppMetadataFilter = {
+            environment,
+            clientId,
+        };
+
+        const appMetadata: AppMetadataCache = this.getAppMetadataFilteredBy(appMetadataFilter);
+        const appMetadataEntries: AppMetadataEntity[] = Object.keys(appMetadata).map((key) => appMetadata[key]);
+
+        const numAppMetadata = appMetadataEntries.length;
+        if (numAppMetadata < 1) {
+            return null;
+        } else if (numAppMetadata > 1) {
+            throw ClientAuthError.createMultipleMatchingAppMetadataInCacheError();
+        }
+
+        return appMetadataEntries[0] as AppMetadataEntity;
     }
 
     /**
@@ -576,7 +669,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     isAppMetadataFOCI(environment: string, clientId: string): boolean {
         const appMetadata = this.readAppMetadataFromCache(environment, clientId);
-        return appMetadata && appMetadata.familyId === THE_FAMILY_ID;
+        return !!(appMetadata && appMetadata.familyId === THE_FAMILY_ID);
     }
 
     /**
@@ -585,7 +678,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param homeAccountId
      */
     private matchHomeAccountId(entity: AccountEntity | CredentialEntity, homeAccountId: string): boolean {
-        return entity.homeAccountId && homeAccountId === entity.homeAccountId;
+        return !!(entity.homeAccountId && homeAccountId === entity.homeAccountId);
     }
 
     /**
@@ -594,7 +687,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param oboAssertion
      */
     private matchOboAssertion(entity: AccountEntity | CredentialEntity, oboAssertion: string): boolean {
-        return entity.oboAssertion && oboAssertion === entity.oboAssertion;
+        return !!(entity.oboAssertion && oboAssertion === entity.oboAssertion);
     }
 
     /**
@@ -626,7 +719,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param clientId
      */
     private matchClientId(entity: CredentialEntity | AppMetadataEntity, clientId: string): boolean {
-        return entity.clientId && clientId === entity.clientId;
+        return !!(entity.clientId && clientId === entity.clientId);
     }
 
     /**
@@ -635,7 +728,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param familyId
      */
     private matchFamilyId(entity: CredentialEntity | AppMetadataEntity, familyId: string): boolean {
-        return entity.familyId && familyId === entity.familyId;
+        return !!(entity.familyId && familyId === entity.familyId);
     }
 
     /**
@@ -644,7 +737,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param realm
      */
     private matchRealm(entity: AccountEntity | CredentialEntity, realm: string): boolean {
-        return entity.realm && realm === entity.realm;
+        return !!(entity.realm && realm === entity.realm);
     }
 
     /**
@@ -653,7 +746,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param target
      */
     private matchTarget(entity: CredentialEntity, target: string): boolean {
-        if (entity.credentialType !== CredentialType.ACCESS_TOKEN || StringUtils.isEmpty(entity.target)) {
+        if (entity.credentialType !== CredentialType.ACCESS_TOKEN || !entity.target) {
             return false;
         }
 

@@ -4,9 +4,17 @@
  */
 
 import { ApiId } from "../utils/Constants";
-import { DeviceCodeClient, DeviceCodeRequest, AuthenticationResult } from "@azure/msal-common";
+import {
+    DeviceCodeClient,
+    AuthenticationResult,
+    DeviceCodeRequest as CommonDeviceCodeRequest,
+    UsernamePasswordRequest as CommonUsernamePasswordRequest,
+    UsernamePasswordClient
+} from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
+import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
+import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -43,18 +51,52 @@ export class PublicClientApplication extends ClientApplication {
      * Since the client cannot receive incoming requests, it polls the authorization server repeatedly
      * until the end-user completes input of credentials.
      */
-    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult> {
+    public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByDeviceCode called");
-        const validRequest = this.initializeRequest(request) as DeviceCodeRequest;
+        const validRequest: CommonDeviceCodeRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
-                request.authority,
+                validRequest.authority,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
             return deviceCodeClient.acquireToken(validRequest);
+        } catch (e) {
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
+    }
+
+    /**
+     * Acquires tokens with password grant by exchanging client applications username and password for credentials
+     *
+     * The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely.
+     * More details on this recommendation at https://tools.ietf.org/html/draft-ietf-oauth-security-topics-13#section-3.4
+     * Microsoft's documentation and recommendations are at:
+     * https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword
+     *
+     * @param request
+     */
+    async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
+        this.logger.info("acquireTokenByUsernamePassword called");
+        const validRequest: CommonUsernamePasswordRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByUsernamePassword, validRequest.correlationId!);
+        try {
+            const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
+                validRequest.authority,
+                serverTelemetryManager
+            );
+            this.logger.verbose("Auth client config generated");
+            const usernamePasswordClient = new UsernamePasswordClient(usernamePasswordClientConfig);
+            return usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;

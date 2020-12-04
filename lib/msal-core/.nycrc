@@ -10,7 +10,6 @@
         "**/*.d.ts"
     ],
     "all": true,
-    "temp-dir": "../../.nyc_output",
     "clean": false,
-    "reporter": "text-lcov"
+    "reporter": "lcov"
 }

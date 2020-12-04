@@ -6,6 +6,14 @@ import express from 'express';
 import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
+const argv = require("yargs")
+    .options({
+        d: {
+            alias: "debug",
+            type: "boolean"
+        }
+    })
+    .argv;
 const clearRequire = require("clear-module");
 
 // Set up constants
@@ -51,7 +59,9 @@ function runMochaTests(sampleIndex: number) {
     let port = DEFAULT_PORT; // 30662;
 
     // Configure morgan module to log all requests.
-    app.use(morgan('dev'));
+    if (argv.debug) {
+        app.use(morgan("dev"));
+    }
 
     // Set the front-end folder to serve public assets.
     app.use("/dist", express.static(path.join(PARENT_DIR, "../../../lib/msal-core/dist")));

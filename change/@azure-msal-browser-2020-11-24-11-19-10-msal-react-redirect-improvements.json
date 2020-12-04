@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Package Lock update",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-24T19:17:24.512Z"
+}
