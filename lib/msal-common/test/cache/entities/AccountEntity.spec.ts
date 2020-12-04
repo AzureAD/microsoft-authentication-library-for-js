@@ -153,6 +153,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).to.eq(idTokenClaims.tid);
         expect(acc.username).to.eq("AbeLi@microsoft.com");
         expect(acc.localAccountId).to.eql(idTokenClaims.oid);
+        expect(acc.idTokenClaims).to.eq(idTokenClaims);
     });
 
     it("create an Account with sub instead of oid as localAccountId", () => {
@@ -191,6 +192,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).to.eq(idTokenClaims.tid);
         expect(acc.username).to.eq("AbeLi@microsoft.com");
         expect(acc.localAccountId).to.eql(idTokenClaims.sub);
+        expect(acc.idTokenClaims).to.eq(idTokenClaims);
     });
 
     it("create an Account with emails claim instead of preferred_username claim", () => {
@@ -229,6 +231,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).to.eq(idTokenClaims.tid);
         expect(acc.username).to.eq("AbeLi@microsoft.com");
         expect(acc.localAccountId).to.eql(idTokenClaims.oid);
+        expect(acc.idTokenClaims).to.eq(idTokenClaims);
     });
 
     it("create an Account no preferred_username or emails claim", () => {
@@ -273,6 +276,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).to.eq(idTokenClaims.tid);
         expect(acc.username).to.eq("");
         expect(acc.localAccountId).to.eql(idTokenClaims.oid);
+        expect(acc.idTokenClaims).to.eq(idTokenClaims);
     });
 
     it("creates a generic account", () => {
@@ -312,6 +316,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.localAccountId).to.eq(idTokenClaims.oid);
         expect(acc.authorityType).to.eq(CacheAccountType.GENERIC_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).to.eql(true);
+        expect(acc.idTokenClaims).to.eq(idTokenClaims);
     });
 
     it("verify if an object is an account entity", () => {
@@ -369,6 +374,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.localAccountId).to.eq(idTokenClaims.oid);
         expect(acc.authorityType).to.eq(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).to.eql(true);
+        expect(acc.idTokenClaims).to.eq(idTokenClaims);
     });
 
     it("creates a generic ADFS account without OID", () => {
@@ -407,5 +413,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.authorityType).to.eq(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(acc.localAccountId).to.eq(idTokenClaims.sub);
         expect(AccountEntity.isAccountEntity(acc)).to.eql(true);
+        expect(acc.idTokenClaims).to.eq(idTokenClaims);
     });
 });
