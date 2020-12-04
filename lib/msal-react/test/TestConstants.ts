@@ -32,6 +32,7 @@ export const testAccount: AccountInfo = {
 };
 
 export const testResult: AuthenticationResult = {
+    authority: "https://login.microsoftonline.com",
     uniqueId: "unique-id",
     tenantId: "tenant-id",
     scopes: ["openid", "profile"],

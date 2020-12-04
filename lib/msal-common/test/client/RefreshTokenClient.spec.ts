@@ -93,7 +93,8 @@ describe("RefreshTokenClient unit tests", () => {
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
             name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid
+            localAccountId: ID_TOKEN_CLAIMS.oid,
+            idTokenClaims: ID_TOKEN_CLAIMS
         };
 
         beforeEach(async () => {
@@ -179,7 +180,8 @@ describe("RefreshTokenClient unit tests", () => {
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
             name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid
+            localAccountId: ID_TOKEN_CLAIMS.oid,
+            idTokenClaims: ID_TOKEN_CLAIMS
         };
 
         beforeEach(async () => {

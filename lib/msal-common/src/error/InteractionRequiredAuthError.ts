@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils } from "../utils/StringUtils";
 import { ServerError } from "./ServerError";
 
 /**
@@ -28,17 +27,17 @@ export const InteractionRequiredAuthSubErrorMessage = [
  */
 export class InteractionRequiredAuthError extends ServerError {
 
-    constructor(errorCode: string, errorMessage?: string, subError?: string) {
+    constructor(errorCode?: string, errorMessage?: string, subError?: string) {
         super(errorCode, errorMessage, subError);
         this.name = "InteractionRequiredAuthError";
 
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
     }
 
-    static isInteractionRequiredError(errorCode: string, errorString: string, subError?: string) : boolean {
-        const isInteractionRequiredErrorCode = !StringUtils.isEmpty(errorCode) && InteractionRequiredAuthErrorMessage.indexOf(errorCode) > -1;
-        const isInteractionRequiredSubError = !StringUtils.isEmpty(subError) && InteractionRequiredAuthSubErrorMessage.indexOf(subError) > -1;
-        const isInteractionRequiredErrorDesc = !StringUtils.isEmpty(errorString) && InteractionRequiredAuthErrorMessage.some((irErrorCode) => {
+    static isInteractionRequiredError(errorCode?: string, errorString?: string, subError?: string) : boolean {
+        const isInteractionRequiredErrorCode = !!errorCode && InteractionRequiredAuthErrorMessage.indexOf(errorCode) > -1;
+        const isInteractionRequiredSubError = !!subError && InteractionRequiredAuthSubErrorMessage.indexOf(subError) > -1;
+        const isInteractionRequiredErrorDesc = !!errorString && InteractionRequiredAuthErrorMessage.some((irErrorCode) => {
             return errorString.indexOf(irErrorCode) > -1;
         });
 
