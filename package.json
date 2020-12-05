@@ -50,7 +50,8 @@
     "beachball:change": "beachball change --branch origin/dev",
     "beachball:bump": "beachball bump --bumpDeps false",
     "beachball:bumpDeps": "beachball bump",
-    "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN"
+    "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
+    "typedoc": "lerna run doc:generate"
   },
   "dependencies": {
     "@babel/register": "^7.7.0",

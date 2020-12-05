@@ -1,0 +1,27 @@
+name: Typedoc
+
+on:
+  push:
+    branches:
+      - master  # Set a branch name to trigger deployment
+      - typedoc-action
+
+jobs:
+  deploy:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true  # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Build
+        run: npx lerna run doc:generate
+
+      - name: Deploy - msal
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./lib/msal-core/ref
+          destination_dir: ./ref/msal-core
+          keep_files: true
