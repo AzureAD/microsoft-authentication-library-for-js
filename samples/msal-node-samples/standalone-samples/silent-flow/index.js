@@ -5,7 +5,7 @@
 const express = require("express");
 const exphbs = require("express-handlebars");
 const msal = require("@azure/msal-node");
-const { promises: fs } = require("fs");
+const fs = require("fs");
 
 const graph = require("./graph");
 
@@ -17,12 +17,34 @@ const SERVER_PORT = process.env.PORT || 3000;
 const cachePath = "./data/example.cache.json"; // Replace this string with the path to your valid cache file.
 
 const beforeCacheAccess = async (cacheContext) => {
-    cacheContext.tokenCache.deserialize(await fs.readFile(cachePath, "utf-8"));
+    return new Promise(async (resolve, reject) => {
+        if (fs.existsSync(cachePath)) {
+            fs.readFile(cachePath, "utf-8", (err, data) => {
+                if (err) {
+                    reject();
+                } else {
+                    console.log(data);
+                    cacheContext.tokenCache.deserialize(data);
+                    resolve();
+                }
+            });
+        } else {
+           fs.writeFile(cachePath, cacheContext.tokenCache.serialize(), (err) => {
+                if (err) {
+                    reject();
+                }
+            });
+        }
+    });
 };
 
 const afterCacheAccess = async (cacheContext) => {
     if(cacheContext.cacheHasChanged){
-        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());
+        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize(), (err) => {
+            if (err) {
+                console.log(err);
+            }
+        });
     }
 };
 
@@ -60,7 +82,6 @@ const authCodeUrlParameters = {
 
 const pca = new msal.PublicClientApplication(publicClientConfig);
 const msalTokenCache = pca.getTokenCache();
-let accounts;
 
 /**
  * Express App
@@ -70,6 +91,9 @@ const app = express();
 // Set handlebars view engine
 app.engine(".hbs", exphbs({ extname: ".hbs" }));
 app.set("view engine", ".hbs");
+
+// Initialize homeAccountId in memory
+app.locals.homeAccountId = null;
 
 /**
  * App Routes
@@ -98,6 +122,8 @@ app.get("/redirect", (req, res) => {
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
+        // Home account ID from token response account is used here to find the same account from the cache
+        app.locals.homeAccountId = response.account.homeAccountId;
         const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
         res.render("graph", templateParams);
     }).catch((error) => {
@@ -108,13 +134,12 @@ app.get("/redirect", (req, res) => {
 
 // Initiates Acquire Token Silent flow
 app.get("/graphCall", async (req, res) => {
-    // get Accounts
-    accounts = await msalTokenCache.getAllAccounts();
-    console.log("Accounts: ", accounts);
+    // Find account using homeAccountId built after receiving token response
+    const account = await msalTokenCache.getAccountByHomeId(app.locals.homeAccountId);
 
     // Build silent request
     const silentRequest = {
-        account: accounts[0], // Index must match the account that is trying to acquire token silently
+        account: account,
         scopes: scopes,
     };
 
@@ -143,4 +168,3 @@ app.get("/graphCall", async (req, res) => {
 });
 
 app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
-

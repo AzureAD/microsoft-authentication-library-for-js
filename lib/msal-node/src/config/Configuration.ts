@@ -8,7 +8,7 @@ import {
     INetworkModule,
     LogLevel,
     ProtocolMode,
-    ICachePlugin
+    ICachePlugin, Constants
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -29,6 +29,7 @@ export type NodeAuthOptions = {
     clientCertificate?: {
         thumbprint: string,
         privateKey: string,
+        x5c?: string
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
@@ -71,12 +72,13 @@ export type Configuration = {
 
 const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     clientId: "",
-    authority: "",
+    authority: Constants.DEFAULT_AUTHORITY,
     clientSecret: "",
     clientAssertion: "",
     clientCertificate: {
         thumbprint: "",
         privateKey: "",
+        x5c: ""
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",

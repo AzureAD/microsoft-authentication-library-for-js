@@ -4,10 +4,15 @@
  */
 
 import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
-import { InteractionHandler } from "./InteractionHandler";
+import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import { DEFAULT_POPUP_TIMEOUT_MS } from "../config/Configuration";
+
+export type PopupParams = InteractionParams & {
+    popup?: Window|null;
+};
 
 /**
  * This class implements the interaction handler base class for browsers. It is written specifically for handling
@@ -28,7 +33,7 @@ export class PopupHandler extends InteractionHandler {
      * Opens a popup window with given request Url.
      * @param requestUrl
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, popup?: Window|null): Window {
+    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: PopupParams): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
             // Save auth code request
@@ -37,7 +42,7 @@ export class PopupHandler extends InteractionHandler {
             this.browserStorage.setTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             // Open the popup window to requestUrl.
-            return this.openPopup(requestUrl, popup);
+            return this.openPopup(requestUrl, params.popup);
         } else {
             // Throw error if request URL is empty.
             this.authModule.logger.error("Navigate url is empty");
@@ -53,6 +58,10 @@ export class PopupHandler extends InteractionHandler {
      */
     monitorPopupForHash(popupWindow: Window, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
+            if (timeout < DEFAULT_POPUP_TIMEOUT_MS) {
+                this.authModule.logger.warning(`system.loadFrameTimeout or system.windowHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_POPUP_TIMEOUT_MS}ms). This may result in timeouts.`);
+            }
+
             const maxTicks = timeout / BrowserConstants.POLL_INTERVAL_MS;
             let ticks = 0;
 
@@ -93,7 +102,7 @@ export class PopupHandler extends InteractionHandler {
                     // Timeout error
                     this.cleanPopup(popupWindow);
                     clearInterval(intervalId);
-                    reject(BrowserAuthError.createMonitorWindowTimeoutError());
+                    reject(BrowserAuthError.createMonitorPopupTimeoutError());
                     return;
                 }
             }, BrowserConstants.POLL_INTERVAL_MS);

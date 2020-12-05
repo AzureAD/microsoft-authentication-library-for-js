@@ -19,5 +19,5 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  */
 export type SilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
-    forceRefresh?: boolean;
+    forceRefresh: boolean;
 };

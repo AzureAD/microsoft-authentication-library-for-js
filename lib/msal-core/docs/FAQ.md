@@ -30,6 +30,7 @@
 1. [How do I renew tokens with MSAL.js?](#how-do-i-renew-tokens-with-msaljs)
 1. [How can I acquire tokens faster?](#how-can-i-acquire-tokens-faster)
 1. [How long do tokens last? How long are they valid for?](#how-long-do-tokens-last-how-long-are-they-valid-for)
+1. [Why is the accessToken field in the response empty?](#why-is-the-accessToken-field-in-the-response-empty)
 
 **[Scopes & Resources](#scopes--resources)**
 
@@ -49,6 +50,7 @@
 1. [How can I implement password reset user flow in my B2C application with MSAL.js?](#how-can-i-implement-password-reset-user-flow-in-my-b2c-application-with-msaljs)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
+1. [What should I do if I believe my issue is with the B2C service itself rather than with the library](#what-should-i-do-if-i-believe-my-issue-is-with-the-b2c-service-itself-rather-than-with-the-library)
 
 **[Common Issues](#common-issues)**
 1. [How to avoid page reloads when acquiring and renewing tokens silently?](#how-to-avoid-page-reloads-when-acquiring-and-renewing-tokens-silently)
@@ -285,6 +287,12 @@ Please refer to our performance guide [here](https://github.com/AzureAD/microsof
 
 Token lifetimes are 1 hour and the session lifetime is 24 hours. This means that if no requests have been made in 24 hours, you will need to login again before requesting a new token.
 
+## Why is the accessToken field in the response empty?
+
+If you are requesting scopes `clientId`, `openid` and/or `profile`, these are **ID token** scopes. Previously, in versions <1.4.0, MSAL.js would get an **ID token** and put it into the `accessToken` and `idToken` fields (both with the same value). In version 1.4.0 this behavior was changed to be in-line with what the AAD/B2C server is sending back. Now MSAL.js gets the same **ID token** but puts it under `idToken` field and leaves the `accessToken` field empty. If you need an access token you should request a scope other than `clientId`, `openid` or `profile`
+
+See the [documentation on scopes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/scopes.md) for more information.
+
 # Scopes & Resources
 
 ## My application has multiple resources it needs to access to. How should I handle scopes for access tokens?
@@ -378,6 +386,10 @@ You can read more about this behavior [here](https://docs.microsoft.com/azure/ac
 ## Why am I not signed in when returning from an invite link?
 
 MSAL.js will only process tokens which it originally requested. If your flow requires that you send a user a link they can use to sign up, you will need to ensure that the link points to your app, not the B2C service directly. An example flow can be seen in the [working with B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/working-with-b2c.md) doc.
+
+## What should I do if I believe my issue is with the B2C service itself rather than with the library
+
+In that case, please file a support ticket with the B2C team by following the instructions here: [B2C support options](https://docs.microsoft.com/azure/active-directory-b2c/support-options).
 
 # Common Issues
 

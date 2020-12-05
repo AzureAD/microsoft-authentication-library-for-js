@@ -109,6 +109,36 @@ export class TokenCache implements ISerializableTokenCache {
     }
 
     /**
+     * Returns the signed in account matching homeAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @returns {@link AccountInfo} - the account object stored in MSAL
+     */
+    async getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null> {
+        const allAccounts = await this.getAllAccounts();
+        if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the signed in account matching localAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @returns {@link AccountInfo} - the account object stored in MSAL
+     */
+    async getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null> {
+        const allAccounts = await this.getAllAccounts();
+        if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * API to remove a specific account and the relevant data from cache
      * @param account
      */
@@ -186,11 +216,11 @@ export class TokenCache implements ISerializableTokenCache {
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
         this.logger.verbose("Remove updated entries in cache");
-        const accounts = oldState.Account != null ? this.mergeRemovalsDict<SerializedAccountEntity>(oldState.Account, newState.Account) : oldState.Account;
-        const accessTokens = oldState.AccessToken != null ? this.mergeRemovalsDict<SerializedAccessTokenEntity>(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
-        const refreshTokens = oldState.RefreshToken != null ? this.mergeRemovalsDict<SerializedRefreshTokenEntity>(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
-        const idTokens = oldState.IdToken != null ? this.mergeRemovalsDict<SerializedIdTokenEntity>(oldState.IdToken, newState.IdToken) : oldState.IdToken;
-        const appMetadata = oldState.AppMetadata != null ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
+        const accounts = oldState.Account ? this.mergeRemovalsDict<SerializedAccountEntity>(oldState.Account, newState.Account) : oldState.Account;
+        const accessTokens = oldState.AccessToken ? this.mergeRemovalsDict<SerializedAccessTokenEntity>(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
+        const refreshTokens = oldState.RefreshToken ? this.mergeRemovalsDict<SerializedRefreshTokenEntity>(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
+        const idTokens = oldState.IdToken ? this.mergeRemovalsDict<SerializedIdTokenEntity>(oldState.IdToken, newState.IdToken) : oldState.IdToken;
+        const appMetadata = oldState.AppMetadata ? this.mergeRemovalsDict<SerializedAppMetadataEntity>(oldState.AppMetadata, newState.AppMetadata) : oldState.AppMetadata;
 
         return {
             ...oldState,
