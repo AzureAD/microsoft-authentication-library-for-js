@@ -24,9 +24,12 @@ jobs:
         run: npm ci
 
       - name: Build
+        run: npm run build
+
+      - name: Docs - Generatae
         run: npx lerna run doc:generate
 
-      - name: Deploy - msal
+      - name: Docs - Deploy - msal
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
