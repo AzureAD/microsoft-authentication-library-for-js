@@ -1,8 +1,10 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { GithubUtils } from "./GithubUtils";
-import { LabelIssue } from "./LabelIssue";
+import { IssueBotUtils } from "../utils/IssueBotUtils";
+import { RepoFiles } from "../utils/github_api_utils/RepoFiles";
+import { IssueManager } from "./IssueManager";
 import { TemplateEnforcer } from "./TemplateEnforcer";
+import { IssueLabels } from "../utils/github_api_utils/IssueLabels";
 
 async function run() {
     core.info(`Event of type: ${github.context.eventName} triggered workflow`);
@@ -24,8 +26,9 @@ async function run() {
     }
 
     if (issue.number && issue.body) {
-        const githubUtils = new GithubUtils(issue.number);
-        const config = await githubUtils.getConfig();
+        const issueBotUtils = new IssueBotUtils(issue.number);
+        const repoFiles = new RepoFiles(issueBotUtils);
+        const config = await repoFiles.getConfig();
         if (!config) {
             core.setFailed("Unable to parse config file!");
             return;
@@ -35,18 +38,19 @@ async function run() {
         const templateEnforcer = new TemplateEnforcer(issue.number, payload.action);
         const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
 
-        core.info("Start selection detection");
-        const labelIssue = new LabelIssue(issue.number, config.selectors);
-        const isSelectionMade = await labelIssue.executeLabeler(issue.body);
+        core.info("Start Issue Manager");
+        const issueManager = new IssueManager(issue.number, config.selectors);
+        const isSelectionMade = await issueManager.updateIssue(issue.body);
 
 
         // Add/remove enforcement label
         if (config.enforceTemplate && config.templateEnforcementLabel) {
+            const issueLabels = new IssueLabels(issueBotUtils);
             if (isTemplateComplete && isSelectionMade) {
-                const currentLabels = await githubUtils.getCurrentLabels();
-                await githubUtils.removeIssueLabels([config.templateEnforcementLabel], currentLabels);
+                const currentLabels = await issueLabels.getCurrentLabels();
+                await issueLabels.removeLabels([config.templateEnforcementLabel], currentLabels);
             } else {
-                await githubUtils.addIssueLabels([config.templateEnforcementLabel]);
+                await issueLabels.addLabels([config.templateEnforcementLabel]);
             }
         }
     } else {

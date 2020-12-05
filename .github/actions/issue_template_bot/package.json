@@ -12,6 +12,6 @@
     "typescript": "^4.0.5"
   },
   "scripts": {
-    "build": "ncc build index.ts"
+    "build": "ncc build main/index.ts"
   }
 }

@@ -1,17 +1,28 @@
 import * as core from "@actions/core";
-import { GithubUtils, IssueLabelerConfigType, ProjectConfigType } from "./GithubUtils";
+import { IssueBotUtils } from "../utils/IssueBotUtils";
+import { ProjectBoard } from "../utils/github_api_utils/ProjectBoard";
+import { IssueLabelerConfig } from "../types/IssueLabelerConfig";
+import { ProjectConfig } from "../types/ProjectConfig";
+import { StringUtils } from "../utils/StringUtils";
+import { IssueLabels } from "../utils/github_api_utils/IssueLabels";
+import { IssueComments } from "../utils/github_api_utils/IssueComments";
+import { IssueAssignees } from "../utils/github_api_utils/IssueAssignees";
 
-export class LabelIssue {
-    private issueLabelConfig: IssueLabelerConfigType;
+export class IssueManager {
+    private issueLabelConfig: IssueLabelerConfig;
     private noSelectionMadeHeaders: Array<string>
     private assignees: Set<string>;
-    private projectsToAdd: Set<ProjectConfigType>;
-    private allProjects: Set<ProjectConfigType>;
+    private projectsToAdd: Set<ProjectConfig>;
+    private allProjects: Set<ProjectConfig>;
     private labelsToAdd: Set<string>;
     private labelsToRemove: Set<string>;
-    private githubUtils: GithubUtils;
+    private issueBotUtils: IssueBotUtils;
+    private projectBoard: ProjectBoard;
+    private issueLabels: IssueLabels;
+    private issueComments: IssueComments;
+    private issueAssignees: IssueAssignees;
 
-    constructor(issueNo: number, issueLabelConfig: IssueLabelerConfigType){
+    constructor(issueNo: number, issueLabelConfig: IssueLabelerConfig){
         this.issueLabelConfig = issueLabelConfig;
         this.noSelectionMadeHeaders = [];
         this.assignees = new Set();
@@ -19,10 +30,15 @@ export class LabelIssue {
         this.allProjects = new Set();
         this.labelsToAdd = new Set();
         this.labelsToRemove = new Set();
-        this.githubUtils = new GithubUtils(issueNo);
+
+        this.issueBotUtils = new IssueBotUtils(issueNo);
+        this.projectBoard = new ProjectBoard(this.issueBotUtils);
+        this.issueLabels = new IssueLabels(this.issueBotUtils);
+        this.issueComments = new IssueComments(this.issueBotUtils);
+        this.issueAssignees = new IssueAssignees(this.issueBotUtils);
     }
 
-    async executeLabeler(issueBody: string): Promise<boolean> {
+    async updateIssue(issueBody: string): Promise<boolean> {
         await this.parseIssue(issueBody);
         await this.updateIssueLabels();
         await this.assignUsersToIssue();
@@ -33,8 +49,12 @@ export class LabelIssue {
         return this.noSelectionMadeHeaders.length < 1;
     }
 
-    async parseIssue(issueBody: string) {
-        const issueContent = this.githubUtils.getIssueSections(issueBody);
+    /**
+     * Parse the issue to determine what labels need to be added/removed, users assigned and projects the issue should belong to
+     * @param issueBody 
+     */
+    private async parseIssue(issueBody: string) {
+        const issueContent = StringUtils.getIssueSections(issueBody);
 
         Object.entries(this.issueLabelConfig).forEach(([header, value]) => {
             const headerContent = issueContent.get(header) || "";
@@ -92,18 +112,24 @@ export class LabelIssue {
         });
     }
 
-    async updateIssueLabels() {
-        await this.githubUtils.updateIssueLabels(this.labelsToAdd, this.labelsToRemove);
+    /**
+     * Update the issue labels
+     */
+    private async updateIssueLabels() {
+        await this.issueLabels.updateLabels(this.labelsToAdd, this.labelsToRemove);
     }
 
-    async commentOnIssue() {
+    /**
+     * Update bot comment on issue
+     */
+    private async commentOnIssue() {
         const baseComment = "Invalid Selections Detected:"
-        const lastCommentId = await this.githubUtils.getLastCommentId(baseComment);
+        const lastCommentId = await this.issueComments.getLastCommentId(baseComment);
         if (this.noSelectionMadeHeaders.length <= 0) {
             core.info("All required sections contained valid selections");
             if (lastCommentId) {
                 core.info("Removing last comment from bot");
-                await this.githubUtils.removeComment(lastCommentId);
+                await this.issueComments.removeComment(lastCommentId);
             }
             return;
         }
@@ -119,21 +145,27 @@ export class LabelIssue {
 
         if (lastCommentId) {
             core.info("Updating last comment from bot");
-            await this.githubUtils.updateComment(lastCommentId, commentLines.join("\n"));
+            await this.issueComments.updateComment(lastCommentId, commentLines.join("\n"));
         } else {
             core.info("Creating new comment");
-            await this.githubUtils.addComment(commentLines.join("\n"));
+            await this.issueComments.addComment(commentLines.join("\n"));
         }
     }
 
-    async assignUsersToIssue() {
-        await this.githubUtils.assignUsersToIssue(this.assignees);
+    /**
+     * Assign users to issue
+     */
+    private async assignUsersToIssue() {
+        await this.issueAssignees.assignUsersToIssue(this.assignees);
     }
 
-    async updateIssueProjects(): Promise<void> {
+    /**
+     * Add issue to project board
+     */
+    private async updateIssueProjects(): Promise<void> {
         const projects = Array.from(this.allProjects);
 
-        const issueId = await this.githubUtils.getIssueId();
+        const issueId = await this.projectBoard.getIssueId();
         if (!issueId) {
             core.info(`No issue id found!`);
             return;
@@ -141,9 +173,9 @@ export class LabelIssue {
 
         const promises = projects.map(async (project) => {
             if (this.projectsToAdd.has(project)) {
-                await this.githubUtils.addIssueToProject(project, issueId);
+                await this.projectBoard.addIssueToProject(project, issueId);
             } else {
-                await this.githubUtils.removeIssueFromProject(project, issueId);
+                await this.projectBoard.removeIssueFromProject(project, issueId);
             }
         });
 

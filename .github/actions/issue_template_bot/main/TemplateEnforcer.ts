@@ -1,20 +1,59 @@
 import * as core from "@actions/core";
-import { GithubUtils, IssueBotConfigType } from "./GithubUtils";
+import { IssueBotUtils } from "../utils/IssueBotUtils";
+import { IssueBotConfig } from "../types/IssueBotConfig";
+import { IssueLabels } from "../utils/github_api_utils/IssueLabels";
+import { RepoFiles } from "../utils/github_api_utils/RepoFiles";
+import { IssueComments } from "../utils/github_api_utils/IssueComments";
+import { StringUtils } from "../utils/StringUtils";
 
 export class TemplateEnforcer {
     private action: string;
-    private issueNo: number;
     private allTemplates: Array<Map<string, string>>;
-    private githubUtils: GithubUtils;
+    private issueBotUtils: IssueBotUtils;
+    private issueLabels: IssueLabels;
+    private issueComments: IssueComments;
+    private repoFiles: RepoFiles;
 
     constructor(issueNo: number, action?: string) {
-        this.issueNo = issueNo;
         this.action = action || "edited";
         this.allTemplates = [];
-        this.githubUtils = new GithubUtils(issueNo);
+        this.issueBotUtils = new IssueBotUtils(issueNo);
+        this.issueLabels = new IssueLabels(this.issueBotUtils);
+        this.issueComments = new IssueComments(this.issueBotUtils);
+        this.repoFiles = new RepoFiles(this.issueBotUtils);
     }
 
-    async getTemplate(issueBody: string, templateMap: Map<string, string>, currentLabels: Array<string>): Promise<string|null> {
+    /**
+     * 
+     * @param issueBody 
+     * @param config 
+     */
+    async enforceTemplate(issueBody: string, config: IssueBotConfig): Promise<boolean> {
+        const currentLabels = await this.issueLabels.getCurrentLabels();
+        const templateMap = await this.repoFiles.getIssueTemplates();
+        const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
+        let isIssueFilled = false;
+        if (templateUsed) {
+            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed, config.optionalSections);
+        }
+
+        await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
+
+        if (config.noTemplateClose && !templateUsed) {
+            await this.issueBotUtils.closeIssue();
+        }
+
+        // Return true if template filled out completely, false if not used or incomplete
+        return !!templateUsed && !!isIssueFilled;
+    }
+
+    /**
+     * 
+     * @param issueBody 
+     * @param templateMap 
+     * @param currentLabels 
+     */
+    private async getTemplate(issueBody: string, templateMap: Map<string, string>, currentLabels: Array<string>): Promise<string|null> {
         let templateName = null
         if (this.action === "opened") {
             templateName = this.matchByLabel(templateMap, currentLabels);
@@ -36,38 +75,25 @@ export class TemplateEnforcer {
         return templateMap.get(templateName) || null;
     }
 
-    async enforceTemplate(issueBody: string, config: IssueBotConfigType): Promise<boolean> {
-        const currentLabels = await this.githubUtils.getCurrentLabels();
-        const templateMap = await this.githubUtils.getIssueTemplates();
-        const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
-        let isIssueFilled = false;
-        if (templateUsed) {
-            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed, config.optionalSections);
-        }
-
-        await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
-
-        if (config.noTemplateClose && !templateUsed) {
-            await this.githubUtils.closeIssue();
-        }
-
-        // Return true if template filled out completely, false if not used or incomplete
-        return !!templateUsed && !!isIssueFilled;
-    }
-
-    async commentOnIssue(config: IssueBotConfigType, isTemplateUsed: boolean, isIssueFilled: boolean) {
+    /**
+     * 
+     * @param config 
+     * @param isTemplateUsed 
+     * @param isIssueFilled 
+     */
+    private async commentOnIssue(config: IssueBotConfig, isTemplateUsed: boolean, isIssueFilled: boolean) {
         const baseComment = "Invalid Issue Template:"
         if (!config.incompleteTemplateMessage && !config.noTemplateMessage) {
             return;
         }
 
-        const lastCommentId = await this.githubUtils.getLastCommentId(baseComment);
+        const lastCommentId = await this.issueComments.getLastCommentId(baseComment);
 
         // Template used and complete, remove previous warning comment
         if (isIssueFilled) {
             if (lastCommentId) {
                 core.info("Removing last comment from bot");
-                await this.githubUtils.removeComment(lastCommentId);
+                await this.issueComments.removeComment(lastCommentId);
             }
             return;
         }
@@ -84,17 +110,23 @@ export class TemplateEnforcer {
         }
 
         if (!lastCommentId) {
-            await this.githubUtils.addComment(comment);
+            await this.issueComments.addComment(comment);
             return;
         } else {
-            await this.githubUtils.updateComment(lastCommentId, comment);
+            await this.issueComments.updateComment(lastCommentId, comment);
             return;
         }
     }
 
-    didIssueFillOutTemplate(issueBody: string, template: string, optionalSections?: Array<string>): boolean {
-        const templateSections = this.githubUtils.getIssueSections(template);
-        const issueSections = this.githubUtils.getIssueSections(issueBody);
+    /**
+     * 
+     * @param issueBody 
+     * @param template 
+     * @param optionalSections 
+     */
+    private didIssueFillOutTemplate(issueBody: string, template: string, optionalSections?: Array<string>): boolean {
+        const templateSections = StringUtils.getIssueSections(template);
+        const issueSections = StringUtils.getIssueSections(issueBody);
 
         const templateHeaders = [...templateSections.keys()];
 
@@ -107,8 +139,8 @@ export class TemplateEnforcer {
                 core.info(`Does not have header: ${sectionHeader}`)
                 return false;
             }
-            const templateContent = this.normalizeString(templateSections.get(sectionHeader));
-            const issueContent = this.normalizeString(issueSections.get(sectionHeader));
+            const templateContent = StringUtils.normalizeString(templateSections.get(sectionHeader));
+            const issueContent = StringUtils.normalizeString(issueSections.get(sectionHeader));
             core.info(`Checking Header: ${sectionHeader}`);
 
             if (issueContent === templateContent || templateContent.includes(issueContent)) {
@@ -127,21 +159,18 @@ export class TemplateEnforcer {
         });
     }
 
-    normalizeString(rawString?: string): string {
-        if (!rawString) {
-            return "";
-        }
-
-        return rawString.replace(/\s*[\n\r]+\s*/g, " ").trim();
-    }
-
+    /**
+     * 
+     * @param templateMap 
+     * @param currentLabels 
+     */
     matchByLabel(templateMap: Map<string, string>, currentLabels: Array<string>): string|null {
         let largestMatch = 0;
         let templateName = null;
         
         templateMap.forEach((contents, filename) => {
-            this.allTemplates.push(this.githubUtils.getIssueSections(contents));
-            const templateLabels = this.getLabelsFromTemplate(contents);
+            this.allTemplates.push(StringUtils.getIssueSections(contents));
+            const templateLabels = StringUtils.getLabelsFromTemplate(contents);
             const templateMatch = templateLabels.every(templateLabel => {
                 return currentLabels.includes(templateLabel);
             });
@@ -156,17 +185,22 @@ export class TemplateEnforcer {
         return templateName;
     }
 
+    /**
+     * 
+     * @param templateMap 
+     * @param issueBody 
+     */
     matchBySection(templateMap: Map<string, string>, issueBody: string): string|null {
         let largestFullMatch = 0;
         let largestPartialMatch = 0;
         let fullMatchTemplateName: string|null = null;
         let partialMatchTemplateName: string|null = null;
 
-        const issueSections = this.githubUtils.getIssueSections(issueBody);
+        const issueSections = StringUtils.getIssueSections(issueBody);
 
         templateMap.forEach((contents, filename) => {
             core.info(`Checking: ${filename}`);
-            const templateSections = this.githubUtils.getIssueSections(contents);
+            const templateSections = StringUtils.getIssueSections(contents);
             let sectionsMatched = 0;
             let templateHeaders = [...templateSections.keys()];
             templateHeaders.forEach((sectionHeader) => {
@@ -193,16 +227,5 @@ export class TemplateEnforcer {
             core.info(`Best Possible Template Match: ${partialMatchTemplateName}`);
             return partialMatchTemplateName;
         }
-    }
-
-    getLabelsFromTemplate(templateBody: string): Array<string> {
-        const templateMetadataRegEx = RegExp("---.*?labels:\\s*(.*?)(?=\\n).*?---", "gs");
-        let match: RegExpExecArray | null;
-        const labels = [];
-        while((match = templateMetadataRegEx.exec(templateBody)) !== null) {
-            labels.push(...match[1].split(" "));
-        }
-
-        return labels;
     }
 }

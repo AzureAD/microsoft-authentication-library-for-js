@@ -7,7 +7,7 @@ inputs:
     required: true
   config_path:
     description: 'Json Config file for the bot'
-    required: false
+    required: true
   
 runs:
   using: 'node12'
