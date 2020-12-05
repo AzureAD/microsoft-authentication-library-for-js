@@ -7,6 +7,7 @@ import { INetworkModule, Logger, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { InteractionType } from "./BrowserConstants";
 
 /**
  * Utility class for browser specific functions
@@ -104,6 +105,19 @@ export class BrowserUtils {
         // return an error if called from the hidden iframe created by the msal js silent calls
         if (isResponseHash && BrowserUtils.isInIframe()) {
             throw BrowserAuthError.createBlockReloadInHiddenIframeError();
+        }
+    }
+
+    /**
+     * Block redirect operations in iframes unless explicitly allowed
+     * @param interactionType Interaction type for the request
+     * @param allowRedirectInIframe Config value to allow redirects when app is inside an iframe
+     */
+    static blockRedirectInIframe(interactionType: InteractionType, allowRedirectInIframe: boolean): void {
+        const isIframedApp = BrowserUtils.isInIframe();
+        if (interactionType === InteractionType.Redirect && isIframedApp && !allowRedirectInIframe) {
+            // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
+            throw BrowserAuthError.createRedirectInIframeError(isIframedApp);
         }
     }
 

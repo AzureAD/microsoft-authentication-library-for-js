@@ -45,9 +45,13 @@ export const BrowserAuthErrorMessage = {
         code: "user_cancelled",
         desc: "User cancelled the flow."
     },
-    monitorWindowTimeoutError: {
+    monitorPopupTimeoutError: {
         code: "monitor_window_timeout",
         desc: "Token acquisition in popup failed due to timeout."
+    },
+    monitorIframeTimeoutError: {
+        code: "monitor_window_timeout",
+        desc: "Token acquisition in iframe failed due to timeout."
     },
     redirectInIframeError: {
         code: "redirect_in_iframe",
@@ -171,12 +175,19 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when monitorWindowFromHash times out for a given popup.
-     * @param urlNavigate 
+     * Creates an error thrown when monitorPopupFromHash times out for a given popup.
      */
-    static createMonitorWindowTimeoutError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.monitorWindowTimeoutError.code,
-            BrowserAuthErrorMessage.monitorWindowTimeoutError.desc);
+    static createMonitorPopupTimeoutError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.monitorPopupTimeoutError.code,
+            BrowserAuthErrorMessage.monitorPopupTimeoutError.desc);
+    }
+
+    /**
+     * Creates an error thrown when monitorIframeFromHash times out for a given iframe.
+     */
+    static createMonitorIframeTimeoutError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.monitorIframeTimeoutError.code,
+            BrowserAuthErrorMessage.monitorIframeTimeoutError.desc);
     }
 
     /**
