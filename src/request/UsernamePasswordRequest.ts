@@ -3,21 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../account/AccountInfo";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
- * SilentFlow parameters passed by the user to retrieve credentials silently
+ * UsernamePassword parameters passed by the user to retrieve credentials
+ * Note: The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely. This flow is added for internal testing.
+ *
  * - scopes                 - Array of scopes the application is requesting access to.
  * - claims                 - A stringified claims request which will be added to all /authorize and /token calls. When included on a silent request, cache lookup will be skipped and token will be refreshed.
  * - authority              - Url of the authority which the application acquires tokens from.
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
- * - account                - Account entity to lookup the credentials.
- * - forceRefresh           - Forces silent requests to make network calls if true.
- * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
- * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
+ * - username               - username of the client
+ * - password               - credentials
  */
-export type SilentFlowRequest = BaseAuthRequest & {
-    account: AccountInfo;
-    forceRefresh: boolean;
+export type UsernamePasswordRequest = BaseAuthRequest & {
+    username: string;
+    password: string;
 };

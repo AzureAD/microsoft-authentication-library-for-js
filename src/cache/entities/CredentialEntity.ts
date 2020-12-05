@@ -174,7 +174,7 @@ export class CredentialEntity {
     /**
      * Generate target key component as per schema: <target>
      */
-    private static generateTargetForCacheKey(scopes: string): string {
+    private static generateTargetForCacheKey(scopes?: string): string {
         return (scopes || "").toLowerCase();
     }
 }
