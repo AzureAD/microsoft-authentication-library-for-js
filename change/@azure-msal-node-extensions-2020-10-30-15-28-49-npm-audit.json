@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "prerelease",
   "comment": "Fix npm audit warnings",
   "packageName": "@azure/msal-node-extensions",
   "email": "janutter@microsoft.com",
