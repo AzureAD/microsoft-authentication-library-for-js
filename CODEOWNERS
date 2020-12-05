@@ -22,6 +22,10 @@
 /samples/msal-node-samples/ @sameerag @hectormmg
 /extensions/msal-node-extensions/ @sameerag @hectormmg
 
+# MSAL React
+/lib/msal-react/ @tnorling @jasonnutter
+/samples/msal-react-samples/ @tnorling @jasonnutter
+
 # MSAL Electron POC
 /experimental/msal-electron-proof-of-concept/ @hectormmg
 /samples/msal-electron-sample-app/ @hectormmg

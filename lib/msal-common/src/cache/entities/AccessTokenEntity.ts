@@ -97,6 +97,10 @@ export class AccessTokenEntity extends CredentialEntity {
      */
     static isAccessTokenEntity(entity: object): boolean {
 
+        if (!entity) {
+            return false;
+        }
+
         return (
             entity.hasOwnProperty("homeAccountId") &&
             entity.hasOwnProperty("environment") &&
