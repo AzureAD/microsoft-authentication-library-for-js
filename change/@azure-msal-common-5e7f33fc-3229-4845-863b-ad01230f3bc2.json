@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Merge remote-tracking branch 'origin' into msal-angular-v2",
-  "packageName": "@azure/msal-common",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}

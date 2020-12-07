@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Thu, 12 Nov 2020 00:45:30 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Dec 2020 23:02:52 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-alpha.1
+
+Mon, 07 Dec 2020 23:02:52 GMT
+
+### Changes
+
+- MSAL Angular v2 alpha.1 changes (janutter@microsoft.com)
 
 ## 2.0.0-alpha.0
 
