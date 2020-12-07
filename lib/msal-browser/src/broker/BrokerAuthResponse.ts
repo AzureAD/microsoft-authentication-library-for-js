@@ -1,8 +1,13 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerAuthenticationResult, AccessTokenEntity, IdTokenEntity, AccountEntity, CacheManager, AuthenticationResult } from "@azure/msal-common";
 import { InteractionType, BrokerMessageType } from "../utils/BrowserConstants";
 import { CacheRecord } from "@azure/msal-common/dist/src/cache/entities/CacheRecord";
-import { BrowserStorage } from "../cache/BrowserStorage";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 
 export class BrokerAuthResponse extends BrokerMessage {
     public interactionType: InteractionType;
@@ -30,7 +35,7 @@ export class BrokerAuthResponse extends BrokerMessage {
         return null;
     }
 
-    static processBrokerResponse(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserStorage): AuthenticationResult {
+    static processBrokerResponse(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserCacheManager): AuthenticationResult {
         const brokerAuthResult = BrokerAuthResponse.validate(brokerAuthResultMessage);
         if (brokerAuthResult.error) {
             throw brokerAuthResult.error;

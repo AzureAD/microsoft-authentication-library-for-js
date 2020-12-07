@@ -2,8 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { version } from "../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, SilentFlowRequest } from "@azure/msal-common";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { Configuration } from "../config/Configuration";
@@ -15,7 +16,6 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { BrokerAuthResponse } from "./BrokerAuthResponse";
 import { ClientApplication } from "../app/ClientApplication";
 import { PopupRequest } from "../request/PopupRequest";
-import { SilentRequest } from "../request/SilentRequest";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -118,7 +118,7 @@ export class BrokerClientApplication extends ClientApplication {
 
     private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
-            const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(validMessage.request as SilentRequest)) as BrokerAuthenticationResult;
+            const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(validMessage.request as SilentFlowRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);

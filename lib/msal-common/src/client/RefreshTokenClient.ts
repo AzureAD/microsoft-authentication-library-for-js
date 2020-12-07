@@ -49,11 +49,12 @@ export class RefreshTokenClient extends BaseClient {
             request.resourceRequestMethod,
             request.resourceRequestUri,
             undefined,
-            [],
+            request.scopes,
             undefined,
             true
         );
     }
+
     /**
      * Gets cached refresh token and attaches to request, then calls acquireToken API
      * @param request

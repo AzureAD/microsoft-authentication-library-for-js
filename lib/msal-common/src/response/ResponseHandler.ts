@@ -170,41 +170,36 @@ export class ResponseHandler {
         return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
-    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, cachedNonce?: string, cachedState?: string): Promise<BrokerAuthenticationResult> {
-        // generate homeAccountId
-        if (serverTokenResponse.client_info) {
-            this.clientInfo = buildClientInfo(serverTokenResponse.client_info, this.cryptoObj);
-            if (!StringUtils.isEmpty(this.clientInfo.uid) && !StringUtils.isEmpty(this.clientInfo.utid)) {
-                this.homeAccountIdentifier = `${this.clientInfo.uid}.${this.clientInfo.utid}`;
-            }
-        } else {
-            this.homeAccountIdentifier = "";
-        }
-        
+    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, authCodePayload?: AuthorizationCodePayload, requestScopes?: string[]): Promise<BrokerAuthenticationResult> {
         // create an idToken object (not entity)
-        const idTokenObj = new AuthToken(serverTokenResponse.id_token, this.cryptoObj);
-
-        // token nonce check (TODO: Add a warning if no nonce is given?)
-        if (!StringUtils.isEmpty(cachedNonce)) {
-            if (idTokenObj.claims.nonce !== cachedNonce) {
-                throw ClientAuthError.createNonceMismatchError();
+        let idTokenObj: AuthToken | undefined;
+        if (serverTokenResponse.id_token) {
+            idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
+    
+            // token nonce check (TODO: Add a warning if no nonce is given?)
+            if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
+                if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
+                    throw ClientAuthError.createNonceMismatchError();
+                }
             }
         }
+
+        // generate homeAccountId
+        this.homeAccountIdentifier = AccountEntity.generateHomeAccountId(serverTokenResponse.client_info || Constants.EMPTY_STRING, authority.authorityType, this.logger, this.cryptoObj, idTokenObj);
 
         // save the response tokens
-        let requestStateObj: RequestStateObject = null;
-        if (!StringUtils.isEmpty(cachedState)) {
-            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, cachedState); 
+        let requestStateObj: RequestStateObject | undefined;
+        if (!!authCodePayload && !!authCodePayload.state) {
+            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, idTokenObj, authority, requestStateObj && requestStateObj.libraryState);
-        // Save refresh token
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, idTokenObj, requestStateObj && requestStateObj.libraryState, requestScopes, undefined, authCodePayload);// Save refresh token
         if (!!cacheRecord.refreshToken) {
             this.cacheStorage.setRefreshTokenCredential(cacheRecord.refreshToken);
         }
 
         cacheRecord.refreshToken = null;
-        const result = await ResponseHandler.generateAuthenticationResult(this.cryptoObj, cacheRecord, idTokenObj, false, requestStateObj);
+        const result = await ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj);
 
         // Get creds to send to child
         return {

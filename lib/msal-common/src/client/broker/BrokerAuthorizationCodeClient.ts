@@ -11,6 +11,7 @@ import { StringUtils } from "../../utils/StringUtils";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { ResponseHandler } from "../../response/ResponseHandler";
 import { BrokerAuthenticationResult } from "../../response/BrokerAuthenticationResult";
+import { AuthorizationCodePayload } from "../../response/AuthorizationCodePayload";
 
 /**
  * Oauth2.0 Authorization Code client implementing the broker protocol for browsers.
@@ -22,7 +23,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<BrokerAuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<BrokerAuthenticationResult> {
         this.logger.info("in acquireToken call");
         // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
@@ -35,14 +36,14 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, cachedNonce, cachedState);
-
-        return tokenResponse;
+        return await responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, authCodePayload, request.scopes);
     }
 
     /**

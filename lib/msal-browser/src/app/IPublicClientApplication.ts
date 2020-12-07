@@ -79,5 +79,8 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     setLogger: () => {
         return;
+    },
+    initializeBrokering: () => {
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);
     }
 };
