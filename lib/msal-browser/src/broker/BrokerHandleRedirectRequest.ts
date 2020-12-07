@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import { BrokerMessageType } from "../utils/BrowserConstants";
 import { BrokerMessage } from "./BrokerMessage";
 
