@@ -169,6 +169,10 @@ export class DeviceCodeClient extends BaseClient {
 
                     } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
                         
+                        if (userSpecifiedTimeout) {
+                            this.logger.verbose(`User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`);
+                        }
+
                         this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeExpiredError());
