@@ -170,7 +170,7 @@ export class ResponseHandler {
         return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
-    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, authCodePayload?: AuthorizationCodePayload, requestScopes?: string[]): Promise<BrokerAuthenticationResult> {
+    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, authCodePayload?: AuthorizationCodePayload, requestScopes?: string[]): Promise<BrokerAuthenticationResult | null> {
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
