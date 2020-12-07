@@ -23,6 +23,6 @@ export class MsalBroadcastService {
         });
     }
     broadcast(message: EventMessage) {
-      this._msalSubject.next(message);
+        this._msalSubject.next(message);
     }
 }
