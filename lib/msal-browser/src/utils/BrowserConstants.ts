@@ -11,8 +11,6 @@ import { RedirectRequest } from "../request/RedirectRequest";
  * Constants
  */
 export const BrowserConstants = {
-    // Interaction status key (only used for browsers)
-    INTERACTION_STATUS_KEY: "interaction.status",
     // Interaction in progress cache value
     INTERACTION_IN_PROGRESS_VALUE: "interaction_in_progress",
     // Invalid grant error code
@@ -54,7 +52,8 @@ export enum TemporaryCacheKeys {
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
-    SCOPES = "scopes"
+    SCOPES = "scopes",
+    INTERACTION_STATUS_KEY = "interaction.status"
 }
 
 /**
