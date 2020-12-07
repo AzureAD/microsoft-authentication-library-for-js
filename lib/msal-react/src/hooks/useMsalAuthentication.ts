@@ -19,10 +19,10 @@ export type MsalAuthenticationResult = {
 export function useMsalAuthentication(
     interactionType: InteractionType, 
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest, 
-    accountIdentifier?: AccountIdentifiers
+    accountIdentifiers?: AccountIdentifiers
 ): MsalAuthenticationResult {
     const { instance, inProgress } = useMsal();
-    const isAuthenticated = useIsAuthenticated(accountIdentifier);
+    const isAuthenticated = useIsAuthenticated(accountIdentifiers);
     const [[result, error], setResponse] = useState<[AuthenticationResult|null, AuthError|null]>([null, null]);
     const [hasBeenCalled, setHasBeenCalled] = useState<boolean>(false);
 
