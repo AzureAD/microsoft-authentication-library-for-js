@@ -231,10 +231,7 @@ export abstract class ClientApplication {
             }
         }
 
-        // Deserialize hash fragment response parameters.
-        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(hash);
-
-        this.browserStorage.cleanRequest(serverParams.state);
+        this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
         return null;
     }
 
@@ -256,10 +253,10 @@ export abstract class ClientApplication {
             const currentAuthority = this.browserStorage.getCachedAuthority(serverParams.state);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
-            return await interactionHandler.handleCodeResponse(responseHash, this.config.auth.clientId);
+            return await interactionHandler.handleCodeResponse(responseHash, authClient.authority, this.networkClient, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(serverParams.state);
+            this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             throw e;
         }
     }
@@ -302,8 +299,13 @@ export abstract class ClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
+
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, this.config.system.redirectNavigationTimeout, redirectStartPage);
+            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, {
+                redirectTimeout: this.config.system.redirectNavigationTimeout, 
+                redirectStartPage: redirectStartPage,
+                onRedirectNavigate: request.onRedirectNavigate
+            });
         } catch (e) {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
@@ -313,7 +315,7 @@ export abstract class ClientApplication {
             }
 
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(validRequest.state);
+            this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
     }
@@ -379,7 +381,10 @@ export abstract class ClientApplication {
             const interactionHandler = new PopupHandler(authClient, this.browserStorage);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, popup);
+            const popupParameters = {
+                popup: popup
+            };
+            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, popupParameters);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
@@ -388,7 +393,7 @@ export abstract class ClientApplication {
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
 
             // Handle response from hash string.
-            const result = await interactionHandler.handleCodeResponse(hash);
+            const result = await interactionHandler.handleCodeResponse(hash, authClient.authority, this.networkClient);
 
             // If logged in, emit acquire token events
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
@@ -407,7 +412,7 @@ export abstract class ClientApplication {
             }
 
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(validRequest.state);
+            this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
     }
@@ -482,7 +487,7 @@ export abstract class ClientApplication {
             return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(silentRequest.state);
+            this.browserStorage.cleanRequestByState(silentRequest.state);
             throw e;
         }
     }
@@ -538,7 +543,7 @@ export abstract class ClientApplication {
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
         // Handle response from hash string
-        return silentHandler.handleCodeResponse(hash);
+        return silentHandler.handleCodeResponse(hash, authClient.authority, this.networkClient);
     }
 
     // #endregion
@@ -559,7 +564,20 @@ export abstract class ClientApplication {
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
-            return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+
+            // Check if onRedirectNavigate is implemented, and invoke it if so
+            if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {
+                const navigate = logoutRequest.onRedirectNavigate(logoutUri);
+
+                if (navigate !== false) {
+                    this.logger.verbose("Logout onRedirectNavigate did not return false, navigating");
+                    return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+                } else {
+                    this.logger.verbose("Logout onRedirectNavigate returned false, stopping navigation");
+                }
+            } else {
+                return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+            }
         } catch(e) {
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
             throw e;
@@ -654,7 +672,7 @@ export abstract class ClientApplication {
     /**
      * Used to get a discovered version of the default authority.
      */
-    protected async getDiscoveredDefaultAuthority(): Promise<Authority> {
+    async getDiscoveredDefaultAuthority(): Promise<Authority> {
         if (!this.defaultAuthority) {
             this.defaultAuthority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.config.auth.protocolMode);
         }
@@ -666,7 +684,7 @@ export abstract class ClientApplication {
      */
     protected interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
-        return (this.browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+        return (this.browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
     }
 
     /**
