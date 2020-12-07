@@ -8,7 +8,7 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AADServerParamKeys, AuthenticationScheme } from "../utils/Constants";
+import { GrantType, AuthenticationScheme } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -23,6 +23,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -53,7 +54,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult | null> {
         this.logger.info("in acquireToken call");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
@@ -72,7 +73,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, request.resourceRequestMethod, request.resourceRequestUri, cachedNonce, cachedState);
+        return await responseHandler.handleServerTokenResponse(response.body, this.authority, request.resourceRequestMethod, request.resourceRequestUri, authCodePayload, request.scopes);
     }
 
     /**
@@ -80,18 +81,28 @@ export class AuthorizationCodeClient extends BaseClient {
      * the client to exchange for a token in acquireToken.
      * @param hashFragment
      */
-    handleFragmentResponse(hashFragment: string, cachedState: string): string {
+    handleFragmentResponse(hashFragment: string, cachedState: string): AuthorizationCodePayload {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger, null, null);
 
-        // Create UrlString object to remove leading # using getHash()
+        // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
         // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hashUrlString.getHash());
 
         // Get code response
         responseHandler.validateServerAuthorizationCodeResponse(serverParams, cachedState, this.cryptoUtils);
-        return serverParams.code;
+
+        // throw when there is no auth code in the response
+        if (!serverParams.code) {
+            throw ClientAuthError.createNoAuthCodeInServerResponseError();
+        }
+
+        return {
+            ...serverParams,
+            // Code param is optional in ServerAuthorizationCodeResponse but required in AuthorizationCodePaylod
+            code: serverParams.code
+        };
     }
 
     /**
@@ -113,16 +124,10 @@ export class AuthorizationCodeClient extends BaseClient {
             this.cacheManager.clear();
         }
 
-        // Get postLogoutRedirectUri.
-        const postLogoutUriParam = logoutRequest.postLogoutRedirectUri ?
-            `?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(logoutRequest.postLogoutRedirectUri)}` : "";
-
-        const correlationIdParam = logoutRequest.correlationId ?
-            `&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(logoutRequest.correlationId)}` : "";
+        const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
         // Construct logout URI.
-        const logoutUri = `${this.authority.endSessionEndpoint}${postLogoutUriParam}${correlationIdParam}`;
-        return logoutUri;
+        return StringUtils.isEmpty(queryString) ? this.authority.endSessionEndpoint : `${this.authority.endSessionEndpoint}?${queryString}`;
     }
 
     /**
@@ -136,7 +141,7 @@ export class AuthorizationCodeClient extends BaseClient {
             authority: authority.canonicalAuthority,
             scopes: request.scopes
         };
-        
+
         const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
@@ -179,7 +184,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
         parameterBuilder.addClientInfo();
 
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (request.authenticationScheme === AuthenticationScheme.POP && !!request.resourceRequestMethod && !!request.resourceRequestUri) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
             const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
             parameterBuilder.addPopToken(cnfString);
@@ -226,7 +231,7 @@ export class AuthorizationCodeClient extends BaseClient {
         // add client_info=1
         parameterBuilder.addClientInfo();
 
-        if (request.codeChallenge) {
+        if (request.codeChallenge && request.codeChallengeMethod) {
             parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
         }
 
@@ -261,6 +266,28 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.extraQueryParameters) {
             parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
+    }
+
+    /**
+     * This API validates the `EndSessionRequest` and creates a URL
+     * @param request
+     */
+    private createLogoutUrlQueryString(request: EndSessionRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.postLogoutRedirectUri) {
+            parameterBuilder.addPostLogoutRedirectUri(request.postLogoutRedirectUri);
+        }
+
+        if (request.correlationId) {
+            parameterBuilder.addCorrelationId(request.correlationId);
+        }
+
+        if (request.idTokenHint) {
+            parameterBuilder.addIdTokenHint(request.idTokenHint);
         }
 
         return parameterBuilder.createQueryString();

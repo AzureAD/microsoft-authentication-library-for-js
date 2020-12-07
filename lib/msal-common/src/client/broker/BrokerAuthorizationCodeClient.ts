@@ -14,6 +14,7 @@ import { BrokeredAuthorizationUrlRequest } from "../../request/broker/BrokeredAu
 import { AuthenticationResult } from "../../response/AuthenticationResult";
 import { AuthenticationScheme, GrantType } from "../../utils/Constants";
 import { PopTokenGenerator } from "../../crypto/PopTokenGenerator";
+import { AuthorizationCodePayload } from "../../response/AuthorizationCodePayload";
 
 /**
  * Oauth2.0 Authorization Code client implementing the broker protocol for browsers.
@@ -25,7 +26,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: BrokeredAuthorizationCodeRequest, cachedNonce?: string, cachedState?: string): Promise<AuthenticationResult | BrokerAuthenticationResult> {
+    async acquireToken(request: BrokeredAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult | BrokerAuthenticationResult | null> {
         this.logger.info("in acquireToken call");
         // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
@@ -38,15 +39,17 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
         if (!request.embeddedAppClientId) {
-            return responseHandler.handleServerTokenResponse(response.body, this.authority, cachedNonce, cachedState);
+            return await responseHandler.handleServerTokenResponse(response.body, this.authority, undefined, undefined, authCodePayload, request.scopes);
         } else {
-            return responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, cachedNonce, cachedState);
+            return await responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, authCodePayload, request.scopes);
         }
     }
 

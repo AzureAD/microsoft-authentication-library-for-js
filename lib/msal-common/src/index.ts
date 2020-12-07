@@ -69,8 +69,10 @@ export { BrokeredRefreshTokenRequest } from "./request/broker/BrokeredRefreshTok
 export { BrokeredSilentFlowRequest } from "./request/broker/BrokeredSilentFlowRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { BrokerAuthenticationResult } from "./response/BrokerAuthenticationResult";
+export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ScopeSet } from "./request/ScopeSet";
+export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors

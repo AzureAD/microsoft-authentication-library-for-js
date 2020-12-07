@@ -1,0 +1,8 @@
+{
+  "type": "major",
+  "comment": "Enable StrictNullChecks (#2602)",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-11-30T18:15:09.284Z"
+}

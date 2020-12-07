@@ -68,6 +68,14 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(UrlString.removeHashFromUrl(fullUrl)).to.eq(baseUrl);
     });
 
+    it("removes empty query string from url provided", () => {
+        const baseUrl = "https://localhost/";
+        const testUrl = baseUrl + "?";
+        const testUrl2 = baseUrl + "?/";
+        expect(UrlString.removeHashFromUrl(testUrl)).to.eq(baseUrl);
+        expect(UrlString.removeHashFromUrl(testUrl2)).to.eq(baseUrl);
+    });
+
     it("replaceTenantPath correctly replaces common with tenant id", () => {
         let urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT);
         const sampleTenantId = "sample-tenant-id";
@@ -182,6 +190,26 @@ describe("UrlString.ts Class Unit Tests", () => {
         it("tests domain is returned when provided url includes query string", () => {
             expect(UrlString.getDomainFromUrl("domain.com?queryString=1")).to.eq("domain.com");
             expect(UrlString.getDomainFromUrl("domain.com/?queryString=1")).to.eq("domain.com");
+        });
+    });
+
+    describe("getAbsoluteUrl tests", () => {
+        it("Returns url provided if it's already absolute", () => {
+            const absoluteUrl = "https://localhost:30662"
+            expect(UrlString.getAbsoluteUrl(absoluteUrl, absoluteUrl + "/testPath")).to.eq(absoluteUrl);
+        });
+
+        it("Returns absolute url if relativeUrl provided", () => {
+            const basePath = "https://localhost:30662"
+            const absoluteUrl = "https://localhost:30662/testPath";
+            expect(UrlString.getAbsoluteUrl("/testPath", basePath)).to.eq(absoluteUrl);
+            expect(UrlString.getAbsoluteUrl("/testPath", basePath + "/")).to.eq(absoluteUrl);
+        });
+
+        it("Replaces path if relativeUrl provided and baseUrl contains different path", () => {
+            const basePath = "https://localhost:30662/differentPath"
+            const expectedUrl = "https://localhost:30662/testPath";
+            expect(UrlString.getAbsoluteUrl("/testPath", basePath)).to.eq(expectedUrl);
         });
     });
 });

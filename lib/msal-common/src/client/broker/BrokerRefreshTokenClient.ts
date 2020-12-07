@@ -14,19 +14,22 @@ import { PopTokenGenerator } from "../../crypto/PopTokenGenerator";
 import { AuthenticationResult } from "../../response/AuthenticationResult";
 import { BrokeredRefreshTokenRequest } from "../../request/broker/BrokeredRefreshTokenRequest";
 import { BrokeredSilentFlowRequest } from "../../request/broker/BrokeredSilentFlowRequest";
+import { ClientConfigurationError } from "../../error/ClientConfigurationError";
 
 /**
  * Oauth2.0 Refresh Token client implementing the broker protocol for browsers.
  */
 export class BrokerRefreshTokenClient extends RefreshTokenClient {
-    async acquireToken(request: BrokeredRefreshTokenRequest): Promise<AuthenticationResult | BrokerAuthenticationResult>{
+    async acquireToken(request: BrokeredRefreshTokenRequest): Promise<AuthenticationResult | BrokerAuthenticationResult | null>{
         const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         responseHandler.validateTokenResponse(response.body);
@@ -47,7 +50,7 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
      * makes a network call to acquire tokens by exchanging RefreshToken available in userCache; throws if refresh token is not cached
      * @param request
      */
-    protected async acquireTokenWithCachedRefreshToken(request: BrokeredSilentFlowRequest, foci: boolean): Promise<AuthenticationResult | BrokerAuthenticationResult> {
+    protected async acquireTokenWithCachedRefreshToken(request: BrokeredSilentFlowRequest, foci: boolean): Promise<AuthenticationResult | BrokerAuthenticationResult | null> {
         // fetches family RT or application RT based on FOCI value
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
 
@@ -58,7 +61,8 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
 
         const refreshTokenRequest: BrokeredRefreshTokenRequest = {
             ...request,
-            refreshToken: refreshToken.secret
+            refreshToken: refreshToken.secret,
+            authenticationScheme: AuthenticationScheme.BEARER
         };
 
         return this.acquireToken(refreshTokenRequest);
@@ -90,6 +94,10 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            if (!request.resourceRequestMethod || !request.resourceRequestUri) {
+                throw ClientConfigurationError.createResourceRequestParametersRequiredError();
+            }
+            
             parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
         }
 

@@ -2,6 +2,21 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 11 Nov 2020 23:33:20 GMT",
+      "tag": "@azure/msal-angular_v1.1.2",
+      "version": "1.1.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Pass generic to ModuleWithProviders for MsalModule v1, set supported Angular versions to 6-9 (#2577)",
+            "author": "janutter@microsoft.com",
+            "commit": "8cf918d4dc99fe5c09d0b20b138fe71fd3ddb3a1",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 07 Nov 2020 01:50:14 GMT",
       "tag": "@azure/msal-angular_v1.1.1",
       "version": "1.1.1",

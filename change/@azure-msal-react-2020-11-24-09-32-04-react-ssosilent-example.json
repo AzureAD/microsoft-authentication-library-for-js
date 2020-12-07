@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Update msal-react ssoSilent example",
+  "packageName": "@azure/msal-react",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-11-24T17:32:04.155Z"
+}

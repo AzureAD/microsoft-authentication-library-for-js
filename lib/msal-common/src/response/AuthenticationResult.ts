@@ -21,17 +21,20 @@ import { AccountInfo } from "../account/AccountInfo";
  * - familyId               - Family ID identifier, usually only used for refresh tokens
  */
 export type AuthenticationResult = {
+    authority: string;
     uniqueId: string;
     tenantId: string;
     scopes: Array<string>;
-    account: AccountInfo;
+    account: AccountInfo | null;
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
     fromCache: boolean;
-    expiresOn: Date;
+    expiresOn: Date | null;
     tokenType: string;
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;
+    cloudGraphHostName?: string;
+    msGraphHost?: string; 
 };
