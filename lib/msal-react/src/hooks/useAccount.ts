@@ -9,15 +9,26 @@ import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 
 function getAccount(instance: IPublicClientApplication, accountIdentifiers: AccountIdentifiers): AccountInfo | null {
-    if (accountIdentifiers.localAccountId) {
-        return instance.getAccountByLocalId(accountIdentifiers.localAccountId);
-    } else if (accountIdentifiers.homeAccountId) {
-        return instance.getAccountByHomeId(accountIdentifiers.homeAccountId);
-    } else if (accountIdentifiers.username) {
-        return instance.getAccountByUsername(accountIdentifiers.username);
-    }
+    const allAccounts = instance.getAllAccounts();
+    if (allAccounts.length > 0 && (accountIdentifiers.homeAccountId || accountIdentifiers.localAccountId || accountIdentifiers.username)) {
+        const matchedAccounts = allAccounts.filter(accountObj => {
+            if (accountIdentifiers.username && accountIdentifiers.username.toLowerCase() !== accountObj.username.toLowerCase()) {
+                return false;
+            }
+            if (accountIdentifiers.homeAccountId && accountIdentifiers.homeAccountId.toLowerCase() !== accountObj.homeAccountId.toLowerCase()) {
+                return false;
+            }
+            if (accountIdentifiers.localAccountId && accountIdentifiers.localAccountId.toLowerCase() !== accountObj.localAccountId.toLowerCase()) {
+                return false;
+            }
 
-    return null;
+            return true;
+        });
+
+        return matchedAccounts[0] || null;
+    } else {
+        return null;
+    }
 }
 
 export function useAccount(accountIdentifiers: AccountIdentifiers): AccountInfo | null {
