@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "update browser export (#2693)",
+  "packageName": "@azure/msal-browser",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-12-03T22:11:51.378Z"
+}

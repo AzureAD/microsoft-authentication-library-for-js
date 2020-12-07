@@ -36,7 +36,8 @@ export const Constants = {
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
-    EMPTY_STRING: ""
+    EMPTY_STRING: "",
+    FORWARD_SLASH: "/" 
 };
 
 /**
@@ -103,6 +104,7 @@ export enum AADServerParamKeys {
     X_CLIENT_OS = "x-client-OS",
     X_CLIENT_CPU = "x-client-CPU",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
+    ID_TOKEN_HINT= "id_token_hint",
     DEVICE_CODE = "device_code",
     CLIENT_SECRET = "client_secret",
     CLIENT_ASSERTION = "client_assertion",

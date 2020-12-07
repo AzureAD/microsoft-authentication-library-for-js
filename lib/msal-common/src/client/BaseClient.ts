@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, buildClientConfiguration } from "../config/ClientConfiguration";
+import { ClientConfiguration, buildClientConfiguration, CommonClientConfiguration } from "../config/ClientConfiguration";
 import { INetworkModule } from "../network/INetworkModule";
 import { NetworkManager, NetworkResponse } from "../network/NetworkManager";
 import { ICrypto } from "../crypto/ICrypto";
@@ -15,6 +15,8 @@ import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { version, name } from "../../package.json";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -24,7 +26,7 @@ export abstract class BaseClient {
     public logger: Logger;
 
     // Application config
-    protected config: ClientConfiguration;
+    protected config: CommonClientConfiguration;
 
     // Crypto Interface
     protected cryptoUtils: ICrypto;
@@ -36,20 +38,20 @@ export abstract class BaseClient {
     protected networkClient: INetworkModule;
 
     // Server Telemetry Manager
-    protected serverTelemetryManager: ServerTelemetryManager;
+    protected serverTelemetryManager: ServerTelemetryManager | null;
 
     // Network Manager
     protected networkManager: NetworkManager;
 
     // Default authority object
-    protected authority: Authority;
+    public authority: Authority;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
         this.config = buildClientConfiguration(configuration);
 
         // Initialize the logger
-        this.logger = new Logger(this.config.loggerOptions);
+        this.logger = new Logger(this.config.loggerOptions, name, version);
 
         // Initialize crypto
         this.cryptoUtils = this.config.cryptoInterface;
@@ -66,8 +68,10 @@ export abstract class BaseClient {
         // Set TelemetryManager
         this.serverTelemetryManager = this.config.serverTelemetryManager;
 
+        // Set TrustedAuthorities from config
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
 
+        // set Authority
         this.authority = this.config.authOptions.authority;
     }
 
@@ -112,7 +116,7 @@ export abstract class BaseClient {
     protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
             thumbprint,
-            tokenEndpoint, 
+            tokenEndpoint,
             { body: queryString, headers: headers }
         );
 
@@ -122,5 +126,16 @@ export abstract class BaseClient {
         }
 
         return response;
+    }
+
+    /**
+     * Updates the authority object of the client. Endpoint discovery must be completed.
+     * @param updatedAuthority 
+     */
+    updateAuthority(updatedAuthority: Authority): void {
+        if (!updatedAuthority.discoveryComplete()) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Updated authority has not completed endpoint discovery.");
+        }
+        this.authority = updatedAuthority;
     }
 }

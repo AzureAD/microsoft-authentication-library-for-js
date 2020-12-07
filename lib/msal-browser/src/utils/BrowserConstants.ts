@@ -3,7 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationUrlRequest, Constants } from "@azure/msal-common";
+import { Constants } from "@azure/msal-common";
+import { PopupRequest } from "../request/PopupRequest";
+import { RedirectRequest } from "../request/RedirectRequest";
 
 /**
  * Constants
@@ -88,7 +90,7 @@ export enum BrokerMessageType {
     AUTH_RESULT = "BrokerAuthResult"
 }
 
-export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
+export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
 

@@ -143,7 +143,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         const silentRequest: SilentFlowRequest = {
             ...request,
-            ...this.initializeBaseRequest(request)
+            ...this.initializeBaseRequest(request),
+            forceRefresh: request.forceRefresh || false
         };
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
@@ -159,7 +160,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return cachedToken;
         } catch (e) {
             try {
-                const tokenRenewalResult = await this.acquireTokenByRefreshToken(request);
+                const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
                 this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
                 return tokenRenewalResult;
             } catch (tokenRenewalError) {

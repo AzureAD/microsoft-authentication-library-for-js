@@ -13,10 +13,10 @@
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type BaseAuthRequest = {
+    authority: string;
+    correlationId: string;
     scopes: Array<string>;
     claims?: string;
-    authority?: string;
-    correlationId?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
 };
