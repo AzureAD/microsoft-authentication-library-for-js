@@ -8,18 +8,21 @@ import { Location } from "@angular/common";
 import {
     IPublicClientApplication,
     EndSessionRequest,
-    AuthorizationUrlRequest,
     AuthenticationResult,
     RedirectRequest,
-    SilentRequest
+    SilentRequest,
+    PopupRequest,
+    SsoSilentRequest,
+    Logger
 } from "@azure/msal-browser";
-import { MSAL_INSTANCE } from "./constants";
+import { MSAL_INSTANCE, name, version } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
 
 @Injectable()
 export class MsalService implements IMsalService {
     private redirectHash: string;
+    private logger: Logger;
 
     constructor(
         @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
@@ -31,7 +34,7 @@ export class MsalService implements IMsalService {
         }
     }
 
-    acquireTokenPopup(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
+    acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
         return from(this.instance.acquireTokenPopup(request));
     }
     acquireTokenRedirect(request: RedirectRequest): Observable<void> {
@@ -45,7 +48,7 @@ export class MsalService implements IMsalService {
         this.redirectHash = "";
         return handleRedirect;
     }
-    loginPopup(request?: AuthorizationUrlRequest): Observable<AuthenticationResult> {
+    loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {
         return from(this.instance.loginPopup(request));
     }
     loginRedirect(request?: RedirectRequest): Observable<void> {
@@ -54,8 +57,18 @@ export class MsalService implements IMsalService {
     logout(logoutRequest?: EndSessionRequest): Observable<void> {
         return from(this.instance.logout(logoutRequest));
     }
-    ssoSilent(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
+    ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.ssoSilent(request));
+    }
+    getLogger(): Logger {
+        if (!this.logger) {
+            this.logger = this.instance.getLogger().clone(name, version);
+        }
+        return this.logger;
+    }
+    setLogger(logger: Logger): void {
+        this.logger = logger.clone(name, version);
+        this.instance.setLogger(logger);
     }
 
 }

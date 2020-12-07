@@ -31,12 +31,6 @@ function initializeMsal() {
 
 describe('MsalService', () => {
   beforeAll(initializeMsal);
-  afterAll(() => {
-    TestBed.resetTestEnvironment();
-    TestBed.resetTestingModule();
-    authService = null;
-    broadcastService = null;
-  });
 
   describe("loginPopup", () => {
     it("success", (done) => {

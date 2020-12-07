@@ -257,7 +257,7 @@ export class ServerRequestParameters {
                     return;
                 }
 
-                if (paramsString == null) {
+                if (!paramsString) {
                     paramsString = `${key}=${encodeURIComponent(queryParameters[key])}`;
                 }
                 else {

@@ -1,7 +1,7 @@
 # Getting Started
 
 1. [Initialization](#initialization)
-1. [Determinting whether a user is authenticated](#determining-whether-a-user-is-authenticated)
+1. [Determining whether a user is authenticated](#determining-whether-a-user-is-authenticated)
 1. [Signing a user in](#signing-a-user-in)
 1. [Acquiring an access token](#acquiring-an-access-token)
 
@@ -14,7 +14,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 import { MsalProvider } from "@azure/msal-react";
-import { Configuration } from "@azure/msal-browser";
+import { Configuration,  PublicClientApplication } from "@azure/msal-browser";
 
 import App from "./app.jsx";
 
@@ -191,26 +191,32 @@ class App extends React.Component {
 We recommend that your app calls the `acquireTokenSilent` API on your `PublicClientApplication` object each time you need an access token to access an API. This can be done similar to the ways laid out in the previous section: [Call login APIs provided by `msal-browser`](#call-login-apis-provided-by-msal-browser)
 
 ```javascript
-import React from 'react'l
+import React, { useState, useEffect } from "react"
 import { useMsal } from "@azure/msal-react";
 
 export function App() {
     const { instance, accounts, inProgress } = useMsal();
+    const account = useAccount(accounts[0]);
     const [apiData, setApiData] = useState(null);
 
-    if (accounts.length > 0) {
-        const apiData = instance.acquireTokenSilent({
+    useEffect(() => {
+        if (account) {
+            instance.acquireTokenSilent({
                 scopes: ["User.Read"],
-                account: accounts[0]
+                account: account
             }).then((response) => {
                 if(response) {
-                    callApi(response.accessToken).then((result) => setApiData(result))
+                    callMsGraph(response.accessToken).then((result) => setApiData(result));
                 }
             });
+        }
+    }, [account, instance]);
+
+    if (accounts.length > 0) {
         return (
             <>
                 <span>There are currently {accounts.length} users signed in!</span>
-                {apiData && (<span>Data retreived from API: {apiData}</span>)}
+                {apiData && (<span>Data retreived from API: {JSON.stringify(apiData)}</span>)}
             </>
         );
     } else if (inProgress === "login") {

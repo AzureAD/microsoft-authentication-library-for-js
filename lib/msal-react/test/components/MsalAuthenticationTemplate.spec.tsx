@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { testAccount, testResult, TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, MsalAuthenticationTemplate, MsalAuthenticationResult, IMsalContext } from "../../src/index";
@@ -18,15 +18,18 @@ describe("MsalAuthenticationTemplate tests", () => {
         }
     };
 
-    let eventCallback: EventCallbackFunction;
+    let eventCallbacks: EventCallbackFunction[];
     let handleRedirectSpy: jest.SpyInstance;
     let accounts: AccountInfo[] = [];  
 
     beforeEach(() => {
+        eventCallbacks = [];
+        let eventId = 0;
         pca = new PublicClientApplication(msalConfig);
         jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn) => {
-            eventCallback = callbackFn;
-            return "callbackId";
+            eventCallbacks.push(callbackFn);
+            eventId += 1;
+            return eventId.toString();
         });
         handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
             const eventMessage: EventMessage = {
@@ -35,8 +38,11 @@ describe("MsalAuthenticationTemplate tests", () => {
                 payload: null,
                 error: null,
                 timestamp: 10000
-            }
-            eventCallback(eventMessage);
+            };
+
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             return Promise.resolve(null);
         });
 
@@ -56,11 +62,14 @@ describe("MsalAuthenticationTemplate tests", () => {
             const eventMessage: EventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Popup,
-                payload: null,
+                payload: testResult,
                 error: null,
                 timestamp: 10000
-            }
-            eventCallback(eventMessage);
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             
             return Promise.resolve(testResult);
         });
@@ -87,11 +96,15 @@ describe("MsalAuthenticationTemplate tests", () => {
             const eventMessage: EventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Redirect,
-                payload: null,
+                payload: testResult,
                 error: null,
                 timestamp: 10000
-            }
-            eventCallback(eventMessage);
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
+
             return Promise.resolve();
         });
 
@@ -117,11 +130,15 @@ describe("MsalAuthenticationTemplate tests", () => {
             const eventMessage: EventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Silent,
-                payload: null,
+                payload: testResult,
                 error: null,
                 timestamp: 10000
-            }
-            eventCallback(eventMessage);
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
+
             return Promise.resolve(testResult);
         });
 
@@ -151,11 +168,14 @@ describe("MsalAuthenticationTemplate tests", () => {
             const eventMessage: EventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Popup,
-                payload: null,
+                payload: testResult,
                 error: null,
                 timestamp: 10000
-            }
-            eventCallback(eventMessage);
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             
             return Promise.resolve(testResult);
         });
@@ -186,11 +206,15 @@ describe("MsalAuthenticationTemplate tests", () => {
             const eventMessage: EventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Redirect,
-                payload: null,
+                payload: testResult,
                 error: null,
                 timestamp: 10000
-            }
-            eventCallback(eventMessage);
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
+
             return Promise.resolve();
         });
 
@@ -219,11 +243,15 @@ describe("MsalAuthenticationTemplate tests", () => {
             const eventMessage: EventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Silent,
-                payload: null,
+                payload: testResult,
                 error: null,
                 timestamp: 10000
-            }
-            eventCallback(eventMessage);
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
+
             return Promise.resolve(testResult);
         });
 
@@ -251,19 +279,22 @@ describe("MsalAuthenticationTemplate tests", () => {
                 payload: null,
                 error: error,
                 timestamp: 10000
-            }
-            eventCallback(eventMessage);
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             
             return Promise.reject(error);
         });
 
         const errorMessage = ({error}: MsalAuthenticationResult) => {
             if (error) {
-                return <p>Error Occurred: {error.errorCode}</p>
+                return <p>Error Occurred: {error.errorCode}</p>;
             }
 
             return null;
-        }
+        };
 
         render(
             <MsalProvider instance={pca}>
@@ -281,22 +312,97 @@ describe("MsalAuthenticationTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
 
+    test("Provided error component can resolve error by calling login again, child renders after success", async () => {
+        const error = new AuthError("login_failed");
+        const ssoSilentSpy = jest.spyOn(pca, "ssoSilent").mockImplementation(() => {
+            const eventMessage: EventMessage = {
+                eventType: EventType.LOGIN_FAILURE,
+                interactionType: InteractionType.Silent,
+                payload: null,
+                error: error,
+                timestamp: 10000
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
+            
+            return Promise.reject(error);
+        });
+
+        const loginPopupSpy = jest.spyOn(pca, "loginPopup").mockImplementation((request) => {
+            expect(request).toBe(undefined);
+            accounts = [testAccount];
+            const eventMessage: EventMessage = {
+                eventType: EventType.LOGIN_SUCCESS,
+                interactionType: InteractionType.Popup,
+                payload: testResult,
+                error: null,
+                timestamp: 10000
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
+
+            return Promise.resolve(testResult);
+        });
+
+        const ErrorMessage = ({error, login}: MsalAuthenticationResult) => {            
+            return (
+                <>
+                    <p>Error Occurred: {error?.errorCode}</p>
+                    <button onClick={() => login(InteractionType.Popup)}>Retry</button>
+                </>
+            );
+        };
+
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <MsalAuthenticationTemplate interactionType={InteractionType.Silent} errorComponent={ErrorMessage}>
+                    <span> A user is authenticated!</span>
+                </MsalAuthenticationTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
+        // Verify Error Component rendered
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        await waitFor(() => expect(ssoSilentSpy).toHaveBeenCalledTimes(1));
+        expect(await screen.findByText("Error Occurred: login_failed")).toBeInTheDocument();
+        const retryButton = await screen.findByRole("button", {name: "Retry"});
+        expect(retryButton).toBeInTheDocument();
+        expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
+
+        // Verify the Error Component has access to the login function and successful login causes MsalAuthenticationTemplate to rerender with child
+        fireEvent.click(retryButton);
+        await waitFor(() => expect(loginPopupSpy).toHaveBeenCalledTimes(1));
+        expect(await screen.findByText("A user is authenticated!")).toBeInTheDocument();
+        expect(screen.queryByText("Error Occurred: login_failed")).not.toBeInTheDocument();
+    });
+
     test("Renders provided loading component when interaction is in progress", async () => {
         const loginPopupSpy = jest.spyOn(pca, "loginPopup").mockImplementation(() => {
-            let eventMessage: EventMessage = {
+            const eventMessage: EventMessage = {
                 eventType: EventType.LOGIN_START,
                 interactionType: InteractionType.Popup,
                 payload: null,
                 error: null,
                 timestamp: 10000
-            }
-            eventCallback(eventMessage);
+            };
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
+
             return Promise.resolve(testResult);
         });
 
         const loadingMessage = ({inProgress}: IMsalContext) => {
-            return <p>In Progress: {inProgress}</p>
-        }
+            return <p>In Progress: {inProgress}</p>;
+        };
 
         render(
             <MsalProvider instance={pca}>

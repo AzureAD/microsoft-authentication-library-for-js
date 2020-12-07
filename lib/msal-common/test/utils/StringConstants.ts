@@ -61,6 +61,7 @@ export const TEST_DATA_CLIENT_INFO = {
     TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
     TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
+    TEST_LOCAL_ACCOUNT_ID: "00000000-0000-0000-66f3-3332eca7ea81s",
     TEST_CACHE_RAW_CLIENT_INFO: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
     TEST_CACHE_DECODED_CLIENT_INFO: "{\"uid\":\"uid\", \"utid\":\"utid\"}",
     TEST_RAW_CLIENT_INFO_GUIDS: "eyJ1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtNjZmMy0zMzMyZWNhN2VhODEiLCJ1dGlkIjoiMzMzODA0MGQtNmM2Ny00YzViLWIxMTItMzZhMzA0YjY2ZGFkIn0=",
@@ -144,7 +145,8 @@ export const TEST_ACCOUNT_INFO: AccountInfo = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
     tenantId: ID_TOKEN_CLAIMS.tid,
     environment: "login.windows.net",
-    username: ID_TOKEN_CLAIMS.preferred_username
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
 };
 
 export const TEST_STATE_VALUES = {
@@ -350,10 +352,10 @@ export const AUTHORIZATION_PENDING_RESPONSE = {
 };
 
 export const DEFAULT_NETWORK_IMPLEMENTATION = {
-    sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+    sendGetRequestAsync: async (): Promise<any> => {
         return { test: "test" };
     },
-    sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+    sendPostRequestAsync: async (): Promise<any> => {
         return { test: "test" };
     }
 };

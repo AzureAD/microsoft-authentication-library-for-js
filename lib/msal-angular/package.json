@@ -19,10 +19,6 @@
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
-  "dependencies": {
-    "minimatch": "^3.0.4",
-    "path": "^0.12.7"
-  },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.1000.8",
     "@angular-devkit/build-ng-packagr": "~0.1000.8",
@@ -56,8 +52,8 @@
     "zone.js": "~0.10.3"
   },
   "peerDependencies": {
-    "@angular/common": "9 - 10",
-    "@angular/core": "9 - 10",
+    "@angular/common": "9 - 11",
+    "@angular/core": "9 - 11",
     "@azure/msal-browser": "^2.7.0",
     "rxjs": "^6.0.0"
   }
