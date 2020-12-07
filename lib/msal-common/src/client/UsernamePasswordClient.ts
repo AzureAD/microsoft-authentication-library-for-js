@@ -31,7 +31,7 @@ export class UsernamePasswordClient extends BaseClient {
      * password_grant
      * @param request
      */
-    async acquireToken(request: UsernamePasswordRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
         this.logger.info("in acquireToken call");
 
         const response = await this.executeTokenRequest(this.authority, request);
@@ -63,7 +63,7 @@ export class UsernamePasswordClient extends BaseClient {
             authority: authority.canonicalAuthority,
             scopes: request.scopes
         };
-        const requestBody = await this.createTokenRequestBody(request);
+        const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);

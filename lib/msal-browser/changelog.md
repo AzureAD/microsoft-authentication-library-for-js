@@ -1,8 +1,29 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Sat, 07 Nov 2020 01:50:14 GMT and should not be manually modified.
+This log was last generated on Wed, 11 Nov 2020 23:33:20 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.7.0
+
+Wed, 11 Nov 2020 23:33:20 GMT
+
+### Minor changes
+
+- Support relative paths on redirectUri parameter (#2560) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Adds getAccountByLocalId to PCA Interface (#2588) (thomas.norling@microsoft.com)
+- Add navigateFrameWait and change loadFrameTimeout to browser to match core behavior (#2545) (janutter@microsoft.com)
+
+## 2.6.1
+
+Tue, 10 Nov 2020 01:48:44 GMT
+
+### Patches
+
+- Export stubbed PCA instance (#2540) (thomas.norling@microsoft.com)
 
 ## 2.6.0
 

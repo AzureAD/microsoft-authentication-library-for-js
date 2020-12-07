@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { InteractionType, BrowserCacheLocation } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows and iframes in milliseconds
-const DEFAULT_POPUP_TIMEOUT_MS = 60000;
-const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
-const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
+export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
+export const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
+export const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
 
 /**
  * Use this to configure the auth options in the Configuration object
@@ -67,11 +67,13 @@ export type BrokerOptions = {
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
  * - loggerOptions                - Used to initialize the Logger object (See ClientConfiguration.ts)
  * - networkClient                - Network interface implementation
- * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup
- * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe
- * - loadFrameTimeout             - Maximum time the library should wait for a frame to load
+ * - windowHashTimeout            - Sets the timeout for waiting for a response hash in a popup. Will take precedence over loadFrameTimeout if both are set.
+ * - iframeHashTimeout            - Sets the timeout for waiting for a response hash in an iframe. Will take precedence over loadFrameTimeout if both are set.
+ * - loadFrameTimeout             - Sets the timeout for waiting for a response hash in an iframe or popup
+ * - navigateFrameWait            - Maximum time the library should wait for a frame to load
  * - redirectNavigationTimeout    - Time to wait for redirection to occur before resolving promise
  * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
+ * - allowRedirectInIframe        - Flag to enable redirect opertaions when the app is rendered in an iframe (to support scenarios such as embedded B2C login).
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -79,8 +81,10 @@ export type BrowserSystemOptions = SystemOptions & {
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
+    navigateFrameWait?: number;
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
+    allowRedirectInIframe?: boolean;
 };
 
 export type ExperimentalOptions = {
@@ -103,6 +107,13 @@ export type Configuration = {
     experimental?: ExperimentalOptions;
 };
 
+export type BrowserConfiguration = {
+    auth: Required<BrowserAuthOptions>,
+    cache: Required<CacheOptions>,
+    system: Required<BrowserSystemOptions>,
+    experimental?: Required<ExperimentalOptions>;
+};
+
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
  *
@@ -112,10 +123,10 @@ export type Configuration = {
  *
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, experimental: userExperimental }: Configuration): Configuration {
+export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, experimental: userExperimental }: Configuration): BrowserConfiguration {
 
     // Default auth options for browser
-    const DEFAULT_AUTH_OPTIONS: BrowserAuthOptions = {
+    const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
         clientId: "",
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
@@ -128,7 +139,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     };
 
     // Default cache options for browser
-    const DEFAULT_CACHE_OPTIONS: CacheOptions = {
+    const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false
     };
@@ -136,6 +147,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default logger options for browser
     const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         loggerCallback: (): void => {},
+        logLevel: LogLevel.Info,
         piiLoggingEnabled: false
     };
 
@@ -150,22 +162,25 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     };
 
     // Default system options for browser
-    const DEFAULT_BROWSER_SYSTEM_OPTIONS: BrowserSystemOptions = {
+    const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: BrowserUtils.getBrowserNetworkClient(),
-        windowHashTimeout: DEFAULT_POPUP_TIMEOUT_MS,
-        iframeHashTimeout: DEFAULT_IFRAME_TIMEOUT_MS,
-        loadFrameTimeout: BrowserUtils.detectIEOrEdge() ? 500 : 0,
+        loadFrameTimeout: 0,
+        // If loadFrameTimeout is provided, use that as default.
+        windowHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_POPUP_TIMEOUT_MS,
+        iframeHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_IFRAME_TIMEOUT_MS,
+        navigateFrameWait: BrowserUtils.detectIEOrEdge() ? 500 : 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
-        asyncPopups: false
+        asyncPopups: false,
+        allowRedirectInIframe: false
     };
 
     const DEFAULT_EXPERIMENTAL_OPTIONS: ExperimentalOptions = {
         brokerOptions: DEFAULT_BROKER_OPTIONS
     };
 
-    const overlayedConfig: Configuration = {
+    const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { 
@@ -173,7 +188,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             ...userInputSystem,
             loggerOptions: {
                 ...DEFAULT_LOGGER_OPTIONS, 
-                ...userInputSystem.loggerOptions,
+                ...((userInputSystem && userInputSystem.loggerOptions) || {}),
             }
         },
         experimental: {
@@ -181,7 +196,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             ...userExperimental,
             brokerOptions: {
                 ...DEFAULT_BROKER_OPTIONS,
-                ...userExperimental.brokerOptions
+                ...((userExperimental && userExperimental.brokerOptions) || {}),
             }
         }
     };

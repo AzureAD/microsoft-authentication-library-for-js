@@ -4,7 +4,7 @@
  */
 
 import { version } from "../../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, StringUtils, AuthorizationUrlRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, ScopeSet, AccountInfo } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, StringUtils, AuthorizationUrlRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, ScopeSet, AccountInfo, AuthenticationScheme } from "@azure/msal-common";
 import { BrokerMessage } from "../msg/BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../../utils/BrowserConstants";
 import { Configuration } from "../../config/Configuration";
@@ -320,12 +320,32 @@ export class BrokerClientApplication extends ClientApplication {
      * @param request
      */
     protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        let validatedRequest: AuthorizationUrlRequest = {
-            ...request,
-            ...this.setDefaultScopes(request)
+        const redirectUri = this.getRedirectUri(request.redirectUri);
+        const baseRequestScopes = new ScopeSet(request.scopes);
+        const browserState: BrowserStateObject = {
+            interactionType: interactionType,
+            brokeredClientId: this.config.auth.clientId,
+            brokeredReqAuthority: (request && request.authority) || this.config.auth.authority,
+            brokeredReqScopes: baseRequestScopes.printScopes()
         };
 
-        validatedRequest.redirectUri = this.getRedirectUri(validatedRequest.redirectUri);
+        const state = ProtocolUtils.setRequestState(
+            this.browserCrypto,
+            (request && request.state) || "",
+            browserState
+        );
+
+        const nonce = StringUtils.isEmpty(request.nonce) ? this.browserCrypto.createNewGuid() : request.nonce;
+        const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
+
+        const validatedRequest: AuthorizationUrlRequest = {
+            ...this.initializeBaseRequest(request),
+            redirectUri: redirectUri,
+            state: state,
+            nonce: nonce,
+            responseMode: ResponseMode.FRAGMENT,
+            authenticationScheme: authenticationScheme,
+        };
 
         // Check for ADAL SSO
         if (StringUtils.isEmpty(validatedRequest.loginHint)) {
@@ -339,32 +359,6 @@ export class BrokerClientApplication extends ClientApplication {
                 }
             }
         }
-
-        const scopes = new ScopeSet(request.scopes);
-
-        const browserState: BrowserStateObject = {
-            interactionType: interactionType,
-            brokeredClientId: this.config.auth.clientId,
-            brokeredReqAuthority: (request && request.authority) || this.config.auth.authority,
-            brokeredReqScopes: scopes.printScopes()
-        };
-
-        validatedRequest.state = ProtocolUtils.setRequestState(
-            this.browserCrypto,
-            (request && request.state) || "",
-            browserState
-        );
-
-        if (StringUtils.isEmpty(validatedRequest.nonce)) {
-            validatedRequest.nonce = this.browserCrypto.createNewGuid();
-        }
-
-        validatedRequest.responseMode = ResponseMode.FRAGMENT;
-
-        validatedRequest = {	
-            ...validatedRequest,	
-            ...this.initializeBaseRequest(validatedRequest)	
-        };
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 

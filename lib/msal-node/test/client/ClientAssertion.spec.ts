@@ -43,4 +43,43 @@ describe('Client assertion test', () => {
         const assertion = ClientAssertion.fromCertificate(TEST_CONSTANTS.THUMBPRINT, TEST_CONSTANTS.PRIVATE_KEY);
         assertion.getJwt(cryptoProvider, issuer, audience);
     });
+
+    test('creates ClientAssertion from public certificate for SNI', () => {
+        const expectedPayload = {
+            [JwtConstants.AUDIENCE]: audience,
+            [JwtConstants.ISSUER]: issuer,
+            [JwtConstants.SUBJECT]: issuer,
+        }
+
+        const expectedOptions = {
+            "header": {
+                [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
+                [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(TEST_CONSTANTS.THUMBPRINT, "hex"),
+                [JwtConstants.X5C]: ["test1", "test2"]
+            }
+        }
+
+        mocked(sign).mockImplementation((payload, privateKey, options) => {
+            expect(privateKey).toEqual(TEST_CONSTANTS.PRIVATE_KEY);
+            expect(payload).toEqual(
+                expect.objectContaining(expectedPayload));
+            expect(options).toEqual(expectedOptions);
+        }
+        );
+
+        const assertion = ClientAssertion.fromCertificate(TEST_CONSTANTS.THUMBPRINT, TEST_CONSTANTS.PRIVATE_KEY, TEST_CONSTANTS.PUBLIC_CERTIFICATE);
+        assertion.getJwt(cryptoProvider, issuer, audience);
+    });
+
+    test('parseCertificate finds all valid certs in a chain', () => {
+        const parsedCert = ["test1", "test2"];
+        expect(ClientAssertion.parseCertificate(TEST_CONSTANTS.PUBLIC_CERTIFICATE)).toEqual(parsedCert);
+    })
+
+    test('parseCertificate returns an empty array if given an empty cert', () => {
+        const testCert = "";
+        expect(ClientAssertion.parseCertificate(testCert)).toEqual([]);
+    })
+
+
 });

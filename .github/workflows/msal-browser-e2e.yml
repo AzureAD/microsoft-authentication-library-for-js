@@ -10,8 +10,8 @@ on:
       - master
   pull_request:
     paths: 
-      - 'msal-browser/**/*' 
-      - 'msal-common/**/*'
+      - 'lib/msal-browser/**/*' 
+      - 'lib/msal-common/**/*'
       - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
       - '!**.md'
 

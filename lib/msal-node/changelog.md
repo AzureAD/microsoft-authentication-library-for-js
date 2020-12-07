@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Sat, 07 Nov 2020 01:50:14 GMT and should not be manually modified.
+This log was last generated on Wed, 11 Nov 2020 23:33:20 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-beta.1
+
+Wed, 11 Nov 2020 23:33:20 GMT
+
+### Changes
+
+- Add support for SubjectName/Issuer authentication (#2471). (jamckenn@microsoft.com)
+
+## 1.0.0-alpha.16
+
+Tue, 10 Nov 2020 01:48:44 GMT
+
+### Changes
+
+- Enhance lookup for IdTokens/AppMetadata (#2530) (sameera.gajjarapu@microsoft.com)
 
 ## 1.0.0-alpha.15
 

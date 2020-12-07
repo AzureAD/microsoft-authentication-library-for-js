@@ -2,6 +2,8 @@ import { LogLevel, Logger, TokenCacheContext, ICachePlugin } from '@azure/msal-c
 import { Storage } from './../../src/cache/Storage';
 import { TokenCache } from '../../src/cache/TokenCache';
 import { promises as fs } from 'fs';
+import { version, name } from '../../package.json';
+import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
 
 describe("TokenCache tests", () => {
 
@@ -15,11 +17,11 @@ describe("TokenCache tests", () => {
             piiLoggingEnabled: false,
             logLevel: LogLevel.Info,
         };
-        logger = new Logger(loggerOptions!);
+        logger = new Logger(loggerOptions!, name, version);
     });
 
     it("Constructor tests builds default token cache", async () => {
-        let storage: Storage = new Storage(logger);
+        let storage: Storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger);
         expect(tokenCache).toBeInstanceOf(TokenCache);
         expect(tokenCache.hasChanged()).toEqual(false);
@@ -28,7 +30,7 @@ describe("TokenCache tests", () => {
 
     it("TokenCache serialize/deserialize", () => {
         const cache = require('./cache-test-files/default-cache.json');
-        const storage: Storage = new Storage(logger);
+        const storage: Storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(JSON.stringify(cache));
@@ -43,7 +45,7 @@ describe("TokenCache tests", () => {
         // TokenCache should not remove unrecognized entities from JSON file, even if they
         // are deeply nested, and should write them back out
         const cache = require('./cache-test-files/cache-unrecognized-entities.json');
-        const storage: Storage = new Storage(logger);
+        const storage: Storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(JSON.stringify(cache));
@@ -58,7 +60,7 @@ describe("TokenCache tests", () => {
         // TokenCache should not remove unrecognized entities from JSON file, even if they
         // are deeply nested, and should write them back out
         const cache = require('./cache-test-files/cache-unrecognized-entities.json');
-        const storage: Storage = new Storage(logger);
+        const storage: Storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(JSON.stringify(cache));
@@ -90,7 +92,7 @@ describe("TokenCache tests", () => {
             afterCacheAccess
         };
 
-        const storage = new Storage(logger);
+        const storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger, cachePlugin);
 
         const accounts = await tokenCache.getAllAccounts();

@@ -22,9 +22,12 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(Object.keys(storage).length).to.be.eq(0);
 }
 
-describe("Browser tests", function () {
+describe("In Memory Storage Tests", function () {
     this.timeout(0);
     this.retries(1);
+
+    let username = "";
+    let accountPwd = "";
 
     let browser: puppeteer.Browser;
     before(async () => {
@@ -33,6 +36,18 @@ describe("Browser tests", function () {
             headless: true,
             ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
         });
+
+        const labApiParams: LabApiQueryParams = {
+            azureEnvironment: AzureEnvironments.PPE,
+            appType: AppTypes.CLOUD
+        };
+
+        const labClient = new LabClient();
+        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+
+        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: memStorageConfig, request: memStorageTokenRequest}));
     });
 
     let context: puppeteer.BrowserContext;
@@ -44,59 +59,39 @@ describe("Browser tests", function () {
         await browser.close();
     });
 
-    describe("In Memory Storage Tests", async () => {
-        let username = "";
-        let accountPwd = "";
-        before(async () => {
-            const labApiParams: LabApiQueryParams = {
-                azureEnvironment: AzureEnvironments.PPE,
-                appType: AppTypes.CLOUD
-            };
+    describe("login Tests", () => {
+        beforeEach(async () => {
+            context = await browser.createIncognitoBrowserContext();
+            page = await context.newPage();
+            BrowserCache = new BrowserCacheUtils(page, memStorageConfig.cache.cacheLocation);
+            await page.goto(SAMPLE_HOME_URL);
+        });
     
-            const labClient = new LabClient();
-            const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
-
-            [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
-
-            fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: memStorageConfig, request: memStorageTokenRequest}));
+        afterEach(async () => {
+            await page.close();
         });
 
-        describe("login Tests", () => {
-            beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
-                page = await context.newPage();
-                BrowserCache = new BrowserCacheUtils(page, memStorageConfig.cache.cacheLocation);
-                await page.goto(SAMPLE_HOME_URL);
-            });
+        it("Performs loginRedirect", async () => {
+            const testName = "redirectBaseCase";
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
+            await clickLoginRedirect(screenshot, page);
+            await enterCredentials(page, screenshot, username, accountPwd);
+            await waitForReturnToApp(screenshot, page);
+            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+            await verifyTokenStore(BrowserCache, memStorageTokenRequest.scopes);
+        });
         
-            afterEach(async () => {
-                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
-                await page.close();
-            });
-    
-            it("Performs loginRedirect", async () => {
-                const testName = "redirectBaseCase";
-                const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        it("Performs loginPopup", async () => {
+            const testName = "popupBaseCase";
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
-                await clickLoginRedirect(screenshot, page);
-                await enterCredentials(page, screenshot, username, accountPwd);
-                await waitForReturnToApp(screenshot, page);
-                // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-                await verifyTokenStore(BrowserCache, memStorageTokenRequest.scopes);
-            });
-            
-            it("Performs loginPopup", async () => {
-                const testName = "popupBaseCase";
-                const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
+            await enterCredentials(popupPage, screenshot, username, accountPwd);
+            await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
 
-                const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
-                await enterCredentials(popupPage, screenshot, username, accountPwd);
-                await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
-
-                // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-                await verifyTokenStore(BrowserCache, memStorageTokenRequest.scopes);
-            });
+            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+            await verifyTokenStore(BrowserCache, memStorageTokenRequest.scopes);
         });
     });
 });
