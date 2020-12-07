@@ -31,7 +31,10 @@
     "test": "test"
   },
   "files": [
-    "dist"
+    "dist",
+    "lib/msal-browser.js",
+    "lib/msal-browser.js.map",
+    "lib/msal-browser.min.js"
   ],
   "scripts": {
     "cdn": "npm run build:all && npm run cdn:upload && npm run cdn:sri",
