@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "prerelease",
   "comment": "Updating TestConstants.ts",
   "packageName": "@azure/msal-react",
   "email": "prkanher@microsoft.com",

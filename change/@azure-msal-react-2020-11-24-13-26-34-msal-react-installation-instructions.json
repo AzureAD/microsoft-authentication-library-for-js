@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "prerelease",
   "comment": "Readme Updates",
   "packageName": "@azure/msal-react",
   "email": "thomas.norling@microsoft.com",
