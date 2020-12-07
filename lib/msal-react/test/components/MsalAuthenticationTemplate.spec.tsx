@@ -39,7 +39,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            eventCallbacks[1](eventMessage);
+
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             return Promise.resolve(null);
         });
 
@@ -63,9 +66,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             
             return Promise.resolve(testResult);
         });
@@ -96,9 +100,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
 
             return Promise.resolve();
         });
@@ -129,9 +134,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
 
             return Promise.resolve(testResult);
         });
@@ -166,9 +172,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             
             return Promise.resolve(testResult);
         });
@@ -203,9 +210,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
 
             return Promise.resolve();
         });
@@ -239,9 +247,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
 
             return Promise.resolve(testResult);
         });
@@ -271,9 +280,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             
             return Promise.reject(error);
         });
@@ -312,9 +322,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             
             return Promise.reject(error);
         });
@@ -329,9 +340,11 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
+
             return Promise.resolve(testResult);
         });
 
@@ -379,9 +392,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(2);
-            eventCallbacks[0](eventMessage);
-            eventCallbacks[1](eventMessage);
+            expect(eventCallbacks.length).toBe(3);
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
 
             return Promise.resolve(testResult);
         });
