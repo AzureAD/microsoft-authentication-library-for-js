@@ -1,41 +1,21 @@
 # Hooks
 
-1. [`useAccount`](#useaccount)
-1. [`useIsAuthenticated`](#useisauthenticated)
-1. [`useMsal`](#usemsal)
-1. [`useMsalAuthentication`](#usemsalauthentication)
+1. [`useAccount`](#useaccount-hook)
+1. [`useIsAuthenticated`](#useisauthenticated-hook)
+1. [`useMsal`](#usemsal-hook)
+1. [`useMsalAuthentication`](#usemsalauthentication-hook)
 
 ## `useAccount` hook
 
 The `useAccount` hook accepts an `accountIdentifier` parameter and returns the `AccountInfo` object for that account if it is signed in or `null` if it is not.
 You can read more about the `AccountInfo` object returned in the `msal-browser` docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#account-apis).
 
-Note: Only one account identifier should be provided, if more than one are provided precedence is given in the following order: `localAccountId`, `homeAccountId`, `username`.
-
-### Get an account by localAccountId
+Note: At least one account identifier must be provided, all others are optional. Additionally we do not recommend relying only on `username`.
 
 ```javascript
 const accountIdentifier = {
-    localAccountId: "example-local-account-identifier"
-}
-
-const accountInfo = useAccount(accountIdentifier);
-```
-
-### Get an account by homeAccountId
-
-```javascript
-const accountIdentifier = {
+    localAccountId: "example-local-account-identifier",
     homeAccountId: "example-home-account-identifier"
-}
-
-const accountInfo = useAccount(accountIdentifier);
-```
-
-### Get an account by username
-
-```javascript
-const accountIdentifier = {
     username: "example-username"
 }
 
@@ -45,8 +25,6 @@ const accountInfo = useAccount(accountIdentifier);
 ## `useIsAuthenticated` hook
 
 The `useIsAuthenticated` hook returns a boolean indicating whether or not an account is signed in. It optionally accepts an `accountIdentifier` object you can provide if you need to know whether or not a specific account is signed in.
-
-Note: Only one account identifier should be provided, if more than one are provided precedence is given in the following order: `localAccountId`, `homeAccountId`, `username`.
 
 ### Determine if any account is currently signed in
 
@@ -73,18 +51,20 @@ export function App() {
 
 ### Determine if specific user is signed in
 
-#### By localAccountId
+Note: At least one account identifier must be provided, all others are optional. Additionally we do not recommend relying only on `username`.
 
 ```javascript
 import React from 'react';
 import { useIsAuthenticated } from "@azure/msal-react";
 
 export function App() {
-    const accountIdentifier = {
-        localAccountId: "example-local-account-identifier"
+    const accountIdentifiers = {
+        localAccountId: "example-local-account-identifier",
+        homeAccountId: "example-home-account-identifier",
+        username: "example-username"
     }
 
-    const isAuthenticated = useIsAuthenticated(accountIdentifier);
+    const isAuthenticated = useIsAuthenticated(accountIdentifiers);
 
     return (
         <React.Fragment>
@@ -94,60 +74,6 @@ export function App() {
             )}
             {!isAuthenticated && (
                 <p>User with specified localAccountId is not signed in!</p>
-            )}
-        </React.Fragment>
-    );
-}
-```
-
-#### By homeAccountId
-
-```javascript
-import React from 'react';
-import { useIsAuthenticated } from "@azure/msal-react";
-
-export function App() {
-    const accountIdentifier = {
-        homeAccountId: "example-home-account-identifier"
-    }
-
-    const isAuthenticated = useIsAuthenticated(accountIdentifier);
-
-    return (
-        <React.Fragment>
-            <p>Anyone can see this paragraph.</p>
-            {isAuthenticated && (
-                <p>User with specified homeAccountId is signed in!</p>
-            )}
-            {!isAuthenticated && (
-                <p>User with specified homeAccountId is not signed in!</p>
-            )}
-        </React.Fragment>
-    );
-}
-```
-
-#### By username
-
-```javascript
-import React from 'react';
-import { useIsAuthenticated } from "@azure/msal-react";
-
-export function App() {
-    const accountIdentifier = {
-        username: "example-username"
-    }
-
-    const isAuthenticated = useIsAuthenticated(accountIdentifier);
-
-    return (
-        <React.Fragment>
-            <p>Anyone can see this paragraph.</p>
-            {isAuthenticated && (
-                <p>User with specified username is signed in!</p>
-            )}
-            {!isAuthenticated && (
-                <p>User with specified username is not signed in!</p>
             )}
         </React.Fragment>
     );
@@ -174,7 +100,7 @@ useEffect(() => {
             return null;
         });
     }
-}, [inProgress, account, instance]);
+}, [inProgress, accounts, instance]);
 
 if (inProgress === "login") {
     // Render loading component
@@ -185,7 +111,7 @@ if (inProgress === "login") {
 
 ## `useMsalAuthentication` hook
 
-The `useMsalAuthentication` hook will initiate a login if a user is not already signed in. It accepts an `interactionType` ("Popup", "Redirect", or "Silent") and optionally accepts a [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-react-feature-branch/lib/msal-browser/docs/request-response-object.md#request) and an `accountIdentifier` object if you would like to ensure a specific user is signed in. The hook will return the `response` or `error` from the login call and the `login` callback which can be used to retry a failed login.
+The `useMsalAuthentication` hook will initiate a login if a user is not already signed in. It accepts an `interactionType` ("Popup", "Redirect", or "Silent") and optionally accepts a [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-react-feature-branch/lib/msal-browser/docs/request-response-object.md#request) and an `accountIdentifiers` object if you would like to ensure a specific user is signed in. The hook will return the `response` or `error` from the login call and the `login` callback which can be used to retry a failed login.
 
 Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts to open a hidden iframe and reuse an existing session with AAD. This will not work in browsers that block 3rd party cookies such as Safari. Additionally, when using the "Silent" type the request object is required and must contain either a `loginHint` or `sid` parameter.
 
@@ -194,26 +120,31 @@ Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts
 If you use silent you should catch any errors and attempt an interactive login as a fallback.
 
 ```javascript
-import React from 'react';
-import { useMsalAuthentication } from "@azure/msal-react";
+import React, { useEffect } from 'react';
 
-export function App() {
+import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication } from "@azure/msal-react";
+import { InteractionType } from '@azure/msal-browser';
+
+function App() {
     const request = {
-        loginHint: "example_username",
+        loginHint: "name@example.com",
         scopes: ["User.Read"]
     }
-    const [login, response, error] = useMsalAuthentication("silent", request);
+    const { login, result, error } = useMsalAuthentication(InteractionType.Silent, request);
+
     useEffect(() => {
         if (error) {
-            login("popup", request);
+            login(InteractionType.Popup, request);
         }
     }, [error]);
+
+    const { accounts } = useMsal();
 
     return (
         <React.Fragment>
             <p>Anyone can see this paragraph.</p>
             <AuthenticatedTemplate>
-                <p>At least one account is signed in!</p>
+                <p>Signed in as: {accounts[0]?.username}</p>
             </AuthenticatedTemplate>
             <UnauthenticatedTemplate>
                 <p>No users are signed in!</p>
@@ -221,25 +152,27 @@ export function App() {
         </React.Fragment>
     );
 }
+
+export default App;
 ```
 
 ### Specific user example
 
-If you would like to ensure a specific user is signed in, provide an `accountIdentifier` object.
+If you would like to ensure a specific user is signed in, provide an `accountIdentifiers` object.
 
 ```javascript
 import React from 'react';
 import { useMsalAuthentication } from "@azure/msal-react";
 
 export function App() {
-    const accountIdentifier = {
+    const accountIdentifiers = {
         username: "example-username"
     }
     const request = {
         loginHint: "example-username",
         scopes: ["User.Read"]
     }
-    const [login, response, error] = useMsalAuthentication("popup", request, accountIdentifier);
+    const [login, response, error] = useMsalAuthentication("popup", request, accountIdentifiers);
 
     return (
         <React.Fragment>

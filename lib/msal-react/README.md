@@ -1,5 +1,7 @@
 # Microsoft Authentication Library for React (msal-react)
 
+[![npm version](https://img.shields.io/npm/v/@azure/msal-react.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-react/)[![npm version](https://img.shields.io/npm/dm/@azure/msal-react.svg)](https://nodei.co/npm/@azure/msal-react/)
+
 `msal-react` is under development. **We do not recommend using this in a production environment yet**.
 
 | [AAD Docs](https://aka.ms/aaddevv2) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples)
@@ -45,11 +47,13 @@ npm install @azure/msal-react @azure/msal-browser
 
 See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information.
 
-### Building the package
+### Building the package locally
 
 To build the `@azure/msal-react` library, you can do the following:
 
 ```bash
+// Install dev dependencies from root of repo
+npm install
 // Change to the msal-react package directory
 cd lib/msal-react/
 // To run build only for react package
@@ -59,6 +63,8 @@ npm run build
 To build both the `@azure/msal-react` library and `@azure/msal-browser` libraries, you can do the following:
 
 ```bash
+// Install dev dependencies from root of repo
+npm install
 // Change to the msal-react package directory
 cd lib/msal-react/
 // To run build for react and browser packages

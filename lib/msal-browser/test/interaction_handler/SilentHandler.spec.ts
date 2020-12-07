@@ -1,7 +1,12 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import chai from "chai";
 import "mocha";
 import chaiAsPromised from "chai-as-promised";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, CacheManager, AuthorizationCodeClient, ProtocolMode, Logger } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
@@ -85,7 +90,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                     return "signedJwt";
                 }
             },
-            storageInterface: new TestStorageManager(),
+            storageInterface: null,
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
@@ -105,12 +110,11 @@ describe("SilentHandler.ts Unit Tests", () => {
                     level: LogLevel,
                     message: string,
                     containsPii: boolean
-                ): void => {
-                    console.log(`Log level: ${level} Message: ${message}`);
-                },
+                ): void => {},
                 piiLoggingEnabled: true,
             },
         };
+        authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface);
         authCodeModule = new AuthorizationCodeClient(authConfig);
         const browserCrypto = new CryptoOps();
         const logger = new Logger(authConfig.loggerOptions);
@@ -139,7 +143,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
             await expect(silentHandler.initiateAuthRequest("", testTokenReq)).to.be.rejectedWith(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
             await expect(silentHandler.initiateAuthRequest("", testTokenReq)).to.be.rejectedWith(BrowserAuthError);
@@ -155,7 +160,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
             const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
             const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
@@ -171,7 +177,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
             silentHandler = new SilentHandler(authCodeModule, browserStorage, 0);
             const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");

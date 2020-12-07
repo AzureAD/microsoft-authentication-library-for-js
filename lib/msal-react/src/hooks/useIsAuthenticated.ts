@@ -9,23 +9,23 @@ import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { useAccount } from "./useAccount";
 import { AccountInfo } from "@azure/msal-browser";
 
-function isAuthenticated(allAccounts: AccountInfo[], account: AccountInfo | null, accountIdentifiers?: AccountIdentifiers): boolean {
-    if(accountIdentifiers && (accountIdentifiers.username || accountIdentifiers.homeAccountId || accountIdentifiers.localAccountId)) {
+function isAuthenticated(allAccounts: AccountIdentifiers[], account: AccountInfo | null, matchAccount?: AccountIdentifiers): boolean {
+    if(matchAccount && (matchAccount.username || matchAccount.homeAccountId || matchAccount.localAccountId)) {
         return !!account;
     }   
 
     return allAccounts.length > 0;
 }
 
-export function useIsAuthenticated(accountIdentifiers?: AccountIdentifiers): boolean {
+export function useIsAuthenticated(matchAccount?: AccountIdentifiers): boolean {
     const { accounts: allAccounts } = useMsal();
-    const account = useAccount(accountIdentifiers || {});
+    const account = useAccount(matchAccount || {});
 
-    const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(isAuthenticated(allAccounts, account, accountIdentifiers));
+    const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(false);
 
     useEffect(() => {
-        setHasAuthenticated(isAuthenticated(allAccounts, account, accountIdentifiers));
-    }, [allAccounts, account, accountIdentifiers]);
+        setHasAuthenticated(isAuthenticated(allAccounts, account, matchAccount));
+    }, [allAccounts, account, matchAccount]);
 
     return hasAuthenticated;
 }

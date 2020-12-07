@@ -7,14 +7,17 @@ import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
 import { ApiId } from "../utils/Constants";
-import { 
-    ClientCredentialRequest, 
-    ClientCredentialClient, 
-    OnBehalfOfRequest, 
-    OnBehalfOfClient, 
-    AuthenticationResult, 
-    StringUtils, 
-    ClientAuthError } from "@azure/msal-common";
+import {
+    ClientCredentialClient,
+    OnBehalfOfClient,
+    AuthenticationResult,
+    StringUtils,
+    ClientAuthError,
+    ClientCredentialRequest as CommonClientCredentialRequest,
+    OnBehalfOfRequest as CommonOnBehalfOfRequest
+} from "@azure/msal-common";
+import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
+import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 
 export class ConfidentialClientApplication extends ClientApplication {
 
@@ -46,18 +49,21 @@ export class ConfidentialClientApplication extends ClientApplication {
     /**
      * Acquires tokens from the authority for the application (not for an end user).
      */
-    public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult> {
+    public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByClientCredential called");
-        const validRequest = this.initializeRequest(request) as ClientCredentialRequest;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId!, validRequest.skipCache);
+        const validRequest: CommonClientCredentialRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
-                request.authority,
+                validRequest.authority,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
-            return clientCredentialClient.acquireToken(request);
+            return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
@@ -66,23 +72,27 @@ export class ConfidentialClientApplication extends ClientApplication {
 
     /**
      * Acquires tokens from the authority for the application.
-     * 
+     *
      * Used in scenarios where the current app is a middle-tier service which was called with a token
-     * representing an end user. The current app can use the token (oboAssertion) to request another 
+     * representing an end user. The current app can use the token (oboAssertion) to request another
      * token to access downstream web API, on behalf of that user.
-     * 
+     *
      * The current middle-tier app has no user interaction to obtain consent.
      * See how to gain consent upfront for your middle-tier app from this article.
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#gaining-consent-for-the-middle-tier-application
      */
-    public async acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult> {
+    public async acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenOnBehalfOf called");
+        const validRequest: CommonOnBehalfOfRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
         const clientCredentialConfig = await this.buildOauthClientConfiguration(
-            request.authority
+            validRequest.authority
         );
         this.logger.verbose("Auth client config generated");
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
-        return oboClient.acquireToken(this.initializeRequest(request) as OnBehalfOfRequest);
+        return oboClient.acquireToken(validRequest);
     }
 
     private setClientCredential(configuration: Configuration): void {
@@ -92,7 +102,7 @@ export class ConfidentialClientApplication extends ClientApplication {
         const certificate = configuration.auth.clientCertificate!;
         const certificateNotEmpty = !StringUtils.isEmpty(certificate.thumbprint) || !StringUtils.isEmpty(certificate.privateKey);
 
-        // Check that at most one credential is set on the application 
+        // Check that at most one credential is set on the application
         if (
             clientSecretNotEmpty && clientAssertionNotEmpty ||
             clientAssertionNotEmpty && certificateNotEmpty ||
