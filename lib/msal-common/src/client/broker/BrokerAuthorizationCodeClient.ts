@@ -87,7 +87,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
         // add client_info=1
         parameterBuilder.addClientInfo();
 
-        if (request.codeChallenge) {
+        if (request.codeChallenge && request.codeChallengeMethod) {
             parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
         }
 
@@ -159,7 +159,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
         parameterBuilder.addClientInfo();
 
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (request.authenticationScheme === AuthenticationScheme.POP && !!request.resourceRequestMethod && !!request.resourceRequestUri) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
             const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
             parameterBuilder.addPopToken(cnfString);

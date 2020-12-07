@@ -188,7 +188,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             ...userInputSystem,
             loggerOptions: {
                 ...DEFAULT_LOGGER_OPTIONS, 
-                ...userInputSystem.loggerOptions,
+                ...((userInputSystem && userInputSystem.loggerOptions) || {}),
             }
         },
         experimental: {
@@ -196,7 +196,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             ...userExperimental,
             brokerOptions: {
                 ...DEFAULT_BROKER_OPTIONS,
-                ...userExperimental.brokerOptions
+                ...((userExperimental && userExperimental.brokerOptions) || {}),
             }
         }
     };
