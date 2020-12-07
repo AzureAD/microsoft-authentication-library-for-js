@@ -158,8 +158,14 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default system options for browser
     const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
-        loggerOptions: DEFAULT_LOGGER_OPTIONS,
-        brokerOptions: DEFAULT_BROKER_OPTIONS,
+        loggerOptions: {
+            ...DEFAULT_LOGGER_OPTIONS,
+            ...((userInputSystem && userInputSystem.loggerOptions) || {}),
+        },
+        brokerOptions: {
+            ...DEFAULT_BROKER_OPTIONS,
+            ...((userInputSystem && userInputSystem.brokerOptions) || {}),
+        },
         networkClient: BrowserUtils.getBrowserNetworkClient(),
         loadFrameTimeout: 0,
         // If loadFrameTimeout is provided, use that as default.
@@ -176,15 +182,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { 
             ...DEFAULT_BROWSER_SYSTEM_OPTIONS, 
-            ...userInputSystem,
-            loggerOptions: {
-                ...DEFAULT_LOGGER_OPTIONS, 
-                ...userInputSystem.loggerOptions,
-            },
-            brokerOptions: {
-                ...DEFAULT_BROKER_OPTIONS,
-                ...userInputSystem.brokerOptions
-            }
+            ...userInputSystem
         }
     };
     return overlayedConfig;
