@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "MSAL Angular v2 alpha.1 changes",
+  "packageName": "@azure/msal-angular",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
