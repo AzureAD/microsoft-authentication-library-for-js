@@ -15,6 +15,7 @@ import { EmbeddedClientApplication } from "../broker/client/EmbeddedClientApplic
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { EventType } from "../event/EventType";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -125,6 +126,30 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     // #endregion
+
+    /**
+     * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
+     * - Any browser using a form of Intelligent Tracking Prevention
+     * - If there is not an established session with the service
+     *
+     * In these cases, the request must be done inside a popup or full frame redirect.
+     *
+     * For the cases where interaction is required, you cannot send a request with prompt=none.
+     *
+     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
+     * you session on the server still exists.
+     * @param {@link AuthorizationUrlRequest}
+     *
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+            return this.embeddedApp.sendSsoSilentRequest(request);
+        }
+
+        return super.ssoSilent(request);
+    }
+
     /**
      * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
      * 

@@ -19,6 +19,7 @@ import { version } from "../../../package.json";
 import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager";
 import { BrowserUtils } from "../../utils/BrowserUtils";
+import { SsoSilentRequest } from "../../request/SsoSilentRequest";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
@@ -86,6 +87,17 @@ export class EmbeddedClientApplication {
     }
 
     /**
+     * Send silent flow request to broker
+     * @param request 
+     */
+    async sendSsoSilentRequest(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        await this.preflightBrokerRequest();
+
+        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Silent, DEFAULT_MESSAGE_TIMEOUT);
+        return BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
+    }
+
+    /**
      * Send popup flow request to broker.
      * @param request 
      */
@@ -107,6 +119,9 @@ export class EmbeddedClientApplication {
         BrokerRedirectResponse.validate(message);
     }
 
+    /**
+     * Send request to broker to handle redirect response for child.
+     */
     async sendHandleRedirectRequest(): Promise<AuthenticationResult> {
         await this.preflightBrokerRequest();
         const brokerHandleRedirectRequest = new BrokerHandleRedirectRequest(this.config.auth.clientId, this.version);
@@ -131,7 +146,7 @@ export class EmbeddedClientApplication {
      * @param interactionType 
      * @param timeoutMs 
      */
-    private async sendRequest(request: PopupRequest|RedirectRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
+    private async sendRequest(request: PopupRequest|RedirectRequest|SsoSilentRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
         const brokerRequest = new BrokerAuthRequest(this.config.auth.clientId, BrowserUtils.getCurrentUri(), interactionType, request);
         return this.messageBroker<MessageEvent>(brokerRequest, timeoutMs);
     }

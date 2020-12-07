@@ -23,6 +23,7 @@ import { BrokerSilentRequest } from "../request/BrokerSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
 import { BrokerPopupRequest } from "../request/BrokerPopupRequest";
 import { BrokerRedirectRequest } from "../request/BrokerRedirectRequst";
+import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -151,15 +152,23 @@ export class BrokerClientApplication extends ClientApplication {
 
             switch (validMessage.interactionType) {
                 case InteractionType.Silent:
-                    return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], this.brokerAccount);
+                    return this.brokeredSsoSilentRequest(validMessage, clientMessage.ports[0]);
                 case InteractionType.Redirect:
                 case InteractionType.Popup:
                 default:
-                    const interactionType = this.config.experimental.brokerOptions.preferredInteractionType && this.config.experimental.brokerOptions.preferredInteractionType !== InteractionType.None 
-                        ? this.config.experimental.brokerOptions.preferredInteractionType : validMessage.interactionType;
+                    const interactionType = this.getInteractionType(validMessage.interactionType);
                     return this.interactiveBrokerRequest(interactionType, validMessage, clientMessage);
             }
         }
+    }
+
+    /**
+     * Checks default config for interaction type before returning.
+     * @param messageInteractionType 
+     */
+    private getInteractionType(messageInteractionType: InteractionType): InteractionType {
+        const brokerHasInteractionPref = !!this.config.experimental.brokerOptions.preferredInteractionType && this.config.experimental.brokerOptions.preferredInteractionType !== InteractionType.None;
+        return brokerHasInteractionPref ? this.config.experimental.brokerOptions.preferredInteractionType : messageInteractionType;
     }
 
     /**
@@ -176,8 +185,8 @@ export class BrokerClientApplication extends ClientApplication {
                 return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
             case InteractionType.Silent:
             case InteractionType.None:
-                // TODO: Throw error?
             default:
+                this.logger.error("Invalid code path. interactiveBrokerRequest() should only be called for interactive requests.")
                 return;
         }
     }
@@ -221,6 +230,30 @@ export class BrokerClientApplication extends ClientApplication {
             clientPort.close();
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, null, err);
+            this.logger.info(`Found auth error: ${err}`);
+            clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
+        }
+    }
+
+    /**
+     * 
+     * @param validMessage 
+     * @param clientPort 
+     */
+    private async brokeredSsoSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
+        try {
+            const silentRequest = validMessage.request as BrokerSsoSilentRequest;
+            silentRequest.redirectUri = validMessage.embeddedAppRedirectUri;
+            silentRequest.embeddedAppClientId = validMessage.embeddedClientId;
+            silentRequest.brokerRedirectUri = this.getRedirectUri();
+            const response: BrokerAuthenticationResult = (await this.ssoSilent(silentRequest)) as BrokerAuthenticationResult;
+            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
+            this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+            clientPort.postMessage(brokerAuthResponse);
+            clientPort.close();
+        } catch (err) {
+            const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, null, err);
             this.logger.info(`Found auth error: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
