@@ -14,6 +14,7 @@ import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 export type RedirectParams = InteractionParams & {
     redirectTimeout: number;
     redirectStartPage: string;
+    onRedirectNavigate?: (url: string) => void | boolean;
 };
 
 export class RedirectHandler extends InteractionHandler {
@@ -38,12 +39,27 @@ export class RedirectHandler extends InteractionHandler {
             }
 
             // Set interaction status in the library.
-            this.browserStorage.setTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserStorage.cacheCodeRequest(authCodeRequest, this.browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
-            
-            // Navigate window to request URL
-            return BrowserUtils.navigateWindow(requestUrl, params.redirectTimeout, this.authModule.logger);
+            // If onRedirectNavigate is implemented, invoke it and provide requestUrl
+            if (typeof params.onRedirectNavigate === "function") {
+                this.authModule.logger.verbose("Invoking onRedirectNavigate callback");
+                const navigate = params.onRedirectNavigate(requestUrl);
+
+                // Returning false from onRedirectNavigate will stop navigation
+                if (navigate !== false) {
+                    this.authModule.logger.verbose("onRedirectNavigate did not return false, navigating");
+                    return BrowserUtils.navigateWindow(requestUrl, params.redirectTimeout, this.authModule.logger);
+                } else {
+                    this.authModule.logger.verbose("onRedirectNavigate returned false, stopping navigation");
+                    return Promise.resolve();
+                }
+            } else {
+                // Navigate window to request URL
+                this.authModule.logger.verbose("Navigating window to navigate url");
+                return BrowserUtils.navigateWindow(requestUrl, params.redirectTimeout, this.authModule.logger);
+            }
         } else {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");
@@ -62,7 +78,7 @@ export class RedirectHandler extends InteractionHandler {
         }
 
         // Interaction is completed - remove interaction status.
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
 
         // Deserialize hash fragment response parameters.
         const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
@@ -96,7 +112,7 @@ export class RedirectHandler extends InteractionHandler {
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
 
-        this.browserStorage.cleanRequest(serverParams.state);
+        this.browserStorage.cleanRequestByState(serverParams.state);
         return tokenResponse;
     }
 }
