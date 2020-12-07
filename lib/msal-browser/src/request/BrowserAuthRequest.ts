@@ -33,4 +33,4 @@ import { AuthorizationUrlRequest } from "@azure/msal-common";
 
 export type BrowserAuthRequest = AuthorizationUrlRequest & {
     embeddedAppClientId?: string
-}
+};
