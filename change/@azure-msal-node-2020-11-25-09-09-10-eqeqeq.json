@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Enforce triple equals in eslint",
-  "packageName": "@azure/msal-node",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-11-25T17:09:10.293Z"
-}
