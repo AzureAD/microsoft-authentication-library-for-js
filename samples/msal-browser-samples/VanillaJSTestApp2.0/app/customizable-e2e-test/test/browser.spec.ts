@@ -90,6 +90,33 @@ describe("Default tests", function () {
                 await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
             });
 
+            it("Performs loginRedirect from url with empty query string", async () => {
+                await page.goto(SAMPLE_HOME_URL + "?");
+                const testName = "redirectEmptyQueryString";
+                const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
+                await clickLoginRedirect(screenshot, page);
+                await enterCredentials(page, screenshot, username, accountPwd);
+                await waitForReturnToApp(screenshot, page);
+                // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+                await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+                expect(page.url()).to.be.eq(SAMPLE_HOME_URL);
+            });
+
+            it("Performs loginRedirect from url with test query string", async () => {
+                const testUrl = SAMPLE_HOME_URL + "?test";
+                await page.goto(testUrl);
+                const testName = "redirectEmptyQueryString";
+                const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
+                await clickLoginRedirect(screenshot, page);
+                await enterCredentials(page, screenshot, username, accountPwd);
+                await waitForReturnToApp(screenshot, page);
+                // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+                await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+                expect(page.url()).to.be.eq(testUrl);
+            });
+
             it("Performs loginRedirect with relative redirectUri", async () => {
                 const relativeRedirectUriRequest: RedirectRequest = {
                     ...aadTokenRequest,
