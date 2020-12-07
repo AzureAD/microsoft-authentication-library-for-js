@@ -10,11 +10,13 @@ const fs = require('fs');
 
 module.exports = async function(cacheLocation) {
     const beforeCacheAccess = async (cacheContext) => {
+        console.log(cacheContext.cacheHasChanged);
         if (fs.existsSync(cacheLocation)) {
             cacheContext.tokenCache.deserialize(await fs.readFile(cacheLocation, "utf-8", (err, data) => {
                 if (err) {
                     console.log(err);
                 } else {
+                    console.log(data);
                     return data;
                 }
             }));

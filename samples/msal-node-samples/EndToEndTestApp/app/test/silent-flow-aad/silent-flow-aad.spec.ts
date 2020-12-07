@@ -80,5 +80,15 @@ describe('Silent Flow AAD PPE Tests', () => {
             await page.waitForSelector("#graph-called-successfully");
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
         });
+
+        it("Refeshes an expired access token", async () => {
+            await page.waitForSelector("#acquireTokenSilent");
+            NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
+            console.log(NodeCacheTestUtils.getDeserializedCache(TEST_CACHE_LOCATION));
+            await page.click("#acquireTokenSilent");
+            await page.waitForSelector("#graph-called-successfully");
+            await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
+            console.log(NodeCacheTestUtils.getDeserializedCache(TEST_CACHE_LOCATION));
+        });
     });
 });
