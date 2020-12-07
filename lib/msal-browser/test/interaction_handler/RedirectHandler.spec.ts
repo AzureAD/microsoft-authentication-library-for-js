@@ -188,8 +188,67 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 return Promise.resolve(done());
             });
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, {
+                redirectStartPage: "",
+                redirectTimeout: 3000
+            });
+        });
+
+        it("doesnt navigate if onRedirectNavigate returns false", done => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const testTokenReq: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+                done("Navigatation should not happen if onRedirectNavigate returns false");
+                return Promise.reject();
+            });
+
+            const onRedirectNavigate = url => {
+                expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                done();
+                return false;
+            }
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, {
+                redirectTimeout: 300,
+                redirectStartPage: "",
+                onRedirectNavigate,
+            });
+        });
+
+        it("navigates if onRedirectNavigate doesnt return false", done => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const testTokenReq: AuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+                expect(requestUrl).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                done();
+                return Promise.resolve();
+            });
+
+            const onRedirectNavigate = url => {
+                expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            }
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, {
                 redirectTimeout: 3000,
-                redirectStartPage: ""
+                redirectStartPage: "",
+                onRedirectNavigate
             });
         });
     });
