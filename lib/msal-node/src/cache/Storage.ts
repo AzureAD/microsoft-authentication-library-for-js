@@ -14,8 +14,7 @@ import {
     CacheManager,
     Logger,
     ValidCacheType,
-    CredentialEntity,
-    CredentialType
+    ICrypto
 } from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -30,8 +29,8 @@ export class Storage extends CacheManager {
     private cache: CacheKVStore = {};
     private changeEmitters: Array<Function> = [];
 
-    constructor(logger: Logger) {
-        super();
+    constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
+        super(clientId, cryptoImpl);
         this.logger = logger;
     }
 
@@ -173,7 +172,7 @@ export class Storage extends CacheManager {
      */
     getAccount(accountKey: string): AccountEntity | null {
         const account = this.getItem(accountKey) as AccountEntity;
-        if (account && AccountEntity.isAccountEntity(account)) {
+        if (AccountEntity.isAccountEntity(account)) {
             return account;
         }
         return null;
@@ -193,10 +192,9 @@ export class Storage extends CacheManager {
      * @param idTokenKey
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(idTokenKey);
-        const idToken = this.getItem(idTokenKey);
-        if (idToken && credType === CredentialType.ID_TOKEN) {
-            return idToken as IdTokenEntity;
+        const idToken = this.getItem(idTokenKey) as IdTokenEntity;
+        if (IdTokenEntity.isIdTokenEntity(idToken)) {
+            return idToken;
         }
         return null;
     }
@@ -215,10 +213,9 @@ export class Storage extends CacheManager {
      * @param accessTokenKey
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(accessTokenKey);
-        const accessToken = this.getItem(accessTokenKey);
-        if (accessToken && credType === CredentialType.ACCESS_TOKEN) {
-            return accessToken as AccessTokenEntity;
+        const accessToken = this.getItem(accessTokenKey) as AccessTokenEntity;
+        if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
+            return accessToken;
         }
         return null;
     }
@@ -237,9 +234,8 @@ export class Storage extends CacheManager {
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(refreshTokenKey);
-        const refreshToken = this.getItem(refreshTokenKey);
-        if (refreshToken && credType === CredentialType.REFRESH_TOKEN) {
+        const refreshToken = this.getItem(refreshTokenKey) as RefreshTokenEntity;
+        if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
             return refreshToken as RefreshTokenEntity;
         }
         return null;
@@ -260,7 +256,7 @@ export class Storage extends CacheManager {
      */
     getAppMetadata(appMetadataKey: string): AppMetadataEntity | null {
         const appMetadata: AppMetadataEntity = this.getItem(appMetadataKey) as AppMetadataEntity;
-        if (appMetadata && AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
+        if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
             return appMetadata;
         }
         return null;

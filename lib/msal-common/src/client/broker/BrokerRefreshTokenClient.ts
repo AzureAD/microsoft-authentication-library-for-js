@@ -5,7 +5,6 @@
 
 import { RefreshTokenClient } from "../RefreshTokenClient";
 import { RefreshTokenRequest } from "../../request/RefreshTokenRequest";
-import { AuthenticationResult } from "../../response/AuthenticationResult";
 import { ResponseHandler } from "../../response/ResponseHandler";
 import { RequestParameterBuilder } from "../../request/RequestParameterBuilder";
 import { StringUtils } from "../../utils/StringUtils";
@@ -22,13 +21,17 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
-            this.logger
+            this.logger,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         responseHandler.validateTokenResponse(response.body);
         const tokenResponse = responseHandler.handleBrokeredServerTokenResponse(
             response.body,
-            this.authority
+            this.authority,
+            undefined,
+            request.scopes
         );
 
         return tokenResponse;

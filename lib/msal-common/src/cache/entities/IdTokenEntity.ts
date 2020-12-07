@@ -60,6 +60,10 @@ export class IdTokenEntity extends CredentialEntity {
      */
     static isIdTokenEntity(entity: object): boolean {
 
+        if (!entity) {
+            return false;
+        }
+
         return (
             entity.hasOwnProperty("homeAccountId") &&
             entity.hasOwnProperty("environment") &&

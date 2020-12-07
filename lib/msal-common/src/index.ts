@@ -65,8 +65,10 @@ export { EndSessionRequest } from "./request/EndSessionRequest";
 export { UsernamePasswordRequest } from "./request/UsernamePasswordRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { BrokerAuthenticationResult } from "./response/BrokerAuthenticationResult";
+export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ScopeSet } from "./request/ScopeSet";
+export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors

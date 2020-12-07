@@ -17,12 +17,12 @@ export type ClientInfo = {
 
 /**
  * Function to build a client info object
- * @param rawClientInfo 
- * @param crypto 
+ * @param rawClientInfo
+ * @param crypto
  */
 export function buildClientInfo(rawClientInfo: string, crypto: ICrypto): ClientInfo {
     if (StringUtils.isEmpty(rawClientInfo)) {
-        throw ClientAuthError.createClientInfoEmptyError(rawClientInfo);
+        throw ClientAuthError.createClientInfoEmptyError();
     }
 
     try {
