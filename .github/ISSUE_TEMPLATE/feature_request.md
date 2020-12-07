@@ -21,3 +21,8 @@ assignees: ''
 - [ ] `@azure/msal-angularjs@1.x.x`
 
 ## Description
+
+## Source
+
+- [ ] Internal (Microsoft)
+- [ ] Customer request

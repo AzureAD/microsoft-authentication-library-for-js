@@ -22,7 +22,7 @@ assignees: ''
 
 ## Source
 
-- [ ] Internal (MSAL.js team)
+- [ ] Internal (Microsoft)
 - [ ] Customer request
 
 ## Description
