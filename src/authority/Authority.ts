@@ -206,6 +206,18 @@ export class Authority {
     }
 
     /**
+     * Determine if given hostname is alias of this authority
+     * @param host 
+     */
+    public isAuthorityAlias(host: string): boolean {
+        if (host === this.canonicalAuthorityUrlComponents.HostNameAndPort) {
+            return true;
+        }
+        const aliases = TrustedAuthority.getCloudDiscoveryMetadata(this.canonicalAuthorityUrlComponents.HostNameAndPort).aliases;
+        return aliases.indexOf(host) !== -1;
+    }
+
+    /**
      * helper function to generate environment from authority object
      * @param authority
      */

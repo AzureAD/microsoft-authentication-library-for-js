@@ -82,6 +82,7 @@ export class OnBehalfOfClient extends BaseClient {
 
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
+            this.authority,
             {
                 account: cachedAccount,
                 accessToken: cachedAccessToken,
@@ -180,7 +181,6 @@ export class OnBehalfOfClient extends BaseClient {
             this.authority,
             request.resourceRequestMethod,
             request.resourceRequestUri,
-            undefined,
             undefined,
             request.scopes,
             request.oboAssertion
