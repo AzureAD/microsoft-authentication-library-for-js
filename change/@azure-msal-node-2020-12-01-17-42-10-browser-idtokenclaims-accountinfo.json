@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Expose idTokenClaims on AccountInfo (#2554)",
-  "packageName": "@azure/msal-node",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-12-02T01:42:10.514Z"
-}
