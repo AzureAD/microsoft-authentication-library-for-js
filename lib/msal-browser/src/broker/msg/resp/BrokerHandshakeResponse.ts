@@ -8,6 +8,9 @@ import { BrokerMessageType } from "../../../utils/BrowserConstants";
 import { BrowserAuthError } from "../../../error/BrowserAuthError";
 import { BrokerAuthResponse } from "./BrokerAuthResponse";
 
+/**
+ * Message type for responses to BrokerHandshakeRequests
+ */
 export class BrokerHandshakeResponse extends BrokerMessage {
     public version: string;
     public readonly brokerOrigin: string;

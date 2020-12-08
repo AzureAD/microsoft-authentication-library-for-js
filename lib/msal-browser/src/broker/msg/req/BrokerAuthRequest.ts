@@ -9,6 +9,9 @@ import { RedirectRequest } from "../../../request/RedirectRequest";
 import { BrokerMessage } from "../BrokerMessage";
 import { SilentRequest } from "../../../request/SilentRequest";
 
+/**
+ * Message type for auth requests
+ */
 export class BrokerAuthRequest extends BrokerMessage {
     public embeddedClientId: string;
     public embeddedAppRedirectUri: string;
@@ -25,7 +28,6 @@ export class BrokerAuthRequest extends BrokerMessage {
 
     static validate(message: MessageEvent): BrokerAuthRequest| null {
         // First, validate message type
-        // eslint-disable-next-line no-console
         if (message.data && 
             message.data.messageType === BrokerMessageType.AUTH_REQUEST &&
             message.data.embeddedClientId &&

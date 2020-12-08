@@ -74,7 +74,7 @@ setTimeout(() => {
 
     setTimeout(async () => {
         let exit = false;
-        await myMSALObj.ssoSilent({ loginHint: "dathayil@microsoft.com" })
+        await myMSALObj.ssoSilent({ loginHint: "" })
             .catch(err => {
                 console.error(err);
                 contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";

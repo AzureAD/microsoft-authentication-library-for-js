@@ -8,6 +8,9 @@ import { BrokerAuthenticationResult, AccessTokenEntity, IdTokenEntity, AccountEn
 import { InteractionType, BrokerMessageType } from "../../../utils/BrowserConstants";
 import { BrowserCacheManager } from "../../../cache/BrowserCacheManager";
 
+/**
+ * Message type for responses to BrokerAuthRequests
+ */
 export class BrokerAuthResponse extends BrokerMessage {
     public interactionType: InteractionType;
     public result: BrokerAuthenticationResult;
