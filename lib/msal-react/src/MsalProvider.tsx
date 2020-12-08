@@ -42,15 +42,20 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
                 case EventType.ACQUIRE_TOKEN_FAILURE:
                     const currentAccounts = instance.getAllAccounts();
                     if (!accountArraysAreEqual(currentAccounts, accounts)) {
+                        logger.verbose("MsalProvider - updating account state");
                         setAccounts(currentAccounts);
+                    } else {
+                        logger.verbose("MsalProvider - no account changes");
                     }
                     break;
             }
         });
+        logger.verbose(`MsalProvider - Registered event callback for account state: ${callbackId}`);
 
         return () => {
             // Remove callback when component unmounts or accounts change
             if (callbackId) {
+                logger.verbose(`MsalProvider - Removing event callback ${callbackId}`);
                 instance.removeEventCallback(callbackId);
             }
         };
@@ -99,7 +104,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
                     break;
             }
         });
-        logger.verbose(`MsalProvider - Registered event callback: ${callbackId}`);
+        logger.verbose(`MsalProvider - Registered event callback for inProgress state: ${callbackId}`);
 
         instance.handleRedirectPromise().catch(() => {
             // Errors should be handled by listening to the LOGIN_FAILURE event
