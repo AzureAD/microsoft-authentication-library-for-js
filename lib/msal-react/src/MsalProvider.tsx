@@ -6,12 +6,13 @@
 import React, { useState, useEffect, PropsWithChildren, useMemo } from "react";
 import {
     IPublicClientApplication,
-    AccountInfo,
     EventType,
     EventMessage, InteractionType
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 import { Constants, InteractionStatus } from "./utils/Constants";
+import { accountArraysAreEqual } from "./utils/utilities";
+import { AccountIdentifiers } from "./types/AccountIdentifiers";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
@@ -24,9 +25,36 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
     }, [instance]);
 
     // State hook to store accounts
-    const [accounts, setAccounts] = useState<AccountInfo[]>([]);
+    const [accounts, setAccounts] = useState<AccountIdentifiers[]>([]);
     // State hook to store in progress value
     const [inProgress, setInProgress] = useState<InteractionStatus>(InteractionStatus.Startup);
+
+    useEffect(() => {
+        const callbackId = instance.addEventCallback((message: EventMessage) => {
+            switch (message.eventType) {
+                case EventType.LOGIN_SUCCESS:
+                case EventType.SSO_SILENT_SUCCESS:
+                case EventType.HANDLE_REDIRECT_END:
+                case EventType.LOGIN_FAILURE:
+                case EventType.SSO_SILENT_FAILURE:
+                case EventType.LOGOUT_FAILURE:
+                case EventType.ACQUIRE_TOKEN_SUCCESS:
+                case EventType.ACQUIRE_TOKEN_FAILURE:
+                    const currentAccounts = instance.getAllAccounts();
+                    if (!accountArraysAreEqual(currentAccounts, accounts)) {
+                        setAccounts(currentAccounts);
+                    }
+                    break;
+            }
+        });
+
+        return () => {
+            // Remove callback when component unmounts or accounts change
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
+        };
+    }, [instance, accounts]);
 
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
@@ -59,14 +87,11 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
                 case EventType.LOGIN_FAILURE:
                 case EventType.SSO_SILENT_FAILURE:
                 case EventType.LOGOUT_FAILURE:
-                    logger.verbose("MsalProvider - Interactive request finished, setting inProgress to 'none' and updating accounts");
-                    setAccounts(instance.getAllAccounts());
+                    logger.verbose("MsalProvider - Interactive request finished, setting inProgress to 'none'");
                     setInProgress(InteractionStatus.None);
                     break;
                 case EventType.ACQUIRE_TOKEN_SUCCESS:
                 case EventType.ACQUIRE_TOKEN_FAILURE:
-                    logger.verbose("MsalProvider - acquireToken request finished, updating accounts");
-                    setAccounts(instance.getAllAccounts());
                     if (message.interactionType === InteractionType.Redirect || message.interactionType === InteractionType.Popup) {
                         logger.verbose("MsalProvider - Interactive acquireToken request finished, setting inProgress to 'none'");
                         setInProgress(InteractionStatus.None);
@@ -89,7 +114,6 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
         };
     }, [instance]);
 
-    // Memoized context value
     const contextValue: IMsalContext = {
         instance,
         inProgress,
