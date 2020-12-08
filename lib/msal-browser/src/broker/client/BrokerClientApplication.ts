@@ -46,7 +46,7 @@ export class BrokerClientApplication extends ClientApplication {
         // TODO: What to do in cases of multi-account in broker?
         if (cachedResponse) {
             this.brokerAccount = cachedResponse.account;
-            // return cachedResponse;
+            // TODO: only return if cachedResponse is for broker, not client.
         }
         
         return null;
@@ -223,7 +223,7 @@ export class BrokerClientApplication extends ClientApplication {
             popupRequest.redirectUri = validMessage.embeddedAppRedirectUri;
             popupRequest.embeddedAppClientId = validMessage.embeddedClientId;
             popupRequest.brokerRedirectUri = this.getRedirectUri();
-            const response: BrokerAuthenticationResult = (await this.acquireTokenPopup(popupRequest)) as BrokerAuthenticationResult;
+            const response = (await this.acquireTokenPopup(popupRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
             clientPort.postMessage(brokerAuthResponse);
@@ -273,7 +273,7 @@ export class BrokerClientApplication extends ClientApplication {
             if (!silentRequest.account) {
                 silentRequest.account = account;
             }
-            const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(silentRequest)) as BrokerAuthenticationResult;
+            const response = (await this.acquireTokenByRefreshToken(silentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
             if (brokerAuthResponse.result.tokensToCache) {
                 this.logger.info(`Sending auth response: ${JSON.stringify(brokerAuthResponse)}`);

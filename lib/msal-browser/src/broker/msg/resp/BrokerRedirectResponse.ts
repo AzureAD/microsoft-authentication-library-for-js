@@ -7,7 +7,7 @@ import { BrokerMessage } from "../BrokerMessage";
 import { BrokerMessageType } from "../../../utils/BrowserConstants";
 
 /**
- * 
+ * Message type for responses to BrokerHandleRedirectRequests
  */
 export class BrokerRedirectResponse extends BrokerMessage {
     
