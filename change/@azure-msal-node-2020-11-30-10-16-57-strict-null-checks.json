@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add null to API response signatures (#2602)",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-11-30T18:16:57.787Z"
-}

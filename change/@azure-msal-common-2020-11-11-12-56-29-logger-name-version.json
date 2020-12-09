@@ -1,8 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Log messages contain package name and version (#2589)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-11-11T20:56:16.634Z"
-}

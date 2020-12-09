@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 11 Nov 2020 23:33:20 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-beta.2
+
+Mon, 07 Dec 2020 22:19:03 GMT
+
+### Changes
+
+- Expose idTokenClaims on AccountInfo (#2554) (janutter@microsoft.com)
+- Add null to API response signatures (#2602) (thomas.norling@microsoft.com)
+- Enforce triple equals in eslint (janutter@microsoft.com)
+- Log messages contain package name and version (#2589) (thomas.norling@microsoft.com)
+- Update request types (#2512) (thomas.norling@microsoft.com)
 
 ## 1.0.0-beta.1
 
