@@ -1,8 +1,31 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 11 Nov 2020 23:33:20 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0
+
+Mon, 07 Dec 2020 22:19:03 GMT
+
+### Major changes
+
+- Enable StrictNullChecks (#2602) (thomas.norling@microsoft.com)
+- Rename request types and change required fields (#2512) (thomas.norling@microsoft.com)
+
+### Minor changes
+
+- Add clone to Logger (#2670) (joarroyo@microsoft.com)
+- Enable the instance_aware flow (#1804) (prkanher@microsoft.com)
+- Support id_token_hint on logout request (#2587) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix login loop with empty query string (#2707) (thomas.norling@microsoft.com)
+- Expose idTokenClaims on AccountInfo (#2554) (janutter@microsoft.com)
+- Add matchPattern string util for wildcard matching for urls (#2678) (janutter@microsoft.com)
+- fix: added missing async (AzureAD/microsoft-authentication-library-for-js#2652) (patrick@ruhkopf.me)
+- Log messages contain package name and version (#2589) (thomas.norling@microsoft.com)
 
 ## 1.7.2
 
