@@ -108,7 +108,7 @@ export class ClientAssertion {
          * "." means any string character, "+" means match 1 or more times, and "?" means the shortest match.
          * The "g" at the end of the regex means search the string globally, and the "m" means search across multiple lines.
          */
-        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\n(.+?)\n-----END CERTIFICATE-----/gm;
+        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\n(.+?)\n-----END CERTIFICATE-----/gms;
         const certs: string[] = [];
 
         let matches;
