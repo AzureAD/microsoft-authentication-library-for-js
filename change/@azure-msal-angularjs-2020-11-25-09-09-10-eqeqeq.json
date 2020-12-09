@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Enforce triple equals in eslint",
-  "packageName": "@azure/msal-angularjs",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-11-25T17:08:58.245Z"
-}
