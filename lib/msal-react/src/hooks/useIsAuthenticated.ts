@@ -18,13 +18,14 @@ function isAuthenticated(allAccounts: AccountIdentifiers[], account: AccountInfo
 }
 
 export function useIsAuthenticated(matchAccount?: AccountIdentifiers): boolean {
-    const { accounts: allAccounts } = useMsal();
+    const { accounts: allAccounts, logger } = useMsal();
     const account = useAccount(matchAccount || {});
 
     const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(false);
 
     useEffect(() => {
         setHasAuthenticated(isAuthenticated(allAccounts, account, matchAccount));
+        logger.verbose(`useIsAuthenticated - isAuthenticated state set to ${hasAuthenticated}`);
     }, [allAccounts, account, matchAccount]);
 
     return hasAuthenticated;

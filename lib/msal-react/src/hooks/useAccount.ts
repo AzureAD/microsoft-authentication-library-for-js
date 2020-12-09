@@ -32,12 +32,17 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers: Acco
 }
 
 export function useAccount(accountIdentifiers: AccountIdentifiers): AccountInfo | null {
-    const { instance, inProgress } = useMsal();
+    const { instance, inProgress, logger } = useMsal();
 
     const [account, setAccount] = useState<AccountInfo|null>(null);
 
     useEffect(() => {
         setAccount(getAccount(instance, accountIdentifiers));
+        if (logger.isPiiLoggingEnabled()) {
+            logger.verbosePii(`useAccount - Account state set to ${account}`);
+        } else {
+            logger.verbose("useAccount - Account state set");
+        }
     }, [inProgress, accountIdentifiers, instance]);
 
     return account;
