@@ -5,15 +5,17 @@ import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUti
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
-import { clickSignIn, enterCredentials } from "../testUtils";
-
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-const SAMPLE_HOME_URL = 'http://localhost:3000/';
-const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
-const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
+import { 
+    clickSignIn,
+    enterCredentials,
+    SCREENSHOT_BASE_FOLDER_NAME,
+    SAMPLE_HOME_URL,
+    SUCCESSFUL_GRAPH_CALL_ID } from "../testUtils";
 
 let username: string;
 let accountPwd: string;
+
+const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
 describe('Silent Flow AAD PPE Tests', () => {
     jest.setTimeout(60000);
