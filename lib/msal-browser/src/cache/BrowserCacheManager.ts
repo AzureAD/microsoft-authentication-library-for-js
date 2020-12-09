@@ -7,10 +7,11 @@ import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, 
 import { CacheOptions } from "../config/Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserCacheLocation, BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
+import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -598,16 +599,30 @@ export class BrowserCacheManager extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
     }
 
-    cleanRequest(stateString?: string): void {
+    cleanRequestByState(stateString: string): void {
         // Interaction is completed - remove interaction status.
-        this.removeItem(this.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
         if (stateString) {
             const stateKey = this.generateStateKey(stateString);
             const cachedState = this.getItem(stateKey);
             this.resetRequestCache(cachedState || "");
         }
+    }
+
+    cleanRequestByInteractionType(interactionType: InteractionType): void {
+        this.getKeys().forEach((key) => {
+            if (key.indexOf(TemporaryCacheKeys.REQUEST_STATE) === -1) {
+                return;
+            }
+
+            const value = this.browserStorage.getItem(key);
+            const parsedState = BrowserProtocolUtils.extractBrowserRequestState(this.cryptoImpl, value);
+            if (parsedState.interactionType === interactionType) {
+                this.resetRequestCache(value);
+            }
+        });
     }
 
     cacheCodeRequest(authCodeRequest: AuthorizationCodeRequest, browserCrypto: ICrypto): void {
