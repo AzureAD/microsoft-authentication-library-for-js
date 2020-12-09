@@ -106,15 +106,15 @@ export class ClientAssertion {
          * We want to look for the contents between the BEGIN and END certificate strings, without the associated newlines.
          * The information in parens "(.+?)" is the capture group to represent the cert we want isolated.
          * "." means any string character, "+" means match 1 or more times, and "?" means the shortest match.
-         * The "g" at the end of the regex means search the string globally, and the "m" means search across multiple lines.
+         * The "g" at the end of the regex means search the string globally, and the "s" enables the "." to match newlines.
          */
-        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\n(.+?)\n-----END CERTIFICATE-----/gms;
+        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\n(.+?)\n-----END CERTIFICATE-----/gs;
         const certs: string[] = [];
 
         let matches;
         while ((matches = regexToFindCerts.exec(publicCertificate)) !== null) {
             // matches[1] represents the first parens capture group in the regex.
-            certs.push(matches[1]);
+            certs.push(matches[1].replace(/\n/, ""));
         }
         
         return certs;
