@@ -2,6 +2,21 @@
   "name": "@azure/msal-angularjs",
   "entries": [
     {
+      "date": "Mon, 07 Dec 2020 22:19:03 GMT",
+      "tag": "@azure/msal-angularjs_v0.1.2",
+      "version": "0.1.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Enforce triple equals in eslint",
+            "author": "janutter@microsoft.com",
+            "commit": "5975eb4077a2b4372683e68af4d748b0808134ab",
+            "package": "@azure/msal-angularjs"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 07 Nov 2020 01:50:14 GMT",
       "tag": "@azure/msal-angularjs_v0.1.2",
       "version": "0.1.2",
