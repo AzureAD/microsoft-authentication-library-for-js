@@ -68,6 +68,14 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(UrlString.removeHashFromUrl(fullUrl)).to.eq(baseUrl);
     });
 
+    it("removes empty query string from url provided", () => {
+        const baseUrl = "https://localhost/";
+        const testUrl = baseUrl + "?";
+        const testUrl2 = baseUrl + "?/";
+        expect(UrlString.removeHashFromUrl(testUrl)).to.eq(baseUrl);
+        expect(UrlString.removeHashFromUrl(testUrl2)).to.eq(baseUrl);
+    });
+
     it("replaceTenantPath correctly replaces common with tenant id", () => {
         let urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT);
         const sampleTenantId = "sample-tenant-id";

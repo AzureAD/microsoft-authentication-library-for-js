@@ -6,7 +6,7 @@
 import { UrlString, StringUtils, Constants, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { DEFAULT_POPUP_TIMEOUT_MS } from "../config/Configuration";
 
@@ -39,7 +39,7 @@ export class PopupHandler extends InteractionHandler {
             // Save auth code request
             this.authCodeRequest = authCodeRequest;
             // Set interaction status in the library.
-            this.browserStorage.setTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             // Open the popup window to requestUrl.
             return this.openPopup(requestUrl, params.popup);
@@ -146,7 +146,7 @@ export class PopupHandler extends InteractionHandler {
             return popupWindow;
         } catch (e) {
             this.authModule.logger.error("error opening popup " + e.message);
-            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
+            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
             throw BrowserAuthError.createPopupWindowError(e.toString());
         }
     }
@@ -174,7 +174,7 @@ export class PopupHandler extends InteractionHandler {
      * Event callback to unload main window.
      */
     unloadWindow(e: Event): void {
-        this.browserStorage.cleanRequest();
+        this.browserStorage.cleanRequestByInteractionType(InteractionType.Popup);
         this.currentWindow.close();
         // Guarantees browser unload will happen, so no other errors will be thrown.
         delete e["returnValue"];
@@ -193,6 +193,6 @@ export class PopupHandler extends InteractionHandler {
         window.removeEventListener("beforeunload", this.unloadWindow);
 
         // Interaction is completed - remove interaction status.
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(BrowserConstants.INTERACTION_STATUS_KEY));
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
     }
 }
