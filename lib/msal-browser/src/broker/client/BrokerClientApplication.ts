@@ -42,13 +42,15 @@ export class BrokerClientApplication extends ClientApplication {
      */
     async handleRedirectPromise(): Promise<BrokerAuthenticationResult | null> {
         this.cachedBrokerResponse = super.handleRedirectPromise() as Promise<BrokerAuthenticationResult>;
-        const cachedResponse = (await this.cachedBrokerResponse);
+        const cachedResponse = (await this.cachedBrokerResponse) as BrokerAuthenticationResult;
         // TODO: What to do in cases of multi-account in broker?
         if (cachedResponse) {
+            if (!cachedResponse.tokensToCache) {
+                return cachedResponse;
+            }
             this.brokerAccount = cachedResponse.account;
-            // TODO: only return if cachedResponse is for broker, not client.
         }
-        
+
         return null;
     }
 
