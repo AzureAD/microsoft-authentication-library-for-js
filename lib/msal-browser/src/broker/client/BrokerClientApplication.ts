@@ -46,6 +46,7 @@ export class BrokerClientApplication extends ClientApplication {
         // TODO: What to do in cases of multi-account in broker?
         if (cachedResponse) {
             if (!cachedResponse.tokensToCache) {
+                this.cachedBrokerResponse = undefined;
                 return cachedResponse;
             }
             this.brokerAccount = cachedResponse.account;
@@ -55,10 +56,17 @@ export class BrokerClientApplication extends ClientApplication {
     }
 
     /**
-     * 
+     * Add event listener to start listening for messages to the broker.
      */
     listenForBrokerMessage(): void {
         window.addEventListener("message", this.handleBrokerMessage.bind(this));
+    }
+
+    /**
+     * Sets the account to use for retrieving new tokens by the broker.
+     */
+    setBrokerAccount(accountObj: AccountInfo): void {
+        this.brokerAccount = accountObj;
     }
 
     /**
@@ -104,7 +112,7 @@ export class BrokerClientApplication extends ClientApplication {
      * 
      * @param clientMessage 
      */
-    async handleBrokerRedirectResponse(clientMessage: MessageEvent): Promise<void> {
+    private async handleBrokerRedirectResponse(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandleRedirectRequest.validate(clientMessage);
         if (validMessage) {
             // TODO: Calculate request thumbprint
@@ -112,7 +120,7 @@ export class BrokerClientApplication extends ClientApplication {
             const brokerResult = await this.cachedBrokerResponse;
             if (brokerResult) {
                 // TODO: Replace with in-memory cache lookup
-                this.cachedBrokerResponse = null;
+                this.cachedBrokerResponse = undefined;
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
                 this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
                 clientPort.postMessage(brokerAuthResponse);
@@ -120,7 +128,8 @@ export class BrokerClientApplication extends ClientApplication {
                 return;
             } else {
                 // TODO: Throw error or return null?
-                clientPort.postMessage(null);
+                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, null);
+                clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
             }
         }
@@ -139,7 +148,8 @@ export class BrokerClientApplication extends ClientApplication {
             const brokerResult = await this.cachedBrokerResponse;
             if (brokerResult && brokerResult.tokensToCache) {
                 // TODO: Replace with in-memory cache lookup
-                this.cachedBrokerResponse = null;
+                console.log(brokerResult);
+                this.cachedBrokerResponse = undefined;
                 const clientPort = clientMessage.ports[0];
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
                 this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
@@ -148,7 +158,9 @@ export class BrokerClientApplication extends ClientApplication {
                 return;
             }
 
-            if (this.brokerAccount) {
+            console.log(validMessage);
+
+            if (this.brokerAccount || validMessage.request.account) {
                 return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], this.brokerAccount);
             }
 

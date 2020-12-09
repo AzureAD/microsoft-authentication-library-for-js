@@ -39,8 +39,10 @@ function handleResponse(resp) {
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
-            username = currentAccounts[0].username;
-            showWelcomeMessage(currentAccounts[0]);
+            const accountObj = currentAccounts[0];
+            myMSALObj.setBrokerAccount(accountObj);
+            username = accountObj.username;
+            showWelcomeMessage(accountObj);
         }
     }
 }

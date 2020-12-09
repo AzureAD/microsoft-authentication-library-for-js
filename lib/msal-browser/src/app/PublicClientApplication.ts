@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -16,6 +16,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { EventType } from "../event/EventType";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { BrokerAuthError } from "../error/BrokerAuthError";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -164,9 +165,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             forceRefresh: request.forceRefresh || false
         };
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-            return this.embeddedApp.sendSilentRefreshRequest(request);
-        }
 
         try {
             // Telemetry manager only used to increment cacheHits here
@@ -177,6 +175,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return cachedToken;
         } catch (e) {
             try {
+                if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+                    return this.embeddedApp.sendSilentRefreshRequest(request);
+                }
                 const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
                 this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
                 return tokenRenewalResult;
@@ -185,5 +186,16 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 throw tokenRenewalError;
             }
         }
+    }
+
+    /**
+     * Sets the account for the broker. Throws error if called when no broker is set.
+     * @param accountObj 
+     */
+    setBrokerAccount(accountObj: AccountInfo): void {
+        if (!this.broker) {
+            throw BrokerAuthError.createNoBrokerEnabledError();
+        }
+        this.broker.setBrokerAccount(accountObj);
     }
 }

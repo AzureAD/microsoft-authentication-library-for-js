@@ -73,13 +73,14 @@ export class BrokerAuthResponse extends BrokerMessage {
     }
 
     static processBrokerResponse(brokerAuthResult: BrokerAuthResponse, browserStorage: BrowserCacheManager): AuthenticationResult {
-        if (!brokerAuthResult) {
+        if (brokerAuthResult && brokerAuthResult.error) {
+            throw brokerAuthResult.error;
+        }
+
+        if (!brokerAuthResult || !brokerAuthResult.result) {
             return null;
         }
 
-        if (brokerAuthResult.error) {
-            throw brokerAuthResult.error;
-        }
         const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
         const idTokenEntity: IdTokenEntity = new IdTokenEntity();
         const accountEntity: AccountEntity = new AccountEntity();

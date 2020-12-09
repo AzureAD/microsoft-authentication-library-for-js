@@ -12,6 +12,10 @@ export const BrokerAuthErrorMessage = {
     noTokensToCacheError: {
         code: "no_tokens_to_cache",
         desc: "The broker did not have any tokens for the client to cache."
+    },
+    noBrokerEnabled: {
+        code: "no_broker_enabled",
+        desc: "The broker has not been enabled. Please enable the broker before calling this function."
     }
 };
 
@@ -23,16 +27,23 @@ export class BrokerAuthError extends BrowserAuthError {
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
 
-        Object.setPrototypeOf(this, BrowserAuthError.prototype);
+        Object.setPrototypeOf(this, BrokerAuthError.prototype);
         this.name = "BrokerAuthError";
     }
 
     /**
      * Creates an error thrown when PKCE is not implemented.
-     * @param errDetail 
      */
-    static createNoTokensToCacheError(): BrowserAuthError {
-        return new BrowserAuthError(BrokerAuthErrorMessage.noTokensToCacheError.code,
+    static createNoTokensToCacheError(): BrokerAuthError {
+        return new BrokerAuthError(BrokerAuthErrorMessage.noTokensToCacheError.code,
             `${BrokerAuthErrorMessage.noTokensToCacheError.desc}`);
+    }
+
+    /**
+     * Creates an error thrown when the broker is disabled.
+     */
+    static createNoBrokerEnabledError(): BrokerAuthError {
+        return new BrokerAuthError(BrokerAuthErrorMessage.noBrokerEnabled.code,
+            BrokerAuthErrorMessage.noBrokerEnabled.desc);
     }
 }
