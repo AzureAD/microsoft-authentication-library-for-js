@@ -1,10 +1,11 @@
 import { Deserializer, Serializer } from "../../lib/msal-node";
 import { InMemoryCache, JsonCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
 import fs from "fs";
+import { AccessToken } from '@azure/identity';
 
 export type tokenMap = {
     idTokens: string[],
-    accessTokens: string[],
+    accessTokens: any[],
     refreshTokens: string[]
 };
 
@@ -21,11 +22,20 @@ export class NodeCacheTestUtils {
 
         Object.keys(tokenCache).forEach((cacheSectionKey: string) => {
             Object.keys(deserializedCache[cacheSectionKey]).map((cacheKey) => {
-                tokenCache[cacheSectionKey].push(cacheKey);
+                const cacheSection = deserializedCache[cacheSectionKey];
+                tokenCache[cacheSectionKey].push({ 
+                    key: cacheKey,
+                    token: cacheSection[cacheKey]
+                });
             })
         });
 
         return tokenCache;
+    }
+
+    static getAccessTokens(cacheLocation: string): Array<any> {
+        const allTokens = NodeCacheTestUtils.getTokens(cacheLocation);
+        return allTokens.accessTokens;
     }
 
     static getDeserializedCache(cacheLocation: string): InMemoryCache {

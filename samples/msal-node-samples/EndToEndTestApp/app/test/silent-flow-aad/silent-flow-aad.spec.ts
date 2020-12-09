@@ -10,6 +10,7 @@ import { clickSignIn, enterCredentials } from "../testUtils";
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = 'http://localhost:3000/';
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
+const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
 
 let username: string;
 let accountPwd: string;
@@ -80,28 +81,24 @@ describe('Silent Flow AAD PPE Tests', () => {
                 await page.click("#acquireTokenSilent");
                 await page.waitForSelector("#graph-called-successfully");
                 await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
+                const htmlBody = await page.evaluate(() => document.body.innerHTML);
+                expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
             });
-        });
 
-        describe("Not authenticated", () => {
-            beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
-                page = await context.newPage();
-                page.setDefaultNavigationTimeout(0);
-                await page.goto(SAMPLE_HOME_URL);
-            });
-        
-            afterEach(async () => {
-                await page.close();
-                await context.close();
-            });
-    
-            it("AcquireTokenSilent returns null when there are no tokens in the cache", async () => {
+            it("Refreshes an expired access token", async () => {
                 await page.waitForSelector("#acquireTokenSilent");
-                const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-                expect(cachedTokens.accessTokens.length).toBe(1);
-                expect(cachedTokens.idTokens.length).toBe(1);
-                expect(cachedTokens.refreshTokens.length).toBe(1);
+                const originalTokenExpiration = Number(NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token.expiresOn);
+                NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
+                const expiredTokenExpiration = Number(NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token.expiresOn);
+                await page.click("#acquireTokenSilent");
+                await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
+                const refreshedTokenExpiration = Number(NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token.expiresOn);
+                await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
+                const htmlBody = await page.evaluate(() => document.body.innerHTML);
+                expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
+                expect(originalTokenExpiration).toBeGreaterThan(0);
+                expect(expiredTokenExpiration).toBe(0);
+                expect(refreshedTokenExpiration).toBeGreaterThan(originalTokenExpiration);
             });
         });
     });

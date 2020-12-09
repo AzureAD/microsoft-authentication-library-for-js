@@ -58,6 +58,7 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
         
         if (accounts.length > 0) {
             const account = accounts[0];
+            app.locals.homeAccountId = account.homeAccountId;
             const silentRequest = { ...requestConfig.silentRequest, account: account };    
             let templateParams = { showLoginButton: false };
             // Acquire Token Silently to be used in MS Graph call
