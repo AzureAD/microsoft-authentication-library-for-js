@@ -72,6 +72,7 @@ describe('Silent Flow AAD PPE Tests', () => {
             });
     
             it("Performs acquire token with Auth Code flow", async () => {
+                await screenshot.takeScreenshot(page, "authenticatedView");
                 await page.waitForSelector("#acquireTokenSilent");
                 const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
                 expect(cachedTokens.accessTokens.length).toBe(1);
