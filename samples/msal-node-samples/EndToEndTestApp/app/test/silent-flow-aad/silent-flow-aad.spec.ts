@@ -10,7 +10,8 @@ import {
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
-    SUCCESSFUL_GRAPH_CALL_ID } from "../testUtils";
+    SUCCESSFUL_GRAPH_CALL_ID, 
+    SUCCESSFUL_GET_ALL_ACCOUNTS_ID } from "../testUtils";
 
 let username: string;
 let accountPwd: string;
@@ -102,6 +103,46 @@ describe('Silent Flow AAD PPE Tests', () => {
                 expect(expiredTokenExpiration).toBe(0);
                 expect(refreshedTokenExpiration).toBeGreaterThan(originalTokenExpiration);
             });
+
+            it("Gets all accounts", async () => {
+                await page.waitForSelector("#getAllAccounts");
+                await page.click("#getAllAccounts");
+                await page.waitForSelector(`#${SUCCESSFUL_GET_ALL_ACCOUNTS_ID}`);
+                await screenshot.takeScreenshot(page, "gotAllAccounts");
+                const accounts  = await page.evaluate(() => JSON.parse(document.getElementById("nav-tabContent").children[0].innerHTML));
+                const htmlBody = await page.evaluate(() => document.body.innerHTML);
+                expect(htmlBody).toContain(SUCCESSFUL_GET_ALL_ACCOUNTS_ID);
+                expect(htmlBody).not.toContain("No accounts found in the cache.");
+                expect(htmlBody).not.toContain("Failed to get accounts from cache.");
+                expect(accounts.length).toBe(1);
+            });
         });
+
+        describe("Unauthenticated", () => {
+            beforeEach(async () => {
+                context = await browser.createIncognitoBrowserContext();
+                page = await context.newPage();
+                page.setDefaultNavigationTimeout(0);
+                await page.goto(SAMPLE_HOME_URL);
+            });
+        
+            afterEach(async () => {
+                await page.close();
+                await context.close();
+                NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            });
+
+            it("Returns empty account array", async () => {
+                await page.goto(`${SAMPLE_HOME_URL}/allAccounts`);
+                await page.waitForSelector("#getAllAccounts");
+                await page.click("#getAllAccounts");
+                await screenshot.takeScreenshot(page, "gotAllAccounts");
+                const accounts  = await page.evaluate(() => JSON.parse(document.getElementById("nav-tabContent").children[0].innerHTML));
+                const htmlBody = await page.evaluate(() => document.body.innerHTML);
+                expect(htmlBody).toContain("No accounts found in the cache.");
+                expect(htmlBody).not.toContain("Failed to get accounts from cache.");
+                expect(accounts.length).toBe(0);
+            });
+        })
     });
 });

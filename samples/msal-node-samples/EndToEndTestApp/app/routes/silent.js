@@ -88,6 +88,19 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
             res.status(500).send(error);
         });
     });
+
+    // Displays all cached accounts
+    router.get('/allAccounts', async (req, res) => {
+        const accounts = await msalTokenCache.getAllAccounts();
+
+        if (accounts.length > 0) {
+            res.render("authenticated", { accounts: JSON.stringify(accounts, null, 4) })
+        } else if(accounts.length === 0) {
+            res.render("authenticated", { accounts: JSON.stringify(accounts), noAccounts: true, showSignInButton: true });
+        } else {
+            res.render("authenticated", { failedToGetAccounts: true, showSignInButton: true })
+        }
+    });
     
     // Initiates Acquire Token Silent flow
     router.get('/graphCall', async (req, res) => {
@@ -110,5 +123,5 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
                 templateParams.couldNotAcquireToken = true;
                 res.render("authenticated", templateParams)
             });
-    });    
+    });
 };

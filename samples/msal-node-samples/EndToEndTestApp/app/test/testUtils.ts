@@ -32,5 +32,6 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
 // Constants
 
 export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-export const SAMPLE_HOME_URL = 'http://localhost:3000/';
+export const SAMPLE_HOME_URL = 'http://localhost:3000';
 export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
+export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
