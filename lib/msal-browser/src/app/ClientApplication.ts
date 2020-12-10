@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest } from "@azure/msal-common";
+import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
@@ -48,6 +48,9 @@ export abstract class ClientApplication {
 
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
+
+    // Sets the account to use if no account info is given
+    private activeAccountId: string | null;
 
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
@@ -106,6 +109,7 @@ export abstract class ClientApplication {
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
         this.defaultAuthority = null;
+        this.activeAccountId = null;
     }
 
     // #region Redirect Flow
@@ -565,6 +569,10 @@ export abstract class ClientApplication {
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
 
+            if (!logoutRequest.account || AccountEntity.accountInfoIsEqual(logoutRequest.account, this.getActiveAccount())) {
+                this.setActiveAccount(null);
+            }
+
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {
                 const navigate = logoutRequest.onRedirectNavigate(logoutUri);
@@ -642,6 +650,25 @@ export abstract class ClientApplication {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
+     * @param account 
+     */
+    setActiveAccount(account: AccountInfo): void {
+        this.activeAccountId = account.localAccountId;
+    }
+
+    /**
+     * Gets the currently active account
+     */
+    getActiveAccount(): AccountInfo | null {
+        if (!this.activeAccountId) {
+            return null;
+        }
+
+        return this.getAccountByLocalId(this.activeAccountId);
     }
 
     // #endregion
@@ -830,7 +857,6 @@ export abstract class ClientApplication {
      * @param request
      */
     protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType
@@ -856,6 +882,7 @@ export abstract class ClientApplication {
             nonce: nonce,
             responseMode: ResponseMode.FRAGMENT,
             authenticationScheme: authenticationScheme,
+            account: request.account || this.getActiveAccount()
         };
 
         // Check for ADAL SSO
