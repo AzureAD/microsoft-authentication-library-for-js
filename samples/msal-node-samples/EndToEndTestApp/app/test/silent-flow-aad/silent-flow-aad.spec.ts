@@ -90,18 +90,19 @@ describe('Silent Flow AAD PPE Tests', () => {
 
             it("Refreshes an expired access token", async () => {
                 await page.waitForSelector("#acquireTokenSilent");
-                const originalTokenExpiration = Number(NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token.expiresOn);
+                const originalAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
                 NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
-                const expiredTokenExpiration = Number(NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token.expiresOn);
+                const expiredAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
                 await page.click("#acquireTokenSilent");
                 await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
-                const refreshedTokenExpiration = Number(NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token.expiresOn);
+                const refreshedAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
                 await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
                 const htmlBody = await page.evaluate(() => document.body.innerHTML);
                 expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
-                expect(originalTokenExpiration).toBeGreaterThan(0);
-                expect(expiredTokenExpiration).toBe(0);
-                expect(refreshedTokenExpiration).toBeGreaterThan(originalTokenExpiration);
+                expect(Number(originalAccessToken.expiresOn)).toBeGreaterThan(0);
+                expect(Number(expiredAccessToken.expiresOn)).toBe(0);
+                expect(Number(refreshedAccessToken.expiresOn)).toBeGreaterThan(0);
+                expect(refreshedAccessToken.secret).not.toEqual(originalAccessToken.secret);
             });
 
             it("Gets all accounts", async () => {
