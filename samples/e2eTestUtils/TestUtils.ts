@@ -20,7 +20,7 @@ export class Screenshot {
 
 export function createFolder(foldername: string) {
     if (!fs.existsSync(foldername)) {
-        fs.mkdirSync(foldername);
+        fs.mkdirSync(foldername, { recursive: true });
     }
 }
 

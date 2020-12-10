@@ -231,10 +231,7 @@ export abstract class ClientApplication {
             }
         }
 
-        // Deserialize hash fragment response parameters.
-        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(hash);
-
-        this.browserStorage.cleanRequest(serverParams.state);
+        this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
         return null;
     }
 
@@ -259,7 +256,7 @@ export abstract class ClientApplication {
             return await interactionHandler.handleCodeResponse(responseHash, authClient.authority, this.networkClient, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(serverParams.state);
+            this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             throw e;
         }
     }
@@ -304,11 +301,11 @@ export abstract class ClientApplication {
             const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            const redirectParameters = {
+            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, {
                 redirectTimeout: this.config.system.redirectNavigationTimeout, 
-                redirectStartPage: redirectStartPage
-            };
-            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectParameters);
+                redirectStartPage: redirectStartPage,
+                onRedirectNavigate: request.onRedirectNavigate
+            });
         } catch (e) {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
@@ -318,7 +315,7 @@ export abstract class ClientApplication {
             }
 
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(validRequest.state);
+            this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
     }
@@ -415,7 +412,7 @@ export abstract class ClientApplication {
             }
 
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(validRequest.state);
+            this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
     }
@@ -490,7 +487,7 @@ export abstract class ClientApplication {
             return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(silentRequest.state);
+            this.browserStorage.cleanRequestByState(silentRequest.state);
             throw e;
         }
     }
@@ -567,7 +564,20 @@ export abstract class ClientApplication {
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
-            return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+
+            // Check if onRedirectNavigate is implemented, and invoke it if so
+            if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {
+                const navigate = logoutRequest.onRedirectNavigate(logoutUri);
+
+                if (navigate !== false) {
+                    this.logger.verbose("Logout onRedirectNavigate did not return false, navigating");
+                    return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+                } else {
+                    this.logger.verbose("Logout onRedirectNavigate returned false, stopping navigation");
+                }
+            } else {
+                return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+            }
         } catch(e) {
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
             throw e;
@@ -674,7 +684,7 @@ export abstract class ClientApplication {
      */
     protected interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
-        return (this.browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+        return (this.browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
     }
 
     /**
