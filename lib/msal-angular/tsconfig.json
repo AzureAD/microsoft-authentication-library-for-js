@@ -18,6 +18,7 @@
       "skipLibCheck": true,
       "outDir": "dist",
       "rootDir": "src",
+      "baseUrl": ".",
       "paths": {
         "@angular/*": [
           "./node_modules/@angular/*"

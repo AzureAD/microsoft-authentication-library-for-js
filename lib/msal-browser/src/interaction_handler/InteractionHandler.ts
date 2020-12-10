@@ -65,7 +65,7 @@ export abstract class InteractionHandler {
 
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
-        this.browserStorage.cleanRequest(serverParams.state);
+        this.browserStorage.cleanRequestByState(serverParams.state);
         return tokenResponse;
     }
 
