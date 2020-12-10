@@ -72,6 +72,7 @@ describe('Silent Flow AAD PPE Tests', () => {
             });
     
             it("Performs acquire token with Auth Code flow", async () => {
+                await page.waitForNavigation({ waitUntil: "networkidle0"});
                 await screenshot.takeScreenshot(page, "authenticatedView");
                 await page.waitForSelector("#acquireTokenSilent");
                 const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
@@ -81,6 +82,7 @@ describe('Silent Flow AAD PPE Tests', () => {
             });
     
             it("Performs acquire token silent", async () => {
+                await page.waitForNavigation({ waitUntil: "networkidle0"});
                 await page.waitForSelector("#acquireTokenSilent");
                 await page.click("#acquireTokenSilent");
                 await page.waitForSelector("#graph-called-successfully");
@@ -90,6 +92,7 @@ describe('Silent Flow AAD PPE Tests', () => {
             });
 
             it("Refreshes an expired access token", async () => {
+                await page.waitForNavigation({ waitUntil: "networkidle0"});
                 await page.waitForSelector("#acquireTokenSilent");
                 const originalAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
                 NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
@@ -107,6 +110,7 @@ describe('Silent Flow AAD PPE Tests', () => {
             });
 
             it("Gets all accounts", async () => {
+                await page.waitForNavigation({ waitUntil: "networkidle0"});
                 await page.waitForSelector("#getAllAccounts");
                 await page.click("#getAllAccounts");
                 await page.waitForSelector(`#${SUCCESSFUL_GET_ALL_ACCOUNTS_ID}`);
