@@ -1,6 +1,6 @@
 # Events in MSAL Angular v2
 
-Before you start here, make sure you understand how to [initialize the application object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/initialization.md).
+Before you start here, make sure you understand how to [initialize the application object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md).
 
 MSAL Angular v2 uses the event system exposed by `@azure/msal-browser`, which emits events related to auth and MSAL, and can be used for updating UI, showing error messages, and so on.
 
@@ -41,7 +41,7 @@ export class AppComponent implements OnInit, OnDestroy {
 ```
 
 
-For the full example of using events, please see the sample [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.component.ts#L29).
+For the full example of using events, please see the sample [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.component.ts#L29).
 
 ## Table of events
 
