@@ -569,7 +569,7 @@ export abstract class ClientApplication {
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
 
-            if (!logoutRequest.account || AccountEntity.accountInfoIsEqual(logoutRequest.account, this.getActiveAccount())) {
+            if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
                 this.setActiveAccount(null);
             }
 
@@ -657,6 +657,10 @@ export abstract class ClientApplication {
      * @param account 
      */
     setActiveAccount(account: AccountInfo): void {
+        if (!account) {
+            this.activeAccountId = null;
+            return;
+        }
         this.activeAccountId = account.localAccountId;
     }
 
