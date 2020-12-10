@@ -2,7 +2,6 @@ import { Screenshot } from "../../../../e2eTestUtils/TestUtils";
 import { Page } from "puppeteer";
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0116");
     await screenshot.takeScreenshot(page, `loginPage`);
     await page.type("#i0116", username);
