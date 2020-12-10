@@ -283,6 +283,9 @@ export class AccountEntity {
      * @param arrayB 
      */
     static accountInfoIsEqual(accountA: AccountInfo, accountB: AccountInfo): boolean {
+        if (!accountA || !accountB) {
+            return false;
+        }
         return (accountA.homeAccountId === accountB.homeAccountId) && 
             (accountA.localAccountId === accountB.localAccountId) &&
             (accountA.username === accountB.username) &&
