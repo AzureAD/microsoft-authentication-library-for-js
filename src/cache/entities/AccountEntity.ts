@@ -275,4 +275,18 @@ export class AccountEntity {
             entity.hasOwnProperty("authorityType")
         );
     }
+
+    /**
+     * Helper function to determine whether 2 arrays are equal
+     * Used to avoid unnecessary state updates
+     * @param arrayA 
+     * @param arrayB 
+     */
+    static accountInfoIsEqual(accountA: AccountInfo, accountB: AccountInfo): boolean {
+        return (accountA.homeAccountId === accountB.homeAccountId) && 
+            (accountA.localAccountId === accountB.localAccountId) &&
+            (accountA.username === accountB.username) &&
+            (accountA.tenantId === accountB.tenantId) &&
+            (accountA.environment === accountB.environment);
+    }
 }
