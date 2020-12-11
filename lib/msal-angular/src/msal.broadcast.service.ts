@@ -22,7 +22,7 @@ export class MsalBroadcastService {
             this._msalSubject.next(message);
         });
     }
-    broadcast(message: EventMessage) {
+    broadcast(message: EventMessage): void {
         this._msalSubject.next(message);
     }
 }
