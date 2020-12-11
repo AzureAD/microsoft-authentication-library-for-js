@@ -25,11 +25,13 @@ export const TEST_CONSTANTS = {
     PRIVATE_KEY: "PRIVATE_KEY",
     PUBLIC_CERTIFICATE: 
 `-----BEGIN CERTIFICATE-----
-test1
+line1
+line2
 -----END CERTIFICATE-----
 
 -----BEGIN CERTIFICATE-----
-test2
+line3
+line4
 -----END CERTIFICATE-----
     `,
 };
