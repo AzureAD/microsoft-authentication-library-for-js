@@ -7,7 +7,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 ## How to run the sample
 
 ### Pre-requisites
-- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/README.md) have been completed to run msal-angular.
+- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/README.md) have been completed to run msal-angular.
 
 ### Configure the application
 - Open `./src/app/app.modules.ts` in an editor.
