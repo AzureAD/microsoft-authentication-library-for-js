@@ -1,38 +1,17 @@
+/*
+  This is a "Solution Style" tsconfig.json file, and is used by editors and TypeScript’s language server to improve development experience.
+  It is not intended to be used to perform a compilation.
+
+  To learn more about this file see: https://angular.io/config/solution-tsconfig.
+*/
 {
-    "compilerOptions": {
-      "target": "es5",
-      "lib": ["es5", "es2017", "dom"],
-      "module": "commonjs",
-      "moduleResolution": "node",
-      "suppressImplicitAnyIndexErrors" : true,
-      "sourceMap": true,
-      "declaration": true,
-      "removeComments": false,
-      "noImplicitAny": true,
-      "experimentalDecorators": true,
-      "emitDecoratorMetadata": true,
-      "allowUnreachableCode": false,
-      "allowUnusedLabels": false,
-      "pretty": true,
-      "stripInternal": true,
-      "skipLibCheck": true,
-      "outDir": "dist",
-      "rootDir": "src",
-      "paths": {
-        "@angular/*": [
-          "./node_modules/@angular/*"
-        ]
-      }
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.lib.json"
     },
-    "files": [
-      "./public_api.ts"
-    ],
-    "angularCompilerOptions": {
-      "genDir": "dist",
-      "debug": false,
-      "skipTemplateCodegen": true,
-      "skipMetadataEmit": false,
-      "strictMetadataEmit": true,
-      "enableIvy": false
+    {
+      "path": "./tsconfig.spec.json"
     }
-  }
+]
+}

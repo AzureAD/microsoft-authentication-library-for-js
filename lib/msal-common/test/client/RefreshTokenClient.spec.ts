@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import {
@@ -10,7 +15,7 @@ import {
     AUTHENTICATION_RESULT_WITH_FOCI
 } from "../utils/StringConstants";
 import { BaseClient} from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants, CredentialType } from "../../src/utils/Constants";
+import { AADServerParamKeys, GrantType, Constants, CredentialType, AuthenticationScheme } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
@@ -67,11 +72,10 @@ describe("RefreshTokenClient unit tests", () => {
         sinon.restore();
     });
 
-    describe("Constructor", async () => {
-
-        const config = await ClientTestUtils.createTestClientConfiguration();
+    describe("Constructor", () => {
         it("creates a RefreshTokenClient", async () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
             expect(client).to.be.not.null;
             expect(client instanceof RefreshTokenClient).to.be.true;
@@ -89,7 +93,8 @@ describe("RefreshTokenClient unit tests", () => {
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
             name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid
+            localAccountId: ID_TOKEN_CLAIMS.oid,
+            idTokenClaims: ID_TOKEN_CLAIMS
         };
 
         beforeEach(async () => {
@@ -117,7 +122,10 @@ describe("RefreshTokenClient unit tests", () => {
             const refreshTokenRequest: RefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                claims: TEST_CONFIG.CLAIMS
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
@@ -144,11 +152,15 @@ describe("RefreshTokenClient unit tests", () => {
         it("acquireTokenByRefreshToken refreshes a token", async () => {
             const silentFlowRequest: SilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
             };
 
             const expectedRefreshRequest: RefreshTokenRequest = {
                 ...silentFlowRequest,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
                 refreshToken: testRefreshTokenEntity.secret
             };
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
@@ -168,7 +180,8 @@ describe("RefreshTokenClient unit tests", () => {
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
             name: ID_TOKEN_CLAIMS.name,
-            localAccountId: ID_TOKEN_CLAIMS.oid
+            localAccountId: ID_TOKEN_CLAIMS.oid,
+            idTokenClaims: ID_TOKEN_CLAIMS
         };
 
         beforeEach(async () => {
@@ -196,7 +209,10 @@ describe("RefreshTokenClient unit tests", () => {
             const refreshTokenRequest: RefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                claims: TEST_CONFIG.CLAIMS
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
@@ -224,12 +240,16 @@ describe("RefreshTokenClient unit tests", () => {
         it("acquireTokenByRefreshToken refreshes a token (FOCI)", async () => {
             const silentFlowRequest: SilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
             };
 
             const expectedRefreshRequest: RefreshTokenRequest = {
                 ...silentFlowRequest,
-                refreshToken: testRefreshTokenEntity.secret
+                refreshToken: testRefreshTokenEntity.secret,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
 
@@ -246,7 +266,10 @@ describe("RefreshTokenClient unit tests", () => {
             const client = new RefreshTokenClient(config);
             await expect(client.acquireTokenByRefreshToken({
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: null
+                account: null,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
             })).to.be.rejectedWith(ClientAuthErrorMessage.NoAccountInSilentRequest.desc);
         });
 
@@ -277,7 +300,10 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const tokenRequest: SilentFlowRequest = {
                 scopes: [testScope2],
-                account: testAccount
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
             };
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config);

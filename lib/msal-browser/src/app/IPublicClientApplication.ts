@@ -3,11 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AccountInfo, EndSessionRequest, Logger } from "@azure/msal-common";
+import { AuthenticationResult, AccountInfo, Logger } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 
 export interface IPublicClientApplication {

@@ -2,6 +2,99 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 07 Dec 2020 22:19:03 GMT",
+      "tag": "@azure/msal-common_v2.0.0",
+      "version": "2.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix login loop with empty query string (#2707)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "307307edb3d9877caca3874d17f35faf2bae6180",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Expose idTokenClaims on AccountInfo (#2554)",
+            "author": "janutter@microsoft.com",
+            "commit": "cb2165aad7995d904ec49ade565d907dc314ce16",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add matchPattern string util for wildcard matching for urls (#2678)",
+            "author": "janutter@microsoft.com",
+            "commit": "4642741f3def4cdb575cc0a228f88e19f84e3da5",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "fix: added missing async (AzureAD/microsoft-authentication-library-for-js#2652)",
+            "author": "patrick@ruhkopf.me",
+            "commit": "1c0df2fc1468fb094c76da04de91271ffb4461c7",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Log messages contain package name and version (#2589)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4568c16bd425e242cdb799ec59b3508654cc2e45",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add clone to Logger (#2670)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "9efb3ba5886eaf6f3a3cd36957ab9fcb7399278a",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Enable the instance_aware flow (#1804)",
+            "author": "prkanher@microsoft.com",
+            "commit": "3e616e162149f4e57257b70e6d481c4596d91ef9",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Support id_token_hint on logout request (#2587)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "fa9b7009f094b3c17a6d177fcec9b736320735c0",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "major": [
+          {
+            "comment": "Enable StrictNullChecks (#2602)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "ebf18c6daead16f8cfd2afb3b63cbd59fc63046a",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Rename request types and change required fields (#2512)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5b891222d674eb5664af9187f319a61b50341f55",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Enforce triple equals in eslint",
+            "author": "janutter@microsoft.com",
+            "commit": "5975eb4077a2b4372683e68af4d748b0808134ab",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Package-lock update",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9c029bc074ecd32483a45cfab8721f0771c31e55",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Remove console.log in unit tests (#2629)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b89d8029a3703b2bfa1f9399456e652fe6f26e4f",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Nov 2020 23:33:20 GMT",
       "tag": "@azure/msal-common_v1.7.2",
       "version": "1.7.2",

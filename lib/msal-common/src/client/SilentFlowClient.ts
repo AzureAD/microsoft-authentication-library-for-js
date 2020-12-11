@@ -29,7 +29,7 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
         try {
             return await this.acquireCachedToken(request);
         } catch (e) {
@@ -76,13 +76,17 @@ export class SilentFlowClient extends BaseClient {
      * @param cacheRecord
      */
     private async generateResultFromCacheRecord(cacheRecord: CacheRecord, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
-        const idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
+        let idTokenObj: AuthToken | undefined;
+        if (cacheRecord.idToken) {
+            idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
+        }
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
+            this.authority,
             cacheRecord,
-            idTokenObj, 
             true,
-            null,
+            idTokenObj,
+            undefined,
             resourceRequestMethod,
             resourceRequestUri
         );

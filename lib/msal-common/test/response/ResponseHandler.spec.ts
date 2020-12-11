@@ -9,7 +9,7 @@ import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetwor
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientTestUtils } from "../client/ClientTestUtils";
-import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme, ValidCredentialType, CredentialEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, ProtocolMode } from "../../src";
+import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme, ValidCredentialType, CredentialEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, ProtocolMode, Logger, LogLevel } from "../../src";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
 import { MockStorageClass } from "../client/ClientTestUtils";
 
@@ -66,7 +66,15 @@ const cryptoInterface: ICrypto = {
 
 const testCacheManager = new MockStorageClass();
 
-const authority = new Authority("https://login.microsoftonline.com/common", networkInterface, ProtocolMode.AAD);
+const testAuthority = new Authority("https://login.microsoftonline.com/common", networkInterface, ProtocolMode.AAD);
+const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
+    if (containsPii) {
+        console.log(`Log level: ${level} Message: ${message}`);
+    }
+};
+const loggerOptions = {
+    loggerCallback: testLoggerCallback,
+}
 
 describe("ResponseHandler.ts", () => {
     beforeEach(() => {
@@ -76,6 +84,7 @@ describe("ResponseHandler.ts", () => {
         sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
         sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
             environment: "login.windows.net",
             tenantId: "testTenantId",
             username: "test@contoso.com"
@@ -96,6 +105,7 @@ describe("ResponseHandler.ts", () => {
             sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
             sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "test@contoso.com"
@@ -103,9 +113,9 @@ describe("ResponseHandler.ts", () => {
             sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(null);
 
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             try {
-                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, authority);
+                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
                 expect(tokenResp).to.be.undefined;
             } catch(e) {
                 if (e instanceof AuthError) {
@@ -122,9 +132,10 @@ describe("ResponseHandler.ts", () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.access_token = null;
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+                expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.be.null;
                 expect(cacheRecord.refreshToken).to.not.be.null;
@@ -132,16 +143,17 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, authority);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
         });
 
         it("doesn't create RefreshTokenEntity if refresh_token not in response", (done) => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.refresh_token = null;
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+                expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.not.be.null;
                 expect(cacheRecord.refreshToken).to.be.null;
@@ -149,15 +161,16 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, authority);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
         });
 
         it("create CacheRecord with all token entities", (done) => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+                expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.not.be.null;
                 expect(cacheRecord.refreshToken).to.not.be.null;
@@ -165,7 +178,7 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, authority);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
         });
     });
 
@@ -174,23 +187,23 @@ describe("ResponseHandler.ts", () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.access_token = null;
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, authority);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
 
             expect(result.accessToken).to.be.eq("");
             expect(result.scopes).to.be.length(0);
             expect(result.expiresOn).to.be.null;
-            expect(result.extExpiresOn).to.be.null;
+            expect(result.extExpiresOn).to.be.undefined;
         });
 
         it("sets default values if refresh_token not in cacheRecord", async () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.refresh_token = null;
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, authority);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
 
-            expect(result.familyId).to.be.null;
+            expect(result.familyId).to.be.eq("");
         });
 
         it("sets default values for access token using PoP scheme", async () => {
@@ -213,14 +226,15 @@ describe("ResponseHandler.ts", () => {
             sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
             sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "test@contoso.com"
             });
             ClientTestUtils.setCloudDiscoveryMetadataStubs();
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, authority, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
 
             expect(result.tokenType).to.be.eq(AuthenticationScheme.POP);
             expect(result.accessToken).to.be.eq(signedJwt);
@@ -239,7 +253,7 @@ describe("ResponseHandler.ts", () => {
                 state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
             };
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             const stateMismatchSpy = sinon.spy(ClientAuthError, "createStateMismatchError");
 
             try {
@@ -259,7 +273,7 @@ describe("ResponseHandler.ts", () => {
             };
             const stateMismatchSpy = sinon.spy(ClientAuthError, "createStateMismatchError");
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             expect(stateMismatchSpy.notCalled).to.be.true;
         });
@@ -273,7 +287,7 @@ describe("ResponseHandler.ts", () => {
             const stateMismatchSpy = sinon.spy(ClientAuthError, "createStateMismatchError");
 
             const testAltState = "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3d%3d";
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, testAltState, cryptoInterface);
             expect(stateMismatchSpy.notCalled).to.be.true;
         });
@@ -286,7 +300,7 @@ describe("ResponseHandler.ts", () => {
                 error: "interaction_required"
             };
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             } catch (e) {
@@ -303,7 +317,7 @@ describe("ResponseHandler.ts", () => {
                 error: "test_error"
             };
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             } catch (e) {
@@ -320,7 +334,7 @@ describe("ResponseHandler.ts", () => {
                 error_description: "test_error"
             };
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             } catch (e) {
@@ -338,7 +352,7 @@ describe("ResponseHandler.ts", () => {
                 suberror: "test_error"
             };
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             } catch (e) {
@@ -357,7 +371,7 @@ describe("ResponseHandler.ts", () => {
             // Can't spy on buildClientInfo, spy on one of its function calls instead
             const buildClientInfoSpy = sinon.spy(cryptoInterface, "base64Decode");
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             expect(buildClientInfoSpy.calledOnce).to.be.true;
             expect(buildClientInfoSpy.calledWith(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO)).to.be.true;
@@ -371,7 +385,7 @@ describe("ResponseHandler.ts", () => {
             // Can't spy on buildClientInfo, spy on one of its function calls instead
             const buildClientInfoSpy = sinon.spy(cryptoInterface, "base64Decode");
 
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, null);
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             expect(buildClientInfoSpy.notCalled).to.be.true;
         });
