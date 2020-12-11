@@ -2,6 +2,44 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 07 Dec 2020 23:02:52 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.1",
+      "version": "2.0.0-alpha.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update readme and docs (#2638)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ce8c0a1f8e0843d6be7a5dff9985bc38f4ca09a5",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "MSAL Angular v2 alpha.1 changes",
+            "author": "janutter@microsoft.com",
+            "commit": "ad26bb58337d762e1ab60432ad7989b642c4a59c",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 12 Nov 2020 00:45:30 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.0",
+      "version": "2.0.0-alpha.0",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Add msal-angular-v2-alpha-0 (#2463)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "31127561c00ce7d24e9a3059399140ab7984eb31",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Nov 2020 23:33:20 GMT",
       "tag": "@azure/msal-angular_v1.1.2",
       "version": "1.1.2",
