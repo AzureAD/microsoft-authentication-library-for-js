@@ -2,7 +2,7 @@
 
 **`@azure/msal-angular@2` is now available for private preview. Please see the [`@azure/msal-angular` README](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular) for information on installation and changes.** 
 
-### Current available Angular v2 samples
+### Current available samples for `@azure/msal-angular@2`:
 * [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular9-v2-sample-app)
 * [Angular v10](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app)
 * [Angular v11](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
