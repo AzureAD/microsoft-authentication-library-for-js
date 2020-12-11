@@ -1,4 +1,4 @@
-# CORS API usage in MSAL Angular v2
+# CORS API usage in MSAL Angular v1
 
 MSAL will get access tokens using a hidden Iframe for given CORS API endpoints in the config. To make CORS API call, you need to specify your CORS API endpoints as a map in the Angular config.
 

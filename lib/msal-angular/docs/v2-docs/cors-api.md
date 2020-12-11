@@ -17,7 +17,7 @@ export const protectedResourceMap: new Map([
         }, {
             interactionType: InteractionType.Redirect // MSAL Guard Configuration
         }, {
-            interactionType: InteractionTYpe.Redirect // MSAL Interceptor Configuration
+            interactionType: InteractionType.Redirect // MSAL Interceptor Configuration
             protectedResourceMap : protectedResourceMap
         })
     ]
