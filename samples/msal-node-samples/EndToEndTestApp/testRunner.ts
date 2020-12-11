@@ -58,6 +58,18 @@ async function testScenario (scenario: string): Promise<any> {
     const testCacheLocation = `${__dirname}/app/test/${scenario}/data/testCache.json`;
     const testLocation = `./app/test/${scenario}`;
 
+    // TODO: Improve this check to cater to all CLI implementations
+    if (scenario === 'device-code-aad') {
+        const args = {
+            _: [] as any[],
+            $0: '',
+            roots: [testLocation],
+            testTimeout: 30000
+        };
+        // Run tests for current scenario
+        return await runCLI(args as Config.Argv, [testLocation]).then(results => results); 
+    }
+
     // Execute sample application under scenario configuration
     return await runSample(scenario, 3000, testCacheLocation).then(async (server: any) => {
         const args = {
