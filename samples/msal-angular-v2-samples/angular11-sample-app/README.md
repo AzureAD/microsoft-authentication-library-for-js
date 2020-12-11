@@ -21,3 +21,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## Additional notes
 - The default interaction type for the sample is redirect. The sample can be configured to use popups by changing the `interactionType` in `app.module.ts` to `InteractionType.Popup`. 
+- **To use sample with Angular Universal SSR**: Please see instructions from the [Angular docs](https://angular.io/guide/universal) on how to install Angular Universal with this existing sample. All lines with references to `window` will also need to be removed. Comments indicating the lines to be removed can be found on these pages:
+  - [`app-routing.module.ts`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts)
+  - [`app.component.ts`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.component.ts)
+  - [`app.module.ts`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts)
