@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest } from "@azure/msal-common";
+import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
@@ -22,6 +22,7 @@ import { EventError, EventMessage, EventPayload, EventCallbackFunction } from ".
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import { AuthorityOptions } from "@azure/msal-common/dist/src/authority/AuthorityOptions";
 
 export abstract class ClientApplication {
 
@@ -39,9 +40,6 @@ export abstract class ClientApplication {
 
     // Input configuration by developer/user
     protected config: Configuration;
-
-    // Default authority
-    protected defaultAuthority: Authority;
 
     // Logger
     protected logger: Logger;
@@ -101,11 +99,6 @@ export abstract class ClientApplication {
 
         // Array of events
         this.eventCallbacks = new Map();
-
-        // Initialize default authority instance
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
-
-        this.defaultAuthority = null;
     }
 
     // #region Redirect Flow
@@ -672,11 +665,18 @@ export abstract class ClientApplication {
     /**
      * Used to get a discovered version of the default authority.
      */
-    async getDiscoveredDefaultAuthority(): Promise<Authority> {
-        if (!this.defaultAuthority) {
-            this.defaultAuthority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.config.auth.protocolMode);
+    async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: this.config.auth.protocolMode,
+            knownAuthorities: this.config.auth.knownAuthorities,
+            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
+        };
+
+        if (requestAuthority) {
+            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
         }
-        return this.defaultAuthority;
+
+        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 
     /**
@@ -722,15 +722,12 @@ export abstract class ClientApplication {
      * @param requestAuthority
      */
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
-        // If the requestAuthority is passed and is not equivalent to the default configured authority, create new authority and discover endpoints. Return default authority otherwise.
-        const discoveredAuthority = (!StringUtils.isEmpty(requestAuthority) && requestAuthority !== this.config.auth.authority) ? await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.config.auth.protocolMode)
-            : await this.getDiscoveredDefaultAuthority();
+        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority);
+
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
-                knownAuthorities: this.config.auth.knownAuthorities,
-                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
                 clientCapabilities: this.config.auth.clientCapabilities,
                 protocolMode: this.config.auth.protocolMode
             },

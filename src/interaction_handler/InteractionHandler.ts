@@ -70,10 +70,8 @@ export abstract class InteractionHandler {
     }
 
     protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule): Promise<void> {
-        if (!authority.isAuthorityAlias(cloudInstanceHostname)) {
-            const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
-            const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, authority.protocolMode);
-            this.authModule.updateAuthority(cloudInstanceAuthority);
-        }
+        const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
+        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options);
+        this.authModule.updateAuthority(cloudInstanceAuthority);
     }
 }

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -290,6 +290,29 @@ export class BrowserCacheManager extends CacheManager {
      */
     setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void {
         this.setItem(serverTelemetryKey, JSON.stringify(serverTelemetry));
+    }
+
+    /**
+     * 
+     */
+    getAuthorityMetadata(key: string) : AuthorityMetadataEntity | null {
+        const value = this.getItem(key);
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
+        const parsedMetadata = this.validateAndParseJson(value);
+        if (AuthorityMetadataEntity.isAuthorityMetadataEntity(key, parsedMetadata)) {
+            return CacheManager.toObject(new AuthorityMetadataEntity(), parsedMetadata);
+        }
+        return null;
+    }
+
+    /**
+     * 
+     * @param entity 
+     */
+    setAuthorityMetadata(key: string, entity: AuthorityMetadataEntity): void {
+        this.setItem(key, JSON.stringify(entity));
     }
 
     /**
