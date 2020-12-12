@@ -73,8 +73,6 @@ export type CommonClientConfiguration = {
 export type AuthOptions = {
     clientId: string;
     authority: Authority;
-    knownAuthorities?: Array<string>;
-    cloudDiscoveryMetadata?: string;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
 };
@@ -227,8 +225,6 @@ export function buildClientConfiguration(
  */
 function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
-        knownAuthorities: [],
-        cloudDiscoveryMetadata: "",
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
         ...authOptions

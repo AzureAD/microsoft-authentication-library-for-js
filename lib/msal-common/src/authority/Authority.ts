@@ -11,9 +11,13 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
 import { NetworkResponse } from "../network/NetworkManager";
 import { Constants } from "../utils/Constants";
-import { TrustedAuthority } from "./TrustedAuthority";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
+import { ICacheManager } from "../cache/interface/ICacheManager";
+import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
+import { AuthorityOptions } from "./AuthorityOptions";
+import { CloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
+import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -25,18 +29,21 @@ export class Authority {
     private _canonicalAuthority: UrlString;
     // Canonicaly authority url components
     private _canonicalAuthorityUrlComponents: IUri | null;
-    // Tenant discovery response retrieved from OpenID Configuration Endpoint
-    private tenantDiscoveryResponse: OpenIdConfigResponse;
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
+    // Cache Manager to cache network responses
+    protected cacheManager: ICacheManager;
     // Protocol mode to construct endpoints
-    private authorityProtocolMode: ProtocolMode;
+    private authorityOptions: AuthorityOptions;
+    // Authority metadata
+    private metadata: AuthorityMetadataEntity;
 
-    constructor(authority: string, networkInterface: INetworkModule, protocolMode: ProtocolMode) {
+    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
-        this.authorityProtocolMode = protocolMode;
+        this.cacheManager = cacheManager;
+        this.authorityOptions = authorityOptions;
     }
 
     // See above for AuthorityType
@@ -54,7 +61,14 @@ export class Authority {
      * ProtocolMode enum representing the way endpoints are constructed.
      */
     public get protocolMode(): ProtocolMode {
-        return this.authorityProtocolMode;
+        return this.authorityOptions.protocolMode;
+    }
+
+    /**
+     * Returns authorityOptions which can be used to reinstantiate a new authority instance
+     */
+    public get options(): AuthorityOptions {
+        return this.authorityOptions;
     }
 
     /**
@@ -85,6 +99,13 @@ export class Authority {
     }
 
     /**
+     * Get hostname and port i.e. login.microsoftonline.com
+     */
+    public get hostnameAndPort(): string {
+        return this.canonicalAuthorityUrlComponents.HostNameAndPort.toLowerCase();
+    }
+
+    /**
      * Get tenant for authority.
      */
     public get tenant(): string {
@@ -96,7 +117,7 @@ export class Authority {
      */
     public get authorizationEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.tenantDiscoveryResponse.authorization_endpoint);
+            return this.replaceTenant(this.metadata.authorization_endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -107,7 +128,7 @@ export class Authority {
      */
     public get tokenEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.tenantDiscoveryResponse.token_endpoint);
+            return this.replaceTenant(this.metadata.token_endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -115,7 +136,7 @@ export class Authority {
 
     public get deviceCodeEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.tenantDiscoveryResponse.token_endpoint.replace("/token", "/devicecode");
+            return this.metadata.token_endpoint.replace("/token", "/devicecode");
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -126,7 +147,7 @@ export class Authority {
      */
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.tenantDiscoveryResponse.end_session_endpoint);
+            return this.replaceTenant(this.metadata.end_session_endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -137,7 +158,7 @@ export class Authority {
      */
     public get selfSignedJwtAudience(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.tenantDiscoveryResponse.issuer);
+            return this.replaceTenant(this.metadata.issuer);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -165,64 +186,98 @@ export class Authority {
      * Boolean that returns whethr or not tenant discovery has been completed.
      */
     discoveryComplete(): boolean {
-        return !!this.tenantDiscoveryResponse;
+        return !!this.metadata;
     }
 
     /**
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
      * @param openIdConfigurationEndpoint
      */
-    private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<NetworkResponse<OpenIdConfigResponse>> {
-        return this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(openIdConfigurationEndpoint);
+    private async discoverEndpoints(): Promise<NetworkResponse<OpenIdConfigResponse>> {
+        return this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint);
     }
 
     /**
      * Set the trusted hosts and validate subsequent calls
      */
-    private async validateAndSetPreferredNetwork(): Promise<void> {
-        const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
-        if (TrustedAuthority.getTrustedHostList().length === 0) {
-            await TrustedAuthority.setTrustedAuthoritiesFromNetwork(this._canonicalAuthority, this.networkInterface);
+    private async validateAndSetPreferredNetwork(): Promise<[CloudDiscoveryMetadata, boolean]> {
+        // Check if network response was provided in config
+        if (this.authorityOptions.cloudDiscoveryMetadata) {
+            const parsedResponse = JSON.parse(this.authorityOptions.cloudDiscoveryMetadata) as CloudInstanceDiscoveryResponse;
+            const metadata = CloudDiscoveryMetadata.getMetadataFromNetworkResponse(parsedResponse.metadata, this.hostnameAndPort);
+            if (metadata) {
+                this.canonicalAuthority = this.canonicalAuthority.replace(this.hostnameAndPort, metadata.preferred_network);
+                return [metadata, false];
+            }
         }
 
-        if (!TrustedAuthority.IsInTrustedHostList(host)) {
+        // Check if host was included in knownAuthorities
+        if (this.isInKnownAuthorities()) {
+            return [CloudDiscoveryMetadata.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort), false]; 
+        }
+        
+        // Make a network call to get metadata from public cloud
+        const metadata = await CloudDiscoveryMetadata.getCloudDiscoveryMetadataFromNetwork(this.canonicalAuthority, this.networkInterface);
+        if (!metadata) {
             throw ClientConfigurationError.createUntrustedAuthorityError();
         }
 
-        const preferredNetwork = TrustedAuthority.getCloudDiscoveryMetadata(host).preferred_network;
-        if (host !== preferredNetwork) {
-            this.canonicalAuthority = this.canonicalAuthority.replace(host, preferredNetwork);
-        }
+        this.canonicalAuthority = this.canonicalAuthority.replace(this.hostnameAndPort, metadata.preferred_network);
+
+        return [metadata, true];
     }
 
     /**
-     * Perform endpoint discovery to discover the /authorize, /token and logout endpoints.
+     * Perform endpoint discovery to discover aliases, preferred_cache, preferred_network
+     * and the /authorize, /token and logout endpoints.
      */
     public async resolveEndpointsAsync(): Promise<void> {
-        await this.validateAndSetPreferredNetwork();
-        const openIdConfigEndpoint = this.defaultOpenIdConfigurationEndpoint;
-        const response = await this.discoverEndpoints(openIdConfigEndpoint);
-        this.tenantDiscoveryResponse = response.body;
+        const cachedMetadata = this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
+        if (cachedMetadata && !cachedMetadata.isExpired()) {
+            this.metadata = cachedMetadata;
+            return;
+        }
+
+        const [cloudDiscoveryMetadata, cloudDiscoveryFromNetwork] = await this.validateAndSetPreferredNetwork();
+        const response = await this.discoverEndpoints();
+        
+        this.metadata = AuthorityMetadataEntity.createAuthorityMetadataEntity(
+            cloudDiscoveryMetadata.aliases,
+            cloudDiscoveryMetadata.preferred_cache,
+            cloudDiscoveryMetadata.preferred_network,
+            response.body.authorization_endpoint,
+            response.body.token_endpoint,
+            response.body.end_session_endpoint,
+            response.body.issuer,
+            cloudDiscoveryFromNetwork
+        );
+
+        const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(this.metadata.preferred_cache);
+        this.cacheManager.setAuthorityMetadata(cacheKey, this.metadata);
     }
 
-    /**
-     * Determine if given hostname is alias of this authority
-     * @param host 
-     */
-    public isAuthorityAlias(host: string): boolean {
-        if (host === this.canonicalAuthorityUrlComponents.HostNameAndPort) {
-            return true;
-        }
-        const aliases = TrustedAuthority.getCloudDiscoveryMetadata(this.canonicalAuthorityUrlComponents.HostNameAndPort).aliases;
-        return aliases.indexOf(host) !== -1;
+    private isInKnownAuthorities(): boolean {
+        return !!this.authorityOptions.knownAuthorities.find((authority) => {
+            return UrlString.getDomainFromUrl(authority).toLowerCase() === this.hostnameAndPort;
+        });
     }
 
     /**
      * helper function to generate environment from authority object
-     * @param authority
      */
-    static generateEnvironmentFromAuthority(authority: Authority): string {
-        const reqEnvironment = authority.canonicalAuthorityUrlComponents.HostNameAndPort;
-        return TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment) ? TrustedAuthority.getCloudDiscoveryMetadata(reqEnvironment).preferred_cache : "";
+    getPreferredCache(): string {
+        if(this.discoveryComplete()) {
+            return this.metadata.preferred_cache;
+        } else {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
+        }
+    }
+
+    /**
+     * 
+     * @param host 
+     */
+    isAlias(host: string): boolean {
+        return this.metadata.aliases.indexOf(host) > -1;
     }
 }
