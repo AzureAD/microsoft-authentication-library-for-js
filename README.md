@@ -170,7 +170,7 @@ npm run test:coverage:only
 
 If you are using a framework such as Angular or React you may be interested in using one of our wrapper libraries:
 
-- Angular: [@azure/msal-angular v2 (Alpha)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v2/lib/msal-angular)
+- Angular: [@azure/msal-angular v2 (Alpha)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular)
 - React: [@azure/msal-react (Alpha)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react)
 
 ## Implicit Flow vs Authorization Code Flow with PKCE
