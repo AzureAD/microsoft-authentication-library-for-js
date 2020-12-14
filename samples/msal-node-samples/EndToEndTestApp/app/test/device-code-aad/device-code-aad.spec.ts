@@ -6,10 +6,14 @@ import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUti
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../../../e2eTestUtils/Constants";
-import { enterCredentials, extractDeviceCode, enterDeviceCode } from "../testUtils";
+import { 
+    enterCredentials, 
+    extractDeviceCode, 
+    enterDeviceCode,
+    SCREENSHOT_BASE_FOLDER_NAME,
+    DEVICE_LOGIN_URL,
+ } from "../testUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-const DEVICE_LOGIN_URL = 'https://microsoft.com/devicelogin';
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
 let username: string;
