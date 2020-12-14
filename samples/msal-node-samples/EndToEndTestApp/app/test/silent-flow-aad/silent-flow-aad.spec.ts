@@ -52,6 +52,7 @@ describe("Silent Flow AAD PPE Tests", () => {
 
     describe("Acquire Token", () => {
         describe("Authenticated", () => {
+            jest.setTimeout(60000);
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
