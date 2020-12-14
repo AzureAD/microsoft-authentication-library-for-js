@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import "jest";
 import puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
@@ -18,7 +23,7 @@ let accountPwd: string;
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
-describe('Silent Flow ADFS 2019 Tests', () => {
+describe("Silent Flow ADFS 2019 Tests", () => {
     jest.setTimeout(60000);
     let browser: puppeteer.Browser;
 
@@ -29,7 +34,7 @@ describe('Silent Flow ADFS 2019 Tests', () => {
             appType: AppTypes.CLOUD,
             federationProvider: FederationProviders.ADFS2019,
             userType: UserTypes.FEDERATED
-        }
+        };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
@@ -38,7 +43,7 @@ describe('Silent Flow ADFS 2019 Tests', () => {
 
         browser = await puppeteer.launch({
             headless: true,
-            ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
+            ignoreDefaultArgs: ["--no-sandbox", "-disable-setuid-sandbox", "--disable-extensions"]
         });
     })
 
