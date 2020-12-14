@@ -40,7 +40,7 @@ describe("Silent Flow AAD PPE Tests", () => {
 
         browser = await puppeteer.launch({
             headless: true,
-            ignoreDefaultArgs: ["--no-sandbox", "-disable-setuid-sandbox", "--disable-extensions"]
+            ignoreDefaultArgs: ["--no-sandbox", "-disable-setuid-sandbox"]
         });
     });
 
