@@ -9,7 +9,7 @@ import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTe
 import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments, FederationProviders, HomeDomains, UserTypes } from "../../../../../e2eTestUtils/Constants";
+import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../../../e2eTestUtils/Constants";
 import { 
     clickSignIn, 
     enterCredentialsADFS,
