@@ -51,8 +51,8 @@ describe("Silent Flow AAD PPE Tests", () => {
         await browser.close();
     });
 
-    describe("Acquire Token", async () => {
-        describe("Authenticated", async () => {
+    describe("Acquire Token", () => {
+        describe("Authenticated", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
@@ -60,12 +60,14 @@ describe("Silent Flow AAD PPE Tests", () => {
             });
         
             afterEach(async () => {
+                console.log("Closing page and context");
                 await page.close();
                 await context.close();
                 NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
     
             it("Performs acquire token with Auth Code flow", async () => {
+                console.log("Starting first test");
                 const testName = "AADAuthCodeSignIn";
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await clickSignIn(page, screenshot);
@@ -130,7 +132,7 @@ describe("Silent Flow AAD PPE Tests", () => {
             });
         });
 
-        describe("Unauthenticated", async () => {
+        describe("Unauthenticated", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
