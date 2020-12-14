@@ -52,14 +52,10 @@ describe("Silent Flow AAD PPE Tests", () => {
     });
 
     describe("Acquire Token", () => {
-        let testName: string;
-        let screenshot: Screenshot;
-
         describe("Authenticated", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                page.setDefaultNavigationTimeout(0);
                 await page.goto(SAMPLE_HOME_URL);
             });
         
@@ -149,7 +145,7 @@ describe("Silent Flow AAD PPE Tests", () => {
             });
 
             it("Returns empty account array", async () => {
-                const testName = "AADAuthCodeSignIn";
+                const testName = "AADNoCachedAccounts";
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.goto(`${SAMPLE_HOME_URL}/allAccounts`);
                 await page.waitForSelector("#getAllAccounts");
