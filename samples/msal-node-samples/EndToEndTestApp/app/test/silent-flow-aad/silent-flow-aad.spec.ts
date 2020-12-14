@@ -76,14 +76,14 @@ describe("Silent Flow AAD PPE Tests", () => {
                 NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
     
-            it("Performs acquire token with Auth Code flow", async () => {
-                await page.waitForSelector("#acquireTokenSilent");
-                await page.click("#acquireTokenSilent");
-                const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-                expect(cachedTokens.accessTokens.length).toBe(1);
-                expect(cachedTokens.idTokens.length).toBe(1);
-                expect(cachedTokens.refreshTokens.length).toBe(1);
-            });
+            // it("Performs acquire token with Auth Code flow", async () => {
+            //     await page.waitForSelector("#acquireTokenSilent");
+            //     await page.click("#acquireTokenSilent");
+            //     const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            //     expect(cachedTokens.accessTokens.length).toBe(1);
+            //     expect(cachedTokens.idTokens.length).toBe(1);
+            //     expect(cachedTokens.refreshTokens.length).toBe(1);
+            // });
     
             it("Performs acquire token silent", async () => {
                 await page.waitForSelector("#acquireTokenSilent");
