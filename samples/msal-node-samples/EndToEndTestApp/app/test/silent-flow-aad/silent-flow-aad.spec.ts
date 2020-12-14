@@ -70,6 +70,7 @@ describe("Silent Flow AAD PPE Tests", () => {
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await clickSignIn(page, screenshot);
                 await enterCredentials(page, screenshot, username, accountPwd);
+                await screenshot.takeScreenshot(page, "WaitingForATS");
                 await page.waitForSelector("#acquireTokenSilent");
                 await page.click("#acquireTokenSilent");
                 const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
