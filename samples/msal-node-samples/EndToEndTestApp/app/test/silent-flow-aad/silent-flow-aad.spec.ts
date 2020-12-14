@@ -51,8 +51,8 @@ describe("Silent Flow AAD PPE Tests", () => {
         await browser.close();
     });
 
-    describe("Acquire Token", () => {
-        describe("Authenticated", () => {
+    describe("Acquire Token", async () => {
+        describe("Authenticated", async () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
@@ -130,7 +130,7 @@ describe("Silent Flow AAD PPE Tests", () => {
             });
         });
 
-        describe("Unauthenticated", () => {
+        describe("Unauthenticated", async () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
