@@ -12,7 +12,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await screenshot.takeScreenshot(page, `loginPage`);
     await page.type("#i0116", username);
     await page.click("#idSIButton9");
-    await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await page.waitForSelector("#idSIButton9"); 
     await screenshot.takeScreenshot(page, `pwdInputPage`);
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, `pwdFilledOut`);
