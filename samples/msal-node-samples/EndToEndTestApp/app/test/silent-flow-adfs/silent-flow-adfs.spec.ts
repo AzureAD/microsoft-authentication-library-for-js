@@ -45,7 +45,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             headless: true,
             ignoreDefaultArgs: ["--no-sandbox", "-disable-setuid-sandbox", "--disable-extensions"]
         });
-    })
+    });
 
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;

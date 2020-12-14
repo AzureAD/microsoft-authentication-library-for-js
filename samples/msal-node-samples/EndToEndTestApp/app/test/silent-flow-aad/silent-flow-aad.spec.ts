@@ -26,6 +26,8 @@ const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 describe("Silent Flow AAD PPE Tests", () => {
     jest.setTimeout(30000);
     let browser: puppeteer.Browser;
+    let testName: string;
+    let screenshot: Screenshot;
 
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
@@ -42,6 +44,9 @@ describe("Silent Flow AAD PPE Tests", () => {
             headless: true,
             ignoreDefaultArgs: ["--no-sandbox", "-disable-setuid-sandbox", "--disable-extensions"]
         });
+
+        testName = "AAD_Silent_Flow";
+        screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
     });
 
     let context: puppeteer.BrowserContext;
@@ -52,14 +57,6 @@ describe("Silent Flow AAD PPE Tests", () => {
     });
 
     describe("Acquire Token", () => {
-        let testName: string;
-        let screenshot: Screenshot;
-
-        beforeAll(async() => {
-            testName = "silentFlowBaseCase";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-        });
-
         describe("Authenticated", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
@@ -76,14 +73,14 @@ describe("Silent Flow AAD PPE Tests", () => {
                 NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
     
-            // it("Performs acquire token with Auth Code flow", async () => {
-            //     await page.waitForSelector("#acquireTokenSilent");
-            //     await page.click("#acquireTokenSilent");
-            //     const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-            //     expect(cachedTokens.accessTokens.length).toBe(1);
-            //     expect(cachedTokens.idTokens.length).toBe(1);
-            //     expect(cachedTokens.refreshTokens.length).toBe(1);
-            // });
+            it("Performs acquire token with Auth Code flow", async () => {
+                await page.waitForSelector("#acquireTokenSilent");
+                await page.click("#acquireTokenSilent");
+                const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+                expect(cachedTokens.accessTokens.length).toBe(1);
+                expect(cachedTokens.idTokens.length).toBe(1);
+                expect(cachedTokens.refreshTokens.length).toBe(1);
+            });
     
             it("Performs acquire token silent", async () => {
                 await page.waitForSelector("#acquireTokenSilent");
